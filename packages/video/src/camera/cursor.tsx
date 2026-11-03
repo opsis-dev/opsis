@@ -9,13 +9,9 @@ import {
 } from "#video/camera/lib/mac-cursors.generated.ts";
 import { faded, ink } from "#video/camera/lib/style.ts";
 import { percent } from "#video/common/format.ts";
-import {
-  DEFAULT_CURSOR_FEEL,
-  DEFAULT_CURSOR_LOOK,
-  type ArrowCursorLook,
-} from "#video/common/recording.ts";
+import { DEFAULT_CURSOR_FEEL, type ArrowCursorLook } from "#video/common/recording.ts";
 import { isFadedOut } from "#video/core/anim.ts";
-import type { CursorFeel, CursorLook, RippleLook } from "#video/generated/spec.ts";
+import type { CursorFeel, PointerProps, RippleLook } from "#video/generated/spec.ts";
 
 const HOT_X = 1;
 const HOT_Y = 1;
@@ -139,11 +135,7 @@ function MacCursor({ shape, squash, k }: { shape: string; squash: number; k: num
 
 export type CursorOptions = {
   log: ClickLog;
-  cursor: boolean;
-  ripple: RippleLook | null;
-  cursorScale?: number;
-  cursorLook?: CursorLook;
-  cursorFeel?: CursorFeel;
+  pointer: PointerProps;
 };
 
 export function Cursor({
@@ -156,19 +148,16 @@ export function Cursor({
   cameraScale: number;
 }) {
   const k = useDesignScale();
-  const {
-    log,
-    ripple,
-    cursorScale: scale = 1,
-    cursorLook = DEFAULT_CURSOR_LOOK,
-    cursorFeel: feel = DEFAULT_CURSOR_FEEL,
-  } = clip;
+  const { log } = clip;
+  const { ripple, scale, look: cursorLook, feel = DEFAULT_CURSOR_FEEL } = clip.pointer;
   const motion = {
     pressSquash: feel.pressSquash,
     hideWhileTyping: feel.hideWhileTyping,
     rippleS: ripple?.durationS ?? RIPPLE_S,
   };
-  const state = clip.cursor ? cursorAt(log.cursorTrack ?? [], log.clicks, timeS, motion) : null;
+  const state = clip.pointer.shown
+    ? cursorAt(log.cursorTrack ?? [], log.clicks, timeS, motion)
+    : null;
   if (!state || isFadedOut(state.opacity)) return null;
 
   const { width, height } = log.viewport;

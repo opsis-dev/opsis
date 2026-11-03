@@ -88,7 +88,7 @@ impl Graph {
         let rec = self.node("record", "capture.record", json!({}));
         ids.push(rec.clone());
         self.chain(&ids);
-        let cam = self.node("camera", "camera.autoZoom", camera);
+        let cam = self.node("camera", "camera.take", camera);
         self.link_ports(&rec, &cam, "recording", "recording");
         cam
     }
@@ -158,8 +158,8 @@ pub fn node_result(fields: Value) -> NodeResult {
 
 pub fn record_result(log: &ActionLog) -> NodeResult {
     node_result(json!({ "outputs": { "recording": {
-        "type": "recording", "src": "project:.opsis/cache/h/recording.mp4", "log": log,
-        "durationMs": log.duration_ms, "viewport": log.viewport, "nodeId": "record", "style": []
+        "type": "recording", "log": log, "durationMs": log.duration_ms, "nodeId": "record", "edits": [],
+        "source": { "kind": "browser", "video": "project:.opsis/cache/h/recording.mp4", "viewport": log.viewport }
     } } }))
 }
 
@@ -270,7 +270,7 @@ pub fn clip_value(clip: &ClipValue) -> Value {
 
 pub fn take_recording(log: Option<ActionLog>) -> Value {
     let log = log.unwrap_or_else(|| make_log(Vec::new(), 3000.0));
-    json!({ "type": "recording", "src": "project:rec.mp4", "log": log, "durationMs": log.duration_ms, "viewport": log.viewport, "nodeId": "rec", "style": [] })
+    json!({ "type": "recording", "log": log, "durationMs": log.duration_ms, "nodeId": "rec", "edits": [], "source": { "kind": "browser", "video": "project:rec.mp4", "viewport": log.viewport } })
 }
 
 pub fn style_entries(steps: &[(&str, Value)], prefix: &str) -> Value {
@@ -289,13 +289,13 @@ pub fn zoomed(
     camera: Value,
 ) -> ClipValue {
     let mut recording = take_recording(log);
-    recording["style"] = style_entries(own, "t");
+    recording["edits"] = style_entries(own, "t");
     let mut inputs = json!({ "recording": recording });
     if let Some(style) = style {
         inputs["style"] =
             json!({ "type": "recording-style", "entries": style_entries(style, "s") });
     }
-    compile_clip("camera.autoZoom", camera, inputs)
+    compile_clip("camera.take", camera, inputs)
 }
 
 pub fn near(a: f64, b: f64, tolerance: f64) -> bool {

@@ -1,4 +1,4 @@
-import type { RecordingProps } from "#video/generated/spec.ts";
+import type { CameraStyle } from "#video/generated/spec.ts";
 
 export const WINDOW_FIT = 0.86;
 export const WINDOW_RADIUS = 14;
@@ -23,7 +23,7 @@ export type WindowShot = {
 
 type ShotStyle = WindowShot | { framing: "fullbleed" };
 
-export const SHOT_STYLES: Record<RecordingProps["style"], ShotStyle> = {
+export const SHOT_STYLES: Record<CameraStyle, ShotStyle> = {
   classic: { framing: "window", windowFit: WINDOW_FIT, ground: null, zoom: true },
   proof: { framing: "fullbleed" },
   ledger: { framing: "fullbleed" },

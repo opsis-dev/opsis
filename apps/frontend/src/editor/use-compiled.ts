@@ -24,6 +24,7 @@ const EMPTY: Compiled = {
   mix: null,
   solo: false,
   outdated: [],
+  converts: {},
 };
 
 function useLatest(): [Compiled, (compiled: EditorCompile) => void] {

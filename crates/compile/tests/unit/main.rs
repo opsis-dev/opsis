@@ -23,6 +23,7 @@ mod nodes_f;
 mod nodes_g;
 mod riser;
 mod small;
+mod takes;
 mod time;
 mod timeline;
 mod timeline_edits;

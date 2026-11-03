@@ -949,6 +949,7 @@ pub fn clip_frame_of_recording(
 
 pub fn recording_take(recording: &RecordingValue) -> Option<InputTake> {
     recording.log.as_ref().map(|log| InputTake {
+        kind: recording.kind(),
         duration_ms: log.duration_ms,
         cursor_track: log.cursor_track.as_ref().is_some_and(|t| !t.is_empty()),
     })

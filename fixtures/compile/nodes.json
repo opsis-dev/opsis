@@ -1083,10 +1083,10 @@
   }
  },
  {
-  "type": "camera.autoZoom",
-  "title": "Auto zoom",
+  "type": "camera.take",
+  "title": "Clip from take",
   "category": "Camera",
-  "description": "Turns a recording into a polished clip: the window floats on a backdrop and the camera zooms to every click.",
+  "description": "Turns a take into a clip, shot the way its style says: the window, the backdrop and the camera moves.",
   "phase": "compile",
   "inputs": [
    {
@@ -1127,26 +1127,50 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
+   "speed": 1.25
+  }
+ },
+ {
+  "type": "camera.camera",
+  "title": "Camera",
+  "category": "Camera",
+  "description": "How the camera follows the take: when it zooms to the actions, how close and how fast it moves.",
+  "phase": "compile",
+  "inputs": [
+   {
+    "id": "style",
+    "type": "recording-style",
+    "label": "Style",
+    "optional": true,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "style",
+    "type": "recording-style",
+    "label": "Style",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
    "zoom": true,
    "maxScale": 1.74,
    "hold": 1300,
-   "speed": 1.25,
-   "style": "classic",
-   "backdrop": "glaze",
-   "frame": "none",
-   "frameTheme": "light",
-   "addressBar": true,
-   "address": "",
-   "addressMode": "fixed",
-   "motionBlur": true,
-   "ground": "#faf6f1",
-   "shadow": 1.0,
-   "liftColours": true,
-   "shutterAngle": 180,
-   "bleedBlur": 48,
-   "bleedDim": 0.55,
-   "cameraEasing": "smooth",
-   "cameraPace": 1.0,
    "minScale": 1.18,
    "firstMaxScale": 1.54,
    "room": 80,
@@ -1157,7 +1181,54 @@
    "holdAfterTypingMs": 400,
    "restAtEndMs": 600,
    "longestPan": 500,
-   "frameFont": ""
+   "cameraEasing": "smooth",
+   "cameraPace": 1.0
+  }
+ },
+ {
+  "type": "camera.shot",
+  "title": "Shot",
+  "category": "Camera",
+  "description": "How the take sits in the frame: a floating window, the whole page, or a window on a plain ground.",
+  "phase": "compile",
+  "inputs": [
+   {
+    "id": "style",
+    "type": "recording-style",
+    "label": "Style",
+    "optional": true,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "style",
+    "type": "recording-style",
+    "label": "Style",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "style": "classic",
+   "ground": "#faf6f1",
+   "shadow": 1.0,
+   "liftColours": true,
+   "bleedBlur": 48,
+   "bleedDim": 0.55
   }
  },
  {
@@ -1589,9 +1660,10 @@
   "defaults": {
    "windowStyle": "macos",
    "frameTheme": "light",
-   "addressBar": true,
-   "address": "",
-   "addressMode": "fixed"
+   "titleBar": true,
+   "title": "",
+   "addressMode": "fixed",
+   "font": ""
   }
  },
  {
@@ -13517,6 +13589,39 @@
    "reframe": "follow",
    "jpegQuality": 80,
    "scale": 1.0
+  }
+ },
+ {
+  "type": "output.take",
+  "title": "Save take",
+  "category": "Output",
+  "description": "Saves a take's own recording as a file, as it was recorded: a video for a browser take, a cast file for a terminal take.",
+  "phase": "render",
+  "inputs": [
+   {
+    "id": "recording",
+    "type": "recording",
+    "label": "Recording",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": false,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "fileName": "{{Project name}} take"
   }
  },
  {

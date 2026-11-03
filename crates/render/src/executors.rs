@@ -7,8 +7,8 @@ use opsis_compile::asset_ref::{FILM_FOLDER, project_ref};
 use opsis_compile::hosted::hosted;
 use opsis_compile::nodes::media::Codec;
 use opsis_compile::nodes::output::{
-    ExportImages, ExportVideo, Gl, RENDER_TYPE, STILL_TYPE, StillFormat, Variant, export_base_name,
-    still_file_names, variant_size, video_file_names,
+    ExportImages, ExportVideo, Gl, RENDER_TYPE, SAVE_TAKE_TYPE, STILL_TYPE, SaveTake, StillFormat,
+    Variant, export_base_name, still_file_names, take_file_name, variant_size, video_file_names,
 };
 use opsis_compile::time::{frames_to_ms, lerp, ms_to_frames_from};
 use opsis_compile::timeline::chapters::{
@@ -30,7 +30,7 @@ use opsis_types::numbers;
 use opsis_types::numbers::whole;
 use opsis_types::timeline::{ReframeMode, SpecAssets, TimelineSpec};
 use opsis_types::values::{
-    Artifact, ArtifactKind, CompileValue, ImageValue, MediaKind, MediaValue, PortValues,
+    Artifact, ArtifactKind, CompileValue, ImageValue, MediaKind, MediaValue, PortValues, TakeKind,
 };
 use serde_json::Value;
 
@@ -472,6 +472,39 @@ async fn export_images(
     })
 }
 
+async fn save_take(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: SaveTake = ctx.params()?;
+    let take = inputs
+        .get("recording")
+        .and_then(CompileValue::as_recording)
+        .ok_or_else(|| ExecError::new("Connect a take to save."))?;
+    let source = take
+        .file()
+        .ok_or_else(|| ExecError::new("The take hasn't been recorded yet."))?;
+    let from = ctx.ref_to_path(source)?;
+    let name = take_file_name(&p.file_name, take.kind());
+    let out = ctx.out_dir.join(&name);
+    std::fs::create_dir_all(&ctx.out_dir).map_err(|e| ExecError::new(e.to_string()))?;
+    write_via_temp(&out, |temp| async move {
+        tokio::fs::copy(&from, &temp).await.map(|_| ())
+    })
+    .await
+    .map_err(|e: std::io::Error| ExecError::new(format!("Couldn't save the take: {e}")))?;
+    let kind = match take.kind() {
+        TakeKind::Browser => ArtifactKind::Video,
+        TakeKind::Terminal => ArtifactKind::File,
+    };
+    Ok(ExecutorOutput {
+        outputs: PortValues::new(),
+        artifacts: vec![Artifact::labelled(kind, project_path(&ctx, &out)?, "Take")],
+        trace_id: None,
+        measured: Vec::new(),
+    })
+}
+
 fn bind<F, Fut>(engine: &Arc<RenderEngine>, run: F) -> Executor
 where
     F: Fn(Arc<ExecutorContext>, PortValues, Arc<RenderEngine>) -> Fut + Send + Sync + 'static,
@@ -485,5 +518,6 @@ pub fn output_executors(engine: &Arc<RenderEngine>) -> Vec<(&'static str, Execut
     vec![
         (RENDER_TYPE, bind(engine, export_video)),
         (STILL_TYPE, bind(engine, export_images)),
+        (SAVE_TAKE_TYPE, executor(save_take)),
     ]
 }

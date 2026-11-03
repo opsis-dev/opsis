@@ -41,7 +41,7 @@
   {
     "id": "todomvc",
     "title": "Sample: to-do app",
-    "description": "Records a sample to-do app with auto zoom and an opening title, in wide and tall shapes.",
+    "description": "Records a sample to-do app with a zooming camera and an opening title, in wide and tall shapes.",
     "icon": "list-checks",
     "workflow": {
       "version": 1,
@@ -220,22 +220,13 @@
         },
         {
           "id": "camera",
-          "type": "camera.autoZoom",
+          "type": "camera.take",
           "position": {
             "x": 2400,
             "y": 200
           },
           "params": {
-            "zoom": true,
-            "maxScale": 1.74,
-            "hold": 1300,
-            "speed": 1.25,
-            "style": "classic",
-            "backdrop": "glaze",
-            "frame": "none",
-            "frameTheme": "light",
-            "addressBar": true,
-            "motionBlur": true
+            "speed": 1.25
           }
         },
         {
@@ -596,22 +587,13 @@
         },
         {
           "id": "camera",
-          "type": "camera.autoZoom",
+          "type": "camera.take",
           "position": {
             "x": 1200,
             "y": 200
           },
           "params": {
-            "zoom": true,
-            "maxScale": 1.74,
-            "hold": 1300,
-            "speed": 1.25,
-            "style": "classic",
-            "backdrop": "glaze",
-            "frame": "none",
-            "frameTheme": "light",
-            "addressBar": true,
-            "motionBlur": true
+            "speed": 1.25
           }
         },
         {
@@ -1236,22 +1218,13 @@
         },
         {
           "id": "camera",
-          "type": "camera.autoZoom",
+          "type": "camera.take",
           "position": {
             "x": 2100,
             "y": 200
           },
           "params": {
-            "zoom": true,
-            "maxScale": 1.74,
-            "hold": 1300,
-            "speed": 1.25,
-            "style": "classic",
-            "backdrop": "glaze",
-            "frame": "none",
-            "frameTheme": "light",
-            "addressBar": true,
-            "motionBlur": true
+            "speed": 1.25
           }
         },
         {
@@ -1544,22 +1517,13 @@
         },
         {
           "id": "camera",
-          "type": "camera.autoZoom",
+          "type": "camera.take",
           "position": {
             "x": 1200,
             "y": 200
           },
           "params": {
-            "zoom": true,
-            "maxScale": 1.74,
-            "hold": 1300,
-            "speed": 1.5,
-            "style": "classic",
-            "backdrop": "glaze",
-            "frame": "none",
-            "frameTheme": "light",
-            "addressBar": true,
-            "motionBlur": true
+            "speed": 1.5
           }
         },
         {
@@ -1805,22 +1769,13 @@
         },
         {
           "id": "before-camera",
-          "type": "camera.autoZoom",
+          "type": "camera.take",
           "position": {
             "x": 900,
             "y": 200
           },
           "params": {
-            "zoom": false,
-            "maxScale": 1.74,
-            "hold": 1300,
-            "speed": 1.25,
-            "style": "classic",
-            "backdrop": "glaze",
-            "frame": "none",
-            "frameTheme": "light",
-            "addressBar": true,
-            "motionBlur": true
+            "speed": 1.25
           }
         },
         {
@@ -1915,22 +1870,13 @@
         },
         {
           "id": "after-camera",
-          "type": "camera.autoZoom",
+          "type": "camera.take",
           "position": {
             "x": 900,
             "y": 1050
           },
           "params": {
-            "zoom": false,
-            "maxScale": 1.74,
-            "hold": 1300,
-            "speed": 1.25,
-            "style": "classic",
-            "backdrop": "glaze",
-            "frame": "none",
-            "frameTheme": "light",
-            "addressBar": true,
-            "motionBlur": true
+            "speed": 1.25
           }
         },
         {
@@ -1995,6 +1941,28 @@
             "chapters": true,
             "chapterList": false,
             "gl": "angle"
+          }
+        },
+        {
+          "id": "before-camera-moves",
+          "type": "camera.camera",
+          "position": {
+            "x": 600,
+            "y": 360
+          },
+          "params": {
+            "zoom": false
+          }
+        },
+        {
+          "id": "after-camera-moves",
+          "type": "camera.camera",
+          "position": {
+            "x": 600,
+            "y": 1210
+          },
+          "params": {
+            "zoom": false
           }
         }
       ],
@@ -2103,6 +2071,20 @@
           "sourceHandle": "clip",
           "target": "render",
           "targetHandle": "clip"
+        },
+        {
+          "id": "before-camera-moves.style->before-camera.style",
+          "source": "before-camera-moves",
+          "sourceHandle": "style",
+          "target": "before-camera",
+          "targetHandle": "style"
+        },
+        {
+          "id": "after-camera-moves.style->after-camera.style",
+          "source": "after-camera-moves",
+          "sourceHandle": "style",
+          "target": "after-camera",
+          "targetHandle": "style"
         }
       ],
       "markers": []

@@ -3,7 +3,8 @@ use opsis_types::cards::{CardRow, Icon};
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::recording::{
     AnnotationKind, AnnotationLook, AnnotationSpec, CursorFeel, CursorLook, HighlightLook,
-    KeyNames, KeystrokeLook, KeystrokePosition, LabelLook, RecordingProps, RippleLook,
+    KeyNames, KeystrokeLook, KeystrokePosition, LabelLook, PointerProps, RecordingProps,
+    RippleLook,
 };
 
 use crate::card_rows::{LABELLED_TEXT_MAX, join_parts, quote, quoted, toggle_row};
@@ -551,21 +552,24 @@ fn cursor_style() -> NodeDef {
             vec![Some(shown)]
         })
         .restyle(|props: RecordingProps, p: &CursorStyle, _| RecordingProps {
-            cursor: p.visible,
-            cursor_scale: p.size,
-            cursor_feel: Some(CursorFeel {
-                grow_with_zoom: p.grow_with_zoom,
-                outline_width: p.outline_width,
-                shadow: p.shadow,
-                press_squash: p.press_squash,
-                hide_while_typing: p.hide_while_typing,
-            }),
-            cursor_look: match p.look {
-                CursorShape::Mac => CursorLook::Mac,
-                CursorShape::Arrow => CursorLook::Arrow {
-                    fill: color_or(&p.color, DEFAULT_CURSOR_FILL),
-                    edge: color_or(&p.outline, DEFAULT_CURSOR_EDGE),
+            pointer: PointerProps {
+                shown: p.visible,
+                scale: p.size,
+                feel: Some(CursorFeel {
+                    grow_with_zoom: p.grow_with_zoom,
+                    outline_width: p.outline_width,
+                    shadow: p.shadow,
+                    press_squash: p.press_squash,
+                    hide_while_typing: p.hide_while_typing,
+                }),
+                look: match p.look {
+                    CursorShape::Mac => CursorLook::Mac,
+                    CursorShape::Arrow => CursorLook::Arrow {
+                        fill: color_or(&p.color, DEFAULT_CURSOR_FILL),
+                        edge: color_or(&p.outline, DEFAULT_CURSOR_EDGE),
+                    },
                 },
+                ..props.pointer
             },
             ..props
         })
@@ -585,14 +589,17 @@ fn click_ripple() -> NodeDef {
             ]
         })
         .restyle(|props: RecordingProps, p: &ClickRipple, _| RecordingProps {
-            ripple: p.enabled.then(|| RippleLook {
-                color: color_or(&p.color, DEFAULT_RIPPLE_COLOR),
-                size: p.size,
-                width: p.width,
-                ring_opacity: Some(f64::from(p.ring_opacity) / 100.0),
-                fill_opacity: Some(f64::from(p.fill_opacity) / 100.0),
-                duration_s: Some(f64::from(p.duration_ms) / 1000.0),
-            }),
+            pointer: PointerProps {
+                ripple: p.enabled.then(|| RippleLook {
+                    color: color_or(&p.color, DEFAULT_RIPPLE_COLOR),
+                    size: p.size,
+                    width: p.width,
+                    ring_opacity: Some(f64::from(p.ring_opacity) / 100.0),
+                    fill_opacity: Some(f64::from(p.fill_opacity) / 100.0),
+                    duration_s: Some(f64::from(p.duration_ms) / 1000.0),
+                }),
+                ..props.pointer
+            },
             ..props
         })
 }

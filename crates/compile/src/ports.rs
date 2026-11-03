@@ -1,5 +1,5 @@
 use opsis_types::numbers::whole;
-use opsis_types::values::{ClipValue, CompileValue, MediaKind, MediaValue};
+use opsis_types::values::{ClipValue, CompileValue, MediaKind, MediaValue, TakeKind, TakeSource};
 use opsis_types::workflow::PortType;
 
 use crate::clip::clip_of;
@@ -23,12 +23,15 @@ fn recording_as_media(value: &CompileValue) -> Option<CompileValue> {
     let CompileValue::Recording(recording) = value else {
         return None;
     };
+    let TakeSource::Browser(browser) = &recording.source else {
+        return None;
+    };
     Some(CompileValue::Media(MediaValue {
-        src: recording.src.clone(),
+        src: browser.video.clone(),
         kind: MediaKind::Video,
         duration_ms: Some(whole(recording.duration_ms)),
-        width: Some(recording.viewport.width),
-        height: Some(recording.viewport.height),
+        width: Some(browser.viewport.width),
+        height: Some(browser.viewport.height),
         has_audio: Some(false),
     }))
 }
@@ -45,6 +48,35 @@ fn conversion(source: PortType, target: PortType) -> Option<Conversion> {
 
 pub fn can_connect(source: PortType, target: PortType) -> bool {
     source == target || conversion(source, target).is_some()
+}
+
+pub fn value_converts(value: &CompileValue, target: PortType) -> bool {
+    value.port_type() == target
+        || conversion(value.port_type(), target).is_some_and(|convert| convert(value).is_some())
+}
+
+pub fn value_conversions(value: &CompileValue) -> Vec<PortType> {
+    PortType::ALL
+        .iter()
+        .copied()
+        .filter(|t| value_converts(value, *t))
+        .collect()
+}
+
+pub fn refused_conversion(value: &CompileValue, target: PortType) -> Option<String> {
+    if value_converts(value, target) {
+        return None;
+    }
+    Some(match value {
+        CompileValue::Recording(take) if take.kind() == TakeKind::Terminal => {
+            "A terminal take has no video file. Save it with Save take, or make a clip with Clip from take".to_owned()
+        }
+        _ => format!(
+            "This {} can't connect to a {} input",
+            value.port_type().word(),
+            target.word()
+        ),
+    })
 }
 
 pub fn convert_input(

@@ -134,8 +134,12 @@ function fileKindsMatch(meta: FieldMeta, ctx: FormContext): boolean {
   });
 }
 
+function takeKindMatches(meta: FieldMeta, ctx: FormContext): boolean {
+  return !meta.showIfTake || ctx.takeKind === null || meta.showIfTake.includes(ctx.takeKind);
+}
+
 function visible(meta: FieldMeta, values: ParamValues, ctx: FormContext): boolean {
-  if (meta.hidden || !fileKindsMatch(meta, ctx)) return false;
+  if (meta.hidden || !fileKindsMatch(meta, ctx) || !takeKindMatches(meta, ctx)) return false;
   if (!meta.showIf) return true;
   return Object.entries(meta.showIf).every(([k, allowed]) => {
     const v = values[k] == null ? "" : String(values[k]);

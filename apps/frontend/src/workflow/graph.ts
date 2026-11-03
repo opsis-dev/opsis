@@ -4,6 +4,7 @@ import type {
   CatalogPort,
   EdgeEnds,
   EditorNode,
+  PortType,
   Workflow,
   WorkflowEdge,
 } from "@/generated/bindings";
@@ -52,9 +53,13 @@ export function portOf(
   return def.inputs[handle] ?? familyPort(def, handle);
 }
 
-export function connects(wf: Workflow, c: EdgeEnds): boolean {
+export type Converts = Partial<Record<string, Partial<Record<string, PortType[]>>>>;
+
+export function connects(wf: Workflow, c: EdgeEnds, converts: Converts = {}): boolean {
   if (c.source === c.target) return false;
   const from = portOf(wf, c.source, "out", c.sourceHandle);
   const to = portOf(wf, c.target, "in", c.targetHandle);
-  return !!from && !!to && canConnect(from.type, to.type);
+  if (!from || !to || !canConnect(from.type, to.type)) return false;
+  const now = converts[c.source]?.[c.sourceHandle];
+  return !now || now.includes(to.type);
 }

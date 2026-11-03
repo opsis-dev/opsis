@@ -145,22 +145,13 @@
    },
    {
     "id": "camera",
-    "type": "camera.autoZoom",
+    "type": "camera.take",
     "position": {
      "x": 2100,
      "y": 200
     },
     "params": {
-     "zoom": true,
-     "maxScale": 1.74,
-     "hold": 1300,
-     "speed": 1.25,
-     "style": "classic",
-     "backdrop": "glaze",
-     "frame": "none",
-     "frameTheme": "light",
-     "addressBar": true,
-     "motionBlur": true
+     "speed": 1.25
     }
    },
    {
@@ -938,15 +929,18 @@
    "record": {
     "recording": {
      "type": "recording",
-     "src": null,
      "log": null,
      "durationMs": 6000.0,
-     "viewport": {
-      "width": 1920,
-      "height": 1080
-     },
      "nodeId": "record",
-     "style": []
+     "edits": [],
+     "source": {
+      "kind": "browser",
+      "video": null,
+      "viewport": {
+       "width": 1920,
+       "height": 1080
+      }
+     }
     }
    },
    "camera": {
@@ -1221,16 +1215,8 @@
   "camera": {
    "rows": [
     {
-     "icon": "zoom-in",
-     "text": "Up to 1.74×"
-    },
-    {
-     "icon": "hourglass",
-     "text": "Hold 1.3 s"
-    },
-    {
-     "icon": "image",
-     "text": "Glaze backdrop"
+     "icon": "palette",
+     "text": "2 style settings"
     },
     {
      "icon": "gauge",
@@ -2763,7 +2749,6 @@
     "outputs": {
      "recording": {
       "type": "recording",
-      "src": "project:.opsis/cache/record/recording.mp4",
       "log": {
        "viewport": {
         "width": 1920,
@@ -2873,12 +2858,16 @@
        ]
       },
       "durationMs": 6800,
-      "viewport": {
-       "width": 1920,
-       "height": 1080
-      },
       "nodeId": "record",
-      "style": []
+      "edits": [],
+      "source": {
+       "kind": "browser",
+       "video": "project:.opsis/cache/record/recording.mp4",
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       }
+      }
      }
     },
     "artifacts": [],
@@ -3490,7 +3479,6 @@
     "record": {
      "recording": {
       "type": "recording",
-      "src": "project:.opsis/cache/record/recording.mp4",
       "log": {
        "viewport": {
         "width": 1920,
@@ -3600,12 +3588,16 @@
        ]
       },
       "durationMs": 6800.0,
-      "viewport": {
-       "width": 1920,
-       "height": 1080
-      },
       "nodeId": "record",
-      "style": []
+      "edits": [],
+      "source": {
+       "kind": "browser",
+       "video": "project:.opsis/cache/record/recording.mp4",
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       }
+      }
      }
     },
     "camera": {
@@ -3623,7 +3615,6 @@
           "durationInFrames": 163,
           "nodeId": "camera",
           "props": {
-           "src": "project:.opsis/cache/record/recording.mp4",
            "log": {
             "viewport": {
              "width": 1920,
@@ -3734,40 +3725,53 @@
            },
            "name": "record",
            "speed": 1.25,
-           "zoom": true,
-           "tuning": {
-            "sMax": 1.74,
-            "holdMinS": 1.3,
-            "minScale": 1.18,
-            "firstMaxScale": 1.54,
-            "roomPx": 80.0,
-            "targetShare": 0.55,
-            "offCentre": 0.26,
-            "joinWithinS": 2.2,
-            "stayZoomedWithinS": 2.8,
-            "holdAfterTypingS": 0.4,
-            "restAtEndS": 0.6,
-            "longestPanPx": 500.0,
-            "pace": 1.0,
-            "easing": "smooth"
+           "camera": {
+            "zoom": true,
+            "tuning": {
+             "sMax": 1.74,
+             "holdMinS": 1.3,
+             "minScale": 1.18,
+             "firstMaxScale": 1.54,
+             "roomPx": 80.0,
+             "targetShare": 0.55,
+             "offCentre": 0.26,
+             "joinWithinS": 2.2,
+             "stayZoomedWithinS": 2.8,
+             "holdAfterTypingS": 0.4,
+             "restAtEndS": 0.6,
+             "longestPanPx": 500.0,
+             "pace": 1.0,
+             "easing": "smooth"
+            }
            },
-           "motionBlur": true,
-           "style": "classic",
-           "chrome": false,
-           "backdrop": "glaze",
-           "cursor": true,
-           "cursorScale": 1.0,
-           "cursorLook": {
-            "shape": "arrow",
-            "fill": "#111418",
-            "edge": "#ffffff"
+           "shot": {
+            "style": "classic",
+            "backdrop": "glaze",
+            "ground": "#faf6f1",
+            "rimGlow": 1.0,
+            "liftColours": true,
+            "bleedBlur": 48.0,
+            "bleedDim": 0.55,
+            "motionBlur": true,
+            "shutterAngle": 180.0
            },
-           "ripple": {
-            "color": "#0f172a",
-            "size": 1.0,
-            "width": 2.0
+           "window": {
+            "chrome": false
            },
-           "extraBeats": [],
+           "pointer": {
+            "shown": true,
+            "scale": 1.0,
+            "look": {
+             "shape": "arrow",
+             "fill": "#111418",
+             "edge": "#ffffff"
+            },
+            "ripple": {
+             "color": "#0f172a",
+             "size": 1.0,
+             "width": 2.0
+            }
+           },
            "annotations": [
             {
              "kind": "highlight",
@@ -3813,12 +3817,11 @@
              }
             }
            ],
-           "stageGround": "#faf6f1",
-           "rimGlow": 1.0,
-           "liftColours": true,
-           "shutterAngle": 180.0,
-           "bleedBlur": 48.0,
-           "bleedDim": 0.55
+           "extraBeats": [],
+           "screen": {
+            "kind": "footage",
+            "src": "project:.opsis/cache/record/recording.mp4"
+           }
           }
          }
         ]
@@ -3827,7 +3830,6 @@
       "audio": [],
       "recording": {
        "type": "recording",
-       "src": "project:.opsis/cache/record/recording.mp4",
        "log": {
         "viewport": {
          "width": 1920,
@@ -3937,12 +3939,16 @@
         ]
        },
        "durationMs": 6800.0,
-       "viewport": {
-        "width": 1920,
-        "height": 1080
-       },
        "nodeId": "record",
-       "style": []
+       "edits": [],
+       "source": {
+        "kind": "browser",
+        "video": "project:.opsis/cache/record/recording.mp4",
+        "viewport": {
+         "width": 1920,
+         "height": 1080
+        }
+       }
       }
      }
     },
@@ -3971,7 +3977,6 @@
                "durationInFrames": 163,
                "nodeId": "camera",
                "props": {
-                "src": "project:.opsis/cache/record/recording.mp4",
                 "log": {
                  "viewport": {
                   "width": 1920,
@@ -4082,40 +4087,53 @@
                 },
                 "name": "record",
                 "speed": 1.25,
-                "zoom": true,
-                "tuning": {
-                 "sMax": 1.74,
-                 "holdMinS": 1.3,
-                 "minScale": 1.18,
-                 "firstMaxScale": 1.54,
-                 "roomPx": 80.0,
-                 "targetShare": 0.55,
-                 "offCentre": 0.26,
-                 "joinWithinS": 2.2,
-                 "stayZoomedWithinS": 2.8,
-                 "holdAfterTypingS": 0.4,
-                 "restAtEndS": 0.6,
-                 "longestPanPx": 500.0,
-                 "pace": 1.0,
-                 "easing": "smooth"
+                "camera": {
+                 "zoom": true,
+                 "tuning": {
+                  "sMax": 1.74,
+                  "holdMinS": 1.3,
+                  "minScale": 1.18,
+                  "firstMaxScale": 1.54,
+                  "roomPx": 80.0,
+                  "targetShare": 0.55,
+                  "offCentre": 0.26,
+                  "joinWithinS": 2.2,
+                  "stayZoomedWithinS": 2.8,
+                  "holdAfterTypingS": 0.4,
+                  "restAtEndS": 0.6,
+                  "longestPanPx": 500.0,
+                  "pace": 1.0,
+                  "easing": "smooth"
+                 }
                 },
-                "motionBlur": true,
-                "style": "classic",
-                "chrome": false,
-                "backdrop": "glaze",
-                "cursor": true,
-                "cursorScale": 1.0,
-                "cursorLook": {
-                 "shape": "arrow",
-                 "fill": "#111418",
-                 "edge": "#ffffff"
+                "shot": {
+                 "style": "classic",
+                 "backdrop": "glaze",
+                 "ground": "#faf6f1",
+                 "rimGlow": 1.0,
+                 "liftColours": true,
+                 "bleedBlur": 48.0,
+                 "bleedDim": 0.55,
+                 "motionBlur": true,
+                 "shutterAngle": 180.0
                 },
-                "ripple": {
-                 "color": "#0f172a",
-                 "size": 1.0,
-                 "width": 2.0
+                "window": {
+                 "chrome": false
                 },
-                "extraBeats": [],
+                "pointer": {
+                 "shown": true,
+                 "scale": 1.0,
+                 "look": {
+                  "shape": "arrow",
+                  "fill": "#111418",
+                  "edge": "#ffffff"
+                 },
+                 "ripple": {
+                  "color": "#0f172a",
+                  "size": 1.0,
+                  "width": 2.0
+                 }
+                },
                 "annotations": [
                  {
                   "kind": "highlight",
@@ -4161,12 +4179,11 @@
                   }
                  }
                 ],
-                "stageGround": "#faf6f1",
-                "rimGlow": 1.0,
-                "liftColours": true,
-                "shutterAngle": 180.0,
-                "bleedBlur": 48.0,
-                "bleedDim": 0.55
+                "extraBeats": [],
+                "screen": {
+                 "kind": "footage",
+                 "src": "project:.opsis/cache/record/recording.mp4"
+                }
                }
               }
              ]
@@ -4272,7 +4289,6 @@
       "audio": [],
       "recording": {
        "type": "recording",
-       "src": "project:.opsis/cache/record/recording.mp4",
        "log": {
         "viewport": {
          "width": 1920,
@@ -4382,12 +4398,16 @@
         ]
        },
        "durationMs": 6800.0,
-       "viewport": {
-        "width": 1920,
-        "height": 1080
-       },
        "nodeId": "record",
-       "style": []
+       "edits": [],
+       "source": {
+        "kind": "browser",
+        "video": "project:.opsis/cache/record/recording.mp4",
+        "viewport": {
+         "width": 1920,
+         "height": 1080
+        }
+       }
       }
      }
     },
@@ -4518,16 +4538,12 @@
    "camera": {
     "rows": [
      {
-      "icon": "zoom-in",
-      "text": "Up to 1.74×"
+      "icon": "video",
+      "text": "Browser take · 5.44 s"
      },
      {
-      "icon": "hourglass",
-      "text": "Hold 1.3 s"
-     },
-     {
-      "icon": "image",
-      "text": "Glaze backdrop"
+      "icon": "palette",
+      "text": "2 style settings"
      },
      {
       "icon": "gauge",
@@ -4625,7 +4641,6 @@
              "durationInFrames": 163,
              "nodeId": "camera",
              "props": {
-              "src": "project:.opsis/cache/record/recording.mp4",
               "log": {
                "viewport": {
                 "width": 1920,
@@ -4736,40 +4751,53 @@
               },
               "name": "record",
               "speed": 1.25,
-              "zoom": true,
-              "tuning": {
-               "sMax": 1.74,
-               "holdMinS": 1.3,
-               "minScale": 1.18,
-               "firstMaxScale": 1.54,
-               "roomPx": 80.0,
-               "targetShare": 0.55,
-               "offCentre": 0.26,
-               "joinWithinS": 2.2,
-               "stayZoomedWithinS": 2.8,
-               "holdAfterTypingS": 0.4,
-               "restAtEndS": 0.6,
-               "longestPanPx": 500.0,
-               "pace": 1.0,
-               "easing": "smooth"
+              "camera": {
+               "zoom": true,
+               "tuning": {
+                "sMax": 1.74,
+                "holdMinS": 1.3,
+                "minScale": 1.18,
+                "firstMaxScale": 1.54,
+                "roomPx": 80.0,
+                "targetShare": 0.55,
+                "offCentre": 0.26,
+                "joinWithinS": 2.2,
+                "stayZoomedWithinS": 2.8,
+                "holdAfterTypingS": 0.4,
+                "restAtEndS": 0.6,
+                "longestPanPx": 500.0,
+                "pace": 1.0,
+                "easing": "smooth"
+               }
               },
-              "motionBlur": true,
-              "style": "classic",
-              "chrome": false,
-              "backdrop": "glaze",
-              "cursor": true,
-              "cursorScale": 1.0,
-              "cursorLook": {
-               "shape": "arrow",
-               "fill": "#111418",
-               "edge": "#ffffff"
+              "shot": {
+               "style": "classic",
+               "backdrop": "glaze",
+               "ground": "#faf6f1",
+               "rimGlow": 1.0,
+               "liftColours": true,
+               "bleedBlur": 48.0,
+               "bleedDim": 0.55,
+               "motionBlur": true,
+               "shutterAngle": 180.0
               },
-              "ripple": {
-               "color": "#0f172a",
-               "size": 1.0,
-               "width": 2.0
+              "window": {
+               "chrome": false
               },
-              "extraBeats": [],
+              "pointer": {
+               "shown": true,
+               "scale": 1.0,
+               "look": {
+                "shape": "arrow",
+                "fill": "#111418",
+                "edge": "#ffffff"
+               },
+               "ripple": {
+                "color": "#0f172a",
+                "size": 1.0,
+                "width": 2.0
+               }
+              },
               "annotations": [
                {
                 "kind": "highlight",
@@ -4815,12 +4843,11 @@
                 }
                }
               ],
-              "stageGround": "#faf6f1",
-              "rimGlow": 1.0,
-              "liftColours": true,
-              "shutterAngle": 180.0,
-              "bleedBlur": 48.0,
-              "bleedDim": 0.55
+              "extraBeats": [],
+              "screen": {
+               "kind": "footage",
+               "src": "project:.opsis/cache/record/recording.mp4"
+              }
              }
             }
            ]
@@ -5380,7 +5407,6 @@
              "durationInFrames": 163,
              "nodeId": "camera",
              "props": {
-              "src": "project:.opsis/cache/record/recording.mp4",
               "log": {
                "viewport": {
                 "width": 1920,
@@ -5491,40 +5517,53 @@
               },
               "name": "record",
               "speed": 1.25,
-              "zoom": true,
-              "tuning": {
-               "sMax": 1.74,
-               "holdMinS": 1.3,
-               "minScale": 1.18,
-               "firstMaxScale": 1.54,
-               "roomPx": 80.0,
-               "targetShare": 0.55,
-               "offCentre": 0.26,
-               "joinWithinS": 2.2,
-               "stayZoomedWithinS": 2.8,
-               "holdAfterTypingS": 0.4,
-               "restAtEndS": 0.6,
-               "longestPanPx": 500.0,
-               "pace": 1.0,
-               "easing": "smooth"
+              "camera": {
+               "zoom": true,
+               "tuning": {
+                "sMax": 1.74,
+                "holdMinS": 1.3,
+                "minScale": 1.18,
+                "firstMaxScale": 1.54,
+                "roomPx": 80.0,
+                "targetShare": 0.55,
+                "offCentre": 0.26,
+                "joinWithinS": 2.2,
+                "stayZoomedWithinS": 2.8,
+                "holdAfterTypingS": 0.4,
+                "restAtEndS": 0.6,
+                "longestPanPx": 500.0,
+                "pace": 1.0,
+                "easing": "smooth"
+               }
               },
-              "motionBlur": true,
-              "style": "classic",
-              "chrome": false,
-              "backdrop": "glaze",
-              "cursor": true,
-              "cursorScale": 1.0,
-              "cursorLook": {
-               "shape": "arrow",
-               "fill": "#111418",
-               "edge": "#ffffff"
+              "shot": {
+               "style": "classic",
+               "backdrop": "glaze",
+               "ground": "#faf6f1",
+               "rimGlow": 1.0,
+               "liftColours": true,
+               "bleedBlur": 48.0,
+               "bleedDim": 0.55,
+               "motionBlur": true,
+               "shutterAngle": 180.0
               },
-              "ripple": {
-               "color": "#0f172a",
-               "size": 1.0,
-               "width": 2.0
+              "window": {
+               "chrome": false
               },
-              "extraBeats": [],
+              "pointer": {
+               "shown": true,
+               "scale": 1.0,
+               "look": {
+                "shape": "arrow",
+                "fill": "#111418",
+                "edge": "#ffffff"
+               },
+               "ripple": {
+                "color": "#0f172a",
+                "size": 1.0,
+                "width": 2.0
+               }
+              },
               "annotations": [
                {
                 "kind": "highlight",
@@ -5570,12 +5609,11 @@
                 }
                }
               ],
-              "stageGround": "#faf6f1",
-              "rimGlow": 1.0,
-              "liftColours": true,
-              "shutterAngle": 180.0,
-              "bleedBlur": 48.0,
-              "bleedDim": 0.55
+              "extraBeats": [],
+              "screen": {
+               "kind": "footage",
+               "src": "project:.opsis/cache/record/recording.mp4"
+              }
              }
             }
            ]
@@ -6109,7 +6147,6 @@
        "nodeId": "camera",
        "kind": "recording",
        "props": {
-        "src": "project:.opsis/cache/record/recording.mp4",
         "log": {
          "viewport": {
           "width": 1920,
@@ -6220,40 +6257,53 @@
         },
         "name": "record",
         "speed": 1.25,
-        "zoom": true,
-        "tuning": {
-         "sMax": 1.74,
-         "holdMinS": 1.3,
-         "minScale": 1.18,
-         "firstMaxScale": 1.54,
-         "roomPx": 80.0,
-         "targetShare": 0.55,
-         "offCentre": 0.26,
-         "joinWithinS": 2.2,
-         "stayZoomedWithinS": 2.8,
-         "holdAfterTypingS": 0.4,
-         "restAtEndS": 0.6,
-         "longestPanPx": 500.0,
-         "pace": 1.0,
-         "easing": "smooth"
+        "camera": {
+         "zoom": true,
+         "tuning": {
+          "sMax": 1.74,
+          "holdMinS": 1.3,
+          "minScale": 1.18,
+          "firstMaxScale": 1.54,
+          "roomPx": 80.0,
+          "targetShare": 0.55,
+          "offCentre": 0.26,
+          "joinWithinS": 2.2,
+          "stayZoomedWithinS": 2.8,
+          "holdAfterTypingS": 0.4,
+          "restAtEndS": 0.6,
+          "longestPanPx": 500.0,
+          "pace": 1.0,
+          "easing": "smooth"
+         }
         },
-        "motionBlur": true,
-        "style": "classic",
-        "chrome": false,
-        "backdrop": "glaze",
-        "cursor": true,
-        "cursorScale": 1.0,
-        "cursorLook": {
-         "shape": "arrow",
-         "fill": "#111418",
-         "edge": "#ffffff"
+        "shot": {
+         "style": "classic",
+         "backdrop": "glaze",
+         "ground": "#faf6f1",
+         "rimGlow": 1.0,
+         "liftColours": true,
+         "bleedBlur": 48.0,
+         "bleedDim": 0.55,
+         "motionBlur": true,
+         "shutterAngle": 180.0
         },
-        "ripple": {
-         "color": "#0f172a",
-         "size": 1.0,
-         "width": 2.0
+        "window": {
+         "chrome": false
         },
-        "extraBeats": [],
+        "pointer": {
+         "shown": true,
+         "scale": 1.0,
+         "look": {
+          "shape": "arrow",
+          "fill": "#111418",
+          "edge": "#ffffff"
+         },
+         "ripple": {
+          "color": "#0f172a",
+          "size": 1.0,
+          "width": 2.0
+         }
+        },
         "annotations": [
          {
           "kind": "highlight",
@@ -6299,12 +6349,11 @@
           }
          }
         ],
-        "stageGround": "#faf6f1",
-        "rimGlow": 1.0,
-        "liftColours": true,
-        "shutterAngle": 180.0,
-        "bleedBlur": 48.0,
-        "bleedDim": 0.55
+        "extraBeats": [],
+        "screen": {
+         "kind": "footage",
+         "src": "project:.opsis/cache/record/recording.mp4"
+        }
        },
        "thumbnail": {
         "kind": "filmstrip",

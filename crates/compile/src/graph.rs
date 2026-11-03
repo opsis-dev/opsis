@@ -1,13 +1,13 @@
 use std::collections::{HashMap, HashSet};
 
-use indexmap::IndexSet;
+use indexmap::{IndexMap, IndexSet};
 use opsis_types::values::{BrowserAction, BrowserSessionValue};
 use opsis_types::workflow::{PortType, Workflow, WorkflowEdge, WorkflowNode};
 use serde::{Deserialize, Serialize};
 
 use crate::compile::{CompileResult, compile_workflow};
 use crate::node::{Claim, NodeDef, PortSpec, SESSION_PORT};
-use crate::ports::{can_connect, convert_input};
+use crate::ports::{can_connect, convert_input, refused_conversion, value_conversions};
 use crate::registry::{is_output_type, node_def, node_name};
 use crate::vars::{interpolate_map, unknown_variables, workflow_vars};
 
@@ -273,6 +273,79 @@ pub fn connection_problem(
         not_found: false,
         message,
     })
+}
+
+fn refused_value(
+    wf: &Workflow,
+    compiled: &CompileResult,
+    source: &str,
+    source_handle: &str,
+    target: &str,
+    target_handle: &str,
+) -> Option<String> {
+    let value = compiled.values.get(source)?.get(source_handle)?;
+    let node = wf.nodes.iter().find(|n| n.id == target)?;
+    let to = node_def(&node.kind)?.input(target_handle)?;
+    if !can_connect(value.port_type(), to.kind) {
+        return None;
+    }
+    refused_conversion(value, to.kind)
+}
+
+pub fn connection_problem_now(
+    wf: &Workflow,
+    compiled: &CompileResult,
+    source: &str,
+    source_handle: &str,
+    target: &str,
+    target_handle: &str,
+) -> Option<ConnectionProblem> {
+    connection_problem(wf, source, source_handle, target, target_handle).or_else(|| {
+        refused_value(wf, compiled, source, source_handle, target, target_handle).map(|message| {
+            ConnectionProblem {
+                not_found: false,
+                message: format!("{message}."),
+            }
+        })
+    })
+}
+
+pub fn output_conversions(
+    compiled: &CompileResult,
+) -> IndexMap<String, IndexMap<String, Vec<PortType>>> {
+    compiled
+        .values
+        .iter()
+        .map(|(id, ports)| {
+            let outputs = ports
+                .iter()
+                .map(|(handle, value)| (handle.clone(), value_conversions(value)))
+                .collect();
+            (id.clone(), outputs)
+        })
+        .collect()
+}
+
+fn value_issues(wf: &Workflow, compiled: &CompileResult) -> Vec<GraphIssue> {
+    wf.edges
+        .iter()
+        .filter_map(|e| {
+            let message = refused_value(
+                wf,
+                compiled,
+                &e.source,
+                &e.source_handle,
+                &e.target,
+                &e.target_handle,
+            )?;
+            Some(GraphIssue {
+                level: IssueLevel::Error,
+                message,
+                node_id: Some(e.target.clone()),
+                edge_id: Some(e.id.clone()),
+            })
+        })
+        .collect()
 }
 
 fn edge_ok(e: &WorkflowEdge, by_id: &HashMap<&str, &WorkflowNode>) -> bool {
@@ -606,6 +679,7 @@ pub fn validate_workflow(wf: &Workflow, compiled: Option<&CompileResult>) -> Vec
         claim_clashes(wf),
         skipped_source_issues(wf),
         file_need_issues(wf, compiled),
+        value_issues(wf, compiled),
     ]
     .into_iter()
     .flatten()

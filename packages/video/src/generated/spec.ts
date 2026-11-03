@@ -325,6 +325,11 @@ export type CameraPath = {
 	keys: CameraKey[],
 };
 
+export type CameraProps = {
+	zoom: boolean,
+	tuning: CameraTuning,
+};
+
 export type CameraStyle = "classic" | "proof" | "ledger" | "stage";
 
 export type CameraTuning = {
@@ -2249,6 +2254,14 @@ export type Point = {
 	y: number,
 };
 
+export type PointerProps = {
+	shown: boolean,
+	scale: number,
+	look: CursorLook,
+	feel?: CursorFeel,
+	ripple: RippleLook | null,
+};
+
 export type Polaroid = {
 	caption: string,
 	captionAt: number,
@@ -2355,42 +2368,17 @@ export type RadialBurst = {
 };
 
 export type RecordingProps = {
-	src: string,
 	log: ActionLog,
 	name: string,
 	speed: number,
-	zoom: boolean,
-	tuning: CameraTuning,
-	motionBlur: boolean,
-	style: CameraStyle,
-	chrome: boolean,
-	windowStyle?: WindowStyle,
-	frameTheme?: FrameTheme,
-	addressBar?: boolean,
-	address?: string,
-	addressMode?: AddressMode,
-	backdrop: string,
-	backdropChosen?: boolean,
-	cursor: boolean,
-	cursorScale: number,
-	cursorLook: CursorLook,
-	cursorFeel?: CursorFeel,
-	ripple: RippleLook | null,
-	extraBeats: Action[],
+	camera: CameraProps,
+	shot: ShotProps,
+	window: WindowProps,
+	pointer: PointerProps,
 	keystrokes?: KeystrokeLook,
 	annotations: AnnotationSpec[],
-	footage?: FootageChain,
-	footageUrl?: string,
-	screen?: boolean,
-	windowFit?: number,
-	stageGround?: string,
-	windowRadius?: number,
-	rimGlow?: number,
-	liftColours?: boolean,
-	shutterAngle?: number,
-	bleedBlur?: number,
-	bleedDim?: number,
-	frameFont?: string,
+	extraBeats: Action[],
+	screen: ScreenProps,
 };
 
 export type Rect = {
@@ -2493,6 +2481,8 @@ export type Screen3d = {
 export type ScreenDevice = "laptop" | "monitor" | "phone" | "floating";
 
 export type ScreenMove = "push-in" | "orbit" | "tilt-reveal" | "rise" | "keyframes";
+
+export type ScreenProps = { kind: "footage"; src: string; chain?: FootageChain; footageUrl?: string };
 
 export type ScribbleCircle = {
 	laps: number,
@@ -2658,6 +2648,22 @@ export type ShimmerSweep = {
 	bandAngle: number,
 	bandWidth: number,
 	letterSpacing: number,
+};
+
+export type ShotProps = {
+	style: CameraStyle,
+	backdrop: string,
+	backdropChosen?: boolean,
+	inDevice?: boolean,
+	windowFit?: number,
+	ground?: string,
+	radius?: number,
+	rimGlow?: number,
+	liftColours?: boolean,
+	bleedBlur?: number,
+	bleedDim?: number,
+	motionBlur: boolean,
+	shutterAngle?: number,
 };
 
 export type Side = "top" | "bottom" | "left" | "right";
@@ -3249,6 +3255,16 @@ export type WhipPan = {
 	direction: WhipDirection,
 	blur: number,
 	stretch: number,
+};
+
+export type WindowProps = {
+	chrome: boolean,
+	style?: WindowStyle,
+	theme?: FrameTheme,
+	font?: string,
+	bar?: boolean,
+	text?: string,
+	mode?: AddressMode,
 };
 
 export type WindowStyle = "macos" | "windows" | "linux";

@@ -20,6 +20,7 @@ const ctx: FormContext = {
   connectedInputs: [],
   ports: [],
   fileKinds: {},
+  takeKind: null,
 };
 
 function schemaOf(fields: Array<{ label: string; advanced: boolean }>) {

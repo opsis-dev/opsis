@@ -15,6 +15,8 @@ const workflow = {
     node("title", "fx.title"),
     node("seq", "timeline.sequence"),
     node("file", "media.import"),
+    node("take", "capture.record"),
+    node("grade", "media.applyGrade"),
   ],
   edges: [],
   markers: [],
@@ -32,6 +34,18 @@ describe("growing inputs", () => {
     const ends = { sourceHandle: "clip", target: "seq", targetHandle: "in9" };
     expect(connects(workflow, { ...ends, source: "title" })).toBe(true);
     expect(connects(workflow, { ...ends, source: "file", sourceHandle: "media" })).toBe(false);
+  });
+
+  it("refuses a take its current value can't turn into a file", () => {
+    const ends = {
+      source: "take",
+      sourceHandle: "recording",
+      target: "grade",
+      targetHandle: "media",
+    };
+    expect(connects(workflow, ends)).toBe(true);
+    expect(connects(workflow, ends, { take: { recording: ["recording"] } })).toBe(false);
+    expect(connects(workflow, ends, { take: { recording: ["recording", "media"] } })).toBe(true);
   });
 });
 

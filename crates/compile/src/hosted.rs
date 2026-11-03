@@ -1,4 +1,5 @@
 use opsis_types::fonts::ProjectFonts;
+use opsis_types::recording::ScreenProps;
 use opsis_types::timeline::{TimelineItem, TimelineSpec, TimelineTrack};
 use serde_json::{Map, Value};
 
@@ -74,9 +75,16 @@ impl Host<'_> {
                     }
                 }
                 TimelineItem::Recording { props, .. } => {
-                    props.footage_url = footage.first().map(|f| self.footage(&f.used.id));
-                    self.string(&mut props.src);
-                    self.string(&mut props.backdrop);
+                    let url = footage.first().map(|f| self.footage(&f.used.id));
+                    match &mut props.screen {
+                        ScreenProps::Footage {
+                            src, footage_url, ..
+                        } => {
+                            *footage_url = url;
+                            self.string(src);
+                        }
+                    }
+                    self.string(&mut props.shot.backdrop);
                 }
                 TimelineItem::Group { props, .. } => {
                     if let Some(wrapper) = props.wrapper.as_mut() {

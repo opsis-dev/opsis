@@ -1,15 +1,18 @@
 use indexmap::IndexMap;
 use opsis_macros::{choice, settings};
-use opsis_types::actions::{Action, ActionKind, Point, Rect};
+use opsis_types::actions::{Action, ActionKind, ActionLog, Point, Rect};
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::numbers;
 use opsis_types::numbers::exact_eq;
 use opsis_types::recording::{
-    AddressMode, CameraEasing, CameraStyle, CameraTuning, FrameTheme, RecordingProps, WindowStyle,
+    AddressMode, CameraEasing, CameraProps, CameraStyle, CameraTuning, FrameTheme, RecordingProps,
+    ShotProps, WindowProps, WindowStyle,
 };
 use opsis_types::timeline::{ElementRef, GroupProps};
-use opsis_types::values::{ClipValue, CompileValue, StyleEntry, TaggedRecording};
+use opsis_types::values::{
+    ClipValue, CompileValue, RecordingValue, StyleEntry, TaggedRecording, TakeKind,
+};
 use opsis_types::workflow::{DEFAULT_TAKE_MS, PortType};
 use serde_json::{Map, Value};
 
@@ -33,8 +36,9 @@ use crate::node::{
 use crate::nodes::elements::element_props;
 use crate::params::{Params, Values};
 use crate::recording::{
-    DEFAULT_ADDRESS_BAR, DEFAULT_FRAME_THEME, DEFAULT_WINDOW_STYLE, default_recording_props,
-    follow_cursor_beats, host_window_style, idle_spans, point_rect, recording_speed,
+    DEFAULT_ADDRESS_BAR, DEFAULT_FRAME_THEME, DEFAULT_TAKE_SPEED, DEFAULT_WINDOW_STYLE,
+    default_recording_props, follow_cursor_beats, host_window_style, idle_spans, point_rect,
+    recording_speed,
 };
 use crate::remap::{RemapSegment, eased_segments, remap_duration, remap_from_segments};
 
@@ -44,6 +48,9 @@ use crate::text::{display_address, format_duration, humanize, percent_text, plur
 use crate::time::{EPSILON, ms_to_frames, recording_ms_to_frames, whole_frames};
 
 pub const FOLLOW_CURSOR_TYPE: &str = "camera.followCursor";
+pub const CLIP_FROM_TAKE_TYPE: &str = "camera.take";
+pub const CAMERA_TYPE: &str = "camera.camera";
+pub const SHOT_TYPE: &str = "camera.shot";
 const CURSOR_STYLE_TYPE: &str = crate::nodes::cursor::CURSOR_STYLE_TYPE;
 
 #[choice]
@@ -71,8 +78,20 @@ impl FrameChoice {
 }
 
 #[settings]
-pub struct AutoZoom {
-    #[setting("Zoom to the clicks", default = true)]
+pub struct ClipFromTake {
+    #[setting(
+        "Playback speed",
+        default = DEFAULT_TAKE_SPEED,
+        range(min = 0.25, max = 4),
+        step = 0.05,
+        unit = "×"
+    )]
+    pub speed: f64,
+}
+
+#[settings]
+pub struct Camera {
+    #[setting("Zoom to the actions", default = true)]
     pub zoom: bool,
     #[setting(
         "Maximum zoom",
@@ -80,7 +99,8 @@ pub struct AutoZoom {
         range(min = 1.1, max = 2.5),
         step = 0.02,
         unit = "×",
-        help = "Higher zooms closer but can look soft."
+        help = "Higher zooms closer but can look soft.",
+        show_if = { "zoom": ["true"] }
     )]
     pub max_scale: f64,
     #[setting(
@@ -89,55 +109,156 @@ pub struct AutoZoom {
         range(min = 0, max = 10000),
         step = 50,
         unit = "ms",
-        advanced
+        show_if = { "zoom": ["true"] }
     )]
     pub hold: u32,
     #[setting(
-        "Playback speed",
-        default = 1.25,
-        range(min = 0.25, max = 4),
-        step = 0.05,
-        unit = "×"
-    )]
-    pub speed: f64,
-    #[setting("Camera style", default = CameraStyle::Classic)]
-    pub style: CameraStyle,
-    #[setting("Backdrop", default = Backdrop::Glaze, show_if = { "style": ["classic"] })]
-    pub backdrop: Backdrop,
-    #[setting(
-        "Window frame",
-        default = FrameChoice::None
-    )]
-    pub frame: FrameChoice,
-    #[setting(
-        "Frame colour",
-        default = DEFAULT_FRAME_THEME,
-        show_if = { "frame": ["macos", "windows", "linux"] }
-    )]
-    pub frame_theme: FrameTheme,
-    #[setting(
-        "Address bar",
-        default = DEFAULT_ADDRESS_BAR,
-        help = "Shows the page's address in the title bar.",
-        show_if = { "frame": ["macos", "windows", "linux"] }
-    )]
-    pub address_bar: bool,
-    #[setting(
-        "Address",
-        zero_label = "Page address",
-        help = "Shown instead of the page's own address, such as app.example.com.",
-        show_if = { "frame": ["macos", "windows", "linux"], "addressBar": ["true"] }
-    )]
-    pub address: String,
-    #[setting(
-        "Show",
-        default = AddressMode::Fixed,
-        show_if = { "frame": ["macos", "windows", "linux"], "addressBar": ["true"], "address": ["*"] },
+        "Least zoom",
+        default = 1.18,
+        range(min = 1, max = 2),
+        step = 0.02,
+        unit = "×",
+        show_if = { "zoom": ["true"] },
         advanced
     )]
-    pub address_mode: AddressMode,
-    #[setting("Motion blur", default = true, advanced)]
-    pub motion_blur: bool,
+    pub min_scale: f64,
+    #[setting(
+        "First zoom at most",
+        default = 1.54,
+        range(min = 1, max = 2.5),
+        step = 0.02,
+        unit = "×",
+        help = "The first shot stays wider so the page is seen first.",
+        show_if = { "zoom": ["true"] },
+        advanced
+    )]
+    pub first_max_scale: f64,
+    #[setting(
+        "Room around the target",
+        default = 80,
+        range(min = 0, max = 400),
+        step = 5,
+        unit = "px",
+        show_if = { "zoom": ["true"] },
+        advanced
+    )]
+    pub room: u32,
+    #[setting(
+        "Target size",
+        default = 55,
+        range(min = 10, max = 100),
+        step = 1,
+        unit = "%",
+        help = "How much of the frame the target and its room fill.",
+        show_if = { "zoom": ["true"] },
+        advanced
+    )]
+    pub target_share: u32,
+    #[setting(
+        "Off centre",
+        default = 0.26,
+        range(min = 0, max = 0.5),
+        step = 0.01,
+        help = "How far a target sits from the middle, leaving room on the side it faces.",
+        show_if = { "zoom": ["true"] },
+        advanced
+    )]
+    pub off_centre: f64,
+    #[setting(
+        "Join actions within",
+        default = 2200,
+        range(min = 0, max = 20000),
+        step = 100,
+        unit = "ms",
+        help = "Actions this close share one zoom.",
+        show_if = { "zoom": ["true"] },
+        advanced
+    )]
+    pub join_within_ms: u32,
+    #[setting(
+        "Stay zoomed within",
+        default = 2800,
+        range(min = 0, max = 20000),
+        step = 100,
+        unit = "ms",
+        help = "Shots this close stay zoomed in between.",
+        show_if = { "zoom": ["true"] },
+        advanced
+    )]
+    pub stay_zoomed_within_ms: u32,
+    #[setting(
+        "Hold after typing",
+        default = 400,
+        range(min = 0, max = 5000),
+        step = 50,
+        unit = "ms",
+        show_if = { "zoom": ["true"] },
+        advanced
+    )]
+    pub hold_after_typing_ms: u32,
+    #[setting(
+        "Rest at the end",
+        default = 600,
+        range(min = 0, max = 10000),
+        step = 50,
+        unit = "ms",
+        help = "Time zoomed out before the take ends.",
+        show_if = { "zoom": ["true"] },
+        advanced
+    )]
+    pub rest_at_end_ms: u32,
+    #[setting(
+        "Longest pan",
+        default = 500,
+        range(min = 50, max = 5000),
+        step = 10,
+        unit = "px",
+        help = "Farther moves zoom out and back in instead.",
+        advanced
+    )]
+    pub longest_pan: u32,
+    #[setting("Easing", advanced)]
+    pub camera_easing: CameraEasing,
+    #[setting(
+        "Move time",
+        default = 1.0,
+        range(min = 0.25, max = 4),
+        step = 0.05,
+        unit = "×",
+        help = "Longer than 1 makes every camera move slower.",
+        advanced
+    )]
+    pub camera_pace: f64,
+}
+
+impl Camera {
+    fn tuning(&self) -> CameraTuning {
+        let seconds = |ms: u32| Some(f64::from(ms) / 1000.0);
+        CameraTuning {
+            s_max: Some(self.max_scale),
+            hold_min_s: seconds(self.hold),
+            min_scale: Some(self.min_scale),
+            first_max_scale: Some(self.first_max_scale),
+            room_px: Some(f64::from(self.room)),
+            target_share: Some(f64::from(self.target_share) / 100.0),
+            off_centre: Some(self.off_centre),
+            join_within_s: seconds(self.join_within_ms),
+            stay_zoomed_within_s: seconds(self.stay_zoomed_within_ms),
+            hold_after_typing_s: seconds(self.hold_after_typing_ms),
+            rest_at_end_s: seconds(self.rest_at_end_ms),
+            longest_pan_px: Some(f64::from(self.longest_pan)),
+            pace: Some(self.camera_pace),
+            easing: Some(self.camera_easing),
+        }
+    }
+}
+
+#[settings]
+pub struct Shot {
+    #[setting("Camera style", default = CameraStyle::Classic)]
+    pub style: CameraStyle,
+    #[setting("Ground colour", default = "#faf6f1", widget = "color", check = colour, show_if = { "style": ["stage"] })]
+    pub ground: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[setting(
         "Window size",
@@ -150,8 +271,6 @@ pub struct AutoZoom {
         advanced
     )]
     pub window_size: Option<u32>,
-    #[setting("Ground colour", default = "#faf6f1", widget = "color", check = colour, show_if = { "style": ["stage"] })]
-    pub ground: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[setting(
         "Window corners",
@@ -175,21 +294,10 @@ pub struct AutoZoom {
     #[setting(
         "Lift the colours",
         default = true,
-        help = "A touch more saturation, contrast and brightness on the page.",
+        help = "A touch more saturation, contrast and brightness on the screen.",
         advanced
     )]
     pub lift_colours: bool,
-    #[setting(
-        "Motion blur amount",
-        default = 180,
-        range(min = 0, max = 360),
-        step = 10,
-        unit = "°",
-        help = "How long each frame's shutter stays open, as an angle.",
-        show_if = { "motionBlur": ["true"] },
-        advanced
-    )]
-    pub shutter_angle: u32,
     #[setting(
         "Background blur",
         default = 48,
@@ -210,150 +318,20 @@ pub struct AutoZoom {
         advanced
     )]
     pub bleed_dim: f64,
-    #[setting("Camera easing", advanced)]
-    pub camera_easing: CameraEasing,
-    #[setting(
-        "Camera move time",
-        default = 1.0,
-        range(min = 0.25, max = 4),
-        step = 0.05,
-        unit = "×",
-        help = "Longer than 1 makes every camera move slower.",
-        advanced
-    )]
-    pub camera_pace: f64,
-    #[setting(
-        "Least zoom",
-        default = 1.18,
-        range(min = 1, max = 2),
-        step = 0.02,
-        unit = "×",
-        advanced
-    )]
-    pub min_scale: f64,
-    #[setting(
-        "First zoom at most",
-        default = 1.54,
-        range(min = 1, max = 2.5),
-        step = 0.02,
-        unit = "×",
-        help = "The first shot stays wider so the page is seen first.",
-        advanced
-    )]
-    pub first_max_scale: f64,
-    #[setting(
-        "Room around the target",
-        default = 80,
-        range(min = 0, max = 400),
-        step = 5,
-        unit = "px",
-        advanced
-    )]
-    pub room: u32,
-    #[setting(
-        "Target size",
-        default = 55,
-        range(min = 10, max = 100),
-        step = 1,
-        unit = "%",
-        help = "How much of the frame the target and its room fill.",
-        advanced
-    )]
-    pub target_share: u32,
-    #[setting(
-        "Off centre",
-        default = 0.26,
-        range(min = 0, max = 0.5),
-        step = 0.01,
-        help = "How far a target sits from the middle, leaving room on the side it faces.",
-        advanced
-    )]
-    pub off_centre: f64,
-    #[setting(
-        "Join actions within",
-        default = 2200,
-        range(min = 0, max = 20000),
-        step = 100,
-        unit = "ms",
-        help = "Actions this close share one zoom.",
-        advanced
-    )]
-    pub join_within_ms: u32,
-    #[setting(
-        "Stay zoomed within",
-        default = 2800,
-        range(min = 0, max = 20000),
-        step = 100,
-        unit = "ms",
-        help = "Shots this close stay zoomed in between.",
-        advanced
-    )]
-    pub stay_zoomed_within_ms: u32,
-    #[setting(
-        "Hold after typing",
-        default = 400,
-        range(min = 0, max = 5000),
-        step = 50,
-        unit = "ms",
-        advanced
-    )]
-    pub hold_after_typing_ms: u32,
-    #[setting(
-        "Rest at the end",
-        default = 600,
-        range(min = 0, max = 10000),
-        step = 50,
-        unit = "ms",
-        help = "Time zoomed out before the take ends.",
-        advanced
-    )]
-    pub rest_at_end_ms: u32,
-    #[setting(
-        "Longest pan",
-        default = 500,
-        range(min = 50, max = 5000),
-        step = 10,
-        unit = "px",
-        help = "Farther moves zoom out and back in instead.",
-        advanced
-    )]
-    pub longest_pan: u32,
-    #[setting(
-        "Title bar font",
-        widget = "font",
-        zero_label = "The computer's",
-        show_if = { "frame": ["macos", "windows", "linux"] },
-        advanced
-    )]
-    pub frame_font: String,
 }
 
-impl AutoZoom {
-    fn tuning(&self) -> CameraTuning {
-        let seconds = |ms: u32| Some(f64::from(ms) / 1000.0);
-        CameraTuning {
-            s_max: Some(self.max_scale),
-            hold_min_s: seconds(self.hold),
-            min_scale: Some(self.min_scale),
-            first_max_scale: Some(self.first_max_scale),
-            room_px: Some(f64::from(self.room)),
-            target_share: Some(f64::from(self.target_share) / 100.0),
-            off_centre: Some(self.off_centre),
-            join_within_s: seconds(self.join_within_ms),
-            stay_zoomed_within_s: seconds(self.stay_zoomed_within_ms),
-            hold_after_typing_s: seconds(self.hold_after_typing_ms),
-            rest_at_end_s: seconds(self.rest_at_end_ms),
-            longest_pan_px: Some(f64::from(self.longest_pan)),
-            pace: Some(self.camera_pace),
-            easing: Some(self.camera_easing),
-        }
-    }
-
-    fn bar(&self) -> Bar<'_> {
-        Bar {
-            shown: self.address_bar,
-            address: &self.address,
-            mode: self.address_mode,
+impl Shot {
+    fn apply(&self, shot: ShotProps) -> ShotProps {
+        ShotProps {
+            style: self.style,
+            window_fit: self.window_size.map(|percent| f64::from(percent) / 100.0),
+            ground: Some(self.ground.clone()),
+            radius: self.corner_radius.map(f64::from),
+            rim_glow: Some(self.shadow),
+            lift_colours: Some(self.lift_colours),
+            bleed_blur: Some(f64::from(self.bleed_blur)),
+            bleed_dim: Some(self.bleed_dim),
+            ..shot
         }
     }
 }
@@ -878,32 +856,40 @@ pub struct WindowFrame {
     #[setting("Frame colour", default = DEFAULT_FRAME_THEME)]
     pub frame_theme: FrameTheme,
     #[setting(
-        "Address bar",
+        "Title bar",
         default = DEFAULT_ADDRESS_BAR,
-        help = "Shows the page's address in the title bar."
+        help = "Shows the page's address or the program's title in the title bar."
     )]
-    pub address_bar: bool,
+    pub title_bar: bool,
     #[setting(
-        "Address",
-        zero_label = "Page address",
-        help = "Shown instead of the page's own address, such as app.example.com.",
-        show_if = { "addressBar": ["true"] }
+        "Title bar text",
+        zero_label = "The take's own",
+        help = "Shown instead of the page's address or the program's title, such as app.example.com.",
+        show_if = { "titleBar": ["true"] }
     )]
-    pub address: String,
+    pub title: String,
     #[setting(
         "Show",
         default = AddressMode::Fixed,
-        show_if = { "addressBar": ["true"], "address": ["*"] },
+        show_if = { "titleBar": ["true"], "title": ["*"] },
+        show_if_take = ["browser"],
         advanced
     )]
     pub address_mode: AddressMode,
+    #[setting(
+        "Title bar font",
+        widget = "font",
+        zero_label = "The computer's",
+        advanced
+    )]
+    pub font: String,
 }
 
 impl WindowFrame {
     fn bar(&self) -> Bar<'_> {
         Bar {
-            shown: self.address_bar,
-            address: &self.address,
+            shown: self.title_bar,
+            text: &self.title,
             mode: self.address_mode,
         }
     }
@@ -914,21 +900,21 @@ pub struct ApplyStyle {}
 
 struct Bar<'a> {
     shown: bool,
-    address: &'a str,
+    text: &'a str,
     mode: AddressMode,
 }
 
 impl Bar<'_> {
     fn typed(&self) -> Option<&str> {
-        Some(self.address.trim()).filter(|a| self.shown && !a.is_empty())
+        Some(self.text.trim()).filter(|a| self.shown && !a.is_empty())
     }
 
     fn row(&self) -> CardRow {
         if !self.shown {
-            return row(Icon::Link, "No address bar").muted_if(true);
+            return row(Icon::Link, "No title bar text").muted_if(true);
         }
         match self.typed() {
-            None => row(Icon::Link, "Address bar"),
+            None => row(Icon::Link, "The take's own title"),
             Some(address) if self.mode == AddressMode::Host => row(
                 Icon::Link,
                 format!("{} · keeps the path", display_address(address, false)),
@@ -938,20 +924,19 @@ impl Bar<'_> {
     }
 }
 
-fn with_window_frame(
-    props: RecordingProps,
-    style: WindowStyle,
-    theme: FrameTheme,
-    bar: &Bar<'_>,
-) -> RecordingProps {
-    let address = bar.typed().map(str::to_owned);
+fn with_window_frame(props: RecordingProps, p: &WindowFrame) -> RecordingProps {
+    let bar = p.bar();
+    let text = bar.typed().map(str::to_owned);
     RecordingProps {
-        chrome: true,
-        window_style: Some(style),
-        frame_theme: Some(theme),
-        address_bar: Some(bar.shown),
-        address_mode: address.as_ref().map(|_| bar.mode),
-        address,
+        window: WindowProps {
+            chrome: true,
+            style: Some(p.window_style),
+            theme: Some(p.frame_theme),
+            font: crate::fonts::font_prop(&p.font),
+            bar: Some(bar.shown),
+            mode: text.as_ref().map(|_| bar.mode),
+            text,
+        },
         ..props
     }
 }
@@ -1049,45 +1034,98 @@ fn entries_of(value: Option<&CompileValue>) -> Vec<StyleEntry> {
         .map_or_default(|s| s.entries.clone())
 }
 
-fn auto_zoom() -> NodeDef {
-    NodeDef::of::<AutoZoom>("camera.autoZoom", "Auto zoom", Category::Camera, Phase::Compile)
-        .describe("Turns a recording into a polished clip: the window floats on a backdrop and the camera zooms to every click.")
+fn base_props(rec: &RecordingValue, log: ActionLog, speed: f64) -> Option<RecordingProps> {
+    let video = rec.video()?;
+    let mut props = default_recording_props(video.to_owned(), log, rec.node_id.clone());
+    props.speed = speed;
+    props.camera = CameraProps {
+        zoom: Camera::default().zoom,
+        tuning: Camera::default().tuning(),
+    };
+    props.shot = Shot::default().apply(props.shot);
+    let blur = MotionBlur::default();
+    props.shot.motion_blur = blur.enabled;
+    props.shot.shutter_angle = Some(f64::from(blur.shutter_angle));
+    Some(props)
+}
+
+pub fn clip_from_take_props(
+    rec: &RecordingValue,
+    speed: f64,
+    entries: &[StyleEntry],
+) -> Result<Option<RecordingProps>, SettingsError> {
+    let Some(props) = rec.log.clone().and_then(|log| base_props(rec, log, speed)) else {
+        return Ok(None);
+    };
+    let mut all = entries.to_vec();
+    all.extend(rec.edits.iter().cloned());
+    restyle_with(props, &all).map(Some)
+}
+
+fn style_warnings(ctx: &CardCtx<'_, ClipFromTake>) -> [Option<CardRow>; 2] {
+    let no_track = ctx
+        .inputs
+        .takes
+        .get(RECORDING_PORT)
+        .is_some_and(|t| t.is_some_and(|t| !t.cursor_track));
+    let styled = |kind: &str| {
+        ctx.inputs
+            .style
+            .get(STYLE_PORT)
+            .is_some_and(|s| s.iter().any(|t| t == kind))
+    };
+    [
+        (no_track && styled(FOLLOW_CURSOR_TYPE)).then(|| {
+            row(Icon::TriangleAlert, "The take has no cursor to follow")
+                .tone(Tone::Warn)
+                .titled("Set Cursor to Smooth on the Record take node.")
+        }),
+        (no_track && styled(CURSOR_STYLE_TYPE)).then(|| {
+            row(Icon::TriangleAlert, "The take films its own cursor").tone(Tone::Warn).titled(
+                "The Cursor node's look, size and colours apply only to a drawn cursor. Set Cursor to Smooth on the Record take node.",
+            )
+        }),
+    ]
+}
+
+const fn take_kind_label(kind: TakeKind) -> &'static str {
+    match kind {
+        TakeKind::Browser => "Browser take",
+        TakeKind::Terminal => "Terminal take",
+    }
+}
+
+fn clip_from_take() -> NodeDef {
+    NodeDef::of::<ClipFromTake>(CLIP_FROM_TAKE_TYPE, "Clip from take", Category::Camera, Phase::Compile)
+        .describe("Turns a take into a clip, shot the way its style says: the window, the backdrop and the camera moves.")
         .inputs(vec![(RECORDING_PORT, port(PortType::Recording, "Recording")), (STYLE_PORT, opt(PortType::RecordingStyle, "Style"))])
         .outputs(vec![(CLIP_PORT, port(PortType::Clip, "Clip"))])
-        .card(|ctx: &CardCtx<'_, AutoZoom>| {
+        .card(|ctx: &CardCtx<'_, ClipFromTake>| {
             let p = &ctx.params;
-            let no_track = ctx.inputs.takes.get(RECORDING_PORT).is_some_and(|t| t.is_some_and(|t| !t.cursor_track));
-            let styled = |kind: &str| ctx.inputs.style.get(STYLE_PORT).is_some_and(|s| s.iter().any(|t| t == kind));
+            let take = ctx.inputs.takes.get(RECORDING_PORT).copied().flatten();
+            let styles = ctx.inputs.style.get(STYLE_PORT).map_or(0, Vec::len);
+            let [follow, cursor] = style_warnings(ctx);
             vec![
-                (no_track && styled(FOLLOW_CURSOR_TYPE)).then(|| {
-                    row(Icon::TriangleAlert, "The take has no cursor to follow")
-                        .tone(Tone::Warn)
-                        .titled("Set Cursor to Smooth on the Record take node.")
-                }),
-                (no_track && styled(CURSOR_STYLE_TYPE)).then(|| {
-                    row(Icon::TriangleAlert, "The take films its own cursor").tone(Tone::Warn).titled(
-                        "The Cursor node's look, size and colours apply only to a drawn cursor. Set Cursor to Smooth on the Record take node.",
-                    )
-                }),
-                Some(if p.zoom {
-                    row(Icon::ZoomIn, format!("Up to {}×", p.max_scale))
-                } else {
-                    row(Icon::ZoomOut, "No zoom").tone(Tone::Muted)
-                }),
-                p.zoom.then(|| row(Icon::Hourglass, format!("Hold {}", format_duration(f64::from(p.hold))))),
-                (p.frame.style().is_some() && p.bar().typed().is_some()).then(|| p.bar().row()),
-                (p.style == CameraStyle::Classic).then(|| row(Icon::Image, format!("{} backdrop", humanize(p.backdrop.id())))),
+                follow,
+                cursor,
+                take.map(|t| row(Icon::Video, format!("{} · {}", take_kind_label(t.kind), format_duration(t.duration_ms / p.speed)))),
+                Some(row(Icon::Palette, if styles == 0 { "The usual style".to_owned() } else { plural(numbers::float(styles), "style setting") }).muted_if(styles == 0)),
                 (!exact_eq(p.speed, 1.0)).then(|| row(Icon::Gauge, format!("{}× speed", p.speed))),
             ]
         })
-        .compile(|ctx: &Ctx<'_, AutoZoom>| {
+        .compile(|ctx: &Ctx<'_, ClipFromTake>| {
             let p = &ctx.params;
             let rec = ctx.input(RECORDING_PORT).and_then(CompileValue::as_recording);
             let mut entries = entries_of(ctx.input(STYLE_PORT));
-            entries.extend(rec.map_or_default(|r| r.style.clone()));
+            entries.extend(rec.map_or_default(|r| r.edits.clone()));
             let duration_ms = rec.map_or(DEFAULT_TAKE_MS, |r| r.duration_ms);
             let frames = ms_to_frames(duration_ms / p.speed, ctx.settings.fps);
-            let (Some(rec), Some(src), Some(log)) = (rec, rec.and_then(|r| r.src.clone()), rec.and_then(|r| r.log.clone())) else {
+            let style = entries_of(ctx.input(STYLE_PORT));
+            let props = match rec {
+                Some(rec) => clip_from_take_props(rec, p.speed, &style)?,
+                None => None,
+            };
+            let (Some(rec), Some(props)) = (rec, props) else {
                 let placeholder = placeholder_clip(
                     ctx.node_id,
                     "Not recorded yet",
@@ -1097,29 +1135,47 @@ fn auto_zoom() -> NodeDef {
                 );
                 return Ok(Some(outputs([(CLIP_PORT, CompileValue::Clip(retime_with(placeholder, &entries, ctx.settings.fps)?))])));
             };
-            let mut own = default_recording_props(src, log, rec.node_id.clone());
-            own.speed = p.speed;
-            own.zoom = p.zoom;
-            own.tuning = p.tuning();
-            own.window_fit = p.window_size.map(|percent| f64::from(percent) / 100.0);
-            own.stage_ground = Some(p.ground.clone());
-            own.window_radius = p.corner_radius.map(f64::from);
-            own.rim_glow = Some(p.shadow);
-            own.lift_colours = Some(p.lift_colours);
-            own.shutter_angle = Some(f64::from(p.shutter_angle));
-            own.bleed_blur = Some(f64::from(p.bleed_blur));
-            own.bleed_dim = Some(p.bleed_dim);
-            own.frame_font = crate::fonts::font_prop(&p.frame_font);
-            own.motion_blur = p.motion_blur;
-            own.style = p.style;
-            own = match p.frame.style() {
-                None => RecordingProps { chrome: false, ..own },
-                Some(style) => with_window_frame(own, style, p.frame_theme, &p.bar()),
-            };
-            p.backdrop.id().clone_into(&mut own.backdrop);
-            let props = restyle_with(own, &entries)?;
             let clip = recording_clip(ctx.node_id, props, frames, ItemExtra { recording: Some(rec.clone()), ..ItemExtra::default() });
             Ok(Some(outputs([(CLIP_PORT, CompileValue::Clip(retime_with(clip, &entries, ctx.settings.fps)?))])))
+        })
+}
+
+fn camera_node() -> NodeDef {
+    NodeDef::style_modifier::<Camera>(CAMERA_TYPE, "Camera", Category::Camera)
+        .describe("How the camera follows the take: when it zooms to the actions, how close and how fast it moves.")
+        .card(|ctx: &CardCtx<'_, Camera>| {
+            let p = &ctx.params;
+            vec![
+                Some(if p.zoom {
+                    row(Icon::ZoomIn, format!("Up to {}×", p.max_scale))
+                } else {
+                    row(Icon::ZoomOut, "No zoom").tone(Tone::Muted)
+                }),
+                p.zoom.then(|| row(Icon::Hourglass, format!("Hold {}", format_duration(f64::from(p.hold))))),
+            ]
+        })
+        .restyle(|props: RecordingProps, p: &Camera, _| RecordingProps {
+            camera: CameraProps {
+                zoom: p.zoom,
+                tuning: p.tuning(),
+            },
+            ..props
+        })
+}
+
+fn shot_node() -> NodeDef {
+    NodeDef::style_modifier::<Shot>(SHOT_TYPE, "Shot", Category::Camera)
+        .describe("How the take sits in the frame: a floating window, the whole page, or a window on a plain ground.")
+        .card(|ctx: &CardCtx<'_, Shot>| {
+            let p = &ctx.params;
+            vec![
+                Some(row(Icon::AppWindow, p.style.label())),
+                p.window_size.map(|size| row(Icon::Maximize, format!("{size}% of the frame"))),
+            ]
+        })
+        .restyle(|props: RecordingProps, p: &Shot, _| RecordingProps {
+            shot: p.apply(props.shot.clone()),
+            ..props
         })
 }
 
@@ -1248,7 +1304,7 @@ fn pan() -> NodeDef {
         })
         .restyle(|mut props: RecordingProps, p: &Pan, node_id| {
             if !p.zoom_out_when_far {
-                props.tuning.longest_pan_px = Some(NO_PAN_LIMIT_PX);
+                props.camera.tuning.longest_pan_px = Some(NO_PAN_LIMIT_PX);
             }
             let at = f64::from(p.at_ms);
             focus_beats(
@@ -1292,7 +1348,7 @@ fn follow_cursor() -> NodeDef {
         })
         .restyle(|mut props: RecordingProps, p: &FollowCursor, node_id| {
             if !p.zoom_out_on_jumps {
-                props.tuning.longest_pan_px = Some(NO_PAN_LIMIT_PX);
+                props.camera.tuning.longest_pan_px = Some(NO_PAN_LIMIT_PX);
             }
             let beats = follow_cursor_beats(&props.log, p.scale, f64::from(p.every_ms), node_id);
             props.extra_beats.extend(beats);
@@ -1425,7 +1481,10 @@ fn device_frame() -> NodeDef {
                     element_props(meta, &values)
                 });
                 let screened = patch_recordings(clip, &|r| RecordingProps {
-                    screen: Some(true),
+                    shot: ShotProps {
+                        in_device: Some(true),
+                        ..r.shot
+                    },
                     ..r
                 });
                 let wrapper = ElementRef {
@@ -1462,9 +1521,7 @@ fn window_frame() -> NodeDef {
                 Some(p.bar().row()),
             ]
         })
-        .restyle(|props: RecordingProps, p: &WindowFrame, _| {
-            with_window_frame(props, p.window_style, p.frame_theme, &p.bar())
-        })
+        .restyle(|props: RecordingProps, p: &WindowFrame, _| with_window_frame(props, p))
         .host_defaults(|platform: Platform| {
             let mut values = Values::new();
             values.insert(
@@ -1482,8 +1539,11 @@ fn backdrop() -> NodeDef {
         .restyle(
             |props: RecordingProps, p: &BackdropStyle, _| match p.chosen() {
                 Some(chosen) => RecordingProps {
-                    backdrop: chosen,
-                    backdrop_chosen: Some(true),
+                    shot: ShotProps {
+                        backdrop: chosen,
+                        backdrop_chosen: Some(true),
+                        ..props.shot
+                    },
                     ..props
                 },
                 None => props,
@@ -1498,15 +1558,20 @@ fn motion_blur() -> NodeDef {
             vec![Some(toggle_row(Icon::Wind, ctx.params.enabled))]
         })
         .restyle(|props: RecordingProps, p: &MotionBlur, _| RecordingProps {
-            motion_blur: p.enabled,
-            shutter_angle: Some(f64::from(p.shutter_angle)),
+            shot: ShotProps {
+                motion_blur: p.enabled,
+                shutter_angle: Some(f64::from(p.shutter_angle)),
+                ..props.shot
+            },
             ..props
         })
 }
 
 pub fn nodes() -> Vec<NodeDef> {
     vec![
-        auto_zoom().look(NodeLook::of("lucide:scan-search")),
+        clip_from_take().look(NodeLook::of("tabler:movie")),
+        camera_node().look(NodeLook::of("lucide:scan-search")),
+        shot_node().look(NodeLook::of("lucide:frame")),
         apply_style().look(NodeLook::of("lucide:paint-roller")),
         manual_zoom().look(NodeLook::of("lucide:zoom-in")),
         pan().look(NodeLook::of("lucide:move").moves(NodeMotion::Pan)),

@@ -358,6 +358,11 @@ export type BrowserSessionValue = {
 	address?: string,
 };
 
+export type BrowserSource = {
+	video: string | null,
+	viewport: Viewport,
+};
+
 export type BusDuck = {
 	keys: string[],
 	amount: number,
@@ -435,6 +440,11 @@ export type CameraKey = {
 
 export type CameraPath = {
 	keys: CameraKey[],
+};
+
+export type CameraProps = {
+	zoom: boolean,
+	tuning: CameraTuning,
 };
 
 export type CameraStyle = "classic" | "proof" | "ledger" | "stage";
@@ -744,6 +754,7 @@ export type EditorCompile = {
 	mix: Mix,
 	solo: boolean,
 	outdated: string[],
+	converts: { [key in string]: { [key in string]: PortType[] } },
 };
 
 export type EditorNode = {
@@ -1054,6 +1065,7 @@ export type InspectorContext = {
 	connectedInputs: string[],
 	ports: PortChoice[],
 	fileKinds: { [key in string]: MediaKind },
+	takeKind: TakeKind | null,
 };
 
 export type InstalledFamily = {
@@ -1453,6 +1465,14 @@ export type Point = {
 	y: number,
 };
 
+export type PointerProps = {
+	shown: boolean,
+	scale: number,
+	look: CursorLook,
+	feel?: CursorFeel,
+	ripple: RippleLook | null,
+};
+
 export type PortChoice = {
 	port: string,
 	label: string,
@@ -1503,51 +1523,25 @@ export type RecentProject = {
 };
 
 export type RecordingProps = {
-	src: string,
 	log: ActionLog,
 	name: string,
 	speed: number,
-	zoom: boolean,
-	tuning: CameraTuning,
-	motionBlur: boolean,
-	style: CameraStyle,
-	chrome: boolean,
-	windowStyle?: WindowStyle,
-	frameTheme?: FrameTheme,
-	addressBar?: boolean,
-	address?: string,
-	addressMode?: AddressMode,
-	backdrop: string,
-	backdropChosen?: boolean,
-	cursor: boolean,
-	cursorScale: number,
-	cursorLook: CursorLook,
-	cursorFeel?: CursorFeel,
-	ripple: RippleLook | null,
-	extraBeats: Action[],
+	camera: CameraProps,
+	shot: ShotProps,
+	window: WindowProps,
+	pointer: PointerProps,
 	keystrokes?: KeystrokeLook,
 	annotations: AnnotationSpec[],
-	footage?: FootageChain,
-	footageUrl?: string,
-	screen?: boolean,
-	windowFit?: number,
-	stageGround?: string,
-	windowRadius?: number,
-	rimGlow?: number,
-	liftColours?: boolean,
-	shutterAngle?: number,
-	bleedBlur?: number,
-	bleedDim?: number,
-	frameFont?: string,
+	extraBeats: Action[],
+	screen: ScreenProps,
 };
 
 export type RecordingValue = {
-	src: string | null,
 	log: ActionLog | null,
 	durationMs: number,
-	viewport: Viewport,
 	nodeId: string,
-	style: StyleEntry[],
+	edits: StyleEntry[],
+	source: TakeSource,
 };
 
 export type Rect = {
@@ -1621,6 +1615,8 @@ export type RunView = {
 	exports: Artifact[],
 };
 
+export type ScreenProps = { kind: "footage"; src: string; chain?: FootageChain; footageUrl?: string };
+
 export type SelectionShared = {
 	from: string,
 	selection: Selection,
@@ -1682,6 +1678,22 @@ export type ShapeChoice = {
 export type SharedState = {
 	selection: Selection,
 	playhead: Playhead | null,
+};
+
+export type ShotProps = {
+	style: CameraStyle,
+	backdrop: string,
+	backdropChosen?: boolean,
+	inDevice?: boolean,
+	windowFit?: number,
+	ground?: string,
+	radius?: number,
+	rimGlow?: number,
+	liftColours?: boolean,
+	bleedBlur?: number,
+	bleedDim?: number,
+	motionBlur: boolean,
+	shutterAngle?: number,
 };
 
 export type Slot = {
@@ -1785,11 +1797,34 @@ export type TaggedRecording = {
 	type: "recording",
 } & RecordingValue;
 
+export type TakeKind = "browser" | "terminal";
+
+export type TakeSource = {
+	kind: "browser",
+} & BrowserSource | {
+	kind: "terminal",
+} & TerminalSource;
+
 export type TemplateInfo = {
 	id: string,
 	title: string,
 	description: string,
 	icon: Icon,
+};
+
+export type TerminalSource = {
+	cast: string | null,
+	cols: number,
+	rows: number,
+	theme?: TerminalTheme,
+};
+
+export type TerminalTheme = {
+	name: string,
+	fg: string,
+	bg: string,
+	cursor: string,
+	palette: [string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string],
 };
 
 export type TextRules = {
@@ -2037,6 +2072,16 @@ export type Waveform = {
 export type WholeRange = {
 	min: number,
 	max: number,
+};
+
+export type WindowProps = {
+	chrome: boolean,
+	style?: WindowStyle,
+	theme?: FrameTheme,
+	font?: string,
+	bar?: boolean,
+	text?: string,
+	mode?: AddressMode,
 };
 
 export type WindowRole = "cut" | "copy" | "paste" | "selectAll" | "reload" | "toggleDevTools" | "resetZoom" | "zoomIn" | "zoomOut" | "togglefullscreen" | "minimize" | "toggleMaximize" | "close" | "quit";

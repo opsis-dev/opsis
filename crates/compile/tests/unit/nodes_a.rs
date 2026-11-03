@@ -79,7 +79,7 @@ fn generates_one_node_per_placeable_registry_element() {
 
 fn recording() -> CompileValue {
     typed(
-        &json!({ "type": "recording", "src": "project:take.mp4", "log": null, "durationMs": 4000, "viewport": { "width": 1280, "height": 720 }, "nodeId": "rec", "style": [] }),
+        &json!({ "type": "recording", "log": null, "durationMs": 4000, "nodeId": "rec", "edits": [], "source": { "kind": "browser", "video": "project:take.mp4", "viewport": { "width": 1280, "height": 720 } } }),
     )
 }
 
@@ -915,7 +915,7 @@ fn puts_redactions_on_the_takes_footage_in_order_across_nodes() {
         json!({ "style": "solid", "fromMs": 1000, "untilMs": 2000 }),
         json!({ "style": "blur", "fromMs": 3000 }),
     ]);
-    let entries = props["footage"]["redact"].as_array().unwrap();
+    let entries = props["screen"]["chain"]["redact"].as_array().unwrap();
     let shown: Vec<(Value, Value, Value)> = entries
         .iter()
         .map(|e| {
@@ -982,7 +982,8 @@ fn grades_the_footage_of_recordings_videos_and_images_only() {
         json!({}),
         json!({ CLIP: clip_value(&take), "grade": grade }),
     );
-    let footage = serde_json::to_value(recording_props(&graded)[0]).unwrap()["footage"].clone();
+    let footage =
+        serde_json::to_value(recording_props(&graded)[0]).unwrap()["screen"]["chain"].clone();
     assert_eq!(footage["grade"][0]["type"], "grade.colour");
     for (id, component, src) in [
         ("v", "video", "project:a.mp4"),

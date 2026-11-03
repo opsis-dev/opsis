@@ -185,14 +185,13 @@ fn redact_take() -> NodeDef {
                 after_take_row(take, p.from_ms),
             ]
         })
-        .restyle(|props: RecordingProps, p: &RedactTake, node_id| {
-            let mut footage = props.footage.clone();
-            footage.redact.push(StyleEntry {
+        .restyle(|mut props: RecordingProps, p: &RedactTake, node_id| {
+            props.screen.chain_mut().redact.push(StyleEntry {
                 node_id: node_id.to_owned(),
                 kind: REDACT_TAKE_TYPE.to_owned(),
                 params: params_of(p),
             });
-            RecordingProps { footage, ..props }
+            props
         })
 }
 
@@ -218,12 +217,10 @@ fn element_footage(props: &serde_json::Map<String, Value>) -> FootageChain {
 fn with_grade(clip: &ClipValue, grade: &[StyleEntry]) -> ClipValue {
     ClipValue {
         tracks: map_items(&clip.tracks, &|item| match item {
-            TimelineItem::Recording { base, props } => {
-                let footage = graded(&props.footage, grade);
-                TimelineItem::Recording {
-                    base,
-                    props: Box::new(RecordingProps { footage, ..*props }),
-                }
+            TimelineItem::Recording { base, mut props } => {
+                let footage = graded(props.screen.chain(), grade);
+                *props.screen.chain_mut() = footage;
+                TimelineItem::Recording { base, props }
             }
             TimelineItem::Element {
                 base,

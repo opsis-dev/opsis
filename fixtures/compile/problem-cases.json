@@ -567,12 +567,14 @@
      },
      {
       "id": "z",
-      "type": "camera.autoZoom",
+      "type": "camera.take",
       "position": {
        "x": 100,
        "y": 0
       },
-      "params": {}
+      "params": {
+       "speed": 1.25
+      }
      }
     ],
     "edges": [
@@ -871,12 +873,14 @@
      },
      {
       "id": "z",
-      "type": "camera.autoZoom",
+      "type": "camera.take",
       "position": {
        "x": 200,
        "y": 0
       },
-      "params": {}
+      "params": {
+       "speed": 1.25
+      }
      },
      {
       "id": "v1",

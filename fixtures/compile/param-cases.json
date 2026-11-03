@@ -12156,7 +12156,19 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.take",
+   "label": "defaults",
+   "key": null,
+   "change": null,
+   "outcome": {
+    "ok": true,
+    "data": {
+     "speed": 1.25
+    }
+   }
+  },
+  {
+   "type": "camera.camera",
    "label": "defaults",
    "key": null,
    "change": null,
@@ -12166,23 +12178,6 @@
      "zoom": true,
      "maxScale": 1.74,
      "hold": 1300,
-     "speed": 1.25,
-     "style": "classic",
-     "backdrop": "glaze",
-     "frame": "none",
-     "frameTheme": "light",
-     "addressBar": true,
-     "address": "",
-     "addressMode": "fixed",
-     "motionBlur": true,
-     "ground": "#faf6f1",
-     "shadow": 1.0,
-     "liftColours": true,
-     "shutterAngle": 180,
-     "bleedBlur": 48,
-     "bleedDim": 0.55,
-     "cameraEasing": "smooth",
-     "cameraPace": 1.0,
      "minScale": 1.18,
      "firstMaxScale": 1.54,
      "room": 80,
@@ -12193,12 +12188,42 @@
      "holdAfterTypingMs": 400,
      "restAtEndMs": 600,
      "longestPan": 500,
-     "frameFont": ""
+     "cameraEasing": "smooth",
+     "cameraPace": 1.0
     }
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.shot",
+   "label": "defaults",
+   "key": null,
+   "change": null,
+   "outcome": {
+    "ok": true,
+    "data": {
+     "style": "classic",
+     "ground": "#faf6f1",
+     "shadow": 1.0,
+     "liftColours": true,
+     "bleedBlur": 48,
+     "bleedDim": 0.55
+    }
+   }
+  },
+  {
+   "type": "camera.take",
+   "label": "empty",
+   "key": null,
+   "change": null,
+   "outcome": {
+    "ok": true,
+    "data": {
+     "speed": 1.25
+    }
+   }
+  },
+  {
+   "type": "camera.camera",
    "label": "empty",
    "key": null,
    "change": null,
@@ -12208,23 +12233,6 @@
      "zoom": true,
      "maxScale": 1.74,
      "hold": 1300,
-     "speed": 1.25,
-     "style": "classic",
-     "backdrop": "glaze",
-     "frame": "none",
-     "frameTheme": "light",
-     "addressBar": true,
-     "address": "",
-     "addressMode": "fixed",
-     "motionBlur": true,
-     "ground": "#faf6f1",
-     "shadow": 1.0,
-     "liftColours": true,
-     "shutterAngle": 180,
-     "bleedBlur": 48,
-     "bleedDim": 0.55,
-     "cameraEasing": "smooth",
-     "cameraPace": 1.0,
      "minScale": 1.18,
      "firstMaxScale": 1.54,
      "room": 80,
@@ -12235,12 +12243,30 @@
      "holdAfterTypingMs": 400,
      "restAtEndMs": 600,
      "longestPan": 500,
-     "frameFont": ""
+     "cameraEasing": "smooth",
+     "cameraPace": 1.0
     }
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.shot",
+   "label": "empty",
+   "key": null,
+   "change": null,
+   "outcome": {
+    "ok": true,
+    "data": {
+     "style": "classic",
+     "ground": "#faf6f1",
+     "shadow": 1.0,
+     "liftColours": true,
+     "bleedBlur": 48,
+     "bleedDim": 0.55
+    }
+   }
+  },
+  {
+   "type": "camera.camera",
    "label": "missing",
    "key": "zoom",
    "change": {
@@ -12249,11 +12275,11 @@
    "outcome": {
     "ok": true,
     "value": true,
-    "keys": 31
+    "keys": 15
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "null",
    "key": "zoom",
    "change": {
@@ -12261,11 +12287,11 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Zoom to the clicks isn't valid"
+    "problem": "Zoom to the actions isn't valid"
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "text",
    "key": "zoom",
    "change": {
@@ -12273,11 +12299,11 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Zoom to the clicks isn't valid"
+    "problem": "Zoom to the actions isn't valid"
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "missing",
    "key": "maxScale",
    "change": {
@@ -12286,11 +12312,11 @@
    "outcome": {
     "ok": true,
     "value": 1.74,
-    "keys": 31
+    "keys": 15
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "null",
    "key": "maxScale",
    "change": {
@@ -12302,7 +12328,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "text",
    "key": "maxScale",
    "change": {
@@ -12314,7 +12340,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "variable",
    "key": "maxScale",
    "change": {
@@ -12326,7 +12352,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "fraction",
    "key": "maxScale",
    "change": {
@@ -12338,7 +12364,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "huge",
    "key": "maxScale",
    "change": {
@@ -12350,7 +12376,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "below",
    "key": "maxScale",
    "change": {
@@ -12362,7 +12388,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "at low bound",
    "key": "maxScale",
    "change": {
@@ -12371,11 +12397,11 @@
    "outcome": {
     "ok": true,
     "value": 1.1,
-    "keys": 31
+    "keys": 15
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "above",
    "key": "maxScale",
    "change": {
@@ -12387,7 +12413,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "at high bound",
    "key": "maxScale",
    "change": {
@@ -12396,11 +12422,11 @@
    "outcome": {
     "ok": true,
     "value": 2.5,
-    "keys": 31
+    "keys": 15
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "missing",
    "key": "hold",
    "change": {
@@ -12409,11 +12435,11 @@
    "outcome": {
     "ok": true,
     "value": 1300,
-    "keys": 31
+    "keys": 15
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "null",
    "key": "hold",
    "change": {
@@ -12425,7 +12451,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "text",
    "key": "hold",
    "change": {
@@ -12437,7 +12463,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "variable",
    "key": "hold",
    "change": {
@@ -12449,7 +12475,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "fraction",
    "key": "hold",
    "change": {
@@ -12461,7 +12487,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "huge",
    "key": "hold",
    "change": {
@@ -12473,7 +12499,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "below",
    "key": "hold",
    "change": {
@@ -12485,7 +12511,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "at low bound",
    "key": "hold",
    "change": {
@@ -12494,11 +12520,11 @@
    "outcome": {
     "ok": true,
     "value": 0,
-    "keys": 31
+    "keys": 15
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "above",
    "key": "hold",
    "change": {
@@ -12510,7 +12536,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.camera",
    "label": "at high bound",
    "key": "hold",
    "change": {
@@ -12519,11 +12545,11 @@
    "outcome": {
     "ok": true,
     "value": 10000,
-    "keys": 31
+    "keys": 15
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.take",
    "label": "missing",
    "key": "speed",
    "change": {
@@ -12532,11 +12558,11 @@
    "outcome": {
     "ok": true,
     "value": 1.25,
-    "keys": 31
+    "keys": 1
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.take",
    "label": "null",
    "key": "speed",
    "change": {
@@ -12548,7 +12574,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.take",
    "label": "text",
    "key": "speed",
    "change": {
@@ -12560,7 +12586,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.take",
    "label": "variable",
    "key": "speed",
    "change": {
@@ -12572,7 +12598,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.take",
    "label": "fraction",
    "key": "speed",
    "change": {
@@ -12581,11 +12607,11 @@
    "outcome": {
     "ok": true,
     "value": 0.5,
-    "keys": 31
+    "keys": 1
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.take",
    "label": "huge",
    "key": "speed",
    "change": {
@@ -12597,7 +12623,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.take",
    "label": "below",
    "key": "speed",
    "change": {
@@ -12609,7 +12635,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.take",
    "label": "at low bound",
    "key": "speed",
    "change": {
@@ -12618,11 +12644,11 @@
    "outcome": {
     "ok": true,
     "value": 0.25,
-    "keys": 31
+    "keys": 1
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.take",
    "label": "above",
    "key": "speed",
    "change": {
@@ -12634,7 +12660,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.take",
    "label": "at high bound",
    "key": "speed",
    "change": {
@@ -12643,11 +12669,11 @@
    "outcome": {
     "ok": true,
     "value": 4,
-    "keys": 31
+    "keys": 1
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.shot",
    "label": "missing",
    "key": "style",
    "change": {
@@ -12656,11 +12682,11 @@
    "outcome": {
     "ok": true,
     "value": "classic",
-    "keys": 31
+    "keys": 6
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.shot",
    "label": "null",
    "key": "style",
    "change": {
@@ -12672,7 +12698,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.shot",
    "label": "other",
    "key": "style",
    "change": {
@@ -12684,7 +12710,7 @@
    }
   },
   {
-   "type": "camera.autoZoom",
+   "type": "camera.shot",
    "label": "number",
    "key": "style",
    "change": {
@@ -12693,227 +12719,6 @@
    "outcome": {
     "ok": false,
     "problem": "Camera style has a value that isn't allowed"
-   }
-  },
-  {
-   "type": "camera.autoZoom",
-   "label": "missing",
-   "key": "backdrop",
-   "change": {
-    "unset": true
-   },
-   "outcome": {
-    "ok": true,
-    "value": "glaze",
-    "keys": 31
-   }
-  },
-  {
-   "type": "camera.autoZoom",
-   "label": "null",
-   "key": "backdrop",
-   "change": {
-    "set": null
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Backdrop has a value that isn't allowed"
-   }
-  },
-  {
-   "type": "camera.autoZoom",
-   "label": "other",
-   "key": "backdrop",
-   "change": {
-    "set": "zz-other"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Backdrop has a value that isn't allowed"
-   }
-  },
-  {
-   "type": "camera.autoZoom",
-   "label": "number",
-   "key": "backdrop",
-   "change": {
-    "set": 45
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Backdrop has a value that isn't allowed"
-   }
-  },
-  {
-   "type": "camera.autoZoom",
-   "label": "missing",
-   "key": "frame",
-   "change": {
-    "unset": true
-   },
-   "outcome": {
-    "ok": true,
-    "value": "none",
-    "keys": 31
-   }
-  },
-  {
-   "type": "camera.autoZoom",
-   "label": "null",
-   "key": "frame",
-   "change": {
-    "set": null
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Window frame has a value that isn't allowed"
-   }
-  },
-  {
-   "type": "camera.autoZoom",
-   "label": "other",
-   "key": "frame",
-   "change": {
-    "set": "zz-other"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Window frame has a value that isn't allowed"
-   }
-  },
-  {
-   "type": "camera.autoZoom",
-   "label": "number",
-   "key": "frame",
-   "change": {
-    "set": 45
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Window frame has a value that isn't allowed"
-   }
-  },
-  {
-   "type": "camera.autoZoom",
-   "label": "missing",
-   "key": "frameTheme",
-   "change": {
-    "unset": true
-   },
-   "outcome": {
-    "ok": true,
-    "value": "light",
-    "keys": 31
-   }
-  },
-  {
-   "type": "camera.autoZoom",
-   "label": "null",
-   "key": "frameTheme",
-   "change": {
-    "set": null
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Frame colour has a value that isn't allowed"
-   }
-  },
-  {
-   "type": "camera.autoZoom",
-   "label": "other",
-   "key": "frameTheme",
-   "change": {
-    "set": "zz-other"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Frame colour has a value that isn't allowed"
-   }
-  },
-  {
-   "type": "camera.autoZoom",
-   "label": "number",
-   "key": "frameTheme",
-   "change": {
-    "set": 45
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Frame colour has a value that isn't allowed"
-   }
-  },
-  {
-   "type": "camera.autoZoom",
-   "label": "missing",
-   "key": "addressBar",
-   "change": {
-    "unset": true
-   },
-   "outcome": {
-    "ok": true,
-    "value": true,
-    "keys": 31
-   }
-  },
-  {
-   "type": "camera.autoZoom",
-   "label": "null",
-   "key": "addressBar",
-   "change": {
-    "set": null
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Address bar isn't valid"
-   }
-  },
-  {
-   "type": "camera.autoZoom",
-   "label": "text",
-   "key": "addressBar",
-   "change": {
-    "set": "yes"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Address bar isn't valid"
-   }
-  },
-  {
-   "type": "camera.autoZoom",
-   "label": "missing",
-   "key": "motionBlur",
-   "change": {
-    "unset": true
-   },
-   "outcome": {
-    "ok": true,
-    "value": true,
-    "keys": 31
-   }
-  },
-  {
-   "type": "camera.autoZoom",
-   "label": "null",
-   "key": "motionBlur",
-   "change": {
-    "set": null
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Motion blur isn't valid"
-   }
-  },
-  {
-   "type": "camera.autoZoom",
-   "label": "text",
-   "key": "motionBlur",
-   "change": {
-    "set": "yes"
-   },
-   "outcome": {
-    "ok": false,
-    "problem": "Motion blur isn't valid"
    }
   },
   {
@@ -16202,9 +16007,10 @@
     "data": {
      "windowStyle": "macos",
      "frameTheme": "light",
-     "addressBar": true,
-     "address": "",
-     "addressMode": "fixed"
+     "titleBar": true,
+     "title": "",
+     "addressMode": "fixed",
+     "font": ""
     }
    }
   },
@@ -16218,9 +16024,10 @@
     "data": {
      "windowStyle": "macos",
      "frameTheme": "light",
-     "addressBar": true,
-     "address": "",
-     "addressMode": "fixed"
+     "titleBar": true,
+     "title": "",
+     "addressMode": "fixed",
+     "font": ""
     }
    }
   },
@@ -16234,7 +16041,7 @@
    "outcome": {
     "ok": true,
     "value": "macos",
-    "keys": 5
+    "keys": 6
    }
   },
   {
@@ -16283,7 +16090,7 @@
    "outcome": {
     "ok": true,
     "value": "light",
-    "keys": 5
+    "keys": 6
    }
   },
   {
@@ -16325,38 +16132,38 @@
   {
    "type": "camera.windowFrame",
    "label": "missing",
-   "key": "addressBar",
+   "key": "titleBar",
    "change": {
     "unset": true
    },
    "outcome": {
     "ok": true,
     "value": true,
-    "keys": 5
+    "keys": 6
    }
   },
   {
    "type": "camera.windowFrame",
    "label": "null",
-   "key": "addressBar",
+   "key": "titleBar",
    "change": {
     "set": null
    },
    "outcome": {
     "ok": false,
-    "problem": "Address bar isn't valid"
+    "problem": "Title bar isn't valid"
    }
   },
   {
    "type": "camera.windowFrame",
    "label": "text",
-   "key": "addressBar",
+   "key": "titleBar",
    "change": {
     "set": "yes"
    },
    "outcome": {
     "ok": false,
-    "problem": "Address bar isn't valid"
+    "problem": "Title bar isn't valid"
    }
   },
   {

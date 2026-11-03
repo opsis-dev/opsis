@@ -111,8 +111,8 @@ fn props_after(kind: &str, params: Value) -> Value {
 fn uses_default_cursor_colours_when_cleared_and_none_for_the_mac_cursor() {
     let defaults = props_after("cursor.style", json!({}));
     assert_eq!(
-        props_after("cursor.style", json!({ "color": "", "outline": " " }))["cursorLook"],
-        defaults["cursorLook"]
+        props_after("cursor.style", json!({ "color": "", "outline": " " }))["pointer"]["look"],
+        defaults["pointer"]["look"]
     );
     let keys =
         props_after("cursor.keystrokeChips", json!({ "keycap": "", "ink": "" }))["keystrokes"]
@@ -126,7 +126,7 @@ fn uses_default_cursor_colours_when_cleared_and_none_for_the_mac_cursor() {
         "rgba(0,0,0,0.55)"
     );
     assert_eq!(
-        props_after("cursor.style", json!({ "look": "mac", "color": "#ff0000" }))["cursorLook"],
+        props_after("cursor.style", json!({ "look": "mac", "color": "#ff0000" }))["pointer"]["look"],
         json!({ "shape": "mac" })
     );
     let mac = node_card(
@@ -209,8 +209,8 @@ fn keeps_marks_in_chain_order_and_applies_style_steps_in_any_order() {
     let zoom = [("camera.manualZoom", json!({ "atMs": 500 }))];
     let pick = |p: Value| {
         (
-            p["cursorScale"].clone(),
-            p["backdrop"].clone(),
+            p["pointer"]["scale"].clone(),
+            p["shot"]["backdrop"].clone(),
             p["extraBeats"].as_array().unwrap().len(),
         )
     };
@@ -234,7 +234,7 @@ fn keeps_zooms_and_marks_made_before_a_laptop_frame_on_its_screen() {
         json!({ CLIP: clip_value(&clip) }),
     );
     let props = serde_json::to_value(recording_props(&framed)[0]).unwrap();
-    assert_eq!(props["screen"], true);
+    assert_eq!(props["shot"]["inDevice"], true);
     assert_eq!(
         (
             props["extraBeats"].as_array().unwrap().len(),

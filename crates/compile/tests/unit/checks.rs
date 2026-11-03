@@ -166,7 +166,7 @@ fn reads_timeline_items_by_kind_and_refuses_props_that_dont_fit() {
     let mut bad_log = recording_props();
     bad_log["log"] = json!("take");
     let mut bad_style = recording_props();
-    bad_style["style"] = json!("fancy");
+    bad_style["shot"]["style"] = json!("fancy");
     assert!(!accepts(with(
         json!({ "kind": "group", "props": recording_props() })
     )));

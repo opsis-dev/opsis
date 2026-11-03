@@ -7,7 +7,7 @@ use opsis_types::looks::NodeLook;
 use opsis_types::recording::RecordingProps;
 use opsis_types::values::{
     BrowserAction, ClipValue, CompileValue, EntriesValue, Hits, MediaKind, MediaValue, NodeResult,
-    PortValues, StyleEntry,
+    PortValues, StyleEntry, TakeKind,
 };
 use opsis_types::workflow::{PortType, Workflow, WorkflowSettings};
 use serde::de::DeserializeOwned;
@@ -327,6 +327,7 @@ impl<P> Ctx<'_, P> {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct InputTake {
+    pub kind: TakeKind,
     pub duration_ms: f64,
     pub cursor_track: bool,
 }
@@ -1027,7 +1028,7 @@ impl NodeDef {
                 {
                     Some(recording) => {
                         let mut recording = recording.clone();
-                        recording.style.push(ctx.entry());
+                        recording.edits.push(ctx.entry());
                         outputs([(RECORDING_PORT, CompileValue::Recording(recording))])
                     }
                     None => Outputs::new(),

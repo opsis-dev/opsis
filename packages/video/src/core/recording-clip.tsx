@@ -19,7 +19,6 @@ import { poseAt } from "#video/camera/lib/zoom.ts";
 import { STAGE_COLOR } from "#video/common/element-colors.ts";
 import { CODE_FONT } from "#video/common/fonts.ts";
 import { clamp } from "#video/common/math.ts";
-import { pick } from "#video/common/objects.ts";
 import { CLAMPED, fadeWindow } from "#video/core/anim.ts";
 import {
   JUSTIFY_AT,
@@ -29,6 +28,7 @@ import {
   verticalInsets,
   type Reframe,
 } from "#video/core/frame.ts";
+import { hasScreen } from "#video/core/screen.tsx";
 import type { Size } from "#video/core/still-layout.ts";
 import type { KeystrokeLook, RecordingProps } from "#video/generated/spec.ts";
 
@@ -47,42 +47,16 @@ const TYPED_CHIP = {
   shadow: 0.35,
 } as const;
 
-const CLIP_KEYS = [
-  "speed",
-  "style",
-  "chrome",
-  "windowStyle",
-  "frameTheme",
-  "addressBar",
-  "backdrop",
-  "backdropChosen",
-  "cursor",
-  "cursorScale",
-  "cursorLook",
-  "cursorFeel",
-  "ripple",
-  "windowFit",
-  "stageGround",
-  "windowRadius",
-  "rimGlow",
-  "liftColours",
-  "shutterAngle",
-  "bleedBlur",
-  "bleedDim",
-  "frameFont",
-] as const satisfies ReadonlyArray<keyof RecordingProps>;
-
 export function RecordingClip(props: RecordingProps) {
-  const src = props.footageUrl ?? null;
-  const backdrop = props.backdrop ? assetUrl(props.backdrop) : props.backdrop;
   const { width, height, fps } = useFilm();
   const frame = useFrame();
   const reframe = useReframe();
   const timeS = useClipTime(props.speed);
+  const { zoom, tuning } = props.camera;
 
   const log = useMemo(
-    () => toClickLog(props.log, props.name, props.extraBeats, { zoomActions: props.zoom }),
-    [props.log, props.name, props.extraBeats, props.zoom],
+    () => toClickLog(props.log, props.name, props.extraBeats, { zoomActions: zoom }),
+    [props.log, props.name, props.extraBeats, zoom],
   );
   const annotations = useMemo(
     () => resolveAnnotations(props.log, props.annotations),
@@ -90,45 +64,41 @@ export function RecordingClip(props: RecordingProps) {
   );
   const timeMs = timeS * 1000;
 
-  if (!src) return null;
+  if (!hasScreen(props.screen)) return null;
 
-  if (props.screen)
-    return (
-      <ScreenClip
-        {...pick(props, CLIP_KEYS)}
-        backdrop={backdrop}
-        src={src}
-        log={log}
-        motionBlur={false}
-        annotations={annotations}
-      />
-    );
+  const shot = { ...props.shot, backdrop: assetUrl(props.shot.backdrop) };
+  const base = {
+    screen: props.screen,
+    log,
+    speed: props.speed,
+    shot,
+    window: props.window,
+    pointer: props.pointer,
+    annotations,
+  };
+
+  if (props.shot.inDevice) return <ScreenClip {...base} shot={{ ...shot, motionBlur: false }} />;
 
   const layout = reframeLayout(
     props.log.viewport,
     { width, height },
     reframe,
-    SHOT_STYLES[props.style].framing !== "window",
+    SHOT_STYLES[props.shot.style].framing !== "window",
   );
   const contain = layout.mode === "contain" ? layout : undefined;
   const narrow = contain?.narrow;
   const clip = (
     <DemoClip
-      {...pick(props, CLIP_KEYS)}
-      backdrop={backdrop}
+      {...base}
       box={contain?.box}
-      src={src}
-      log={log}
-      address={frameAddress(props.log, timeMs, props.address, props.addressMode)}
-      motionBlur={props.motionBlur}
-      tuning={narrow ? { ...props.tuning, narrow } : props.tuning}
-      annotations={annotations}
+      title={frameAddress(props.log, timeMs, props.window.text, props.window.mode)}
+      tuning={narrow ? { ...tuning, narrow } : tuning}
     />
   );
 
   const { keystrokes } = props;
   function followX() {
-    return poseAt(frame, fps, log, { speed: props.speed, tuning: props.tuning }).cx;
+    return poseAt(frame, fps, log, { speed: props.speed, tuning }).cx;
   }
   return (
     <AbsoluteFill>

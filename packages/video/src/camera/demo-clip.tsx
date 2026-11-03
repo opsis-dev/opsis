@@ -15,55 +15,29 @@ import { MotionBlur } from "#video/camera/motion-blur.tsx";
 import { RimLight, Stage } from "#video/camera/stage.tsx";
 import { CHROME_H, WindowFrame } from "#video/camera/window-frame.tsx";
 import { percent } from "#video/common/format.ts";
-import { FootageFrame } from "#video/core/footage.tsx";
+import { Screen } from "#video/core/screen.tsx";
 import type { Size } from "#video/core/still-layout.ts";
 import { Backdrop } from "#video/elements/background/backdrop.tsx";
-import type {
-  CursorFeel,
-  CursorLook,
-  RecordingProps,
-  RippleLook,
-  FrameTheme,
-  WindowStyle,
-} from "#video/generated/spec.ts";
+import type { PointerProps, ScreenProps, ShotProps, WindowProps } from "#video/generated/spec.ts";
 
-type DemoClipProps = {
-  src: string;
+export type DemoClipProps = {
+  screen: ScreenProps;
   log: ClickLog;
-  style: RecordingProps["style"];
   speed: number;
-  chrome: boolean;
-  motionBlur: boolean;
-  cursor: boolean;
-  ripple: RippleLook | null;
-  cursorScale?: number;
-  cursorLook?: CursorLook;
-  cursorFeel?: CursorFeel;
+  shot: ShotProps;
+  window: WindowProps;
+  title?: string;
+  pointer: PointerProps;
   tuning?: CameraTuning;
   annotations?: Annotation[];
-  backdrop?: string;
-  backdropChosen?: boolean;
   box?: Size;
-  windowStyle?: WindowStyle;
-  frameTheme?: FrameTheme;
-  addressBar?: boolean;
-  address?: string;
-  windowFit?: number;
-  stageGround?: string;
-  windowRadius?: number;
-  rimGlow?: number;
-  liftColours?: boolean;
-  shutterAngle?: number;
-  bleedBlur?: number;
-  bleedDim?: number;
-  frameFont?: string;
 };
 
 const PAGE_BG = "#fcfcfc";
 const BLEED_BG = "#0b0b10";
-function bleedBlur(clip: DemoClipProps): React.CSSProperties {
+function bleedBlur(shot: ShotProps): React.CSSProperties {
   return {
-    filter: `blur(${clip.bleedBlur ?? 48}px) brightness(${clip.bleedDim ?? 0.55}) saturate(1.2)`,
+    filter: `blur(${shot.bleedBlur ?? 48}px) brightness(${shot.bleedDim ?? 0.55}) saturate(1.2)`,
     transform: "scale(1.15)",
   };
 }
@@ -77,8 +51,8 @@ export function useClipTime(speed: number): number {
   return logTimeS(frame, fps, speed);
 }
 
-function Footage({ src, speed, fit }: { src: string; speed: number; fit: "cover" | "fill" }) {
-  return <FootageFrame url={src} timeS={useClipTime(speed)} fit={fit} />;
+function ClipScreen({ clip, fit }: { clip: FootageClip; fit: "cover" | "fill" }) {
+  return <Screen screen={clip.screen} timeS={useClipTime(clip.speed)} fit={fit} />;
 }
 
 function cameraTransform(z: ZoomState) {
@@ -87,7 +61,7 @@ function cameraTransform(z: ZoomState) {
 
 type Framing = { chrome: boolean; fit: number; zoom: boolean };
 
-type CameraClip = Pick<DemoClipProps, "log" | "speed" | "tuning" | "box" | "chrome" | "windowFit">;
+type CameraClip = Pick<DemoClipProps, "log" | "speed" | "tuning" | "box" | "window" | "shot">;
 
 function useCamera(clip: CameraClip, framing: Framing) {
   const frame = useFrame();
@@ -114,8 +88,8 @@ function useCamera(clip: CameraClip, framing: Framing) {
 
 function windowFraming(clip: CameraClip, shot: WindowShot): Framing {
   return {
-    chrome: clip.chrome,
-    fit: clip.windowFit ?? shot.windowFit,
+    chrome: clip.window.chrome,
+    fit: clip.shot.windowFit ?? shot.windowFit,
     zoom: shot.zoom,
   };
 }
@@ -125,7 +99,7 @@ function ShadowGroup({
   shot,
   light,
 }: {
-  clip: CameraClip & Pick<DemoClipProps, "rimGlow">;
+  clip: CameraClip;
   shot: WindowShot;
   light: boolean;
 }) {
@@ -133,13 +107,13 @@ function ShadowGroup({
   return (
     <Stage>
       <div style={style}>
-        <RimLight light={light} strength={clip.rimGlow ?? 1} />
+        <RimLight light={light} strength={clip.shot.rimGlow ?? 1} />
       </div>
     </Stage>
   );
 }
 
-type FootageClip = Pick<DemoClipProps, "src" | "speed" | "annotations"> & CursorOptions;
+type FootageClip = Pick<DemoClipProps, "screen" | "speed" | "annotations"> & CursorOptions;
 
 function Marks({
   clip,
@@ -168,16 +142,16 @@ function WindowGroup({ clip, shot }: { clip: DemoClipProps; shot: WindowShot }) 
     <Stage>
       <div style={style}>
         <WindowFrame
-          chrome={clip.chrome}
-          address={clip.address}
-          windowStyle={clip.windowStyle}
-          theme={clip.frameTheme}
-          addressBar={clip.addressBar}
-          radius={clip.windowRadius}
-          lift={clip.liftColours ?? true}
-          font={clip.frameFont}
+          chrome={clip.window.chrome}
+          address={clip.title}
+          windowStyle={clip.window.style}
+          theme={clip.window.theme}
+          addressBar={clip.window.bar}
+          radius={clip.shot.radius}
+          lift={clip.shot.liftColours ?? true}
+          font={clip.window.font}
         >
-          <Footage src={clip.src} speed={clip.speed} fit="fill" />
+          <ClipScreen clip={clip} fit="fill" />
           <Marks clip={clip} timeS={timeS} cameraScale={z.scale} />
           <Cursor clip={clip} timeS={timeS} cameraScale={z.scale} />
         </WindowFrame>
@@ -190,7 +164,7 @@ function FullBleedClip({ clip }: { clip: FootageClip }) {
   const timeS = useClipTime(clip.speed);
   return (
     <AbsoluteFill style={{ overflow: "hidden", backgroundColor: PAGE_BG }}>
-      <Footage src={clip.src} speed={clip.speed} fit="cover" />
+      <ClipScreen clip={clip} fit="cover" />
       <Marks clip={clip} timeS={timeS} cameraScale={1} />
       <Cursor clip={clip} timeS={timeS} cameraScale={1} />
     </AbsoluteFill>
@@ -206,12 +180,12 @@ function NarrowBleedClip({ clip }: { clip: DemoClipProps }) {
   const timeS = useClipTime(clip.speed);
   return (
     <AbsoluteFill style={{ overflow: "hidden", backgroundColor: BLEED_BG }}>
-      <AbsoluteFill style={bleedBlur(clip)}>
-        <Footage src={clip.src} speed={clip.speed} fit="cover" />
+      <AbsoluteFill style={bleedBlur(clip.shot)}>
+        <ClipScreen clip={clip} fit="cover" />
       </AbsoluteFill>
       <Stage>
         <div style={{ ...style, boxShadow: BLEED_SHADOW }}>
-          <Footage src={clip.src} speed={clip.speed} fit="fill" />
+          <ClipScreen clip={clip} fit="fill" />
           <Marks clip={clip} timeS={timeS} cameraScale={z.scale} />
           <Cursor clip={clip} timeS={timeS} cameraScale={z.scale} />
         </div>
@@ -221,7 +195,7 @@ function NarrowBleedClip({ clip }: { clip: DemoClipProps }) {
 }
 
 export function ScreenClip(clip: DemoClipProps) {
-  const shot = SHOT_STYLES[clip.style];
+  const shot = SHOT_STYLES[clip.shot.style];
   const zoom = shot.framing === "window" && shot.zoom;
   const { z, style } = useCamera(clip, { chrome: false, fit: 1, zoom });
   const timeS = useClipTime(clip.speed);
@@ -240,7 +214,7 @@ export function ScreenClip(clip: DemoClipProps) {
         }}
       >
         <div style={style}>
-          <Footage src={clip.src} speed={clip.speed} fit="fill" />
+          <ClipScreen clip={clip} fit="fill" />
           <Marks clip={clip} timeS={timeS} cameraScale={z.scale} />
           <Cursor clip={clip} timeS={timeS} cameraScale={z.scale} />
         </div>
@@ -250,18 +224,21 @@ export function ScreenClip(clip: DemoClipProps) {
 }
 
 export function DemoClip(props: DemoClipProps) {
-  const shot = SHOT_STYLES[props.style];
+  const shot = SHOT_STYLES[props.shot.style];
   if (shot.framing !== "window")
     return props.box ? <NarrowBleedClip clip={props} /> : <FullBleedClip clip={props} />;
 
-  const ground = shot.ground && (props.stageGround ?? shot.ground);
-  const backdrop = props.backdropChosen ? props.backdrop : ground || props.backdrop;
+  const ground = shot.ground && (props.shot.ground ?? shot.ground);
+  const backdrop = props.shot.backdropChosen ? props.shot.backdrop : ground || props.shot.backdrop;
   return (
     <AbsoluteFill>
       <Backdrop name={backdrop} />
       <ShadowGroup clip={props} shot={shot} light={isLightBackdrop(backdrop)} />
-      {shot.zoom && props.motionBlur ? (
-        <MotionBlur shutterAngle={props.shutterAngle ?? BLUR_SHUTTER_ANGLE} samples={BLUR_SAMPLES}>
+      {shot.zoom && props.shot.motionBlur ? (
+        <MotionBlur
+          shutterAngle={props.shot.shutterAngle ?? BLUR_SHUTTER_ANGLE}
+          samples={BLUR_SAMPLES}
+        >
           <WindowGroup clip={props} shot={shot} />
         </MotionBlur>
       ) : (

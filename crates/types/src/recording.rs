@@ -7,9 +7,13 @@ use crate::values::StyleEntry;
 
 #[choice(export)]
 pub enum CameraStyle {
+    #[label("Classic")]
     Classic,
+    #[label("Proof")]
     Proof,
+    #[label("Ledger")]
     Ledger,
+    #[label("Stage")]
     Stage,
 }
 
@@ -262,62 +266,109 @@ pub enum CameraEasing {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RecordingProps {
-    pub src: String,
     pub log: ActionLog,
     pub name: String,
     pub speed: f64,
-    pub zoom: bool,
-    pub tuning: CameraTuning,
-    pub motion_blur: bool,
-    pub style: CameraStyle,
-    pub chrome: bool,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub window_style: Option<WindowStyle>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub frame_theme: Option<FrameTheme>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub address_bar: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub address: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub address_mode: Option<AddressMode>,
-    pub backdrop: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub backdrop_chosen: Option<bool>,
-    pub cursor: bool,
-    pub cursor_scale: f64,
-    pub cursor_look: CursorLook,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub cursor_feel: Option<CursorFeel>,
-    #[serde(deserialize_with = "Option::deserialize")]
-    #[specta(type = Option<RippleLook>)]
-    pub ripple: Option<RippleLook>,
-    pub extra_beats: Vec<Action>,
+    pub camera: CameraProps,
+    pub shot: ShotProps,
+    pub window: WindowProps,
+    pub pointer: PointerProps,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub keystrokes: Option<KeystrokeLook>,
     pub annotations: Vec<AnnotationSpec>,
-    #[serde(default, skip_serializing_if = "FootageChain::is_empty")]
-    pub footage: FootageChain,
+    pub extra_beats: Vec<Action>,
+    pub screen: ScreenProps,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct CameraProps {
+    pub zoom: bool,
+    pub tuning: CameraTuning,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct ShotProps {
+    pub style: CameraStyle,
+    pub backdrop: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub footage_url: Option<String>,
+    pub backdrop_chosen: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub screen: Option<bool>,
+    pub in_device: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub window_fit: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub stage_ground: Option<String>,
+    pub ground: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub window_radius: Option<f64>,
+    pub radius: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rim_glow: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lift_colours: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub shutter_angle: Option<f64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub bleed_blur: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub bleed_dim: Option<f64>,
+    pub motion_blur: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub frame_font: Option<String>,
+    pub shutter_angle: Option<f64>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct WindowProps {
+    pub chrome: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub style: Option<WindowStyle>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub theme: Option<FrameTheme>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub font: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bar: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mode: Option<AddressMode>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct PointerProps {
+    pub shown: bool,
+    pub scale: f64,
+    pub look: CursorLook,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub feel: Option<CursorFeel>,
+    #[serde(deserialize_with = "Option::deserialize")]
+    #[specta(type = Option<RippleLook>)]
+    pub ripple: Option<RippleLook>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[serde(tag = "kind", rename_all = "kebab-case")]
+pub enum ScreenProps {
+    #[serde(rename_all = "camelCase")]
+    Footage {
+        src: String,
+        #[serde(default, skip_serializing_if = "FootageChain::is_empty")]
+        chain: FootageChain,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        footage_url: Option<String>,
+    },
+}
+
+impl ScreenProps {
+    pub const fn chain(&self) -> &FootageChain {
+        match self {
+            Self::Footage { chain, .. } => chain,
+        }
+    }
+
+    pub const fn chain_mut(&mut self) -> &mut FootageChain {
+        match self {
+            Self::Footage { chain, .. } => chain,
+        }
+    }
 }

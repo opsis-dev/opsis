@@ -5,7 +5,9 @@ use opsis_types::looks::NodeLook;
 use opsis_types::numbers;
 use opsis_types::recording::WindowStyle;
 use opsis_types::timeline::{EditHandles, ParamRef, ParamUnit, VisualEnvelope};
-use opsis_types::values::{BrowserAction, CompileValue, ImageValue, RecordingValue};
+use opsis_types::values::{
+    BrowserAction, BrowserSource, CompileValue, ImageValue, RecordingValue, TakeSource,
+};
 use opsis_types::workflow::{DEFAULT_TAKE_MS, DEFAULT_VIEWPORT, PortType};
 use serde::{Deserialize, Serialize};
 
@@ -383,7 +385,7 @@ fn record() -> NodeDef {
             steps
                 .filter(|s| !s.contains(&BrowserAction::StartRecording))
                 .map(|_| row(Icon::Clapperboard, "Starts with the first action").tone(Tone::Muted)),
-            rec.filter(|r| r.src.is_some())
+            rec.filter(|r| r.file().is_some())
                 .and_then(|r| r.log.as_ref().map(|log| (r, log)))
                 .map(|(r, log)| {
                     row(
@@ -401,12 +403,14 @@ fn record() -> NodeDef {
         let recording = recording_of(ctx.result)
             .cloned()
             .unwrap_or_else(|| RecordingValue {
-                src: None,
                 log: None,
                 duration_ms: DEFAULT_TAKE_MS,
-                viewport: DEFAULT_VIEWPORT,
                 node_id: ctx.node_id.to_owned(),
-                style: Vec::new(),
+                edits: Vec::new(),
+                source: TakeSource::Browser(BrowserSource {
+                    video: None,
+                    viewport: DEFAULT_VIEWPORT,
+                }),
             });
         outputs([(RECORDING_PORT, CompileValue::Recording(recording))])
     })

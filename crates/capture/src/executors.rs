@@ -24,8 +24,8 @@ use opsis_types::numbers::whole;
 use opsis_types::secrets::{secret_file, secret_name};
 use opsis_types::settings::TraceRetention;
 use opsis_types::values::{
-    ArtifactKind, BrowserAction, BrowserSessionValue, CompileValue, ImageValue, PortValues,
-    RecordingValue,
+    ArtifactKind, BrowserAction, BrowserSessionValue, BrowserSource, CompileValue, ImageValue,
+    PortValues, RecordingValue, TakeSource,
 };
 use tokio_util::sync::CancellationToken;
 
@@ -346,12 +346,14 @@ async fn record(
         ),
     );
     let recording = RecordingValue {
-        src: Some(ctx.project_file_ref(RECORDING_FILE)),
         duration_ms: log.duration_ms,
-        viewport: log.viewport,
+        source: TakeSource::Browser(BrowserSource {
+            video: Some(ctx.project_file_ref(RECORDING_FILE)),
+            viewport: log.viewport,
+        }),
         log: Some(log),
         node_id: ctx.node.id.clone(),
-        style: Vec::new(),
+        edits: Vec::new(),
     };
     Ok(ExecutorOutput {
         outputs: PortValues::from([(

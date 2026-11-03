@@ -20,15 +20,97 @@ pub struct StyleEntry {
 #[serde(rename_all = "camelCase")]
 pub struct RecordingValue {
     #[serde(deserialize_with = "Option::deserialize")]
-    #[specta(type = Option<String>)]
-    pub src: Option<String>,
-    #[serde(deserialize_with = "Option::deserialize")]
     #[specta(type = Option<ActionLog>)]
     pub log: Option<ActionLog>,
     pub duration_ms: f64,
-    pub viewport: Viewport,
     pub node_id: String,
-    pub style: Vec<StyleEntry>,
+    pub edits: Vec<StyleEntry>,
+    pub source: TakeSource,
+}
+
+impl RecordingValue {
+    pub const fn kind(&self) -> TakeKind {
+        self.source.kind()
+    }
+
+    pub fn file(&self) -> Option<&str> {
+        match &self.source {
+            TakeSource::Browser(b) => b.video.as_deref(),
+            TakeSource::Terminal(t) => t.cast.as_deref(),
+        }
+    }
+
+    pub fn video(&self) -> Option<&str> {
+        match &self.source {
+            TakeSource::Browser(b) => b.video.as_deref(),
+            TakeSource::Terminal(_) => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[serde(tag = "kind", rename_all = "kebab-case")]
+pub enum TakeSource {
+    Browser(BrowserSource),
+    Terminal(TerminalSource),
+}
+
+impl TakeSource {
+    pub const fn kind(&self) -> TakeKind {
+        match self {
+            Self::Browser(_) => TakeKind::Browser,
+            Self::Terminal(_) => TakeKind::Terminal,
+        }
+    }
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type, schemars::JsonSchema,
+)]
+#[serde(rename_all = "kebab-case")]
+pub enum TakeKind {
+    Browser,
+    Terminal,
+}
+
+impl TakeKind {
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::Browser => "browser",
+            Self::Terminal => "terminal",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct BrowserSource {
+    #[serde(deserialize_with = "Option::deserialize")]
+    #[specta(type = Option<String>)]
+    pub video: Option<String>,
+    pub viewport: Viewport,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct TerminalSource {
+    #[serde(deserialize_with = "Option::deserialize")]
+    #[specta(type = Option<String>)]
+    pub cast: Option<String>,
+    pub cols: u16,
+    pub rows: u16,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub theme: Option<Box<TerminalTheme>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct TerminalTheme {
+    pub name: String,
+    pub fg: String,
+    pub bg: String,
+    pub cursor: String,
+    pub palette: [String; 16],
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
@@ -297,7 +379,7 @@ impl CompileValue {
 
     pub fn src(&self) -> Option<&str> {
         match self {
-            Self::Recording(v) => v.src.as_deref(),
+            Self::Recording(v) => v.file(),
             Self::Image(v) => v.src.as_deref(),
             Self::Media(v) => v.src.as_deref(),
             _ => None,

@@ -1,6 +1,7 @@
 use opsis_types::actions::{Action, ActionKind, ActionLog, Point, Rect};
 use opsis_types::recording::{
-    CameraStyle, CameraTuning, FootageChain, FrameTheme, RecordingProps, WindowStyle,
+    CameraProps, CameraStyle, CameraTuning, FootageChain, FrameTheme, PointerProps, RecordingProps,
+    ScreenProps, ShotProps, WindowProps, WindowStyle,
 };
 
 use crate::backdrops::DEFAULT_BACKDROP;
@@ -10,6 +11,7 @@ use crate::nodes::cursor::{default_cursor_look, default_ripple};
 pub const DEFAULT_WINDOW_STYLE: WindowStyle = WindowStyle::Macos;
 pub const DEFAULT_FRAME_THEME: FrameTheme = FrameTheme::Light;
 pub const DEFAULT_ADDRESS_BAR: bool = true;
+pub const DEFAULT_TAKE_SPEED: f64 = 1.25;
 
 pub const fn host_window_style(platform: Platform) -> WindowStyle {
     match platform {
@@ -25,42 +27,52 @@ pub fn recording_speed(props: &RecordingProps) -> f64 {
 
 pub fn default_recording_props(src: String, log: ActionLog, name: String) -> RecordingProps {
     RecordingProps {
-        src,
         log,
         name,
-        speed: 1.25,
-        zoom: true,
-        tuning: CameraTuning::default(),
-        motion_blur: true,
-        style: CameraStyle::Classic,
-        chrome: false,
-        window_style: None,
-        frame_theme: None,
-        address_bar: None,
-        address: None,
-        address_mode: None,
-        backdrop: DEFAULT_BACKDROP.id().to_owned(),
-        backdrop_chosen: None,
-        cursor: true,
-        cursor_scale: 1.0,
-        cursor_look: default_cursor_look(),
-        cursor_feel: None,
-        ripple: Some(default_ripple()),
-        extra_beats: Vec::new(),
+        speed: DEFAULT_TAKE_SPEED,
+        camera: CameraProps {
+            zoom: true,
+            tuning: CameraTuning::default(),
+        },
+        shot: ShotProps {
+            style: CameraStyle::Classic,
+            backdrop: DEFAULT_BACKDROP.id().to_owned(),
+            backdrop_chosen: None,
+            in_device: None,
+            window_fit: None,
+            ground: None,
+            radius: None,
+            rim_glow: None,
+            lift_colours: None,
+            bleed_blur: None,
+            bleed_dim: None,
+            motion_blur: true,
+            shutter_angle: None,
+        },
+        window: WindowProps {
+            chrome: false,
+            style: None,
+            theme: None,
+            font: None,
+            bar: None,
+            text: None,
+            mode: None,
+        },
+        pointer: PointerProps {
+            shown: true,
+            scale: 1.0,
+            look: default_cursor_look(),
+            feel: None,
+            ripple: Some(default_ripple()),
+        },
         keystrokes: None,
         annotations: Vec::new(),
-        footage: FootageChain::default(),
-        footage_url: None,
-        screen: None,
-        window_fit: None,
-        stage_ground: None,
-        window_radius: None,
-        rim_glow: None,
-        lift_colours: None,
-        shutter_angle: None,
-        bleed_blur: None,
-        bleed_dim: None,
-        frame_font: None,
+        extra_beats: Vec::new(),
+        screen: ScreenProps::Footage {
+            src,
+            chain: FootageChain::default(),
+            footage_url: None,
+        },
     }
 }
 

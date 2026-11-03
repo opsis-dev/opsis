@@ -6,7 +6,7 @@ use opsis_types::actions::{Action, ActionKind};
 use opsis_types::mix::ChannelKind;
 use opsis_types::numbers;
 use opsis_types::numbers::whole;
-use opsis_types::recording::RecordingProps;
+use opsis_types::recording::{RecordingProps, ScreenProps};
 use opsis_types::timeline::{
     AudioItem, EditHandles, GroupProps, Slot, TimelineItem, TimelineSpec, TimelineTrack,
 };
@@ -325,14 +325,15 @@ pub fn action_label(action: &Action) -> Option<String> {
 
 fn thumbnail_of(item: &TimelineItem) -> Option<BarThumbnail> {
     match item {
-        TimelineItem::Recording { props, .. } => {
-            let src = props.src.clone();
-            (!src.is_empty()).then(|| BarThumbnail::Filmstrip {
-                src,
-                speed: recording_speed(props),
-                trim_ms: 0.0,
-            })
-        }
+        TimelineItem::Recording { props, .. } => match &props.screen {
+            ScreenProps::Footage { src, .. } => {
+                (!src.is_empty()).then(|| BarThumbnail::Filmstrip {
+                    src: src.clone(),
+                    speed: recording_speed(props),
+                    trim_ms: 0.0,
+                })
+            }
+        },
         TimelineItem::Element {
             component, props, ..
         } => {

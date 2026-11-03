@@ -22,6 +22,7 @@ export type FieldMeta = {
   lengthKey?: string;
   showIf?: Record<string, string[]>;
   showIfFile?: Record<string, Array<"image" | "video" | "audio">>;
+  showIfTake?: Array<"browser" | "terminal">;
   themes?: Partial<Record<ThemeMode, Record<string, string>>>;
 };
 
@@ -59,6 +60,7 @@ const META_KEYWORDS: Record<string, keyof FieldMeta> = {
   "x-length-key": "lengthKey",
   "x-show-if": "showIf",
   "x-show-if-file": "showIfFile",
+  "x-show-if-take": "showIfTake",
   "x-themes": "themes",
 };
 

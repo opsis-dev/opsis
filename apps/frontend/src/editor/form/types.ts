@@ -1,5 +1,5 @@
 import type { FieldMeta } from "@/editor/form/schema";
-import type { MediaKind, PortChoice } from "@/generated/bindings";
+import type { MediaKind, PortChoice, TakeKind } from "@/generated/bindings";
 import type { VarInfo } from "../var-text";
 
 export type SpotBackground = {
@@ -25,6 +25,7 @@ export type FormContext = {
   connectedInputs: string[];
   ports: PortChoice[];
   fileKinds: Partial<Record<string, MediaKind>>;
+  takeKind: TakeKind | null;
 };
 
 export type ParamValues = Record<string, unknown>;

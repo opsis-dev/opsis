@@ -99,8 +99,11 @@ fn compiles_the_sample_to_one_spec_per_export_with_a_placeholder_before_the_firs
 fn uses_the_recording_once_the_capture_node_has_a_result() {
     let film = todo_film(vec![("record", record_result(&log()))]);
     let props = recording_in(&film).unwrap();
-    assert_eq!(props["src"], "project:.opsis/cache/h/recording.mp4");
-    assert_eq!(props["tuning"]["sMax"], 1.74);
+    assert_eq!(
+        props["screen"]["src"],
+        "project:.opsis/cache/h/recording.mp4"
+    );
+    assert_eq!(props["camera"]["tuning"]["sMax"], 1.74);
     assert_eq!(
         props["keystrokes"],
         json!({

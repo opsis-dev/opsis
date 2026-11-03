@@ -55,6 +55,7 @@ const ctx: FormContext = {
   connectedInputs: [],
   ports: [],
   fileKinds: {},
+  takeKind: null,
 };
 
 afterEach(cleanup);

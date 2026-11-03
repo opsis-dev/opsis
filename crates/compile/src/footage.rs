@@ -1,4 +1,4 @@
-use opsis_types::recording::FootageChain;
+use opsis_types::recording::{FootageChain, ScreenProps};
 use opsis_types::timeline::{TimelineItem, TimelineTrack};
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -97,16 +97,25 @@ pub fn element_footage(component: &str, props: &Map<String, Value>) -> Vec<ItemF
     found
 }
 
+fn screen_footage(screen: &ScreenProps) -> Option<ItemFootage> {
+    match screen {
+        ScreenProps::Footage { src, chain, .. } if !src.is_empty() => Some(ItemFootage {
+            prop: String::new(),
+            used: identified(src, chain.clone(), 0, false),
+        }),
+        ScreenProps::Footage { .. } => None,
+    }
+}
+
 pub fn item_footage(item: &TimelineItem) -> Vec<ItemFootage> {
     match item {
-        TimelineItem::Recording { props, .. } if !props.src.is_empty() => vec![ItemFootage {
-            prop: String::new(),
-            used: identified(&props.src, props.footage.clone(), 0, false),
-        }],
+        TimelineItem::Recording { props, .. } => {
+            screen_footage(&props.screen).into_iter().collect()
+        }
         TimelineItem::Element {
             component, props, ..
         } => element_footage(component, props),
-        _ => Vec::new(),
+        TimelineItem::Group { .. } => Vec::new(),
     }
 }
 

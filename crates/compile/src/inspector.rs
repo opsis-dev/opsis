@@ -1,11 +1,14 @@
 use indexmap::IndexMap;
 use opsis_types::actions::Viewport;
-use opsis_types::values::{BrowserSessionValue, CompileValue, MediaKind, NodeResult};
+use opsis_types::values::{
+    BrowserSessionValue, CompileValue, MediaKind, NodeResult, RecordingValue, TakeKind,
+};
 use opsis_types::workflow::Workflow;
 use serde::Serialize;
 use serde_json::Value;
 
 use crate::asset_ref::kind_from_path;
+use crate::clip::clip_recording;
 use crate::color::project_swatches;
 use crate::compile::CompileResult;
 use crate::elements::introspect::widget_keys;
@@ -67,12 +70,31 @@ pub struct InspectorContext {
     pub connected_inputs: Vec<String>,
     pub ports: Vec<PortChoice>,
     pub file_kinds: IndexMap<String, MediaKind>,
+    pub take_kind: Option<TakeKind>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 pub struct PortChoice {
     pub port: String,
     pub label: String,
+}
+
+fn value_take_kind(value: &CompileValue) -> Option<TakeKind> {
+    match value {
+        CompileValue::Recording(take) => Some(take.kind()),
+        CompileValue::Clip(clip) => clip_recording(clip).map(RecordingValue::kind),
+        _ => None,
+    }
+}
+
+pub fn take_kind(wf: &Workflow, compiled: &CompileResult, node_id: &str) -> Option<TakeKind> {
+    std::iter::once(node_id.to_owned())
+        .chain(downstream_of(wf, node_id))
+        .find_map(|id| {
+            wf.edges.iter().filter(|e| e.target == id).find_map(|e| {
+                value_take_kind(compiled.values.get(&e.source)?.get(&e.source_handle)?)
+            })
+        })
 }
 
 fn file_kinds(params: &ParamSchema, values: &Values) -> IndexMap<String, MediaKind> {
@@ -108,8 +130,8 @@ fn recording_before(
 ) -> Option<SpotBackground> {
     upstream_of(wf, node_id).iter().find_map(|id| {
         match results.get(id)?.outputs.get("recording")? {
-            CompileValue::Recording(rec) => rec.src.clone().map(|src| SpotBackground {
-                src,
+            CompileValue::Recording(rec) => rec.video().map(|src| SpotBackground {
+                src: src.to_owned(),
                 time_ms: 0.0,
                 duration_ms: rec.duration_ms,
                 still: false,
@@ -285,6 +307,7 @@ pub fn inspector_context(
         picker: picker_target(wf, compiled, node_id),
         swatches: project_swatches(&params, MAX_SWATCHES),
         file_kinds: file_kinds(&def.params, &node.params),
+        take_kind: take_kind(wf, compiled, node_id),
         connected_inputs,
         ports,
     })

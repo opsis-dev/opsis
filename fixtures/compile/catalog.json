@@ -529,10 +529,10 @@
    }
   },
   {
-   "type": "camera.autoZoom",
-   "title": "Auto zoom",
+   "type": "camera.take",
+   "title": "Clip from take",
    "category": "Camera",
-   "description": "Turns a recording into a polished clip: the window floats on a backdrop and the camera zooms to every click.",
+   "description": "Turns a take into a clip, shot the way its style says: the window, the backdrop and the camera moves.",
    "runs": false,
    "inputs": {
     "recording": {
@@ -552,6 +552,52 @@
     "clip": {
      "type": "clip",
      "label": "Clip",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
+   "type": "camera.camera",
+   "title": "Camera",
+   "category": "Camera",
+   "description": "How the camera follows the take: when it zooms to the actions, how close and how fast it moves.",
+   "runs": false,
+   "inputs": {
+    "style": {
+     "type": "recording-style",
+     "label": "Style",
+     "optional": true,
+     "many": false
+    }
+   },
+   "outputs": {
+    "style": {
+     "type": "recording-style",
+     "label": "Style",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
+   "type": "camera.shot",
+   "title": "Shot",
+   "category": "Camera",
+   "description": "How the take sits in the frame: a floating window, the whole page, or a window on a plain ground.",
+   "runs": false,
+   "inputs": {
+    "style": {
+     "type": "recording-style",
+     "label": "Style",
+     "optional": true,
+     "many": false
+    }
+   },
+   "outputs": {
+    "style": {
+     "type": "recording-style",
+     "label": "Style",
      "optional": false,
      "many": false
     }
@@ -5319,6 +5365,22 @@
    }
   },
   {
+   "type": "output.take",
+   "title": "Save take",
+   "category": "Export",
+   "description": "Saves a take's own recording as a file, as it was recorded: a video for a browser take, a cast file for a terminal take.",
+   "runs": true,
+   "inputs": {
+    "recording": {
+     "type": "recording",
+     "label": "Recording",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {}
+  },
+  {
    "type": "core.note",
    "title": "Note",
    "category": "Organise",
@@ -8389,10 +8451,10 @@
    }
   },
   {
-   "type": "camera.autoZoom",
-   "title": "Auto zoom",
+   "type": "camera.take",
+   "title": "Clip from take",
    "category": "Camera",
-   "description": "Turns a recording into a polished clip: the window floats on a backdrop and the camera zooms to every click.",
+   "description": "Turns a take into a clip, shot the way its style says: the window, the backdrop and the camera moves.",
    "runs": false,
    "inputs": {
     "recording": {
@@ -8419,8 +8481,50 @@
    "params": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "properties": {
+     "speed": {
+      "description": "Playback speed",
+      "type": "number",
+      "format": "double",
+      "minimum": 0.25,
+      "maximum": 4,
+      "default": 1.25,
+      "x-step": 0.05,
+      "x-unit": "×"
+     }
+    },
+    "type": "object",
+    "default": {
+     "speed": 1.25
+    }
+   }
+  },
+  {
+   "type": "camera.camera",
+   "title": "Camera",
+   "category": "Camera",
+   "description": "How the camera follows the take: when it zooms to the actions, how close and how fast it moves.",
+   "runs": false,
+   "inputs": {
+    "style": {
+     "type": "recording-style",
+     "label": "Style",
+     "optional": true,
+     "many": false
+    }
+   },
+   "outputs": {
+    "style": {
+     "type": "recording-style",
+     "label": "Style",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
      "zoom": {
-      "description": "Zoom to the clicks",
+      "description": "Zoom to the actions",
       "type": "boolean",
       "default": true
      },
@@ -8433,7 +8537,12 @@
       "default": 1.74,
       "x-step": 0.02,
       "x-unit": "×",
-      "x-help": "Higher zooms closer but can look soft."
+      "x-help": "Higher zooms closer but can look soft.",
+      "x-show-if": {
+       "zoom": [
+        "true"
+       ]
+      }
      },
      "hold": {
       "description": "Hold each zoom at least",
@@ -8444,18 +8553,249 @@
       "default": 1300,
       "x-step": 50,
       "x-unit": "ms",
+      "x-show-if": {
+       "zoom": [
+        "true"
+       ]
+      }
+     },
+     "minScale": {
+      "description": "Least zoom",
+      "type": "number",
+      "format": "double",
+      "minimum": 1,
+      "maximum": 2,
+      "default": 1.18,
+      "x-step": 0.02,
+      "x-unit": "×",
+      "x-show-if": {
+       "zoom": [
+        "true"
+       ]
+      },
       "x-advanced": true
      },
-     "speed": {
-      "description": "Playback speed",
+     "firstMaxScale": {
+      "description": "First zoom at most",
+      "type": "number",
+      "format": "double",
+      "minimum": 1,
+      "maximum": 2.5,
+      "default": 1.54,
+      "x-step": 0.02,
+      "x-unit": "×",
+      "x-help": "The first shot stays wider so the page is seen first.",
+      "x-show-if": {
+       "zoom": [
+        "true"
+       ]
+      },
+      "x-advanced": true
+     },
+     "room": {
+      "description": "Room around the target",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 400,
+      "default": 80,
+      "x-step": 5,
+      "x-unit": "px",
+      "x-show-if": {
+       "zoom": [
+        "true"
+       ]
+      },
+      "x-advanced": true
+     },
+     "targetShare": {
+      "description": "Target size",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 10,
+      "maximum": 100,
+      "default": 55,
+      "x-step": 1,
+      "x-unit": "%",
+      "x-help": "How much of the frame the target and its room fill.",
+      "x-show-if": {
+       "zoom": [
+        "true"
+       ]
+      },
+      "x-advanced": true
+     },
+     "offCentre": {
+      "description": "Off centre",
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "maximum": 0.5,
+      "default": 0.26,
+      "x-step": 0.01,
+      "x-help": "How far a target sits from the middle, leaving room on the side it faces.",
+      "x-show-if": {
+       "zoom": [
+        "true"
+       ]
+      },
+      "x-advanced": true
+     },
+     "joinWithinMs": {
+      "description": "Join actions within",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 20000,
+      "default": 2200,
+      "x-step": 100,
+      "x-unit": "ms",
+      "x-help": "Actions this close share one zoom.",
+      "x-show-if": {
+       "zoom": [
+        "true"
+       ]
+      },
+      "x-advanced": true
+     },
+     "stayZoomedWithinMs": {
+      "description": "Stay zoomed within",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 20000,
+      "default": 2800,
+      "x-step": 100,
+      "x-unit": "ms",
+      "x-help": "Shots this close stay zoomed in between.",
+      "x-show-if": {
+       "zoom": [
+        "true"
+       ]
+      },
+      "x-advanced": true
+     },
+     "holdAfterTypingMs": {
+      "description": "Hold after typing",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 5000,
+      "default": 400,
+      "x-step": 50,
+      "x-unit": "ms",
+      "x-show-if": {
+       "zoom": [
+        "true"
+       ]
+      },
+      "x-advanced": true
+     },
+     "restAtEndMs": {
+      "description": "Rest at the end",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 10000,
+      "default": 600,
+      "x-step": 50,
+      "x-unit": "ms",
+      "x-help": "Time zoomed out before the take ends.",
+      "x-show-if": {
+       "zoom": [
+        "true"
+       ]
+      },
+      "x-advanced": true
+     },
+     "longestPan": {
+      "description": "Longest pan",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 50,
+      "maximum": 5000,
+      "default": 500,
+      "x-step": 10,
+      "x-unit": "px",
+      "x-help": "Farther moves zoom out and back in instead.",
+      "x-advanced": true
+     },
+     "cameraEasing": {
+      "description": "Easing",
+      "type": "string",
+      "enum": [
+       "smooth",
+       "gentle",
+       "snappy",
+       "linear"
+      ],
+      "x-labels": {
+       "smooth": "Smooth",
+       "gentle": "Gentle",
+       "snappy": "Snappy",
+       "linear": "Even"
+      },
+      "default": "smooth",
+      "x-advanced": true
+     },
+     "cameraPace": {
+      "description": "Move time",
       "type": "number",
       "format": "double",
       "minimum": 0.25,
       "maximum": 4,
-      "default": 1.25,
+      "default": 1.0,
       "x-step": 0.05,
-      "x-unit": "×"
-     },
+      "x-unit": "×",
+      "x-help": "Longer than 1 makes every camera move slower.",
+      "x-advanced": true
+     }
+    },
+    "type": "object",
+    "default": {
+     "zoom": true,
+     "maxScale": 1.74,
+     "hold": 1300,
+     "minScale": 1.18,
+     "firstMaxScale": 1.54,
+     "room": 80,
+     "targetShare": 55,
+     "offCentre": 0.26,
+     "joinWithinMs": 2200,
+     "stayZoomedWithinMs": 2800,
+     "holdAfterTypingMs": 400,
+     "restAtEndMs": 600,
+     "longestPan": 500,
+     "cameraEasing": "smooth",
+     "cameraPace": 1.0
+    }
+   }
+  },
+  {
+   "type": "camera.shot",
+   "title": "Shot",
+   "category": "Camera",
+   "description": "How the take sits in the frame: a floating window, the whole page, or a window on a plain ground.",
+   "runs": false,
+   "inputs": {
+    "style": {
+     "type": "recording-style",
+     "label": "Style",
+     "optional": true,
+     "many": false
+    }
+   },
+   "outputs": {
+    "style": {
+     "type": "recording-style",
+     "label": "Style",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
      "style": {
       "description": "Camera style",
       "type": "string",
@@ -8465,131 +8805,28 @@
        "ledger",
        "stage"
       ],
+      "x-labels": {
+       "classic": "Classic",
+       "proof": "Proof",
+       "ledger": "Ledger",
+       "stage": "Stage"
+      },
       "default": "classic"
      },
-     "backdrop": {
-      "description": "Backdrop",
+     "ground": {
+      "description": "Ground colour",
       "type": "string",
-      "enum": [
-       "glaze",
-       "ink",
-       "cobalt",
-       "graphite",
-       "ember",
-       "flare",
-       "prism",
-       "bloom",
-       "halo",
-       "dusk",
-       "studio",
-       "moonrise",
-       "canyon",
-       "mist",
-       "chalk",
-       "aurora"
-      ],
-      "default": "glaze",
+      "default": "#faf6f1",
+      "x-widget": "color",
+      "x-check": {
+       "rule": "colour",
+       "message": "Pick a colour"
+      },
       "x-show-if": {
        "style": [
-        "classic"
+        "stage"
        ]
       }
-     },
-     "frame": {
-      "description": "Window frame",
-      "type": "string",
-      "enum": [
-       "none",
-       "macos",
-       "windows",
-       "linux"
-      ],
-      "x-labels": {
-       "none": "None",
-       "macos": "macOS",
-       "windows": "Windows",
-       "linux": "Linux"
-      },
-      "default": "none"
-     },
-     "frameTheme": {
-      "description": "Frame colour",
-      "type": "string",
-      "enum": [
-       "light",
-       "dark"
-      ],
-      "default": "light",
-      "x-show-if": {
-       "frame": [
-        "macos",
-        "windows",
-        "linux"
-       ]
-      }
-     },
-     "addressBar": {
-      "description": "Address bar",
-      "type": "boolean",
-      "default": true,
-      "x-help": "Shows the page's address in the title bar.",
-      "x-show-if": {
-       "frame": [
-        "macos",
-        "windows",
-        "linux"
-       ]
-      }
-     },
-     "address": {
-      "description": "Address",
-      "type": "string",
-      "default": "",
-      "x-zero-label": "Page address",
-      "x-help": "Shown instead of the page's own address, such as app.example.com.",
-      "x-show-if": {
-       "frame": [
-        "macos",
-        "windows",
-        "linux"
-       ],
-       "addressBar": [
-        "true"
-       ]
-      }
-     },
-     "addressMode": {
-      "description": "Show",
-      "type": "string",
-      "enum": [
-       "fixed",
-       "host"
-      ],
-      "x-labels": {
-       "fixed": "This address",
-       "host": "This host with the page's path"
-      },
-      "default": "fixed",
-      "x-show-if": {
-       "frame": [
-        "macos",
-        "windows",
-        "linux"
-       ],
-       "addressBar": [
-        "true"
-       ],
-       "address": [
-        "*"
-       ]
-      },
-      "x-advanced": true
-     },
-     "motionBlur": {
-      "description": "Motion blur",
-      "type": "boolean",
-      "default": true,
-      "x-advanced": true
      },
      "windowSize": {
       "description": "Window size",
@@ -8607,21 +8844,6 @@
        ]
       },
       "x-advanced": true
-     },
-     "ground": {
-      "description": "Ground colour",
-      "type": "string",
-      "default": "#faf6f1",
-      "x-widget": "color",
-      "x-check": {
-       "rule": "colour",
-       "message": "Pick a colour"
-      },
-      "x-show-if": {
-       "style": [
-        "stage"
-       ]
-      }
      },
      "cornerRadius": {
       "description": "Window corners",
@@ -8659,24 +8881,7 @@
       "description": "Lift the colours",
       "type": "boolean",
       "default": true,
-      "x-help": "A touch more saturation, contrast and brightness on the page.",
-      "x-advanced": true
-     },
-     "shutterAngle": {
-      "description": "Motion blur amount",
-      "type": "integer",
-      "format": "uint32",
-      "minimum": 0,
-      "maximum": 360,
-      "default": 180,
-      "x-step": 10,
-      "x-unit": "°",
-      "x-help": "How long each frame's shutter stays open, as an angle.",
-      "x-show-if": {
-       "motionBlur": [
-        "true"
-       ]
-      },
+      "x-help": "A touch more saturation, contrast and brightness on the screen.",
       "x-advanced": true
      },
      "bleedBlur": {
@@ -8712,202 +8917,16 @@
        ]
       },
       "x-advanced": true
-     },
-     "cameraEasing": {
-      "description": "Camera easing",
-      "type": "string",
-      "enum": [
-       "smooth",
-       "gentle",
-       "snappy",
-       "linear"
-      ],
-      "x-labels": {
-       "smooth": "Smooth",
-       "gentle": "Gentle",
-       "snappy": "Snappy",
-       "linear": "Even"
-      },
-      "default": "smooth",
-      "x-advanced": true
-     },
-     "cameraPace": {
-      "description": "Camera move time",
-      "type": "number",
-      "format": "double",
-      "minimum": 0.25,
-      "maximum": 4,
-      "default": 1.0,
-      "x-step": 0.05,
-      "x-unit": "×",
-      "x-help": "Longer than 1 makes every camera move slower.",
-      "x-advanced": true
-     },
-     "minScale": {
-      "description": "Least zoom",
-      "type": "number",
-      "format": "double",
-      "minimum": 1,
-      "maximum": 2,
-      "default": 1.18,
-      "x-step": 0.02,
-      "x-unit": "×",
-      "x-advanced": true
-     },
-     "firstMaxScale": {
-      "description": "First zoom at most",
-      "type": "number",
-      "format": "double",
-      "minimum": 1,
-      "maximum": 2.5,
-      "default": 1.54,
-      "x-step": 0.02,
-      "x-unit": "×",
-      "x-help": "The first shot stays wider so the page is seen first.",
-      "x-advanced": true
-     },
-     "room": {
-      "description": "Room around the target",
-      "type": "integer",
-      "format": "uint32",
-      "minimum": 0,
-      "maximum": 400,
-      "default": 80,
-      "x-step": 5,
-      "x-unit": "px",
-      "x-advanced": true
-     },
-     "targetShare": {
-      "description": "Target size",
-      "type": "integer",
-      "format": "uint32",
-      "minimum": 10,
-      "maximum": 100,
-      "default": 55,
-      "x-step": 1,
-      "x-unit": "%",
-      "x-help": "How much of the frame the target and its room fill.",
-      "x-advanced": true
-     },
-     "offCentre": {
-      "description": "Off centre",
-      "type": "number",
-      "format": "double",
-      "minimum": 0,
-      "maximum": 0.5,
-      "default": 0.26,
-      "x-step": 0.01,
-      "x-help": "How far a target sits from the middle, leaving room on the side it faces.",
-      "x-advanced": true
-     },
-     "joinWithinMs": {
-      "description": "Join actions within",
-      "type": "integer",
-      "format": "uint32",
-      "minimum": 0,
-      "maximum": 20000,
-      "default": 2200,
-      "x-step": 100,
-      "x-unit": "ms",
-      "x-help": "Actions this close share one zoom.",
-      "x-advanced": true
-     },
-     "stayZoomedWithinMs": {
-      "description": "Stay zoomed within",
-      "type": "integer",
-      "format": "uint32",
-      "minimum": 0,
-      "maximum": 20000,
-      "default": 2800,
-      "x-step": 100,
-      "x-unit": "ms",
-      "x-help": "Shots this close stay zoomed in between.",
-      "x-advanced": true
-     },
-     "holdAfterTypingMs": {
-      "description": "Hold after typing",
-      "type": "integer",
-      "format": "uint32",
-      "minimum": 0,
-      "maximum": 5000,
-      "default": 400,
-      "x-step": 50,
-      "x-unit": "ms",
-      "x-advanced": true
-     },
-     "restAtEndMs": {
-      "description": "Rest at the end",
-      "type": "integer",
-      "format": "uint32",
-      "minimum": 0,
-      "maximum": 10000,
-      "default": 600,
-      "x-step": 50,
-      "x-unit": "ms",
-      "x-help": "Time zoomed out before the take ends.",
-      "x-advanced": true
-     },
-     "longestPan": {
-      "description": "Longest pan",
-      "type": "integer",
-      "format": "uint32",
-      "minimum": 50,
-      "maximum": 5000,
-      "default": 500,
-      "x-step": 10,
-      "x-unit": "px",
-      "x-help": "Farther moves zoom out and back in instead.",
-      "x-advanced": true
-     },
-     "frameFont": {
-      "description": "Title bar font",
-      "type": "string",
-      "default": "",
-      "x-widget": "font",
-      "x-zero-label": "The computer's",
-      "x-show-if": {
-       "frame": [
-        "macos",
-        "windows",
-        "linux"
-       ]
-      },
-      "x-advanced": true
      }
     },
     "type": "object",
     "default": {
-     "zoom": true,
-     "maxScale": 1.74,
-     "hold": 1300,
-     "speed": 1.25,
      "style": "classic",
-     "backdrop": "glaze",
-     "frame": "none",
-     "frameTheme": "light",
-     "addressBar": true,
-     "address": "",
-     "addressMode": "fixed",
-     "motionBlur": true,
      "ground": "#faf6f1",
      "shadow": 1.0,
      "liftColours": true,
-     "shutterAngle": 180,
      "bleedBlur": 48,
-     "bleedDim": 0.55,
-     "cameraEasing": "smooth",
-     "cameraPace": 1.0,
-     "minScale": 1.18,
-     "firstMaxScale": 1.54,
-     "room": 80,
-     "targetShare": 55,
-     "offCentre": 0.26,
-     "joinWithinMs": 2200,
-     "stayZoomedWithinMs": 2800,
-     "holdAfterTypingMs": 400,
-     "restAtEndMs": 600,
-     "longestPan": 500,
-     "frameFont": ""
+     "bleedDim": 0.55
     }
    }
   },
@@ -9916,20 +9935,20 @@
       ],
       "default": "light"
      },
-     "addressBar": {
-      "description": "Address bar",
+     "titleBar": {
+      "description": "Title bar",
       "type": "boolean",
       "default": true,
-      "x-help": "Shows the page's address in the title bar."
+      "x-help": "Shows the page's address or the program's title in the title bar."
      },
-     "address": {
-      "description": "Address",
+     "title": {
+      "description": "Title bar text",
       "type": "string",
       "default": "",
-      "x-zero-label": "Page address",
-      "x-help": "Shown instead of the page's own address, such as app.example.com.",
+      "x-zero-label": "The take's own",
+      "x-help": "Shown instead of the page's address or the program's title, such as app.example.com.",
       "x-show-if": {
-       "addressBar": [
+       "titleBar": [
         "true"
        ]
       }
@@ -9947,13 +9966,24 @@
       },
       "default": "fixed",
       "x-show-if": {
-       "addressBar": [
+       "titleBar": [
         "true"
        ],
-       "address": [
+       "title": [
         "*"
        ]
       },
+      "x-show-if-take": [
+       "browser"
+      ],
+      "x-advanced": true
+     },
+     "font": {
+      "description": "Title bar font",
+      "type": "string",
+      "default": "",
+      "x-widget": "font",
+      "x-zero-label": "The computer's",
       "x-advanced": true
      }
     },
@@ -9961,9 +9991,10 @@
     "default": {
      "windowStyle": "macos",
      "frameTheme": "light",
-     "addressBar": true,
-     "address": "",
-     "addressMode": "fixed"
+     "titleBar": true,
+     "title": "",
+     "addressMode": "fixed",
+     "font": ""
     }
    }
   },
@@ -69209,6 +69240,36 @@
      "reframe": "follow",
      "jpegQuality": 80,
      "scale": 1.0
+    }
+   }
+  },
+  {
+   "type": "output.take",
+   "title": "Save take",
+   "category": "Export",
+   "description": "Saves a take's own recording as a file, as it was recorded: a video for a browser take, a cast file for a terminal take.",
+   "runs": true,
+   "inputs": {
+    "recording": {
+     "type": "recording",
+     "label": "Recording",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {},
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "fileName": {
+      "description": "File name",
+      "type": "string",
+      "default": "{{Project name}} take"
+     }
+    },
+    "type": "object",
+    "default": {
+     "fileName": "{{Project name}} take"
     }
    }
   },

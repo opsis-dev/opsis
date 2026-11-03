@@ -3,13 +3,14 @@ use opsis_types::cards::{Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::numbers::whole;
 use opsis_types::timeline::ReframeMode;
-use opsis_types::values::{Artifact, CompileValue};
+use opsis_types::values::{Artifact, CompileValue, TakeKind};
 use opsis_types::workflow::{PortType, WorkflowSettings};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::node::{
-    CLIP_PORT, CardCtx, Category, Claim, Ctx, NodeDef, Outputs, Phase, RowExt, port, row,
+    CLIP_PORT, CardCtx, Category, Claim, Ctx, NodeDef, Outputs, Phase, RECORDING_PORT, RowExt,
+    missing, port, row,
 };
 use crate::nodes::media::{Codec, EncodePreset, ProresProfile};
 use crate::params::Params;
@@ -19,6 +20,7 @@ use crate::time::{even_px, frames_to_ms};
 const EXPORT_NAME_FALLBACK: &str = "output";
 pub const RENDER_TYPE: &str = "output.render";
 pub const STILL_TYPE: &str = "output.still";
+pub const SAVE_TAKE_TYPE: &str = "output.take";
 
 #[choice(export)]
 pub enum Gl {
@@ -562,9 +564,47 @@ fn export_images() -> NodeDef {
     })
 }
 
+#[settings(eq)]
+pub struct SaveTake {
+    #[setting("File name", default = "{{Project name}} take")]
+    pub file_name: String,
+}
+
+pub const fn take_extension(kind: TakeKind) -> &'static str {
+    match kind {
+        TakeKind::Browser => "mp4",
+        TakeKind::Terminal => "cast",
+    }
+}
+
+pub fn take_file_name(file_name: &str, kind: TakeKind) -> String {
+    format!("{}.{}", export_base_name(file_name), take_extension(kind))
+}
+
+fn save_take() -> NodeDef {
+    NodeDef::of::<SaveTake>(SAVE_TAKE_TYPE, "Save take", Category::Output, Phase::Render)
+        .describe("Saves a take's own recording as a file, as it was recorded: a video for a browser take, a cast file for a terminal take.")
+        .executes()
+        .inputs(vec![(RECORDING_PORT, port(PortType::Recording, "Recording"))])
+        .claims(|p: &SaveTake| {
+            [TakeKind::Browser, TakeKind::Terminal]
+                .into_iter()
+                .map(|kind| Claim::File(take_file_name(&p.file_name, kind)))
+                .collect()
+        })
+        .card(|ctx: &CardCtx<'_, SaveTake>| {
+            let take = ctx.inputs.takes.get(RECORDING_PORT).copied().flatten();
+            vec![Some(match take {
+                Some(take) => row(Icon::FileVideo, take_file_name(&ctx.params.file_name, take.kind)),
+                None => missing(Icon::FileVideo, "Connect a take"),
+            })]
+        })
+}
+
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         export_video().look(NodeLook::of("lucide:clapperboard")),
         export_images().look(NodeLook::of("lucide:image-down")),
+        save_take().look(NodeLook::of("lucide:file-down")),
     ]
 }

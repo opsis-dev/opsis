@@ -2,7 +2,9 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::Ordering;
 use std::time::Duration;
 
+use opsis_compile::compile::compile_workflow;
 use opsis_compile::edits::EditError;
+use opsis_compile::graph::connection_problem_now;
 use opsis_compile::node::Platform;
 use opsis_document::Document;
 use opsis_engine::tools::shown;
@@ -10,7 +12,7 @@ use opsis_project::last_run::read_last_run;
 use opsis_project::watch::{LoadedFilesWatch, watch_project};
 use opsis_runner::context::now_ms;
 use opsis_types::edits::{
-    DocumentState, Edited, Removal, TimelineEdit, TimelineReply, WorkflowEdit,
+    DocumentState, EdgeEnds, Edited, Removal, TimelineEdit, TimelineReply, WorkflowEdit,
 };
 use opsis_types::project::{OpenProject, ProjectFileChange, SaveResult};
 use opsis_types::workflow::Workflow;
@@ -21,7 +23,7 @@ use tauri_specta::Event;
 
 use crate::error::{CommandError, CommandResult};
 use crate::events::{DiskChangeAsked, DocumentChanged, ProjectFilesChanged, ProjectReloaded};
-use crate::state::{AppState, DiskChange};
+use crate::state::{AppState, DiskChange, Editor};
 use crate::windows::MAIN_WINDOW;
 
 const AUTOSAVE_DELAY: Duration = Duration::from_millis(800);
@@ -34,6 +36,8 @@ pub enum DocumentError {
     NoProject,
     #[error(transparent)]
     Edit(#[from] EditError),
+    #[error("{0}")]
+    Refused(String),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
@@ -293,10 +297,29 @@ pub fn follow_loaded_files(app: &AppHandle, dir: PathBuf, refs: Vec<String>) {
     watching.refs = Some((dir, refs));
 }
 
+fn refused_edge(editor: &Editor, ends: &EdgeEnds) -> Option<String> {
+    let wf = editor.document.as_ref()?.workflow();
+    let compiled = compile_workflow(wf, Some(&editor.results));
+    connection_problem_now(
+        wf,
+        &compiled,
+        &ends.source,
+        &ends.source_handle,
+        &ends.target,
+        &ends.target_handle,
+    )
+    .map(|p| p.message)
+}
+
 pub fn edit(app: &AppHandle, edit: WorkflowEdit) -> Result<Edited, DocumentError> {
     let edited = {
         let state = app.state::<AppState>();
         let mut editor = state.editor();
+        if let WorkflowEdit::AddEdge { ends } = &edit
+            && let Some(problem) = refused_edge(&editor, ends)
+        {
+            return Err(DocumentError::Refused(problem));
+        }
         let doc = editor.document.as_mut().ok_or(DocumentError::NoProject)?;
         doc.apply(edit)?
     };

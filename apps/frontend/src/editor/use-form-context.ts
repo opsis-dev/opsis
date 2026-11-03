@@ -69,6 +69,7 @@ export function useFormContext(workflow: Workflow, nodeId: string): FormContext 
       connectedInputs: inspector?.connectedInputs ?? [],
       ports: inspector?.ports ?? [],
       fileKinds: inspector?.fileKinds ?? {},
+      takeKind: inspector?.takeKind ?? null,
     };
   }, [inspector, nodeId, projectDir, fps, width, height, workflow.markers]);
 }

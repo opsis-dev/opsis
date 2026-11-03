@@ -25,6 +25,7 @@ import { categoryColor } from "./ports";
 import { useRequiredWorkflow } from "./require-workflow";
 import { useCanvasDrop } from "./use-canvas-drop";
 import { useClipboardShortcuts } from "./use-clipboard-shortcuts";
+import { useCompiledContext } from "./use-compiled";
 import { useFlowEdges, useFlowNodes } from "./use-flow-elements";
 import { usePinchZoom } from "./use-pinch-zoom";
 import { useRevealNode } from "./use-reveal-node";
@@ -99,15 +100,20 @@ export function Canvas({ projectDir }: { projectDir: string }) {
   const { nodes, onNodesChange } = useFlowNodes(workflow, selected);
   const { edges, onEdgesChange } = useFlowEdges(workflow, active, nodes);
 
+  const { converts } = useCompiledContext();
   const isValidConnection: IsValidConnection = useCallback(
     (c) =>
-      connects(workflow, {
-        source: c.source,
-        sourceHandle: c.sourceHandle ?? "",
-        target: c.target,
-        targetHandle: c.targetHandle ?? "",
-      }),
-    [workflow],
+      connects(
+        workflow,
+        {
+          source: c.source,
+          sourceHandle: c.sourceHandle ?? "",
+          target: c.target,
+          targetHandle: c.targetHandle ?? "",
+        },
+        converts,
+      ),
+    [workflow, converts],
   );
 
   return (

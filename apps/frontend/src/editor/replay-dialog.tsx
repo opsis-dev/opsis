@@ -117,7 +117,7 @@ function ReplayFootage({ nodeId }: { nodeId: string }) {
   const setSelected = useUiStore((s) => s.setSelected);
   const video = useRef<HTMLVideoElement>(null);
   const [time, setTime] = useState(0);
-  const src = recording?.src ?? null;
+  const src = recording?.source.kind === "browser" ? recording.source.video : null;
   const actions = recording?.log?.actions ?? [];
   const activeIndex = actions.findLastIndex((a) => a.t <= time * 1000);
 
@@ -176,7 +176,7 @@ function ReplayContent({ nodeId }: { nodeId: string }) {
         <DialogTitle>{node ? nodeName(node) : nodeId}</DialogTitle>
         <DialogDescription>
           {recording
-            ? `${formatDuration(recording.durationMs)} · ${actionCount} actions · ${recording.viewport.width}×${recording.viewport.height}`
+            ? `${formatDuration(recording.durationMs)} · ${actionCount} actions · ${recording.log?.viewport.width ?? 0}×${recording.log?.viewport.height ?? 0}`
             : "Last run of this node"}
         </DialogDescription>
       </DialogHeader>

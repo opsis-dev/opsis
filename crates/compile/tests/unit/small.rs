@@ -286,9 +286,9 @@ fn reads_every_saved_output_kind_and_rejects_mismatched_ones() {
         "image": { "type": "image", "src": null, "width": 640, "height": 360, "scale": 2 },
         "captions": { "type": "captions", "captions": [{ "text": "Hi", "startMs": 0, "endMs": 900 }] },
         "recording": {
-            "type": "recording", "src": "project:r.mp4", "log": null, "durationMs": 5000,
-            "viewport": { "width": 1920, "height": 1080 }, "nodeId": "record",
-            "style": [{ "nodeId": "zoom", "type": "camera.manualZoom", "params": { "atMs": 500 } }]
+            "type": "recording", "log": null, "durationMs": 5000, "nodeId": "record",
+            "edits": [{ "nodeId": "zoom", "type": "camera.manualZoom", "params": { "atMs": 500 } }],
+            "source": { "kind": "browser", "video": "project:r.mp4", "viewport": { "width": 1920, "height": 1080 } }
         }
     });
     let parsed: NodeResult = serde_json::from_value(result(outputs.clone())).unwrap();

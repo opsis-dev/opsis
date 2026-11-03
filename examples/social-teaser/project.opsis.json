@@ -96,22 +96,13 @@
     },
     {
       "id": "camera",
-      "type": "camera.autoZoom",
+      "type": "camera.take",
       "position": {
         "x": 1200.0,
         "y": 200.0
       },
       "params": {
-        "zoom": true,
-        "maxScale": 1.74,
-        "hold": 1300,
-        "speed": 1.5,
-        "style": "classic",
-        "backdrop": "glaze",
-        "frame": "none",
-        "frameTheme": "light",
-        "addressBar": true,
-        "motionBlur": true
+        "speed": 1.5
       }
     },
     {

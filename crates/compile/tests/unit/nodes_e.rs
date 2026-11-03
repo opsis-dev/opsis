@@ -7,7 +7,7 @@ use opsis_compile::node::{CardInputs, InputTake};
 use opsis_compile::registry::node_def;
 use opsis_types::cards::{Icon, Tone};
 use opsis_types::timeline::TimelineItem;
-use opsis_types::values::ClipValue;
+use opsis_types::values::{ClipValue, TakeKind};
 use serde_json::{Map, Value, json};
 
 use crate::helpers::{
@@ -106,7 +106,7 @@ fn places_a_second_speed_ramp_at_its_own_recording_time() {
         json!({}),
         json!({ "recording": take_recording(None) }),
     );
-    let style = serde_json::to_value(&out["recording"]).unwrap()["style"].clone();
+    let style = serde_json::to_value(&out["recording"]).unwrap()["edits"].clone();
     assert_eq!(style[0]["type"], "camera.speedRamp");
 }
 
@@ -149,7 +149,7 @@ fn frames_any_clip_in_a_device_and_draws_window_title_bars() {
     let clip = zoomed(
         Some(&[(
             "camera.windowFrame",
-            json!({ "windowStyle": "windows", "addressBar": false }),
+            json!({ "windowStyle": "windows", "titleBar": false }),
         )]),
         &[],
         None,
@@ -158,19 +158,22 @@ fn frames_any_clip_in_a_device_and_draws_window_title_bars() {
     let props = serde_json::to_value(recording_props(&clip)[0]).unwrap();
     assert_eq!(
         (
-            props["chrome"].clone(),
-            props["windowStyle"].clone(),
-            props["addressBar"].clone()
+            props["window"]["chrome"].clone(),
+            props["window"]["style"].clone(),
+            props["window"]["bar"].clone()
         ),
         (json!(true), json!("windows"), json!(false))
     );
 }
 
 #[test]
-fn puts_a_typed_address_in_the_title_bar_of_either_frame() {
+fn puts_typed_title_bar_text_in_the_window_frame() {
     let address = |clip: &ClipValue| {
         let props = serde_json::to_value(recording_props(clip)[0]).unwrap();
-        (props["address"].clone(), props["addressMode"].clone())
+        (
+            props["window"]["text"].clone(),
+            props["window"]["mode"].clone(),
+        )
     };
     let framed = |params: Value| {
         zoomed(
@@ -180,77 +183,55 @@ fn puts_a_typed_address_in_the_title_bar_of_either_frame() {
             json!({ "speed": 1 }),
         )
     };
-    let own = |params: Value| zoomed(None, &[], None, params);
     let typed = |mode: &str| (json!("app.example.com"), json!(mode));
     let none = (Value::Null, Value::Null);
     assert_eq!(
-        address(&framed(json!({ "address": " app.example.com " }))),
+        address(&framed(json!({ "title": " app.example.com " }))),
         typed("fixed")
     );
     assert_eq!(
         address(&framed(
-            json!({ "address": "app.example.com", "addressMode": "host" })
+            json!({ "title": "app.example.com", "addressMode": "host" })
         )),
         typed("host")
     );
     assert_eq!(
-        address(&framed(json!({ "address": "", "addressMode": "host" }))),
+        address(&framed(json!({ "title": "", "addressMode": "host" }))),
         none
     );
     assert_eq!(
         address(&framed(
-            json!({ "address": "app.example.com", "addressBar": false })
+            json!({ "title": "app.example.com", "titleBar": false })
         )),
         none
     );
     assert_eq!(
-        address(&own(
-            json!({ "frame": "macos", "address": "app.example.com", "addressMode": "host" })
-        )),
-        typed("host")
-    );
-    assert_eq!(
-        address(&own(
-            json!({ "frame": "none", "address": "app.example.com" })
-        )),
+        address(&zoomed(None, &[], None, json!({ "speed": 1 }))),
         none
     );
 }
 
 #[test]
-fn shows_the_typed_address_on_the_frame_cards() {
+fn shows_the_typed_title_on_the_frame_card() {
     let frame = |params: Value| card_texts("camera.windowFrame", params, CardInputs::default());
-    assert!(frame(json!({})).contains(&"Address bar".to_owned()));
+    assert!(frame(json!({})).contains(&"The take's own title".to_owned()));
     assert!(
-        frame(json!({ "address": "https://app.example.com/" }))
+        frame(json!({ "title": "https://app.example.com/" }))
             .contains(&"app.example.com".to_owned())
     );
     assert!(
-        frame(json!({ "address": "app.example.com", "addressMode": "host" }))
+        frame(json!({ "title": "app.example.com", "addressMode": "host" }))
             .contains(&"app.example.com · keeps the path".to_owned())
     );
     assert!(
-        frame(json!({ "address": "app.example.com", "addressBar": false }))
-            .contains(&"No address bar".to_owned())
-    );
-    let zoom = |params: Value| card_texts("camera.autoZoom", params, CardInputs::default());
-    assert!(
-        zoom(json!({ "frame": "macos", "address": "app.example.com" }))
-            .contains(&"app.example.com".to_owned())
-    );
-    assert!(
-        !zoom(json!({ "frame": "none", "address": "app.example.com" }))
-            .contains(&"app.example.com".to_owned())
-    );
-    assert!(
-        !zoom(json!({ "frame": "macos" }))
-            .iter()
-            .any(|t| t.contains("Address"))
+        frame(json!({ "title": "app.example.com", "titleBar": false }))
+            .contains(&"No title bar text".to_owned())
     );
 }
 
 const fn take(duration_ms: f64, cursor_track: bool) -> InputTake {
     InputTake {
+        kind: TakeKind::Browser,
         duration_ms,
         cursor_track,
     }
@@ -296,7 +277,7 @@ fn warns_when_a_camera_move_starts_after_the_take_or_follows_no_cursor() {
     );
     let card = |cursor: bool, style: &[&str]| {
         card_texts(
-            "camera.autoZoom",
+            "camera.take",
             json!({}),
             takes("recording", Some(take(6000.0, cursor)), style),
         )
@@ -311,7 +292,7 @@ fn warns_when_a_camera_move_starts_after_the_take_or_follows_no_cursor() {
 }
 
 #[test]
-fn lets_the_style_beat_auto_zoom_and_the_takes_own_nodes_come_last() {
+fn lets_the_takes_own_nodes_come_after_the_style() {
     let style = [
         (
             "camera.backdrop",
@@ -323,11 +304,14 @@ fn lets_the_style_beat_auto_zoom_and_the_takes_own_nodes_come_last() {
         Some(&style),
         &[("camera.manualZoom", json!({ "atMs": 500 }))],
         None,
-        json!({ "speed": 1, "backdrop": "aurora" }),
+        json!({ "speed": 1 }),
     );
     let props = serde_json::to_value(recording_props(&clip)[0]).unwrap();
     assert_eq!(
-        (props["backdrop"].clone(), props["backdropChosen"].clone()),
+        (
+            props["shot"]["backdrop"].clone(),
+            props["shot"]["backdropChosen"].clone()
+        ),
         (json!("#123456"), json!(true))
     );
     let beats: Vec<Value> = props["extraBeats"]
@@ -337,10 +321,10 @@ fn lets_the_style_beat_auto_zoom_and_the_takes_own_nodes_come_last() {
         .map(|b| b["nodeId"].clone())
         .collect();
     assert_eq!(beats, [json!("s1"), json!("t0"), json!("t0")]);
-    let plain = zoomed(None, &[], None, json!({ "speed": 1, "backdrop": "aurora" }));
+    let plain = zoomed(None, &[], None, json!({ "speed": 1 }));
     assert_eq!(
-        serde_json::to_value(recording_props(&plain)[0]).unwrap()["backdrop"],
-        "aurora"
+        serde_json::to_value(recording_props(&plain)[0]).unwrap()["shot"]["backdrop"],
+        "glaze"
     );
 }
 
@@ -365,7 +349,7 @@ fn styles_every_take_in_a_sequence_and_warns_when_a_clip_has_no_recording() {
     assert_eq!(
         recording_props(&styled)
             .iter()
-            .map(|p| p.cursor_scale)
+            .map(|p| p.pointer.scale)
             .collect::<Vec<_>>(),
         [2.0, 2.0]
     );
@@ -383,6 +367,7 @@ fn styles_every_take_in_a_sequence_and_warns_when_a_clip_has_no_recording() {
     assert!(texts(None).contains(&none));
     assert!(
         !texts(Some(InputTake {
+            kind: TakeKind::Browser,
             duration_ms: 1000.0,
             cursor_track: true
         }))
