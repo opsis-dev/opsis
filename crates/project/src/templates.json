@@ -2089,5 +2089,209 @@
       ],
       "markers": []
     }
+  },
+  {
+    "id": "terminal",
+    "title": "Sample: terminal",
+    "description": "Records two commands in a real terminal and frames them in a window.",
+    "icon": "square-terminal",
+    "workflow": {
+      "version": 1,
+      "id": "template_terminal",
+      "name": "Sample: terminal",
+      "settings": {
+        "width": 1920,
+        "height": 1080,
+        "fps": 30,
+        "theme": "dark",
+        "fonts": {
+          "main": "Inter",
+          "heading": "",
+          "code": "JetBrains Mono",
+          "families": []
+        }
+      },
+      "variables": {},
+      "nodes": [
+        {
+          "id": "note",
+          "type": "core.note",
+          "position": {
+            "x": 0,
+            "y": 380
+          },
+          "params": {
+            "text": "Sample project.\n\n1. Press Run. Opsis types each command into a real shell and records the terminal.\n2. The Timeline fills with the take and its actions.\n3. Finished videos appear in Outputs."
+          }
+        },
+        {
+          "id": "open",
+          "type": "terminal.open",
+          "position": {
+            "x": 0,
+            "y": 100
+          },
+          "params": {
+            "shell": "clean",
+            "cols": 80,
+            "rows": 20,
+            "typingMs": 45
+          }
+        },
+        {
+          "id": "start",
+          "type": "terminal.startRecording",
+          "position": {
+            "x": 300,
+            "y": 100
+          },
+          "params": {}
+        },
+        {
+          "id": "hello",
+          "type": "terminal.run",
+          "position": {
+            "x": 600,
+            "y": 100
+          },
+          "params": {
+            "command": "echo 'Opsis records real terminals'"
+          }
+        },
+        {
+          "id": "tests",
+          "type": "terminal.run",
+          "position": {
+            "x": 900,
+            "y": 100
+          },
+          "params": {
+            "command": "printf '\\033[32m✔\\033[0m 42 tests passed in 1.3 s\\n'"
+          }
+        },
+        {
+          "id": "rec",
+          "type": "capture.terminal",
+          "position": {
+            "x": 1200,
+            "y": 100
+          },
+          "params": {
+            "name": "Terminal take"
+          }
+        },
+        {
+          "id": "look",
+          "type": "terminal.look",
+          "position": {
+            "x": 900,
+            "y": 300
+          },
+          "params": {
+            "theme": "Catppuccin Mocha"
+          }
+        },
+        {
+          "id": "frame",
+          "type": "camera.windowFrame",
+          "position": {
+            "x": 1200,
+            "y": 300
+          },
+          "params": {
+            "windowStyle": "macos",
+            "frameTheme": "dark",
+            "title": "Terminal"
+          }
+        },
+        {
+          "id": "take",
+          "type": "camera.take",
+          "position": {
+            "x": 1500,
+            "y": 200
+          },
+          "params": {}
+        },
+        {
+          "id": "render",
+          "type": "output.render",
+          "position": {
+            "x": 1800,
+            "y": 200
+          },
+          "params": {
+            "fileName": "{{Project name}}",
+            "codec": "h264",
+            "crf": 18,
+            "variants": ["16:9"],
+            "reframe": "follow",
+            "scale": 1,
+            "chapters": true,
+            "chapterList": false,
+            "gl": "angle"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "open.terminal->start.terminal",
+          "source": "open",
+          "sourceHandle": "terminal",
+          "target": "start",
+          "targetHandle": "terminal"
+        },
+        {
+          "id": "start.terminal->hello.terminal",
+          "source": "start",
+          "sourceHandle": "terminal",
+          "target": "hello",
+          "targetHandle": "terminal"
+        },
+        {
+          "id": "hello.terminal->tests.terminal",
+          "source": "hello",
+          "sourceHandle": "terminal",
+          "target": "tests",
+          "targetHandle": "terminal"
+        },
+        {
+          "id": "tests.terminal->rec.terminal",
+          "source": "tests",
+          "sourceHandle": "terminal",
+          "target": "rec",
+          "targetHandle": "terminal"
+        },
+        {
+          "id": "look.style->frame.style",
+          "source": "look",
+          "sourceHandle": "style",
+          "target": "frame",
+          "targetHandle": "style"
+        },
+        {
+          "id": "frame.style->take.style",
+          "source": "frame",
+          "sourceHandle": "style",
+          "target": "take",
+          "targetHandle": "style"
+        },
+        {
+          "id": "rec.recording->take.recording",
+          "source": "rec",
+          "sourceHandle": "recording",
+          "target": "take",
+          "targetHandle": "recording"
+        },
+        {
+          "id": "take.clip->render.clip",
+          "source": "take",
+          "sourceHandle": "clip",
+          "target": "render",
+          "targetHandle": "clip"
+        }
+      ],
+      "markers": []
+    }
   }
 ]

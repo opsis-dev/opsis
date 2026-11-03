@@ -10,7 +10,7 @@ import {
   typedBeats,
 } from "#video/camera/action-log.ts";
 import { DemoClip, ScreenClip, useClipTime } from "#video/camera/demo-clip.tsx";
-import { frameAddress } from "#video/camera/frame-address.ts";
+import { frameAddress, terminalTitle } from "#video/camera/frame-address.ts";
 import { KeycapHUD } from "#video/camera/keycap-hud.tsx";
 import { DesignWidthContext } from "#video/camera/lib/design-scale.ts";
 import { KEYSTROKE_EDGE } from "#video/camera/lib/keycap.ts";
@@ -91,7 +91,11 @@ export function RecordingClip(props: RecordingProps) {
     <DemoClip
       {...base}
       box={contain?.box}
-      title={frameAddress(props.log, timeMs, props.window.text, props.window.mode)}
+      title={
+        props.screen.kind === "terminal"
+          ? terminalTitle(props.log, timeMs, props.window.text)
+          : frameAddress(props.log, timeMs, props.window.text, props.window.mode)
+      }
       tuning={narrow ? { ...tuning, narrow } : tuning}
     />
   );

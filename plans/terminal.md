@@ -4,7 +4,7 @@ Record real terminal sessions in Opsis the way browser takes are recorded: a pro
 
 A terminal take is a `recording`, like a browser take. To make that true rather than bolted on, the recording itself is rebuilt first: a take is source-independent (its log, length and edits) with the source as an enum, the window draws a pluggable screen, and Auto zoom splits into a plain applier plus style nodes. Every camera move, style and modifier then works on both kinds of take.
 
-Status: `opsis-vt` is built (commit `74a02df1`), the take model with Clip from take (phase 2, for browser takes), the input encoders (phase 3), the `opsis-terminal` core (phase 4), and the terminal nodes and compile (phase 5: the session port, action nodes, Record terminal take, Terminal look, terminal screens in Clip from take, the frames route, themes; Clip from take's speed is optional and falls back to the take's usual speed). Everything else is planned.
+Status: `opsis-vt` is built (commit `74a02df1`), the take model with Clip from take (phase 2, for browser takes), the input encoders (phase 3), the `opsis-terminal` core (phase 4), the terminal nodes and compile (phase 5: the session port, action nodes, Record terminal take, Terminal look, terminal screens in Clip from take, the frames route, themes; Clip from take's speed is optional and falls back to the take's usual speed), and the film page and fonts (phase 6; sprites cover box drawing, blocks, Braille, Powerline, Ghostty's geometric shapes, sextants, smooth mosaics, eighths and octants, the rest falls to the fonts; Fontsource's Noto Color Emoji is OpenType-SVG, which the recording browser doesn't draw, so emoji show as gaps until the emoji source is decided). Everything else is planned.
 
 ## Decisions
 
@@ -418,7 +418,7 @@ Still to do, with the phases they belong to:
 3. **`opsis-vt` input encoders.** Done
 4. **`opsis-terminal` core** (done): shells, session, input, driver (mouse steps, targets, caret and title tracks), take, `.cast`, visible timeline, frames, prepare with resolved colours and masking, with their tests.
 5. **Terminal nodes and compile** (done): the session port, the action nodes, Record terminal take, Terminal look, the terminal footage use and its server route, `terminal_frames`, the fonts in the film's list, themes, executors.
-6. **Film page and fonts**: the font bundle, `@opsis/video/terminal` (frames, sprites, `TerminalView`), `TerminalScreen`, `Screen`; the render test and the end-to-end test.
+6. **Film page and fonts** (done): the font bundle, `@opsis/video/terminal` (frames, sprites, `TerminalView`), `TerminalScreen`, `Screen`; the render test and the end-to-end test.
 7. **Tapes**: lexer, parser, writer, mapping; Play tape and its live window; Export tape.
 8. **Cast file.**
 9. **Editor**: terminal player, Replay, live PiP and Live window, timeline thumbnails, spot and area pictures, the theme field.

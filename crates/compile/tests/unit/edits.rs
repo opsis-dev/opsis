@@ -251,6 +251,7 @@ fn font(id: &str, family: &str) -> FontFamilyDef {
         faces: Vec::new(),
         license: None,
         license_file: None,
+        hidden: false,
     }
 }
 

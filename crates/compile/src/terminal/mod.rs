@@ -6,6 +6,13 @@ use opsis_types::terminal::{TerminalCursor, TerminalLook, TerminalTheme};
 use serde::Deserialize;
 
 pub const DEFAULT_THEME_NAME: &str = "Default";
+pub const TERMINAL_FONTS: [&str; 5] = [
+    "Opsis Terminal",
+    "Opsis Terminal Symbols",
+    "Opsis Terminal Symbols 2",
+    "Opsis Terminal CJK",
+    "Opsis Terminal Emoji",
+];
 pub const DEFAULT_FONT_SIZE: u32 = 20;
 pub const DEFAULT_LINE_HEIGHT: f64 = 1.2;
 pub const DEFAULT_PADDING: u32 = 24;

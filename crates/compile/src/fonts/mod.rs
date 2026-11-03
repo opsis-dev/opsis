@@ -5,11 +5,13 @@ use opsis_types::fonts::{
     DEFAULT_CODE_FONT, DEFAULT_MAIN_FONT, FilmFonts, FontCategory, FontChoice, FontChoices,
     FontFamilyDef, FontRole, ProjectFonts,
 };
+use opsis_types::recording::ScreenProps;
 use opsis_types::timeline::{TimelineItem, TimelineTrack};
 use serde_json::{Map, Value};
 
 use crate::clip::walk_items;
 use crate::elements::element_meta;
+use crate::terminal::TERMINAL_FONTS;
 
 static BUNDLED: LazyLock<Vec<FontFamilyDef>> = LazyLock::new(|| {
     serde_json::from_str(include_str!("bundled.generated.json")).expect("bundled font list parses")
@@ -114,7 +116,12 @@ fn used_font_names(tracks: &[TimelineTrack]) -> BTreeSet<String> {
                 .wrapper
                 .as_ref()
                 .map_or((None, None), |w| (Some(&w.component), Some(&w.props))),
-            TimelineItem::Recording { .. } => (None, None),
+            TimelineItem::Recording { props, .. } => {
+                if matches!(props.screen, ScreenProps::Terminal { .. }) {
+                    used.extend(TERMINAL_FONTS.iter().map(|f| (*f).to_owned()));
+                }
+                (None, None)
+            }
         };
         used.extend(props.and_then(font_family_of));
         if let Some(meta) = component.and_then(|c| element_meta(c)) {
@@ -125,12 +132,18 @@ fn used_font_names(tracks: &[TimelineTrack]) -> BTreeSet<String> {
 }
 
 pub fn film_fonts(fonts: &ProjectFonts, tracks: &[TimelineTrack]) -> FilmFonts {
+    let used = used_font_names(tracks);
     let names = ROLE_NAMES
         .iter()
         .map(|(name, _)| *name)
         .chain(FAMILY_ALIASES.iter().map(|(alias, _)| *alias))
         .chain(fonts.families.iter().map(|f| f.family.as_str()))
-        .chain(bundled_fonts().iter().map(|f| f.family.as_str()));
+        .chain(
+            bundled_fonts()
+                .iter()
+                .filter(|f| !f.hidden || used.contains(&f.family))
+                .map(|f| f.family.as_str()),
+        );
     let mut families = indexmap::IndexMap::new();
     for name in names {
         if let Some(def) = family_for(name, fonts) {
@@ -140,7 +153,7 @@ pub fn film_fonts(fonts: &ProjectFonts, tracks: &[TimelineTrack]) -> FilmFonts {
         }
     }
     let mut preload: Vec<String> = ROLE_NAMES.iter().map(|(n, _)| (*n).to_owned()).collect();
-    for name in used_font_names(tracks) {
+    for name in used {
         if !preload.contains(&name) {
             preload.push(name);
         }
@@ -189,7 +202,7 @@ pub fn font_choices(
         built_in: choices(
             &mut bundled_fonts()
                 .iter()
-                .filter(|d| !has_family(project, &d.family)),
+                .filter(|d| !d.hidden && !has_family(project, &d.family)),
         ),
         library: choices(&mut library.iter().filter(|d| {
             !has_family(project, &d.family) && !has_family(bundled_fonts(), &d.family)

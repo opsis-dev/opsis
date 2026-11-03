@@ -326,12 +326,14 @@ impl FontLibrary {
                 weight: file.weight,
                 style: file.style,
                 format: file.format,
+                unicode_range: None,
             });
         }
         if let Some(license) = &fam.license {
             std::fs::write(dir.join(LICENSE_FILE), &license.bytes)?;
         }
         Ok(FontFamilyDef {
+            hidden: false,
             license_file: fam
                 .license
                 .map(|_| library_ref(&format!("{id}/{LICENSE_FILE}"))),

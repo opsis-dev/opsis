@@ -38,3 +38,10 @@ export function frameAddress(
   const page = pageAt(log, timeMs) ?? firstPage(log);
   return displayAddress(`${hostOf(address)}${page ? pathOf(page) : ""}`);
 }
+
+export function terminalTitle(log: ActionLog, timeMs: number, typed?: string): string | undefined {
+  const text = typed?.trim();
+  if (text) return text;
+  const titles = log.titles ?? [];
+  return (titles.findLast((t) => t.t <= timeMs) ?? titles[0])?.title || undefined;
+}

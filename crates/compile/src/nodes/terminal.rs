@@ -16,6 +16,7 @@ use crate::node::{
     port, row,
 };
 use crate::params::Params;
+use crate::registry::node_def;
 use crate::terminal::{
     DEFAULT_FONT_SIZE, DEFAULT_LINE_HEIGHT, DEFAULT_PADDING, DEFAULT_THEME_NAME, default_look,
     grid, regrid_actions, regrid_log, theme_named,
@@ -430,7 +431,10 @@ fn append(ctx: &Ctx<'_, impl Sized>, action: TerminalAction, wait_after_ms: u32)
     session.steps.push(TerminalStep {
         id: ctx.node_id.to_owned(),
         node_id: ctx.node_id.to_owned(),
-        label: ctx.label.map_or_else(|| ctx.kind.to_owned(), str::to_owned),
+        label: ctx.label.map_or_else(
+            || node_def(ctx.kind).map_or_else(|| ctx.kind.to_owned(), |d| d.title.clone()),
+            str::to_owned,
+        ),
         action,
         wait_after_ms,
     });

@@ -243,3 +243,17 @@ fn checks_themes_and_text_patterns() {
     );
     assert_eq!(default_look(None).theme.name, "Default");
 }
+
+#[test]
+fn names_each_step_after_its_node() {
+    let mut g = Graph::default();
+    g.node("open", "terminal.open", json!({}));
+    g.node("run", "terminal.run", json!({}));
+    g.link_ports("open", "run", "terminal", "terminal");
+    let compiled = compile_workflow(&g.build(), None);
+    let Some(CompileValue::TerminalSession(session)) = compiled.values["run"].get("terminal")
+    else {
+        panic!("no session");
+    };
+    assert_eq!(session.steps[0].label, "Run command");
+}

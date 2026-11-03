@@ -907,6 +907,8 @@ Public domain (Creative Commons 0, https://creativecommons.org/publicdomain/zero
 
 SIL Open Font License 1.1, taken from the Fontsource packages. Each family's licence text is next to its files in `public/fonts/bundled/<family>/LICENSE`: Inter, Geist, Geist Mono, JetBrains Mono, Manrope, DM Sans, Space Grotesk, Outfit, Montserrat, Plus Jakarta Sans, IBM Plex Sans, Playfair Display, Fraunces, Caveat, Google Sans Flex, Instrument Serif.
 
+The terminal's fonts in `public/fonts/bundled/terminal`, each with its licence next to its files: JetBrains Mono 2.304 from JetBrains' release (https://github.com/JetBrains/JetBrainsMono, SIL Open Font License 1.1) as "Opsis Terminal"; Symbols Nerd Font Mono 3.4.0 (https://github.com/ryanoasis/nerd-fonts, MIT License) as "Opsis Terminal Symbols"; and Noto Sans Symbols 2, Noto Sans SC and Noto Color Emoji from the Fontsource packages (The Noto Project Authors, SIL Open Font License 1.1) as "Opsis Terminal Symbols 2", "Opsis Terminal CJK" and "Opsis Terminal Emoji".
+
 ## Playwright — crates/capture/src/playwright, crates/capture/src/{browser,input,keyboard,locators,overlays,url_match}.rs
 
 The page script, the fake clock and the keyboard and launch tables are taken from `playwright-core`; the input, keyboard, selector, overlay and address-matching code follows Playwright's. Licensed under the Apache License, Version 2.0 (`LICENSE`).

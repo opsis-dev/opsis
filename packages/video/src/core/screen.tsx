@@ -1,4 +1,5 @@
 import { FootageFrame } from "#video/core/footage.tsx";
+import { TerminalScreen } from "#video/core/terminal-screen.tsx";
 import type { Fit, ScreenProps } from "#video/generated/spec.ts";
 
 export function Screen({ screen, timeS, fit }: { screen: ScreenProps; timeS: number; fit: Fit }) {
@@ -8,7 +9,7 @@ export function Screen({ screen, timeS, fit }: { screen: ScreenProps; timeS: num
         <FootageFrame url={screen.footageUrl} timeS={timeS} fit={fit} />
       ) : null;
     case "terminal":
-      return null;
+      return <TerminalScreen screen={screen} timeS={timeS} fit={fit} />;
   }
 }
 

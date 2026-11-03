@@ -28,7 +28,9 @@ export function registeredNames(): string[] {
 
 export function loadedSignature(cssName: string): string | null {
   const entry = registered.get(cssName);
-  return entry?.faces.every(settled) ? entry.signature : null;
+  return entry?.faces.every((face) => settled(face) || face.unicodeRange !== "U+0-10FFFF")
+    ? entry.signature
+    : null;
 }
 
 export function unregisterFaces(cssName: string): void {
@@ -54,10 +56,12 @@ export function registerFaces(
         weight: f.weight,
         style: f.style,
         display: "block",
+        ...(f.unicodeRange ? { unicodeRange: f.unicodeRange } : {}),
       }),
   );
   for (const face of faces) document.fonts.add(face);
-  const ready = Promise.allSettled(faces.map((f) => f.load())).then((results) => {
+  const eager = faces.filter((_, i) => !def.faces[i]?.unicodeRange);
+  const ready = Promise.allSettled(eager.map((f) => f.load())).then((results) => {
     if (results.some((r) => r.status === "rejected")) onUnreadable?.();
   });
   registered.set(cssName, { signature, faces, ready });

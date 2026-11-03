@@ -8,7 +8,10 @@
     "./spec": "./src/spec.ts",
     "./common/*": "./src/common/*.ts",
     "./generated/spec": "./src/generated/spec.ts",
-    "./film": "./src/film.tsx"
+    "./film": "./src/film.tsx",
+    "./terminal/frames": "./src/terminal/frames.ts",
+    "./terminal/sprites": "./src/terminal/sprites.ts",
+    "./terminal/view": "./src/terminal/view.tsx"
   },
   "imports": {
     "#video/*": "./src/*"

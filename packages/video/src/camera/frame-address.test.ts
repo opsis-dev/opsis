@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { frameAddress } from "#video/camera/frame-address.ts";
+import { frameAddress, terminalTitle } from "#video/camera/frame-address.ts";
 import type { ActionLog } from "#video/generated/spec.ts";
 
 const log: ActionLog = {
@@ -42,5 +42,22 @@ describe("the address in the window frame", () => {
   it("shows just the host on a page without a path", () => {
     const bare = { ...log, actions: [], addresses: [{ t: 0, url: "about:srcdoc" }] };
     expect(frameAddress(bare, 0, "app.example.com", "host")).toBe("app.example.com");
+  });
+});
+
+describe("terminal titles", () => {
+  const titled = {
+    ...log,
+    titles: [
+      { t: 0, title: "zsh" },
+      { t: 2000, title: "vim notes.md" },
+    ],
+  };
+
+  it("shows the program's title at the time and the typed text over it", () => {
+    expect(terminalTitle(titled, 500)).toBe("zsh");
+    expect(terminalTitle(titled, 2500)).toBe("vim notes.md");
+    expect(terminalTitle(titled, 2500, " my-app ")).toBe("my-app");
+    expect(terminalTitle({ ...log, titles: [] }, 100)).toBeUndefined();
   });
 });

@@ -972,6 +972,7 @@ export type FontFaceDef = {
 	weight: string,
 	style: FontStyle,
 	format: FontFormat,
+	unicodeRange?: string,
 };
 
 export type FontFamilyDef = {
@@ -982,6 +983,7 @@ export type FontFamilyDef = {
 	license?: string,
 	licenseFile?: string,
 	faces: FontFaceDef[],
+	hidden?: boolean,
 };
 
 export type FontFormat = "woff2" | "woff" | "truetype" | "opentype";

@@ -62,6 +62,12 @@ pub struct FontFaceDef {
     pub weight: String,
     pub style: FontStyle,
     pub format: FontFormat,
+    #[serde(
+        rename = "unicodeRange",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub unicode_range: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
@@ -77,6 +83,8 @@ pub struct FontFamilyDef {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub license_file: Option<String>,
     pub faces: Vec<FontFaceDef>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub hidden: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]

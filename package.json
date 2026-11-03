@@ -88,6 +88,9 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@fontsource/noto-color-emoji": "^5.3.2",
+    "@fontsource/noto-sans-sc": "^5.3.1",
+    "@fontsource/noto-sans-symbols-2": "^5.3.0",
     "@hugeicons/core-free-icons": "^4.4.0",
     "@lucide/lab": "^0.7.0",
     "@mynaui/icons": "^0.4.11",
