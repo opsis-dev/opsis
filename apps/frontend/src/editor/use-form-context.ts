@@ -62,7 +62,7 @@ export function useFormContext(workflow: Workflow, nodeId: string): FormContext 
         id: m.id,
         label: m.label || `Marker at ${formatDuration(m.atMs)}`,
       })),
-      spotBackground: spot ? { ...spot, src: fileUrl(spot.src) } : null,
+      spotBackground: spot ? { ...spot, src: spot.terminal ? spot.src : fileUrl(spot.src) } : null,
       pickTarget: (key) => void pickTarget(nodeId, inspector?.picker, key),
       chooseAsset: (apply) => void chooseAsset(projectDir, apply),
       swatches: inspector?.swatches ?? [],

@@ -33,6 +33,7 @@ pub const TERMINAL_LOOK_TYPE: &str = "terminal.look";
 pub const PLAY_TAPE_TYPE: &str = "terminal.playTape";
 pub const EXPORT_TAPE_TYPE: &str = "output.tape";
 pub const TAPE_EXTENSION: &str = "tape";
+pub const CAST_FILE_TYPE: &str = "terminal.castFile";
 const TEXT_SHOWN: usize = 40;
 
 fn session_port() -> crate::node::PortSpec {
@@ -418,6 +419,32 @@ pub struct PlayTape {
 }
 
 #[settings(eq)]
+pub struct CastFile {
+    #[setting(
+        "Cast file",
+        widget = "asset",
+        accept = ".cast,.json",
+        help = "A recorded terminal session saved as a cast file.",
+        check = [
+            { "rule": "not-blank", "message": "Choose a cast file" },
+            { "rule": "in-project", "message": "Choose a file inside the project folder" }
+        ]
+    )]
+    pub file: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[setting(
+        "Shorten pauses over",
+        range(min = 100, max = 60_000),
+        step = 100,
+        unit = "ms",
+        zero_label = "The file's own limit",
+        help = "Pauses longer than this are cut down to it.",
+        "type" = "integer"
+    )]
+    pub pause_limit_ms: Option<u32>,
+}
+
+#[settings(eq)]
 pub struct ExportTape {
     #[setting("File name", default = "{{Project name}} tape")]
     pub file_name: String,
@@ -431,8 +458,9 @@ pub fn tape_file_name(file_name: &str) -> String {
 pub struct TerminalLookSettings {
     #[setting(
         "Theme",
+        widget = "terminal-theme",
         zero_label = "The take's own",
-        help = "A theme's name, such as Dracula or Catppuccin Mocha."
+        help = "The colours of the terminal: its background, text and the sixteen colours programs use."
     )]
     pub theme: String,
     #[setting("Font size", default = DEFAULT_FONT_SIZE, range(min = 8, max = 64), unit = "px")]
@@ -993,6 +1021,70 @@ fn play_tape() -> NodeDef {
         })
 }
 
+fn cast_events(result: Option<&opsis_types::values::NodeResult>) -> Option<u32> {
+    result?.measured.iter().find_map(|m| match m {
+        Measured::Cast { events } => Some(*events),
+        _ => None,
+    })
+}
+
+fn cast_file() -> NodeDef {
+    NodeDef::of::<CastFile>(
+        CAST_FILE_TYPE,
+        "Cast file",
+        Category::Terminal,
+        Phase::Capture,
+    )
+    .describe("Uses a terminal session recorded earlier and saved as a cast file as a take.")
+    .executes()
+    .outputs(vec![(
+        RECORDING_PORT,
+        port(PortType::Recording, "Recording"),
+    )])
+    .card(|ctx: &CardCtx<'_, CastFile>| {
+        let p = &ctx.params;
+        let rec = recording_of(ctx.result);
+        vec![
+            Some(if p.file.trim().is_empty() {
+                missing(Icon::File, "Choose a cast file")
+            } else {
+                row(Icon::File, file_label(p.file.trim()))
+            }),
+            rec.map(|r| row(Icon::Clock, format_duration(r.duration_ms))),
+            rec.and_then(|r| match &r.source {
+                TakeSource::Terminal(t) => {
+                    Some(row(Icon::Monitor, format!("{} × {}", t.cols, t.rows)))
+                }
+                TakeSource::Browser(_) => None,
+            }),
+            cast_events(ctx.result).map(|n| row(Icon::ListChecks, plural(f64::from(n), "event"))),
+            p.pause_limit_ms.map(|ms| {
+                row(
+                    Icon::Timer,
+                    format!("Pauses at most {}", format_duration(f64::from(ms))),
+                )
+            }),
+        ]
+    })
+    .compiles(|ctx: &Ctx<'_, CastFile>| {
+        let recording = recording_of(ctx.result)
+            .cloned()
+            .unwrap_or_else(|| RecordingValue {
+                log: None,
+                duration_ms: DEFAULT_TAKE_MS,
+                node_id: ctx.node_id.to_owned(),
+                edits: Vec::new(),
+                source: TakeSource::Terminal(TerminalSource {
+                    cast: None,
+                    cols: 80,
+                    rows: 24,
+                    theme: None,
+                }),
+            });
+        outputs([(RECORDING_PORT, CompileValue::Recording(recording))])
+    })
+}
+
 fn export_tape() -> NodeDef {
     NodeDef::of::<ExportTape>(
         EXPORT_TAPE_TYPE,
@@ -1057,6 +1149,7 @@ pub fn nodes() -> Vec<NodeDef> {
         clear_screen().look(NodeLook::of("tabler:clear-all")),
         record_terminal().look(NodeLook::of("tabler:terminal-2")),
         terminal_look().look(NodeLook::of("tabler:palette")),
+        cast_file().look(NodeLook::of("lucide:file-terminal")),
         play_tape().look(NodeLook::of("hugeicons:cassette-tape")),
         export_tape().look(NodeLook::of("tabler:file-export")),
     ]

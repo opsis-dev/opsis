@@ -329,3 +329,25 @@ fn export_tape_names_its_file_and_claims_it() {
     );
     assert_eq!(texts, vec!["demo.tape", "Connect the terminal actions"]);
 }
+
+#[test]
+fn a_cast_file_says_its_length_size_and_events() {
+    let result = crate::helpers::node_result(json!({
+        "outputs": { "recording": terminal_take(false) },
+        "measured": [{ "type": "cast", "events": 120 }]
+    }));
+    let rows: Vec<String> = crate::helpers::node_card_with(
+        "terminal.castFile",
+        json!({ "file": "project:casts/demo.cast" }),
+        CardInputs::default(),
+        Some(&result),
+    )
+    .into_iter()
+    .map(|r| r.text)
+    .collect();
+    assert_eq!(rows, vec!["demo.cast", "4 s", "80 × 24", "120 events"]);
+    assert_eq!(
+        card_texts("terminal.castFile", json!({}), CardInputs::default()),
+        vec!["Choose a cast file"]
+    );
+}

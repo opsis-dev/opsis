@@ -1,14 +1,18 @@
 import { boundsFromRect } from "@opsis/video/common/geometry";
 import { uniqueKeys } from "@opsis/video/common/lists";
 import { designScaleFor } from "@opsis/video/spec";
+import type { TerminalFrames } from "@opsis/video/terminal/frames";
+import { screenSize } from "@opsis/video/terminal/view";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { Ripple } from "../app/motion";
+import { TerminalPicture } from "../app/terminal-picture";
 import { CLICK_RIPPLE_MS, type LiveCapture } from "../store/live";
 import { FrameOverlay, OVERLAY_WIDTHS } from "./frame-overlay";
 import { STATUS_LOOKS } from "./status-icon";
+import { PLAYER_LOOK } from "./terminal-player";
 
 const RIPPLE_START_PX = 12;
 const RIPPLE_GROWTH_PX = 36;
@@ -56,7 +60,41 @@ export function LiveBadge({ className }: { className?: string }) {
   );
 }
 
+function LiveTerminal({
+  capture,
+  frames,
+  className,
+}: {
+  capture: LiveCapture;
+  frames: TerminalFrames;
+  className?: string;
+}) {
+  const frame = frames.frames[0];
+  if (!frame) return null;
+  const size = screenSize(PLAYER_LOOK, frame.cols, frame.rows);
+  const current = capture.steps.find((s) => s.status === "running");
+  return (
+    <div
+      className={cn("bg-muted relative overflow-hidden rounded-md", className)}
+      style={{ aspectRatio: `${size.width} / ${size.height}` }}
+    >
+      <TerminalPicture frames={frames} frame={frame} look={PLAYER_LOOK} cursorOn />
+      {capture.status === "live" ? <LiveBadge className="absolute top-2 left-2 z-10" /> : null}
+      <div className="absolute inset-x-2 bottom-2 flex items-center gap-1.5">
+        {capture.status === "live" ? null : <StatusBadge status={capture.status} />}
+        {current ? (
+          <Badge variant="outline" className="bg-background/80 truncate">
+            {current.label}
+          </Badge>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export function LiveView({ capture, className }: { capture: LiveCapture; className?: string }) {
+  if (capture.terminal)
+    return <LiveTerminal capture={capture} frames={capture.terminal} className={className} />;
   if (!capture.viewport)
     return (
       <div

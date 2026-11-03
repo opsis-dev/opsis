@@ -14,6 +14,7 @@ import {
   type SettingsBook,
   type ShapeChoice,
   type SoundChoice,
+  type TerminalTheme,
   type TimelineBook,
   type Theme,
   type TextRules,
@@ -41,6 +42,7 @@ const loaded: {
   timeline: TimelineBook;
   sounds: SoundChoice[];
   music: SoundChoice[];
+  terminalThemes: TerminalTheme[];
   templates: TemplateInfo[];
 } = {
   nodes: [],
@@ -59,6 +61,7 @@ const loaded: {
   timeline: { eases: [], envelopes: [], cameraDials: [] },
   sounds: [],
   music: [],
+  terminalThemes: [],
   templates: [],
 };
 
@@ -85,6 +88,7 @@ export function applyCatalog(data: CatalogData): void {
   loaded.timeline = catalog.timeline;
   loaded.sounds = catalog.sounds;
   loaded.music = catalog.music;
+  loaded.terminalThemes = catalog.terminalThemes;
   loaded.text = text;
   loaded.mixer = mixer;
   loaded.bundledFonts = catalog.bundledFonts;
@@ -117,6 +121,10 @@ export function builtinSounds(): SoundChoice[] {
 
 export function builtinMusic(): SoundChoice[] {
   return loaded.music;
+}
+
+export function terminalThemes(): TerminalTheme[] {
+  return loaded.terminalThemes;
 }
 
 export function qualityPresets(): Array<[string, number]> {

@@ -1,4 +1,5 @@
 import { appendCapped } from "@opsis/video/common/lists";
+import type { TerminalFrames } from "@opsis/video/terminal/frames";
 import { create } from "zustand";
 import type { LiveMessage } from "@/app/tauri";
 import type { Rect } from "@/generated/bindings";
@@ -14,6 +15,7 @@ export type LiveCapture = {
   viewport: { width: number; height: number } | null;
   steps: LiveStep[];
   frameUrl: string | null;
+  terminal: TerminalFrames | null;
   cursor: { x: number; y: number } | null;
   target: { rect: Rect; label: string; selector?: string } | null;
   clicks: Array<{ x: number; y: number; at: number }>;
@@ -51,6 +53,7 @@ function blank(captureId: string, nodeId: string): LiveCapture {
     viewport: null,
     steps: [],
     frameUrl: null,
+    terminal: null,
     cursor: null,
     target: null,
     clicks: [],
@@ -96,6 +99,12 @@ function applyEvent(prev: LiveCapture, e: LiveEvent): LiveCapture {
 
 function applyMessage(prev: LiveCapture, message: LiveMessage): LiveCapture {
   if (message.type === "event") return applyEvent(prev, message.event);
+  if (message.type === "terminal")
+    return {
+      ...prev,
+      viewport: prev.viewport ?? { width: message.cols, height: message.rows },
+      terminal: message.frames,
+    };
   if (prev.frameUrl) URL.revokeObjectURL(prev.frameUrl);
   return {
     ...prev,

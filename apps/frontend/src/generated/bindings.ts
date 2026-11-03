@@ -88,6 +88,7 @@ export const commands = {
 	viewAnswerDialog: (id: string, accept: boolean, prompt: string) => __TAURI_INVOKE<null>("view_answer_dialog", { id, accept, prompt }),
 	viewChooseFiles: (id: string) => __TAURI_INVOKE<null>("view_choose_files", { id }),
 	viewClose: (id: string) => __TAURI_INVOKE<void>("view_close", { id }),
+	terminalFrames: (projectDir: string, cast: string, fps: number, theme: TerminalTheme | null) => __TAURI_INVOKE<ArrayBuffer>("terminal_frames", { projectDir, cast, fps, theme }),
 	attachTerminal: (id: string, frames: Channel<ArrayBuffer>) => __TAURI_INVOKE<null>("attach_terminal", { id, frames }),
 	terminalInput: (id: string, input: TerminalInput) => __TAURI_INVOKE<null>("terminal_input", { id, input }),
 	finishTerminal: (id: string, save: boolean) => __TAURI_INVOKE<null>("finish_terminal", { id, save }),
@@ -348,7 +349,7 @@ export type BandBounds = {
 
 export type BarKind = "recording" | "element";
 
-export type BarThumbnail = { kind: "filmstrip"; src: string; speed: number; trimMs: number } | { kind: "still"; src: string };
+export type BarThumbnail = { kind: "filmstrip"; src: string; speed: number; trimMs: number } | { kind: "still"; src: string } | { kind: "terminal"; cast: string; theme: TerminalTheme; speed: number };
 
 export type Bounds = {
 	x: number,
@@ -762,6 +763,7 @@ export type EditorCatalog = {
 	timeline: TimelineBook,
 	sounds: SoundChoice[],
 	music: SoundChoice[],
+	terminalThemes: TerminalTheme[],
 };
 
 export type EditorCompile = {
@@ -1278,7 +1280,7 @@ export type Master = {
 	loudness: LoudnessTarget,
 };
 
-export type Measured = { type: "noiseLevel"; beforeDb: number; afterDb: number } | { type: "file"; bytes: number; fps?: number } | { type: "changes"; count: number } | { type: "fitted"; tempo?: number; loops: number } | { type: "tape"; steps: number; ignored: string[]; warnings: string[] };
+export type Measured = { type: "noiseLevel"; beforeDb: number; afterDb: number } | { type: "file"; bytes: number; fps?: number } | { type: "changes"; count: number } | { type: "fitted"; tempo?: number; loops: number } | { type: "tape"; steps: number; ignored: string[]; warnings: string[] } | { type: "cast"; events: number };
 
 export type MediaKind = "video" | "audio" | "image";
 
@@ -1778,6 +1780,7 @@ export type SpotBackground = {
 	timeMs: number,
 	durationMs: number,
 	still: boolean,
+	terminal: TerminalTheme | null,
 };
 
 export type StartOption = "start-screen" | "last-project" | "new-project";

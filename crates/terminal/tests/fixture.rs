@@ -92,6 +92,7 @@ fn records_the_fixture_take() {
         keep_after_ms: 500,
         cancelled: &|| false,
         log: &mut log,
+        live: None,
     })
     .unwrap();
     if opsis_golden::writing() {

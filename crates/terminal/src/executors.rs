@@ -5,8 +5,8 @@ use std::sync::Arc;
 use opsis_compile::asset_ref::project_ref;
 use opsis_compile::node::{RECORDING_PORT, STYLE_PORT};
 use opsis_compile::nodes::terminal::{
-    EXPORT_TAPE_TYPE, ExportTape, PLAY_TAPE_TYPE, PlayTape, RECORD_TERMINAL_TYPE, RecordTerminal,
-    TERMINAL_PORT, tape_file_name,
+    CAST_FILE_TYPE, CastFile, EXPORT_TAPE_TYPE, ExportTape, PLAY_TAPE_TYPE, PlayTape,
+    RECORD_TERMINAL_TYPE, RecordTerminal, TERMINAL_PORT, tape_file_name,
 };
 use opsis_compile::params::Values;
 use opsis_compile::terminal::default_theme;
@@ -25,6 +25,9 @@ use opsis_types::values::{
 };
 use tokio_util::sync::CancellationToken;
 
+use crate::cast::{read_path, write_v3};
+use crate::import::import_cast;
+use crate::live_feed::{LiveFeed, TakeLive};
 use crate::take::{CAST_FILE, LOG_FILE, Take, TakeError, TakeOptions, record_take, save_take};
 use crate::tape::{
     Command, TapeError, parse, parse_with_sources, session_tape, speed_entry, tape_steps, write,
@@ -54,13 +57,15 @@ pub trait LiveTapeHost: Send + Sync {
 
 #[derive(Clone, Default)]
 pub struct TerminalDeps {
-    pub live: Option<Arc<dyn LiveTapeHost>>,
+    pub live_tapes: Option<Arc<dyn LiveTapeHost>>,
+    pub live_frames: Option<Arc<dyn LiveFeed>>,
 }
 
 impl fmt::Debug for TerminalDeps {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("TerminalDeps")
-            .field("live", &self.live.is_some())
+            .field("live_tapes", &self.live_tapes.is_some())
+            .field("live_frames", &self.live_frames.is_some())
             .finish()
     }
 }
@@ -79,8 +84,21 @@ struct TakeRun {
     keep_after_ms: u32,
 }
 
-async fn run_take(ctx: &Arc<ExecutorContext>, run: TakeRun) -> Result<Take, ExecError> {
+async fn run_take(
+    ctx: &Arc<ExecutorContext>,
+    deps: &TerminalDeps,
+    run: TakeRun,
+) -> Result<Take, ExecError> {
     let job = Arc::clone(ctx);
+    let live = deps.live_frames.as_ref().map(|feed| {
+        TakeLive::new(
+            Arc::clone(feed),
+            &ctx.run_id,
+            &ctx.node.id,
+            &run.name,
+            ctx.env.settings.live.fps,
+        )
+    });
     let take = tokio::task::spawn_blocking(move || {
         let cancelled = || job.cancel.is_cancelled();
         let mut log = |line: String| job.log(LogLevel::Warn, line);
@@ -93,7 +111,15 @@ async fn run_take(ctx: &Arc<ExecutorContext>, run: TakeRun) -> Result<Take, Exec
             keep_after_ms: run.keep_after_ms,
             cancelled: &cancelled,
             log: &mut log,
-        })?;
+            live: live.as_ref(),
+        });
+        if let Some(live) = &live {
+            match &take {
+                Ok(_) => live.end(true, None),
+                Err(error) => live.end(false, Some(error.to_string())),
+            }
+        }
+        let take = take?;
         save_take(&job.dir, &take)?;
         Ok::<_, TakeError>(take)
     })
@@ -141,6 +167,7 @@ fn take_artifacts(ctx: &ExecutorContext) -> Vec<Artifact> {
 async fn record(
     ctx: Arc<ExecutorContext>,
     inputs: PortValues,
+    deps: TerminalDeps,
 ) -> Result<ExecutorOutput, ExecError> {
     let p: RecordTerminal = ctx.params()?;
     let Some(CompileValue::TerminalSession(session)) = inputs.get(TERMINAL_PORT).cloned() else {
@@ -148,6 +175,7 @@ async fn record(
     };
     let take = run_take(
         &ctx,
+        &deps,
         TakeRun {
             session: session.clone(),
             name: p.name,
@@ -223,7 +251,7 @@ async fn record_live(
     file: &Path,
     title: &str,
 ) -> Result<String, ExecError> {
-    let Some(live) = &deps.live else {
+    let Some(live) = &deps.live_tapes else {
         return Err(ExecError::new("The tape file isn't in the project folder."));
     };
     ctx.log(LogLevel::Info, "Type the tape in the window that opened.");
@@ -278,6 +306,7 @@ async fn play_tape(
     }
     let take = run_take(
         &ctx,
+        &deps,
         TakeRun {
             session: mapped.session.clone(),
             name: title,
@@ -317,6 +346,63 @@ async fn play_tape(
     })
 }
 
+async fn cast_file(
+    ctx: Arc<ExecutorContext>,
+    _inputs: PortValues,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: CastFile = ctx.params()?;
+    let file = ctx.ref_to_path(p.file.trim())?;
+    let job = Arc::clone(&ctx);
+    let limit = p
+        .pause_limit_ms
+        .map(|ms| std::time::Duration::from_millis(u64::from(ms)));
+    let (imported, events) = tokio::task::spawn_blocking(move || {
+        let cast = read_path(&file)
+            .map_err(|e| ExecError::new(format!("The cast file can't be read: {e}")))?;
+        let events = count(cast.events.len());
+        let imported = import_cast(cast, limit).map_err(|e| ExecError::new(e.to_string()))?;
+        std::fs::create_dir_all(&job.dir)?;
+        atomic_write(
+            &job.dir.join(CAST_FILE),
+            write_v3(&imported.header, &imported.events).as_bytes(),
+        )?;
+        opsis_engine::files::write_json(&job.dir.join(LOG_FILE), &imported.log)?;
+        Ok::<_, ExecError>((imported, events))
+    })
+    .await
+    .map_err(|e| ExecError::new(e.to_string()))??;
+    ctx.log(
+        LogLevel::Info,
+        format!(
+            "Read {events} events: {} s in a {} × {} terminal",
+            millis(imported.length) / 1000.0,
+            imported.header.term_cols,
+            imported.header.term_rows
+        ),
+    );
+    let recording = RecordingValue {
+        duration_ms: millis(imported.length),
+        log: Some(imported.log),
+        node_id: ctx.node.id.clone(),
+        edits: Vec::new(),
+        source: TakeSource::Terminal(TerminalSource {
+            cast: Some(ctx.project_file_ref(CAST_FILE)),
+            cols: imported.header.term_cols,
+            rows: imported.header.term_rows,
+            theme: imported.theme.map(Box::new),
+        }),
+    };
+    Ok(ExecutorOutput {
+        outputs: PortValues::from([(
+            RECORDING_PORT.to_owned(),
+            CompileValue::Recording(recording),
+        )]),
+        artifacts: take_artifacts(&ctx),
+        trace_id: None,
+        measured: vec![Measured::Cast { events }],
+    })
+}
+
 async fn export_tape(
     ctx: Arc<ExecutorContext>,
     inputs: PortValues,
@@ -346,13 +432,17 @@ async fn export_tape(
 }
 
 pub fn terminal_executors(deps: &TerminalDeps) -> Vec<(&'static str, Executor)> {
-    let deps = deps.clone();
+    let (recorder, player) = (deps.clone(), deps.clone());
     vec![
-        (RECORD_TERMINAL_TYPE, executor(record)),
+        (
+            RECORD_TERMINAL_TYPE,
+            executor(move |ctx, inputs| record(ctx, inputs, recorder.clone())),
+        ),
         (
             PLAY_TAPE_TYPE,
-            executor(move |ctx, inputs| play_tape(ctx, inputs, deps.clone())).stamped(tape_stamp),
+            executor(move |ctx, inputs| play_tape(ctx, inputs, player.clone())).stamped(tape_stamp),
         ),
         (EXPORT_TAPE_TYPE, executor(export_tape)),
+        (CAST_FILE_TYPE, executor(cast_file)),
     ]
 }

@@ -1533,6 +1533,39 @@
   }
  },
  {
+  "type": "terminal.castFile",
+  "title": "Cast file",
+  "category": "Terminal",
+  "description": "Uses a terminal session recorded earlier and saved as a cast file as a take.",
+  "phase": "capture",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "recording",
+    "type": "recording",
+    "label": "Recording",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "file": ""
+  }
+ },
+ {
   "type": "terminal.playTape",
   "title": "Play tape",
   "category": "Terminal",

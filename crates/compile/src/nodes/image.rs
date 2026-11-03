@@ -2318,7 +2318,8 @@ fn compare() -> NodeDef {
                 Measured::NoiseLevel { .. }
                 | Measured::File { .. }
                 | Measured::Fitted { .. }
-                | Measured::Tape { .. } => None,
+                | Measured::Tape { .. }
+        | Measured::Cast { .. } => None,
             })
         });
         let found = match changes {

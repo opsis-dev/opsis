@@ -63,6 +63,7 @@ import {
   variableChoices,
   type SelectChoices,
 } from "./form/string-field";
+import { TerminalThemeField } from "./form/terminal-theme-field";
 import { ThemeField } from "./form/theme-field";
 import { TimezoneField } from "./form/timezone-field";
 import type { FieldProps, FormContext, ParamFieldProps, ParamValues } from "./form/types";
@@ -114,6 +115,7 @@ const WIDGETS: Partial<Record<FieldWidget, Widget>> = {
   music: stringWidget(MusicField),
   target: stringWidget(TargetField),
   timezone: stringWidget(TimezoneField),
+  "terminal-theme": stringWidget(TerminalThemeField),
   keys: stringWidget(KeysField),
   datetime: stringWidget(DatetimeField),
   offsets: stringWidget(OffsetsField),

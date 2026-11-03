@@ -33,6 +33,8 @@ pub enum FieldWidget {
     Sound,
     Spot,
     Target,
+    #[serde(rename = "terminal-theme")]
+    TerminalTheme,
     Textarea,
     Theme,
     Timezone,

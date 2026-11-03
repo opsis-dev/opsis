@@ -459,6 +459,9 @@ pub enum Measured {
         ignored: Vec<String>,
         warnings: Vec<String>,
     },
+    Cast {
+        events: u32,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]

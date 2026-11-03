@@ -2,7 +2,11 @@ import { MAX_VOLUME } from "@opsis/video/common/limits";
 import { clamp } from "@opsis/video/common/math";
 import { lruCache } from "@opsis/video/common/memo";
 import { framesToRecordingMs, msToSeconds } from "@opsis/video/common/time";
+import { frameAt } from "@opsis/video/terminal/frames";
+import { screenSize } from "@opsis/video/terminal/view";
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { TerminalPicture } from "@/app/terminal-picture";
+import { PLAYER_LOOK, useTerminalFrames } from "@/editor/terminal-player";
 import type {
   AudioBar,
   LocalFrames,
@@ -23,6 +27,7 @@ const DISPLAY_RANGE_DB = 48;
 const SILENT_AMPLITUDE = 1e-4;
 const WAVE_FILL = 0.95;
 const CACHED_IMAGES = 64;
+const THUMB_FPS = 2;
 
 type Visible = { offset: number; width: number };
 
@@ -169,7 +174,61 @@ function drawStill(
     ctx.drawImage(img, x - part.offset, 0, tileW, height);
 }
 
+type Terminal = Extract<BarThumbnail, { kind: "terminal" }>;
+
+function TerminalStrip({
+  bar,
+  fps,
+  frames: local,
+  thumb,
+  box,
+  height,
+  view,
+}: MediaCanvasProps & {
+  bar: VideoBar;
+  fps: number;
+  frames: LocalFrames | undefined;
+  thumb: Terminal;
+}) {
+  const { frames } = useTerminalFrames(thumb.cast, THUMB_FPS, thumb.theme);
+  const first = frames?.frames[0];
+  const part = visiblePart(box.left, box.width, view);
+  if (!frames || !first || !part) return null;
+  const size = screenSize(PLAYER_LOOK, first.cols, first.rows);
+  const tileW = (size.width / size.height) * height;
+  const tiles: number[] = [];
+  for (let x = tileStart(box.left, part.offset, tileW); x < part.offset + part.width; x += tileW)
+    tiles.push(x);
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-60">
+      {tiles.map((x) => {
+        const abs = (box.left + x + tileW / 2) / view.pxPerFrame;
+        const at = clamp(abs, bar.from, bar.to - END_EPSILON);
+        const ms = framesToRecordingMs(barLocalAt(local, bar, at), thumb.speed, fps);
+        const frame = frameAt(frames, ms / 1000);
+        return frame ? (
+          <div key={x} className="absolute top-0" style={{ left: x, width: tileW, height }}>
+            <TerminalPicture frames={frames} frame={frame} look={PLAYER_LOOK} cursorOn={false} />
+          </div>
+        ) : null;
+      })}
+    </div>
+  );
+}
+
 export function FilmstripCanvas({
+  bar,
+  fps,
+  frames,
+  ...canvas
+}: MediaCanvasProps & { bar: VideoBar; fps: number; frames: LocalFrames | undefined }) {
+  const source = bar.thumbnail;
+  if (source?.kind === "terminal")
+    return <TerminalStrip bar={bar} fps={fps} frames={frames} thumb={source} {...canvas} />;
+  return <ImageStrip bar={bar} fps={fps} frames={frames} {...canvas} />;
+}
+
+function ImageStrip({
   bar,
   fps,
   frames,

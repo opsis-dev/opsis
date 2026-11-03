@@ -1,7 +1,8 @@
 use indexmap::IndexMap;
 use opsis_types::actions::Viewport;
+use opsis_types::terminal::TerminalTheme;
 use opsis_types::values::{
-    BrowserSessionValue, CompileValue, MediaKind, NodeResult, RecordingValue, TakeKind,
+    BrowserSessionValue, CompileValue, MediaKind, NodeResult, RecordingValue, TakeKind, TakeSource,
 };
 use opsis_types::workflow::Workflow;
 use serde::Serialize;
@@ -42,6 +43,7 @@ pub struct SpotBackground {
     pub time_ms: f64,
     pub duration_ms: f64,
     pub still: bool,
+    pub terminal: Option<TerminalTheme>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
@@ -130,12 +132,24 @@ fn recording_before(
 ) -> Option<SpotBackground> {
     upstream_of(wf, node_id).iter().find_map(|id| {
         match results.get(id)?.outputs.get("recording")? {
-            CompileValue::Recording(rec) => rec.video().map(|src| SpotBackground {
-                src: src.to_owned(),
-                time_ms: 0.0,
-                duration_ms: rec.duration_ms,
-                still: false,
-            }),
+            CompileValue::Recording(rec) => {
+                let terminal = match &rec.source {
+                    TakeSource::Terminal(t) => Some(
+                        t.theme
+                            .as_deref()
+                            .cloned()
+                            .unwrap_or_else(crate::terminal::default_theme),
+                    ),
+                    TakeSource::Browser(_) => None,
+                };
+                rec.file().map(|src| SpotBackground {
+                    src: src.to_owned(),
+                    time_ms: 0.0,
+                    duration_ms: rec.duration_ms,
+                    still: false,
+                    terminal,
+                })
+            }
             _ => None,
         }
     })
@@ -168,6 +182,7 @@ fn graded_file(wf: &Workflow, node_id: &str, compiled: &CompileResult) -> Option
                         time_ms: 0.0,
                         duration_ms: media.duration_ms.map_or(0.0, f64::from),
                         still: media.kind == MediaKind::Image,
+                        terminal: None,
                     })
                 }
                 _ => None,
@@ -194,6 +209,7 @@ fn input_picture(wf: &Workflow, node_id: &str, compiled: &CompileResult) -> Opti
         time_ms: 0.0,
         duration_ms: 0.0,
         still: true,
+        terminal: None,
     })
 }
 

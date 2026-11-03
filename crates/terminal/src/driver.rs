@@ -11,6 +11,7 @@ use opsis_vt::{
 use regex::Regex;
 
 use crate::input::{InputError, find_on_screen, mouse_button, parse_chord, target_cell};
+use crate::live_feed::TakeLive;
 use crate::recording::Recording;
 use crate::session::{Chunk, Session, SessionError};
 use crate::timeline::{CHAPTER_PREFIX, HIDE, SCREENSHOT, SCROLL_PREFIX, SHOW, START, STEP_PREFIX};
@@ -51,6 +52,8 @@ pub struct Driver<'a> {
     inputs: u64,
     dones: u64,
     at_prompt: bool,
+    live: Option<&'a TakeLive>,
+    last_live: Option<Duration>,
     clipboard: String,
     pointer: Option<(f64, f64)>,
 }
@@ -96,6 +99,7 @@ impl<'a> Driver<'a> {
         value: &'a TerminalSessionValue,
         cancelled: &'a dyn Fn() -> bool,
         log: &'a mut dyn FnMut(String),
+        live: Option<&'a TakeLive>,
     ) -> Self {
         Self {
             session,
@@ -108,6 +112,8 @@ impl<'a> Driver<'a> {
             inputs: 0,
             dones: 0,
             at_prompt: false,
+            live,
+            last_live: None,
             clipboard: String::new(),
             pointer: None,
         }
@@ -140,6 +146,23 @@ impl<'a> Driver<'a> {
         if let Ok(cursor) = cursor {
             self.rec.caret(chunk.at, cursor.x, cursor.y);
         }
+        self.live_frame(false);
+    }
+
+    pub fn live_frame(&mut self, now: bool) {
+        let Some(live) = self.live else {
+            return;
+        };
+        let at = self.now();
+        if !now
+            && self
+                .last_live
+                .is_some_and(|last| at.saturating_sub(last) < live.gap())
+        {
+            return;
+        }
+        self.last_live = Some(at);
+        live.frame(&mut self.session.terminal());
     }
 
     fn pump(&mut self, wait: Duration) {

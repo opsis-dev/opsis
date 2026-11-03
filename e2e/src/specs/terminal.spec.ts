@@ -1,9 +1,9 @@
-import { existsSync, readFileSync, rmSync, statSync } from "node:fs";
+import { copyFileSync, existsSync, readFileSync, rmSync, statSync } from "node:fs";
 import path from "node:path";
 import { $, browser, expect } from "@wdio/globals";
 import { api, runEvents } from "../support/api";
 import { engineReady } from "../support/engine";
-import { PROJECTS } from "../support/paths";
+import { PROJECTS, ROOT, RUN_DIR } from "../support/paths";
 
 const RUN_MS = 600_000;
 const WINDOW_MS = 60_000;
@@ -38,7 +38,7 @@ async function typeIntoTheTerminalWindow(main: string, text: string): Promise<vo
   const window = (await browser.getWindowHandles()).find((h) => h !== main);
   if (!window) throw new Error("no terminal window");
   await browser.switchToWindow(window);
-  await $('svg[aria-label="Terminal"]').waitForExist({ timeout: WINDOW_MS });
+  await $('[aria-label="Terminal"]').waitForExist({ timeout: WINDOW_MS });
   await browser.waitUntil(
     () => browser.execute(() => document.body.textContent?.includes("opsis") ?? false),
     { timeout: WINDOW_MS },
@@ -87,6 +87,42 @@ describe("terminal takes", function () {
     expect(statSync(path.join(dir, film.path)).size).toBeGreaterThan(0);
   });
 
+  it("plays a terminal take in Replay and lists the themes with their colours", async () => {
+    await browser.execute(() => {
+      const page = window as unknown as {
+        __TAURI_INTERNALS__: { invoke: (cmd: string, args: unknown) => Promise<unknown> };
+      };
+      void page.__TAURI_INTERNALS__.invoke("show_replay", { nodeId: "rec", tab: "replay" });
+    });
+    await $('[role="dialog"] [aria-label="Terminal"]').waitForExist({ timeout: WINDOW_MS });
+    await $('[role="dialog"] button[aria-label="Play"]').click();
+    await browser.waitUntil(
+      () =>
+        browser.execute(
+          () =>
+            document
+              .querySelector('[role="dialog"] [aria-label="Terminal"]')
+              ?.textContent?.includes("Opsis records real terminals") ?? false,
+        ),
+      { timeout: WINDOW_MS, timeoutMsg: "the terminal player never played the take" },
+    );
+    await browser.saveScreenshot(path.join(RUN_DIR, "terminal-replay.png"));
+    await browser.keys("Escape");
+    await $("button:has(svg.lucide-maximize)").click();
+    await $('[data-id="look"]').waitForExist({ timeout: WINDOW_MS });
+    await browser.execute(() => document.querySelector<HTMLElement>('[data-id="look"]')?.click());
+    const theme = await $("button*=Catppuccin Mocha");
+    await theme.waitForExist({ timeout: WINDOW_MS });
+    expect(await theme.getText()).toContain("Catppuccin Mocha");
+    await theme.click();
+    await browser.waitUntil(
+      () =>
+        browser.execute(() => document.querySelectorAll('[data-slot="command-item"]').length > 300),
+      { timeout: WINDOW_MS, timeoutMsg: "the theme list never opened" },
+    );
+    await browser.keys("Escape");
+  });
+
   it("records a tape live in its own window, then plays it into a film", async () => {
     const dir = path.join(PROJECTS, "terminal");
     const tape = path.join(dir, "live.tape");
@@ -124,6 +160,35 @@ describe("terminal takes", function () {
     } finally {
       for (const node of nodes) await api("DELETE", `/project/nodes/${node.id}`);
       rmSync(tape, { force: true });
+    }
+  });
+  it("imports a cast file as a take and exports its film", async () => {
+    const dir = path.join(PROJECTS, "terminal");
+    const cast = path.join(dir, "imported.cast");
+    copyFileSync(path.join(ROOT, "crates/terminal/tests/casts/demo.cast"), cast);
+    const nodes = [
+      { type: "terminal.castFile", id: "cast", params: { file: "project:imported.cast" } },
+      { type: "camera.take", id: "castTake" },
+      { type: "output.render", id: "castFilm", params: { fileName: "cast film" } },
+    ];
+    for (const node of nodes) expect((await api("POST", "/project/nodes", node)).status).toBe(200);
+    for (const [source, sourceHandle, target, targetHandle] of [
+      ["cast", "recording", "castTake", "recording"],
+      ["castTake", "clip", "castFilm", "clip"],
+    ])
+      expect(
+        (await api("POST", "/project/edges", { source, sourceHandle, target, targetHandle }))
+          .status,
+      ).toBe(200);
+    try {
+      const played = await runUntilDone({ targetNodeIds: ["castFilm"] });
+      expect(played.done).toMatchObject({ ok: true, cancelled: false });
+      const film = played.artifacts.find((a) => a.path.endsWith("cast-film.mp4"));
+      if (!film) throw new Error(`missing artifacts: ${JSON.stringify(played.artifacts)}`);
+      expect(statSync(path.join(dir, film.path)).size).toBeGreaterThan(0);
+    } finally {
+      for (const node of nodes) await api("DELETE", `/project/nodes/${node.id}`);
+      rmSync(cast, { force: true });
     }
   });
 });

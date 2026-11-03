@@ -1,5 +1,5 @@
 import type { FieldMeta } from "@/editor/form/schema";
-import type { MediaKind, PortChoice, TakeKind } from "@/generated/bindings";
+import type { MediaKind, PortChoice, TakeKind, TerminalTheme } from "@/generated/bindings";
 import type { VarInfo } from "../var-text";
 
 export type SpotBackground = {
@@ -7,6 +7,7 @@ export type SpotBackground = {
   timeMs: number;
   durationMs: number;
   still?: boolean;
+  terminal?: TerminalTheme | null;
 } | null;
 
 export type FormContext = {

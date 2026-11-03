@@ -4,6 +4,7 @@ use opsis_types::fonts::FontFamilyDef;
 use opsis_types::looks::NodeLook;
 use opsis_types::mix::{MixerBook, mixer_book};
 use opsis_types::settings::{SettingsBook, settings_book};
+use opsis_types::terminal::TerminalTheme;
 use opsis_types::timeline::Ease;
 use opsis_types::workflow::{PortType, Theme, Workflow};
 use serde::Serialize;
@@ -246,6 +247,7 @@ pub struct EditorCatalog {
     pub timeline: TimelineBook,
     pub sounds: Vec<SoundChoice>,
     pub music: Vec<SoundChoice>,
+    pub terminal_themes: Vec<TerminalTheme>,
 }
 
 #[derive(Debug, Clone, Serialize, specta::Type)]
@@ -339,6 +341,10 @@ pub fn editor_bundle(platform: Platform) -> EditorCatalog {
                 hint: None,
                 duration_ms: s.duration_ms,
             })
+            .collect(),
+        terminal_themes: crate::terminal::theme_names()
+            .iter()
+            .filter_map(|name| crate::terminal::theme_named(name))
             .collect(),
         music: builtin_songs()
             .iter()

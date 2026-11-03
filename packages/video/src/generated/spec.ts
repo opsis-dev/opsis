@@ -1104,7 +1104,7 @@ export type Entrance = "rise" | "fade" | "blur" | "scale" | "none";
 
 export type FadeCurve = "tri" | "qsin" | "exp" | "log";
 
-export type FieldWidget = "action" | "asset" | "backdrop" | "boxes" | "camera" | "code" | "color" | "cut" | "datetime" | "envelope" | "font" | "gradient" | "keys" | "loudness" | "marker" | "marks" | "multiselect" | "music" | "offsets" | "port" | "quality" | "sound" | "spot" | "target" | "textarea" | "theme" | "timezone" | "transition" | "variable";
+export type FieldWidget = "action" | "asset" | "backdrop" | "boxes" | "camera" | "code" | "color" | "cut" | "datetime" | "envelope" | "font" | "gradient" | "keys" | "loudness" | "marker" | "marks" | "multiselect" | "music" | "offsets" | "port" | "quality" | "sound" | "spot" | "target" | "terminal-theme" | "textarea" | "theme" | "timezone" | "transition" | "variable";
 
 export type FileTreeReveal = {
 	nodes: string[],

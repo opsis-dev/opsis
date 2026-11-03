@@ -48,6 +48,7 @@ fn take(steps: Vec<TerminalStep>) -> Take {
         keep_after_ms: 200,
         cancelled: &|| false,
         log: &mut log,
+        live: None,
     })
     .unwrap()
 }

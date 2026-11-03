@@ -769,6 +769,22 @@
    }
   },
   {
+   "type": "terminal.castFile",
+   "title": "Cast file",
+   "category": "Terminal",
+   "description": "Uses a terminal session recorded earlier and saved as a cast file as a take.",
+   "runs": true,
+   "inputs": {},
+   "outputs": {
+    "recording": {
+     "type": "recording",
+     "label": "Recording",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "terminal.playTape",
    "title": "Play tape",
    "category": "Terminal",
@@ -9089,8 +9105,9 @@
       "description": "Theme",
       "type": "string",
       "default": "",
+      "x-widget": "terminal-theme",
       "x-zero-label": "The take's own",
-      "x-help": "A theme's name, such as Dracula or Catppuccin Mocha."
+      "x-help": "The colours of the terminal: its background, text and the sixteen colours programs use."
      },
      "fontSize": {
       "description": "Font size",
@@ -9163,6 +9180,60 @@
      "padding": 24,
      "cursor": "program",
      "cursorBlink": true
+    }
+   }
+  },
+  {
+   "type": "terminal.castFile",
+   "title": "Cast file",
+   "category": "Terminal",
+   "description": "Uses a terminal session recorded earlier and saved as a cast file as a take.",
+   "runs": true,
+   "inputs": {},
+   "outputs": {
+    "recording": {
+     "type": "recording",
+     "label": "Recording",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "file": {
+      "description": "Cast file",
+      "type": "string",
+      "default": "",
+      "x-widget": "asset",
+      "x-accept": ".cast,.json",
+      "x-help": "A recorded terminal session saved as a cast file.",
+      "x-check": [
+       {
+        "rule": "not-blank",
+        "message": "Choose a cast file"
+       },
+       {
+        "rule": "in-project",
+        "message": "Choose a file inside the project folder"
+       }
+      ]
+     },
+     "pauseLimitMs": {
+      "description": "Shorten pauses over",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 100,
+      "maximum": 60000,
+      "x-step": 100,
+      "x-unit": "ms",
+      "x-zero-label": "The file's own limit",
+      "x-help": "Pauses longer than this are cut down to it."
+     }
+    },
+    "type": "object",
+    "default": {
+     "file": ""
     }
    }
   },

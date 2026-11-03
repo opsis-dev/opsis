@@ -7,7 +7,7 @@ import { packedChannel } from "./tauri";
 import { cellAt, TerminalPicture } from "./terminal-picture";
 
 const LOOK: ViewLook = {
-  fontSize: 18,
+  fontSize: 20,
   lineHeight: 1.2,
   letterSpacing: 0,
   padding: 16,
@@ -50,7 +50,7 @@ export function TerminalWindow({ id }: { id: string }) {
     if (input) void commands.terminalInput(id, input);
   }
   const frame = frames?.frames[0];
-  function pointer(e: PointerEvent<SVGSVGElement>) {
+  function pointer(e: PointerEvent<HTMLDivElement>) {
     if (!frame) return;
     if (e.type === "pointerdown") {
       e.currentTarget.setPointerCapture(e.pointerId);

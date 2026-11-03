@@ -1,5 +1,6 @@
 import type { TerminalFrame, TerminalFrames } from "@opsis/video/terminal/frames";
 import {
+  type CellBox,
   frameText,
   type Measure,
   measurer,
@@ -52,6 +53,20 @@ export function cellAt(
   };
 }
 
+function useBoxSize(): [(element: HTMLDivElement | null) => void, CellBox | null] {
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
+  const [box, setBox] = useState<CellBox | null>(null);
+  useEffect(() => {
+    if (!element) return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) setBox({ width: entry.contentRect.width, height: entry.contentRect.height });
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [element]);
+  return [setElement, box];
+}
+
 export function TerminalPicture({
   frames,
   frame,
@@ -64,33 +79,41 @@ export function TerminalPicture({
   frame: TerminalFrame;
   look: ViewLook;
   cursorOn: boolean;
-  onPointer?: (e: PointerEvent<SVGSVGElement>) => void;
-  onWheel?: (e: WheelEvent<SVGSVGElement>) => void;
+  onPointer?: (e: PointerEvent<HTMLDivElement>) => void;
+  onWheel?: (e: WheelEvent<HTMLDivElement>) => void;
 }) {
   const measure = useMeasure(frameText(frames, frame), look.fontSize);
   const size = screenSize(look, frame.cols, frame.rows);
+  const [ref, box] = useBoxSize();
+  const scale = box ? Math.min(box.width / size.width, box.height / size.height) : 0;
+  const left = box ? (box.width - size.width * scale) / 2 : 0;
+  const top = box ? (box.height - size.height * scale) / 2 : 0;
   return (
-    <svg
-      className="absolute inset-0 size-full"
-      viewBox={`0 0 ${size.width} ${size.height}`}
-      preserveAspectRatio="xMidYMid meet"
+    <div
+      ref={ref}
       role="img"
       aria-label="Terminal"
+      className="absolute inset-0 overflow-hidden"
       onPointerDown={onPointer}
       onPointerUp={onPointer}
       onPointerMove={onPointer}
       onWheel={onWheel}
       onContextMenu={(e) => e.preventDefault()}
     >
-      <foreignObject x={0} y={0} width={size.width} height={size.height}>
-        <TerminalView
-          frames={frames}
-          frame={frame}
-          look={look}
-          cursorOn={cursorOn}
-          measure={measure}
-        />
-      </foreignObject>
-    </svg>
+      {scale > 0 ? (
+        <div
+          className="absolute top-0 left-0 origin-top-left"
+          style={{ transform: `translate(${left}px, ${top}px) scale(${scale})` }}
+        >
+          <TerminalView
+            frames={frames}
+            frame={frame}
+            look={look}
+            cursorOn={cursorOn}
+            measure={measure}
+          />
+        </div>
+      ) : null}
+    </div>
   );
 }

@@ -3,7 +3,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
 use opsis_capture::executors::{CaptureDeps, capture_executors};
-use opsis_capture::live::{LiveFeed, LiveMessage};
+use opsis_capture::live::{LiveFeed, LiveMessage, LiveNote, LiveTerminal};
 use opsis_engine::temp::{ChildKind, child_temp_name, make_child_temp, remove_child_temp};
 use opsis_image::executors::image_executors;
 use opsis_media::executors::media_executors;
@@ -16,6 +16,7 @@ use opsis_runner::progress::{
 use opsis_runner::runner::{RunDeps, run_workflow as run_runner};
 use opsis_stream::sign_in::StreamLogin;
 use opsis_types::events::{RunEvent, RunRequest, RunState, RunTargets, RunView};
+use opsis_types::live::LiveEvent;
 use opsis_types::values::LastRun;
 use serde::{Deserialize, Serialize};
 use specta::Type;
@@ -146,10 +147,34 @@ struct LiveHeader<'a> {
     width: f64,
     height: f64,
     t: f64,
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    terminal: bool,
 }
 
 struct AppLive {
     app: AppHandle,
+}
+
+impl opsis_terminal::live_feed::LiveFeed for AppLive {
+    fn frame(&self, capture_id: &str, node_id: &str, frames: Vec<u8>, size: (u16, u16), t: f64) {
+        self.send(LiveMessage::Terminal(LiveTerminal {
+            capture_id: capture_id.to_owned(),
+            node_id: node_id.to_owned(),
+            frames,
+            cols: size.0,
+            rows: size.1,
+            t,
+        }));
+    }
+
+    fn event(&self, capture_id: &str, node_id: &str, event: LiveEvent, t: f64) {
+        self.send(LiveMessage::Event(LiveNote {
+            capture_id: capture_id.to_owned(),
+            node_id: node_id.to_owned(),
+            t,
+            event,
+        }));
+    }
 }
 
 impl LiveFeed for AppLive {
@@ -163,11 +188,27 @@ impl LiveFeed for AppLive {
                     width: frame.width,
                     height: frame.height,
                     t: frame.t,
+                    terminal: false,
                 };
                 host.live
                     .lock()
                     .expect("live channels")
                     .retain(|_, channel| send(channel, &header, &frame.jpeg));
+            }
+            LiveMessage::Terminal(frame) => {
+                let host = self.app.state::<RunHost>();
+                let header = LiveHeader {
+                    capture_id: &frame.capture_id,
+                    node_id: &frame.node_id,
+                    width: f64::from(frame.cols),
+                    height: f64::from(frame.rows),
+                    t: frame.t,
+                    terminal: true,
+                };
+                host.live
+                    .lock()
+                    .expect("live channels")
+                    .retain(|_, channel| send(channel, &header, &frame.frames));
             }
             LiveMessage::Event(note) => {
                 let noted = LiveNoted {
@@ -219,9 +260,10 @@ pub fn executors(app: &AppHandle) -> Executors {
         output_executors(&engine),
         capture_executors(&capture),
         opsis_terminal::executors::terminal_executors(&opsis_terminal::executors::TerminalDeps {
-            live: Some(Arc::new(crate::terminal_live::AppLiveTapes {
+            live_tapes: Some(Arc::new(crate::terminal_live::AppLiveTapes {
                 app: app.clone(),
             })),
+            live_frames: Some(Arc::new(AppLive { app: app.clone() })),
         }),
     ];
     for list in lists {

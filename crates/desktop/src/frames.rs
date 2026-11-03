@@ -37,3 +37,17 @@ pub fn send(channel: &FrameChannel, header: &impl Serialize, jpeg: &[u8]) -> boo
         None => false,
     }
 }
+
+pub struct Bytes(pub Vec<u8>);
+
+impl IpcResponse for Bytes {
+    fn body(self) -> tauri::Result<InvokeResponseBody> {
+        Ok(InvokeResponseBody::Raw(self.0))
+    }
+}
+
+impl Type for Bytes {
+    fn definition(_: &mut specta::Types) -> DataType {
+        DataType::Reference(specta_typescript::define("ArrayBuffer"))
+    }
+}

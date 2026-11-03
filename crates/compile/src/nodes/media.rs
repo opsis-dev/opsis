@@ -264,7 +264,8 @@ fn file_measured(result: Option<&NodeResult>) -> Option<(u64, Option<f64>)> {
         Measured::NoiseLevel { .. }
         | Measured::Changes { .. }
         | Measured::Fitted { .. }
-        | Measured::Tape { .. } => None,
+        | Measured::Tape { .. }
+        | Measured::Cast { .. } => None,
     })
 }
 
@@ -1231,7 +1232,8 @@ fn fitted_row(result: Option<&NodeResult>) -> Option<CardRow> {
         Measured::NoiseLevel { .. }
         | Measured::File { .. }
         | Measured::Changes { .. }
-        | Measured::Tape { .. } => None,
+        | Measured::Tape { .. }
+        | Measured::Cast { .. } => None,
     })
 }
 
@@ -1334,7 +1336,8 @@ fn noise_level_row(result: Option<&NodeResult>) -> Option<CardRow> {
         Measured::File { .. }
         | Measured::Changes { .. }
         | Measured::Fitted { .. }
-        | Measured::Tape { .. } => None,
+        | Measured::Tape { .. }
+        | Measured::Cast { .. } => None,
     })
 }
 

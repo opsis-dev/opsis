@@ -3,11 +3,13 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use opsis_engine::files::write_json;
 use opsis_types::actions::{Action, ActionLog, CaretSample, CursorSample, TitleChange, Viewport};
+use opsis_types::live::LiveStepStatus;
 use opsis_types::numbers::millis;
 use opsis_types::terminal::{EnvVar, TerminalAction, TerminalSessionValue};
 
 use crate::cast::{Event, Header, write_v3};
 use crate::driver::{Driver, DriverError};
+use crate::live_feed::TakeLive;
 use crate::session::{Session, SessionError};
 use crate::shell::{ShellError, require, shell_command};
 use crate::timeline::{END, Timeline};
@@ -41,6 +43,7 @@ pub struct TakeOptions<'a> {
     pub keep_after_ms: u32,
     pub cancelled: &'a dyn Fn() -> bool,
     pub log: &'a mut dyn FnMut(String),
+    pub live: Option<&'a TakeLive>,
 }
 
 impl std::fmt::Debug for TakeOptions<'_> {
@@ -103,12 +106,32 @@ pub fn record_take(options: &mut TakeOptions<'_>) -> Result<Take, TakeError> {
     let cwd = folder(options.project_dir, &value.folder)?;
     let command = shell_command(value.shell, &cwd, options.temp, &environment(value))?;
     let session = Session::start(&command, value.cols, value.rows)?;
-    let mut driver = Driver::new(session, value, options.cancelled, &mut *options.log);
+    if let Some(live) = options.live {
+        live.start(value.cols, value.rows, &value.steps);
+    }
+    let mut driver = Driver::new(
+        session,
+        value,
+        options.cancelled,
+        &mut *options.log,
+        options.live,
+    );
     driver.wait_first_prompt()?;
     driver.sleep(Duration::from_millis(u64::from(options.pause_before_ms)))?;
     for step in &value.steps {
-        driver.play(step)?;
+        if let Some(live) = options.live {
+            live.step(step, LiveStepStatus::Running, None);
+        }
+        let played = driver.play(step);
+        if let Some(live) = options.live {
+            match &played {
+                Ok(()) => live.step(step, LiveStepStatus::Done, None),
+                Err(error) => live.step(step, LiveStepStatus::Error, Some(error.to_string())),
+            }
+        }
+        played?;
     }
+    driver.live_frame(true);
     driver.wait_last()?;
     driver.sleep(Duration::from_millis(u64::from(options.keep_after_ms)))?;
     driver.mark_end(END);
