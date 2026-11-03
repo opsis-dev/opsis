@@ -71,10 +71,13 @@ opsis-render = { path = "crates/render" }
 opsis-runner = { path = "crates/runner" }
 opsis-store = { path = "crates/store" }
 opsis-stream = { path = "crates/stream" }
+opsis-terminal = { path = "crates/terminal" }
 opsis-traces = { path = "crates/traces" }
 opsis-types = { path = "crates/types" }
+opsis-vt = { path = "crates/vt" }
 path-clean = "1"
 percent-encoding = "2"
+portable-pty = "0.9"
 pretty_assertions = "1"
 proc-macro2 = "1"
 proptest = "1"

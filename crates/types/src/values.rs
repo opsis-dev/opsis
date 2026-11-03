@@ -4,6 +4,7 @@ use serde_json::{Map, Value};
 use specta::Type;
 
 use crate::actions::{ActionLog, Bounds, Viewport};
+use crate::terminal::TerminalTheme;
 use crate::timeline::{AudioItem, TimelineTrack};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
@@ -101,16 +102,6 @@ pub struct TerminalSource {
     pub rows: u16,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub theme: Option<Box<TerminalTheme>>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct TerminalTheme {
-    pub name: String,
-    pub fg: String,
-    pub bg: String,
-    pub cursor: String,
-    pub palette: [String; 16],
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]

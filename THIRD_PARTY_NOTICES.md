@@ -818,6 +818,38 @@ SOFTWARE.
 
 Its build compiles in uucode (https://github.com/jacobsandlund/uucode, MIT, with tables from the Unicode Character Database under the Unicode License and Bjoern Hoehrmann's UTF-8 decoder under MIT), simdutf (https://github.com/simdutf/simdutf, Apache License, Version 2.0, or MIT), Highway (https://github.com/google/highway, Apache License, Version 2.0, or BSD 3-Clause) and Wuffs (https://github.com/google/wuffs, Apache License, Version 2.0, and MIT).
 
+## asciinema's cast files — crates/terminal/src/cast, crates/terminal/tests/casts
+
+The reader and writer of cast files (asciicast v1, v2 and v3) are asciinema 3.2.0's `asciicast` module, its time quantizer and its UTF-8 decoder, adapted for Opsis, and the sample casts its tests use (https://github.com/asciinema/asciinema). Copyright Marcin Kulik and asciinema contributors, licensed under the GNU General Public License, version 3 or later, the same licence as Opsis; its full text is in `LICENSE`.
+
+## Pseudo-terminals — the portable-pty crate
+
+Runs the shell of a terminal take in a pseudo-terminal (the system ConPTY on Windows), in `crates/terminal`. https://github.com/wezterm/wezterm/tree/main/pty, from WezTerm. Licensed under the MIT License:
+
+```
+MIT License
+
+Copyright (c) 2018 Wez Furlong
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ## Built-in sound effects — public/sfx
 
 Public domain (Creative Commons 0, https://creativecommons.org/publicdomain/zero/1.0/). No attribution is required; credits are kept here. Each licence was read on the sound's own page or in its pack's licence file on 2026-10-31; each file was converted to 16-bit WAV at 44.1 kHz with the silence at its ends cut, and the camera shutter keeps the first of the recording's two shots.

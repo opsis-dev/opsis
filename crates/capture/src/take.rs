@@ -1449,6 +1449,8 @@ impl<'e> TakeRun<'e> {
             actions: std::mem::take(&mut self.actions),
             cursor_track,
             addresses: self.lifecycle.addresses_since(t0),
+            caret_track: Vec::new(),
+            titles: Vec::new(),
         };
         self.session.close().await;
         Stopped {

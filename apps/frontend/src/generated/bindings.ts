@@ -141,6 +141,8 @@ export type ActionLog = {
 	actions: Action[],
 	cursorTrack?: CursorSample[],
 	addresses?: PageAddress[],
+	caretTrack?: CaretSample[],
+	titles?: TitleChange[],
 };
 
 export type ActionMark = {
@@ -484,6 +486,12 @@ export type CardRow = {
 	title?: string,
 	tone?: Tone,
 	swatches?: string[],
+};
+
+export type CaretSample = {
+	t: number,
+	col: number,
+	row: number,
 };
 
 export type CatalogCategory = "sans-serif" | "serif" | "monospace" | "display" | "handwriting" | "icons" | "other";
@@ -1880,6 +1888,11 @@ export type TimelineTrack = {
 	id: string,
 	items: TimelineItem[],
 	layer?: boolean,
+};
+
+export type TitleChange = {
+	t: number,
+	title: string,
 };
 
 export type Tone = "muted" | "warn";

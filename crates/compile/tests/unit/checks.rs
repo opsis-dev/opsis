@@ -132,6 +132,8 @@ fn recording_props() -> Value {
         actions: Vec::new(),
         cursor_track: None,
         addresses: Vec::new(),
+        caret_track: Vec::new(),
+        titles: Vec::new(),
     };
     serde_json::to_value(default_recording_props(
         "project:take.mp4".into(),

@@ -16,6 +16,7 @@ export const IGNORED_PATHS = [
   "target/**",
   ".sqlx/**",
   "fixtures/**",
+  "crates/terminal/tests/casts/**",
   "examples/**",
   "crates/compile/src/fonts/bundled.generated.json",
   "crates/engine/src/downloads.generated.json",

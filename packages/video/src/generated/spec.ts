@@ -8,6 +8,8 @@ export type ActionLog = {
 	actions: Action[],
 	cursorTrack?: CursorSample[],
 	addresses?: PageAddress[],
+	caretTrack?: CaretSample[],
+	titles?: TitleChange[],
 };
 
 export type Action = {
@@ -431,6 +433,12 @@ export type Card3d = {
 	motionAmount: number,
 	reverse: boolean,
 	lens: number,
+};
+
+export type CaretSample = {
+	t: number,
+	col: number,
+	row: number,
 };
 
 export type ChangeKind = "added" | "fixed" | "changed" | "removed";
@@ -3089,6 +3097,11 @@ export type TimelineTrack = {
 };
 
 export type TitleAlign = "center" | "left";
+
+export type TitleChange = {
+	t: number,
+	title: string,
+};
 
 export type Title = {
 	eyebrow: string,

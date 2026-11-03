@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+printf '\e[1m╭──────────┬────────┬─────────╮\e[0m\n'
+printf '│ \e[1mService\e[0m  │ \e[1mStatus\e[0m │ \e[1mLatency\e[0m │\n'
+printf '├──────────┼────────┼─────────┤\n'
+printf '│ api      │ \e[32m✔ up\e[0m   │ \e[38;2;255;170;0m  42 ms\e[0m │\n'
+printf '│ worker   │ \e[31m✗ down\e[0m │ \e[2m      –\e[0m │\n'
+printf '│ cache    │ \e[7m idle \e[0m │ \e[4m   3 ms\e[0m │\n'
+printf '╰──────────┴────────┴─────────╯\n'
+printf '\e[48;5;24m\e[97m  main \e[0m\e[38;5;24m\e[0m \e[3mitalic\e[0m \e[9mstrike\e[0m ▀▄▌▐▖▗▘▝ ▁▂▃▄▅▆▇█  \n'
+printf '\e[1;37m━━━ heavy ┃ ═══ double ║ ╔═╗ ╚═╝ ┏━┓ ┗━┛\e[0m\n'

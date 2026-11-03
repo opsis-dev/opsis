@@ -1,0 +1,28 @@
+[package]
+name = "opsis-terminal"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+log.workspace = true
+opsis-compile.workspace = true
+opsis-engine.workspace = true
+opsis-types.workspace = true
+opsis-vt.workspace = true
+portable-pty.workspace = true
+regex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+opsis-golden.workspace = true
+pretty_assertions.workspace = true
+proptest.workspace = true
+tempfile.workspace = true

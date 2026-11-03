@@ -224,6 +224,23 @@ pub struct ActionLog {
     pub cursor_track: Option<Vec<CursorSample>>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub addresses: Vec<PageAddress>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub caret_track: Vec<CaretSample>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub titles: Vec<TitleChange>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+pub struct CaretSample {
+    pub t: f64,
+    pub col: u16,
+    pub row: u16,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+pub struct TitleChange {
+    pub t: f64,
+    pub title: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
