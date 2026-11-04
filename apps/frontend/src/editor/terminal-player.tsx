@@ -97,6 +97,7 @@ function useClock(length: number) {
         return;
       }
       setTime(next);
+      // oxlint-disable-next-line react/immutability
       frame = requestAnimationFrame(tick);
     }
     frame = requestAnimationFrame(tick);

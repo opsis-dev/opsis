@@ -145,6 +145,7 @@ function useGradientView(
       if (live) setShown({ css: value, view });
     });
     return () => {
+      // oxlint-disable-next-line react/immutability
       live = false;
     };
   }, [value]);
