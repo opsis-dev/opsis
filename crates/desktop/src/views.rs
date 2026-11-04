@@ -13,7 +13,7 @@ use tauri_plugin_dialog::DialogExt;
 use tauri_specta::Event;
 use tokio_util::sync::CancellationToken;
 
-use crate::engine::engine_files;
+use crate::engine::checked_engine_files;
 use crate::error::{CommandError, CommandResult};
 use crate::frames::{FrameChannel, send};
 use crate::state::AppState;
@@ -146,9 +146,10 @@ impl ViewHost for AppViewHost {
     }
 }
 
-fn view_env(state: &AppState) -> CommandResult<ViewEnv> {
+async fn view_env(state: &AppState) -> CommandResult<ViewEnv> {
+    let engine = checked_engine_files(state, &CancellationToken::new()).await;
     Ok(ViewEnv {
-        executable: engine_files(state).browser()?.to_path_buf(),
+        executable: engine.browser()?.to_path_buf(),
         temp_dir: state.paths.views_temp.clone(),
     })
 }
@@ -160,7 +161,7 @@ pub async fn pick_element(
     state: State<'_, AppState>,
     request: PickRequest,
 ) -> CommandResult<Option<PickResult>> {
-    let env = view_env(&state)?;
+    let env = view_env(&state).await?;
     let host = AppViewHost { app: app.clone() };
     Ok(pick(&env, &host, &request, &CancellationToken::new()).await?)
 }

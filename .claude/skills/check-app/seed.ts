@@ -11,6 +11,7 @@ import {
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { type CheckedBrowser, checkedBrowser } from "../../../scripts/lib/browser-stamp";
 
 const ROOT = path.resolve(import.meta.dirname, "..", "..", "..");
 const CHECK_DIR = path.join(os.homedir(), ".cache", "opsis-check");
@@ -33,9 +34,9 @@ function browserIn(engine: string): string | null {
   return shells.find((file) => existsSync(file)) ?? null;
 }
 
-function engineSettings(engine: string): Record<string, { path: string } | null> {
+function engineSettings(engine: string): Record<string, CheckedBrowser | null> {
   const browser = browserIn(engine);
-  return { browser: browser ? { path: browser } : null };
+  return { browser: browser ? checkedBrowser(browser) : null };
 }
 
 function seedDatabase(settings: Record<string, unknown>): void {

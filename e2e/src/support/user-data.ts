@@ -10,6 +10,7 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { type CheckedBrowser, checkedBrowser } from "../../../scripts/lib/browser-stamp";
 import { DEV_ENGINE, PROJECTS, ROOT, RUN_DIR, USER_DATA } from "./paths";
 
 const SCHEMA = path.join(ROOT, "crates", "store", "schema.sql");
@@ -46,9 +47,9 @@ function downloadedBrowser(engine: string): string | null {
   return shells.find((file) => existsSync(file)) ?? null;
 }
 
-function engineSettings(engine: string): Record<string, { path: string } | null> {
+function engineSettings(engine: string): Record<string, CheckedBrowser | null> {
   const browser = downloadedBrowser(engine);
-  return { browser: browser ? { path: browser } : null };
+  return { browser: browser ? checkedBrowser(browser) : null };
 }
 
 export function freshRun(): void {

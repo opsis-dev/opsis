@@ -15,7 +15,7 @@ use opsis_runner::progress::{
 };
 use opsis_runner::runner::{RunDeps, run_workflow as run_runner};
 use opsis_stream::sign_in::StreamLogin;
-use opsis_types::events::{RunEvent, RunRequest, RunState, RunTargets, RunView};
+use opsis_types::events::{LogLevel, RunEvent, RunRequest, RunState, RunTargets, RunView};
 use opsis_types::live::LiveEvent;
 use opsis_types::values::LastRun;
 use serde::{Deserialize, Serialize};
@@ -411,10 +411,24 @@ pub async fn start(app: &AppHandle, targets: RunTargets) -> Result<StartedRun, S
         &child_temp_name(ChildKind::Run, &run_id, std::process::id()),
     )
     .map_err(|e| StartError::Failed(e.to_string()))?;
+    if crate::engine::engine_checking(&state) {
+        on_event(
+            app,
+            &run_id,
+            RunEvent::NodeLog {
+                run_id: run_id.clone(),
+                node_id: None,
+                level: LogLevel::Info,
+                message: "Waiting for the recording browser's check to finish.".to_owned(),
+                at: now_ms(),
+            },
+        );
+    }
+    let engine = crate::engine::checked_engine_files(&state, &cancel).await;
     let settings = state.settings();
     let env = Arc::new(RunEnv {
         app_version: app.package_info().version.to_string(),
-        engine: engine_files(&state),
+        engine,
         public_dir: state.paths.public_dir.clone(),
         temp_dir: temp_dir.clone(),
         settings,

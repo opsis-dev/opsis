@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use opsis_capture::browser::check_browser;
 use opsis_engine::install::install_engine as download_engine;
-use opsis_engine::paths::{download_dir, engine_paths, find_headless_shell};
+use opsis_engine::paths::{EngineMissing, download_dir, engine_paths, find_headless_shell};
 use opsis_engine::tools::{
     EngineFiles, ToolProblem, browser_warning, file_sha256, file_stamp, same_stamp, shown,
 };
@@ -63,10 +63,43 @@ pub fn engine_status(state: &AppState) -> EngineStatus {
     }
 }
 
+fn unusable(checks: &EngineChecks, saved: Option<&CheckedTool>) -> Option<EngineMissing> {
+    if saved.is_none() {
+        return Some(EngineMissing::NotSetUp);
+    }
+    if checks.checking {
+        return Some(EngineMissing::Checking);
+    }
+    checks.problem.clone().map(EngineMissing::Failed)
+}
+
 pub fn engine_files(state: &AppState) -> EngineFiles {
     let engine = saved_engine(state);
-    let usable = browser_status(&state.engine_checks(), engine.browser.as_ref()).ready();
-    EngineFiles::from_checked(&engine, usable)
+    let unusable = unusable(&state.engine_checks(), engine.browser.as_ref());
+    EngineFiles::from_checked(&engine, unusable)
+}
+
+async fn wait_for_check(
+    mut checking: tokio::sync::watch::Receiver<bool>,
+    cancel: &CancellationToken,
+) {
+    tokio::select! {
+        waited = checking.wait_for(|busy| !*busy) => {
+            if waited.is_err() {
+                log::warn!("the engine check's channel closed");
+            }
+        }
+        () = cancel.cancelled() => {}
+    }
+}
+
+pub async fn checked_engine_files(state: &AppState, cancel: &CancellationToken) -> EngineFiles {
+    wait_for_check(state.engine_checking.subscribe(), cancel).await;
+    engine_files(state)
+}
+
+pub fn engine_checking(state: &AppState) -> bool {
+    *state.engine_checking.borrow()
 }
 
 pub fn engine_tools(state: &AppState) -> Tools {
@@ -92,9 +125,12 @@ async fn save(app: &AppHandle, checked: Option<CheckedTool>) -> CommandResult<()
 
 fn set_check(app: &AppHandle, checking: bool, problem: Option<String>) {
     let state = app.state::<AppState>();
-    let mut checks = state.engine_checks();
-    checks.checking = checking;
-    checks.problem = problem;
+    {
+        let mut checks = state.engine_checks();
+        checks.checking = checking;
+        checks.problem = problem;
+    }
+    state.engine_checking.send_replace(checking);
 }
 
 async fn hash_of(path: &Path) -> std::io::Result<String> {
@@ -104,9 +140,16 @@ async fn hash_of(path: &Path) -> std::io::Result<String> {
         .map_err(std::io::Error::other)?
 }
 
-async fn hashed(path: &Path, version: String) -> Result<CheckedTool, ToolProblem> {
+async fn hashed(
+    path: &Path,
+    version: String,
+    known: Option<String>,
+) -> Result<CheckedTool, ToolProblem> {
     let failed = |e: std::io::Error| ToolProblem::Failed(e.to_string());
-    let sha256 = hash_of(path).await.map_err(failed)?;
+    let sha256 = match known {
+        Some(sha256) => sha256,
+        None => hash_of(path).await.map_err(failed)?,
+    };
     let stamp = file_stamp(path).map_err(failed)?;
     Ok(CheckedTool {
         path: shown(path),
@@ -117,13 +160,17 @@ async fn hashed(path: &Path, version: String) -> Result<CheckedTool, ToolProblem
     })
 }
 
-async fn check_and_save(app: &AppHandle, path: &Path) -> Result<(), ToolProblem> {
+async fn check_and_save(
+    app: &AppHandle,
+    path: &Path,
+    known: Option<String>,
+) -> Result<(), ToolProblem> {
     let previous = app.state::<AppState>().engine_checks().problem.clone();
     set_check(app, true, previous.clone());
     send_status(app);
     let temp = app.state::<AppState>().paths.views_temp.clone();
     let checked = match check_browser(path, &temp).await {
-        Ok(version) => hashed(path, version).await,
+        Ok(version) => hashed(path, version, known).await,
         Err(problem) => Err(problem),
     };
     let result = match checked {
@@ -144,8 +191,9 @@ async fn check_and_save(app: &AppHandle, path: &Path) -> Result<(), ToolProblem>
 
 async fn verify_changed(app: &AppHandle, saved: CheckedTool) {
     let path = PathBuf::from(&saved.path);
-    if let (Ok(hash), Ok(stamp)) = (hash_of(&path).await, file_stamp(&path))
-        && hash == saved.sha256
+    let hash = hash_of(&path).await.ok();
+    if let (Some(hash), Ok(stamp)) = (&hash, file_stamp(&path))
+        && *hash == saved.sha256
     {
         let refreshed = CheckedTool {
             size: stamp.size,
@@ -158,7 +206,7 @@ async fn verify_changed(app: &AppHandle, saved: CheckedTool) {
         }
         return;
     }
-    if let Err(problem) = check_and_save(app, &path).await {
+    if let Err(problem) = check_and_save(app, &path, hash).await {
         log::warn!(
             "the {BROWSER} at {} failed its check: {problem}",
             path.display()
@@ -229,7 +277,7 @@ async fn download_and_check(app: &AppHandle) -> Result<(), SetupError> {
     .await?;
     let paths = engine_paths(&dir, state.paths.platform);
     let browser = find_headless_shell(&paths).ok_or(SetupError::Missing)?;
-    check_and_save(app, browser).await?;
+    check_and_save(app, browser, None).await?;
     Ok(())
 }
 
@@ -276,7 +324,7 @@ pub async fn choose_browser(app: AppHandle) -> CommandResult<bool> {
     let Some(path) = pick_file(&app).await else {
         return Ok(false);
     };
-    check_and_save(&app, &path)
+    check_and_save(&app, &path, None)
         .await
         .map_err(|e| CommandError(e.to_string()))?;
     Ok(true)
@@ -286,4 +334,70 @@ pub async fn choose_browser(app: AppHandle) -> CommandResult<bool> {
 #[specta::specta]
 pub fn get_engine_status(state: State<'_, AppState>) -> EngineStatus {
     engine_status(&state)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::time::Duration;
+
+    use opsis_types::engine::CheckedTool;
+    use tokio::sync::watch;
+    use tokio_util::sync::CancellationToken;
+
+    use super::{EngineChecks, EngineMissing, unusable, wait_for_check};
+
+    #[tokio::test]
+    async fn a_run_waits_until_the_check_ends() {
+        let checking = watch::Sender::new(true);
+        let flip = checking.clone();
+        let started = tokio::time::Instant::now();
+        tokio::spawn(async move {
+            tokio::time::sleep(Duration::from_millis(80)).await;
+            flip.send_replace(false);
+        });
+        wait_for_check(checking.subscribe(), &CancellationToken::new()).await;
+        assert!(started.elapsed() >= Duration::from_millis(80));
+        assert!(!*checking.borrow());
+    }
+
+    #[tokio::test]
+    async fn a_stopped_run_stops_waiting() {
+        let checking = watch::Sender::new(true);
+        let cancel = CancellationToken::new();
+        cancel.cancel();
+        wait_for_check(checking.subscribe(), &cancel).await;
+        assert!(*checking.borrow());
+    }
+
+    #[test]
+    fn says_why_the_browser_cannot_be_used() {
+        let saved = CheckedTool {
+            path: "/engine/chrome-headless-shell".to_owned(),
+            version: "157.0.8080.0".to_owned(),
+            sha256: String::new(),
+            size: 0,
+            modified_ms: 0,
+        };
+        let checks = |checking: bool, problem: Option<&str>| EngineChecks {
+            problem: problem.map(str::to_owned),
+            checking,
+        };
+        assert_eq!(
+            unusable(&checks(false, None), None),
+            Some(EngineMissing::NotSetUp)
+        );
+        assert_eq!(
+            unusable(&checks(true, None), Some(&saved)),
+            Some(EngineMissing::Checking)
+        );
+        assert_eq!(
+            unusable(&checks(false, Some("It crashed.")), Some(&saved)),
+            Some(EngineMissing::Failed("It crashed.".to_owned()))
+        );
+        assert_eq!(unusable(&checks(false, None), Some(&saved)), None);
+        assert_eq!(
+            EngineMissing::Checking.to_string(),
+            "The recording browser is still being checked. Try again in a moment."
+        );
+    }
 }

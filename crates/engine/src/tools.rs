@@ -40,15 +40,19 @@ pub struct EngineFiles {
     pub browser: Option<PathBuf>,
     pub ffmpeg: Option<PathBuf>,
     pub stamp: String,
+    pub unusable: Option<EngineMissing>,
 }
 
 impl EngineFiles {
-    pub fn from_checked(engine: &EngineSection, usable: bool) -> Self {
+    pub fn from_checked(engine: &EngineSection, unusable: Option<EngineMissing>) -> Self {
         let browser = engine.browser.as_ref();
         Self {
-            browser: browser.filter(|_| usable).map(|c| PathBuf::from(&c.path)),
+            browser: browser
+                .filter(|_| unusable.is_none())
+                .map(|c| PathBuf::from(&c.path)),
             ffmpeg: bundled_ffmpeg().ok(),
             stamp: browser.map_or_else(String::new, |c| c.sha256.clone()),
+            unusable,
         }
     }
 
@@ -61,11 +65,14 @@ impl EngineFiles {
             browser: find_headless_shell(&paths).map(Path::to_path_buf),
             ffmpeg: bundled_ffmpeg().ok(),
             stamp: String::new(),
+            unusable: None,
         }
     }
 
     pub fn browser(&self) -> Result<&Path, EngineMissing> {
-        self.browser.as_deref().ok_or(EngineMissing)
+        self.browser
+            .as_deref()
+            .ok_or_else(|| self.unusable.clone().unwrap_or(EngineMissing::NotSetUp))
     }
 }
 

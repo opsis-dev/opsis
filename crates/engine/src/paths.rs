@@ -91,9 +91,15 @@ pub fn find_headless_shell(paths: &EnginePaths) -> Option<&Path> {
         .then_some(paths.headless_shell.as_path())
 }
 
-#[derive(Debug, thiserror::Error)]
-#[error("{}", ENGINE_MISSING_MESSAGE)]
-pub struct EngineMissing;
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+pub enum EngineMissing {
+    #[error("{}", ENGINE_MISSING_MESSAGE)]
+    NotSetUp,
+    #[error("The recording browser is still being checked. Try again in a moment.")]
+    Checking,
+    #[error("The recording browser failed its check: {0} See Settings → Engine.")]
+    Failed(String),
+}
 
 pub fn is_downloaded(paths: &EnginePaths) -> bool {
     find_headless_shell(paths).is_some()
