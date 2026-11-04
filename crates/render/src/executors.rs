@@ -255,7 +255,7 @@ async fn chapters_for(
     })
 }
 
-pub(crate) async fn run_tool(
+async fn run_tool(
     ctx: &ExecutorContext,
     engine: &RenderEngine,
     args: Vec<String>,

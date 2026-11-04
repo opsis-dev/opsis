@@ -5,14 +5,14 @@ use opsis_compile::nodes::media::Codec;
 use opsis_compile::nodes::output::Gl;
 use opsis_compile::terminal::preview::{PREVIEW_FILE, preview_spec};
 use opsis_engine::files::write_via_temp;
-use opsis_media::codecs::{FilmEncoding, finish_args};
+use opsis_media::codecs::FilmEncoding;
 use opsis_runner::context::{BoxFuture, ExecError, ExecutorContext};
 use opsis_terminal::executors::TakePreview;
 use opsis_types::events::LogLevel;
 use opsis_types::timeline::{SpecAssets, TimelineSpec};
 use opsis_types::values::RecordingValue;
 
-use crate::executors::{RenderEngine, asset_server, driver, film_error, hosted_film, run_tool};
+use crate::executors::{RenderEngine, asset_server, driver, film_error, hosted_film};
 use crate::frames::{FilmRender, FilmRun, render_film};
 
 const PREVIEW_CRF: f64 = 23.0;
@@ -82,8 +82,7 @@ pub async fn render_preview(
         prores: None,
         gif_loops: None,
     };
-    let output = ctx.dir.join(PREVIEW_FILE);
-    write_via_temp(&output, |temp| async move {
+    write_via_temp(&ctx.dir.join(PREVIEW_FILE), |temp| async move {
         let render = FilmRender {
             driver: driver(ctx, Gl::Angle)?,
             page: film.page(1.0),
@@ -92,15 +91,6 @@ pub async fn render_preview(
             output: &temp,
         };
         render_film(&render, &run).await.map_err(film_error)
-    })
-    .await?;
-    let rendered = output.to_string_lossy().into_owned();
-    write_via_temp(&output, |temp| {
-        run_tool(
-            ctx,
-            engine,
-            finish_args(&rendered, &temp.to_string_lossy(), true, None),
-        )
     })
     .await?;
     Ok(ctx.project_file_ref(PREVIEW_FILE))

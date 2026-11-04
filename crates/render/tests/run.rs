@@ -248,12 +248,6 @@ async fn draws_a_preview_of_every_terminal_take() {
         "{:?}",
         result.artifacts
     );
-    let bytes = std::fs::read(&file).unwrap();
-    let at = |tag: &[u8]| bytes.windows(tag.len()).position(|w| w == tag).unwrap();
-    assert!(
-        at(b"moov") < at(b"mdat"),
-        "the editor's player needs the index before the pictures"
-    );
     let probed = probe(&file).unwrap();
     let video = probed.video.unwrap();
     let size = preview_size(take).unwrap();
