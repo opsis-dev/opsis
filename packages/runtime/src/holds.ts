@@ -65,6 +65,7 @@ export function useHeldLoad<T>(
       })
       .catch((error: unknown) => failRender(error));
     return () => {
+      // oxlint-disable-next-line react/immutability
       alive = false;
       held.current = null;
       release();

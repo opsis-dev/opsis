@@ -445,7 +445,9 @@ function Card({
       ? 1 / (1 - rushTravel * RUSH_EASE(Math.min(1, rushT / (rushFrames / fps))))
       : 1;
 
-  let wordIndex = 0;
+  const lineStarts = beat.lines.map((_, li) =>
+    beat.lines.slice(0, li).reduce((count, words) => count + words.length, 0),
+  );
 
   return (
     <AbsoluteFill
@@ -509,7 +511,7 @@ function Card({
                   </svg>
                 ) : null}
                 {words.map((word, wi) => {
-                  const w = wordIndex++;
+                  const w = (lineStarts[li] ?? 0) + wi;
                   const wt = t - (w * wordStagger) / fps;
                   const p =
                     beat.style === "punch"

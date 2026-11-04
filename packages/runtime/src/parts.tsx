@@ -40,6 +40,7 @@ export function Img({
       if (alive) failRender(new Error(`Couldn't load the image ${src}.`));
     });
     return () => {
+      // oxlint-disable-next-line react/immutability
       alive = false;
       release();
     };

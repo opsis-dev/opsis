@@ -498,6 +498,7 @@ export function ShaderTextReveal({
         if (!cancelled) failRender(error instanceof Error ? error : new Error(String(error)));
       });
     return () => {
+      // oxlint-disable-next-line react/immutability
       cancelled = true;
       handle();
       resources.current?.renderer.dispose();

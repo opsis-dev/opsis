@@ -54,6 +54,7 @@ function useFontsFor(text: string, fontSize: number): Measure | undefined {
       if (alive) setReady(key);
     });
     return () => {
+      // oxlint-disable-next-line react/immutability
       alive = false;
       open.delete(key);
       release();
