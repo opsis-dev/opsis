@@ -49,6 +49,7 @@ pub struct RunHost {
     log: Mutex<RunLog>,
     changes: AtomicU64,
     pub live: Mutex<HashMap<String, FrameChannel>>,
+    live_notes: Mutex<Vec<LiveNoted>>,
 }
 
 impl RunHost {
@@ -217,6 +218,17 @@ impl LiveFeed for AppLive {
                     t: note.t,
                     event: note.event,
                 };
+                if matches!(
+                    noted.event,
+                    LiveEvent::Start { .. } | LiveEvent::Step { .. } | LiveEvent::End { .. }
+                ) {
+                    self.app
+                        .state::<RunHost>()
+                        .live_notes
+                        .lock()
+                        .expect("live notes")
+                        .push(noted.clone());
+                }
                 let watching: Vec<String> = self
                     .app
                     .state::<RunHost>()
@@ -404,6 +416,7 @@ pub async fn start(app: &AppHandle, targets: RunTargets) -> Result<StartedRun, S
         });
     }
     begin_run(&mut host.view(), &run_id);
+    host.live_notes.lock().expect("live notes").clear();
     host.changed();
     emit_view(app);
     let temp_dir = make_child_temp(
@@ -498,7 +511,11 @@ pub fn unwatch_live(host: State<'_, RunHost>, window: tauri::WebviewWindow, chan
 
 #[tauri::command]
 #[specta::specta]
-pub fn watch_live(host: State<'_, RunHost>, window: tauri::WebviewWindow, frames: FrameChannel) {
+pub fn watch_live(
+    host: State<'_, RunHost>,
+    window: tauri::WebviewWindow,
+    frames: FrameChannel,
+) -> Vec<LiveNoted> {
     host.live
         .lock()
         .expect("live channels")
@@ -508,6 +525,7 @@ pub fn watch_live(host: State<'_, RunHost>, window: tauri::WebviewWindow, frames
     {
         log::warn!("telling the editor the live window is watching: {error}");
     }
+    host.live_notes.lock().expect("live notes").clone()
 }
 
 #[tauri::command]

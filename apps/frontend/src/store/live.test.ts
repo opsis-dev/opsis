@@ -39,4 +39,32 @@ describe("the live view", () => {
     expect(capture?.viewport).toEqual({ width: 1280, height: 720 });
     expect(capture?.frameUrl).toBe("blob:frame");
   });
+
+  it("names a capture from its replayed start even after its frames came first", () => {
+    const { apply } = useLiveStore.getState();
+    apply(frame(80, 24));
+    apply({
+      type: "event",
+      captureId: "c1",
+      nodeId: "record",
+      t: 0,
+      event: {
+        kind: "start",
+        title: "Terminal take",
+        viewport: { width: 80, height: 24 },
+        steps: [{ nodeId: "run", label: "Run command" }],
+      },
+    });
+    apply({
+      type: "event",
+      captureId: "c1",
+      nodeId: "record",
+      t: 1,
+      event: { kind: "step", nodeId: "run", status: "done" },
+    });
+    const capture = useLiveStore.getState().captures.c1;
+    expect(capture?.title).toBe("Terminal take");
+    expect(capture?.steps).toEqual([{ nodeId: "run", label: "Run command", status: "done" }]);
+    expect(capture?.frameUrl).toBe("blob:frame");
+  });
 });

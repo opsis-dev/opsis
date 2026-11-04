@@ -99,8 +99,10 @@ export function watchLive(listener: (message: LiveMessage) => void): () => void 
       });
     listener({ type: "frame", ...ids, jpeg, width: header.width, height: header.height });
   });
-  void commands.watchLive(frames);
   const off = on(events.liveNoted, (note) => listener({ type: "event", ...note }));
+  void commands.watchLive(frames).then((notes) => {
+    for (const note of notes) listener({ type: "event", ...note });
+  });
   return () => {
     off();
     void commands.unwatchLive(frames.id);
