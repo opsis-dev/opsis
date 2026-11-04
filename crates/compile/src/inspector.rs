@@ -1,8 +1,7 @@
 use indexmap::IndexMap;
 use opsis_types::actions::Viewport;
-use opsis_types::terminal::TerminalTheme;
 use opsis_types::values::{
-    BrowserSessionValue, CompileValue, MediaKind, NodeResult, RecordingValue, TakeKind, TakeSource,
+    BrowserSessionValue, CompileValue, MediaKind, NodeResult, RecordingValue, TakeKind,
 };
 use opsis_types::workflow::Workflow;
 use serde::Serialize;
@@ -19,6 +18,7 @@ use crate::nodes::media::APPLY_GRADE_TYPE;
 use crate::params::{ParamSchema, Values};
 use crate::ports::convert_input;
 use crate::registry::{node_def, node_name};
+use crate::terminal::preview::preview_size;
 use crate::vars::{PROJECT_NAME_VAR, SITE_ADDRESS_VAR, interpolate_text, workflow_vars};
 
 const NO_PAGE: &str = "Add a Go to page action before this one, so there's a page to pick from.";
@@ -43,7 +43,7 @@ pub struct SpotBackground {
     pub time_ms: f64,
     pub duration_ms: f64,
     pub still: bool,
-    pub terminal: Option<TerminalTheme>,
+    pub aspect: Option<f64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
@@ -132,24 +132,14 @@ fn recording_before(
 ) -> Option<SpotBackground> {
     upstream_of(wf, node_id).iter().find_map(|id| {
         match results.get(id)?.outputs.get("recording")? {
-            CompileValue::Recording(rec) => {
-                let terminal = match &rec.source {
-                    TakeSource::Terminal(t) => Some(
-                        t.theme
-                            .as_deref()
-                            .cloned()
-                            .unwrap_or_else(crate::terminal::default_theme),
-                    ),
-                    TakeSource::Browser(_) => None,
-                };
-                rec.file().map(|src| SpotBackground {
-                    src: src.to_owned(),
-                    time_ms: 0.0,
-                    duration_ms: rec.duration_ms,
-                    still: false,
-                    terminal,
-                })
-            }
+            CompileValue::Recording(rec) => rec.picture().map(|src| SpotBackground {
+                src: src.to_owned(),
+                time_ms: 0.0,
+                duration_ms: rec.duration_ms,
+                still: false,
+                aspect: preview_size(rec)
+                    .map(|size| f64::from(size.width) / f64::from(size.height)),
+            }),
             _ => None,
         }
     })
@@ -182,7 +172,7 @@ fn graded_file(wf: &Workflow, node_id: &str, compiled: &CompileResult) -> Option
                         time_ms: 0.0,
                         duration_ms: media.duration_ms.map_or(0.0, f64::from),
                         still: media.kind == MediaKind::Image,
-                        terminal: None,
+                        aspect: None,
                     })
                 }
                 _ => None,
@@ -209,7 +199,7 @@ fn input_picture(wf: &Workflow, node_id: &str, compiled: &CompileResult) -> Opti
         time_ms: 0.0,
         duration_ms: 0.0,
         still: true,
-        terminal: None,
+        aspect: None,
     })
 }
 

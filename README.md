@@ -34,10 +34,11 @@ Requirements: [Bun](https://bun.sh), Node.js 22 or later, a Rust toolchain, and 
 ```sh
 bun install
 bun run film:bundle
+bun run terminal:bundle
 bun start
 ```
 
-`bun run film:bundle` builds the film page that exports draw; run it again after changing `packages/video` or `packages/runtime`. `bun start` downloads the pinned FFmpeg into `crates/desktop/binaries/` the first time and points the app at it (`OPSIS_FFMPEG`); the packaged app carries the same program beside its own. The first time, open **Settings → Engine** and either **Download engine**, which puts the recording browser (Chrome Headless Shell) in the app's data folder, or **Choose file…** for a browser you already have. Opsis checks it before using it, and again at start if the file changed. Editing and mixing work without it; recording and exporting need it. Then **New project → Sample: to-do app → Run**.
+`bun run film:bundle` builds the film page that exports draw, and `bun run terminal:bundle` the page that draws live terminal pictures; run them again after changing `packages/video` or `packages/runtime`. `bun start` downloads the pinned FFmpeg into `crates/desktop/binaries/` the first time and points the app at it (`OPSIS_FFMPEG`); the packaged app carries the same program beside its own. The first time, open **Settings → Engine** and either **Download engine**, which puts the recording browser (Chrome Headless Shell) in the app's data folder, or **Choose file…** for a browser you already have. Opsis checks it before using it, and again at start if the file changed. Editing and mixing work without it; recording and exporting need it. Then **New project → Sample: to-do app → Run**.
 
 Ready-made copies of every template are in [`examples/`](./examples) (**Open project…**).
 
@@ -53,21 +54,22 @@ The app ships FFmpeg (the pinned ffmpeg-static build, as the `opsis-ffmpeg` prog
 
 ## Scripts
 
-| Script                 | What it does                                                                 |
-| ---------------------- | ---------------------------------------------------------------------------- |
-| `bun start`            | Run the app in development                                                   |
-| `bun run typecheck`    | `tsc --noEmit` everywhere                                                    |
-| `bun run lint:fix`     | oxlint and `cargo clippy`                                                    |
-| `bun run format:fix`   | oxfmt and `cargo fmt`                                                        |
-| `bun run test`         | vitest and `cargo test` (with the staged FFmpeg)                             |
-| `bun run test:e2e`     | The app driven by WebdriverIO in a virtual display (needs `xvfb`)            |
-| `bun run types:export` | Write the TypeScript types and bindings from the Rust code                   |
-| `bun run film:bundle`  | Build the film page that exports draw                                        |
-| `bun run fonts:bundle` | Copy the bundled fonts from their Fontsource packages                        |
-| `bun run brand:icons`  | Render `brand/logo.svg` to PNGs; `bun run app:icons` makes the app's icons   |
-| `bun run routes`       | Regenerate the TanStack Router route tree                                    |
-| `bun run examples`     | Rewrite `examples/*/project.opsis.json` from the templates                   |
-| `bun run ffmpeg:stage` | Download the pinned FFmpeg for this computer, if missing, and print its path |
+| Script                    | What it does                                                                 |
+| ------------------------- | ---------------------------------------------------------------------------- |
+| `bun start`               | Run the app in development                                                   |
+| `bun run typecheck`       | `tsc --noEmit` everywhere                                                    |
+| `bun run lint:fix`        | oxlint and `cargo clippy`                                                    |
+| `bun run format:fix`      | oxfmt and `cargo fmt`                                                        |
+| `bun run test`            | vitest and `cargo test` (with the staged FFmpeg)                             |
+| `bun run test:e2e`        | The app driven by WebdriverIO in a virtual display (needs `xvfb`)            |
+| `bun run types:export`    | Write the TypeScript types and bindings from the Rust code                   |
+| `bun run film:bundle`     | Build the film page that exports draw                                        |
+| `bun run terminal:bundle` | Build the page that draws live terminal pictures                             |
+| `bun run fonts:bundle`    | Copy the bundled fonts from their Fontsource packages                        |
+| `bun run brand:icons`     | Render `brand/logo.svg` to PNGs; `bun run app:icons` makes the app's icons   |
+| `bun run routes`          | Regenerate the TanStack Router route tree                                    |
+| `bun run examples`        | Rewrite `examples/*/project.opsis.json` from the templates                   |
+| `bun run ffmpeg:stage`    | Download the pinned FFmpeg for this computer, if missing, and print its path |
 
 ## Architecture
 

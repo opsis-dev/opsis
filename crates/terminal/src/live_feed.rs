@@ -2,8 +2,7 @@ use std::fmt;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use opsis_compile::terminal::default_theme;
-use opsis_types::actions::Viewport;
+use opsis_compile::terminal::{default_look, default_theme, grid, screen_size};
 use opsis_types::live::{LiveEvent, LiveStep, LiveStepStatus};
 use opsis_types::numbers::millis;
 use opsis_types::terminal::{TerminalStep, TerminalTheme};
@@ -13,7 +12,7 @@ use crate::frames::write;
 use crate::prepare::snapshot;
 
 pub trait LiveFeed: Send + Sync {
-    fn frame(&self, capture_id: &str, node_id: &str, frames: Vec<u8>, size: (u16, u16), t: f64);
+    fn frame(&self, capture_id: &str, node_id: &str, frames: Vec<u8>, t: f64);
     fn event(&self, capture_id: &str, node_id: &str, event: LiveEvent, t: f64);
 }
 
@@ -73,10 +72,7 @@ impl TakeLive {
     pub fn start(&self, cols: u16, rows: u16, steps: &[TerminalStep]) {
         self.event(LiveEvent::Start {
             title: self.title.clone(),
-            viewport: Viewport {
-                width: u32::from(cols),
-                height: u32::from(rows),
-            },
+            viewport: screen_size(&grid(&default_look(Some(self.theme.clone())), cols, rows)),
             steps: steps
                 .iter()
                 .map(|s| LiveStep {
@@ -100,18 +96,13 @@ impl TakeLive {
     }
 
     pub fn frame(&self, terminal: &mut Terminal) {
-        let frames = snapshot(terminal, &self.theme).map(|f| (write(&f), f.cols, f.rows));
+        let frames = snapshot(terminal, &self.theme).map(|f| write(&f));
         match frames {
-            Ok((Ok(bytes), cols, rows)) => {
-                self.feed.frame(
-                    &self.capture_id,
-                    &self.node_id,
-                    bytes,
-                    (cols, rows),
-                    wall_ms(),
-                );
+            Ok(Ok(bytes)) => {
+                self.feed
+                    .frame(&self.capture_id, &self.node_id, bytes, wall_ms());
             }
-            Ok((Err(error), ..)) => log::warn!("writing a live terminal frame: {error}"),
+            Ok(Err(error)) => log::warn!("writing a live terminal frame: {error}"),
             Err(error) => log::warn!("reading a live terminal frame: {error}"),
         }
     }

@@ -1,6 +1,9 @@
+pub mod preview;
+
 use std::sync::LazyLock;
 
 use opsis_types::actions::{ActionLog, CellGrid, Point, Rect, Viewport};
+use opsis_types::fonts::FontFamilyDef;
 use opsis_types::numbers::whole;
 use opsis_types::terminal::{TerminalCursor, TerminalLook, TerminalTheme};
 use serde::Deserialize;
@@ -55,6 +58,14 @@ pub fn default_theme() -> TerminalTheme {
         ]
         .map(str::to_owned),
     }
+}
+
+pub fn terminal_fonts() -> Vec<FontFamilyDef> {
+    crate::fonts::bundled_fonts()
+        .iter()
+        .filter(|d| TERMINAL_FONTS.contains(&d.family.as_str()))
+        .cloned()
+        .collect()
 }
 
 pub fn terminal_themes() -> &'static [ThemeEntry] {

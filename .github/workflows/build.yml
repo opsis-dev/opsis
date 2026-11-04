@@ -184,4 +184,5 @@ jobs:
       - name: Install the engine
         run: cargo run -q --release -p opsis-engine --bin install-engine -- ~/.config/Opsis/engine
       - run: bun run film:bundle
+      - run: bun run terminal:bundle
       - run: bun run test:e2e

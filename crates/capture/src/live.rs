@@ -32,19 +32,8 @@ pub struct LiveNote {
 }
 
 #[derive(Debug)]
-pub struct LiveTerminal {
-    pub capture_id: String,
-    pub node_id: String,
-    pub frames: Vec<u8>,
-    pub cols: u16,
-    pub rows: u16,
-    pub t: f64,
-}
-
-#[derive(Debug)]
 pub enum LiveMessage {
     Frame(LiveFrame),
-    Terminal(LiveTerminal),
     Event(LiveNote),
 }
 

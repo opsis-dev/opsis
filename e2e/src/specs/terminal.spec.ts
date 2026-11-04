@@ -7,6 +7,8 @@ import { PROJECTS, ROOT, RUN_DIR } from "../support/paths";
 
 const RUN_MS = 600_000;
 const WINDOW_MS = 60_000;
+const SETTLED_MS = 1_000;
+const TERMINAL_PICTURE = 'img[alt="Terminal"]';
 
 type Artifact = { path: string; label?: string };
 
@@ -31,6 +33,26 @@ function runUntilDone(
   });
 }
 
+function pictureSource(): Promise<string> {
+  return browser.execute(
+    (selector: string) => document.querySelector<HTMLImageElement>(selector)?.src ?? "",
+    TERMINAL_PICTURE,
+  );
+}
+
+async function untilPictureSettles(): Promise<void> {
+  let last = await pictureSource();
+  let since = Date.now();
+  await browser.waitUntil(
+    async () => {
+      const now = await pictureSource();
+      if (now !== last) [last, since] = [now, Date.now()];
+      return Date.now() - since >= SETTLED_MS;
+    },
+    { timeout: WINDOW_MS, interval: 100, timeoutMsg: "the terminal never settled" },
+  );
+}
+
 async function typeIntoTheTerminalWindow(main: string, text: string): Promise<void> {
   await browser.waitUntil(async () => (await browser.getWindowHandles()).length > 1, {
     timeout: WINDOW_MS,
@@ -38,20 +60,16 @@ async function typeIntoTheTerminalWindow(main: string, text: string): Promise<vo
   const window = (await browser.getWindowHandles()).find((h) => h !== main);
   if (!window) throw new Error("no terminal window");
   await browser.switchToWindow(window);
-  await $('[aria-label="Terminal"]').waitForExist({ timeout: WINDOW_MS });
-  await browser.waitUntil(
-    () => browser.execute(() => document.body.textContent?.includes("opsis") ?? false),
-    { timeout: WINDOW_MS },
-  );
+  await $(TERMINAL_PICTURE).waitForExist({ timeout: WINDOW_MS });
+  await untilPictureSettles();
+  const before = await pictureSource();
   await browser.keys([...text, "Enter"]);
-  await browser.waitUntil(
-    () =>
-      browser.execute(
-        (typed: string) => (document.body.textContent?.split(typed).length ?? 0) > 2,
-        text.replace("echo ", ""),
-      ),
-    { timeout: WINDOW_MS },
-  );
+  await browser.waitUntil(async () => (await pictureSource()) !== before, {
+    timeout: WINDOW_MS,
+    timeoutMsg: "the terminal never showed what was typed",
+  });
+  await untilPictureSettles();
+  await browser.saveScreenshot(path.join(RUN_DIR, "terminal-live-tape.png"));
   await $("button=Save tape").click();
   await browser.switchToWindow(main);
 }
@@ -79,11 +97,14 @@ describe("terminal takes", function () {
     await finished;
     expect(done).toMatchObject({ ok: true, cancelled: false });
     const cast = artifacts.find((a) => a.path.endsWith("take.cast"));
-    const film = artifacts.find((a) => a.path.endsWith(".mp4"));
-    if (!cast || !film) throw new Error(`missing artifacts: ${JSON.stringify(artifacts)}`);
+    const preview = artifacts.find((a) => a.path.endsWith("preview.mp4"));
+    const film = artifacts.find((a) => a.path.endsWith(".mp4") && a !== preview);
+    if (!cast || !preview || !film)
+      throw new Error(`missing artifacts: ${JSON.stringify(artifacts)}`);
     const recorded = readFileSync(path.join(dir, cast.path), "utf8");
     expect(recorded.split("\n")[0]).toContain('"version":3');
     expect(recorded).toContain("Opsis records real terminals");
+    expect(statSync(path.join(dir, preview.path)).size).toBeGreaterThan(0);
     expect(statSync(path.join(dir, film.path)).size).toBeGreaterThan(0);
   });
 
@@ -94,18 +115,28 @@ describe("terminal takes", function () {
       };
       void page.__TAURI_INTERNALS__.invoke("show_replay", { nodeId: "rec", tab: "replay" });
     });
-    await $('[role="dialog"] [aria-label="Terminal"]').waitForExist({ timeout: WINDOW_MS });
-    await $('[role="dialog"] button[aria-label="Play"]').click();
-    await browser.waitUntil(
+    await $('[role="dialog"] video').waitForExist({ timeout: WINDOW_MS });
+    expect(
+      await browser.execute(
+        () => document.querySelector<HTMLVideoElement>('[role="dialog"] video')?.src ?? "",
+      ),
+    ).toContain("preview.mp4");
+    await browser.execute(() => {
+      const video = document.querySelector<HTMLVideoElement>('[role="dialog"] video');
+      if (!video) return;
+      video.muted = true;
+      void video.play();
+    });
+    const played = await browser.waitUntil(
       () =>
-        browser.execute(
-          () =>
-            document
-              .querySelector('[role="dialog"] [aria-label="Terminal"]')
-              ?.textContent?.includes("Opsis records real terminals") ?? false,
-        ),
-      { timeout: WINDOW_MS, timeoutMsg: "the terminal player never played the take" },
+        browser.execute(() => {
+          const video = document.querySelector<HTMLVideoElement>('[role="dialog"] video');
+          if (video?.error) return `error ${video.error.code}: ${video.error.message}`;
+          return (video?.currentTime ?? 0) > 0.5 ? "played" : "";
+        }),
+      { timeout: WINDOW_MS, timeoutMsg: "the take's preview never played" },
     );
+    expect(played).toBe("played");
     await browser.saveScreenshot(path.join(RUN_DIR, "terminal-replay.png"));
     await browser.keys("Escape");
     await $("button:has(svg.lucide-maximize)").click();

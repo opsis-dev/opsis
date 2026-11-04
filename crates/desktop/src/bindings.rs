@@ -4,7 +4,7 @@ use tauri_specta::{Builder, ErrorHandlingMode, collect_commands, collect_events}
 
 use crate::{
     analysis, api, compile, document, engine, events, exit, file_server, fonts, gradients,
-    page_log, projects, run, settings, shared, terminal_frames, terminal_live, views, windows,
+    page_log, projects, run, settings, shared, terminal_live, views, windows,
 };
 
 pub const BINDINGS_FILE: &str = "apps/frontend/src/generated/bindings.ts";
@@ -75,7 +75,6 @@ pub fn builder() -> Builder<tauri::Wry> {
             gradients::edit_gradient,
             fonts::list_fonts,
             fonts::font_choices,
-            fonts::terminal_fonts,
             fonts::inspect_font_files,
             fonts::installed_font_families,
             fonts::inspect_installed_fonts,
@@ -97,7 +96,6 @@ pub fn builder() -> Builder<tauri::Wry> {
             views::view_answer_dialog,
             views::view_choose_files,
             views::view_close,
-            terminal_frames::terminal_frames,
             terminal_live::attach_terminal,
             terminal_live::terminal_input,
             terminal_live::finish_terminal,

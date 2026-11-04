@@ -54,6 +54,7 @@ pub const FOLLOW_CURSOR_TYPE: &str = "camera.followCursor";
 pub const CLIP_FROM_TAKE_TYPE: &str = "camera.take";
 pub const CAMERA_TYPE: &str = "camera.camera";
 pub const SHOT_TYPE: &str = "camera.shot";
+pub const MOTION_BLUR_TYPE: &str = "camera.motionBlur";
 pub const WINDOW_FRAME_TYPE: &str = "camera.windowFrame";
 pub const SPEED_RAMP_TYPE: &str = "camera.speedRamp";
 const CURSOR_STYLE_TYPE: &str = crate::nodes::cursor::CURSOR_STYLE_TYPE;
@@ -1071,6 +1072,7 @@ fn base_props(rec: &RecordingValue, log: ActionLog, speed: f64) -> Option<Record
                 chain: FootageChain::default(),
                 frames_url: None,
                 effects: None,
+                preview: terminal.preview.clone(),
             };
             with_look(props, |_| look)
         }
@@ -1623,7 +1625,7 @@ fn backdrop() -> NodeDef {
 }
 
 fn motion_blur() -> NodeDef {
-    NodeDef::style_modifier::<MotionBlur>("camera.motionBlur", "Motion blur", Category::Camera)
+    NodeDef::style_modifier::<MotionBlur>(MOTION_BLUR_TYPE, "Motion blur", Category::Camera)
         .describe("Adds blur to fast camera moves.")
         .card(|ctx: &CardCtx<'_, MotionBlur>| {
             vec![Some(toggle_row(Icon::Wind, ctx.params.enabled))]

@@ -34,8 +34,8 @@ mod settings;
 mod shared;
 mod startup;
 mod state;
-mod terminal_frames;
 mod terminal_live;
+mod terminal_paint;
 mod views;
 mod windows;
 

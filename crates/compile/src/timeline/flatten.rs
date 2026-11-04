@@ -7,7 +7,6 @@ use opsis_types::mix::ChannelKind;
 use opsis_types::numbers;
 use opsis_types::numbers::whole;
 use opsis_types::recording::{RecordingProps, ScreenProps};
-use opsis_types::terminal::TerminalTheme;
 use opsis_types::timeline::{
     AudioItem, EditHandles, GroupProps, Slot, TimelineItem, TimelineSpec, TimelineTrack,
 };
@@ -96,11 +95,6 @@ pub enum BarThumbnail {
     },
     Still {
         src: String,
-    },
-    Terminal {
-        cast: String,
-        theme: Box<TerminalTheme>,
-        speed: f64,
     },
 }
 
@@ -339,11 +333,11 @@ fn thumbnail_of(item: &TimelineItem) -> Option<BarThumbnail> {
                     trim_ms: 0.0,
                 })
             }
-            ScreenProps::Terminal { cast, look, .. } => {
-                (!cast.is_empty()).then(|| BarThumbnail::Terminal {
-                    cast: cast.clone(),
-                    theme: Box::new(look.theme.clone()),
+            ScreenProps::Terminal { preview, .. } => {
+                preview.clone().map(|src| BarThumbnail::Filmstrip {
+                    src,
                     speed: recording_speed(props),
+                    trim_ms: 0.0,
                 })
             }
         },

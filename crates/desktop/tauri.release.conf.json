@@ -21,6 +21,7 @@
     ],
     "resources": {
       "../../film-bundle/": "film-bundle/",
+      "../../terminal-bundle/": "terminal-bundle/",
       "../../THIRD_PARTY_NOTICES.md": "THIRD_PARTY_NOTICES.md",
       "../../resources/engine-licences/": "engine-licences/",
       "../../resources/LICENSE.ffmpeg.txt": "LICENSE.ffmpeg.txt",

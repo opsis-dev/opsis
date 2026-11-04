@@ -10,6 +10,7 @@ use opsis_compile::nodes::terminal::{
 };
 use opsis_compile::params::Values;
 use opsis_compile::terminal::default_theme;
+use opsis_compile::terminal::preview::PREVIEW_FILE;
 use opsis_engine::files::atomic_write;
 use opsis_project::paths::{is_inside, to_posix_rel};
 use opsis_project::stamps::ref_stamps;
@@ -55,10 +56,19 @@ pub trait LiveTapeHost: Send + Sync {
     ) -> BoxFuture<Result<Option<String>, ExecError>>;
 }
 
+pub trait TakePreview: Send + Sync {
+    fn render(
+        &self,
+        ctx: Arc<ExecutorContext>,
+        take: RecordingValue,
+    ) -> BoxFuture<Result<String, ExecError>>;
+}
+
 #[derive(Clone, Default)]
 pub struct TerminalDeps {
     pub live_tapes: Option<Arc<dyn LiveTapeHost>>,
     pub live_frames: Option<Arc<dyn LiveFeed>>,
+    pub previews: Option<Arc<dyn TakePreview>>,
 }
 
 impl fmt::Debug for TerminalDeps {
@@ -66,8 +76,24 @@ impl fmt::Debug for TerminalDeps {
         f.debug_struct("TerminalDeps")
             .field("live_tapes", &self.live_tapes.is_some())
             .field("live_frames", &self.live_frames.is_some())
+            .field("previews", &self.previews.is_some())
             .finish()
     }
+}
+
+async fn with_preview(
+    ctx: &Arc<ExecutorContext>,
+    deps: &TerminalDeps,
+    mut take: RecordingValue,
+) -> Result<RecordingValue, ExecError> {
+    let Some(previews) = &deps.previews else {
+        return Ok(take);
+    };
+    let preview = previews.render(Arc::clone(ctx), take.clone()).await?;
+    if let TakeSource::Terminal(source) = &mut take.source {
+        source.preview = Some(preview);
+    }
+    Ok(take)
 }
 
 fn failed(error: &TakeError) -> ExecError {
@@ -153,15 +179,24 @@ fn recording(
             cols: session.cols,
             rows: session.rows,
             theme: theme.map(Box::new),
+            preview: None,
         }),
     }
 }
 
-fn take_artifacts(ctx: &ExecutorContext) -> Vec<Artifact> {
-    vec![
+fn take_artifacts(ctx: &ExecutorContext, take: &RecordingValue) -> Vec<Artifact> {
+    let preview = match &take.source {
+        TakeSource::Terminal(source) => source.preview.as_ref(),
+        TakeSource::Browser(_) => None,
+    };
+    let mut artifacts = vec![
         ctx.artifact(ArtifactKind::File, CAST_FILE, "Terminal take"),
         ctx.artifact(ArtifactKind::Json, LOG_FILE, "Action log"),
-    ]
+    ];
+    if preview.is_some() {
+        artifacts.push(ctx.artifact(ArtifactKind::Video, PREVIEW_FILE, "Preview"));
+    }
+    artifacts
 }
 
 async fn record(
@@ -184,13 +219,13 @@ async fn record(
         },
     )
     .await?;
-    let recording = recording(&ctx, &take, &session, None);
+    let recording = with_preview(&ctx, &deps, recording(&ctx, &take, &session, None)).await?;
     Ok(ExecutorOutput {
+        artifacts: take_artifacts(&ctx, &recording),
         outputs: PortValues::from([(
             RECORDING_PORT.to_owned(),
             CompileValue::Recording(recording),
         )]),
-        artifacts: take_artifacts(&ctx),
         trace_id: None,
         measured: Vec::new(),
     })
@@ -315,7 +350,9 @@ async fn play_tape(
         },
     )
     .await?;
-    let mut recording = recording(&ctx, &take, &mapped.session, mapped.theme.clone());
+    let recording = recording(&ctx, &take, &mapped.session, mapped.theme.clone());
+    let mut recording = with_preview(&ctx, &deps, recording).await?;
+    let artifacts = take_artifacts(&ctx, &recording);
     if let Some(speed) = mapped.speed {
         recording.edits.push(speed_entry(
             &ctx.node.id,
@@ -336,7 +373,7 @@ async fn play_tape(
                 }),
             ),
         ]),
-        artifacts: take_artifacts(&ctx),
+        artifacts,
         trace_id: None,
         measured: vec![Measured::Tape {
             steps: count(mapped.session.steps.len()),
@@ -349,6 +386,7 @@ async fn play_tape(
 async fn cast_file(
     ctx: Arc<ExecutorContext>,
     _inputs: PortValues,
+    deps: TerminalDeps,
 ) -> Result<ExecutorOutput, ExecError> {
     let p: CastFile = ctx.params()?;
     let file = ctx.ref_to_path(p.file.trim())?;
@@ -380,7 +418,7 @@ async fn cast_file(
             imported.header.term_rows
         ),
     );
-    let recording = RecordingValue {
+    let take = RecordingValue {
         duration_ms: millis(imported.length),
         log: Some(imported.log),
         node_id: ctx.node.id.clone(),
@@ -390,14 +428,16 @@ async fn cast_file(
             cols: imported.header.term_cols,
             rows: imported.header.term_rows,
             theme: imported.theme.map(Box::new),
+            preview: None,
         }),
     };
+    let recording = with_preview(&ctx, &deps, take).await?;
     Ok(ExecutorOutput {
+        artifacts: take_artifacts(&ctx, &recording),
         outputs: PortValues::from([(
             RECORDING_PORT.to_owned(),
             CompileValue::Recording(recording),
         )]),
-        artifacts: take_artifacts(&ctx),
         trace_id: None,
         measured: vec![Measured::Cast { events }],
     })
@@ -432,7 +472,7 @@ async fn export_tape(
 }
 
 pub fn terminal_executors(deps: &TerminalDeps) -> Vec<(&'static str, Executor)> {
-    let (recorder, player) = (deps.clone(), deps.clone());
+    let (recorder, player, importer) = (deps.clone(), deps.clone(), deps.clone());
     vec![
         (
             RECORD_TERMINAL_TYPE,
@@ -443,6 +483,9 @@ pub fn terminal_executors(deps: &TerminalDeps) -> Vec<(&'static str, Executor)> 
             executor(move |ctx, inputs| play_tape(ctx, inputs, player.clone())).stamped(tape_stamp),
         ),
         (EXPORT_TAPE_TYPE, executor(export_tape)),
-        (CAST_FILE_TYPE, executor(cast_file)),
+        (
+            CAST_FILE_TYPE,
+            executor(move |ctx, inputs| cast_file(ctx, inputs, importer.clone())),
+        ),
     ]
 }

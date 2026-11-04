@@ -1,14 +1,16 @@
 use indexmap::IndexMap;
-use opsis_compile::clip::recording_props;
+use opsis_compile::clip::{recording_props, walk_items};
 use opsis_compile::compile::compile_workflow;
 use opsis_compile::footage::footage_uses;
 use opsis_compile::hosted::hosted;
 use opsis_compile::node::{CardInputs, InputTake};
+use opsis_compile::terminal::preview::{PREVIEW_FPS, preview_spec};
 use opsis_compile::terminal::{default_look, grid, screen_size, theme_named};
+use opsis_compile::time::ms_to_frames;
 use opsis_types::recording::ScreenProps;
 use opsis_types::terminal::TerminalAction;
 use opsis_types::timeline::{SpecAssets, TimelineSpec};
-use opsis_types::values::{CompileValue, TakeKind};
+use opsis_types::values::{CompileValue, RecordingValue, TakeKind};
 use proptest::prelude::*;
 use serde_json::{Value, json};
 
@@ -376,4 +378,44 @@ fn texture_and_lens_on_a_terminal_take_become_its_page_effects() {
         panic!("not a terminal screen");
     };
     assert_eq!(effects, &None);
+}
+
+proptest! {
+    #[test]
+    fn previews_a_terminal_take_plainly_at_an_even_size_over_its_own_length(
+        cols in 2u16..300,
+        rows in 2u16..120,
+        length in 100u32..120_000,
+        rate in 0.25f64..8.0,
+    ) {
+        let mut take = terminal_take(true);
+        take["source"]["cols"] = json!(cols);
+        take["source"]["rows"] = json!(rows);
+        take["durationMs"] = json!(length);
+        take["edits"] = json!(style_entries(
+            &[("camera.speedRamp", json!({ "segments": [{ "fromMs": 0, "toMs": length, "rate": rate }] }))],
+            "edit",
+        ));
+        let rec: RecordingValue = serde_json::from_value(take).unwrap();
+        let screen = screen_size(&grid(&default_look(None), cols, rows));
+        let spec = preview_spec(&rec).unwrap().unwrap();
+        prop_assert_eq!((spec.width % 2, spec.height % 2), (0, 0));
+        prop_assert!(spec.width >= screen.width && spec.width - screen.width <= 1);
+        prop_assert!(spec.height >= screen.height && spec.height - screen.height <= 1);
+        prop_assert_eq!(spec.fps, PREVIEW_FPS);
+        prop_assert_eq!(spec.duration_in_frames, ms_to_frames(f64::from(length), PREVIEW_FPS).max(1));
+        let mut shown = Vec::new();
+        walk_items(&spec.tracks, &mut |item| shown.extend(item.recording().cloned()));
+        let [props] = shown.as_slice() else { panic!("one recording, not {}", shown.len()) };
+        prop_assert!(!props.camera.zoom);
+        prop_assert!(!props.shot.motion_blur);
+        prop_assert!((props.speed - 1.0).abs() < f64::EPSILON);
+        prop_assert!(props.pointer.shown);
+    }
+}
+
+#[test]
+fn has_no_preview_for_a_browser_take() {
+    let rec: RecordingValue = serde_json::from_value(take_recording(None)).unwrap();
+    assert!(preview_spec(&rec).unwrap().is_none());
 }

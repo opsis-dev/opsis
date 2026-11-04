@@ -66,7 +66,6 @@ export const commands = {
 	editGradient: (css: string, edit: GradientEdit) => __TAURI_INVOKE<GradientView | null>("edit_gradient", { css, edit }),
 	listFonts: () => __TAURI_INVOKE<FontChoice[]>("list_fonts"),
 	fontChoices: (value: string, project: FontFamilyDef[]) => __TAURI_INVOKE<FontChoices>("font_choices", { value, project }),
-	terminalFonts: () => __TAURI_INVOKE<FontFamilyDef[]>("terminal_fonts"),
 	inspectFontFiles: (paths: string[] | null) => __TAURI_INVOKE<InspectedFonts | null>("inspect_font_files", { paths }),
 	installedFontFamilies: () => __TAURI_INVOKE<InstalledFamily[]>("installed_font_families"),
 	inspectInstalledFonts: (families: string[]) => __TAURI_INVOKE<InspectedFonts>("inspect_installed_fonts", { families }),
@@ -88,7 +87,6 @@ export const commands = {
 	viewAnswerDialog: (id: string, accept: boolean, prompt: string) => __TAURI_INVOKE<null>("view_answer_dialog", { id, accept, prompt }),
 	viewChooseFiles: (id: string) => __TAURI_INVOKE<null>("view_choose_files", { id }),
 	viewClose: (id: string) => __TAURI_INVOKE<void>("view_close", { id }),
-	terminalFrames: (projectDir: string, cast: string, fps: number, theme: TerminalTheme | null) => __TAURI_INVOKE<ArrayBuffer>("terminal_frames", { projectDir, cast, fps, theme }),
 	attachTerminal: (id: string, frames: Channel<ArrayBuffer>) => __TAURI_INVOKE<null>("attach_terminal", { id, frames }),
 	terminalInput: (id: string, input: TerminalInput) => __TAURI_INVOKE<null>("terminal_input", { id, input }),
 	finishTerminal: (id: string, save: boolean) => __TAURI_INVOKE<null>("finish_terminal", { id, save }),
@@ -349,7 +347,7 @@ export type BandBounds = {
 
 export type BarKind = "recording" | "element";
 
-export type BarThumbnail = { kind: "filmstrip"; src: string; speed: number; trimMs: number } | { kind: "still"; src: string } | { kind: "terminal"; cast: string; theme: TerminalTheme; speed: number };
+export type BarThumbnail = { kind: "filmstrip"; src: string; speed: number; trimMs: number } | { kind: "still"; src: string };
 
 export type Bounds = {
 	x: number,
@@ -1655,7 +1653,7 @@ export type RunView = {
 	exports: Artifact[],
 };
 
-export type ScreenProps = { kind: "footage"; src: string; chain?: FootageChain; footageUrl?: string } | { kind: "terminal"; cast: string; cols: number; rows: number; look: TerminalLook; chain?: FootageChain; framesUrl?: string; effects?: TerminalEffects };
+export type ScreenProps = { kind: "footage"; src: string; chain?: FootageChain; footageUrl?: string } | { kind: "terminal"; cast: string; cols: number; rows: number; look: TerminalLook; chain?: FootageChain; framesUrl?: string; effects?: TerminalEffects; preview?: string };
 
 export type SelectionShared = {
 	from: string,
@@ -1780,7 +1778,7 @@ export type SpotBackground = {
 	timeMs: number,
 	durationMs: number,
 	still: boolean,
-	terminal: TerminalTheme | null,
+	aspect: number,
 };
 
 export type StartOption = "start-screen" | "last-project" | "new-project";
@@ -1903,6 +1901,7 @@ export type TerminalSource = {
 	cols: number,
 	rows: number,
 	theme?: TerminalTheme,
+	preview?: string,
 };
 
 export type TerminalStep = {

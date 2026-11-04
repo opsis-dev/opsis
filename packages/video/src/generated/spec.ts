@@ -2501,7 +2501,7 @@ export type ScreenDevice = "laptop" | "monitor" | "phone" | "floating";
 
 export type ScreenMove = "push-in" | "orbit" | "tilt-reveal" | "rise" | "keyframes";
 
-export type ScreenProps = { kind: "footage"; src: string; chain?: FootageChain; footageUrl?: string } | { kind: "terminal"; cast: string; cols: number; rows: number; look: TerminalLook; chain?: FootageChain; framesUrl?: string; effects?: TerminalEffects };
+export type ScreenProps = { kind: "footage"; src: string; chain?: FootageChain; footageUrl?: string } | { kind: "terminal"; cast: string; cols: number; rows: number; look: TerminalLook; chain?: FootageChain; framesUrl?: string; effects?: TerminalEffects; preview?: string };
 
 export type ScribbleCircle = {
 	laps: number,

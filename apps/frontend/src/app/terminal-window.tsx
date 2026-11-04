@@ -1,20 +1,23 @@
-import { decodeFrames, type TerminalFrames } from "@opsis/video/terminal/frames";
-import type { ViewLook } from "@opsis/video/terminal/view";
+import { clamp } from "@opsis/video/common/math";
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { commands, type PointerButton, type TerminalInput } from "@/generated/bindings";
 import { packedChannel } from "./tauri";
-import { cellAt, TerminalPicture } from "./terminal-picture";
 
-const LOOK: ViewLook = {
-  fontSize: 20,
-  lineHeight: 1.2,
-  letterSpacing: 0,
-  padding: 16,
-  cursor: "program",
+type TerminalFrameHeader = {
+  skipped: number;
+  width: number;
+  height: number;
+  cols: number;
+  rows: number;
+  cellWidth: number;
+  cellHeight: number;
+  padding: number;
 };
 
-type TerminalFrameHeader = { skipped: number };
+type Shown = { header: TerminalFrameHeader; url: string };
+
+type CellAt = { col: number; row: number };
 
 const MODIFIER_KEYS = new Set(["Shift", "Control", "Alt", "Meta", "AltGraph", "CapsLock"]);
 const BUTTONS: (PointerButton | null)[] = ["left", "middle", "right"];
@@ -32,34 +35,61 @@ function pointerAction(type: string): "press" | "release" | "move" {
   return "move";
 }
 
-export function TerminalWindow({ id }: { id: string }) {
-  const [frames, setFrames] = useState<TerminalFrames | null>(null);
-  const [skipped, setSkipped] = useState(0);
-  const box = useRef<HTMLDivElement | null>(null);
+function cellAt(
+  e: { clientX: number; clientY: number; currentTarget: Element },
+  header: TerminalFrameHeader,
+): CellAt {
+  const box = e.currentTarget.getBoundingClientRect();
+  const scale = Math.min(box.width / header.width, box.height / header.height) || 1;
+  const left = box.left + (box.width - header.width * scale) / 2;
+  const top = box.top + (box.height - header.height * scale) / 2;
+  const x = (e.clientX - left) / scale - header.padding;
+  const y = (e.clientY - top) / scale - header.padding;
+  return {
+    col: clamp(Math.floor(x / header.cellWidth), 0, header.cols - 1),
+    row: clamp(Math.floor(y / header.cellHeight), 0, header.rows - 1),
+  };
+}
+
+function useShownFrame(id: string): Shown | null {
+  const [shown, setShown] = useState<Shown | null>(null);
   useEffect(() => {
+    let last: string | null = null;
     void commands.attachTerminal(
       id,
       packedChannel<TerminalFrameHeader>((header, body) => {
-        setFrames(decodeFrames(body));
-        setSkipped(header.skipped);
+        const url = URL.createObjectURL(new Blob([body], { type: "image/jpeg" }));
+        if (last) URL.revokeObjectURL(last);
+        last = url;
+        setShown({ header, url });
       }),
     );
-    box.current?.focus();
+    return () => {
+      if (last) URL.revokeObjectURL(last);
+    };
   }, [id]);
+  return shown;
+}
+
+export function TerminalWindow({ id }: { id: string }) {
+  const shown = useShownFrame(id);
+  const box = useRef<HTMLDivElement | null>(null);
+  useEffect(() => box.current?.focus(), []);
   function send(input: TerminalInput | null) {
     if (input) void commands.terminalInput(id, input);
   }
-  const frame = frames?.frames[0];
+  const header = shown?.header;
   function pointer(e: PointerEvent<HTMLDivElement>) {
-    if (!frame) return;
+    if (!header) return;
     if (e.type === "pointerdown") {
       e.currentTarget.setPointerCapture(e.pointerId);
       box.current?.focus();
     }
     const action = pointerAction(e.type);
     if (action === "move" && e.buttons === 0) return;
-    send({ type: "pointer", action, button: BUTTONS[e.button] ?? null, ...cellAt(e, LOOK, frame) });
+    send({ type: "pointer", action, button: BUTTONS[e.button] ?? null, ...cellAt(e, header) });
   }
+  const skipped = header?.skipped ?? 0;
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center gap-2 border-b px-3 py-1.5 text-sm">
@@ -90,22 +120,24 @@ export function TerminalWindow({ id }: { id: string }) {
         }}
         onFocus={() => send({ type: "focus", gained: true })}
         onBlur={() => send({ type: "focus", gained: false })}
+        onPointerDown={pointer}
+        onPointerMove={pointer}
+        onPointerUp={pointer}
+        onWheel={(e) => {
+          if (!header) return;
+          send({
+            type: "wheel",
+            ...cellAt(e, header),
+            notches: Math.sign(e.deltaY) * Math.max(1, Math.round(Math.abs(e.deltaY) / WHEEL_STEP)),
+          });
+        }}
       >
-        {frames && frame ? (
-          <TerminalPicture
-            frames={frames}
-            frame={frame}
-            look={LOOK}
-            cursorOn
-            onPointer={pointer}
-            onWheel={(e) =>
-              send({
-                type: "wheel",
-                ...cellAt(e, LOOK, frame),
-                notches:
-                  Math.sign(e.deltaY) * Math.max(1, Math.round(Math.abs(e.deltaY) / WHEEL_STEP)),
-              })
-            }
+        {shown ? (
+          <img
+            src={shown.url}
+            alt="Terminal"
+            draggable={false}
+            className="pointer-events-none absolute inset-0 size-full object-contain"
           />
         ) : null}
       </div>

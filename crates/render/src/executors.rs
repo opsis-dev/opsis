@@ -57,7 +57,7 @@ impl fmt::Debug for RenderEngine {
     }
 }
 
-fn film_error(error: FilmError) -> ExecError {
+pub(crate) fn film_error(error: FilmError) -> ExecError {
     match error {
         FilmError::Cancelled => ExecError::Cancelled,
         other => ExecError::new(other.to_string()),
@@ -71,7 +71,7 @@ fn browser(ctx: &ExecutorContext) -> Result<&Path, ExecError> {
         .map_err(|e| ExecError::new(e.to_string()))
 }
 
-fn driver(ctx: &ExecutorContext, gl: Gl) -> Result<DriverOptions<'_>, ExecError> {
+pub(crate) fn driver(ctx: &ExecutorContext, gl: Gl) -> Result<DriverOptions<'_>, ExecError> {
     Ok(DriverOptions {
         executable: browser(ctx)?,
         temp_dir: &ctx.env.temp_dir,
@@ -80,14 +80,14 @@ fn driver(ctx: &ExecutorContext, gl: Gl) -> Result<DriverOptions<'_>, ExecError>
     })
 }
 
-struct HostedFilm {
+pub(crate) struct HostedFilm {
     url: String,
     spec: Value,
     width: u32,
     height: u32,
 }
 
-fn hosted_film(spec: &TimelineSpec, server: &str) -> Result<HostedFilm, ExecError> {
+pub(crate) fn hosted_film(spec: &TimelineSpec, server: &str) -> Result<HostedFilm, ExecError> {
     Ok(HostedFilm {
         url: format!("{server}{FILM_FOLDER}/index.html"),
         spec: serde_json::to_value(hosted(spec)).map_err(|e| ExecError::new(e.to_string()))?,
@@ -97,7 +97,7 @@ fn hosted_film(spec: &TimelineSpec, server: &str) -> Result<HostedFilm, ExecErro
 }
 
 impl HostedFilm {
-    fn page(&self, scale: f64) -> FilmPage<'_> {
+    pub(crate) fn page(&self, scale: f64) -> FilmPage<'_> {
         FilmPage {
             url: &self.url,
             spec: &self.spec,
@@ -255,7 +255,7 @@ async fn chapters_for(
     })
 }
 
-async fn run_tool(
+pub(crate) async fn run_tool(
     ctx: &ExecutorContext,
     engine: &RenderEngine,
     args: Vec<String>,
@@ -334,7 +334,7 @@ async fn render_variant(
     Ok(artifacts)
 }
 
-async fn asset_server(
+pub(crate) async fn asset_server(
     ctx: &ExecutorContext,
     engine: &RenderEngine,
     spec: &TimelineSpec,

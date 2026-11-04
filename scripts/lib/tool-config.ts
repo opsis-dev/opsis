@@ -25,6 +25,7 @@ export const IGNORED_PATHS = [
   "crates/capture/src/playwright/*.generated.*",
   "apps/frontend/src/generated/bindings.ts",
   "film-bundle/**",
+  "terminal-bundle/**",
   "resources/**",
   "packages/*/dist/**",
   "apps/frontend/src/routeTree.gen.ts",

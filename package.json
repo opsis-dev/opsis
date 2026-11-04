@@ -61,6 +61,7 @@
     "terminal:themes": "bun scripts/terminal-themes.ts",
     "db:prepare": "bun scripts/sqlx-prepare.ts",
     "film:bundle": "bun run --cwd apps/film build",
+    "terminal:bundle": "bun run --cwd apps/terminal build",
     "e2e:app": "cd crates/desktop && CARGO_TARGET_DIR=../../target/e2e tauri build --debug --no-bundle --features e2e",
     "test:e2e": "bun run e2e:app && bun run --cwd e2e e2e",
     "stage": "bun scripts/stage.ts",

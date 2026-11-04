@@ -2,11 +2,12 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::Duration;
 
+use opsis_compile::terminal::default_look;
 use opsis_runner::context::{BoxFuture, ExecError};
 use opsis_terminal::executors::{LiveTapeHost, LiveTapeRequest};
 use opsis_terminal::live::{LiveOptions, LiveTape};
 use opsis_terminal::tape::write;
-use opsis_types::terminal::{TerminalInput, TerminalTheme};
+use opsis_types::terminal::{TerminalInput, TerminalLook, TerminalTheme};
 use serde::Serialize;
 use tauri::{AppHandle, Manager, State};
 use tokio::sync::oneshot;
@@ -14,6 +15,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::error::{CommandError, CommandResult};
 use crate::frames::{FrameChannel, send};
+use crate::terminal_paint::PaintQueue;
 use crate::windows::open_terminal_window;
 
 const FRAME_GAP: Duration = Duration::from_millis(33);
@@ -22,14 +24,53 @@ const FRAME_GAP: Duration = Duration::from_millis(33);
 #[serde(rename_all = "camelCase")]
 struct TerminalFrameHeader {
     skipped: u32,
+    width: u32,
+    height: u32,
+    cols: u16,
+    rows: u16,
+    cell_width: f64,
+    cell_height: f64,
+    padding: u32,
 }
+
+type Channel = Arc<Mutex<Option<FrameChannel>>>;
 
 struct Entry {
     tape: Mutex<Option<LiveTape>>,
     theme: TerminalTheme,
-    frames: Mutex<Option<FrameChannel>>,
+    frames: Channel,
+    painter: PaintQueue<u32>,
     done: Mutex<Option<oneshot::Sender<bool>>>,
     closed: CancellationToken,
+}
+
+fn painter(
+    app: &AppHandle,
+    look: TerminalLook,
+    cols: u16,
+    rows: u16,
+    frames: Channel,
+) -> PaintQueue<u32> {
+    let (cell_width, cell_height, padding) = (look.cell_width(), look.cell_height(), look.padding);
+    PaintQueue::start(app, look, move |size, jpeg, skipped| {
+        let header = TerminalFrameHeader {
+            skipped,
+            width: size.width,
+            height: size.height,
+            cols,
+            rows,
+            cell_width,
+            cell_height,
+            padding,
+        };
+        let mut frames = lock(&frames);
+        if !frames
+            .as_ref()
+            .is_some_and(|channel| send(channel, &header, &jpeg))
+        {
+            frames.take();
+        }
+    })
 }
 
 fn lock<T>(shared: &Mutex<T>) -> MutexGuard<'_, T> {
@@ -53,15 +94,8 @@ impl Entry {
                 }
             }
         };
-        let Some((bytes, skipped)) = frame else {
-            return;
-        };
-        let mut frames = lock(&self.frames);
-        let sent = frames
-            .as_ref()
-            .is_some_and(|channel| send(channel, &TerminalFrameHeader { skipped }, &bytes));
-        if !sent {
-            frames.take();
+        if let Some((bytes, skipped)) = frame {
+            self.painter.offer(bytes, skipped);
         }
     }
 
@@ -117,10 +151,13 @@ async fn record(
     .map_err(|e| ExecError::new(e.to_string()))?;
     let id = uuid::Uuid::new_v4().simple().to_string();
     let (sender, receiver) = oneshot::channel();
+    let frames: Channel = Arc::new(Mutex::new(None));
+    let look = default_look(Some(request.theme.clone()));
     let entry = Arc::new(Entry {
         tape: Mutex::new(Some(tape)),
+        painter: painter(&app, look, request.cols, request.rows, Arc::clone(&frames)),
         theme: request.theme,
-        frames: Mutex::new(None),
+        frames,
         done: Mutex::new(Some(sender)),
         closed: CancellationToken::new(),
     });

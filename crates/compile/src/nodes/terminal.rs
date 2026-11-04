@@ -939,6 +939,7 @@ fn record_terminal() -> NodeDef {
                     cols,
                     rows,
                     theme: None,
+                    preview: None,
                 }),
             }),
         )])
@@ -1012,6 +1013,7 @@ fn play_tape() -> NodeDef {
                     cols: 80,
                     rows: 24,
                     theme: None,
+                    preview: None,
                 }),
             });
             outputs([
@@ -1079,6 +1081,7 @@ fn cast_file() -> NodeDef {
                     cols: 80,
                     rows: 24,
                     theme: None,
+                    preview: None,
                 }),
             });
         outputs([(RECORDING_PORT, CompileValue::Recording(recording))])

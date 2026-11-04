@@ -1,15 +1,21 @@
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
+use opsis_compile::asset_ref::project_rel_path;
+use opsis_compile::terminal::preview::{PREVIEW_FILE, PREVIEW_FPS, preview_size};
 use opsis_engine::tools::EngineFiles;
 use opsis_golden::{edge, home, node, repo};
 use opsis_media::executors::{Tools, media_executors};
 use opsis_media::ffmpeg::Ffmpeg;
+use opsis_probe::probe;
 use opsis_render::executors::{RenderEngine, output_executors};
+use opsis_render::preview::TakePreviews;
 use opsis_runner::context::{Executors, RunEnv};
 use opsis_runner::runner::{RunDeps, run_workflow};
+use opsis_terminal::executors::{TerminalDeps, terminal_executors};
 use opsis_types::events::{RunEvent, RunRequest};
 use opsis_types::settings::AppSettings;
+use opsis_types::values::{ArtifactKind, CompileValue, TakeSource};
 use opsis_types::workflow::Workflow;
 use serde_json::json;
 use tokio_util::sync::CancellationToken;
@@ -158,4 +164,104 @@ async fn runs_media_nodes_and_exports_a_film() {
             "{file} wasn't exported"
         );
     }
+}
+
+#[tokio::test]
+#[ignore = "needs the dev engine and the film page (bun run film:bundle)"]
+async fn draws_a_preview_of_every_terminal_take() {
+    let engine = EngineFiles::downloaded(&home().join(".config/Opsis/engine"));
+    let base = home().join(".cache/opsis-render-test/preview");
+    let project = base.join("project");
+    let temp = base.join("tmp");
+    if project.exists() {
+        std::fs::remove_dir_all(&project).unwrap();
+    }
+    std::fs::create_dir_all(&project).unwrap();
+    std::fs::create_dir_all(&temp).unwrap();
+    std::fs::copy(
+        repo().join("crates/terminal/tests/casts/demo.cast"),
+        project.join("demo.cast"),
+    )
+    .unwrap();
+    let tools: Tools = Arc::new(Ffmpeg::new(&engine).with_temp(&temp));
+    let render = Arc::new(RenderEngine {
+        tools,
+        film_bundle: repo().join("film-bundle"),
+    });
+    let mut executors = Executors::default();
+    executors
+        .extend(terminal_executors(&TerminalDeps {
+            previews: Some(Arc::new(TakePreviews::new(render))),
+            ..TerminalDeps::default()
+        }))
+        .unwrap();
+    let events = Arc::new(Mutex::new(Vec::new()));
+    let seen = Arc::clone(&events);
+    let deps = RunDeps {
+        env: Arc::new(RunEnv {
+            app_version: "test".into(),
+            engine,
+            public_dir: repo().join("public"),
+            temp_dir: temp,
+            settings: AppSettings::default(),
+        }),
+        executors: Arc::new(executors),
+        emit: Arc::new(move |e| seen.lock().unwrap().push(e)),
+        cancel: CancellationToken::new(),
+    };
+    let workflow: Workflow = serde_json::from_value(json!({
+        "version": 1, "id": "preview", "name": "Preview", "edges": [],
+        "nodes": [node("cast", "terminal.castFile", json!({ "file": "project:demo.cast" }))],
+    }))
+    .unwrap();
+    let request = RunRequest {
+        project_dir: project.to_string_lossy().into_owned(),
+        workflow,
+        target_node_ids: None,
+        from_node_id: None,
+    };
+    run_workflow("preview", request, deps).await;
+    let events = events.lock().unwrap();
+    let result = events
+        .iter()
+        .find_map(|e| match e {
+            RunEvent::NodeDone {
+                result: Some(result),
+                ..
+            } => Some(result),
+            _ => None,
+        })
+        .unwrap_or_else(|| panic!("no result: {events:#?}"));
+    let Some(CompileValue::Recording(take)) = result.output("recording") else {
+        panic!("no take: {result:?}");
+    };
+    let TakeSource::Terminal(source) = &take.source else {
+        panic!("not a terminal take");
+    };
+    let preview = source.preview.as_deref().expect("a preview");
+    let file = project.join(project_rel_path(preview).unwrap());
+    assert!(
+        result
+            .artifacts
+            .iter()
+            .any(|a| a.kind == ArtifactKind::Video && a.path.ends_with(PREVIEW_FILE)),
+        "{:?}",
+        result.artifacts
+    );
+    let bytes = std::fs::read(&file).unwrap();
+    let at = |tag: &[u8]| bytes.windows(tag.len()).position(|w| w == tag).unwrap();
+    assert!(
+        at(b"moov") < at(b"mdat"),
+        "the editor's player needs the index before the pictures"
+    );
+    let probed = probe(&file).unwrap();
+    let video = probed.video.unwrap();
+    let size = preview_size(take).unwrap();
+    assert_eq!((video.width, video.height), (size.width, size.height));
+    let length = f64::from(probed.duration_ms.unwrap());
+    assert!(
+        (length - take.duration_ms).abs() <= 1000.0 / f64::from(PREVIEW_FPS) * 2.0,
+        "{length} ms against a {} ms take",
+        take.duration_ms
+    );
 }

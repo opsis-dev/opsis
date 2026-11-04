@@ -1,4 +1,3 @@
-import { decodeFrames, type TerminalFrames } from "@opsis/video/terminal/frames";
 import { Channel } from "@tauri-apps/api/core";
 import type { EventCallback, UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
@@ -34,14 +33,13 @@ export type FrameHeader = {
   t: number;
   captureId?: string;
   nodeId?: string;
-  terminal?: boolean;
 };
 
 export type StreamFrame = { header: FrameHeader; jpeg: Uint8Array<ArrayBuffer> };
 
 const decoder = new TextDecoder();
 
-export function readPacked<H>(buffer: ArrayBuffer): { header: H; body: Uint8Array<ArrayBuffer> } {
+function readPacked<H>(buffer: ArrayBuffer): { header: H; body: Uint8Array<ArrayBuffer> } {
   const length = new DataView(buffer).getUint32(0, true);
   const header = JSON.parse(decoder.decode(new Uint8Array(buffer, 4, length))) as H;
   return { header, body: new Uint8Array(buffer.slice(4 + length)) };
@@ -75,28 +73,11 @@ export type LiveMessage =
       height: number;
       t: number;
     }
-  | {
-      type: "terminal";
-      captureId: string;
-      nodeId: string;
-      frames: TerminalFrames;
-      cols: number;
-      rows: number;
-      t: number;
-    }
   | { type: "event"; captureId: string; nodeId: string; t: number; event: LiveEvent };
 
 export function watchLive(listener: (message: LiveMessage) => void): () => void {
   const frames = frameChannel(({ header, jpeg }) => {
     const ids = { captureId: header.captureId ?? "", nodeId: header.nodeId ?? "", t: header.t };
-    if (header.terminal)
-      return listener({
-        type: "terminal",
-        ...ids,
-        frames: decodeFrames(jpeg),
-        cols: header.width,
-        rows: header.height,
-      });
     listener({ type: "frame", ...ids, jpeg, width: header.width, height: header.height });
   });
   const off = on(events.liveNoted, (note) => listener({ type: "event", ...note }));

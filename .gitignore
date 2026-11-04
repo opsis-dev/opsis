@@ -17,6 +17,7 @@ vite.config.ts.timestamp-*
 # Builds
 apps/*/dist/
 film-bundle/
+terminal-bundle/
 /resources/
 
 # Projects and secrets

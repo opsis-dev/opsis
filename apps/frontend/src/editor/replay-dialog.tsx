@@ -28,7 +28,6 @@ import { fileUrl } from "./file-url";
 import { ImagePreview } from "./image-preview";
 import { ListRow } from "./list-row";
 import { revealProjectFile } from "./reveal";
-import { TerminalPlayer, type TerminalPlayerHandle } from "./terminal-player";
 import { MONO_TEXT } from "./text-styles";
 import { TracePanel } from "./trace-panel";
 
@@ -117,11 +116,10 @@ function ReplayFootage({ nodeId }: { nodeId: string }) {
   const projectDir = useWorkflowStore((s) => s.projectDir);
   const setSelected = useUiStore((s) => s.setSelected);
   const video = useRef<HTMLVideoElement>(null);
-  const player = useRef<TerminalPlayerHandle>(null);
   const [time, setTime] = useState(0);
-  const src = recording?.source.kind === "browser" ? recording.source.video : null;
-  const terminal = recording?.source.kind === "terminal" ? recording.source : null;
-  const file = src ?? terminal?.cast ?? null;
+  const source = recording?.source;
+  const src = source?.kind === "terminal" ? (source.preview ?? null) : (source?.video ?? null);
+  const file = source?.kind === "terminal" ? source.cast : (source?.video ?? null);
   const actions = recording?.log?.actions ?? [];
   const activeIndex = actions.findLastIndex((a) => a.t <= time * 1000);
 
@@ -139,16 +137,7 @@ function ReplayFootage({ nodeId }: { nodeId: string }) {
             </AlertDescription>
           </Alert>
         ) : null}
-        {terminal?.cast ? (
-          <TerminalPlayer
-            cast={terminal.cast}
-            theme={terminal.theme ?? null}
-            onTime={setTime}
-            handle={player}
-          />
-        ) : (
-          <Footage recordingSrc={src} imageSrc={imageSrc} onTime={setTime} video={video} />
-        )}
+        <Footage recordingSrc={src} imageSrc={imageSrc} onTime={setTime} video={video} />
         {file && projectDir ? (
           <div className="flex gap-2">
             <Button
@@ -167,7 +156,6 @@ function ReplayFootage({ nodeId }: { nodeId: string }) {
         activeIndex={activeIndex}
         onPick={(a) => {
           if (video.current) video.current.currentTime = a.t / 1000;
-          player.current?.seek(a.t / 1000);
           if (a.nodeId) setSelected([a.nodeId]);
         }}
       />

@@ -47,6 +47,13 @@ impl RecordingValue {
             TakeSource::Terminal(_) => None,
         }
     }
+
+    pub fn picture(&self) -> Option<&str> {
+        match &self.source {
+            TakeSource::Browser(b) => b.video.as_deref(),
+            TakeSource::Terminal(t) => t.preview.as_deref(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
@@ -102,6 +109,8 @@ pub struct TerminalSource {
     pub rows: u16,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub theme: Option<Box<TerminalTheme>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub preview: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]

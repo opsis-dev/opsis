@@ -9,7 +9,6 @@ import { fileUrl } from "./file-url";
 import { ImagePreview } from "./image-preview";
 import { ReplayButtons } from "./replay-buttons";
 import { revealOutputs, revealProjectFile } from "./reveal";
-import { TerminalPlayer } from "./terminal-player";
 
 function ArtifactPreview({ artifact }: { artifact: Artifact }) {
   if (artifact.kind === "video")
@@ -26,7 +25,6 @@ function ArtifactPreview({ artifact }: { artifact: Artifact }) {
     return <ImagePreview src={fileUrl(artifact.path)} alt={artifactName(artifact)} />;
   if (artifact.kind === "audio")
     return <AudioFilePlayer src={fileUrl(artifact.path)} label={artifactName(artifact)} />;
-  if (artifact.path.endsWith(".cast")) return <TerminalPlayer cast={artifact.path} theme={null} />;
   return null;
 }
 

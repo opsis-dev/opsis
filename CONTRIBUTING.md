@@ -9,6 +9,7 @@ You need [Bun](https://bun.sh), a Rust toolchain, and on Linux the WebKitGTK and
 ```sh
 bun install
 bun run film:bundle
+bun run terminal:bundle
 bun start
 ```
 

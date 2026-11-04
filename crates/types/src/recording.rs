@@ -388,6 +388,8 @@ pub enum ScreenProps {
         frames_url: Option<String>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         effects: Option<TerminalEffects>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        preview: Option<String>,
     },
 }
 

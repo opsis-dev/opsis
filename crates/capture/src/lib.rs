@@ -23,5 +23,6 @@ pub mod still;
 pub mod still_layout;
 pub mod take;
 pub mod take_clock;
+pub mod terminal_paint;
 pub mod trace;
 pub mod url_match;
