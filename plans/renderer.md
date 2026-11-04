@@ -1,6 +1,6 @@
 # Renderer
 
-The film is drawn by Opsis's own renderer: Rust drives the recording browser over the film page (`apps/film`, on `@opsis/runtime`), captures each frame and encodes it with FFmpeg (`AGENTS.md`, The film page and the frame driver). This plan is what's left to make it faster and to decide its open questions.
+The film is drawn by Opsis's own renderer: Rust drives the recording browser over the film page (`apps/film`, on `@opsis/runtime`), captures each frame and encodes it with FFmpeg (`agent-docs/film.md`). This plan is what's left to make it faster and to decide its open questions.
 
 Status: the renderer is on `main` (`crates/capture/src/film.rs`, `crates/render/src/frames.rs`). Performance is measured on release builds only.
 
@@ -8,7 +8,7 @@ Status: the renderer is on `main` (`crates/capture/src/film.rs`, `crates/render/
 
 - Section 1 lists the measurements to take, section 2 the work they decide, section 3 decisions for the user, section 4 risks, section 5 sources.
 - Each piece of work ends with the usual checks: `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, the element stills against the previous run (`bun run elements:render`, 138 stills, byte comparison) and the dev-engine tests of any crate touched (`crates/render/tests/frames.rs`, `three_stills.rs`, `run.rs`).
-- Rules from `AGENTS.md` hold unless this plan changes them on purpose; every such change updates `AGENTS.md` in the same commit.
+- Rules from `AGENTS.md` and `agent-docs/` hold unless this plan changes them on purpose; every such change updates the doc that holds the rule in the same commit.
 
 ## 1. Measurements
 

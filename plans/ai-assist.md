@@ -12,7 +12,7 @@ Status: plan only. Nothing here is built yet.
 
 ## Conventions
 
-These restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins. When a feature ships, add its rules to `AGENTS.md` (an "Assistant" paragraph next to "Local API").
+These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with this plan, they win. When a feature ships, add its rules to a doc of its own in `agent-docs/`, listed in `AGENTS.md` §8.
 
 **Privacy.**
 
@@ -156,7 +156,7 @@ Missing: the outline, the draft schema, the draft-to-nodes mapping, the dialog. 
 
 ### What it adds
 
-On a Record take that has run: **Suggest chapters**. Opsis splits the take where it moves to a new page or pauses, the model names each part ("Create a project", "Invite a teammate"), and the user edits the titles and inserts them as Chapter actions and Timeline markers. Export video already writes chapters from Chapter actions into the file and the optional YouTube list (**Chapters in exports** in `AGENTS.md`). Optionally it also names unnamed actions, since an action's name is also its camera, chapter and caption label.
+On a Record take that has run: **Suggest chapters**. Opsis splits the take where it moves to a new page or pauses, the model names each part ("Create a project", "Invite a teammate"), and the user edits the titles and inserts them as Chapter actions and Timeline markers. Export video already writes chapters from Chapter actions into the file and the optional YouTube list (**Chapters in exports** in `agent-docs/timeline.md`). Optionally it also names unnamed actions, since an action's name is also its camera, chapter and caption label.
 
 ### Fit with Opsis
 

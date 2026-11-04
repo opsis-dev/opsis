@@ -7,7 +7,7 @@ Replace the ffmpeg-static program the app ships as its `opsis-ffmpeg` sidecar wi
 - Sections 1 and 2 are the sidecar's loose ends. Section 3, Opsis's own build, swaps the program without touching the app. Section 4 records the option not chosen.
 - Each section has the same parts where they apply: **Work** (numbered, only what is left), **Decided**.
 - Each piece of work ends with the usual checks: `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, and the tests of the crates that start FFmpeg (`bun run test:rust -p opsis-media -p opsis-footage -p opsis-render -p opsis-capture -- --ignored`, which sets `OPSIS_FFMPEG`).
-- This plan changes `AGENTS.md` on purpose (the generated-code table, One engine, Packaging, Licences); every such change updates `AGENTS.md`, `README.md`, `THIRD_PARTY_NOTICES.md` and `plans/release.md` in the same commit.
+- This plan changes the docs on purpose (the generated-code table in `AGENTS.md`, `agent-docs/engine.md`, `agent-docs/packaging.md`); every such change updates those docs, `README.md`, `THIRD_PARTY_NOTICES.md` and `plans/release.md` in the same commit.
 
 ## Summary
 

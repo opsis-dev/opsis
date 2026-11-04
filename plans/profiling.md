@@ -4,7 +4,7 @@ What Opsis costs in size, build time, CPU and memory, measured with development 
 
 ## How to read this plan
 
-- Each section has the same parts where they apply: **In place**, **Work** (numbered, only what is left), **Decision for the user**, **Risks**. Rules from `AGENTS.md` hold throughout; when the two disagree, `AGENTS.md` wins.
+- Each section has the same parts where they apply: **In place**, **Work** (numbered, only what is left), **Decision for the user**, **Risks**. Rules from `AGENTS.md` and `agent-docs/` hold throughout; when they disagree with this plan, they win.
 - Every measurement carries its date; a newer one replaces the older.
 - Measured on Linux x64 (20 cores, 14 GiB of memory).
 

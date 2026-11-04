@@ -13,7 +13,7 @@ Status: plan only. Nothing here is built yet.
 
 ## Conventions
 
-These restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins:
+These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with this plan, they win:
 
 - Packages through `bun add` / `cargo add`, latest release.
 - Never hand-edit `packages/video/src/elements/**`, `lib/**`, `hooks/**` or any `*.generated.*`. Code written from an upstream component is Opsis's own and never goes there.
@@ -98,7 +98,7 @@ Missing:
    - Copy the upstream file once into the target folder, then rewrite it. Delete `"use client"`, `cn()` imports from the web app and every comment.
    - `motion.div` with `initial` / `animate` / `transition` → a plain element whose style comes from `interpolate(frame, [start, end], [from, to], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing })` or `spring({ frame, fps, config })`. Keyframe arrays (`rotate: [0, -10, 10, -10, 0]`) → `interpolate` with as many input points, spread over the original `duration` in frames. Motion `ease` names map to `Easing.bezier` with the same control points.
    - `variants` + `useAnimation()` / hover handlers → a `start` (seconds, default 0) and `loop` setting; the variant plays from `start`.
-   - CSS `@keyframes` / Tailwind `animate-*` → the same property computed from the frame. Only when a keyframe can't be rewritten (a long multi-stop gradient), a paused CSS animation (`animationPlayState: "paused"`, `animationDelay` set to minus the element's time in seconds) is allowed, with keyframe names prefixed `df-` and never `spin` (see **Animation names are global** in `AGENTS.md`); record each such case in `AGENTS.md`.
+   - CSS `@keyframes` / Tailwind `animate-*` → the same property computed from the frame. Only when a keyframe can't be rewritten (a long multi-stop gradient), a paused CSS animation (`animationPlayState: "paused"`, `animationDelay` set to minus the element's time in seconds) is allowed, with keyframe names prefixed `df-` and never `spin` (see **Never name a keyframe `spin`** in `agent-docs/editor.md`); record each such case in `AGENTS.md`.
    - `useEffect` timers, `setInterval`, `requestAnimationFrame` → frame math. Canvas drawing happens in a `useLayoutEffect` keyed on the frame, drawing the whole picture each time (never incrementally).
    - `Math.random()` → `random(seed + "-" + index)` with a `seed` setting (min 1).
    - Measuring (`getBoundingClientRect`, `ResizeObserver`, `IntersectionObserver`) → compute layout from settings; when text must be measured, measure once after fonts load under `holdRender`, never per frame.

@@ -7,7 +7,7 @@ Status: plan only. Nothing here is built yet.
 ## How to read this plan
 
 - Each section is one improvement and can be built on its own.
-- Each section has **What it adds**, **In place**, **Work** (numbered) and, where there are any, **Risks**. Rules from `AGENTS.md` hold throughout; when the two disagree, `AGENTS.md` wins.
+- Each section has **What it adds**, **In place**, **Work** (numbered) and, where there are any, **Risks**. Rules from `AGENTS.md` and `agent-docs/` hold throughout; when they disagree with this plan, they win.
 - Sizes are rough: small (a few files, one crate and its card or widget), medium (several crates or the editor and Rust together), large (a new way of working through a whole crate).
 
 ## Conventions
@@ -37,7 +37,7 @@ Because smooth recording is slower than real time, a reply has almost always arr
 
 - Request interception for Mock response, pausing requests before they're sent (`crates/capture/src/route.rs`, `Fetch.enable` at the request stage).
 - The trace records every request and reply with times (`crates/capture/src/trace.rs:186`).
-- Smooth takes: the take clock (`TakeClock`, `crates/capture/src/take_clock.rs`) and the frame stepper (`Smooth`, `crates/capture/src/smooth.rs`), see Smooth takes in `AGENTS.md`.
+- Smooth takes: the take clock (`TakeClock`, `crates/capture/src/take_clock.rs`) and the frame stepper (`Smooth`, `crates/capture/src/smooth.rs`), see Smooth takes in `agent-docs/capture.md`.
 
 ### Work
 

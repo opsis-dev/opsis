@@ -12,7 +12,7 @@ Status: plan only. Nothing here is built yet.
 
 ## Conventions
 
-These apply to every feature in this plan. They restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins.
+These apply to every feature in this plan. They restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with this plan, they win.
 
 **Where code goes.**
 
