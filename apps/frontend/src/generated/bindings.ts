@@ -1282,7 +1282,7 @@ export type Master = {
 
 export type Measured = { type: "noiseLevel"; beforeDb: number; afterDb: number } | { type: "file"; bytes: number; fps?: number } | { type: "changes"; count: number } | { type: "fitted"; tempo?: number; loops: number } | { type: "tape"; steps: number; ignored: string[]; warnings: string[] } | { type: "cast"; events: number };
 
-export type MediaKind = "video" | "audio" | "image";
+export type MediaKind = "video" | "audio" | "image" | "terminal-take";
 
 export type MediaValue = {
 	src: string | null,

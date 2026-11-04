@@ -116,6 +116,8 @@ pub enum Phase {
     Post,
 }
 
+pub const TERMINAL_TAKE_FILE: &str = "The connected file is a terminal take, which has no picture or sound of its own. Make a clip of it with Clip from take.";
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FileNeed {
     Image,
@@ -127,6 +129,9 @@ pub enum FileNeed {
 
 impl FileNeed {
     pub fn refuses(self, media: &MediaValue) -> bool {
+        if media.kind == MediaKind::TerminalTake {
+            return true;
+        }
         match self {
             Self::Image => media.kind != MediaKind::Image,
             Self::Picture => media.kind == MediaKind::Audio,
@@ -134,6 +139,13 @@ impl FileNeed {
             Self::Sound => media.kind == MediaKind::Image || media.has_audio == Some(false),
             Self::SoundFile => media.kind != MediaKind::Audio,
         }
+    }
+
+    pub fn message_for(self, media: &MediaValue) -> &'static str {
+        if media.kind == MediaKind::TerminalTake {
+            return TERMINAL_TAKE_FILE;
+        }
+        self.message()
     }
 
     pub const fn message(self) -> &'static str {

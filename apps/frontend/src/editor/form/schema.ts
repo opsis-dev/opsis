@@ -1,5 +1,5 @@
 import { isRecord, isString } from "@opsis/video/common/guards";
-import type { FieldWidget, ThemeMode } from "@opsis/video/generated/spec";
+import type { FieldWidget, MediaKind, ThemeMode } from "@opsis/video/generated/spec";
 
 type FieldPreset = { label: string; values: Record<string, unknown> };
 
@@ -21,7 +21,7 @@ export type FieldMeta = {
   timeKey?: string;
   lengthKey?: string;
   showIf?: Record<string, string[]>;
-  showIfFile?: Record<string, Array<"image" | "video" | "audio">>;
+  showIfFile?: Record<string, MediaKind[]>;
   showIfTake?: Array<"browser" | "terminal">;
   themes?: Partial<Record<ThemeMode, Record<string, string>>>;
 };

@@ -7,8 +7,9 @@ use opsis_compile::asset_ref::{FILM_FOLDER, project_ref};
 use opsis_compile::hosted::hosted;
 use opsis_compile::nodes::media::Codec;
 use opsis_compile::nodes::output::{
-    ExportImages, ExportVideo, Gl, RENDER_TYPE, SAVE_TAKE_TYPE, STILL_TYPE, SaveTake, StillFormat,
-    Variant, export_base_name, still_file_names, take_file_name, variant_size, video_file_names,
+    ExportImages, ExportVideo, Gl, RENDER_TYPE, SAVE_TAKE_TYPE, SAVED_TAKE_PORT, STILL_TYPE,
+    SaveTake, StillFormat, Variant, export_base_name, still_file_names, take_file_name,
+    take_media_kind, variant_size, video_file_names,
 };
 use opsis_compile::time::{frames_to_ms, lerp, ms_to_frames_from};
 use opsis_compile::timeline::chapters::{
@@ -31,6 +32,7 @@ use opsis_types::numbers::whole;
 use opsis_types::timeline::{ReframeMode, SpecAssets, TimelineSpec};
 use opsis_types::values::{
     Artifact, ArtifactKind, CompileValue, ImageValue, MediaKind, MediaValue, PortValues, TakeKind,
+    TakeSource,
 };
 use serde_json::Value;
 
@@ -497,9 +499,22 @@ async fn save_take(
         TakeKind::Browser => ArtifactKind::Video,
         TakeKind::Terminal => ArtifactKind::File,
     };
+    let saved = project_path(&ctx, &out)?;
+    let size = match &take.source {
+        TakeSource::Browser(b) => Some((b.viewport.width, b.viewport.height)),
+        TakeSource::Terminal(_) => None,
+    };
+    let media = MediaValue {
+        src: Some(project_ref(&saved)),
+        kind: take_media_kind(take.kind()),
+        duration_ms: Some(whole(take.duration_ms)),
+        width: size.map(|s| s.0),
+        height: size.map(|s| s.1),
+        has_audio: Some(false),
+    };
     Ok(ExecutorOutput {
-        outputs: PortValues::new(),
-        artifacts: vec![Artifact::labelled(kind, project_path(&ctx, &out)?, "Take")],
+        outputs: PortValues::from([(SAVED_TAKE_PORT.to_owned(), CompileValue::Media(media))]),
+        artifacts: vec![Artifact::labelled(kind, saved, "Take")],
         trace_id: None,
         measured: Vec::new(),
     })

@@ -186,6 +186,7 @@ const fn artifact_kind(kind: MediaKind) -> ArtifactKind {
         MediaKind::Video => ArtifactKind::Video,
         MediaKind::Image => ArtifactKind::Image,
         MediaKind::Audio => ArtifactKind::Audio,
+        MediaKind::TerminalTake => ArtifactKind::File,
     }
 }
 

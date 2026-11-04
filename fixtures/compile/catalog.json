@@ -5724,7 +5724,14 @@
      "many": false
     }
    },
-   "outputs": {}
+   "outputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   }
   },
   {
    "type": "core.note",
@@ -70824,7 +70831,14 @@
      "many": false
     }
    },
-   "outputs": {},
+   "outputs": {
+    "media": {
+     "type": "media",
+     "label": "File",
+     "optional": false,
+     "many": false
+    }
+   },
    "params": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "properties": {

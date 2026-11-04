@@ -134,10 +134,14 @@ pub const AUDIO_EXTENSIONS: [&str; 14] = [
     "mka",
 ];
 
+pub const TERMINAL_TAKE_EXTENSIONS: [&str; 1] = ["cast"];
+
 pub fn kind_from_path(path: &str) -> opsis_types::values::MediaKind {
     use opsis_types::values::MediaKind;
     let ext = extension_of(path);
-    if IMAGE_EXTENSIONS.contains(&ext.as_str()) {
+    if TERMINAL_TAKE_EXTENSIONS.contains(&ext.as_str()) {
+        MediaKind::TerminalTake
+    } else if IMAGE_EXTENSIONS.contains(&ext.as_str()) {
         MediaKind::Image
     } else if AUDIO_EXTENSIONS.contains(&ext.as_str()) {
         MediaKind::Audio

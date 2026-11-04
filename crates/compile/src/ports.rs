@@ -69,7 +69,7 @@ pub fn refused_conversion(value: &CompileValue, target: PortType) -> Option<Stri
     }
     Some(match value {
         CompileValue::Recording(take) if take.kind() == TakeKind::Terminal => {
-            "A terminal take has no video file. Save it with Save take, or make a clip with Clip from take".to_owned()
+            "A terminal take has no video file. Make a clip of it with Clip from take".to_owned()
         }
         _ => format!(
             "This {} can't connect to a {} input",

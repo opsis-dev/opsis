@@ -3,7 +3,7 @@ use opsis_types::cards::{Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::numbers::whole;
 use opsis_types::timeline::ReframeMode;
-use opsis_types::values::{Artifact, CompileValue, TakeKind};
+use opsis_types::values::{Artifact, CompileValue, MediaKind, TakeKind};
 use opsis_types::workflow::{PortType, WorkflowSettings};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -570,6 +570,15 @@ pub struct SaveTake {
     pub file_name: String,
 }
 
+pub const SAVED_TAKE_PORT: &str = "media";
+
+pub const fn take_media_kind(kind: TakeKind) -> MediaKind {
+    match kind {
+        TakeKind::Browser => MediaKind::Video,
+        TakeKind::Terminal => MediaKind::TerminalTake,
+    }
+}
+
 pub const fn take_extension(kind: TakeKind) -> &'static str {
     match kind {
         TakeKind::Browser => "mp4",
@@ -586,6 +595,19 @@ fn save_take() -> NodeDef {
         .describe("Saves a take's own recording as a file, as it was recorded: a video for a browser take, a cast file for a terminal take.")
         .executes()
         .inputs(vec![(RECORDING_PORT, port(PortType::Recording, "Recording"))])
+        .outputs(vec![(SAVED_TAKE_PORT, port(PortType::Media, "File"))])
+        .compile(|ctx: &Ctx<'_, SaveTake>| {
+            let saved = ctx
+                .result
+                .and_then(|r| r.output(SAVED_TAKE_PORT))
+                .filter(|v| v.port_type() == PortType::Media);
+            Ok(Some(
+                saved
+                    .map(|v| (SAVED_TAKE_PORT.to_owned(), v.clone()))
+                    .into_iter()
+                    .collect::<Outputs>(),
+            ))
+        })
         .claims(|p: &SaveTake| {
             [TakeKind::Browser, TakeKind::Terminal]
                 .into_iter()

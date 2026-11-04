@@ -14281,7 +14281,15 @@
    }
   ],
   "family": null,
-  "outputs": [],
+  "outputs": [
+   {
+    "id": "media",
+    "type": "media",
+    "label": "File",
+    "optional": false,
+    "many": false
+   }
+  ],
   "virtual": false,
   "action": false,
   "executes": true,
@@ -14290,7 +14298,7 @@
   "hidden": false,
   "cardHeight": null,
   "estimatedHeight": 168.0,
-  "compiles": false,
+  "compiles": true,
   "hasCard": true,
   "mutates": null,
   "hostDefaults": null,

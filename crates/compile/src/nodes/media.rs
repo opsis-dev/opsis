@@ -287,6 +287,10 @@ fn file_details_row(media: &MediaValue, path: &str, fps: Option<f64>) -> CardRow
             parts.push("Sound".to_owned());
             Icon::AudioLines
         }
+        MediaKind::TerminalTake => {
+            parts.push("Terminal take".to_owned());
+            Icon::SquareTerminal
+        }
     };
     row(icon, parts.join(" · "))
 }
@@ -384,6 +388,13 @@ fn media_to_clip(node_id: &str, media: Option<&MediaValue>, look: ClipLook<'_>) 
         MediaKind::Audio => {
             placeholder_clip(node_id, "Sound file", look.sound_label, frames, extra)
         }
+        MediaKind::TerminalTake => placeholder_clip(
+            node_id,
+            "Terminal take",
+            crate::node::TERMINAL_TAKE_FILE,
+            frames,
+            extra,
+        ),
         MediaKind::Image => {
             let extra = ItemExtra {
                 handles: look.still.map(|s| s.1),

@@ -2005,7 +2005,7 @@ export type MatrixDecode = {
 	letterSpacing: number,
 };
 
-export type MediaKind = "video" | "audio" | "image";
+export type MediaKind = "video" | "audio" | "image" | "terminal-take";
 
 export type MenuIcon = "search" | "settings" | "user" | "file";
 

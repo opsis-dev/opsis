@@ -655,9 +655,10 @@ fn file_need_issues(wf: &Workflow, compiled: &CompileResult) -> Vec<GraphIssue> 
             let need = spec.need?;
             let value = compiled.values.get(&e.source)?.get(&e.source_handle)?;
             let media = convert_input(Some(value), Some(spec))?;
-            let refused = media.as_media().is_some_and(|m| need.refuses(m));
-            (refused && seen.insert((target.id.as_str(), need.message())))
-                .then(|| warning(&target.id, need.message()))
+            let media = media.as_media().filter(|m| need.refuses(m))?;
+            let message = need.message_for(media);
+            seen.insert((target.id.as_str(), message))
+                .then(|| warning(&target.id, message))
         })
         .collect()
 }

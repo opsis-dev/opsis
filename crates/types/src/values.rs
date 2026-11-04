@@ -133,6 +133,8 @@ pub enum MediaKind {
     Video,
     Audio,
     Image,
+    #[serde(rename = "terminal-take")]
+    TerminalTake,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]

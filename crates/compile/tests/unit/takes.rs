@@ -212,3 +212,49 @@ fn says_which_kind_of_take_a_clip_is_made_from() {
     );
     assert!(texts.contains(&"The usual style".to_owned()));
 }
+
+#[test]
+fn a_saved_take_passes_its_file_on_once_it_has_run() {
+    let before =
+        crate::helpers::compile_node_with("output.take", json!({}), json!({}), None).unwrap();
+    assert!(before.is_empty());
+    let saved = json!({
+        "type": "media", "src": "project:.opsis/out/launch-day.cast", "kind": "terminal-take",
+        "durationMs": 4000, "hasAudio": false
+    });
+    let result = crate::helpers::node_result(json!({ "outputs": { "media": saved } }));
+    let after =
+        crate::helpers::compile_node_with("output.take", json!({}), json!({}), Some(&result))
+            .unwrap();
+    let media = after["media"].as_media().unwrap();
+    assert_eq!(media.kind, opsis_types::values::MediaKind::TerminalTake);
+    assert_eq!(
+        opsis_compile::nodes::output::take_media_kind(TakeKind::Browser),
+        opsis_types::values::MediaKind::Video
+    );
+}
+
+#[test]
+fn no_node_takes_a_terminal_take_file_as_a_picture_or_sound() {
+    use opsis_compile::node::{FileNeed, TERMINAL_TAKE_FILE};
+    use opsis_types::values::{MediaKind, MediaValue};
+    let cast = MediaValue {
+        src: Some("project:take.cast".to_owned()),
+        kind: opsis_compile::asset_ref::kind_from_path("take.cast"),
+        duration_ms: Some(4000),
+        width: None,
+        height: None,
+        has_audio: Some(false),
+    };
+    assert_eq!(cast.kind, MediaKind::TerminalTake);
+    for need in [
+        FileNeed::Image,
+        FileNeed::Picture,
+        FileNeed::Moving,
+        FileNeed::Sound,
+        FileNeed::SoundFile,
+    ] {
+        assert!(need.refuses(&cast), "{need:?}");
+        assert_eq!(need.message_for(&cast), TERMINAL_TAKE_FILE);
+    }
+}
