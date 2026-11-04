@@ -1,7 +1,8 @@
 export type SpriteShape =
   | { kind: "rect"; x: number; y: number; width: number; height: number; opacity: number }
-  | { kind: "fill"; d: string }
-  | { kind: "stroke"; d: string; width: number };
+  | { kind: "fill"; d: string; opacity?: number; clip?: boolean }
+  | { kind: "stroke"; d: string; width: number; clip?: boolean; inner?: boolean }
+  | { kind: "inverted"; shapes: SpriteShape[] };
 
 export type SpriteCell = { width: number; height: number; thickness: number };
 
@@ -12,6 +13,7 @@ const SHADES = { light: 0.25, medium: 0.5, dark: 0.75 } as const;
 const ARC_TENSION = 0.25;
 const BEZIER_CIRCLE = ((Math.SQRT2 - 1) * 4) / 3;
 const UNDERLINE_EM = 0.05;
+const WHOLE_PIXEL = 1e-6;
 
 export function strokeFor(fontSize: number): number {
   return Math.max(1, Math.ceil(fontSize * UNDERLINE_EM));
@@ -311,7 +313,7 @@ function dashes(
   gap: number,
   across: boolean,
 ): SpriteShape[] {
-  const length = across ? c.width : c.height;
+  const length = Math.floor((across ? c.width : c.height) + WHOLE_PIXEL);
   if (length < count * 2) {
     return across
       ? [
@@ -555,7 +557,7 @@ function braille(cp: number, c: SpriteCell): SpriteShape[] {
   });
 }
 
-function polygon(points: Array<[number, number]>): SpriteShape {
+function polygon(points: Array<[number, number]>): Extract<SpriteShape, { kind: "fill" }> {
   return { kind: "fill", d: `M${points.map(([x, y]) => `${x} ${y}`).join("L")}Z` };
 }
 
@@ -570,9 +572,10 @@ function flip(shape: SpriteShape, width: number): SpriteShape {
       return `${cmd}${out.join(" ")}`;
     });
   }
-  return shape.kind === "rect"
-    ? { ...shape, x: width - shape.x - shape.width }
-    : { ...shape, d: mirror(shape.d) };
+  if (shape.kind === "rect") return { ...shape, x: width - shape.x - shape.width };
+  if (shape.kind === "inverted")
+    return { ...shape, shapes: shape.shapes.map((s) => flip(s, width)) };
+  return { ...shape, d: mirror(shape.d) };
 }
 
 function halfCircle(c: SpriteCell, outline: boolean): SpriteShape {
@@ -583,7 +586,7 @@ function halfCircle(c: SpriteCell, outline: boolean): SpriteShape {
     `M0 0${outline ? `L${start} 0` : ""}C${k} 0 ${r} ${r - k} ${r} ${r}` +
     `L${r} ${c.height - r}C${r} ${c.height - r + k} ${k} ${c.height} ${start} ${c.height}` +
     (outline ? `L0 ${c.height}` : "Z");
-  return outline ? { kind: "stroke", width: c.thickness, d } : { kind: "fill", d };
+  return outline ? { kind: "stroke", width: c.thickness, d, inner: true } : { kind: "fill", d };
 }
 
 function powerline(cp: number, c: SpriteCell): SpriteShape[] | null {
@@ -696,13 +699,13 @@ function geometric(cp: number, c: SpriteCell): SpriteShape[] | null {
         ]),
       ];
     case 0x25f8:
-      return [{ kind: "stroke", width: c.thickness, d: `M0 0L${w} 0L0 ${h}Z` }];
+      return [{ kind: "stroke", width: c.thickness, d: `M0 0L${w} 0L0 ${h}Z`, inner: true }];
     case 0x25f9:
-      return [{ kind: "stroke", width: c.thickness, d: `M0 0L${w} 0L${w} ${h}Z` }];
+      return [{ kind: "stroke", width: c.thickness, d: `M0 0L${w} 0L${w} ${h}Z`, inner: true }];
     case 0x25fa:
-      return [{ kind: "stroke", width: c.thickness, d: `M0 0L${w} ${h}L0 ${h}Z` }];
+      return [{ kind: "stroke", width: c.thickness, d: `M0 0L${w} ${h}L0 ${h}Z`, inner: true }];
     case 0x25ff:
-      return [{ kind: "stroke", width: c.thickness, d: `M${w} 0L${w} ${h}L0 ${h}Z` }];
+      return [{ kind: "stroke", width: c.thickness, d: `M${w} 0L${w} ${h}L0 ${h}Z`, inner: true }];
     default:
       return null;
   }
@@ -788,16 +791,713 @@ function legacy(cp: number, c: SpriteCell): SpriteShape[] | null {
   return null;
 }
 
+const ONE_EIGHTH = 0.125;
+const ONE_THIRD = 1 / 3;
+const TWO_THIRDS = 2 / 3;
+const QUARTERS = [0, 0.25, 0.5, 0.75, 1];
+const FULL_ALPHA = 255;
+
+type Corner = "tl" | "tr" | "bl" | "br";
+type Edge = "top" | "right" | "bottom" | "left";
+type Spot = "left" | "center" | "right" | "top" | "middle" | "bottom";
+
+function line(
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  width: number,
+  clip = false,
+): SpriteShape {
+  return { kind: "stroke", width, d: `M${x0} ${y0}L${x1} ${y1}`, clip };
+}
+
+function circlePath(cx: number, cy: number, r: number): string {
+  const k = BEZIER_CIRCLE * r;
+  return (
+    `M${cx + r} ${cy}` +
+    `C${cx + r} ${cy + k} ${cx + k} ${cy + r} ${cx} ${cy + r}` +
+    `C${cx - k} ${cy + r} ${cx - r} ${cy + k} ${cx - r} ${cy}` +
+    `C${cx - r} ${cy - k} ${cx - k} ${cy - r} ${cx} ${cy - r}` +
+    `C${cx + k} ${cy - r} ${cx + r} ${cy - k} ${cx + r} ${cy}Z`
+  );
+}
+
+function spotX(c: SpriteCell, spot: Spot): number {
+  if (spot === "left") return 0;
+  if (spot === "right") return c.width;
+  return c.width / 2;
+}
+
+function spotY(c: SpriteCell, spot: Spot): number {
+  if (spot === "top") return 0;
+  if (spot === "bottom") return c.height;
+  return c.height / 2;
+}
+
+function circle(c: SpriteCell, h: Spot, v: Spot, filled: boolean): SpriteShape {
+  const x = spotX(c, h);
+  const y = spotY(c, v);
+  const r = 0.5 * Math.min(c.width, c.height);
+  return filled
+    ? { kind: "fill", d: circlePath(x, y, r), clip: true }
+    : { kind: "stroke", width: c.thickness, d: circlePath(x, y, r - c.thickness / 2), clip: true };
+}
+
+function edgeTriangle(c: SpriteCell, edge: Edge): SpriteShape {
+  const middle = Math.round(c.height / 2);
+  const center = Math.round(c.width / 2);
+  const ends: Record<Edge, [number, number, number, number]> = {
+    top: [c.width, 0, 0, 0],
+    left: [0, 0, 0, c.height],
+    bottom: [0, c.height, c.width, c.height],
+    right: [c.width, c.height, c.width, 0],
+  };
+  const [x0, y0, x1, y1] = ends[edge];
+  return polygon([
+    [center, middle],
+    [x0, y0],
+    [x1, y1],
+  ]);
+}
+
+function cornerTriangle(c: SpriteCell, corner: Corner, opacity: number): SpriteShape {
+  const { width: w, height: h } = c;
+  const points: Record<Corner, Array<[number, number]>> = {
+    tl: [
+      [0, 0],
+      [0, h],
+      [w, 0],
+    ],
+    tr: [
+      [0, 0],
+      [w, h],
+      [w, 0],
+    ],
+    bl: [
+      [0, 0],
+      [0, h],
+      [w, h],
+    ],
+    br: [
+      [0, h],
+      [w, h],
+      [w, 0],
+    ],
+  };
+  return { ...polygon(points[corner]), opacity };
+}
+
+function cornerDiagonals(c: SpriteCell, corners: Corner[]): SpriteShape[] {
+  const cx = Math.floor(c.width / 2) + (Math.floor(c.width) % 2);
+  const cy = Math.floor(c.height / 2) + (Math.floor(c.height) % 2);
+  const ends: Record<Corner, [number, number, number, number]> = {
+    tl: [cx, 0, 0, cy],
+    tr: [cx, 0, c.width, cy],
+    bl: [cx, c.height, 0, cy],
+    br: [cx, c.height, c.width, cy],
+  };
+  return corners.map((corner) => {
+    const [x0, y0, x1, y1] = ends[corner];
+    return line(x0, y0, x1, y1, c.thickness);
+  });
+}
+
+function cellDiagonal(c: SpriteCell, from: [Spot, Spot], to: [Spot, Spot]): SpriteShape {
+  return line(spotX(c, from[0]), spotY(c, from[1]), spotX(c, to[0]), spotY(c, to[1]), c.thickness);
+}
+
+function checkerboard(c: SpriteCell, parity: number): SpriteShape[] {
+  const width = Math.floor(c.width);
+  const height = Math.floor(c.height);
+  const ys = Math.round(4 * (c.height / c.width));
+  const out: SpriteShape[] = [];
+  for (let x = 0; x < 4; x++)
+    for (let y = 0; y < ys; y++)
+      if ((x + y) % 2 === parity)
+        out.push(
+          rect(
+            Math.floor((width * x) / 4),
+            Math.floor((height * y) / ys),
+            Math.floor((width * (x + 1)) / 4),
+            Math.floor((height * (y + 1)) / ys),
+          ),
+        );
+  return out;
+}
+
+function diagonalFill(c: SpriteCell, falling: boolean): SpriteShape[] {
+  const count = Math.max(1, Math.floor(Math.floor(c.width) / (2 * c.thickness)));
+  const stride = Math.round(c.width / count);
+  const out: SpriteShape[] = [];
+  for (let i = -count; i <= count; i++) {
+    const near = i * stride;
+    const far = c.width + near;
+    out.push(
+      falling
+        ? line(near, 0, far, c.height, c.thickness, true)
+        : line(far, 0, near, c.height, c.thickness, true),
+    );
+  }
+  return out;
+}
+
+function legacyMore(cp: number, c: SpriteCell): SpriteShape[] | null {
+  const MEDIUM = SHADES.medium;
+  const edges: Edge[] = ["left", "top", "right", "bottom"];
+  if (cp >= 0x1fb68 && cp <= 0x1fb6b)
+    return [{ kind: "inverted", shapes: [edgeTriangle(c, edges[cp - 0x1fb68] ?? "left")] }];
+  if (cp >= 0x1fb6c && cp <= 0x1fb6f) return [edgeTriangle(c, edges[cp - 0x1fb6c] ?? "left")];
+  switch (cp) {
+    case 0x1fb7c:
+      return [block(c, "left", ONE_EIGHTH, 1), block(c, "lower", 1, ONE_EIGHTH)];
+    case 0x1fb7d:
+      return [block(c, "left", ONE_EIGHTH, 1), block(c, "upper", 1, ONE_EIGHTH)];
+    case 0x1fb7e:
+      return [block(c, "right", ONE_EIGHTH, 1), block(c, "upper", 1, ONE_EIGHTH)];
+    case 0x1fb7f:
+      return [block(c, "right", ONE_EIGHTH, 1), block(c, "lower", 1, ONE_EIGHTH)];
+    case 0x1fb80:
+      return [block(c, "upper", 1, ONE_EIGHTH), block(c, "lower", 1, ONE_EIGHTH)];
+    case 0x1fb81:
+      return [0, 2, 4, 7].map((n) => fill(c, 0, 1, EIGHTHS[n] ?? 0, EIGHTHS[n + 1] ?? 1));
+    case 0x1fb8c:
+      return [block(c, "left", 0.5, 1, MEDIUM)];
+    case 0x1fb8d:
+      return [block(c, "right", 0.5, 1, MEDIUM)];
+    case 0x1fb8e:
+      return [block(c, "upper", 1, 0.5, MEDIUM)];
+    case 0x1fb8f:
+      return [block(c, "lower", 1, 0.5, MEDIUM)];
+    case 0x1fb90:
+      return [rect(0, 0, c.width, c.height, MEDIUM)];
+    case 0x1fb91:
+      return [rect(0, 0, c.width, c.height, MEDIUM), block(c, "upper", 1, 0.5)];
+    case 0x1fb92:
+      return [rect(0, 0, c.width, c.height, MEDIUM), block(c, "lower", 1, 0.5)];
+    case 0x1fb93:
+      return [];
+    case 0x1fb94:
+      return [rect(0, 0, c.width, c.height, MEDIUM), block(c, "right", 0.5, 1)];
+    case 0x1fb95:
+      return checkerboard(c, 0);
+    case 0x1fb96:
+      return checkerboard(c, 1);
+    case 0x1fb97: {
+      const h = Math.floor(c.height);
+      return [
+        rect(0, Math.floor(h / 4), c.width, Math.floor((2 * h) / 4)),
+        rect(0, Math.floor((3 * h) / 4), c.width, h),
+      ];
+    }
+    case 0x1fb98:
+      return diagonalFill(c, true);
+    case 0x1fb99:
+      return diagonalFill(c, false);
+    case 0x1fb9a:
+      return [edgeTriangle(c, "top"), edgeTriangle(c, "bottom")];
+    case 0x1fb9b:
+      return [edgeTriangle(c, "left"), edgeTriangle(c, "right")];
+    case 0x1fb9c:
+      return [cornerTriangle(c, "tl", MEDIUM)];
+    case 0x1fb9d:
+      return [cornerTriangle(c, "tr", MEDIUM)];
+    case 0x1fb9e:
+      return [cornerTriangle(c, "br", MEDIUM)];
+    case 0x1fb9f:
+      return [cornerTriangle(c, "bl", MEDIUM)];
+    case 0x1fbaf:
+      return lines(c, "2121");
+    case 0x1fbbd:
+      return [{ kind: "inverted", shapes: [diagonal(c, true), diagonal(c, false)] }];
+    case 0x1fbbe:
+      return [{ kind: "inverted", shapes: cornerDiagonals(c, ["br"]) }];
+    case 0x1fbbf:
+      return [{ kind: "inverted", shapes: cornerDiagonals(c, ["tl", "tr", "bl", "br"]) }];
+    case 0x1fbce:
+      return [block(c, "left", TWO_THIRDS, 1)];
+    case 0x1fbcf:
+      return [block(c, "left", ONE_THIRD, 1)];
+    default:
+      break;
+  }
+  const diagonalSets: Record<number, Corner[]> = {
+    0x1fba0: ["tl"],
+    0x1fba1: ["tr"],
+    0x1fba2: ["bl"],
+    0x1fba3: ["br"],
+    0x1fba4: ["tl", "bl"],
+    0x1fba5: ["tr", "br"],
+    0x1fba6: ["bl", "br"],
+    0x1fba7: ["tl", "tr"],
+    0x1fba8: ["tl", "br"],
+    0x1fba9: ["tr", "bl"],
+    0x1fbaa: ["tr", "bl", "br"],
+    0x1fbab: ["tl", "bl", "br"],
+    0x1fbac: ["tl", "tr", "br"],
+    0x1fbad: ["tl", "tr", "bl"],
+    0x1fbae: ["tl", "tr", "bl", "br"],
+  };
+  const set = diagonalSets[cp];
+  if (set) return cornerDiagonals(c, set);
+  const L: [Spot, Spot][] = [
+    ["right", "middle"],
+    ["left", "bottom"],
+    ["right", "top"],
+    ["left", "middle"],
+    ["left", "top"],
+    ["right", "middle"],
+    ["left", "middle"],
+    ["right", "bottom"],
+    ["left", "top"],
+    ["center", "bottom"],
+    ["center", "top"],
+    ["right", "bottom"],
+    ["right", "top"],
+    ["center", "bottom"],
+    ["center", "top"],
+    ["left", "bottom"],
+  ];
+  if (cp >= 0x1fbd0 && cp <= 0x1fbd7) {
+    const i = (cp - 0x1fbd0) * 2;
+    return [cellDiagonal(c, L[i] ?? ["left", "top"], L[i + 1] ?? ["left", "top"])];
+  }
+  const middle: [Spot, Spot] = ["center", "middle"];
+  const pairs: Record<number, Array<[[Spot, Spot], [Spot, Spot]]>> = {
+    0x1fbd8: [
+      [["left", "top"], middle],
+      [middle, ["right", "top"]],
+    ],
+    0x1fbd9: [
+      [["right", "top"], middle],
+      [middle, ["right", "bottom"]],
+    ],
+    0x1fbda: [
+      [["left", "bottom"], middle],
+      [middle, ["right", "bottom"]],
+    ],
+    0x1fbdb: [
+      [["left", "top"], middle],
+      [middle, ["left", "bottom"]],
+    ],
+    0x1fbdc: [
+      [
+        ["left", "top"],
+        ["center", "bottom"],
+      ],
+      [
+        ["center", "bottom"],
+        ["right", "top"],
+      ],
+    ],
+    0x1fbdd: [
+      [
+        ["right", "top"],
+        ["left", "middle"],
+      ],
+      [
+        ["left", "middle"],
+        ["right", "bottom"],
+      ],
+    ],
+    0x1fbde: [
+      [
+        ["left", "bottom"],
+        ["center", "top"],
+      ],
+      [
+        ["center", "top"],
+        ["right", "bottom"],
+      ],
+    ],
+    0x1fbdf: [
+      [
+        ["left", "top"],
+        ["right", "middle"],
+      ],
+      [
+        ["right", "middle"],
+        ["left", "bottom"],
+      ],
+    ],
+  };
+  const pair = pairs[cp];
+  if (pair) return pair.map(([from, to]) => cellDiagonal(c, from, to));
+  const circles: Record<number, [Spot, Spot, boolean]> = {
+    0x1fbe0: ["center", "top", false],
+    0x1fbe1: ["right", "middle", false],
+    0x1fbe2: ["center", "bottom", false],
+    0x1fbe3: ["left", "middle", false],
+    0x1fbe8: ["center", "top", true],
+    0x1fbe9: ["right", "middle", true],
+    0x1fbea: ["center", "bottom", true],
+    0x1fbeb: ["left", "middle", true],
+    0x1fbec: ["right", "top", true],
+    0x1fbed: ["left", "bottom", true],
+    0x1fbee: ["right", "bottom", true],
+    0x1fbef: ["left", "top", true],
+  };
+  const round = circles[cp];
+  if (round) return [circle(c, round[0], round[1], round[2])];
+  const halves: Record<number, Align> = {
+    0x1fbe4: "upper",
+    0x1fbe5: "lower",
+    0x1fbe6: "left",
+    0x1fbe7: "right",
+  };
+  const half = halves[cp];
+  return half ? [block(c, half, 0.5, 0.5)] : null;
+}
+
+function separated(c: SpriteCell, rows: number, bits: number): SpriteShape[] {
+  const width = Math.floor(c.width);
+  const height = Math.floor(c.height);
+  const gap = Math.max(1, Math.floor(width / 12));
+  const midX = gap * 2 + (width % 2);
+  const w = Math.floor((width - gap * 2 - midX) / 2);
+  const midY = rows === 2 ? gap * 2 + (height % 2) : gap * 2 + Math.floor((height % 3) / 2);
+  const h = Math.floor((height - gap * 2 - midY * (rows - 1)) / rows);
+  const middleH = height - gap * 2 - midY * (rows - 1) - h * (rows - 1);
+  const out: SpriteShape[] = [];
+  let y = gap;
+  for (let row = 0; row < rows; row++) {
+    const rowH = rows === 3 && row === 1 ? middleH : h;
+    for (let col = 0; col < 2; col++) {
+      if (!(bits & (1 << (row * 2 + col)))) continue;
+      const x = gap + col * (w + midX);
+      out.push(rect(x, y, x + w, y + rowH));
+    }
+    y += rowH + midY;
+  }
+  return out;
+}
+
+function circlePiece(
+  c: SpriteCell,
+  x: number,
+  y: number,
+  wf: number,
+  hf: number,
+  corner: Corner,
+): SpriteShape {
+  const w = c.width * wf;
+  const h = c.height * hf;
+  const xp = c.width * x;
+  const yp = c.height * y;
+  const cw = BEZIER_CIRCLE * w;
+  const ch = BEZIER_CIRCLE * h;
+  const t = c.thickness / 2;
+  const curves: Record<Corner, number[]> = {
+    tl: [w - xp, t - yp, w - cw - xp, t - yp, t - xp, h - ch - yp, t - xp, h - yp],
+    tr: [w - xp, t - yp, w + cw - xp, t - yp, w * 2 - t - xp, h - ch - yp, w * 2 - t - xp, h - yp],
+    bl: [t - xp, h - yp, t - xp, h + ch - yp, w - cw - xp, h * 2 - t - yp, w - xp, h * 2 - t - yp],
+    br: [
+      w * 2 - t - xp,
+      h - yp,
+      w * 2 - t - xp,
+      h + ch - yp,
+      w + cw - xp,
+      h * 2 - t - yp,
+      w - xp,
+      h * 2 - t - yp,
+    ],
+  };
+  const [mx, my, ...rest] = curves[corner];
+  return { kind: "stroke", width: c.thickness, d: `M${mx} ${my}C${rest.join(" ")}`, clip: true };
+}
+
+function supplement(cp: number, c: SpriteCell): SpriteShape[] | null {
+  const t = c.thickness;
+  const w = Math.floor(c.width);
+  const h = Math.floor(c.height);
+  if (cp >= 0x1cc21 && cp <= 0x1cc2f) return separated(c, 2, cp - 0x1cc20);
+  if (cp >= 0x1ce51 && cp <= 0x1ce8f) return separated(c, 3, cp - 0x1ce50);
+  const pieces: Record<number, [number, number, number, number, Corner]> = {
+    0x1cc30: [0, 0, 2, 2, "tl"],
+    0x1cc31: [1, 0, 2, 2, "tl"],
+    0x1cc32: [2, 0, 2, 2, "tr"],
+    0x1cc33: [3, 0, 2, 2, "tr"],
+    0x1cc34: [0, 1, 2, 2, "tl"],
+    0x1cc35: [0, 0, 1, 1, "tl"],
+    0x1cc36: [1, 0, 1, 1, "tr"],
+    0x1cc37: [3, 1, 2, 2, "tr"],
+    0x1cc38: [0, 2, 2, 2, "bl"],
+    0x1cc39: [0, 1, 1, 1, "bl"],
+    0x1cc3a: [1, 1, 1, 1, "br"],
+    0x1cc3b: [3, 2, 2, 2, "br"],
+    0x1cc3c: [0, 3, 2, 2, "bl"],
+    0x1cc3d: [1, 3, 2, 2, "bl"],
+    0x1cc3e: [2, 3, 2, 2, "br"],
+    0x1cc3f: [3, 3, 2, 2, "br"],
+  };
+  const piece = pieces[cp];
+  if (piece) return [circlePiece(c, ...piece)];
+  if (cp >= 0x1ce90 && cp <= 0x1ce9f) {
+    const i = cp - 0x1ce90;
+    const col = i % 4;
+    const row = Math.floor(i / 4);
+    return [
+      fill(
+        c,
+        QUARTERS[col] ?? 0,
+        QUARTERS[col + 1] ?? 1,
+        QUARTERS[row] ?? 0,
+        QUARTERS[row + 1] ?? 1,
+      ),
+    ];
+  }
+  const sixteenths: Record<number, [number, number, number, number]> = {
+    0x1cea0: [2, 4, 3, 4],
+    0x1cea1: [1, 4, 3, 4],
+    0x1cea2: [0, 3, 3, 4],
+    0x1cea3: [0, 2, 3, 4],
+    0x1cea4: [0, 1, 2, 4],
+    0x1cea5: [0, 1, 1, 4],
+    0x1cea6: [0, 1, 0, 3],
+    0x1cea7: [0, 1, 0, 2],
+    0x1cea8: [0, 2, 0, 1],
+    0x1cea9: [0, 3, 0, 1],
+    0x1ceaa: [1, 4, 0, 1],
+    0x1ceab: [2, 4, 0, 1],
+    0x1ceac: [3, 4, 0, 2],
+    0x1cead: [3, 4, 0, 3],
+    0x1ceae: [3, 4, 1, 4],
+    0x1ceaf: [3, 4, 2, 4],
+  };
+  const part = sixteenths[cp];
+  if (part) {
+    const [x0, x1, y0, y1] = part.map((q) => QUARTERS[q] ?? 0);
+    return [fill(c, x0 ?? 0, x1 ?? 1, y0 ?? 0, y1 ?? 1)];
+  }
+  const half = Math.floor(h / 2);
+  const halfW = Math.floor(w / 2);
+  switch (cp) {
+    case 0x1cc1b:
+      return [...lines(c, "0101"), rect(w - t, 0, w, half)];
+    case 0x1cc1c:
+      return [...lines(c, "0101"), rect(w - t, half, w, h)];
+    case 0x1cc1d:
+      return [rect(0, 0, w, t), rect(0, 0, t, half)];
+    case 0x1cc1e:
+      return [rect(0, h - t, w, h), rect(0, half, t, h)];
+    case 0x1ce00:
+      return [circle(c, "left", "middle", false), circle(c, "right", "middle", false)];
+    case 0x1ce01:
+      return [circle(c, "center", "top", false), circle(c, "center", "bottom", false)];
+    case 0x1ce0b:
+      return [circlePiece(c, 0, 0, 1, 0.5, "tl"), circlePiece(c, 0, 0, 1, 0.5, "bl")];
+    case 0x1ce0c:
+      return [circlePiece(c, 1, 0, 1, 0.5, "tr"), circlePiece(c, 1, 0, 1, 0.5, "br")];
+    case 0x1ce16:
+      return [...lines(c, "1010"), rect(halfW, 0, w, t)];
+    case 0x1ce17:
+      return [...lines(c, "1010"), rect(halfW, h - t, w, h)];
+    case 0x1ce18:
+      return [...lines(c, "1010"), rect(0, 0, halfW, t)];
+    case 0x1ce19:
+      return [...lines(c, "1010"), rect(0, h - t, halfW, h)];
+    default:
+      return null;
+  }
+}
+
+function fadingLine(c: SpriteCell, to: Edge): SpriteShape[] {
+  const t = c.thickness;
+  const width = Math.floor(c.width);
+  const height = Math.floor(c.height);
+  const top = Math.floor((height - t) / 2);
+  const left = Math.floor((width - t) / 2);
+  const vertical = to === "top" || to === "bottom";
+  const length = vertical ? height : width;
+  const rising = to === "top" || to === "left";
+  const out: SpriteShape[] = [];
+  for (let i = 0; i < length; i++) {
+    const alpha = Math.round(
+      rising ? (FULL_ALPHA * i) / length : FULL_ALPHA - (FULL_ALPHA * i) / length,
+    );
+    if (alpha <= 0) continue;
+    const opacity = alpha / FULL_ALPHA;
+    out.push(
+      vertical ? rect(left, i, left + t, i + 1, opacity) : rect(i, top, i + 1, top + t, opacity),
+    );
+  }
+  return out;
+}
+
+function branchNode(
+  c: SpriteCell,
+  up: boolean,
+  right: boolean,
+  down: boolean,
+  left: boolean,
+  filled: boolean,
+): SpriteShape[] {
+  const t = c.thickness;
+  const width = Math.floor(c.width);
+  const height = Math.floor(c.height);
+  const hTop = Math.floor((height - t) / 2);
+  const hBottom = hTop + t;
+  const vLeft = Math.floor((width - t) / 2);
+  const vRight = vLeft + t;
+  const cx = vLeft + t / 2;
+  const cy = hTop + t / 2;
+  const r = Math.min(cx, cy, c.width - cx, c.height - cy);
+  const out: SpriteShape[] = [];
+  if (up) out.push(rect(vLeft, 0, vRight, Math.ceil(cy - r + t / 2)));
+  if (right) out.push(rect(Math.floor(cx + r - t / 2), hTop, width, hBottom));
+  if (down) out.push(rect(vLeft, Math.floor(cy + r - t / 2), vRight, height));
+  if (left) out.push(rect(0, hTop, Math.ceil(cx - r + t / 2), hBottom));
+  out.push(
+    filled
+      ? { kind: "fill", d: circlePath(cx, cy, r) }
+      : { kind: "stroke", width: t, d: circlePath(cx, cy, r - t / 2) },
+  );
+  return out;
+}
+
+function branch(cp: number, c: SpriteCell): SpriteShape[] | null {
+  const across = lines(c, "0101");
+  const along = lines(c, "1010");
+  function arcs(...corners: Corner[]) {
+    return corners.map((corner) => arc(c, corner));
+  }
+  switch (cp) {
+    case 0xf5d0:
+      return across;
+    case 0xf5d1:
+      return along;
+    case 0xf5d2:
+      return fadingLine(c, "right");
+    case 0xf5d3:
+      return fadingLine(c, "left");
+    case 0xf5d4:
+      return fadingLine(c, "bottom");
+    case 0xf5d5:
+      return fadingLine(c, "top");
+    case 0xf5d6:
+      return arcs("br");
+    case 0xf5d7:
+      return arcs("bl");
+    case 0xf5d8:
+      return arcs("tr");
+    case 0xf5d9:
+      return arcs("tl");
+    case 0xf5da:
+      return [...along, ...arcs("tr")];
+    case 0xf5db:
+      return [...along, ...arcs("br")];
+    case 0xf5dc:
+      return arcs("tr", "br");
+    case 0xf5dd:
+      return [...along, ...arcs("tl")];
+    case 0xf5de:
+      return [...along, ...arcs("bl")];
+    case 0xf5df:
+      return arcs("tl", "bl");
+    case 0xf5e0:
+      return [...arcs("bl"), ...across];
+    case 0xf5e1:
+      return [...arcs("br"), ...across];
+    case 0xf5e2:
+      return arcs("br", "bl");
+    case 0xf5e3:
+      return [...arcs("tl"), ...across];
+    case 0xf5e4:
+      return [...arcs("tr"), ...across];
+    case 0xf5e5:
+      return arcs("tr", "tl");
+    case 0xf5e6:
+      return [...along, ...arcs("tl", "tr")];
+    case 0xf5e7:
+      return [...along, ...arcs("bl", "br")];
+    case 0xf5e8:
+      return [...across, ...arcs("bl", "tl")];
+    case 0xf5e9:
+      return [...across, ...arcs("tr", "br")];
+    case 0xf5ea:
+      return [...along, ...arcs("tl", "br")];
+    case 0xf5eb:
+      return [...along, ...arcs("tr", "bl")];
+    case 0xf5ec:
+      return [...across, ...arcs("tl", "br")];
+    case 0xf5ed:
+      return [...across, ...arcs("tr", "bl")];
+    default:
+      break;
+  }
+  const nodes: Record<number, string> = {
+    0xf5ee: "",
+    0xf5f0: "r",
+    0xf5f2: "l",
+    0xf5f4: "lr",
+    0xf5f6: "d",
+    0xf5f8: "u",
+    0xf5fa: "ud",
+    0xf5fc: "rd",
+    0xf5fe: "ld",
+    0xf600: "ur",
+    0xf602: "ul",
+    0xf604: "udr",
+    0xf606: "udl",
+    0xf608: "dlr",
+    0xf60a: "ulr",
+    0xf60c: "udlr",
+  };
+  const filled = nodes[cp] !== undefined;
+  const sides = nodes[cp] ?? nodes[cp - 1];
+  if (sides === undefined) return null;
+  return branchNode(
+    c,
+    sides.includes("u"),
+    sides.includes("r"),
+    sides.includes("d"),
+    sides.includes("l"),
+    filled,
+  );
+}
+
+function powerlineMore(cp: number, c: SpriteCell): SpriteShape[] | null {
+  if (cp !== 0xe0d2 && cp !== 0xe0d4) return null;
+  const { width: w, height: h } = c;
+  const t = c.thickness;
+  const shapes = [
+    polygon([
+      [0, 0],
+      [w, 0],
+      [w / 2, h / 2 - t / 2],
+      [0, h / 2 - t / 2],
+    ]),
+    polygon([
+      [0, h],
+      [w, h],
+      [w / 2, h / 2 + t / 2],
+      [0, h / 2 + t / 2],
+    ]),
+  ];
+  return cp === 0xe0d4 ? shapes.map((s) => flip(s, w)) : shapes;
+}
+
 export function isSprite(cp: number): boolean {
   return (
     (cp >= 0x2500 && cp <= 0x259f) ||
     (cp >= 0x2800 && cp <= 0x28ff) ||
     (cp >= 0xe0b0 && cp <= 0xe0bf) ||
     [0x25e2, 0x25e3, 0x25e4, 0x25e5, 0x25f8, 0x25f9, 0x25fa, 0x25ff].includes(cp) ||
-    (cp >= 0x1fb00 && cp <= 0x1fb67) ||
-    (cp >= 0x1fb70 && cp <= 0x1fb7b) ||
-    (cp >= 0x1fb82 && cp <= 0x1fb8b) ||
-    (cp >= 0x1cd00 && cp <= 0x1cde5)
+    cp === 0xe0d2 ||
+    cp === 0xe0d4 ||
+    (cp >= 0xf5d0 && cp <= 0xf60d) ||
+    (cp >= 0x1fb00 && cp <= 0x1fbaf) ||
+    (cp >= 0x1fbbd && cp <= 0x1fbbf) ||
+    (cp >= 0x1fbce && cp <= 0x1fbef) ||
+    (cp >= 0x1cc1b && cp <= 0x1cc1e) ||
+    (cp >= 0x1cc21 && cp <= 0x1cc3f) ||
+    (cp >= 0x1cd00 && cp <= 0x1cde5) ||
+    cp === 0x1ce00 ||
+    cp === 0x1ce01 ||
+    cp === 0x1ce0b ||
+    cp === 0x1ce0c ||
+    (cp >= 0x1ce16 && cp <= 0x1ce19) ||
+    (cp >= 0x1ce51 && cp <= 0x1ceaf)
   );
 }
 
@@ -808,7 +1508,11 @@ export function spriteFor(cp: number, cell: SpriteCell): SpriteShape[] | null {
     box(cp, cell) ??
     blocks(cp, cell) ??
     powerline(cp, cell) ??
+    powerlineMore(cp, cell) ??
     geometric(cp, cell) ??
-    legacy(cp, cell)
+    legacy(cp, cell) ??
+    legacyMore(cp, cell) ??
+    supplement(cp, cell) ??
+    branch(cp, cell)
   );
 }

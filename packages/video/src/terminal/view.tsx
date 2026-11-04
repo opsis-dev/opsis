@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import { type CSSProperties, type ReactNode, useId } from "react";
 import type { TerminalLook } from "#video/generated/spec.ts";
 import {
   CursorShape,
@@ -25,6 +25,7 @@ const CELL_WIDTH_EM = 0.6;
 const BLUR_SHARE = 0.35;
 const PIXEL_SHADES = [0.55, 0.7, 0.45, 0.62];
 const PIXELS_PER_CELL = 2;
+const WHITE = 0xffffff;
 
 export type ViewLook = Pick<
   TerminalLook,
@@ -98,25 +99,145 @@ function translate(d: string, dx: number, dy: number): string {
   });
 }
 
+type Boxed = {
+  shapes: SpriteShape[];
+  dx: number;
+  dy: number;
+  width: number;
+  height: number;
+  colour: string;
+};
+
+function shapePath(shape: SpriteShape, dx: number, dy: number): string {
+  if (shape.kind === "rect") return rectPath(shape.x + dx, shape.y + dy, shape.width, shape.height);
+  if (shape.kind === "inverted") return "";
+  return translate(shape.d, dx, dy);
+}
+
+function ShapeElement({
+  shape,
+  dx,
+  dy,
+  colour,
+  inside,
+}: {
+  shape: SpriteShape;
+  dx: number;
+  dy: number;
+  colour: string;
+  inside?: string;
+}) {
+  if (shape.kind === "stroke" && shape.inner && inside)
+    return (
+      <>
+        <clipPath id={inside}>
+          <path d={shapePath(shape, dx, dy)} />
+        </clipPath>
+        <path
+          d={shapePath(shape, dx, dy)}
+          fill="none"
+          stroke={colour}
+          strokeWidth={shape.width * 2}
+          clipPath={`url(#${inside})`}
+        />
+      </>
+    );
+  if (shape.kind === "stroke")
+    return (
+      <path d={shapePath(shape, dx, dy)} fill="none" stroke={colour} strokeWidth={shape.width} />
+    );
+  if (shape.kind === "inverted") return null;
+  const opacity = shape.kind === "rect" ? shape.opacity : (shape.opacity ?? 1);
+  return <path d={shapePath(shape, dx, dy)} fill={colour} fillOpacity={opacity} />;
+}
+
+function BoxedShapes({ id, boxed }: { id: string; boxed: Boxed }) {
+  const { dx, dy, width, height, colour } = boxed;
+  const cell = <rect x={dx} y={dy} width={width} height={height} />;
+  const inverted = boxed.shapes.flatMap((s) => (s.kind === "inverted" ? s.shapes : []));
+  const clipped = boxed.shapes.filter((s) => s.kind !== "inverted");
+  return (
+    <>
+      <clipPath id={`${id}-clip`}>{cell}</clipPath>
+      {clipped.length ? (
+        <g clipPath={`url(#${id}-clip)`}>
+          {clipped.map((shape, i) => (
+            <ShapeElement
+              key={i}
+              shape={shape}
+              dx={dx}
+              dy={dy}
+              colour={colour}
+              inside={`${id}-inner-${i}`}
+            />
+          ))}
+        </g>
+      ) : null}
+      {inverted.length ? (
+        <>
+          <mask
+            id={`${id}-mask`}
+            maskUnits="userSpaceOnUse"
+            x={dx}
+            y={dy}
+            width={width}
+            height={height}
+          >
+            <rect x={dx} y={dy} width={width} height={height} fill={hexColour(WHITE)} />
+            {inverted.map((shape, i) => (
+              <ShapeElement key={i} shape={shape} dx={dx} dy={dy} colour={hexColour(0)} />
+            ))}
+          </mask>
+          <rect
+            x={dx}
+            y={dy}
+            width={width}
+            height={height}
+            fill={colour}
+            mask={`url(#${id}-mask)`}
+          />
+        </>
+      ) : null}
+    </>
+  );
+}
+
+function boxedShape(shape: SpriteShape): boolean {
+  if (shape.kind === "inverted") return true;
+  if (shape.kind === "rect") return false;
+  return shape.clip === true || (shape.kind === "stroke" && shape.inner === true);
+}
+
 function SpriteLayer({ placed, look, size }: { placed: Placed[]; look: ViewLook; size: CellBox }) {
+  const id = useId().replaceAll(":", "");
   const cell = cellBox(look);
   const fills = new Map<string, string[]>();
   const strokes: Array<{ d: string; colour: string; width: number }> = [];
+  const boxed: Boxed[] = [];
   for (const { run, y, shapes } of placed) {
     const dx = look.padding + run.col * cell.width;
     const dy = look.padding + y * cell.height;
     const colour = hexColour(run.fg);
+    const own = shapes.filter((s) => boxedShape(s));
+    if (own.length)
+      boxed.push({
+        shapes: own,
+        dx,
+        dy,
+        width: cell.width * run.cells,
+        height: cell.height,
+        colour,
+      });
     for (const shape of shapes) {
+      if (boxedShape(shape)) continue;
       if (shape.kind === "stroke") {
         strokes.push({ d: translate(shape.d, dx, dy), colour, width: shape.width });
         continue;
       }
-      const key = shape.kind === "rect" ? `${colour}|${shape.opacity}` : `${colour}|1`;
-      const d =
-        shape.kind === "rect"
-          ? rectPath(shape.x + dx, shape.y + dy, shape.width, shape.height)
-          : translate(shape.d, dx, dy);
-      fills.set(key, [...(fills.get(key) ?? []), d]);
+      if (shape.kind === "inverted") continue;
+      const opacity = shape.kind === "rect" ? shape.opacity : (shape.opacity ?? 1);
+      const key = `${colour}|${opacity}`;
+      fills.set(key, [...(fills.get(key) ?? []), shapePath(shape, dx, dy)]);
     }
   }
   return (
@@ -132,6 +253,9 @@ function SpriteLayer({ placed, look, size }: { placed: Placed[]; look: ViewLook;
       })}
       {strokes.map((s, i) => (
         <path key={i} d={s.d} fill="none" stroke={s.colour} strokeWidth={s.width} />
+      ))}
+      {boxed.map((b, i) => (
+        <BoxedShapes key={i} id={`${id}-${i}`} boxed={b} />
       ))}
     </svg>
   );
