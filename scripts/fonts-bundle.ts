@@ -120,6 +120,33 @@ const NERD_SYMBOLS: Pinned = {
   size: 2932840,
 };
 
+const NOTO_EMOJI_COMMIT = "e20cbc2bbec1926686be9f9bee7d1d2cfa1fea0e";
+const NOTO_EMOJI_FILES = `https://raw.githubusercontent.com/googlefonts/noto-emoji/${NOTO_EMOJI_COMMIT}/2D/fonts`;
+
+const NOTO_EMOJI: Pinned = {
+  url: `${NOTO_EMOJI_FILES}/NotoColorEmoji.ttf`,
+  sha256: "15671215ab769fdc7162a045d56fd7d7e477c51b04e6b3c761d914d8fdd6cc44",
+  size: 10730124,
+};
+
+const NOTO_EMOJI_LICENSE: Pinned = {
+  url: `${NOTO_EMOJI_FILES}/LICENSE`,
+  sha256: "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2",
+  size: 4301,
+};
+
+const EMOJI_RANGES_PACKAGE = "@fontsource/noto-color-emoji";
+const FIRST_EMOJI_CODE = 0x2000;
+
+function emojiRanges(ranges: Record<string, string>): string {
+  const parts = Object.values(ranges).flatMap((r) => r.split(","));
+  const kept = parts.filter(
+    (part) =>
+      Number.parseInt(part.replace(/^U\+/i, "").split("-")[0] ?? "0", 16) >= FIRST_EMOJI_CODE,
+  );
+  return [...new Set(kept)].join(",");
+}
+
 const TAR_BLOCK = 512;
 const TAR_NAME = 100;
 const TAR_SIZE_AT = 124;
@@ -215,6 +242,33 @@ async function nerdSymbols(): Promise<FontFamilyDef> {
 
 const unicodeSchema = z.record(z.string(), z.string());
 
+async function notoEmoji(): Promise<FontFamilyDef> {
+  const id = "opsis-terminal-emoji";
+  const dest = path.join(TERMINAL_OUT, id);
+  mkdirSync(dest, { recursive: true });
+  const name = "NotoColorEmoji.ttf";
+  copyFileSync(await verifiedDownload(NOTO_EMOJI, CACHE), path.join(dest, name));
+  copyFileSync(await verifiedDownload(NOTO_EMOJI_LICENSE, CACHE), path.join(dest, "LICENSE"));
+  const ranges = readJsonWith(
+    unicodeSchema,
+    path.join(ROOT, "node_modules", EMOJI_RANGES_PACKAGE, "unicode.json"),
+  );
+  return terminalFamily(
+    id,
+    "Opsis Terminal Emoji",
+    [
+      {
+        file: `app:fonts/bundled/terminal/${id}/${name}`,
+        weight: "400",
+        style: "normal",
+        format: "truetype",
+        unicodeRange: emojiRanges(ranges),
+      },
+    ],
+    "OFL-1.1",
+  );
+}
+
 function fontsourceSubsets(
   pkg: string,
   id: string,
@@ -262,12 +316,7 @@ async function terminalFonts(): Promise<FontFamilyDef[]> {
       "Opsis Terminal CJK",
       [400, 700],
     ),
-    fontsourceSubsets(
-      "@fontsource/noto-color-emoji",
-      "opsis-terminal-emoji",
-      "Opsis Terminal Emoji",
-      [400],
-    ),
+    await notoEmoji(),
   ];
 }
 
