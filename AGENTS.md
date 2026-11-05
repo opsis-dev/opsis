@@ -241,6 +241,7 @@ agent-docs/            the domain docs (§8)
 | [fonts.md](agent-docs/fonts.md)         | bundled and terminal fonts, the library, project fonts and roles, `family_for`                                                          |
 | [packaging.md](agent-docs/packaging.md) | `bun run make`, staging, the FFmpeg sidecar, bundles, icons, licences and notices                                                       |
 | [e2e.md](agent-docs/e2e.md)             | the end-to-end suite, its build and virtual display, data folders, spec etiquette                                                       |
+| [profiling.md](agent-docs/profiling.md) | the profiling build, `bun run profile` in Docker, per-node CPU and memory, the size tools                                               |
 
 ### Writing AGENTS.md and agent-docs
 
