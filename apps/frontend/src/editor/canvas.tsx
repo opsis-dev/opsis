@@ -49,6 +49,7 @@ const FLOW_OPTIONS = {
   proOptions: { hideAttribution: true },
   colorMode: "dark",
   defaultEdgeOptions: { type: "smoothstep" },
+  onlyRenderVisibleElements: true,
 } satisfies ReactFlowProps<CanvasNode, Edge>;
 
 function minimapColor(n: CanvasNode) {

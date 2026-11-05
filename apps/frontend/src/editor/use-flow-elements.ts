@@ -4,7 +4,9 @@ import {
   type BuiltInEdge,
   type Edge,
   type EdgeChange,
+  type InternalNode,
   type NodeChange,
+  useStoreApi,
 } from "@xyflow/react";
 import { useCallback, useMemo, useState } from "react";
 import type { Workflow } from "@/generated/bindings";
@@ -13,6 +15,7 @@ import { portOf } from "@/workflow/graph";
 import { CARD_WIDTH } from "@/workflow/nodes";
 import { useUiStore } from "../store/ui";
 import { workflowEdits } from "../store/workflow";
+import { cardShape, rememberCardShapes } from "./card-shapes";
 import { toFlowEdges, toFlowNodes, type CanvasNode } from "./convert";
 import { stepPositions, type LaneBox } from "./edge-lanes";
 import { portTypeColor } from "./ports";
@@ -34,10 +37,19 @@ function liveFields(n: CanvasNode): LiveFields {
     : { measured: n.measured };
 }
 
+function savedShape(id: string): Pick<CanvasNode, "measured" | "handles"> | undefined {
+  const shape = cardShape(id);
+  return (
+    shape && { measured: { width: shape.width, height: shape.height }, handles: shape.handles }
+  );
+}
+
 function withLive(base: CanvasNode[], live: ReadonlyMap<string, LiveFields>): CanvasNode[] {
   return base.map((n) => {
     const fields = live.get(n.id);
-    return fields ? { ...n, ...fields } : n;
+    if (fields?.measured) return { ...n, ...fields };
+    const saved = savedShape(n.id);
+    return fields || saved ? { ...n, ...fields, ...saved } : n;
   });
 }
 
@@ -66,10 +78,23 @@ function keyboardMoves(
   );
 }
 
+function rememberResized(
+  changes: NodeChange<CanvasNode>[],
+  lookup: ReadonlyMap<string, InternalNode<CanvasNode>>,
+  workflow: Workflow,
+): void {
+  const resized = changes.flatMap((c) => {
+    const node = c.type === "dimensions" ? lookup.get(c.id) : undefined;
+    return node ? [node] : [];
+  });
+  if (resized.length) rememberCardShapes(resized, new Set(workflow.nodes.map((n) => n.id)));
+}
+
 export function useFlowNodes(workflow: Workflow, selected: ReadonlySet<string>) {
   const base = useMemo(() => toFlowNodes(workflow, selected), [workflow, selected]);
   const [live, setLive] = useState<ReadonlyMap<string, LiveFields>>(() => new Map());
   const nodes = useMemo(() => withLive(base, live), [base, live]);
+  const store = useStoreApi<CanvasNode>();
   const onNodesChange = useCallback(
     (changes: NodeChange<CanvasNode>[]) => {
       const moved = keyboardMoves(changes, live);
@@ -79,8 +104,9 @@ export function useFlowNodes(workflow: Workflow, selected: ReadonlySet<string>) 
         return new Map(next.map((n) => [n.id, liveFields(n)]));
       });
       selectFromChanges(changes);
+      rememberResized(changes, store.getState().nodeLookup, workflow);
     },
-    [base, live],
+    [base, live, store, workflow],
   );
   return { nodes, onNodesChange };
 }
