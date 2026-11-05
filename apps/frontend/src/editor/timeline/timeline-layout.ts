@@ -62,7 +62,7 @@ export function hitEdge(e: React.PointerEvent<HTMLElement>, width: number): "sta
   return null;
 }
 
-export function contentX(el: HTMLElement, clientX: number): number {
+function contentX(el: HTMLElement, clientX: number): number {
   return clientX - el.getBoundingClientRect().left + el.scrollLeft;
 }
 

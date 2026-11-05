@@ -207,7 +207,7 @@ function classifyWord(word: string, before: string, after: string): CodeTokenKin
   return "plain";
 }
 
-export function tokenizeLine(
+function tokenizeLine(
   line: string,
   inBlockComment = false,
 ): { tokens: CodeToken[]; inBlockComment: boolean } {

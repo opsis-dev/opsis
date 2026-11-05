@@ -6,7 +6,7 @@ import type { StoryLook } from "#video/elements/scene/data-story/look.ts";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
 
-export type TimelineStep = {
+type TimelineStep = {
   title: string;
   description?: string;
 };

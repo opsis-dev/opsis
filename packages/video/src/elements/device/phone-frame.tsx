@@ -10,8 +10,8 @@ import { resolveFont, type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/in
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
 import { floatOffset, ScreenMedia } from "#video/parts/device-screen.tsx";
 
-export type PhoneFrameVariant = "flat" | "tilt" | "showcase";
-export type PhoneFrameEntrance = "rise" | "rotate-in" | "float";
+type PhoneFrameVariant = "flat" | "tilt" | "showcase";
+type PhoneFrameEntrance = "rise" | "rotate-in" | "float";
 
 type PhoneFrameProps = Omit<ElementSettings["phone-frame"], "theme"> & {
   children?: ReactNode;
@@ -23,21 +23,21 @@ type PhoneFrameProps = Omit<ElementSettings["phone-frame"], "theme"> & {
 
 const FONT_FAMILY = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
-export const DEVICE_WIDTH = 320;
-export const DEVICE_HEIGHT = 656;
+const DEVICE_WIDTH = 320;
+const DEVICE_HEIGHT = 656;
 
-export const BEZEL_WIDTH = 12;
+const BEZEL_WIDTH = 12;
 
-export const ENTRANCE_FRAMES = 30;
+const ENTRANCE_FRAMES = 30;
 
-export interface EntrancePose {
+interface EntrancePose {
   opacity: number;
   translateY: number;
   rotateDeg: number;
   scale: number;
 }
 
-export function entrancePose(frame: number, entrance: PhoneFrameEntrance): EntrancePose {
+function entrancePose(frame: number, entrance: PhoneFrameEntrance): EntrancePose {
   const clamp = CLAMPED;
   const easeOut = Easing.out(Easing.cubic);
 
@@ -82,7 +82,7 @@ export function entrancePose(frame: number, entrance: PhoneFrameEntrance): Entra
   };
 }
 
-export const SIDE_BUTTONS: Array<{
+const SIDE_BUTTONS: Array<{
   side: "left" | "right";
   top: number;
   length: number;
@@ -93,7 +93,7 @@ export const SIDE_BUTTONS: Array<{
   { side: "right", top: 176, length: 68 },
 ];
 
-export interface ShowcasePose {
+interface ShowcasePose {
   rotateX: number;
   rotateY: number;
   rotateZ: number;
@@ -112,7 +112,7 @@ const SHOWCASE_KEYS: Record<keyof ShowcasePose, number[]> = {
   y: [-195, -40, 430, 380, 15, 0],
 };
 
-export function showcasePose(frame: number, durationInFrames: number): ShowcasePose {
+function showcasePose(frame: number, durationInFrames: number): ShowcasePose {
   const p = Math.max(0, Math.min(1, frame / Math.max(1, durationInFrames - 1)));
   const easing = Easing.inOut(Easing.cubic);
   function at(values: number[]) {

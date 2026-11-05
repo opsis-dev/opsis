@@ -12,9 +12,9 @@ import { resolveFont, type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/in
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
 import { floatOffset, ScreenMedia } from "#video/parts/device-screen.tsx";
 
-export type LaptopFrameEntrance = "rise" | "open" | "none";
-export type LaptopFrameFinale = "none" | "zoom-to-screen";
-export type NotchPhase = "idle" | "loading" | "done";
+type LaptopFrameEntrance = "rise" | "open" | "none";
+type LaptopFrameFinale = "none" | "zoom-to-screen";
+type NotchPhase = "idle" | "loading" | "done";
 
 type LaptopFrameProps = Omit<ElementSettings["laptop-frame"], "theme"> & {
   children?: ReactNode;
@@ -26,41 +26,41 @@ type LaptopFrameProps = Omit<ElementSettings["laptop-frame"], "theme"> & {
 
 const FONT_FAMILY = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
-export const LID_WIDTH = 820;
-export const LID_HEIGHT = 500;
+const LID_WIDTH = 820;
+const LID_HEIGHT = 500;
 
-export const BEZEL_WIDTH = 14;
+const BEZEL_WIDTH = 14;
 
-export const DECK_WIDTH = 900;
-export const DECK_HEIGHT = 22;
+const DECK_WIDTH = 900;
+const DECK_HEIGHT = 22;
 
-export const LID_RADIUS = 22;
+const LID_RADIUS = 22;
 
-export const REST_TILT = 18;
-export const PERSPECTIVE = 1600;
+const REST_TILT = 18;
+const PERSPECTIVE = 1600;
 
-export const ENTRANCE_FRAMES = 30;
+const ENTRANCE_FRAMES = 30;
 
-export const CAMERA_EASE = Easing.bezier(0.2, 0.6, 0.35, 1);
+const CAMERA_EASE = Easing.bezier(0.2, 0.6, 0.35, 1);
 
-export const COLUMN_HEIGHT = LID_HEIGHT + DECK_HEIGHT;
+const COLUMN_HEIGHT = LID_HEIGHT + DECK_HEIGHT;
 
-export const NOTCH_HEIGHT = 30;
-export const NOTCH_IDLE_WIDTH = 116;
-export const NOTCH_LOADING_WIDTH = 150;
-export const NOTCH_DONE_WIDTH = 320;
+const NOTCH_HEIGHT = 30;
+const NOTCH_IDLE_WIDTH = 116;
+const NOTCH_LOADING_WIDTH = 150;
+const NOTCH_DONE_WIDTH = 320;
 
-export const NOTCH_LOADING_FOR = 48;
+const NOTCH_LOADING_FOR = 48;
 
-export type ZoomTiming = { start: number; end: number };
+type ZoomTiming = { start: number; end: number };
 
-export interface EntrancePose {
+interface EntrancePose {
   opacity: number;
   translateY: number;
   scale: number;
 }
 
-export function entrancePose(frame: number, entrance: LaptopFrameEntrance): EntrancePose {
+function entrancePose(frame: number, entrance: LaptopFrameEntrance): EntrancePose {
   const clamp = CLAMPED;
   const easeOut = Easing.out(Easing.cubic);
 
@@ -89,7 +89,7 @@ export function entrancePose(frame: number, entrance: LaptopFrameEntrance): Entr
   };
 }
 
-export function lidTilt(
+function lidTilt(
   frame: number,
   entrance: LaptopFrameEntrance,
   finale: LaptopFrameFinale,
@@ -112,12 +112,12 @@ export function lidTilt(
   });
 }
 
-export interface CameraPose {
+interface CameraPose {
   scale: number;
   translateY: number;
 }
 
-export function cameraPose(
+function cameraPose(
   frame: number,
   finale: LaptopFrameFinale,
   baseScale: number,
@@ -143,7 +143,7 @@ export function cameraPose(
   return { scale, translateY };
 }
 
-export interface NotchState {
+interface NotchState {
   phase: NotchPhase;
   width: number;
   idle: number;
@@ -151,7 +151,7 @@ export interface NotchState {
   done: number;
 }
 
-export function notchState(
+function notchState(
   frame: number,
   timing: { loadingStart: number; doneStart: number },
 ): NotchState {

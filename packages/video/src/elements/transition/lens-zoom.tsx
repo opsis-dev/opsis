@@ -10,10 +10,10 @@ import type {
   TransitionPresentationComponentProps,
 } from "#video/lib/transitions/presentation.ts";
 
-export const SHAKE_STOPS = [-9 / 11, -3 / 11, 4 / 11, 8 / 11] as const;
+const SHAKE_STOPS = [-9 / 11, -3 / 11, 4 / 11, 8 / 11] as const;
 
-export const LENS_ZOOM_EASE_IN = Easing.bezier(0.54, 0, 0.82, 0.8);
-export const LENS_ZOOM_EASE_OUT = Easing.bezier(0.18, 0.2, 0.46, 1);
+const LENS_ZOOM_EASE_IN = Easing.bezier(0.54, 0, 0.82, 0.8);
+const LENS_ZOOM_EASE_OUT = Easing.bezier(0.18, 0.2, 0.46, 1);
 
 type LensZoomProps = ElementSettings["lens-zoom"];
 

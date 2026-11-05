@@ -4,9 +4,9 @@ import { normalize } from "#video/common/math.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 
 export const LAUNCH_FPS = 60;
-export const LAUNCH_FRAMES = 1600;
-export const LAUNCH_WIDTH = 1920;
-export const LAUNCH_HEIGHT = 1080;
+const LAUNCH_FRAMES = 1600;
+const LAUNCH_WIDTH = 1920;
+const LAUNCH_HEIGHT = 1080;
 
 export const launchTimeline = [
   { id: "opening", from: 0, to: 228 },
@@ -20,7 +20,7 @@ export const launchTimeline = [
   { id: "mark", from: 1423, to: LAUNCH_FRAMES },
 ] as const;
 
-export const showcaseTimeline = [
+const showcaseTimeline = [
   { id: "dashboard", from: 440, to: 506 },
   { id: "shoppers", from: 506, to: 555 },
   { id: "exchange", from: 555, to: 621 },
@@ -30,8 +30,8 @@ export const showcaseTimeline = [
   { id: "integrations", from: 841, to: 907 },
 ] as const;
 
-export type ShowcaseId = (typeof showcaseTimeline)[number]["id"];
-export const settle = Easing.bezier(0.16, 1, 0.3, 1);
+type ShowcaseId = (typeof showcaseTimeline)[number]["id"];
+const settle = Easing.bezier(0.16, 1, 0.3, 1);
 export const smooth = Easing.bezier(0.65, 0, 0.25, 1);
 
 export function actionFrame(t: number) {

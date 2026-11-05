@@ -11,7 +11,7 @@ export function setViewProject(dir: string | null, stored: ViewPrefs): void {
   prefs = { ...stored };
 }
 
-export function viewPrefs(): ViewPrefs {
+function viewPrefs(): ViewPrefs {
   return prefs;
 }
 

@@ -6,7 +6,7 @@ import {
   type MorphShapeName,
 } from "#video/elements/transition/transition-morph-shape/path-morph.ts";
 
-export type DisplacementProfile = "peak" | "ramp-in" | "ramp-out";
+type DisplacementProfile = "peak" | "ramp-in" | "ramp-out";
 
 export type DisplacementCoreConfig = {
   scale?: number;
@@ -31,7 +31,7 @@ export const DISPLACEMENT_DEFAULTS = {
   profile: "peak",
 } as const satisfies Omit<Required<DisplacementCoreConfig>, "scaleRatio">;
 
-export function displacementIntensity(
+function displacementIntensity(
   displace: number,
   profile: DisplacementProfile = DISPLACEMENT_DEFAULTS.profile,
 ): number {
@@ -80,7 +80,7 @@ export function displacementFrame(
   };
 }
 
-export function overscanFor(scale: number, blur: number, frameSize: number): number {
+function overscanFor(scale: number, blur: number, frameSize: number): number {
   const drag = scale / 2 + blur * 3;
   if (drag <= 0 || frameSize <= 0) return 1;
   const clean = frameSize - 2 * (drag + 2);

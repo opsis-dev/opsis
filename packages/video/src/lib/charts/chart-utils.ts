@@ -42,7 +42,7 @@ export type PlottedPoint = {
   label?: string;
 };
 
-export function getChartDomain(
+function getChartDomain(
   values: number[],
   { includeZero = false }: { includeZero?: boolean } = {},
 ): ChartDomain {
@@ -88,7 +88,7 @@ export function niceDomain(
   return { min, max, span: max - min || 1, ticks };
 }
 
-export function scaleValue(value: number, min: number, max: number): number {
+function scaleValue(value: number, min: number, max: number): number {
   if (max === min) return 0;
   return (value - min) / (max - min);
 }
@@ -172,7 +172,7 @@ export function buildAreaPath(
   return `${linePath} L ${round2(last.x)} ${round2(baselineY)} L ${round2(first.x)} ${round2(baselineY)} Z`;
 }
 
-export function formatCompactNumber(value: number, maximumFractionDigits = 1): string {
+function formatCompactNumber(value: number, maximumFractionDigits = 1): string {
   return new Intl.NumberFormat("en", {
     notation: "compact",
     maximumFractionDigits,

@@ -10,9 +10,9 @@ import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
 import { ticksFromWords } from "#video/lib/settings/shape.ts";
 
-export type MatrixCell = boolean | string;
+type MatrixCell = boolean | string;
 
-export type MatrixRow = {
+type MatrixRow = {
   label: string;
   cells: MatrixCell[];
 };

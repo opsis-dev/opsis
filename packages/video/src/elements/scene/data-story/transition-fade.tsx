@@ -36,7 +36,7 @@ function FadePresentation({
   );
 }
 
-export function crossfade(props: FadeProps = {}): TransitionPresentation<FadeProps> {
+function crossfade(props: FadeProps = {}): TransitionPresentation<FadeProps> {
   return { component: FadePresentation, props };
 }
 

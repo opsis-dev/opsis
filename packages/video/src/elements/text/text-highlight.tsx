@@ -11,7 +11,7 @@ import { interpolateColors, parseColor, rgbToOklch, withAlpha } from "#video/lib
 import { resolveFont, type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
 
-export type TextHighlightPreset =
+type TextHighlightPreset =
   | "logo-wipe"
   | "marker"
   | "color"
@@ -19,7 +19,7 @@ export type TextHighlightPreset =
   | "strikethrough"
   | "shimmer";
 
-export interface TextHighlightSpringConfig {
+interface TextHighlightSpringConfig {
   damping?: number;
   mass?: number;
   stiffness?: number;
@@ -29,7 +29,7 @@ function lighterOf(a: string, b: string): string {
   return (rgbToOklch(parseColor(a)).l ?? 0) >= (rgbToOklch(parseColor(b)).l ?? 0) ? a : b;
 }
 
-export function strikethroughPhases(
+function strikethroughPhases(
   startAt: number,
   drawDuration: number,
 ): { drawStart: number; drawEnd: number; fadeStart: number; fadeEnd: number } {
@@ -42,17 +42,17 @@ export function strikethroughPhases(
   };
 }
 
-export function perspectiveScale(travel: number, maxScale: number): number {
+function perspectiveScale(travel: number, maxScale: number): number {
   if (maxScale <= 1) return 1;
   const p = 1 - 1 / maxScale;
   return 1 / (1 - p * Math.min(Math.max(travel, 0), 0.9999));
 }
 
-export function swingWorldX(travel: number, drift: number, out: number): number {
+function swingWorldX(travel: number, drift: number, out: number): number {
   return drift * travel - out * Math.sin(Math.PI * travel);
 }
 
-export function swingGain(maxScale: number): number {
+function swingGain(maxScale: number): number {
   let peak = 1;
   for (let i = 1; i < 128; i++) {
     const t = i / 128;
@@ -62,7 +62,7 @@ export function swingGain(maxScale: number): number {
   return peak;
 }
 
-export function inkReach(width: number, height: number, driftPx: number): number {
+function inkReach(width: number, height: number, driftPx: number): number {
   const nearest = driftPx;
   const furthest = width / 2 + driftPx;
   const horizontal = Math.max(

@@ -1,6 +1,6 @@
 import type { CameraStyle } from "#video/generated/spec.ts";
 
-export const WINDOW_FIT = 0.86;
+const WINDOW_FIT = 0.86;
 export const WINDOW_RADIUS = 14;
 const STAGE_FIT = 0.84;
 const STAGE_GROUND = "#faf6f1";

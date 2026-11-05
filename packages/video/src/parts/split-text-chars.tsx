@@ -9,7 +9,7 @@ import {
   type SplitUnitState,
 } from "#video/lib/text/text-split.ts";
 
-export type SplitTextEffect = "fade-up" | "fade" | "scale" | "blur" | "none";
+type SplitTextEffect = "fade-up" | "fade" | "scale" | "blur" | "none";
 
 export type SplitTextCharsProps = Omit<SplitTimingOptions, "mode"> & {
   text: string;

@@ -14,7 +14,7 @@ import {
 
 const SAMPLES = 40;
 
-export function inkUnderlineSpine(
+function inkUnderlineSpine(
   width: number,
   thickness: number,
   seed: string,

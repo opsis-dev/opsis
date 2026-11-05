@@ -15,9 +15,9 @@ export function randomBetween(seed: string, lo: number, hi: number): number {
   return lo + random(seed) * (hi - lo);
 }
 
-export type Jitter = { x: number; y: number; rot: number };
+type Jitter = { x: number; y: number; rot: number };
 
-export function paperJitter(
+function paperJitter(
   frame: number,
   seed: string,
   options?: { amp?: number; rotAmp?: number; step?: number },
@@ -32,7 +32,7 @@ export function paperJitter(
   };
 }
 
-export function steppedSpring(args: {
+function steppedSpring(args: {
   frame: number;
   fps: number;
   delay?: number;

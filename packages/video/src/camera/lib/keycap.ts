@@ -6,7 +6,7 @@ import type { KeyNames } from "#video/generated/spec.ts";
 
 const KEYCAP_BEZIER = Easing.bezier(0.15, 0.9, 0.75, 0.95);
 
-export const KEYCAP_HOLD_S = 1.1;
+const KEYCAP_HOLD_S = 1.1;
 export const KEYSTROKE_EDGE = 56;
 const KEYCAP_IN_S = 0.13;
 const KEYCAP_OUT_S = 0.17;

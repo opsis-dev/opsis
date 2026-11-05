@@ -17,18 +17,18 @@ const REF_H = 458;
 
 const WORD_EASE = Easing.out(Easing.quad);
 
-export function pullbackScale(t: number, rate: number, floor = 0.02): number {
+function pullbackScale(t: number, rate: number, floor = 0.02): number {
   return Math.max(floor, 1 - rate * t);
 }
 
-export interface PlacedTile {
+interface PlacedTile {
   left: number;
   top: number;
   size: number;
   opacity: number;
 }
 
-export function placeTile(
+function placeTile(
   tile: LogoDriftTile,
   t: number,
   o: { rate: number; fade: number; speed: number; scale: number },
@@ -47,13 +47,13 @@ export function placeTile(
   };
 }
 
-export interface WordState {
+interface WordState {
   scale: number;
   blur: number;
   opacity: number;
 }
 
-export function wordState(
+function wordState(
   t: number,
   index: number,
   o: {

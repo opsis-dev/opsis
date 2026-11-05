@@ -3,7 +3,7 @@ import path from "node:path";
 
 const ROOT = path.resolve(import.meta.dirname, "..", "..", "..", "..");
 
-export const EDITOR_DATA = path.join(ROOT, "target", "release", "editor-data");
+const EDITOR_DATA = path.join(ROOT, "target", "release", "editor-data");
 
 export function buildEditorData(): void {
   return void execFileSync(

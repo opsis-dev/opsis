@@ -25,7 +25,7 @@ export function nestedFrom<P extends ElementProps>(
   return out;
 }
 
-export function rowsOf(value: unknown): ElementProps[] {
+function rowsOf(value: unknown): ElementProps[] {
   return Array.isArray(value) ? value.filter(isRecord) : [];
 }
 

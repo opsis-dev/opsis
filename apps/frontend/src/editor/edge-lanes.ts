@@ -1,5 +1,5 @@
 export const LANE_GAP = 14;
-export const STEP_OFFSET = 20;
+const STEP_OFFSET = 20;
 
 export type LaneBox = { x: number; y: number; width: number; height: number };
 

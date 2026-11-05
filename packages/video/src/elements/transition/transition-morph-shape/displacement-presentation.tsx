@@ -135,4 +135,4 @@ export function displacementPresentation(
   return { component: DisplacementPresentationComponent, props };
 }
 
-export { MASK_DEFAULTS };
+;

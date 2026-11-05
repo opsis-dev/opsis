@@ -2,7 +2,7 @@ import { clamp01 } from "#video/common/math.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { Step } from "#video/lib/ui-kit/types.ts";
 
-export function revealCount(localFrame: number, fps: number, len: number, cps: number): number {
+function revealCount(localFrame: number, fps: number, len: number, cps: number): number {
   const over = (len / cps) * fps;
   if (over <= 0) return len;
   return Math.max(0, Math.min(len, Math.floor((localFrame / over) * len)));
@@ -40,7 +40,7 @@ export function useTypewriter(full: string, options: TypewriterOptions = {}): Ty
   };
 }
 
-export function useCurrentState<S extends string>(steps: Step<S>[], defaultState: S, speed = 1): S {
+function useCurrentState<S extends string>(steps: Step<S>[], defaultState: S, speed = 1): S {
   const effectiveFrame = useAuthoredFrame() * speed;
   let current = defaultState;
   let bestAt = -Infinity;

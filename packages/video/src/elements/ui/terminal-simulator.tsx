@@ -6,9 +6,9 @@ import { useAuthoredConfig, useAuthoredFrame, useRealFrames } from "#video/core/
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { parseColor } from "#video/lib/ui-kit/color.ts";
 
-export type TerminalLineType = "command" | "log" | "success" | "error";
+type TerminalLineType = "command" | "log" | "success" | "error";
 
-export interface TerminalLine {
+interface TerminalLine {
   text: string;
   type: TerminalLineType;
   delay?: number;

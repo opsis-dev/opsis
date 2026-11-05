@@ -9,7 +9,7 @@ import { getSafeAreaPadding, scaleFont } from "#video/lib/layout/layout.ts";
 import { DURATION, EASING, STAGGER } from "#video/lib/motion/motion-tokens.ts";
 import { LineChartDraw } from "#video/parts/line-chart-draw.tsx";
 
-export type MetricTickerItem = ElementSettings["metric-ticker"]["metrics"][number];
+type MetricTickerItem = ElementSettings["metric-ticker"]["metrics"][number];
 
 const PALETTES = {
   dark: {

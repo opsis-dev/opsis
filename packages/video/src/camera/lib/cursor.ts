@@ -5,11 +5,11 @@ import type { Point } from "#video/generated/spec.ts";
 
 const CLICK_SQUASH_S = 0.12;
 const CURSOR_FADE_S = 0.18;
-export const ARROW_SHAPE = "default";
+const ARROW_SHAPE = "default";
 
 export type CursorMotion = { pressSquash: number; hideWhileTyping: boolean; rippleS: number };
 
-export const DEFAULT_CURSOR_MOTION: CursorMotion = {
+const DEFAULT_CURSOR_MOTION: CursorMotion = {
   pressSquash: 0.9,
   hideWhileTyping: true,
   rippleS: 0.35,

@@ -10,7 +10,7 @@ import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
 import { treeFromPaths } from "#video/lib/settings/shape.ts";
 
-export type FileNode = {
+type FileNode = {
   name: string;
   children?: FileNode[];
 };

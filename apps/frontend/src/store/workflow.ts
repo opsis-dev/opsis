@@ -61,7 +61,7 @@ export function showDocument(state: DocumentState): void {
   });
 }
 
-export function editWorkflow(edit: WorkflowEdit): Promise<Edited> {
+function editWorkflow(edit: WorkflowEdit): Promise<Edited> {
   return commands.editWorkflow(edit);
 }
 

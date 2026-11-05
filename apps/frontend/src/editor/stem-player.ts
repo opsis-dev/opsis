@@ -7,7 +7,7 @@ import { fileUrl } from "./file-url";
 const SMOOTHING_S = 0.02;
 const DRIFT_FRAMES = 2;
 
-export type SoundClock = { frame: number; fps: number; playing: boolean; rate?: number };
+type SoundClock = { frame: number; fps: number; playing: boolean; rate?: number };
 
 type Clock = Pick<StoreApi<SoundClock>, "getState" | "subscribe">;
 

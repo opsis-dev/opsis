@@ -34,17 +34,17 @@ const SCROLL_TAU = 0.06;
 
 const LETTER_SPRING = { damping: 5, stiffness: 100, mass: 1 } as const;
 
-export function toList(value?: string[] | string): string[] {
+function toList(value?: string[] | string): string[] {
   const list = typeof value === "string" ? value.split(",") : (value ?? []);
   return list.map((s) => s.trim()).filter(Boolean);
 }
 
-export function settle(frames: number, tau: number): number {
+function settle(frames: number, tau: number): number {
   if (frames <= 0) return 0;
   return 1 - Math.exp(-frames / tau);
 }
 
-export function statusAt({
+function statusAt({
   frame,
   introFrames,
   statusHold,
@@ -63,7 +63,7 @@ export function statusAt({
   return { index, since: frame - (introFrames + (index - 1) * statusHold) };
 }
 
-export function chipAt({
+function chipAt({
   frame,
   beat,
   stagger,
@@ -79,12 +79,12 @@ export function chipAt({
   return { arrived, since: frame - beat - (arrived - 1) * stagger };
 }
 
-export function fitScale(measured: number, budget: number): number {
+function fitScale(measured: number, budget: number): number {
   if (!(measured > 0) || !(budget > 0)) return 1;
   return Math.min(1, budget / measured);
 }
 
-export interface StatusCycleMotion {
+interface StatusCycleMotion {
   widthEase: (t: number) => number;
   widthSeconds: number;
   rollEase: (t: number) => number;
@@ -97,7 +97,7 @@ export interface StatusCycleMotion {
   letterStagger: number;
 }
 
-export const STATUS_CYCLE_MOTION: StatusCycleMotion = {
+const STATUS_CYCLE_MOTION: StatusCycleMotion = {
   widthEase: WIDTH_EASE,
   widthSeconds: WIDTH_SECONDS,
   rollEase: ROLL_EASE,

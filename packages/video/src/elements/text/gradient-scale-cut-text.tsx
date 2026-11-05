@@ -5,7 +5,7 @@ import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
-export const gradientScaleCutTextLength = 36;
+const gradientScaleCutTextLength = 36;
 
 const SETTLE_FRAMES = 8;
 const GIANT_Y = -28;

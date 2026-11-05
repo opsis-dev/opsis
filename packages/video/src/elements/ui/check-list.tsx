@@ -46,7 +46,7 @@ export type CheckListTiming = {
   closeGap?: number;
 };
 
-export function normalizeCheckListItems(items: (string | CheckListItem)[]): CheckListEntry[] {
+function normalizeCheckListItems(items: (string | CheckListItem)[]): CheckListEntry[] {
   return items.map((item) =>
     typeof item === "string"
       ? { text: item, checked: true }
@@ -54,7 +54,7 @@ export function normalizeCheckListItems(items: (string | CheckListItem)[]): Chec
   );
 }
 
-export function checkListGeometry(width: number, fontSize: number): CheckListGeometry {
+function checkListGeometry(width: number, fontSize: number): CheckListGeometry {
   const boxSize = Math.round(fontSize * 0.62);
   const boxGap = Math.round(fontSize * 0.4);
   return {
@@ -65,12 +65,12 @@ export function checkListGeometry(width: number, fontSize: number): CheckListGeo
   };
 }
 
-export function checkListRowWidth(width: number, fontSize: number): number {
+function checkListRowWidth(width: number, fontSize: number): number {
   const { boxSize, boxGap, labelWidth } = checkListGeometry(width, fontSize);
   return boxSize + boxGap + labelWidth;
 }
 
-export function checkListEnterEnd(
+function checkListEnterEnd(
   items: (string | CheckListItem)[],
   options?: CheckListTiming,
 ): number {
@@ -89,7 +89,7 @@ export function checkListEnterEnd(
   );
 }
 
-export function checkListSchedule(
+function checkListSchedule(
   items: (string | CheckListItem)[],
   options?: CheckListTiming,
 ): CheckListBeat[] {
@@ -163,7 +163,7 @@ function tickPath(size: number): string {
 
 const CAVEAT_ADVANCE = 0.36;
 
-export function checkListStrikeWidth(text: string, fontSize: number, labelWidth: number): number {
+function checkListStrikeWidth(text: string, fontSize: number, labelWidth: number): number {
   return Math.min(labelWidth, Array.from(text).length * fontSize * CAVEAT_ADVANCE);
 }
 

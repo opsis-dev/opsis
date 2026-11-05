@@ -5,9 +5,9 @@ import { clamp, numberOr, round3, smoothstep } from "#video/common/math.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
-export type KeystrokePlatform = "mac" | "windows";
-export type KeystrokeTheme = "light" | "dark";
-export type KeystrokeIcon =
+type KeystrokePlatform = "mac" | "windows";
+type KeystrokeTheme = "light" | "dark";
+type KeystrokeIcon =
   | "command"
   | "option"
   | "shift"
@@ -23,13 +23,13 @@ export type KeystrokeIcon =
   | "left"
   | "right";
 
-export interface KeystrokeStep {
+interface KeystrokeStep {
   at: number;
   keys: string;
   hold?: number;
 }
 
-export interface KeystrokeProps {
+interface KeystrokeProps {
   steps?: readonly KeystrokeStep[];
   platform?: KeystrokePlatform;
   theme?: KeystrokeTheme;
@@ -51,12 +51,12 @@ export interface KeystrokeOptions extends KeystrokeProps {
   fps?: number;
 }
 
-export type KeystrokeLegend =
+type KeystrokeLegend =
   | { kind: "icon"; icon: KeystrokeIcon }
   | { kind: "char"; text: string }
   | { kind: "word"; text: string };
 
-export interface KeystrokeKey {
+interface KeystrokeKey {
   name: string;
   label: string;
   legend: KeystrokeLegend;
@@ -64,26 +64,26 @@ export interface KeystrokeKey {
   modifier: boolean;
 }
 
-export type KeystrokeChord = KeystrokeKey[];
+type KeystrokeChord = KeystrokeKey[];
 
-export interface KeystrokeKeyTiming {
+interface KeystrokeKeyTiming {
   press: number;
   release: number;
 }
 
-export interface KeystrokeChordTiming {
+interface KeystrokeChordTiming {
   enter: number;
   fire: number;
   keys: KeystrokeKeyTiming[];
 }
 
-export interface KeystrokeLayout {
+interface KeystrokeLayout {
   caps: { chord: number; index: number; x: number; width: number }[];
   separators: { chord: number; x: number; width: number }[];
   widths: number[];
 }
 
-export interface KeystrokeGroup {
+interface KeystrokeGroup {
   index: number;
   step: number;
   keys: string;
@@ -100,7 +100,7 @@ export interface KeystrokeGroup {
   end: number;
 }
 
-export interface KeystrokePalette {
+interface KeystrokePalette {
   cap: string;
   edge: string;
   wall: string;
@@ -132,7 +132,7 @@ type IconSpec = { label: string; icon: KeystrokeIcon; units: number };
 type NamedSpec = IconSpec | { label: string; word: string; units: number };
 type Draft = Omit<KeystrokeGroup, "index" | "label" | "layout" | "pushes" | "exit" | "end">;
 
-export const keystrokeDefaults: Required<Omit<KeystrokeProps, Unset>> = {
+const keystrokeDefaults: Required<Omit<KeystrokeProps, Unset>> = {
   platform: "mac",
   theme: "light",
   accent: "#0a84ff",
@@ -143,13 +143,13 @@ export const keystrokeDefaults: Required<Omit<KeystrokeProps, Unset>> = {
   speed: 1,
 };
 
-export const keystrokeDefaultSteps: readonly KeystrokeStep[] = [
+const keystrokeDefaultSteps: readonly KeystrokeStep[] = [
   { at: 20, keys: "mod+k" },
   { at: 78, keys: "g i" },
   { at: 114, keys: "shift+mod+p" },
 ];
 
-export const keystrokePalettes: Record<KeystrokeTheme, KeystrokePalette> = {
+const keystrokePalettes: Record<KeystrokeTheme, KeystrokePalette> = {
   light: {
     cap: "#fcfcfb",
     edge: "#dfdfda",
@@ -429,26 +429,26 @@ function settle(rise: number, damping: number, taper: number, end: number) {
 const riseCurve = settle(ENTER_RISE, ENTER_DAMPING, ENTER_TAPER, ENTER);
 const releaseCurve = settle(RELEASE_RISE, RELEASE_DAMPING, RELEASE_TAPER, RELEASE);
 
-export function getKeystrokePress(frames: number) {
+function getKeystrokePress(frames: number) {
   return eased(frames, PRESS, smoothstep);
 }
 
-export function getKeystrokeRelease(frames: number) {
+function getKeystrokeRelease(frames: number) {
   return releaseCurve(frames);
 }
 
-export function getKeystrokeRise(frames: number) {
+function getKeystrokeRise(frames: number) {
   return riseCurve(frames);
 }
 
-export function getKeystrokeDepth(time: number, timing: KeystrokeKeyTiming) {
+function getKeystrokeDepth(time: number, timing: KeystrokeKeyTiming) {
   if (Number.isNaN(time) || time <= timing.press) return 0;
   if (time < timing.release) return getKeystrokePress(time - timing.press);
   const bottom = getKeystrokePress(timing.release - timing.press);
   return bottom * (1 - getKeystrokeRelease(time - timing.release));
 }
 
-export function getKeystrokeWordUnits(text: string, min = 1) {
+function getKeystrokeWordUnits(text: string, min = 1) {
   const raw = Array.from(text).length * WORD_CHAR + 2 * WORD_PAD;
   return Math.max(min, Math.ceil(raw * 4 - 1e-9) / 4);
 }
@@ -547,7 +547,7 @@ function parseChord(token: string, platform: KeystrokePlatform) {
   return [...modifiers, ...keys];
 }
 
-export function parseKeystrokeKeys(keys: string, platform?: KeystrokePlatform): KeystrokeChord[] {
+function parseKeystrokeKeys(keys: string, platform?: KeystrokePlatform): KeystrokeChord[] {
   if (typeof keys !== "string") return [];
   const target = platformOf(platform);
   return keys
@@ -558,7 +558,7 @@ export function parseKeystrokeKeys(keys: string, platform?: KeystrokePlatform): 
     .filter((chord) => chord.length > 0);
 }
 
-export function getKeystrokeLayout(chords: readonly KeystrokeChord[]): KeystrokeLayout {
+function getKeystrokeLayout(chords: readonly KeystrokeChord[]): KeystrokeLayout {
   const layout: KeystrokeLayout = { caps: [], separators: [], widths: [] };
   let cursor = 0;
   for (const [chord, keys] of chords.entries()) {
@@ -592,14 +592,14 @@ function schedule(chords: readonly KeystrokeChord[], hold: number) {
   return timing;
 }
 
-export function getKeystrokeLeadIn(keys: string, hold = HOLD) {
+function getKeystrokeLeadIn(keys: string, hold = HOLD) {
   const chords = parseKeystrokeKeys(keys);
   if (chords.length === 0) return 0;
   const timing = schedule(chords, within(hold, HOLD, 0, MAX_FRAMES));
   return timing[timing.length - 1].fire - timing[0].enter;
 }
 
-export function getKeystrokeTimeline(
+function getKeystrokeTimeline(
   options: Pick<
     KeystrokeOptions,
     "steps" | "platform" | "linger" | "fps" | "hold" | "thenText"
@@ -671,7 +671,7 @@ export function getKeystrokeTimeline(
 
 export type KeystrokeTimeline = ReturnType<typeof getKeystrokeTimeline>;
 
-export const keystrokeLength = getKeystrokeTimeline().end;
+const keystrokeLength = getKeystrokeTimeline().end;
 
 export function getKeystrokeDuration(
   options: Pick<KeystrokeOptions, "steps" | "linger" | "speed" | "fps" | "hold"> = {},
@@ -683,7 +683,7 @@ export function getKeystrokeDuration(
   return Math.ceil(round(motion)) + Math.round((TAIL * fps) / 30);
 }
 
-export function getKeystrokeTime(
+function getKeystrokeTime(
   frame: number,
   options: Pick<KeystrokeOptions, "fps" | "speed"> = {},
 ) {
@@ -691,7 +691,7 @@ export function getKeystrokeTime(
   return (elapsed * rateOf(options.speed) * 30) / fpsOf(options.fps);
 }
 
-export function getKeystrokeMetrics(size: number, unit = 1, roundness = RADIUS) {
+function getKeystrokeMetrics(size: number, unit = 1, roundness = RADIUS) {
   return {
     size: round(size),
     height: round(size),
@@ -708,7 +708,7 @@ export function getKeystrokeMetrics(size: number, unit = 1, roundness = RADIUS) 
   };
 }
 
-export type KeystrokeMetrics = ReturnType<typeof getKeystrokeMetrics>;
+type KeystrokeMetrics = ReturnType<typeof getKeystrokeMetrics>;
 
 function legendColor(ink: string, accent: string, amount: number) {
   const share = Math.floor(clamp(amount, 0, 1) * 100);
@@ -801,7 +801,7 @@ function groupState(
   };
 }
 
-export function getKeystrokeState(
+function getKeystrokeState(
   frame: number,
   options: KeystrokeOptions = {},
   timeline: KeystrokeTimeline = getKeystrokeTimeline(options),
@@ -837,7 +837,7 @@ export function getKeystrokeState(
   };
 }
 
-export type KeystrokeState = ReturnType<typeof getKeystrokeState>;
+type KeystrokeState = ReturnType<typeof getKeystrokeState>;
 
 function Legend({
   legend,

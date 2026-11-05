@@ -4,14 +4,14 @@ import { clamp, easeOutQuad, numberOr, round2, smoothstep } from "#video/common/
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
-export type SpeedLinesMode = "trail" | "focus";
+type SpeedLinesMode = "trail" | "focus";
 
-export interface SpeedLinesPoint {
+interface SpeedLinesPoint {
   x: number;
   y: number;
 }
 
-export interface SpeedLinesProps {
+interface SpeedLinesProps {
   mode?: SpeedLinesMode;
   from?: SpeedLinesPoint;
   to?: SpeedLinesPoint;
@@ -42,7 +42,7 @@ export interface SpeedLinesOptions extends Omit<SpeedLinesProps, Paint> {
   fps?: number;
 }
 
-export interface SpeedLinesSegment {
+interface SpeedLinesSegment {
   index: number;
   x1: number;
   y1: number;
@@ -51,26 +51,26 @@ export interface SpeedLinesSegment {
   length: number;
 }
 
-export interface SpeedLinesStreak extends SpeedLinesSegment {
+interface SpeedLinesStreak extends SpeedLinesSegment {
   offset: number;
   reach: number;
 }
 
-export interface SpeedLinesRay extends SpeedLinesSegment {
+interface SpeedLinesRay extends SpeedLinesSegment {
   angle: number;
   rest: number;
   inner: number;
   outer: number;
 }
 
-export interface SpeedLinesRayTiming {
+interface SpeedLinesRayTiming {
   rest: number;
   outer: number;
   start?: number;
   release?: number;
 }
 
-export const speedLinesDefaults: Required<Omit<SpeedLinesProps, Unset>> = {
+const speedLinesDefaults: Required<Omit<SpeedLinesProps, Unset>> = {
   mode: "trail",
   from: { x: -0.25, y: 0.5 },
   x: 0.5,
@@ -252,30 +252,30 @@ function easeOf(time: number, travel: number, bounce: number) {
   return 1 + (contact / travel) * wave * envelope;
 }
 
-export function getSpeedLinesTimeline(options: SpeedLinesOptions = {}) {
+function getSpeedLinesTimeline(options: SpeedLinesOptions = {}) {
   const { mode, duration, bounce, release } = settingsOf(options);
   if (mode === "focus") return { mode, impact: IMPACT, end: focusEnd(release) };
   return { mode, impact: duration, end: duration + springOf(bounce).settle };
 }
 
-export type SpeedLinesTimeline = ReturnType<typeof getSpeedLinesTimeline>;
+type SpeedLinesTimeline = ReturnType<typeof getSpeedLinesTimeline>;
 
-export const speedLinesLength = getSpeedLinesTimeline().end;
+const speedLinesLength = getSpeedLinesTimeline().end;
 
-export function getSpeedLinesDuration(options: SpeedLinesOptions = {}) {
+function getSpeedLinesDuration(options: SpeedLinesOptions = {}) {
   const { delay, speed } = settingsOf(options);
   if (speed === 0) return 1;
   const { end } = getSpeedLinesTimeline(options);
   return Math.max(1, Math.ceil(delay + (end + HOLD) / speed));
 }
 
-export function getSpeedLinesTime(frame: number, options: SpeedLinesOptions = {}) {
+function getSpeedLinesTime(frame: number, options: SpeedLinesOptions = {}) {
   const { fps, delay, speed } = settingsOf(options);
   const elapsed = Math.max(0, numberOr(frame, 0) - delay);
   return elapsed * (30 / fps) * speed;
 }
 
-export function getSpeedLinesEase(time: number, options: SpeedLinesOptions = {}) {
+function getSpeedLinesEase(time: number, options: SpeedLinesOptions = {}) {
   const { duration, bounce } = settingsOf(options);
   return easeOf(numberOr(time, 0), duration, bounce);
 }
@@ -295,7 +295,7 @@ function positionAt(time: number, settings: Settings) {
   };
 }
 
-export function getSpeedLinesPosition(time: number, options: SpeedLinesOptions = {}) {
+function getSpeedLinesPosition(time: number, options: SpeedLinesOptions = {}) {
   const { x, y } = positionAt(numberOr(time, 0), settingsOf(options));
   return { x, y };
 }
@@ -320,13 +320,13 @@ function shapeAt(time: number, settings: Settings) {
   return { rotation, along: Math.exp(strain), across: Math.exp(-strain) };
 }
 
-export function getSpeedLinesShape(time: number, options: SpeedLinesOptions = {}) {
+function getSpeedLinesShape(time: number, options: SpeedLinesOptions = {}) {
   return shapeAt(numberOr(time, 0), settingsOf(options));
 }
 
-export type SpeedLinesShape = ReturnType<typeof getSpeedLinesShape>;
+type SpeedLinesShape = ReturnType<typeof getSpeedLinesShape>;
 
-export function getSpeedLinesVelocity(frame: number, options: SpeedLinesOptions = {}) {
+function getSpeedLinesVelocity(frame: number, options: SpeedLinesOptions = {}) {
   const settings = settingsOf(options);
   const current = numberOr(frame, 0);
   const now = positionAt(getSpeedLinesTime(current, options), settings);
@@ -356,7 +356,7 @@ function streakSeeds(settings: Settings) {
   });
 }
 
-export function getSpeedLinesStreaks(
+function getSpeedLinesStreaks(
   frame: number,
   options: SpeedLinesOptions = {},
 ): SpeedLinesStreak[] {
@@ -404,7 +404,7 @@ export function getSpeedLinesStreaks(
   return streaks;
 }
 
-export function getSpeedLinesRadius(time: number, ray: SpeedLinesRayTiming) {
+function getSpeedLinesRadius(time: number, ray: SpeedLinesRayTiming) {
   const { rest, outer, start = 0, release = speedLinesDefaults.hold } = ray;
   const t = numberOr(time, 0);
   if (t <= start) return outer;
@@ -421,7 +421,7 @@ export function getSpeedLinesRadius(time: number, ray: SpeedLinesRayTiming) {
   return outer - (outer - held) * (1 - q * q);
 }
 
-export function getSpeedLinesRays(frame: number, options: SpeedLinesOptions = {}): SpeedLinesRay[] {
+function getSpeedLinesRays(frame: number, options: SpeedLinesOptions = {}): SpeedLinesRay[] {
   const settings = settingsOf(options);
   if (settings.mode !== "focus") return [];
   const time = getSpeedLinesTime(frame, options);
@@ -464,7 +464,7 @@ export function getSpeedLinesRays(frame: number, options: SpeedLinesOptions = {}
   return rays;
 }
 
-export function getSpeedLinesState(frame: number, options: SpeedLinesOptions = {}) {
+function getSpeedLinesState(frame: number, options: SpeedLinesOptions = {}) {
   const settings = settingsOf(options);
   const time = getSpeedLinesTime(frame, options);
   const point = positionAt(time, settings);
@@ -501,7 +501,7 @@ export function getSpeedLinesState(frame: number, options: SpeedLinesOptions = {
   };
 }
 
-export type SpeedLinesState = ReturnType<typeof getSpeedLinesState>;
+type SpeedLinesState = ReturnType<typeof getSpeedLinesState>;
 
 export function SpeedLines({
   mode,

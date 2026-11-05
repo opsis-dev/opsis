@@ -27,7 +27,7 @@ export function windowLabel(): string {
   return getCurrentWebviewWindow().label;
 }
 
-export type FrameHeader = {
+type FrameHeader = {
   width: number;
   height: number;
   t: number;
@@ -45,7 +45,7 @@ function readPacked<H>(buffer: ArrayBuffer): { header: H; body: Uint8Array<Array
   return { header, body: new Uint8Array(buffer.slice(4 + length)) };
 }
 
-export function readFrame(buffer: ArrayBuffer): StreamFrame {
+function readFrame(buffer: ArrayBuffer): StreamFrame {
   const { header, body } = readPacked<FrameHeader>(buffer);
   return { header, jpeg: body };
 }

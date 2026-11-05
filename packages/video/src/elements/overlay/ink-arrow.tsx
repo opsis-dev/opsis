@@ -19,9 +19,9 @@ const ARM_TAPER = 0.6;
 const ARM_OVERSHOOT = 0.16;
 const HEAD_MIN_RATIO = 2.6;
 
-export type InkArrowPoint = BrushPoint;
+type InkArrowPoint = BrushPoint;
 
-export function inkArrowControls(
+function inkArrowControls(
   from: InkArrowPoint,
   to: InkArrowPoint,
   curvature: number,
@@ -46,7 +46,7 @@ export function inkArrowControls(
   return { c1: at(0.3, "c1"), c2: at(0.7, "c2") };
 }
 
-export function inkArrowHead(
+function inkArrowHead(
   c2: InkArrowPoint,
   to: InkArrowPoint,
   headSize: number,
@@ -68,11 +68,11 @@ export function inkArrowHead(
   return { left: arm(headAngle), right: arm(-headAngle) };
 }
 
-export function inkArrowArmWidth(strokeWidth: number, release: number): number {
+function inkArrowArmWidth(strokeWidth: number, release: number): number {
   return strokeWidth * release;
 }
 
-export function inkArrowApex(c2: InkArrowPoint, to: InkArrowPoint, reach: number): InkArrowPoint {
+function inkArrowApex(c2: InkArrowPoint, to: InkArrowPoint, reach: number): InkArrowPoint {
   const dx = to.x - c2.x;
   const dy = to.y - c2.y;
   const length = Math.hypot(dx, dy) || 1;
@@ -82,11 +82,11 @@ export function inkArrowApex(c2: InkArrowPoint, to: InkArrowPoint, reach: number
   };
 }
 
-export function inkArrowHeadReach(headSize: number, strokeWidth: number): number {
+function inkArrowHeadReach(headSize: number, strokeWidth: number): number {
   return Math.max(headSize, strokeWidth * HEAD_MIN_RATIO);
 }
 
-export function inkArrowViewport(
+function inkArrowViewport(
   from: InkArrowPoint,
   to: InkArrowPoint,
   curvature: number,

@@ -25,7 +25,7 @@ export type SpringSettleConfig = {
   bgFadeFrames: number;
 };
 
-export const SPRING_SETTLE_DEFAULTS: SpringSettleConfig = {
+const SPRING_SETTLE_DEFAULTS: SpringSettleConfig = {
   sceneFrames: 70,
   gapFrames: 1,
   enterScale: 1.24,
@@ -49,7 +49,7 @@ export type SpringSettleSceneDef = {
   content: ReactNode;
 };
 
-export type SpringSettlePhase = "enter" | "dwell" | "exit" | "gap";
+type SpringSettlePhase = "enter" | "dwell" | "exit" | "gap";
 
 export type SpringSettleTimeline = {
   index: number;
@@ -76,7 +76,7 @@ function dwellOf(scene: SpringSettleSceneDef, cfg: SpringSettleConfig) {
   return scene.durationInFrames ?? cfg.sceneFrames;
 }
 
-export function springSettleTimeline(
+function springSettleTimeline(
   frame: number,
   scenes: SpringSettleSceneDef[],
   config?: Partial<SpringSettleConfig>,
@@ -95,7 +95,7 @@ export function springSettleTimeline(
   return { index, local, dwellFrames: dwellOf(scenes[index], cfg) };
 }
 
-export function springSettlePhase(
+function springSettlePhase(
   timeline: SpringSettleTimeline,
   fps: number,
   config?: Partial<SpringSettleConfig>,
@@ -117,7 +117,7 @@ export function springSettlePhase(
   return settled ? "dwell" : "enter";
 }
 
-export function springSettleExitStyle(
+function springSettleExitStyle(
   local: number,
   dwellFrames: number,
   config?: Partial<SpringSettleConfig>,
@@ -133,13 +133,13 @@ export function springSettleExitStyle(
   };
 }
 
-export interface SpringSettleEnterProps {
+interface SpringSettleEnterProps {
   local: number;
   config?: Partial<SpringSettleConfig>;
   children: ReactNode;
 }
 
-export function SpringSettleEnter({ local, config, children }: SpringSettleEnterProps) {
+function SpringSettleEnter({ local, config, children }: SpringSettleEnterProps) {
   const { fps } = useFilm();
   return (
     <SceneCtx.Provider value={{ local, cfg: resolveConfig(config), fps }}>

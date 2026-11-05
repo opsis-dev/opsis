@@ -2,7 +2,7 @@ import type { FieldMeta } from "@/editor/form/schema";
 import type { MediaKind, PortChoice, TakeKind } from "@/generated/bindings";
 import type { VarInfo } from "../var-text";
 
-export type SpotBackground = {
+type SpotBackground = {
   src: string;
   timeMs: number;
   durationMs: number;

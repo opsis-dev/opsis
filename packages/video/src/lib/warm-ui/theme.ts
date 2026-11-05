@@ -25,7 +25,7 @@ export interface WarmTheme {
   fontFamily?: string;
 }
 
-export const defaultLightTheme: WarmTheme = {
+const defaultLightTheme: WarmTheme = {
   background: "#faf9f6",
   foreground: "#141414",
   card: "#ffffff",
@@ -48,7 +48,7 @@ export const defaultLightTheme: WarmTheme = {
   radius: 10,
 };
 
-export const defaultDarkTheme: WarmTheme = {
+const defaultDarkTheme: WarmTheme = {
   background: "#0a0a0b",
   foreground: "#fafafa",
   card: "#141417",

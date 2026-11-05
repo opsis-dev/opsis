@@ -9,9 +9,9 @@ import { easings } from "#video/lib/ui-kit/motion.ts";
 import { useStateTransition } from "#video/lib/ui-kit/timeline.ts";
 import { type Step } from "#video/lib/ui-kit/types.ts";
 
-export const DEFAULT_DURATION = 18;
+const DEFAULT_DURATION = 18;
 
-export function tweenBlurInStyle(a: BlurInStyle, b: BlurInStyle, t: number): BlurInStyle {
+function tweenBlurInStyle(a: BlurInStyle, b: BlurInStyle, t: number): BlurInStyle {
   return {
     blur: a.blur + (b.blur - a.blur) * t,
     opacity: a.opacity + (b.opacity - a.opacity) * t,

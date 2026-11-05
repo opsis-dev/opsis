@@ -16,7 +16,7 @@ export function debounce<A extends unknown[]>(fn: (...args: A) => void, ms: numb
   return Object.assign(run, { cancel });
 }
 
-export function whenReady<T>(
+function whenReady<T>(
   check: () => T | null,
   subscribe: (onChange: () => void) => () => void,
   ms: number,

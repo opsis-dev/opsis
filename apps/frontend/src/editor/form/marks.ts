@@ -14,7 +14,7 @@ export type MarkPoints = { x: number; y: number; x2: number; y2: number };
 
 const MIN_DRAG = 0.01;
 
-export function isMarkKind(v: unknown): v is MarkKind {
+function isMarkKind(v: unknown): v is MarkKind {
   return isString(v) && (MARK_KINDS as readonly string[]).includes(v);
 }
 

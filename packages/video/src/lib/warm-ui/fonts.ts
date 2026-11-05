@@ -1,4 +1,4 @@
-export const FONTS: Record<string, string> = {
+const FONTS: Record<string, string> = {
   Inter: '"Inter"',
   Geist: '"Geist"',
   "Space Grotesk": '"Space Grotesk"',
@@ -7,8 +7,8 @@ export const FONTS: Record<string, string> = {
   "Instrument Serif": '"Instrument Serif"',
 };
 
-export const DEFAULT_FONT = "Default";
-export const FONT_NAMES = [DEFAULT_FONT, ...Object.keys(FONTS)];
+const DEFAULT_FONT = "Default";
+const FONT_NAMES = [DEFAULT_FONT, ...Object.keys(FONTS)];
 
 export function resolveFont(name?: string): string | undefined {
   return !name || name === DEFAULT_FONT ? undefined : (FONTS[name] ?? name);

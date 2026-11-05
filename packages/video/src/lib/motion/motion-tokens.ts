@@ -19,7 +19,7 @@ export const STAGGER = {
   relaxed: 12,
 } as const;
 
-export const EMPHASIS = {
+const EMPHASIS = {
   subtle: 1.05,
   medium: 1.1,
   strong: 1.18,

@@ -149,7 +149,7 @@ export function mixerBook(): MixerBook {
   return loaded.mixer;
 }
 
-export const NO_TRANSITION = "none";
+const NO_TRANSITION = "none";
 
 export function transitionTitle(kind: string): string {
   return loaded.transitions[kind] ?? kind;
@@ -175,11 +175,11 @@ export function getNodeDef(type: string): EditorNode | undefined {
   return loaded.byType.get(type);
 }
 
-export function defaultParams(type: string): Params {
+function defaultParams(type: string): Params {
   return structuredClone(getNodeDef(type)?.defaults ?? {});
 }
 
-export function newNodeParams(type: string, params?: Params): Params {
+function newNodeParams(type: string, params?: Params): Params {
   return {
     ...defaultParams(type),
     ...structuredClone(getNodeDef(type)?.hostDefaults ?? {}),

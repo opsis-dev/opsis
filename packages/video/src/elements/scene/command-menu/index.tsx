@@ -21,9 +21,9 @@ import {
 } from "#video/lib/neutral-ui/theme.ts";
 import { revealedText } from "#video/lib/ui-kit/timeline.ts";
 
-export type CommandMenuState = "opened" | "closed";
+type CommandMenuState = "opened" | "closed";
 
-export interface CommandMenuEntry {
+interface CommandMenuEntry {
   icon?: CommandMenuIcon;
   label: string;
   shortcut?: string;
@@ -52,7 +52,7 @@ function blendStyles(a: CommandMenuStyle, b: CommandMenuStyle, t: number): Comma
   };
 }
 
-export function filterCommandItems(
+function filterCommandItems(
   items: CommandMenuEntry[],
   query: string,
   revealCount?: number,
@@ -64,14 +64,14 @@ export function filterCommandItems(
   return items.filter((item) => item.label.toLowerCase().includes(visible));
 }
 
-export interface CommandMenuStyle {
+interface CommandMenuStyle {
   backdropOpacity: number;
   panelOpacity: number;
   panelScale: number;
   panelTranslateY: number;
 }
 
-export interface CommandMenuStyleContext {
+interface CommandMenuStyleContext {
   panelBg: string;
   panelBorder: string;
   inputFg: string;
@@ -83,7 +83,7 @@ export interface CommandMenuStyleContext {
   itemCtx: CommandMenuItemStyleContext;
 }
 
-export function commandMenuStyleContext(theme: NeutralTheme): CommandMenuStyleContext {
+function commandMenuStyleContext(theme: NeutralTheme): CommandMenuStyleContext {
   return {
     panelBg: theme.popover,
     panelBorder: theme.border,
@@ -97,7 +97,7 @@ export function commandMenuStyleContext(theme: NeutralTheme): CommandMenuStyleCo
   };
 }
 
-export function commandMenuStyle(
+function commandMenuStyle(
   state: CommandMenuState,
   _ctx: CommandMenuStyleContext,
 ): CommandMenuStyle {

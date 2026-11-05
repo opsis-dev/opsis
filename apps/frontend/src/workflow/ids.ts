@@ -9,6 +9,6 @@ export function randomId(prefix?: string): string {
   return prefix ? `${prefix}_${id}` : id;
 }
 
-export function edgeId(e: EdgeEnds): string {
+function edgeId(e: EdgeEnds): string {
   return `${e.source}.${e.sourceHandle}->${e.target}.${e.targetHandle}`;
 }

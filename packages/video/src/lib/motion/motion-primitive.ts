@@ -7,7 +7,7 @@ import { CLAMPED } from "#video/core/anim.ts";
 import { springBouncy, springSmooth, springSnappy } from "#video/lib/motion/springs.ts";
 import { EASING_ENTER, EASING_EXIT } from "#video/lib/motion/timing.ts";
 
-export type SpringPreset = "smooth" | "snappy" | "bouncy";
+type SpringPreset = "smooth" | "snappy" | "bouncy";
 
 export type MotionSpring = boolean | SpringPreset | Partial<SpringConfig>;
 
@@ -31,7 +31,7 @@ const EXIT_DURATION_RATIO = 0.7;
 const MIN_EXIT_FRAMES = 6;
 const DEFAULT_EXIT_TRAVEL = 0.6;
 
-export const DEFAULT_ENTER_FRAMES = 30;
+const DEFAULT_ENTER_FRAMES = 30;
 
 export function defaultExitFrames(durationInFrames: number): number {
   return Math.max(MIN_EXIT_FRAMES, Math.round(durationInFrames * EXIT_DURATION_RATIO));
@@ -48,7 +48,7 @@ export type EnterExitOptions = {
   exitDirection?: "reverse" | "continue";
 };
 
-export type MotionPrimitiveProps = EnterExitOptions & {
+type MotionPrimitiveProps = EnterExitOptions & {
   children: ReactNode;
   block?: boolean;
   style?: CSSProperties;
@@ -144,7 +144,7 @@ export function useEnterExit({
   };
 }
 
-export type TransformOrigin =
+type TransformOrigin =
   | "center"
   | "top"
   | "bottom"
@@ -155,6 +155,6 @@ export type TransformOrigin =
   | "bottom left"
   | "bottom right";
 
-export function resolveOrigin(origin: TransformOrigin): string {
+function resolveOrigin(origin: TransformOrigin): string {
   return origin === "center" ? "center center" : origin;
 }

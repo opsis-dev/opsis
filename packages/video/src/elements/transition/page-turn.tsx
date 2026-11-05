@@ -26,7 +26,7 @@ export function pageTurnLift(width: number, height: number, ox: number, angle: n
   return Math.max(height * LIFT_RATIO, lowest * 1.02);
 }
 
-export function pageTurnPose(progress: number, poses: number): number {
+function pageTurnPose(progress: number, poses: number): number {
   const clamped = Math.min(1, Math.max(0, progress));
   const eased = clamped ** 3;
   if (poses <= 1) return eased >= 1 ? 1 : 0;

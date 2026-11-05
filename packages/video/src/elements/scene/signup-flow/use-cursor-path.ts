@@ -13,18 +13,18 @@ export interface CursorWaypoint {
   easing?: EasingName;
 }
 
-export const DEFAULT_DURATION = 24;
+const DEFAULT_DURATION = 24;
 
-export const CLICK_FRAMES = 16;
+const CLICK_FRAMES = 16;
 
-export const PRESS_FRAMES = 8;
+const PRESS_FRAMES = 8;
 
 export interface CursorPathOptions {
   speed?: number;
   defaultDuration?: number;
 }
 
-export function ripplePhase(framesSinceClick: number): {
+function ripplePhase(framesSinceClick: number): {
   rippleOpacity: number;
   rippleScale: number;
 } {
@@ -38,7 +38,7 @@ export function ripplePhase(framesSinceClick: number): {
   };
 }
 
-export function clickPress(framesSinceClick: number): number {
+function clickPress(framesSinceClick: number): number {
   if (framesSinceClick < 0 || framesSinceClick >= PRESS_FRAMES) return 1;
   const half = PRESS_FRAMES / 2;
   const p =
@@ -54,7 +54,7 @@ export function useCursorPath(
   return cursorPathAt(waypoints, raw, opts);
 }
 
-export function cursorPathAt(
+function cursorPathAt(
   waypoints: CursorWaypoint[],
   raw: number,
   opts: CursorPathOptions = {},

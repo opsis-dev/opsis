@@ -6,28 +6,28 @@ import type { CSSProperties } from "react";
 import { CLAMPED } from "#video/core/anim.ts";
 import { caretBlinkOpacity } from "#video/parts/caret.tsx";
 
-export const AI_TYPING_START = 42;
-export const AI_TYPING_START_TUI = 48;
-export const AI_TYPING_CPS = 22;
+const AI_TYPING_START = 42;
+const AI_TYPING_START_TUI = 48;
+const AI_TYPING_CPS = 22;
 
 export function stageScale(width: number, height: number, refW = 1280, refH = 720): number {
   return Math.min(width / refW, height / refH);
 }
 
-export interface TypewriterOptions {
+interface TypewriterOptions {
   cps?: number;
   speed?: number;
   startFrame?: number;
 }
 
-export interface TypewriterState {
+interface TypewriterState {
   text: string;
   count: number;
   done: boolean;
   typing: boolean;
 }
 
-export function useTypewriter(full: string, options: TypewriterOptions = {}): TypewriterState {
+function useTypewriter(full: string, options: TypewriterOptions = {}): TypewriterState {
   const { cps = AI_TYPING_CPS, speed = 1, startFrame = AI_TYPING_START } = options;
   const frame = useFrame();
   const { fps } = useFilm();
@@ -48,7 +48,7 @@ export function useTypewriter(full: string, options: TypewriterOptions = {}): Ty
   };
 }
 
-export function morphProgressAt(
+function morphProgressAt(
   frame: number,
   opts: { startFrame?: number; fps: number; speed?: number },
 ): number {
@@ -61,7 +61,7 @@ export function morphProgressAt(
   return Math.max(0, Math.min(value, 1));
 }
 
-export interface SendBeat {
+interface SendBeat {
   frame: number;
   sent: boolean;
   press: number;
@@ -69,7 +69,7 @@ export interface SendBeat {
   reply: number;
 }
 
-export function sendBeatAt(
+function sendBeatAt(
   frame: number,
   opts: {
     promptLength: number;
@@ -104,13 +104,13 @@ export function sendBeatAt(
   };
 }
 
-export function replyDotOpacity(frame: number, index: number, fps: number): number {
+function replyDotOpacity(frame: number, index: number, fps: number): number {
   const period = fps * 0.9;
   const phase = (((frame - index * (period / 3)) % period) + period) % period;
   return 0.28 + 0.72 * (0.5 - 0.5 * Math.cos((phase / period) * Math.PI * 2));
 }
 
-export function introBounceIn(frame: number, fps: number): { translateY: number; scale: number } {
+function introBounceIn(frame: number, fps: number): { translateY: number; scale: number } {
   const s = spring({
     fps,
     frame,
@@ -122,7 +122,7 @@ export function introBounceIn(frame: number, fps: number): { translateY: number;
   };
 }
 
-export function fadeUpAt(
+function fadeUpAt(
   frame: number,
   range: [number, number],
 ): { opacity: number; translateY: number } {

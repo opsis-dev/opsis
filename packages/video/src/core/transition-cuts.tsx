@@ -5,7 +5,7 @@ type CutSide = { image: OffscreenCanvas; progress: number; draw: DrawFunction };
 
 type Cut = { entering?: CutSide; exiting?: CutSide };
 
-export type CutDirection = "entering" | "exiting";
+type CutDirection = "entering" | "exiting";
 
 export type CutBoard = {
   report: (cut: number, direction: CutDirection, side: CutSide) => void;

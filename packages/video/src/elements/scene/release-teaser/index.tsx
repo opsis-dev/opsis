@@ -9,10 +9,7 @@ import { ReleaseLockup } from "#video/elements/scene/release-teaser/scenes/closi
 import { Statement } from "#video/elements/scene/release-teaser/scenes/statement.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
-export {
-  RELEASE_TEASER_FPS,
-  releaseTeaserTimeline,
-} from "#video/elements/scene/release-teaser/motion.ts";
+;
 
 export function ReleaseTeaser(settings: ElementSettings["release-teaser"]) {
   const currentFrame = useFrame();

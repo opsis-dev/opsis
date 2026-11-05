@@ -3,9 +3,9 @@ import { useStateTransition } from "#video/lib/ui-kit/timeline.ts";
 import { type Step } from "#video/lib/ui-kit/types.ts";
 import { type ToastState, type ToastStyle, toastStyle } from "#video/parts/toast.tsx";
 
-export const DEFAULT_DURATION = 12;
+const DEFAULT_DURATION = 12;
 
-export function tweenToastStyle(a: ToastStyle, b: ToastStyle, t: number): ToastStyle {
+function tweenToastStyle(a: ToastStyle, b: ToastStyle, t: number): ToastStyle {
   return {
     opacity: a.opacity + (b.opacity - a.opacity) * t,
     translateY: a.translateY + (b.translateY - a.translateY) * t,

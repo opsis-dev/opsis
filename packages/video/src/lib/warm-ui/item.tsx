@@ -1,10 +1,10 @@
 import { createContext, type ReactElement, type ReactNode, useContext } from "react";
 
-export type ItemHost = (index: number, node: ReactElement) => ReactNode;
+type ItemHost = (index: number, node: ReactElement) => ReactNode;
 
 const ItemHostContext = createContext<ItemHost | null>(null);
 
-export const ItemHostProvider = ItemHostContext.Provider;
+const ItemHostProvider = ItemHostContext.Provider;
 
 export function Item({
   index,

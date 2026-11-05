@@ -9,7 +9,7 @@ import type { ShellPlatform } from "./engine-downloads";
 import { ROOT } from "./tool-config";
 import { unzipTo } from "./unzip";
 
-export const STAGED_ENGINE = path.join(os.homedir(), ".cache", "opsis-stage-engine");
+const STAGED_ENGINE = path.join(os.homedir(), ".cache", "opsis-stage-engine");
 
 const CREDITS_CACHE = path.join(os.homedir(), ".cache", "opsis-chromium-credits");
 
@@ -45,7 +45,7 @@ const installedSchema = z.object({ browser: z.string() });
 
 export type InstalledEngine = z.infer<typeof installedSchema>;
 
-export function cargoRun(crate: string, bin: string, args: string[]): string {
+function cargoRun(crate: string, bin: string, args: string[]): string {
   return execFileSync(
     "cargo",
     ["run", "-q", "--release", "-p", crate, "--bin", bin, "--", ...args],
@@ -67,7 +67,7 @@ export function browserVersion(text: string): string | undefined {
   return line?.split(/\s+/).find((word) => /^\d+(\.\d+){3}$/.test(word));
 }
 
-export function shellPlatform(platform = process.platform, arch = process.arch): ShellPlatform {
+function shellPlatform(platform = process.platform, arch = process.arch): ShellPlatform {
   const arm = arch === "arm64";
   if (platform === "linux") return arm ? "linux-arm64" : "linux64";
   if (platform === "darwin") return arm ? "mac-arm64" : "mac-x64";

@@ -12,7 +12,7 @@ import {
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
-export type CodeMorphTheme = "dark" | "light";
+type CodeMorphTheme = "dark" | "light";
 
 export type CodeMorphKind =
   | "keyword"
@@ -24,14 +24,14 @@ export type CodeMorphKind =
   | "text"
   | "punct";
 
-export type CodeMorphRole = "rest" | "stay" | "move" | "exit" | "enter";
+type CodeMorphRole = "rest" | "stay" | "move" | "exit" | "enter";
 
-export interface CodeMorphStep {
+interface CodeMorphStep {
   at: number;
   code: string;
 }
 
-export interface CodeMorphProps {
+interface CodeMorphProps {
   steps?: CodeMorphStep[];
   morphDuration?: number;
   highlight?: boolean;
@@ -55,7 +55,7 @@ export interface CodeMorphOptions extends Omit<CodeMorphProps, Paint> {
   fps?: number;
 }
 
-export interface CodeMorphToken {
+interface CodeMorphToken {
   text: string;
   kind: CodeMorphKind;
   line: number;
@@ -63,7 +63,7 @@ export interface CodeMorphToken {
   word: boolean;
 }
 
-export interface CodeMorphDiff {
+interface CodeMorphDiff {
   fromTo: number[];
   toFrom: number[];
 }
@@ -80,7 +80,7 @@ export interface CodeMorphRenderToken {
   blur: number;
 }
 
-export interface CodeMorphRow {
+interface CodeMorphRow {
   key: string;
   row: number;
   opacity: number;
@@ -123,7 +123,7 @@ export function Invoices() {
   return <InvoiceTable rows={data} />;
 }`;
 
-export const codeMorphDefaults: Required<
+const codeMorphDefaults: Required<
   Omit<CodeMorphProps, "lineHeight" | "maxSize" | "highlightHold">
 > = {
   steps: [
@@ -373,7 +373,7 @@ function range(start: number, end: number) {
   return Array.from({ length: Math.max(0, end - start) }, (_, k) => start + k);
 }
 
-export function normalizeCodeMorphCode(code: string) {
+function normalizeCodeMorphCode(code: string) {
   const lines = code
     .replace(/\r\n?/g, "\n")
     .replace(/\t/g, TAB)
@@ -527,7 +527,7 @@ function versionOf(source: string) {
 
 type CodeMorphVersion = ReturnType<typeof versionOf>;
 
-export function tokenizeCodeMorph(code: string) {
+function tokenizeCodeMorph(code: string) {
   return versionOf(code).tokens;
 }
 
@@ -740,7 +740,7 @@ function signatureOf(tokens: CodeMorphToken[], indices: number[]) {
   return JSON.stringify(shape);
 }
 
-export function diffCodeMorphTokens(from: CodeMorphToken[], to: CodeMorphToken[]): CodeMorphDiff {
+function diffCodeMorphTokens(from: CodeMorphToken[], to: CodeMorphToken[]): CodeMorphDiff {
   const sides: Sides = {
     from,
     to,
@@ -888,7 +888,7 @@ function stepsOf(steps: CodeMorphStep[] | undefined) {
   return ordered.length > 0 ? ordered : [{ index: 0, at: 0, code: "" }];
 }
 
-export function getCodeMorphLayout(options: CodeMorphOptions = {}) {
+function getCodeMorphLayout(options: CodeMorphOptions = {}) {
   const width = Math.max(1, numberOr(options.width, REFERENCE_WIDTH));
   const height = Math.max(1, numberOr(options.height, REFERENCE_HEIGHT));
   const requested = numberOr(options.fontSize, codeMorphDefaults.fontSize);
@@ -937,9 +937,9 @@ export function getCodeMorphLayout(options: CodeMorphOptions = {}) {
   };
 }
 
-export type CodeMorphLayout = ReturnType<typeof getCodeMorphLayout>;
+type CodeMorphLayout = ReturnType<typeof getCodeMorphLayout>;
 
-export function getCodeMorphTimeline(options: CodeMorphOptions = {}) {
+function getCodeMorphTimeline(options: CodeMorphOptions = {}) {
   const requested = numberOr(options.morphDuration, codeMorphDefaults.morphDuration);
   const morph = clamp(requested, MIN_MORPH, MAX_MORPH);
   const highlight = options.highlight !== false;
@@ -974,9 +974,9 @@ export function getCodeMorphTimeline(options: CodeMorphOptions = {}) {
   return { morph, highlight, steps, morphs, settled, duration: settled + HOLD };
 }
 
-export type CodeMorphTimeline = ReturnType<typeof getCodeMorphTimeline>;
+type CodeMorphTimeline = ReturnType<typeof getCodeMorphTimeline>;
 
-export const codeMorphLength = getCodeMorphTimeline().settled;
+const codeMorphLength = getCodeMorphTimeline().settled;
 
 export function getCodeMorphDuration(options: CodeMorphOptions = {}) {
   const speed = Math.max(0, numberOr(options.speed, codeMorphDefaults.speed));
@@ -985,7 +985,7 @@ export function getCodeMorphDuration(options: CodeMorphOptions = {}) {
   return Math.max(1, Math.ceil(duration / speed));
 }
 
-export function getCodeMorphTime(frame: number, options: CodeMorphOptions = {}) {
+function getCodeMorphTime(frame: number, options: CodeMorphOptions = {}) {
   const fps = Math.max(1, numberOr(options.fps, 30));
   const speed = Math.max(0, numberOr(options.speed, codeMorphDefaults.speed));
   return Math.max(0, numberOr(frame, 0)) * (30 / fps) * speed;
@@ -1116,7 +1116,7 @@ function highlightsAt(
   return rows;
 }
 
-export function getCodeMorphState(
+function getCodeMorphState(
   frame: number,
   options: CodeMorphOptions = {},
   layout: CodeMorphLayout = getCodeMorphLayout(options),

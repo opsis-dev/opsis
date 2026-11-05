@@ -12,7 +12,7 @@ export type ShaderTextRevealProps = {
   intensity?: number;
 };
 
-export function getShaderTextState(frame: number, wordCount: number, wordDuration: number) {
+function getShaderTextState(frame: number, wordCount: number, wordDuration: number) {
   const duration = Math.max(12, Math.round(wordDuration));
   const count = Math.max(1, wordCount);
   const f = Math.max(0, frame);

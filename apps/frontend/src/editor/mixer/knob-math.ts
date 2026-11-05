@@ -14,7 +14,7 @@ export function rangeProps(range: NumberRange) {
   };
 }
 
-export function roundToStep(v: number, step: number): number {
+function roundToStep(v: number, step: number): number {
   const decimals = Math.max(0, -Math.floor(Math.log10(step)));
   return Number((Math.round(v / step) * step).toFixed(decimals));
 }

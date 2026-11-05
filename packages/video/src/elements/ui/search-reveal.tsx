@@ -16,7 +16,7 @@ export type SearchRevealProps = {
   reducedMotion?: boolean;
 };
 
-export const searchRevealLength = 90;
+const searchRevealLength = 90;
 const MIN_FIELD_FONT = 16;
 function letters(text: string) {
   return Array.from(
@@ -41,7 +41,7 @@ export function getSearchRevealDuration(props: SearchRevealProps = {}) {
   return speed === 0 ? 1 : Math.ceil((end + 18) / speed);
 }
 
-export function getSearchRevealState(frame: number, props: SearchRevealProps = {}) {
+function getSearchRevealState(frame: number, props: SearchRevealProps = {}) {
   const { characters, step, end, speed } = timing(props);
   const t = props.reducedMotion ? end : Math.max(0, numberOr(frame, 0)) * speed;
   const typedCount = clamp(Math.floor((t - 54) / step), 0, characters.length);

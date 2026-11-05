@@ -7,10 +7,10 @@ export const easings = {
 
 export type EasingName = keyof typeof easings;
 
-export const springs = {
+const springs = {
   snappy: { damping: 18, stiffness: 220, mass: 0.7 },
   soft: { damping: 14, stiffness: 120, mass: 0.9 },
   bouncy: { damping: 10, stiffness: 180, mass: 0.8 },
 } as const;
 
-export type SpringName = keyof typeof springs;
+type SpringName = keyof typeof springs;

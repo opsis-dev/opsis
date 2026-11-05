@@ -44,7 +44,7 @@ export function parseColor(c: string): Rgb {
   return { mode: "rgb", r: rgb.r, g: rgb.g, b: rgb.b, alpha: rgb.alpha ?? 1 };
 }
 
-export function oklchToRgb(l: number, c: number, h: number): Rgb {
+function oklchToRgb(l: number, c: number, h: number): Rgb {
   const mapped = clampChroma({ mode: "oklch", l, c, h }, "oklch", "rgb");
   return toRgb(mapped);
 }
@@ -100,7 +100,7 @@ export function interpolateColors(
   return mixOklch(from, colors[index + 1] ?? from, position - index);
 }
 
-export function toCss(color: Rgb): string {
+function toCss(color: Rgb): string {
   return formatRgb(color);
 }
 

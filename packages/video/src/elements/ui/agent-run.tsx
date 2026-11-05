@@ -9,11 +9,11 @@ import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.
 import type { Theme } from "#video/generated/spec.ts";
 import { nestedFrom } from "#video/lib/settings/shape.ts";
 
-export type AgentRunTheme = "light" | "dark";
+type AgentRunTheme = "light" | "dark";
 
-export type AgentRunIcon = "chart" | "database" | "search" | "book" | "globe" | "terminal" | "file";
+type AgentRunIcon = "chart" | "database" | "search" | "book" | "globe" | "terminal" | "file";
 
-export interface AgentRunStep {
+interface AgentRunStep {
   name: string;
   detail?: string;
   duration: number;
@@ -29,7 +29,7 @@ export interface AgentRunScript {
   answer: string;
 }
 
-export interface AgentRunProps {
+interface AgentRunProps {
   run?: AgentRunScript;
   theme?: Theme;
   accentColor?: string;
@@ -53,7 +53,7 @@ export interface AgentRunPlayback {
   thoughtLabel?: string;
 }
 
-export const defaultAgentRun: AgentRunScript = {
+const defaultAgentRun: AgentRunScript = {
   title: "Checkout conversion drop",
   prompt: "Why did checkout conversion drop last week?",
   plan: [
@@ -120,7 +120,7 @@ export const defaultAgentRun: AgentRunScript = {
   ].join("\n"),
 };
 
-export const agentRunDefaults: Required<Omit<AgentRunProps, "className">> = {
+const agentRunDefaults: Required<Omit<AgentRunProps, "className">> = {
   run: defaultAgentRun,
   theme: { mode: "light", colors: {} },
   accentColor: "#2563eb",
@@ -270,7 +270,7 @@ function compressionOf(compression: number | undefined) {
   );
 }
 
-export function formatAgentRunSeconds(seconds: number) {
+function formatAgentRunSeconds(seconds: number) {
   const value = Math.max(0, numberOr(seconds, 0));
   if (value < 60) return `${value.toFixed(1)}s`;
   const minutes = Math.floor(value / 60);
@@ -285,7 +285,7 @@ function isDigit(code: number) {
   return code >= 48 && code <= 57;
 }
 
-export function tokenizeAgentRun(text: string): number[] {
+function tokenizeAgentRun(text: string): number[] {
   const ends: number[] = [];
   let index = 0;
   while (index < text.length) {
@@ -317,7 +317,7 @@ export function tokenizeAgentRun(text: string): number[] {
   return ends;
 }
 
-export interface AgentRunChunk {
+interface AgentRunChunk {
   index: number;
   at: number;
   start: number;
@@ -336,7 +336,7 @@ function pick(weights: readonly number[], value: number) {
   return weights.length - 1;
 }
 
-export function getAgentRunChunks(
+function getAgentRunChunks(
   text: string,
   seed = agentRunDefaults.seed,
   stream = "answer",
@@ -415,12 +415,12 @@ function chunkIndexAt(chunks: readonly AgentRunChunk[], offset: number) {
   return found;
 }
 
-export function getAgentRunArrival(chunks: readonly AgentRunChunk[], offset: number) {
+function getAgentRunArrival(chunks: readonly AgentRunChunk[], offset: number) {
   const index = chunkIndexAt(chunks, offset);
   return index < chunks.length ? chunks[index].at : Number.POSITIVE_INFINITY;
 }
 
-export function getAgentRunReveal(chunks: readonly AgentRunChunk[], local: number) {
+function getAgentRunReveal(chunks: readonly AgentRunChunk[], local: number) {
   let low = 0;
   let high = chunks.length - 1;
   let revealed = 0;
@@ -436,21 +436,21 @@ export function getAgentRunReveal(chunks: readonly AgentRunChunk[], local: numbe
   return revealed;
 }
 
-export type AgentRunInlineKind = "text" | "bold" | "code" | "cite";
+type AgentRunInlineKind = "text" | "bold" | "code" | "cite";
 
-export interface AgentRunInline {
+interface AgentRunInline {
   kind: AgentRunInlineKind;
   text: string;
   raw: number;
   end: number;
 }
 
-export interface AgentRunCodeLine {
+interface AgentRunCodeLine {
   text: string;
   raw: number;
 }
 
-export type AgentRunBlock =
+type AgentRunBlock =
   | {
       kind: "heading";
       level: 1 | 2;
@@ -549,7 +549,7 @@ function isStructural(line: string) {
   return line.startsWith("```") || HEADING_LINE.test(line) || ITEM_LINE.test(line);
 }
 
-export function parseAgentRunMarkdown(markdown: string): AgentRunBlock[] {
+function parseAgentRunMarkdown(markdown: string): AgentRunBlock[] {
   const lines: AgentRunCodeLine[] = [];
   let offset = 0;
   for (const text of markdown.split("\n")) {
@@ -652,22 +652,22 @@ function charWidth(char: string) {
   return 0.62;
 }
 
-export function estimateAgentRunWidth(text: string, size: number, mono = false) {
+function estimateAgentRunWidth(text: string, size: number, mono = false) {
   let em = 0;
   for (const char of text) em += mono ? 0.6 : charWidth(char);
   return em * size;
 }
 
-export type AgentRunPieceKind = AgentRunInlineKind | "punct" | "string" | "comment";
+type AgentRunPieceKind = AgentRunInlineKind | "punct" | "string" | "comment";
 
-export interface AgentRunPiece {
+interface AgentRunPiece {
   kind: AgentRunPieceKind;
   text: string;
   raw: number;
   end: number;
 }
 
-export interface AgentRunTextLine {
+interface AgentRunTextLine {
   y: number;
   height: number;
   raw: number;
@@ -758,7 +758,7 @@ function mergePieces(pieces: readonly AgentRunPiece[]) {
   return merged;
 }
 
-export function wrapAgentRunInline(
+function wrapAgentRunInline(
   inline: readonly AgentRunInline[],
   size: number,
   maxWidth: number,
@@ -809,7 +809,7 @@ function textLines(pieces: AgentRunPiece[][], lineHeight: number, raw: number): 
 
 const PUNCT = "<>{}()[]/=;,.:+-*&|!?";
 
-export function getAgentRunCodePieces(line: AgentRunCodeLine): AgentRunPiece[] {
+function getAgentRunCodePieces(line: AgentRunCodeLine): AgentRunPiece[] {
   const pieces: AgentRunPiece[] = [];
   function push(kind: AgentRunPieceKind, from: number, to: number) {
     if (to <= from) return;
@@ -854,7 +854,7 @@ export function getAgentRunCodePieces(line: AgentRunCodeLine): AgentRunPiece[] {
   return pieces;
 }
 
-export function getAgentRunFrame(width?: number, height?: number) {
+function getAgentRunFrame(width?: number, height?: number) {
   const frameWidth = Math.max(1, numberOr(width, 1280));
   const frameHeight = Math.max(1, numberOr(height, 720));
   const scale = Math.min(frameHeight / REF_HEIGHT, frameWidth / (PANEL_W + 2 * MARGIN_X));
@@ -869,9 +869,9 @@ export function getAgentRunFrame(width?: number, height?: number) {
   };
 }
 
-export type AgentRunFrame = ReturnType<typeof getAgentRunFrame>;
+type AgentRunFrame = ReturnType<typeof getAgentRunFrame>;
 
-export interface AgentRunSegment {
+interface AgentRunSegment {
   kind: "think" | "gap" | "tool" | "answer";
   from: number;
   to: number;
@@ -879,7 +879,7 @@ export interface AgentRunSegment {
   real: number;
 }
 
-export interface AgentRunToolSpan {
+interface AgentRunToolSpan {
   index: number;
   start: number;
   end: number;
@@ -892,7 +892,7 @@ function planTextOf(run: AgentRunScript) {
   return (run.plan ?? []).join("\n");
 }
 
-export function getAgentRunTimeline(
+function getAgentRunTimeline(
   run: AgentRunScript = defaultAgentRun,
   options: AgentRunOptions = {},
 ) {
@@ -955,9 +955,9 @@ export function getAgentRunTimeline(
   };
 }
 
-export type AgentRunTimeline = ReturnType<typeof getAgentRunTimeline>;
+type AgentRunTimeline = ReturnType<typeof getAgentRunTimeline>;
 
-export const agentRunLength = getAgentRunTimeline().settled;
+const agentRunLength = getAgentRunTimeline().settled;
 
 export function getAgentRunDuration(
   run: AgentRunScript = defaultAgentRun,
@@ -969,12 +969,12 @@ export function getAgentRunDuration(
   return Math.ceil(round3(settled / rate)) + HOLD;
 }
 
-export function getAgentRunTime(frame: number, playback: AgentRunPlayback = {}) {
+function getAgentRunTime(frame: number, playback: AgentRunPlayback = {}) {
   const fps = Math.max(1, numberOr(playback.fps, 30));
   return Math.max(0, numberOr(frame, 0)) * (30 / fps) * rateOf(playback.speed);
 }
 
-export function getAgentRunElapsed(time: number, timeline: AgentRunTimeline) {
+function getAgentRunElapsed(time: number, timeline: AgentRunTimeline) {
   if (!(time > timeline.runStart)) return 0;
   for (const segment of timeline.segments) {
     if (segment.to > segment.from && time < segment.to) {
@@ -985,12 +985,12 @@ export function getAgentRunElapsed(time: number, timeline: AgentRunTimeline) {
   return timeline.realTotal;
 }
 
-export interface AgentRunChipLayout {
+interface AgentRunChipLayout {
   label: string;
   icon: "globe" | "file";
 }
 
-export interface AgentRunRowLayout {
+interface AgentRunRowLayout {
   index: number;
   y: number;
   height: number;
@@ -1003,26 +1003,26 @@ export interface AgentRunRowLayout {
   more: number;
 }
 
-export interface AgentRunPlanItemLayout {
+interface AgentRunPlanItemLayout {
   index: number;
   y: number;
   raw: number;
   lines: AgentRunTextLine[];
 }
 
-export interface AgentRunPlanSection {
+interface AgentRunPlanSection {
   y: number;
   height: number;
   items: AgentRunPlanItemLayout[];
 }
 
-export interface AgentRunToolsSection {
+interface AgentRunToolsSection {
   y: number;
   height: number;
   rows: AgentRunRowLayout[];
 }
 
-export type AgentRunBlockLayout =
+type AgentRunBlockLayout =
   | {
       kind: "heading";
       index: number;
@@ -1065,7 +1065,7 @@ function moreWidth(count: number) {
   return 9 + estimateAgentRunWidth(`+${count}`, CHIP_SIZE) + 9 + 2;
 }
 
-export function fitAgentRunChips(sources: readonly string[]) {
+function fitAgentRunChips(sources: readonly string[]) {
   const chips: AgentRunChipLayout[] = [];
   let used = 0;
   for (const [index, label] of sources.entries()) {
@@ -1092,7 +1092,7 @@ function blockGap(previous: AgentRunBlock["kind"] | undefined, next: AgentRunBlo
   return BLOCK_GAP;
 }
 
-export function getAgentRunLayout(run: AgentRunScript = defaultAgentRun) {
+function getAgentRunLayout(run: AgentRunScript = defaultAgentRun) {
   let y = PAD_TOP;
   const prompt = plainInline(run.prompt, 0);
   const wrappedPrompt = wrapAgentRunInline(prompt, BUBBLE_SIZE, BUBBLE_WIDTH);
@@ -1217,14 +1217,14 @@ export function getAgentRunLayout(run: AgentRunScript = defaultAgentRun) {
   return { bubble, status, plan, tools, blocks, height: y };
 }
 
-export type AgentRunLayout = ReturnType<typeof getAgentRunLayout>;
+type AgentRunLayout = ReturnType<typeof getAgentRunLayout>;
 
-export interface AgentRunScrollStep {
+interface AgentRunScrollStep {
   at: number;
   delta: number;
 }
 
-export function getAgentRunGrowth(layout: AgentRunLayout, timeline: AgentRunTimeline) {
+function getAgentRunGrowth(layout: AgentRunLayout, timeline: AgentRunTimeline) {
   const events: { at: number; bottom: number }[] = [
     { at: BUBBLE_AT, bottom: layout.bubble.y + layout.bubble.height },
     { at: RUN_START, bottom: layout.status.y + layout.status.height },
@@ -1275,7 +1275,7 @@ export function getAgentRunGrowth(layout: AgentRunLayout, timeline: AgentRunTime
   return events.filter((event) => Number.isFinite(event.at)).sort((a, b) => a.at - b.at);
 }
 
-export function getAgentRunScrollSteps(
+function getAgentRunScrollSteps(
   layout: AgentRunLayout,
   timeline: AgentRunTimeline,
   viewport: number,
@@ -1292,7 +1292,7 @@ export function getAgentRunScrollSteps(
   return steps;
 }
 
-export function getAgentRunScroll(time: number, steps: readonly AgentRunScrollStep[]) {
+function getAgentRunScroll(time: number, steps: readonly AgentRunScrollStep[]) {
   let total = 0;
   for (const step of steps) {
     const since = time - step.at + SCROLL_LEAD;
@@ -1302,7 +1302,7 @@ export function getAgentRunScroll(time: number, steps: readonly AgentRunScrollSt
   return total;
 }
 
-export function getAgentRunModel(
+function getAgentRunModel(
   run: AgentRunScript = defaultAgentRun,
   options: AgentRunOptions = {},
 ) {
@@ -1313,9 +1313,9 @@ export function getAgentRunModel(
   return { run, stage, timeline, layout, scroll };
 }
 
-export type AgentRunModel = ReturnType<typeof getAgentRunModel>;
+type AgentRunModel = ReturnType<typeof getAgentRunModel>;
 
-export interface AgentRunSpinnerState {
+interface AgentRunSpinnerState {
   angle: number;
   arc: number;
   done: number;
@@ -1323,7 +1323,7 @@ export interface AgentRunSpinnerState {
   resolved: boolean;
 }
 
-export function getAgentRunSpinner(time: number, start: number, end: number): AgentRunSpinnerState {
+function getAgentRunSpinner(time: number, start: number, end: number): AgentRunSpinnerState {
   const spinning = clamp(time - start, 0, Math.max(0, end - start));
   const since = time - end;
   const settle = progress(since / RESOLVE);
@@ -1337,7 +1337,7 @@ export function getAgentRunSpinner(time: number, start: number, end: number): Ag
   };
 }
 
-export function getAgentRunShimmer(time: number, length: number) {
+function getAgentRunShimmer(time: number, length: number) {
   const cycle = (time - RUN_START) / SHIMMER_PERIOD;
   const phase = cycle - Math.floor(cycle);
   const center = -SHIMMER_BAND + phase * (length + 2 * SHIMMER_BAND);
@@ -1348,19 +1348,19 @@ export function getAgentRunShimmer(time: number, length: number) {
   });
 }
 
-export interface AgentRunFragment {
+interface AgentRunFragment {
   text: string;
   opacity: number;
 }
 
-export interface AgentRunSpan {
+interface AgentRunSpan {
   kind: AgentRunPieceKind;
   fragments: AgentRunFragment[];
   opacity: number;
   scale: number;
 }
 
-export interface AgentRunLineState {
+interface AgentRunLineState {
   key: string;
   y: number;
   height: number;
@@ -1413,7 +1413,7 @@ function spansOf(
   return spans;
 }
 
-export type AgentRunBlockState =
+type AgentRunBlockState =
   | {
       kind: "heading";
       key: string;
@@ -1524,7 +1524,7 @@ function blockState(
   return { kind: "paragraph", key, y: block.y, lines: lineStates(block.raw) };
 }
 
-export interface AgentRunPlanItemState {
+interface AgentRunPlanItemState {
   key: string;
   index: number;
   y: number;
@@ -1608,7 +1608,7 @@ function toolsState(tools: AgentRunToolsSection, timeline: AgentRunTimeline, tim
   return { y: tools.y, height: round3(height), rows };
 }
 
-export function getAgentRunState(
+function getAgentRunState(
   frame: number,
   model: AgentRunModel = getAgentRunModel(),
   playback: AgentRunPlayback = {},
@@ -1673,7 +1673,7 @@ export function getAgentRunState(
   };
 }
 
-export type AgentRunState = ReturnType<typeof getAgentRunState>;
+type AgentRunState = ReturnType<typeof getAgentRunState>;
 
 interface AgentRunSurface {
   panel: string;
@@ -1689,13 +1689,13 @@ interface AgentRunSurface {
   shadow: string;
 }
 
-export interface AgentRunPalette extends AgentRunSurface {
+interface AgentRunPalette extends AgentRunSurface {
   accent: string;
   accentTint: string;
   accentText: string;
 }
 
-export const AGENT_RUN_THEMES: Record<AgentRunTheme, AgentRunSurface> = {
+const AGENT_RUN_THEMES: Record<AgentRunTheme, AgentRunSurface> = {
   light: {
     panel: "#ffffff",
     border: "#e4e4e0",
@@ -1724,7 +1724,7 @@ export const AGENT_RUN_THEMES: Record<AgentRunTheme, AgentRunSurface> = {
   },
 };
 
-export function getAgentRunPalette(
+function getAgentRunPalette(
   theme = agentRunDefaults.theme,
   accentColor = agentRunDefaults.accentColor,
 ): AgentRunPalette {

@@ -6,7 +6,7 @@ const US_PER_S = 1_000_000;
 
 export type FootageUrls = Partial<Record<string, string>>;
 
-export function footageFrameUrl(base: string, timeS: number): string {
+function footageFrameUrl(base: string, timeS: number): string {
   return `${base}${Math.max(0, Math.round(timeS * US_PER_S))}`;
 }
 

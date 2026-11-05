@@ -71,7 +71,7 @@ function portsOf(wf: Workflow, n: WorkflowNode, shape: CardShape): ElkNode {
   };
 }
 
-export function layoutGraph(wf: Workflow, shapeOf: (n: WorkflowNode) => CardShape): ElkNode {
+function layoutGraph(wf: Workflow, shapeOf: (n: WorkflowNode) => CardShape): ElkNode {
   const nodes = wf.nodes.filter((n) => !n.parentId && !isGroupNode(n));
   const ids = new Set(nodes.map((n) => n.id));
   return {

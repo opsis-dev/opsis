@@ -4,7 +4,7 @@ import { type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.
 
 export type SkeletonState = "loading" | "loaded";
 
-export type SkeletonLayout = "lines" | "card";
+type SkeletonLayout = "lines" | "card";
 
 export interface SkeletonProps {
   state?: SkeletonState;

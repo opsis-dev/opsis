@@ -3,7 +3,7 @@ const REFERENCE_HEIGHT = 1080;
 const HORIZONTAL_SAFE = 80;
 const VERTICAL_SAFE = 100;
 
-export type SafePaddingOptions = {
+type SafePaddingOptions = {
   width: number;
   height: number;
   ratio?: number;
@@ -34,7 +34,7 @@ export function getSafeAreaPadding({
   };
 }
 
-export function getSafePadding({ width, height, ratio }: SafePaddingOptions): number {
+function getSafePadding({ width, height, ratio }: SafePaddingOptions): number {
   if (ratio !== undefined) {
     return Math.round(Math.min(width, height) * ratio);
   }
@@ -51,14 +51,14 @@ export function scaleFont(
   return Math.round(sizeAt1080 * (width / referenceWidth));
 }
 
-export type Rect = {
+type Rect = {
   x: number;
   y: number;
   width: number;
   height: number;
 };
 
-export function clampRectToSafeArea(rect: Rect, frameWidth: number, frameHeight: number): Rect {
+function clampRectToSafeArea(rect: Rect, frameWidth: number, frameHeight: number): Rect {
   const safe = getSafeAreaPadding({ width: frameWidth, height: frameHeight });
   const minX = safe.paddingLeft;
   const minY = safe.paddingTop;

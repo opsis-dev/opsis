@@ -6,7 +6,7 @@ import {
   makeFilterShader,
 } from "#video/lib/transitions/canvas-presentation.tsx";
 
-export type PixelateRect = {
+type PixelateRect = {
   x: number;
   y: number;
   width: number;

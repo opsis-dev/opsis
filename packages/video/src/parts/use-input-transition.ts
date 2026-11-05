@@ -10,9 +10,9 @@ import {
   inputStyleContext,
 } from "#video/parts/input.tsx";
 
-export const DEFAULT_DURATION = 8;
+const DEFAULT_DURATION = 8;
 
-export function tweenInputStyle(a: InputStyle, b: InputStyle, t: number): InputStyle {
+function tweenInputStyle(a: InputStyle, b: InputStyle, t: number): InputStyle {
   return {
     ringWidth: a.ringWidth + (b.ringWidth - a.ringWidth) * t,
     caretOpacity: a.caretOpacity + (b.caretOpacity - a.caretOpacity) * t,

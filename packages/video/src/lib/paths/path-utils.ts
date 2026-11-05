@@ -128,7 +128,7 @@ export function waypointsToPath(points: readonly PathPoint[], smoothing = 0.25):
   return segments.join(" ");
 }
 
-export function waypointProgress(d: string, points: readonly PathPoint[], samples = 240): number[] {
+function waypointProgress(d: string, points: readonly PathPoint[], samples = 240): number[] {
   const length = pathLength(d);
   if (length === 0) {
     return points.map(() => 0);

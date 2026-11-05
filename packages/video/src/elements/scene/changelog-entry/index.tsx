@@ -9,9 +9,9 @@ import { codePalette } from "#video/lib/code/code-syntax.tsx";
 import { getSafeAreaPadding } from "#video/lib/layout/layout.ts";
 import { EASING } from "#video/lib/motion/motion-tokens.ts";
 
-export type ChangeKind = "added" | "fixed" | "changed" | "removed";
+type ChangeKind = "added" | "fixed" | "changed" | "removed";
 
-export type ChangeRow = {
+type ChangeRow = {
   kind: ChangeKind;
   text: string;
 };

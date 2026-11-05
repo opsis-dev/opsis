@@ -40,9 +40,9 @@ const STORY_PALETTES = {
   },
 } as const;
 
-export type StoryPalette = { [K in keyof (typeof STORY_PALETTES)["dark"]]: string };
+type StoryPalette = { [K in keyof (typeof STORY_PALETTES)["dark"]]: string };
 
-export function storyPalette(theme: Theme): StoryPalette {
+function storyPalette(theme: Theme): StoryPalette {
   const base: StoryPalette = STORY_PALETTES[theme.mode];
   const picked = Object.entries(base).map(([key, value]) => [key, theme.colors[key] ?? value]);
   return Object.fromEntries(picked) as StoryPalette;

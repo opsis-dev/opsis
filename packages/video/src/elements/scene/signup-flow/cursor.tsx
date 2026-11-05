@@ -1,6 +1,6 @@
 import { type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
 
-export type CursorVariant = "arrow" | "pointer";
+type CursorVariant = "arrow" | "pointer";
 
 export interface CursorStyle {
   x: number;

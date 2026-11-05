@@ -29,11 +29,11 @@ function untilPainted(layout: HTMLCanvasElement, label: string): () => void {
   };
 }
 
-export function isCanvasTransitionSupported(): boolean {
+function isCanvasTransitionSupported(): boolean {
   return canDrawElementsInCanvas();
 }
 
-export function isCanvasFilterSupported(): boolean {
+function isCanvasFilterSupported(): boolean {
   return canDrawElementsInCanvas();
 }
 
@@ -46,7 +46,7 @@ export type SceneShaderFrame<Props> = {
   passedProps: Props;
 };
 
-export type SceneShaderDrawParams<Props> = {
+type SceneShaderDrawParams<Props> = {
   from: OffscreenCanvas | null;
   to: OffscreenCanvas | null;
   width: number;
@@ -55,7 +55,7 @@ export type SceneShaderDrawParams<Props> = {
   passedProps: Props;
 };
 
-export type SceneShaderInstance<Props> = {
+type SceneShaderInstance<Props> = {
   draw: (params: SceneShaderDrawParams<Props>) => void;
   clear: () => void;
   cleanup: () => void;
@@ -73,7 +73,7 @@ export type SceneFilterFrame<Props> = {
   passedProps: Props;
 };
 
-export type SceneFilterDrawParams<Props> = {
+type SceneFilterDrawParams<Props> = {
   scene: OffscreenCanvas | null;
   width: number;
   height: number;
@@ -82,7 +82,7 @@ export type SceneFilterDrawParams<Props> = {
   passedProps: Props;
 };
 
-export type SceneFilterInstance<Props> = {
+type SceneFilterInstance<Props> = {
   draw: (params: SceneFilterDrawParams<Props>) => void;
   clear: () => void;
   cleanup: () => void;

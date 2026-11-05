@@ -68,7 +68,7 @@ function useFontsFor(text: string, fontSize: number): Measure | undefined {
   return ready === key ? measurer(fontSize) : undefined;
 }
 
-export function cursorShown(timeS: number, blink: boolean): boolean {
+function cursorShown(timeS: number, blink: boolean): boolean {
   return !blink || Math.floor(timeS * BLINKS_PER_S * 2) % 2 === 0;
 }
 

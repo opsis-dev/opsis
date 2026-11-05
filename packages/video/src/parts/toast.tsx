@@ -2,7 +2,7 @@ import { type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.
 
 export type ToastState = "hidden" | "visible";
 
-export type ToastVariant = "default" | "success" | "error";
+type ToastVariant = "default" | "success" | "error";
 
 export interface ToastProps {
   state?: ToastState;
@@ -26,7 +26,7 @@ export interface ToastStyleContext {
   iconColor: string;
 }
 
-export function toastStyleContext(variant: ToastVariant, theme: NeutralTheme): ToastStyleContext {
+function toastStyleContext(variant: ToastVariant, theme: NeutralTheme): ToastStyleContext {
   if (variant === "success") return { iconColor: theme.success };
   if (variant === "error") return { iconColor: theme.destructive };
   return { iconColor: theme.mutedForeground };

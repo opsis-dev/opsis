@@ -12,9 +12,9 @@ import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
 
 const SANS = '"Inter"';
 
-export type PunchLineStyle = "slide" | "punch";
+type PunchLineStyle = "slide" | "punch";
 
-export interface PunchLinesProps {
+interface PunchLinesProps {
   script?: string;
   styles?: string;
   sizes?: string;
@@ -63,7 +63,7 @@ const PUNCH_EASE = Easing.bezier(0.65, 0, 0.35, 1);
 
 const RUSH_EASE = Easing.bezier(1, 0, 0.48, 1);
 
-export function slideSwing(from: number, kick: number, settle: number): number {
+function slideSwing(from: number, kick: number, settle: number): number {
   const peakAt = kick > 0 ? Math.max(0, 1 / settle - from / kick) : 0;
   const peak = (from + kick * peakAt) * Math.exp(-settle * peakAt);
   return Math.max(Math.abs(from), Math.abs(peak));
@@ -80,7 +80,7 @@ function at<T>(values: T[], i: number, fallback: T): T {
   return values.length === 0 ? fallback : (values[Math.min(i, values.length - 1)] as T);
 }
 
-export interface PunchBeat {
+interface PunchBeat {
   lines: string[][];
   style: PunchLineStyle;
   size: number;
@@ -90,7 +90,7 @@ export interface PunchBeat {
   revealAt: number;
 }
 
-export function planPunchLines(
+function planPunchLines(
   script: string,
   styles: string,
   sizes: string,

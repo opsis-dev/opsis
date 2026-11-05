@@ -17,7 +17,7 @@ export interface Particle {
 
 const DEG = Math.PI / 180;
 
-export function makeParticles({
+function makeParticles({
   count,
   seed,
   colors,
@@ -54,7 +54,7 @@ export function makeParticles({
   return out;
 }
 
-export function particleOpacity(tt: number, lifetime: number): number {
+function particleOpacity(tt: number, lifetime: number): number {
   if (tt < 0 || tt > lifetime) return 0;
   const fadeIn = interpolate(tt, [0, 4], [0, 1], CLAMPED);
   const fadeOut = interpolate(tt, [lifetime * 0.7, lifetime], [1, 0], CLAMPED);

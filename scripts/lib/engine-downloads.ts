@@ -16,7 +16,7 @@ export const ENGINE_DOWNLOADS = path.join(
   "downloads.generated.json",
 );
 
-export const engineDownloadsSchema = z.object({
+const engineDownloadsSchema = z.object({
   testedVersion: z.string(),
   shells: z.array(pinnedSchema.extend({ platform: z.enum(SHELL_PLATFORMS) })),
 });

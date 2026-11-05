@@ -12,13 +12,13 @@ export type BrushTaper = {
   release?: number;
 };
 
-export function brushHalfWidth(taper: BrushTaper, t: number): number {
+function brushHalfWidth(taper: BrushTaper, t: number): number {
   const pressure = taper.pressure ?? 0.2;
   const release = taper.release ?? 1;
   return (taper.strokeWidth / 2) * (pressure + (release - pressure) * t);
 }
 
-export function brushGrainScale(strokeWidth: number, grain: number): number {
+function brushGrainScale(strokeWidth: number, grain: number): number {
   return strokeWidth * GRAIN_RATIO * grain;
 }
 

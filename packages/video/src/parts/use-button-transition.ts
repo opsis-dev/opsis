@@ -10,9 +10,9 @@ import {
   buttonStyleContext,
 } from "#video/parts/button.tsx";
 
-export const DEFAULT_DURATION = 8;
+const DEFAULT_DURATION = 8;
 
-export function tweenButtonStyle(a: ButtonStyle, b: ButtonStyle, t: number): ButtonStyle {
+function tweenButtonStyle(a: ButtonStyle, b: ButtonStyle, t: number): ButtonStyle {
   return {
     translateY: a.translateY + (b.translateY - a.translateY) * t,
     scale: a.scale + (b.scale - a.scale) * t,

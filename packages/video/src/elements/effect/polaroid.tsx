@@ -23,7 +23,7 @@ export type PolaroidGeometry = {
   height: number;
 };
 
-export function polaroidGeometry(
+function polaroidGeometry(
   width: number,
   shape: PhotoShape,
   captionStrip: number,

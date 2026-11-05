@@ -7,8 +7,8 @@ const GLB_MAGIC = 0x46546c67;
 const GLB_JSON_START = 20;
 const UNSUPPORTED_TEXTURES = ["KHR_texture_basisu"];
 
-export const MODEL_UNREADABLE = "Couldn't open this 3D model.";
-export const TEXTURES_UNSUPPORTED = "This model uses a texture format that isn't supported yet.";
+const MODEL_UNREADABLE = "Couldn't open this 3D model.";
+const TEXTURES_UNSUPPORTED = "This model uses a texture format that isn't supported yet.";
 
 const extensionsSchema = z.object({
   extensionsUsed: z.array(z.string()).optional(),

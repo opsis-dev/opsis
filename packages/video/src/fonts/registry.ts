@@ -28,7 +28,7 @@ function isLoaded(name: string, fonts: FilmFonts): boolean {
   return !!def && loadedSignature(name) === signatureOf(def, urlsOf(def, assetUrl));
 }
 
-export function ensureFontNow(name: string): void {
+function ensureFontNow(name: string): void {
   const fonts = current;
   if (!canRegister() || isLoaded(name, fonts)) return;
   const release = holdRender(`Loading font ${name}`);

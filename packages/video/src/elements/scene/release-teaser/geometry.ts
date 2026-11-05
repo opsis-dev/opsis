@@ -74,7 +74,7 @@ export function createRing(segments = 96): RingFace[] {
   return faces;
 }
 
-export function rotate(v: Vec3, rx: number, ry: number, rz: number): Vec3 {
+function rotate(v: Vec3, rx: number, ry: number, rz: number): Vec3 {
   const y = v[1] * Math.cos(rx) - v[2] * Math.sin(rx);
   const z = v[1] * Math.sin(rx) + v[2] * Math.cos(rx);
   const x = v[0] * Math.cos(ry) + z * Math.sin(ry);

@@ -14,17 +14,17 @@ import type { ElementSettings, MediaKind } from "#video/generated/spec.ts";
 import { type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
 
-export type CapturedVideoFit = "cover" | "contain";
-export type CapturedVideoEntrance = "fade" | "none";
+type CapturedVideoFit = "cover" | "contain";
+type CapturedVideoEntrance = "fade" | "none";
 
-export interface ScreenCrop {
+interface ScreenCrop {
   top?: number;
   right?: number;
   bottom?: number;
   left?: number;
 }
 
-export interface CameraMove {
+interface CameraMove {
   at: number;
   duration?: number;
   zoom?: number;
@@ -39,32 +39,32 @@ type CapturedVideoProps = Omit<ElementSettings["captured-video"], "theme"> & {
   mode: "light" | "dark";
 };
 
-export const CAMERA_EASE = Easing.bezier(0.2, 0.6, 0.35, 1);
+const CAMERA_EASE = Easing.bezier(0.2, 0.6, 0.35, 1);
 
-export const CAMERA_MOVE_FRAMES = 25;
+const CAMERA_MOVE_FRAMES = 25;
 
-export const TAIL_FRAMES = 18;
+const TAIL_FRAMES = 18;
 
-export const ENTRANCE_FRAMES = 18;
+const ENTRANCE_FRAMES = 18;
 
 const ENTRANCE_START = 4;
 
 const ENTRANCE_BLUR = 8;
 
-export interface CameraPose {
+interface CameraPose {
   zoom: number;
   x: number;
   y: number;
 }
 
-export const RESTING_POSE: CameraPose = { zoom: 1, x: 0.5, y: 0.5 };
+const RESTING_POSE: CameraPose = { zoom: 1, x: 0.5, y: 0.5 };
 
 function moveProgress(frame: number, at: number, duration: number): number {
   if (duration <= 0) return 1;
   return interpolate(frame, [at, at + duration], [0, 1], { ...CLAMPED, easing: CAMERA_EASE });
 }
 
-export function cameraPoseAt(frame: number, moves?: CameraMove[]): CameraPose {
+function cameraPoseAt(frame: number, moves?: CameraMove[]): CameraPose {
   if (!moves || moves.length === 0) return RESTING_POSE;
   const sorted = moves
     .map((move, index) => ({ move, index }))
@@ -113,20 +113,20 @@ export function cameraPoseAt(frame: number, moves?: CameraMove[]): CameraPose {
   };
 }
 
-export function clampFocus(value: number, zoom: number): number {
+function clampFocus(value: number, zoom: number): number {
   const lo = 0.5 / zoom;
   const hi = 1 - lo;
   if (lo >= hi) return 0.5;
   return Math.min(Math.max(value, lo), hi);
 }
 
-export function screenRecordingFrames(camera?: CameraMove[]): number {
+function screenRecordingFrames(camera?: CameraMove[]): number {
   if (!camera || camera.length === 0) return 0;
   const end = Math.max(...camera.map((m) => m.at + (m.duration ?? CAMERA_MOVE_FRAMES)));
   return Math.round(end + TAIL_FRAMES);
 }
 
-export interface ShotLayout {
+interface ShotLayout {
   left: number;
   top: number;
   width: number;
@@ -137,7 +137,7 @@ export interface ShotLayout {
   mediaTop: number;
 }
 
-export function shotLayout(
+function shotLayout(
   width: number,
   height: number,
   crop: ScreenCrop | undefined,

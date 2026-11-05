@@ -81,7 +81,7 @@ export function createQuadSurface(canvas: OffscreenCanvas | HTMLCanvasElement, f
   return quadSurface(gl, fragment);
 }
 
-export function quadSurface(gl: WebGL2RenderingContext, fragment: string) {
+function quadSurface(gl: WebGL2RenderingContext, fragment: string) {
   const program = createProgram(gl, fragment);
   const vao = gl.createVertexArray();
   gl.bindVertexArray(vao);

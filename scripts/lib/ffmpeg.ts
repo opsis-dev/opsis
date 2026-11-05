@@ -35,7 +35,7 @@ export const FFMPEG_LICENCE = path.join(ROOT, "resources", "LICENSE.ffmpeg.txt")
 
 const BINARIES = path.join(ROOT, "crates", "desktop", "binaries");
 
-export const ffmpegPinsSchema = z.object({
+const ffmpegPinsSchema = z.object({
   release: z.string(),
   targets: z.array(
     z.object({
@@ -70,7 +70,7 @@ export function sidecarFileName(target: string): string {
   return `opsis-ffmpeg-${target}${exe}`;
 }
 
-export function hostTarget(): string {
+function hostTarget(): string {
   const info = execFileSync("rustc", ["-vV"], { encoding: "utf8" });
   const host = info
     .split("\n")

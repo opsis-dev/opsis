@@ -4,11 +4,11 @@ import { normalize } from "#video/common/math.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 
 export const RELEASE_TEASER_FPS = 60000 / 1001;
-export const RELEASE_TEASER_FRAMES = 960;
-export const RELEASE_TEASER_WIDTH = 1920;
-export const RELEASE_TEASER_HEIGHT = 1080;
+const RELEASE_TEASER_FRAMES = 960;
+const RELEASE_TEASER_WIDTH = 1920;
+const RELEASE_TEASER_HEIGHT = 1080;
 
-export const releaseTeaserTimeline = [
+const releaseTeaserTimeline = [
   { name: "An idea", from: 0, to: 104 },
   { name: "Better work", from: 104, to: 208 },
   { name: "Every detail", from: 208, to: 326 },
@@ -32,7 +32,7 @@ export function graphemes(text: string) {
   return Array.from(segmenter.segment(text), (part) => part.segment);
 }
 
-export function textUnits(text: string) {
+function textUnits(text: string) {
   return graphemes(text).reduce((sum, char) => {
     if (/\s/.test(char)) return sum + 0.3;
     if (/[ilI.,'!|]/.test(char)) return sum + 0.29;

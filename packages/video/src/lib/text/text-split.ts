@@ -14,7 +14,7 @@ export type SplitMode = "chars" | "words" | "lines";
 
 export type SplitOrder = "start" | "end" | "center" | "edges" | "random";
 
-export type SplitUnit = {
+type SplitUnit = {
   text: string;
   index: number;
   total: number;
@@ -24,7 +24,7 @@ export type SplitUnit = {
   indexInLine: number;
 };
 
-export type SplitWord = {
+type SplitWord = {
   text: string;
   index: number;
   lineIndex: number;
@@ -32,14 +32,14 @@ export type SplitWord = {
   units: SplitUnit[];
 };
 
-export type SplitLine = {
+type SplitLine = {
   text: string;
   index: number;
   words: SplitWord[];
   units: SplitUnit[];
 };
 
-export type SplitResult = {
+type SplitResult = {
   mode: SplitMode;
   lines: SplitLine[];
   words: SplitWord[];
@@ -59,7 +59,7 @@ function toChars(word: string): string[] {
   return Array.from(word);
 }
 
-export function splitText(text: string, mode: SplitMode = "chars"): SplitResult {
+function splitText(text: string, mode: SplitMode = "chars"): SplitResult {
   const units: SplitUnit[] = [];
   const words: SplitWord[] = [];
   const lines: SplitLine[] = [];
@@ -121,7 +121,7 @@ export function splitText(text: string, mode: SplitMode = "chars"): SplitResult 
   return { mode, lines, words, units, total };
 }
 
-export function staggerRanks(total: number, order: SplitOrder = "start", seed = 1): number[] {
+function staggerRanks(total: number, order: SplitOrder = "start", seed = 1): number[] {
   if (total <= 0) {
     return [];
   }
@@ -164,13 +164,13 @@ export type SplitTimingOptions = {
   frame?: number;
 };
 
-export const SPLIT_STAGGER_DEFAULTS: Record<SplitMode, number> = {
+const SPLIT_STAGGER_DEFAULTS: Record<SplitMode, number> = {
   chars: 2,
   words: 4,
   lines: 7,
 };
 
-export const SPLIT_DURATION_DEFAULTS: Record<SplitMode, number> = {
+const SPLIT_DURATION_DEFAULTS: Record<SplitMode, number> = {
   chars: 20,
   words: 24,
   lines: 28,

@@ -17,7 +17,7 @@ type LogoAssembleProps = Omit<ElementSettings["logo-assemble"], "theme"> & {
 
 const FONT_FAMILY = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
-export type Beats = {
+type Beats = {
   contractStart: number;
   contractEnd: number;
   middleOut: number;
@@ -27,7 +27,7 @@ export type Beats = {
   nameIn: number;
 };
 
-export function beatsFrom(contractStart: number): Beats {
+function beatsFrom(contractStart: number): Beats {
   return {
     contractStart,
     contractEnd: contractStart + 16,
@@ -39,35 +39,35 @@ export function beatsFrom(contractStart: number): Beats {
   };
 }
 
-export const ORBIT_SPEED = 0.1;
-export const DRAIN_SPIN = Math.PI * 1.1;
+const ORBIT_SPEED = 0.1;
+const DRAIN_SPIN = Math.PI * 1.1;
 
-export const EASE = Easing.bezier(0.2, 0.6, 0.35, 1);
-export const EASE_IN = Easing.bezier(0.5, 0, 0.75, 0.4);
-export function contractProgress(frame: number, b: Beats): number {
+const EASE = Easing.bezier(0.2, 0.6, 0.35, 1);
+const EASE_IN = Easing.bezier(0.5, 0, 0.75, 0.4);
+function contractProgress(frame: number, b: Beats): number {
   return interpolate(frame, [b.contractStart, b.contractEnd], [0, 1], {
     ...CLAMPED,
     easing: EASE_IN,
   });
 }
 
-export function orbitAngle(frame: number, b: Beats, speed: number): number {
+function orbitAngle(frame: number, b: Beats, speed: number): number {
   return frame * ORBIT_SPEED * speed + contractProgress(frame, b) * DRAIN_SPIN;
 }
 
-export function ringScale(frame: number, b: Beats): number {
+function ringScale(frame: number, b: Beats): number {
   return 1 - contractProgress(frame, b);
 }
 
-export function cardScale(frame: number, b: Beats): number {
+function cardScale(frame: number, b: Beats): number {
   return 1 - 0.66 * contractProgress(frame, b);
 }
 
-export function cardOpacity(frame: number, b: Beats): number {
+function cardOpacity(frame: number, b: Beats): number {
   return interpolate(frame, [b.contractEnd - 8, b.contractEnd], [1, 0], CLAMPED);
 }
 
-export function middleTextOpacity(frame: number, b: Beats): number {
+function middleTextOpacity(frame: number, b: Beats): number {
   const fadeIn = Math.min(16, b.middleOut - 6);
   return interpolate(
     frame,
@@ -77,12 +77,12 @@ export function middleTextOpacity(frame: number, b: Beats): number {
   );
 }
 
-export interface LogoPose {
+interface LogoPose {
   opacity: number;
   scale: number;
 }
 
-export function logoPose(frame: number, b: Beats): LogoPose {
+function logoPose(frame: number, b: Beats): LogoPose {
   return {
     opacity: interpolate(frame, [b.logoIn, b.logoIn + 8], [0, 1], CLAMPED),
     scale: interpolate(frame, [b.logoIn, b.logoIn + 10, b.logoIn + 18], [0.6, 1.05, 1], {
@@ -92,19 +92,19 @@ export function logoPose(frame: number, b: Beats): LogoPose {
   };
 }
 
-export function logoShift(frame: number, b: Beats): number {
+function logoShift(frame: number, b: Beats): number {
   return interpolate(frame, [b.logoShiftStart, b.logoShiftEnd], [0, 1], {
     ...CLAMPED,
     easing: EASE,
   });
 }
 
-export interface NamePose {
+interface NamePose {
   opacity: number;
   dx: number;
 }
 
-export function namePose(frame: number, b: Beats): NamePose {
+function namePose(frame: number, b: Beats): NamePose {
   return {
     opacity: interpolate(frame, [b.nameIn, b.nameIn + 10], [0, 1], CLAMPED),
     dx: interpolate(frame, [b.nameIn, b.nameIn + 12], [18, 0], {

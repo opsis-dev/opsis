@@ -2,13 +2,13 @@ import path from "node:path";
 
 export const ROOT = path.resolve(import.meta.dirname, "..", "..");
 
-export const PACKAGES_DIR = path.join(ROOT, "packages");
+const PACKAGES_DIR = path.join(ROOT, "packages");
 
-export const APPS_DIR = path.join(ROOT, "apps");
+const APPS_DIR = path.join(ROOT, "apps");
 
 export const FRONTEND_DIR = path.join(APPS_DIR, "frontend", "src");
 
-export const VIDEO_PACKAGE_DIR = path.join(PACKAGES_DIR, "video");
+const VIDEO_PACKAGE_DIR = path.join(PACKAGES_DIR, "video");
 
 export const VIDEO_DIR = path.join(VIDEO_PACKAGE_DIR, "src");
 

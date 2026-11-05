@@ -13,7 +13,7 @@ function isValue<K extends CompileValue["type"]>(
   return value?.type === type;
 }
 
-export function asValue<K extends CompileValue["type"]>(
+function asValue<K extends CompileValue["type"]>(
   value: CompileValue | undefined,
   type: K,
 ): ValueOf<K> | undefined {

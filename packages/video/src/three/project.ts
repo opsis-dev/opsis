@@ -14,7 +14,7 @@ export type ScreenView = {
 
 const NEAR = 0.05;
 
-export function poseMatrix(pose: Pose): Matrix4 {
+function poseMatrix(pose: Pose): Matrix4 {
   const quaternion = new Quaternion().setFromEuler(new Euler(...pose.rotation));
   return new Matrix4().compose(
     new Vector3(...pose.position),

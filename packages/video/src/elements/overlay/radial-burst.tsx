@@ -5,7 +5,7 @@ import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.
 import type { ElementSettings } from "#video/generated/spec.ts";
 import { interpolateColors } from "#video/lib/ui-kit/color.ts";
 
-export const radialBurstLength = 114;
+const radialBurstLength = 114;
 const CYCLE = 120;
 const easeInOut = Easing.bezier(0.65, 0, 0.25, 1);
 const easeOut = Easing.bezier(0.16, 1, 0.3, 1);
@@ -116,14 +116,14 @@ function getSegmentPoints({
   });
 }
 
-export function getRadialBurstSegmentPath(state: Parameters<typeof getSegmentPoints>[0]) {
+function getRadialBurstSegmentPath(state: Parameters<typeof getSegmentPoints>[0]) {
   const points = getSegmentPoints(state).map((point) =>
     point.map((value) => value.toFixed(3)).join(" "),
   );
   return `M ${points[0]} C ${points[1]} ${points[2]} ${points[3]}`;
 }
 
-export function getRadialBurstRibbonPath(
+function getRadialBurstRibbonPath(
   state: ReturnType<typeof getRadialBurstState>,
   index: number,
   twist = 110,

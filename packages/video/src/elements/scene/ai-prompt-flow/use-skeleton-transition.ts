@@ -7,9 +7,9 @@ import { easings } from "#video/lib/ui-kit/motion.ts";
 import { useStateTransition } from "#video/lib/ui-kit/timeline.ts";
 import { type Step } from "#video/lib/ui-kit/types.ts";
 
-export const DEFAULT_DURATION = 12;
+const DEFAULT_DURATION = 12;
 
-export function tweenSkeletonStyle(a: SkeletonStyle, b: SkeletonStyle, t: number): SkeletonStyle {
+function tweenSkeletonStyle(a: SkeletonStyle, b: SkeletonStyle, t: number): SkeletonStyle {
   return {
     skeletonOpacity: a.skeletonOpacity + (b.skeletonOpacity - a.skeletonOpacity) * t,
     contentOpacity: a.contentOpacity + (b.contentOpacity - a.contentOpacity) * t,
