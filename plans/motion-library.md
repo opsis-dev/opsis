@@ -4,6 +4,8 @@ More elements and better ways to find them: frame-driven rewrites of web motion 
 
 Status: plan only. Nothing here is built yet.
 
+Order with [native-renderer.md](native-renderer.md): this plan's components are written for the film page as it is today, in TS on `@opsis/runtime`. The native renderer replaces the film page in one go. Elements built from this plan before that cut-over join its port to Rust draw functions with every other element; after it, they are written as Rust draw functions from the start. The Rive section loads Rive's canvas runtime into the film page, so after the cut-over it needs Rive's C++ runtime drawing into a layer instead, which no plan covers yet.
+
 ## How to read this plan
 
 - Each feature is one section. The user picks which to build and when. A large one is split into phases, each checked before the next starts.

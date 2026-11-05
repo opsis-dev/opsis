@@ -4,23 +4,23 @@ Browser sessions and their actions, the take value every recording shares, recor
 
 ## Code map
 
-| Concern                     | Where                                                                                                                                                               |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Take value                  | `crates/types/src/values.rs` → `RecordingValue`, `TakeSource`                                                                                                       |
-| What the page draws         | `crates/types/src/recording.rs` → `RecordingProps` (`camera`, `shot`, `window`, `pointer`, `screen`/`ScreenProps`)                                                  |
-| Drawing a take              | `camera/demo-clip.tsx` → `DemoClip`; `core/screen.tsx` → `Screen`                                                                                                   |
-| Style and edit application  | `crates/compile/src/style.rs` → `restyle_with`, `retime_with`                                                                                                       |
-| Take clock                  | `take_clock.rs` → `TakeClock` (`tab.clock()`), `frame_time`, `frames_in`, `as_ms`                                                                                   |
-| Smooth takes                | `smooth.rs` → `Smooth`, `STEP_FRAME`, `STEP_OVERLAYS`, `PLAN_ELEMENT_SCROLL`, `STEP_ELEMENT_SCROLL`, `page_ms`, `page_time_for_new_pages`; `Clock::hold_for_frames` |
-| Encoder                     | `encoder.rs` → `FrameEncoder`, `offer`, `FrameImage`                                                                                                                |
-| Drag curves                 | `drag_path.rs`                                                                                                                                                      |
-| Address log                 | `page.rs` → `Lifecycle` (`ActionLog.addresses`)                                                                                                                     |
-| Camera events from the log  | `camera/action-log.ts` → `toClickLog`; `camera/lib/cursor.ts` → `cursorAt`                                                                                          |
-| Streamed views              | `crates/stream` (`pick`, `sign_in`); `apps/frontend/src/app/stream-view.tsx` → `StreamView`                                                                         |
-| Sign-in stamp               | `executors.rs` → `sign_in_stamp`                                                                                                                                    |
-| Traces                      | `crates/traces`; `TracePanel`, `read_trace`                                                                                                                         |
-| Screenshot scale and layout | `still_layout.rs` → `capture_scale`; page `StillElement`, `windowLayout`, `cutoutLayout`, `bleedLayout`, `stillLayout`                                              |
-| Playwright pieces           | `playwright/*.generated.*`                                                                                                                                          |
+| Concern                     | Where                                                                                                                                                                                                |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Take value                  | `crates/types/src/values.rs` → `RecordingValue`, `TakeSource`                                                                                                                                        |
+| What the page draws         | `crates/types/src/recording.rs` → `RecordingProps` (`camera`, `shot`, `window`, `pointer`, `screen`/`ScreenProps`)                                                                                   |
+| Drawing a take              | `camera/demo-clip.tsx` → `DemoClip`; `core/screen.tsx` → `Screen`                                                                                                                                    |
+| Style and edit application  | `crates/compile/src/style.rs` → `restyle_with`, `retime_with`                                                                                                                                        |
+| Take clock                  | `take_clock.rs` → `TakeClock` (`tab.clock()`), `frame_time`, `frames_in`, `as_ms`                                                                                                                    |
+| Smooth takes                | `smooth.rs` → `Smooth`, `page_ms`; `page_scripts.rs` → `STEP_FRAME`, `STEP_OVERLAYS`, `PLAN_ELEMENT_SCROLL`, `STEP_ELEMENT_SCROLL`, `page_time_for_new_pages`; `clock.rs` → `Clock::hold_for_frames` |
+| Encoder                     | `encoder.rs` → `FrameEncoder`, `offer`, `FrameImage`                                                                                                                                                 |
+| Drag curves                 | `drag_path.rs`                                                                                                                                                                                       |
+| Address log                 | `page.rs` → `Lifecycle` (`ActionLog.addresses`)                                                                                                                                                      |
+| Camera events from the log  | `camera/action-log.ts` → `toClickLog`; `camera/lib/cursor.ts` → `cursorAt`                                                                                                                           |
+| Streamed views              | `crates/stream` (`pick`, `sign_in`); `apps/frontend/src/app/stream-view.tsx` → `StreamView`                                                                                                          |
+| Sign-in stamp               | `executors.rs` → `sign_in_stamp`                                                                                                                                                                     |
+| Traces                      | `crates/traces`; `TracePanel`, `read_trace`                                                                                                                                                          |
+| Screenshot scale and layout | `still_layout.rs` → `capture_scale`; page `StillElement`, `windowLayout`, `cutoutLayout`, `bleedLayout`, `stillLayout`                                                                               |
+| Playwright pieces           | `playwright/*.generated.*`                                                                                                                                                                           |
 
 ## Rules
 

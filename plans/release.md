@@ -18,7 +18,7 @@ Everything still missing between today's app and a public release, and what come
 | 4. Local API on Windows     | A named pipe only the user's account can open                        | the access list and its test                           | not started                      |
 | 5. Code signing             | No "unknown publisher" or "can't be opened" warnings                 | identities, entitlements, CI signing                   | only the hardened runtime set    |
 | 6. Updates                  | Check for updates, ask first, install signed updates                 | the updater plugin, the About button, the release feed | signing key and secrets in place |
-| 7. Release test pass        | Fewer surprises: long takes, odd paths, every template, every system | the manual pass before each release                    | e2e in place (6 spec files)      |
+| 7. Release test pass        | Fewer surprises: long takes, odd paths, every template, every system | the manual pass before each release                    | e2e in place (9 spec files)      |
 | 8. Node packs (long term)   | Nodes that install and update apart from the app                     | all of it, after sections 1–7                          | not started                      |
 
 ## 1. Size work
@@ -27,7 +27,7 @@ Everything still missing between today's app and a public release, and what come
 
 - **Package size.** Measured 2026-11-01 with `bun run make -- --bundles deb` on Linux x64: the deb is 78,800,484 bytes and installs 179,051,765 bytes: the app binary 75,173,360, the FFmpeg sidecar 79,826,272 and its licence 35,147, the film page 18,567,917 and the browser's licences 5,345,493. Shipping FFmpeg added 30,175,284 bytes to the deb (48,625,200 on 2026-10-31).
 - **What ships.** One build, with FFmpeg inside and no recording browser: the app binary (`opt-level = 3`, full LTO, one codegen unit, stripped), FFmpeg as the `opsis-ffmpeg` sidecar beside it with `LICENSE.ffmpeg.txt` (`plans/ffmpeg.md`), the film page (`film-bundle/`, one JavaScript file with no source maps and the repository's `public/`, the app's only copy of the `app:` files, which a packaged app reads through `AppPaths::public_dir`; the editor's build carries only `page-errors.js`) and the recording browser's licences.
-- **The film page.** 4,388,329 bytes of JavaScript in one file (2,042,714 gzipped) and 14,200,626 bytes of `public/` files: fonts 1,078,938, backdrops 4,810,439, music 7,923,531, sounds 381,916. One element file, `elements/scene/launch-anything/assets.ts`, is 1,716,146 bytes of source.
+- **The film page.** 4,388,329 bytes of JavaScript in one file (2,042,714 gzipped) and 14,200,626 bytes of `public/` files: fonts 1,078,938, backdrops 4,810,439, music 7,923,531, sounds 381,916. These film page figures, and the deb's above, were measured before Launch anything's four sample photos moved out of the script into `app:` placeholders (`0278ae9b`, 2026-11-05), which took 1.7 MB off it; measure again with the next deb.
 
 **Work.**
 
@@ -118,11 +118,11 @@ The named pipe is created with the default security descriptor, which grants rea
 
 ## 7. Release test pass
 
-**In place.** `bun run test:e2e` (WebdriverIO, embedded driver, in a virtual display) has eight spec files: the start screen (`start`), every example opening (`examples`), the element picker (`views`), the Timeline (`timeline`), Tidy up layout (`layout`), a run and export of the changelog with the export played back (`export`), drawing a mark in Annotate's marks editor (`annotate`) and the Inspector's tabs (`inspector`), then the close check. The whole suite passed on 2026-10-30. The packaged deb was checked off-screen through the Local API on 2026-10-31: from empty caches it recorded and exported a film with footage, a grade and Redact, and exported the Changelog template in both shapes.
+**In place.** `bun run test:e2e` (WebdriverIO, embedded driver, in a virtual display) has nine spec files: the start screen (`start`), every example opening (`examples`), the element picker (`views`), the Timeline (`timeline`), Tidy up layout (`layout`), a run and export of the changelog with the export played back (`export`), drawing a mark in Annotate's marks editor (`annotate`), the Inspector's tabs (`inspector`) and terminal takes recorded in a real shell, played in Replay, recorded live as a tape and imported from a cast file, each exported (`terminal`), then the close check. The eight specs before `terminal` passed together on 2026-10-30. The packaged deb was checked off-screen through the Local API on 2026-10-31: from empty caches it recorded and exported a film with footage, a grade and Redact, and exported the Changelog template in both shapes.
 
 **Work, before each release** (Linux by hand, Windows and macOS through the runner checks in section 3):
 
-1. **The whole e2e suite**, all eight spec files together.
+1. **The whole e2e suite**, all nine spec files together.
 2. **Long takes:** 10 and 20 minute recordings; memory of the app and the headless shell, the take's size, Timeline responsiveness, export time, trace size.
 3. **Paths:** project folders with spaces and non-English letters, another drive on Windows, assets imported from such folders, fonts copied into projects.
 4. **Moving and renaming** a project folder while closed and while open.

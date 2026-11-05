@@ -4,19 +4,19 @@ How the compiled spec becomes bars, how Timeline drags write back into the nodes
 
 ## Code map
 
-| Concern                       | Where                                                                                            |
-| ----------------------------- | ------------------------------------------------------------------------------------------------ |
-| Flattener                     | `timeline/flatten.rs` → `flatten_spec`, `VideoBar::local_frames` (sent as `flat`, `localFrames`) |
-| Timeline edits                | `edits/timeline.rs` → `TimelineEdits`, `timeline_removal`, `apply_removal`, `close_gaps`         |
-| Handle round trips            | `crates/compile/tests/unit/timeline_edits.rs`                                                    |
-| Envelopes                     | `envelope.rs`                                                                                    |
-| Keyframe and camera key edits | `edits/keyframes.rs` → `KeyframeEdit`, `apply_keyframe_edit`                                     |
-| Tracks, easings, camera dials | catalogue `timeline` (`TimelineBook`)                                                            |
-| Chapters                      | `timeline/chapters.rs` → `film_chapters`; `finish_args` (`crates/media/src/codecs.rs`)           |
-| Clock                         | `editor/timeline/timeline-clock.ts` → `TimelineClock`, `usePlayback`                             |
-| Loops                         | `timeline/playhead.ts` → `loopOf`, `wrapInLoop`                                                  |
-| Stem player                   | `editor/stem-player.ts` → `StemPlayer`                                                           |
-| Active nodes and bars         | `activeAt` over the compiled `spans`, `setActive`; `BarFrame`                                    |
+| Concern                       | Where                                                                                                                   |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Flattener                     | `timeline/flatten.rs` → `flatten_spec`, `VideoBar::local_frames` (sent as `flat`, `localFrames`)                        |
+| Timeline edits                | `edits/timeline.rs` → `TimelineEdits`, `apply_removal`, `close_gaps`; `crates/document/src/lib.rs` → `timeline_removal` |
+| Handle round trips            | `crates/compile/tests/unit/timeline_edits.rs`                                                                           |
+| Envelopes                     | `envelope.rs`                                                                                                           |
+| Keyframe and camera key edits | `edits/keyframes.rs` → `KeyframeEdit`, `apply_keyframe_edit`                                                            |
+| Tracks, easings, camera dials | catalogue `timeline` (`TimelineBook`)                                                                                   |
+| Chapters                      | `timeline/chapters.rs` → `film_chapters`; `finish_args` (`crates/media/src/codecs.rs`)                                  |
+| Clock                         | `editor/timeline/timeline-clock.ts` → `TimelineClock`, `usePlayback`                                                    |
+| Loops                         | `timeline/playhead.ts` → `loopOf`, `wrapInLoop`                                                                         |
+| Stem player                   | `editor/stem-player.ts` → `StemPlayer`                                                                                  |
+| Active nodes and bars         | `activeAt` over the compiled `spans`, `setActive`; `BarFrame`                                                           |
 
 ## Rules
 

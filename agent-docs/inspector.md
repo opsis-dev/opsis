@@ -17,7 +17,7 @@ How node and element settings are declared in Rust, how their JSON Schema carrie
 | Colour field                         | `editor/form/color-picker.tsx`                                                                |
 | Marks field                          | `editor/form/marks-field.tsx`, geometry in `editor/form/marks.ts`                             |
 | Gradient field                       | `gradient.rs`, `gradient_view`, `edit_gradient`                                               |
-| Empty values dropped from props      | `elements/props.rs` → `element_props`, `map_leaves`                                           |
+| Empty values dropped from props      | `nodes/elements.rs` → `element_props`; `elements/introspect.rs` → `map_leaves`                |
 | Spot and target keys                 | `spotYKey(name)`, `targetRoleKey(name)`                                                       |
 | Frames-at-30 conversion              | `frames_from_seconds`                                                                         |
 

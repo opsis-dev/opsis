@@ -4,27 +4,27 @@ How an element is written in Rust and on the page, how its settings reach its co
 
 ## Code map
 
-| Concern                        | Where                                                                                                                                    |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| One element's definition       | `<category>/<element>.rs` (categories `media`, `text`, `overlay`, `transition`, `background`, `effect`, `ui`, `data`, `scene`, `device`) |
-| The builder                    | `entry.rs` → `element`, `meta`                                                                                                           |
-| Node list order                | `mod.rs` → `elements()`                                                                                                                  |
-| Choices several elements share | `shared.rs`                                                                                                                              |
-| Theme preset tables            | `theme.rs` → `neutral_themes`, `warm_themes`, `code_themes`, `keystroke_themes`, `stat_card_themes`, `data_story_themes`…, `with_themes` |
-| Props built from settings      | `props.rs` → `element_props`, `ElementSettings`, `StillProps`, `PlaceholderProps`                                                        |
-| Element sounds                 | `element_sounds`                                                                                                                         |
-| Lengths                        | `lengths.rs` → `element_timing`, `animation_length`; checked by `registry/lengths.test.ts` through `length-cases.generated.json`         |
-| Components                     | `elements/<category>/<key>.tsx` or `elements/<category>/<key>/index.tsx`                                                                 |
-| Key → implementation           | `elements/index.ts` → `ELEMENTS`; lookup `registry/index.ts` → `resolveElement`                                                          |
-| What an implementation is      | `registry/framing.tsx` (`component`, `presentation`, `sequencer`)                                                                        |
-| Settings shape helpers         | `lib/settings/shape.ts` → `nestedFrom`, `listsFrom`, `ticksFromWords`, `treeFromPaths`                                                   |
-| UI kits                        | `lib/neutral-ui`, `lib/warm-ui` (themes only), `lib/ui-kit` (colour, motion, step and timeline helpers)                                  |
-| 30 fps clock                   | `core/authored-clock.ts` → `useAuthoredFrame`, `useAuthoredConfig`, `useRealFrames`                                                      |
-| Design box                     | `DesignBox`                                                                                                                              |
-| Colour literal allow-list      | `colors.test.ts`                                                                                                                         |
-| Element stills                 | `bun run elements:render` → `crates/render/src/bin/render-elements.rs`, into `~/.cache/opsis-element-stills`                             |
-| 3D stage and loaders           | `three/` → `Stage3D`, `useDrawnScene`; `project.ts`                                                                                      |
-| 3D stills check                | `crates/render/tests/three_stills.rs` against `fixtures/prepare/stills`                                                                  |
+| Concern                        | Where                                                                                                                                                                                             |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| One element's definition       | `<category>/<element>.rs` (categories `media`, `text`, `overlay`, `transition`, `background`, `effect`, `ui`, `data`, `scene`, `device`)                                                          |
+| The builder                    | `entry.rs` → `element`, `meta`                                                                                                                                                                    |
+| Node list order                | `mod.rs` → `elements()`                                                                                                                                                                           |
+| Choices several elements share | `shared.rs`                                                                                                                                                                                       |
+| Theme preset tables            | `theme.rs` → `neutral_themes`, `warm_themes`, `code_themes`, `keystroke_themes`, `stat_card_themes`, `data_story_themes`…, `with_themes`                                                          |
+| Props built from settings      | `props.rs` → `ElementSettings`; `crates/compile/src/nodes/elements.rs` → `element_props`; `crates/compile/src/nodes/capture.rs` → `StillProps`; `crates/compile/src/clip.rs` → `PlaceholderProps` |
+| Element sounds                 | `element_sounds`                                                                                                                                                                                  |
+| Lengths                        | `lengths.rs` → `element_timing`, `animation_length`; checked by `registry/lengths.test.ts` through `length-cases.generated.json`                                                                  |
+| Components                     | `elements/<category>/<key>.tsx` or `elements/<category>/<key>/index.tsx`                                                                                                                          |
+| Key → implementation           | `elements/index.ts` → `ELEMENTS`; lookup `registry/index.ts` → `resolveElement`                                                                                                                   |
+| What an implementation is      | `registry/framing.tsx` (`component`, `presentation`, `sequencer`)                                                                                                                                 |
+| Settings shape helpers         | `lib/settings/shape.ts` → `nestedFrom`, `listsFrom`, `ticksFromWords`, `treeFromPaths`                                                                                                            |
+| UI kits                        | `lib/neutral-ui`, `lib/warm-ui` (themes only), `lib/ui-kit` (colour, motion, step and timeline helpers)                                                                                           |
+| 30 fps clock                   | `core/authored-clock.ts` → `useAuthoredFrame`, `useAuthoredConfig`, `useRealFrames`                                                                                                               |
+| Design box                     | `DesignBox`                                                                                                                                                                                       |
+| Colour literal allow-list      | `colors.test.ts`                                                                                                                                                                                  |
+| Element stills                 | `bun run elements:render` → `crates/render/src/bin/render-elements.rs`, into `~/.cache/opsis-element-stills`                                                                                      |
+| 3D stage and loaders           | `three/` → `Stage3D`, `useDrawnScene`; `project.ts`                                                                                                                                               |
+| 3D stills check                | `crates/render/tests/three_stills.rs` against `fixtures/prepare/stills`                                                                                                                           |
 
 ## Rules
 

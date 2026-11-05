@@ -4,15 +4,15 @@ The app's one database, the settings held in memory, the keyring and the project
 
 ## Code map
 
-| Concern                   | Where                                                                                           |
-| ------------------------- | ----------------------------------------------------------------------------------------------- |
-| Schema                    | `store/schema.sql`                                                                              |
-| Queries                   | `store` (`sqlx::query!`, `query_as!`, `query_scalar!`); offline cache `.sqlx/`                  |
-| Offline build             | `.cargo/config.toml` (`SQLX_OFFLINE=true`)                                                      |
-| Settings in memory        | `desktop/src/state.rs` → `AppState::settings`, `AppState::patch_settings`, `RUST_ONLY_SECTIONS` |
-| Start                     | `desktop/src/lib.rs` → `open`                                                                   |
-| Keyring and sealing       | `store/src/keys.rs` (`keyring-core`)                                                            |
-| Project folder suggestion | `project_folder` command                                                                        |
+| Concern                   | Where                                                                                                                     |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Schema                    | `store/schema.sql`                                                                                                        |
+| Queries                   | `store` (`sqlx::query!`, `query_as!`, `query_scalar!`); offline cache `.sqlx/`                                            |
+| Offline build             | `.cargo/config.toml` (`SQLX_OFFLINE=true`)                                                                                |
+| Settings in memory        | `desktop/src/state.rs` → `AppState::settings`, `AppState::patch_settings`; `types/src/settings.rs` → `RUST_ONLY_SECTIONS` |
+| Start                     | `desktop/src/lib.rs` → `open`                                                                                             |
+| Keyring and sealing       | `store/src/keys.rs` (`keyring-core`)                                                                                      |
+| Project folder suggestion | `project_folder` command                                                                                                  |
 
 ## Rules
 

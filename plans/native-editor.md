@@ -477,7 +477,7 @@ The editor's Vitest tests (1,672 lines) and the WebdriverIO end-to-end suite (`e
 
 ### Work
 
-1. Resources: `AppPaths` finds the film page, terminal page, licences and notices beside the executable (or in the macOS bundle's `Resources`), replacing Tauri's resource folder.
+1. Resources: `AppPaths` finds the licences and notices, and the film page and terminal page while they exist ([native-renderer.md](native-renderer.md) removes both at its cut-over), beside the executable (or in the macOS bundle's `Resources`), replacing Tauri's resource folder.
 2. Linux: `linuxdeploy` with its Qt plugin for the AppImage; `cargo-deb` and `cargo-generate-rpm` for deb and rpm, with Qt bundled or depended on (decided below). The deb no longer needs `gstreamer1.0-libav` or WebKitGTK.
 3. Windows: `windeployqt`, then NSIS (per-user install as today).
 4. macOS: `macdeployqt`, `codesign` on every Mach-O, notarization in CI as today.
@@ -502,9 +502,9 @@ The Tauri editor and everything that exists only for it go.
 ### Work
 
 1. Delete `apps/frontend`, `crates/desktop` (after the session took its logic), `crates/desktop/capabilities`, the CSP, the editor's file server (`file_server.rs`; the film's file server in `opsis-engine` stays), `page_log.rs`, `tauri.conf.json` and `tauri.release.conf.json`.
-2. Drop `tauri`, `tauri-build`, `tauri-specta` and the `tauri-plugin-*` crates. Keep `specta` and `specta-typescript` only for `packages/video/src/generated/spec.ts`, and move the `=2.0.0-rc.26` pin note in `AGENTS.md` §5 (it exists for `tauri-specta`).
+2. Drop `tauri`, `tauri-build`, `tauri-specta` and the `tauri-plugin-*` crates. Keep `specta` and `specta-typescript` only for `packages/video/src/generated/spec.ts` while the film page exists (after [native-renderer.md](native-renderer.md)'s cut-over nothing reads it, and they go too), and move the `=2.0.0-rc.26` pin note in `AGENTS.md` §5 (it exists for `tauri-specta`).
 3. Delete `e2e/`'s WebdriverIO setup and its 9.x pin; the new runner replaces it.
-4. `@opsis/video/common` helpers the editor imported (format, math, lists, guards, time; 830 lines) stay for the film; the editor's own copies in Rust replace its imports.
+4. `@opsis/video/common` helpers the editor imported (format, math, lists, guards, time; 830 lines) stay for the film until [native-renderer.md](native-renderer.md)'s cut-over removes it; the editor's own copies in Rust replace its imports.
 5. Rewrite `AGENTS.md` §1 (the editor is Qt Widgets; no "system webview"), §2 (installed-code table without shadcn, React Flow UI, TanStack Router and `bindings.ts`; the `DropdownMenuContent`/`TooltipContent` rule goes), §3, §4, §6 (crates `opsis-session` and `opsis-ui`; "only `opsis-ui` opens windows or dialogs").
 6. Rewrite `agent-docs/editor.md`, `document.md`, `e2e.md`, `packaging.md`, `toolchain.md`; add `agent-docs/ui.md` for the bridge and view rules.
 

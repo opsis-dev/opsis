@@ -10,7 +10,7 @@ Built-in sounds and music, the Mixer and its stems, ducking, how sounds are plac
 | Built-in music               | `public/music` (128 kbps AAC), listed in `compile/src/data/music.json` (catalogue `music`)                                     |
 | Credits                      | `THIRD_PARTY_NOTICES.md`                                                                                                       |
 | Mix settings and the book    | `types/src/mix.rs` → `mixer_book` (catalogue `mixer`, editor `mixerBook()`)                                                    |
-| Mix plan                     | `compile/src/mix/plan.rs` → `build_mix_plan`, `duck_keys_for`, `duck_spans`, `lookup_key`                                      |
+| Mix plan                     | `compile/src/mix/plan.rs` → `build_mix_plan`, `lookup_key`; `compile/src/mix/levels.rs` → `duck_keys_for`, `duck_spans`        |
 | Filter graphs                | `media/src/mix/graph.rs` → `pack_lanes`                                                                                        |
 | Stems                        | `media/src/mix/render.rs` → `MIX_VERSION`; `.opsis/cache/mix/`                                                                 |
 | Channel pruning              | `compile/src/edits/workflow.rs` → `remove_nodes`; `Workflow::normalized`                                                       |

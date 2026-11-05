@@ -225,7 +225,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Sources
 
-- `crates/footage/src/{footage,decoder,chain}.rs`, `crates/capture/src/terminal_paint.rs`, `packages/video/src/terminal/{view,effects,sprites}.ts*`, `plans/profiling-findings.md` (deleted, in git history: E1).
+- `crates/footage/src/{footage,decoder,chain}.rs`, `crates/capture/src/terminal_paint.rs`, `packages/video/src/terminal/{view,effects,sprites}.ts*`, the profiling pass's finding E1 (`git show 233701ad^:plans/profiling-findings.md`; the file was deleted in `233701ad`).
 
 ## Output
 

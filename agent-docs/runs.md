@@ -4,19 +4,19 @@ How a node's key is made, how results follow keys as the workflow changes, how M
 
 ## Code map
 
-| Concern                       | Where                                                                                            |
-| ----------------------------- | ------------------------------------------------------------------------------------------------ |
-| Keys                          | `runner/src/keys.rs` → `ENGINE_VERSION`, `Release`; `hash_nodes`                                 |
-| Stamps                        | `runner/src/context.rs` → `Executor::stamped`; `project` → `file_stamps`                         |
-| File hashes                   | `engine/src/hash.rs` → `versioned_hash`                                                          |
-| Picture and prepared versions | `engine/src/versions.rs` → `PICTURE_VERSION`, `PREPARED_VERSION`                                 |
-| Mix version                   | `media/src/mix/render.rs` → `MIX_VERSION`                                                        |
-| Saved pictures                | `render/src/picture.rs`; `.opsis/cache/pictures/<pictureKey>`                                    |
-| Results following keys        | `desktop/src/node_results.rs` → `refresh`, `adopt`, `held`, `check_media_files`, `missing_files` |
-| Media file check              | `media/src/executors.rs` → `check_media_file`, `FileCheckError`                                  |
-| Run view                      | `desktop/src/run.rs` → `RunHost`, `seeded_view`, `exported_artifacts`, `notify_finished`         |
-| Run event reducer             | `runner/src/progress.rs` → `apply_to_view`, `apply_run_event`                                    |
-| Editor mirror                 | `apps/frontend/src/store/run.ts` → `useRunMirror`                                                |
+| Concern                       | Where                                                                                                                                |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Keys                          | `runner/src/keys.rs` → `ENGINE_VERSION`, `Release`; `hash_nodes`                                                                     |
+| Stamps                        | `runner/src/context.rs` → `Executor::stamped`; `project` → `file_stamps`                                                             |
+| File hashes                   | `engine/src/hash.rs` → `versioned_hash`                                                                                              |
+| Picture and prepared versions | `engine/src/versions.rs` → `PICTURE_VERSION`, `PREPARED_VERSION`                                                                     |
+| Mix version                   | `media/src/mix/render.rs` → `MIX_VERSION`                                                                                            |
+| Saved pictures                | `render/src/picture.rs`; `.opsis/cache/pictures/<pictureKey>`                                                                        |
+| Results following keys        | `desktop/src/node_results.rs` → `refresh`, `adopt`, `held`, `check_media_files`; `compile/src/node.rs` → `CardInputs::missing_files` |
+| Media file check              | `media/src/executors.rs` → `check_media_file`, `FileCheckError`                                                                      |
+| Run view                      | `desktop/src/run.rs` → `RunHost`, `seeded_view`, `exported_artifacts`, `notify_finished`                                             |
+| Run event reducer             | `runner/src/progress.rs` → `apply_to_view`, `apply_run_event`                                                                        |
+| Editor mirror                 | `apps/frontend/src/app/run-mirror.ts` → `useRunMirror`                                                                               |
 
 ## Rules
 
