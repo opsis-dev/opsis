@@ -1,6 +1,6 @@
 # Profiling findings (2026-11-04)
 
-Everything the profiling work found: bugs, where time and memory go, size, and code paths that cost more than they need to. Nothing here is fixed. Each item gives what was measured or read, where (file and line, or the command and its output), how far it reaches, and how sure it is. How the measurements are made is in [agent-docs/profiling.md](../agent-docs/profiling.md).
+Everything the profiling work found: bugs, where time and memory go, size, and code paths that cost more than they need to. Each item that changed since starts with its status on 2026-11-05 and the commit that did it. Each item gives what was measured or read, where (file and line, or the command and its output), how far it reaches, and how sure it is. How the measurements are made is in [agent-docs/profiling.md](../agent-docs/profiling.md).
 
 ## How these were measured
 
@@ -15,6 +15,7 @@ Everything the profiling work found: bugs, where time and memory go, size, and c
 
 ### B1. Every render of an imported video clip fails
 
+- **Status:** Fixed in `6e27fd3f`: a clip made from a file starts from its element's default props, and `crates/render/tests/run.rs` renders an imported clip.
 - **What:** a video clip made from a media file has no `playbackRate` prop, so the film page asks for frame `NaN` and the render fails with "A frame's time is whole microseconds."
 - **Evidence:** in every full pass, the three renders whose film is an imported video fail within a second: Clip from file (`output_render_1`), Grade footage on the import (`output_render_2`), Fit length on the import (`output_render_150`). Element nodes with their own `src` (Video, Video loop, Text mask video) render, because their settings carry `playbackRate` from the element defaults.
 - **Source:**
@@ -26,6 +27,7 @@ Everything the profiling work found: bugs, where time and memory go, size, and c
 
 ### B2. Sign in panics on Linux, and the app then can't run anything until it restarts
 
+- **Status:** Fixed in `3607fc0b`: every keyring call from a run goes through `off_runtime` onto a blocking thread, and a node whose executor panics fails with a message while the run still ends. `crates/capture/tests/keyring_sign_in.rs` saves a sign-in through a real Secret Service.
 - **What:** the Sign in executor reads the Secret Service keyring on a tokio worker; the blocking zbus call panics there; the run's task dies, the run never ends, and `/project/run/stop` doesn't clear it.
 - **Evidence:** `Cannot start a runtime from within a runtime` on `tokio-rt-worker`, with this stack (from `RUST_BACKTRACE=1`): `opsis_capture` executor `crates/capture/src/executors.rs:458` (`deps.sign_ins.write`) → `crates/desktop/src/settings.rs:206` (`write_secret`) → `crates/store/src/secrets.rs:36` (`keys.seal`) → `crates/store/src/keys.rs:107` (`seal`) → `:90` (`sign_in_key`, `entry.get_password()`) → `zbus-secret-service-keyring-store` → `zbus::blocking` `block_on`. The run waited 900 s, `/project/run/stop` didn't end it (a minute later the app still reported a run in progress), and the next `POST /project/run` answered 409 "A run is already in progress."
 - **Source:**
@@ -36,6 +38,7 @@ Everything the profiling work found: bugs, where time and memory go, size, and c
 
 ### B3. A Drag on a page whose drag carries no data fails the take
 
+- **Status:** Fixed in `43d46eb2`: the drag data always carries `items`; `crates/capture/tests/local_page.rs` drops a card whose page sets no data.
 - **What:** when the page's `dragstart` puts nothing in `dataTransfer`, Chrome reports the intercepted drag with `"items": []`; the app re-serializes it through chromiumoxide, which leaves the empty `items` out, and every `Input.dispatchDragEvent` fails with -32602.
 - **Evidence:** the app's own calls replayed against the recording browser (HeadlessChrome 157.0.8080.0), card `draggable="true"`, drop zone accepting drops:
 
@@ -52,6 +55,7 @@ Everything the profiling work found: bugs, where time and memory go, size, and c
 
 ### B4. The Render setting "Graphics card, direct" can't work with the bundled browser
 
+- **Status:** Fixed in `32fbb747`: the setting is removed.
 - **What:** `Gl::Egl` passes `--use-gl=egl` (`crates/capture/src/film.rs:95`); the bundled headless shell refuses it and its GPU process exits, so WebGL falls back to SwiftShader.
 - **Evidence:** with the film's switches, the browser logs "Requested GL implementation (gl=egl-gles2,angle=none) not found in allowed implementations: [(gl=egl-angle,angle=default)]" then "Exiting GPU process due to error", and WebGL reports "SwiftShader driver": in the container with and without a GPU device, and on this desktop.
 - **Reach:** anyone who picks that setting gets software rendering without being told. **Confidence:** measured in both places.
@@ -79,6 +83,7 @@ Everything the profiling work found: bugs, where time and memory go, size, and c
 
 ### P2. Shader, 3D and particle elements: software WebGL in the container, several times faster on a GPU
 
+- **Status:** Corrected on 2026-11-05. On this laptop now (NVIDIA 595.99.02, loaded since the 12:37 boot on 2026-11-04), "Graphics card, newer drivers" draws no WebGL: with both Intel's and NVIDIA's Vulkan drivers installed, ANGLE starts on Vulkan and then fails to share the first WebGL image (`initExternalMemory`, error -2). With only NVIDIA's driver visible (`VK_ICD_FILENAMES`) it reaches the RTX 3060, and with only Intel's it falls back to SwiftShader. The "Newer drivers" column below is not what this laptop shows now; the "Default" desktop rows still hold. A film without WebGL renders with it (a Title in 3.9 s). Since `fed07e38` a render that fails this way says the setting can't draw shader and 3D effects and which Draw with to choose.
 - **What:** the default "Graphics card" setting reaches the GPU only through the display the browser inherits (X or Wayland). With no display, or with a display that has no GPU behind it like Xvfb, it draws WebGL in software: SwiftShader in the full pass, Mesa's llvmpipe once Mesa is in the image (samply: `libgallium` 41.8% of all samples). The "newer drivers" setting (Vulkan) reaches the GPU with no display at all.
 - **Evidence:** the WebGL renderer the recording browser reports with the film's switches:
 
@@ -114,6 +119,7 @@ Everything the profiling work found: bugs, where time and memory go, size, and c
 
 ### P3. Media nodes re-encode at x264 CRF 18, even when nothing changes
 
+- **Status:** Trim with no cut hands the file on as it is (`0a994062`). The encode speed of every working file is one app-wide setting, Settings → General → Working files, Balanced (`medium`) by default, in place of Apply grade's and Convert's own (`afb49db9`). Render keeps its own.
 - Every node that writes video re-encodes the 12 s 1080p test clip: Apply grade 12.9 s (45.4 CPU s), Reverse 6.9 s (23.0), Scale and pad 6.3 s (23.4), Convert 6.1 s (22.7), Trim 5.6 s (20.4), Speed 3.4 s (12.0). The encoder settings are `edit_video` (x264, CRF 18, FFmpeg's default preset): `crates/media/src/codecs.rs:13`, `:58-63`.
 - **Trim with its defaults re-encodes the whole file:** the defaults are `startMs: 0`, `endMs: 0` (no cut), and `trim` always goes through `transcode` with `edited_file`'s codecs: `crates/media/src/executors.rs:337-374`, `crates/media/src/codecs.rs:417-432`.
 - Sound-only nodes take 0.1–1.5 s; Hum 1.5 s, Pitch 0.9 s, Clean speech 0.5 s.
@@ -142,6 +148,7 @@ The 45-run subset: image and capture nodes, the terminal, take, tape and still o
 
 ### E2. Each run event rebuilds and sends the whole run view, with a copy of the workflow
 
+- **Status:** The workflow is no longer cloned for each event (`8a5d38cd`); the view is still rebuilt and sent per event.
 - `emit_view` runs on every event except log lines (`crates/desktop/src/run.rs:366-367`), including each `node:progress`; a render sends one per frame (815 for Launch anything). Each call clones the view and, in `with_exports` (`run.rs:88-97`), takes a clone of the whole document workflow (`document_workflow`, `crates/desktop/src/document.rs:99-103`) to read each node's id and type, then serializes it to the webview.
 - `emit_view` is 7.2% of the app's CPU, `with_exports` 5.7% (both inclusive; the second is part of the first).
 
@@ -158,6 +165,7 @@ The 45-run subset: image and capture nodes, the terminal, take, tape and still o
 
 ### M1. The app keeps about 390 MiB of freed heap in glibc's malloc arenas
 
+- **Status:** Left as it is.
 - **Evidence:** the app's PSS rises from 128 MiB at start to 572 MiB after 3 minutes and 762 MiB by the end of the full pass, and doesn't come down between runs. After the same 62-run subset, with no run in progress (`/proc/<pid>/status`):
 
   |                                   | Default   | `MALLOC_ARENA_MAX=2` |
@@ -206,6 +214,7 @@ With WebKit's Timeline instrument also recording, the same steps took 2.4–2.5 
 
 ### U1. Every node and edge is in the DOM, all the time
 
+- **Status:** Fixed in `93999ea0`: only the cards and edges on screen are drawn, and each card's measured size and handles are saved per project and given back on open. Reopening the 438-node project, the most cards in the DOM went from 439 to 285 and the settled page to 14,363 elements.
 - 21,852 DOM elements for 439 nodes and 360 edges. `FLOW_OPTIONS` doesn't set `onlyRenderVisibleElements` (`apps/frontend/src/editor/canvas.tsx:39-52`), so React Flow renders every node and edge, off-screen too; the minimap draws them again (`canvas.tsx:144`). React Flow 12.12.0 documents the option as an optimisation "when you have a large number of nodes and edges", off by default (`@xyflow/react` `dist/esm/types/component-props.d.ts:325-331`).
 - Script is a fifth of zoom and pan (554 ms of 3.19 s, 483 ms of 2.70 s) and under a third of select; the rest of each long frame is style, layout and paint of those 21,852 elements.
 - The script, by step: opening is mostly the Timeline's `scrollerView`/`update` (`src/editor/timeline/timeline-view.tsx:41-50`), `KnownNode` (`src/editor/flow-node.tsx:88`), `Canvas` and `useFlowEdges` (`src/editor/use-flow-elements.ts:107`); selecting is React Flow's node update (`@xyflow/react` `dist/esm/index.js:2944`), `selectFromChanges` (`src/editor/use-flow-elements.ts:44`), `KnownNode`, `NodeGlyph` (`src/editor/node-glyph.tsx:50`), `CardRows` and `useNodeProblems`; zoom and pan are React's store checks (`zustand` `shallow`, `checkIfSnapshotChanged`) and `react-resizable-panels`.
@@ -214,6 +223,7 @@ With WebKit's Timeline instrument also recording, the same steps took 2.4–2.5 
 
 ### U2. The layout engine loads with the editor and runs on its main thread
 
+- **Status:** Fixed in `7dd34f5d`: ELK loads when Tidy up runs and lays out in its Web Worker; the editor's main chunk went from 2,408 kB (752 kB gzipped) to 934 kB (297 kB gzipped). Tidy up on the 433 top-level nodes took 0.2 to 0.45 s on the page before.
 - `apps/frontend/src/editor/layout.ts:1` imports `elkjs/lib/elk.bundled.js` statically and makes `new ELK()` without a `workerUrl` (`:10`). elkjs 0.12.1's README: "since we don't want to freeze your UI, Web Workers are supported out of the box", with the worker form `new ELK({ workerUrl: … })`.
 - It is 1.47 MB of the editor's 3.67 MB of JavaScript (40%), in the editor chunk (`editor-z3ZyNgZ9.js`), loaded at start though only Tidy up uses it.
 
@@ -247,6 +257,7 @@ With WebKit's Timeline instrument also recording, the same steps took 2.4–2.5 
 
 ### S3. The release app carries and builds every TypeScript type definition
 
+- **Status:** The editor's extra types are built only for the bindings export (`c9d19db1`); the size saved isn't measured.
 - `run()` calls `bindings::builder()` (`crates/desktop/src/lib.rs:117-118`), which registers every command, event and frontend type (`crates/desktop/src/bindings.rs`, `.types(&frontend_types())` at `:141`). tauri-specta's `commands()` and `events()` build each definition into a `TypeCollection` there and then (`tauri-specta-2.0.0-rc.26/src/builder.rs:217-253`); only the bindings export reads it.
 - The cost is size, not time: the 1.64 MiB of specta code ships in the binary, and building the collection took 4 of the 1,063 app samples of a whole startup (samply at 1 ms: start, validate and open the 438-node project, quit), about 4 ms. The startup's time went to compiling the project (`compile::request` 53.0%, `validate_workflow` 20.3%, `compile_workflow` 18.5%), the API's `/validate` (11.5%) and making the webview (`WebContext::new` 7.1%).
 
@@ -256,10 +267,12 @@ With WebKit's Timeline instrument also recording, the same steps took 2.4–2.5 
 
 ### S5. Unused Rust dependencies
 
+- **Status:** Removed in `bfdf0264`.
 - `cargo machete`: `opsis-footage` declares `opsis-engine`, `serde` and `serde_json` and uses none (no reference in `crates/footage/src`); `opsis-render` declares `specta` and doesn't use it (its `serde_json` feature comes through `opsis-types` anyway). Its fifth hit, `smart-default` in `opsis-compile`, is used through the `#[settings]` expansion (`crates/macros/src/settings.rs:69`).
 
 ### S6. The film page
 
+- **Status:** Launch anything's photos are `app:` placeholders (`0278ae9b`); the page's script went from 4,438.90 kB to 2,722.89 kB. The full Lottie player stays: the light one drops expressions and every layer effect.
 - One chunk: 4,438.90 kB, 2,061.05 kB gzipped (Vite: "Some chunks are larger than 500 kB after minification"). By package: `packages/video` 2.50 MB (56%), three 0.72 MB, lottie-web 0.25 MB, react-dom 0.22 MB, @react-three/fiber 0.18 MB, zod 0.10 MB.
 - **Launch anything inlines four photos:** `packages/video/src/elements/scene/launch-anything/assets.ts` holds four 1672×941 JPEGs as base64 (desk 234 KiB, horizon 282 KiB, rocket 217 KiB, earth 524 KiB), 1.72 MB of the bundle, used as defaults (`content.ts:58-61`). AGENTS.md §7: "Element defaults use neutral copy and `app:` placeholders (`public/placeholders`, `public/backdrops`)." They are parsed on every film page load, whatever the film shows.
 - lottie-web's full SVG player runs Lottie expressions through direct `eval` (`lottie-web/build/player/lottie_svg.js:11559`, Rolldown's EVAL warning), so a Lottie file with expressions runs its own script in the film page.
@@ -270,11 +283,14 @@ With WebKit's Timeline instrument also recording, the same steps took 2.4–2.5 
 
 ### S8. Unused TypeScript (knip)
 
+- **Status:** Done in `c1d893d4` (the test graph helper, React in the film app, knip kept off generated files) and `b0af1e42` to `68af6376` (unused exports and the code only they used, each traced to why it was left); knip reports nothing.
 - `apps/frontend/src/test/graph.ts` is imported by nothing.
 - `apps/film` declares `react` and `react-dom` and imports neither.
 - 305 exports and 145 exported types are used only in their own file, mostly element files: `elements/ui/agent-run.tsx` (27 exports, 33 types), `elements/device/laptop-frame.tsx` (20), `elements/overlay/keystroke.tsx` (16, 15 types), `elements/scene/logo-assemble.tsx` (14), `elements/effect/speed-lines.tsx` (13, 10 types). Spot-checked: `defaultAgentRun`, `agentRunDefaults`, `formatAgentRunSeconds`, `tokenizeAgentRun` appear only in `agent-run.tsx`.
 
 ## Tooling notes
+
+- **Status:** The profile runs Sign in in its own place (`10a2e90a`) and its drag card carries no data (`af0cf39f`).
 
 Not app issues; traps for the next profiling run, all handled or recorded in `agent-docs/profiling.md`.
 
@@ -285,4 +301,5 @@ Not app issues; traps for the next profiling run, all handled or recorded in `ag
 
 ## Local leftovers
 
+- **Status:** `apps/sidecar/` is gone.
 - `apps/sidecar/` holds only ignored `.turbo` and `node_modules` folders from the sidecar app removed in `fbd31487`; `apps/*` still matches it as a workspace folder.
