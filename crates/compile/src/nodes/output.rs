@@ -35,6 +35,12 @@ pub enum Gl {
     Swiftshader,
 }
 
+impl Gl {
+    pub const fn draws_on_graphics_card(self) -> bool {
+        matches!(self, Self::Angle | Self::Vulkan)
+    }
+}
+
 impl Codec {
     pub const fn extension(self) -> &'static str {
         match self {

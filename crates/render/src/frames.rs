@@ -2,8 +2,8 @@ use std::fmt;
 use std::path::Path;
 
 use opsis_capture::cdp::CaptureError;
-use opsis_capture::film::{DriverOptions, FilmPage, FrameDriver, FrameFormat};
-use opsis_compile::nodes::output::StillFormat;
+use opsis_capture::film::{DriverOptions, FilmPage, FrameDriver, FrameFormat, draws_webgl};
+use opsis_compile::nodes::output::{Gl, StillFormat};
 use opsis_media::codecs::{FilmEncoding, film_encode_args};
 use opsis_media::ffmpeg::{FramePipe, MediaTools, ToolError};
 use opsis_types::numbers;
@@ -21,6 +21,38 @@ pub enum FilmError {
     Encode(String),
     #[error("Cancelled")]
     Cancelled,
+    #[error(
+        "This computer can't draw shader and 3D effects with “{}”. Set Draw with to {}.",
+        .0.label(),
+        instead_of(*.0)
+    )]
+    NoWebGl(Gl),
+}
+
+const fn instead_of(gl: Gl) -> &'static str {
+    match gl {
+        Gl::Vulkan => "Graphics card or Software",
+        Gl::Angle | Gl::Swangle | Gl::Swiftshader => "Software",
+    }
+}
+
+async fn explained<T>(
+    result: Result<T, FilmError>,
+    driver: &DriverOptions<'_>,
+) -> Result<T, FilmError> {
+    let Err(FilmError::Capture(error)) = result else {
+        return result;
+    };
+    if driver.gl.draws_on_graphics_card()
+        && !draws_webgl(driver.executable, driver.temp_dir, driver.gl).await
+    {
+        log::warn!(
+            "the render failed ({error}) and this browser can't draw WebGL with {:?}",
+            driver.gl
+        );
+        return Err(FilmError::NoWebGl(driver.gl));
+    }
+    Err(FilmError::Capture(error))
 }
 
 impl From<ToolError> for FilmError {
@@ -134,6 +166,10 @@ async fn encode(
 }
 
 pub async fn render_film(job: &FilmRender<'_>, run: &FilmRun<'_>) -> Result<(), FilmError> {
+    explained(film_once(job, run).await, &job.driver).await
+}
+
+async fn film_once(job: &FilmRender<'_>, run: &FilmRun<'_>) -> Result<(), FilmError> {
     let mut driver = FrameDriver::open(&job.driver, &job.page).await?;
     note_capture(&driver, run);
     let encoded = encode(&mut driver, job, run).await;
@@ -161,6 +197,10 @@ fn still_format(format: StillFormat, quality: Option<f64>) -> FrameFormat {
 }
 
 pub async fn render_still(job: &StillRender<'_>) -> Result<(), FilmError> {
+    explained(still_once(job).await, &job.driver).await
+}
+
+async fn still_once(job: &StillRender<'_>) -> Result<(), FilmError> {
     let mut driver = FrameDriver::open(&job.driver, &job.page).await?;
     let last = driver.film().duration_in_frames.saturating_sub(1);
     let picture = driver

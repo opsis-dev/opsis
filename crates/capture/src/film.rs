@@ -76,6 +76,10 @@ const BEGIN_FRAME_SWITCHES: [&str; 9] = [
 const PNG_SIGNATURE: [u8; 4] = [0x89, b'P', b'N', b'G'];
 const PROBE_PAGE: &str =
     "data:text/html,<style>html,body{margin:0;background:%23173}</style><div>probe</div>";
+const WEBGL_PAGE: &str = "data:text/html,<canvas id=\"c\" width=\"8\" height=\"8\"></canvas>";
+const DRAWS_WEBGL: &str = "(() => { const gl = document.getElementById('c').getContext('webgl2'); if (!gl) return false; gl.clearColor(0, 1, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT); const pixel = new Uint8Array(4); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel); return gl.getError() === gl.NO_ERROR && pixel[1] === 255; })()";
+const WEBGL_CHECK_TIMEOUT: Duration = Duration::from_secs(15);
+const WEBGL_CHECK_SIZE: u32 = 64;
 const PROBE_ATTEMPTS: usize = 2;
 const PROBE_TIMEOUT: Duration = Duration::from_secs(8);
 const PROBE_RETRY: Duration = Duration::from_millis(10);
@@ -264,6 +268,23 @@ async fn probe(launched: &Launched) -> Result<()> {
         log::debug!("closing the test page: {error}");
     }
     checked
+}
+
+pub async fn draws_webgl(executable: &Path, temp_dir: &Path, gl: Gl) -> bool {
+    let switches = film_switches(gl, Capture::Screenshot, WEBGL_CHECK_SIZE, WEBGL_CHECK_SIZE);
+    let Ok(launched) = launch_with(executable, temp_dir, switches).await else {
+        return false;
+    };
+    let drew = tokio::time::timeout(WEBGL_CHECK_TIMEOUT, async {
+        let page = launched.browser.new_page(WEBGL_PAGE).await.ok()?;
+        Tab::new(page).evaluate_main::<bool>(DRAWS_WEBGL).await.ok()
+    })
+    .await
+    .ok()
+    .flatten()
+    .unwrap_or(false);
+    launched.close().await;
+    drew
 }
 
 async fn launch_film(
