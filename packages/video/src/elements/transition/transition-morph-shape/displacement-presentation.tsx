@@ -6,7 +6,6 @@ import {
   DISPLACEMENT_EPSILON,
   displacementFrame,
   maskFrame,
-  MASK_DEFAULTS,
   prepareMaskMorph,
   type DisplacementCoreConfig,
   type DisplacementMaskConfig,
@@ -134,5 +133,3 @@ export function displacementPresentation(
 ): TransitionPresentation<DisplacementPresentationProps> {
   return { component: DisplacementPresentationComponent, props };
 }
-
-;
