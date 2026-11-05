@@ -187055,58 +187055,6 @@
    }
   },
   {
-   "type": "media.convert",
-   "label": "missing",
-   "key": "preset",
-   "change": {
-    "unset": true
-   },
-   "outcome": {
-    "ok": true,
-    "value": null,
-    "keys": 4
-   }
-  },
-  {
-   "type": "media.convert",
-   "label": "null",
-   "key": "preset",
-   "change": {
-    "set": null
-   },
-   "outcome": {
-    "ok": true,
-    "value": null,
-    "keys": 4
-   }
-  },
-  {
-   "type": "media.convert",
-   "label": "other",
-   "key": "preset",
-   "change": {
-    "set": "zz-other"
-   },
-   "outcome": {
-    "ok": true,
-    "value": null,
-    "keys": 4
-   }
-  },
-  {
-   "type": "media.convert",
-   "label": "number",
-   "key": "preset",
-   "change": {
-    "set": 45
-   },
-   "outcome": {
-    "ok": true,
-    "value": null,
-    "keys": 4
-   }
-  },
-  {
    "type": "media.applyGrade",
    "label": "defaults",
    "key": null,
@@ -187305,58 +187253,6 @@
    "outcome": {
     "ok": true,
     "value": 51,
-    "keys": 4
-   }
-  },
-  {
-   "type": "media.applyGrade",
-   "label": "missing",
-   "key": "preset",
-   "change": {
-    "unset": true
-   },
-   "outcome": {
-    "ok": true,
-    "value": null,
-    "keys": 4
-   }
-  },
-  {
-   "type": "media.applyGrade",
-   "label": "null",
-   "key": "preset",
-   "change": {
-    "set": null
-   },
-   "outcome": {
-    "ok": true,
-    "value": null,
-    "keys": 4
-   }
-  },
-  {
-   "type": "media.applyGrade",
-   "label": "other",
-   "key": "preset",
-   "change": {
-    "set": "zz-other"
-   },
-   "outcome": {
-    "ok": true,
-    "value": null,
-    "keys": 4
-   }
-  },
-  {
-   "type": "media.applyGrade",
-   "label": "number",
-   "key": "preset",
-   "change": {
-    "set": 45
-   },
-   "outcome": {
-    "ok": true,
-    "value": null,
     "keys": 4
    }
   },
