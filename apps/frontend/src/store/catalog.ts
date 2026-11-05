@@ -21,8 +21,6 @@ import {
 } from "@/generated/bindings";
 import { FALLBACK_LOOK } from "@/nodes/looks";
 
-type Params = Record<string, unknown>;
-
 type Named = { id?: string; label?: string; type: string };
 
 const loaded: {
@@ -149,8 +147,6 @@ export function mixerBook(): MixerBook {
   return loaded.mixer;
 }
 
-const NO_TRANSITION = "none";
-
 export function transitionTitle(kind: string): string {
   return loaded.transitions[kind] ?? kind;
 }
@@ -173,18 +169,6 @@ export function appMenu(): readonly MenuSection[] {
 
 export function getNodeDef(type: string): EditorNode | undefined {
   return loaded.byType.get(type);
-}
-
-function defaultParams(type: string): Params {
-  return structuredClone(getNodeDef(type)?.defaults ?? {});
-}
-
-function newNodeParams(type: string, params?: Params): Params {
-  return {
-    ...defaultParams(type),
-    ...structuredClone(getNodeDef(type)?.hostDefaults ?? {}),
-    ...params,
-  };
 }
 
 export function customLabel(node: { label?: string }): string | undefined {
