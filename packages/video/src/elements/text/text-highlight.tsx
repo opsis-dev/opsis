@@ -11,20 +11,6 @@ import { interpolateColors, parseColor, rgbToOklch, withAlpha } from "#video/lib
 import { resolveFont, type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
 
-type TextHighlightPreset =
-  | "logo-wipe"
-  | "marker"
-  | "color"
-  | "underline"
-  | "strikethrough"
-  | "shimmer";
-
-interface TextHighlightSpringConfig {
-  damping?: number;
-  mass?: number;
-  stiffness?: number;
-}
-
 function lighterOf(a: string, b: string): string {
   return (rgbToOklch(parseColor(a)).l ?? 0) >= (rgbToOklch(parseColor(b)).l ?? 0) ? a : b;
 }

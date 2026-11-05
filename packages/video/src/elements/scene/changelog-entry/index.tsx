@@ -11,11 +11,6 @@ import { EASING } from "#video/lib/motion/motion-tokens.ts";
 
 type ChangeKind = "added" | "fixed" | "changed" | "removed";
 
-type ChangeRow = {
-  kind: ChangeKind;
-  text: string;
-};
-
 const DEFAULT_KIND_COLORS: Record<ChangeKind, string> = {
   added: "#9BD4A0",
   fixed: "#7DD3E8",

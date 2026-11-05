@@ -15,8 +15,6 @@ import { type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
 
 type CapturedVideoFit = "cover" | "contain";
-type CapturedVideoEntrance = "fade" | "none";
-
 interface ScreenCrop {
   top?: number;
   right?: number;
@@ -42,8 +40,6 @@ type CapturedVideoProps = Omit<ElementSettings["captured-video"], "theme"> & {
 const CAMERA_EASE = Easing.bezier(0.2, 0.6, 0.35, 1);
 
 const CAMERA_MOVE_FRAMES = 25;
-
-const TAIL_FRAMES = 18;
 
 const ENTRANCE_FRAMES = 18;
 
@@ -118,12 +114,6 @@ function clampFocus(value: number, zoom: number): number {
   const hi = 1 - lo;
   if (lo >= hi) return 0.5;
   return Math.min(Math.max(value, lo), hi);
-}
-
-function screenRecordingFrames(camera?: CameraMove[]): number {
-  if (!camera || camera.length === 0) return 0;
-  const end = Math.max(...camera.map((m) => m.at + (m.duration ?? CAMERA_MOVE_FRAMES)));
-  return Math.round(end + TAIL_FRAMES);
 }
 
 interface ShotLayout {

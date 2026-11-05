@@ -34,9 +34,6 @@ const BEZEL_WIDTH = 14;
 const DECK_WIDTH = 900;
 const DECK_HEIGHT = 22;
 
-const LID_RADIUS = 22;
-
-const REST_TILT = 18;
 const PERSPECTIVE = 1600;
 
 const ENTRANCE_FRAMES = 30;

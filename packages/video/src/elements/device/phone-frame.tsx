@@ -10,7 +10,6 @@ import { resolveFont, type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/in
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
 import { floatOffset, ScreenMedia } from "#video/parts/device-screen.tsx";
 
-type PhoneFrameVariant = "flat" | "tilt" | "showcase";
 type PhoneFrameEntrance = "rise" | "rotate-in" | "float";
 
 type PhoneFrameProps = Omit<ElementSettings["phone-frame"], "theme"> & {

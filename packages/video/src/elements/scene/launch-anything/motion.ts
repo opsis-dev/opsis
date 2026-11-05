@@ -27,7 +27,6 @@ const showcaseTimeline = [
   { id: "integrations", from: 841, to: 907 },
 ] as const;
 
-type ShowcaseId = (typeof showcaseTimeline)[number]["id"];
 const settle = Easing.bezier(0.16, 1, 0.3, 1);
 export const smooth = Easing.bezier(0.65, 0, 0.25, 1);
 
