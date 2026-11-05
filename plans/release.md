@@ -136,10 +136,4 @@ The named pipe is created with the default security descriptor, which grants rea
 
 ## 8. Node packs (long term)
 
-Nodes that install and update apart from the app; build after sections 1–7.
-
-- **Phase 1, no-code nodes.** "Save as reusable node" on a selection (nodes, inner edges, exposed ports and settings) into the data folder or the project; a `core.subgraph` node compiles by expanding its contents in `opsis-compile`. "Save project as template" and per-node presets.
-- **Phase 2, packs as data.** A `pack.json` manifest (id, name, semver version, the pack API version, permissions, nodes and elements), first-party packs grouping today's nodes without changing their ids, projects listing the packs they use, and the "isn't available" messages naming the missing pack. Pack id and version join the node cache key.
-- **Phase 3, pack code.** Node definitions and compile are Rust, so a pack can't ship TS compile code: settings come as JSON Schema, and compile and executors run as WebAssembly modules or as separate programs speaking a JSON-lines protocol over stdin and stdout (decide when this phase starts). Video components ship prebuilt as ES modules importing `react` and `@opsis/runtime` from globals the film page exposes, loaded next to the registry's loaders under `holdRender`.
-- **Phase 4, third-party packs.** Installed from a file (decided: no online catalogue at first); unsigned packs may run code after a clear warning naming what they can do, signed ones skip it (decided).
-- **Risks.** Pack video code runs where renders run; version skew between a pack and the film page's `react`.
+Nodes that install and update apart from the app; build after sections 1–7. The phases, the WebAssembly contract and the work are in [node-packs.md](node-packs.md).
