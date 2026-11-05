@@ -260,6 +260,7 @@ export type AppSettings = {
 	editor: EditorSection,
 	api: ApiSection,
 	engine: EngineSection,
+	media: MediaSection,
 };
 
 export type AppVersions = {
@@ -816,6 +817,8 @@ export type ElementRef = {
 	props: { [key in string]: unknown },
 };
 
+export type EncodePreset = "ultrafast" | "fast" | "medium" | "slow" | "veryslow";
+
 export type EngineChanged = EngineStatus;
 
 export type EngineInstallEvent = {
@@ -1282,6 +1285,10 @@ export type Measured = { type: "noiseLevel"; beforeDb: number; afterDb: number }
 
 export type MediaKind = "video" | "audio" | "image" | "terminal-take";
 
+export type MediaSection = {
+	encodeSpeed: EncodePreset,
+};
+
 export type MediaValue = {
 	src: string | null,
 	kind: MediaKind,
@@ -1691,6 +1698,7 @@ export type SettingsBook = {
 	canvasModes: CanvasMode[],
 	keepLastTraces: WholeRange,
 	liveFps: WholeRange,
+	encodeSpeeds: ([EncodePreset, string])[],
 };
 
 export type SettingsChanged = AppSettings;

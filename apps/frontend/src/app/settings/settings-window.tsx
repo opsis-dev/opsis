@@ -50,7 +50,7 @@ const PAGES: Record<SettingsPage, PageInfo> = {
     label: "General",
     icon: SlidersHorizontal,
     description: "What Opsis does when it opens and before it closes.",
-    render: (settings) => <GeneralPage app={settings.app} />,
+    render: (settings) => <GeneralPage app={settings.app} media={settings.media} />,
   },
   projects: {
     label: "Projects",

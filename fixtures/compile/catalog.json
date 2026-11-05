@@ -66048,32 +66048,6 @@
        ]
       }
      },
-     "preset": {
-      "description": "Speed vs file size",
-      "type": "string",
-      "enum": [
-       "ultrafast",
-       "fast",
-       "medium",
-       "slow",
-       "veryslow"
-      ],
-      "x-labels": {
-       "ultrafast": "Fastest, biggest",
-       "fast": "Fast",
-       "medium": "Balanced",
-       "slow": "Small",
-       "veryslow": "Smallest, slowest"
-      },
-      "default": "medium",
-      "x-advanced": true,
-      "x-show-if": {
-       "codec": [
-        "h264",
-        "h265"
-       ]
-      }
-     },
      "proresProfile": {
       "description": "ProRes kind",
       "type": "string",
@@ -66125,7 +66099,6 @@
     "default": {
      "codec": "h264",
      "crf": 18,
-     "preset": "medium",
      "proresProfile": "hq",
      "soundQuality": "high"
     }
@@ -66196,32 +66169,6 @@
        ]
       }
      },
-     "preset": {
-      "description": "Speed vs file size",
-      "type": "string",
-      "enum": [
-       "ultrafast",
-       "fast",
-       "medium",
-       "slow",
-       "veryslow"
-      ],
-      "x-labels": {
-       "ultrafast": "Fastest, biggest",
-       "fast": "Fast",
-       "medium": "Balanced",
-       "slow": "Small",
-       "veryslow": "Smallest, slowest"
-      },
-      "default": "medium",
-      "x-advanced": true,
-      "x-show-if": {
-       "codec": [
-        "h264",
-        "h265"
-       ]
-      }
-     },
      "proresProfile": {
       "description": "ProRes kind",
       "type": "string",
@@ -66273,7 +66220,6 @@
     "default": {
      "codec": "h264",
      "crf": 18,
-     "preset": "medium",
      "proresProfile": "hq",
      "soundQuality": "high"
     }

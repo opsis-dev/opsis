@@ -186862,7 +186862,6 @@
     "data": {
      "codec": "h264",
      "crf": 18,
-     "preset": "medium",
      "proresProfile": "hq",
      "soundQuality": "high"
     }
@@ -186878,7 +186877,6 @@
     "data": {
      "codec": "h264",
      "crf": 18,
-     "preset": "medium",
      "proresProfile": "hq",
      "soundQuality": "high"
     }
@@ -186894,7 +186892,7 @@
    "outcome": {
     "ok": true,
     "value": "h264",
-    "keys": 5
+    "keys": 4
    }
   },
   {
@@ -186943,7 +186941,7 @@
    "outcome": {
     "ok": true,
     "value": 18,
-    "keys": 5
+    "keys": 4
    }
   },
   {
@@ -187028,7 +187026,7 @@
    "outcome": {
     "ok": true,
     "value": 0,
-    "keys": 5
+    "keys": 4
    }
   },
   {
@@ -187053,7 +187051,7 @@
    "outcome": {
     "ok": true,
     "value": 51,
-    "keys": 5
+    "keys": 4
    }
   },
   {
@@ -187065,8 +187063,8 @@
    },
    "outcome": {
     "ok": true,
-    "value": "medium",
-    "keys": 5
+    "value": null,
+    "keys": 4
    }
   },
   {
@@ -187077,8 +187075,9 @@
     "set": null
    },
    "outcome": {
-    "ok": false,
-    "problem": "Speed vs file size has a value that isn't allowed"
+    "ok": true,
+    "value": null,
+    "keys": 4
    }
   },
   {
@@ -187089,8 +187088,9 @@
     "set": "zz-other"
    },
    "outcome": {
-    "ok": false,
-    "problem": "Speed vs file size has a value that isn't allowed"
+    "ok": true,
+    "value": null,
+    "keys": 4
    }
   },
   {
@@ -187101,8 +187101,9 @@
     "set": 45
    },
    "outcome": {
-    "ok": false,
-    "problem": "Speed vs file size has a value that isn't allowed"
+    "ok": true,
+    "value": null,
+    "keys": 4
    }
   },
   {
@@ -187115,7 +187116,6 @@
     "data": {
      "codec": "h264",
      "crf": 18,
-     "preset": "medium",
      "proresProfile": "hq",
      "soundQuality": "high"
     }
@@ -187131,7 +187131,6 @@
     "data": {
      "codec": "h264",
      "crf": 18,
-     "preset": "medium",
      "proresProfile": "hq",
      "soundQuality": "high"
     }
@@ -187147,7 +187146,7 @@
    "outcome": {
     "ok": true,
     "value": "h264",
-    "keys": 5
+    "keys": 4
    }
   },
   {
@@ -187196,7 +187195,7 @@
    "outcome": {
     "ok": true,
     "value": 18,
-    "keys": 5
+    "keys": 4
    }
   },
   {
@@ -187281,7 +187280,7 @@
    "outcome": {
     "ok": true,
     "value": 0,
-    "keys": 5
+    "keys": 4
    }
   },
   {
@@ -187306,7 +187305,7 @@
    "outcome": {
     "ok": true,
     "value": 51,
-    "keys": 5
+    "keys": 4
    }
   },
   {
@@ -187318,8 +187317,8 @@
    },
    "outcome": {
     "ok": true,
-    "value": "medium",
-    "keys": 5
+    "value": null,
+    "keys": 4
    }
   },
   {
@@ -187330,8 +187329,9 @@
     "set": null
    },
    "outcome": {
-    "ok": false,
-    "problem": "Speed vs file size has a value that isn't allowed"
+    "ok": true,
+    "value": null,
+    "keys": 4
    }
   },
   {
@@ -187342,8 +187342,9 @@
     "set": "zz-other"
    },
    "outcome": {
-    "ok": false,
-    "problem": "Speed vs file size has a value that isn't allowed"
+    "ok": true,
+    "value": null,
+    "keys": 4
    }
   },
   {
@@ -187354,8 +187355,9 @@
     "set": 45
    },
    "outcome": {
-    "ok": false,
-    "problem": "Speed vs file size has a value that isn't allowed"
+    "ok": true,
+    "value": null,
+    "keys": 4
    }
   },
   {

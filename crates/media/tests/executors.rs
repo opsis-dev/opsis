@@ -4,6 +4,7 @@ use std::sync::{Arc, Mutex};
 use opsis_compile::registry::default_params;
 use opsis_compile::vars::Vars;
 use opsis_engine::tools::EngineFiles;
+use opsis_media::codecs::{edit_video, serde_name};
 use opsis_media::executors::{
     FileCheckError, LinkedMedia, Tools, check_media_file, media_executors, media_has_sound,
     thumbnail_time,
@@ -12,7 +13,7 @@ use opsis_media::ffmpeg::{FramePipe, MediaTools, RunOptions, ToolError, ToolFutu
 use opsis_probe::{AudioStream, Probe, VideoStream};
 use opsis_runner::context::{ExecError, ExecutorContext, ExecutorOutput, ResultStore, RunEnv};
 use opsis_types::numbers;
-use opsis_types::settings::AppSettings;
+use opsis_types::settings::{AppSettings, EncodePreset};
 use opsis_types::values::{ArtifactKind, Measured, MediaKind, PortValues};
 use opsis_types::workflow::Workflow;
 use pretty_assertions::assert_eq;
@@ -96,6 +97,15 @@ async fn run(
     probe: Probe,
     inputs: Value,
 ) -> (Result<ExecutorOutput, ExecError>, Vec<Vec<String>>) {
+    run_with(setup, probe, inputs, AppSettings::default()).await
+}
+
+async fn run_with(
+    setup: Setup<'_>,
+    probe: Probe,
+    inputs: Value,
+    settings: AppSettings,
+) -> (Result<ExecutorOutput, ExecError>, Vec<Vec<String>>) {
     let fake = Arc::new(FakeTools {
         probe,
         ran: Mutex::new(Vec::new()),
@@ -121,7 +131,7 @@ async fn run(
             engine: EngineFiles::default(),
             public_dir: setup.project_dir.join("public"),
             temp_dir: setup.project_dir.into(),
-            settings: AppSettings::default(),
+            settings,
         }),
         project_dir: setup.project_dir.into(),
         dir: setup.project_dir.join(".opsis/cache/h"),
@@ -213,6 +223,43 @@ async fn trim_with_no_cut_hands_the_file_on_as_it_is_and_runs_nothing() {
     .await;
     assert!(cut.is_ok());
     assert_eq!(ran.len(), 1);
+}
+
+#[test]
+fn working_files_name_the_chosen_speed_and_leave_the_default_as_it_was() {
+    for preset in EncodePreset::ALL {
+        let args = edit_video(preset);
+        let named = args
+            .windows(2)
+            .find(|w| w[0] == "-preset")
+            .map(|w| w[1].clone());
+        let expected = (preset != EncodePreset::Medium).then(|| serde_name(&preset));
+        assert_eq!(named, expected, "{preset:?}");
+    }
+}
+
+#[tokio::test]
+async fn trim_encodes_at_the_app_wide_speed() {
+    let mut settings = AppSettings::default();
+    settings.media.encode_speed = EncodePreset::Ultrafast;
+    let (result, ran) = run_with(
+        Setup {
+            kind: "media.trim",
+            params: json!({ "startMs": 500 }),
+            project_dir: Path::new("/p"),
+            names: &[],
+        },
+        film_probe(Some("aac")),
+        json!({ "media": film("video") }),
+        settings,
+    )
+    .await;
+    assert!(result.is_ok());
+    let preset = ran[0]
+        .windows(2)
+        .find(|w| w[0] == "-preset")
+        .map(|w| w[1].as_str());
+    assert_eq!(preset, Some("ultrafast"));
 }
 
 #[tokio::test]

@@ -2,6 +2,7 @@ use std::sync::LazyLock;
 
 use opsis_compile::text::single_quoted;
 use opsis_types::numbers;
+use opsis_types::settings::EncodePreset;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
@@ -145,6 +146,7 @@ pub fn reverse_args(
     piece: &ReversePiece,
     sound: bool,
     sound_codec: &[String],
+    preset: EncodePreset,
 ) -> Vec<String> {
     let mut args = Vec::new();
     if let Some(from) = piece.from {
@@ -162,7 +164,7 @@ pub fn reverse_args(
     } else {
         args.push("-an".to_owned());
     }
-    args.extend(edit_video());
+    args.extend(edit_video(preset));
     args.push(output.to_owned());
     args
 }

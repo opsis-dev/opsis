@@ -26,6 +26,7 @@ use opsis_probe::Probe;
 use opsis_runner::context::{ExecError, Executor, ExecutorContext, ExecutorOutput, executor};
 use opsis_types::events::LogLevel;
 use opsis_types::numbers;
+use opsis_types::settings::EncodePreset;
 use opsis_types::values::{
     ArtifactKind, CompileValue, ImageValue, Measured, MediaKind, MediaValue, PortValues, StyleEntry,
 };
@@ -119,6 +120,10 @@ fn run_options<'a>(
 pub struct LinkedMedia {
     pub value: MediaValue,
     pub src: String,
+}
+
+fn encode_speed(ctx: &ExecutorContext) -> EncodePreset {
+    ctx.env.settings.media.encode_speed
 }
 
 pub fn require_media(value: Option<&CompileValue>) -> Result<LinkedMedia, ExecError> {
@@ -346,7 +351,13 @@ async fn trim(
         .await
         .map_err(tool_error)?;
     let moving = probe.video.is_some() && probe.duration_ms.is_some();
-    let out = edited_file(&ext_of(&input.src), moving, probe.audio.is_some()).ok_or_else(|| {
+    let out = edited_file(
+        &ext_of(&input.src),
+        moving,
+        probe.audio.is_some(),
+        encode_speed(&ctx),
+    )
+    .ok_or_else(|| {
         ExecError::new("Trim works on video and sound. A still image has nothing to trim.")
     })?;
     if p.start_ms == 0 && p.end_ms == 0 {
@@ -438,7 +449,7 @@ fn reencode_args(
     args.extend(["-filter_complex".to_owned(), join.filter]);
     if join.video {
         args.extend(strings(&["-map", "[v]"]));
-        args.extend(edit_video());
+        args.extend(edit_video(encode_speed(ctx)));
     }
     if join.audio {
         args.extend(strings(&["-map", "[a]"]));
@@ -559,7 +570,14 @@ async fn speed(
         duration_ms,
     };
     transcode(&ctx, &*tools, &input, job, |i, o| {
-        speed_args(i, o, p.rate, fps, sound.then_some(p.keep_pitch))
+        speed_args(
+            i,
+            o,
+            p.rate,
+            fps,
+            sound.then_some(p.keep_pitch),
+            encode_speed(&ctx),
+        )
     })
     .await
 }
@@ -598,7 +616,14 @@ async fn reverse_pieces_into(
         let start = done;
         ctx.progress(start, Some(&message));
         let progress = |p: f64| ctx.progress(p.mul_add(share, start), Some(&message));
-        let args = reverse_args(src, &parts[n].file, piece, job.sound, &pcm);
+        let args = reverse_args(
+            src,
+            &parts[n].file,
+            piece,
+            job.sound,
+            &pcm,
+            encode_speed(ctx),
+        );
         tools
             .run(
                 &args,
@@ -696,7 +721,7 @@ async fn reverse(
             duration_ms: None,
         };
         return transcode(&ctx, &*tools, &input, job, |i, o| {
-            reverse_args(i, o, &WHOLE_FILE, sound, &[])
+            reverse_args(i, o, &WHOLE_FILE, sound, &[], encode_speed(&ctx))
         })
         .await;
     }
@@ -752,7 +777,7 @@ async fn scale_pad(
     transcode(&ctx, &*tools, &input, job, |i, o| {
         let mut args = vec!["-i".to_owned(), i.to_owned(), "-vf".to_owned(), filter];
         if !image {
-            args.extend(edit_video());
+            args.extend(edit_video(encode_speed(&ctx)));
             args.extend(strings(&["-c:a", "copy"]));
         }
         args.push(o.to_owned());
@@ -776,7 +801,7 @@ async fn convert(
     };
     transcode(&ctx, &*tools, &input, job, |i, o| {
         let mut args = vec!["-i".to_owned(), i.to_owned()];
-        args.extend(convert_args(&p));
+        args.extend(convert_args(&p, encode_speed(&ctx)));
         args.push(o.to_owned());
         args
     })
@@ -878,7 +903,7 @@ async fn apply_grade(
             if sound.is_some() {
                 args.extend(strings(&["-map", "0:a?"]));
             }
-            args.extend(grade_video_args(&p));
+            args.extend(grade_video_args(&p, encode_speed(&ctx)));
             args.extend(grade_sound_args(&p, sound));
             if codec.faststart {
                 args.extend(strings(&FASTSTART));
@@ -971,7 +996,7 @@ async fn filter_sound(
         Some(v) if MP4_PICTURES.contains(&v.codec.as_str()) => strings(&["-c:v", "copy"]),
         _ => {
             let mut args = strings(&["-vf", EVEN_FRAME]);
-            args.extend(edit_video());
+            args.extend(edit_video(encode_speed(ctx)));
             args
         }
     };

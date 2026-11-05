@@ -3,6 +3,7 @@ use opsis_media::filters::{
     GifLook, JoinPart, JoinSize, atempo_chain, ffmpeg_color, fit_filter, gif_filter, join_filter,
     loudnorm_filter, speed_args, speed_sound_args,
 };
+use opsis_types::settings::EncodePreset;
 
 use crate::common::{cases, json, number, text, typed, with};
 
@@ -49,6 +50,7 @@ fn filters_are_as_recorded() {
             number(&o["rate"]),
             number(&o["fps"]),
             (o["sound"] == true).then_some(true),
+            EncodePreset::Medium,
         );
         with(case, &[("args", json(out))])
     });

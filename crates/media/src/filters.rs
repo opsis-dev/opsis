@@ -5,6 +5,7 @@ use opsis_compile::nodes::image::PlaceAlign;
 use opsis_compile::nodes::media::{Dither, PaletteFrom, ScaleMode};
 use opsis_compile::text::round_to;
 use opsis_types::numbers;
+use opsis_types::settings::EncodePreset;
 
 use crate::codecs::{edit_video, even_down, ffmpeg_seconds, serde_name, with_even_frame};
 
@@ -189,6 +190,7 @@ pub fn speed_args(
     rate: f64,
     fps: f64,
     sound: Option<bool>,
+    preset: EncodePreset,
 ) -> Vec<String> {
     let mut args = vec![
         "-i".to_owned(),
@@ -203,7 +205,7 @@ pub fn speed_args(
     } else {
         args.push("-an".to_owned());
     }
-    args.extend(edit_video());
+    args.extend(edit_video(preset));
     args.push(output.to_owned());
     args
 }

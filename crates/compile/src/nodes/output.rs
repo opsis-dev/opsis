@@ -2,6 +2,7 @@ use opsis_macros::{choice, settings};
 use opsis_types::cards::{Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::numbers::whole;
+use opsis_types::settings::EncodePreset;
 use opsis_types::timeline::ReframeMode;
 use opsis_types::values::{Artifact, CompileValue, MediaKind, TakeKind};
 use opsis_types::workflow::{PortType, WorkflowSettings};
@@ -12,7 +13,7 @@ use crate::node::{
     CLIP_PORT, CardCtx, Category, Claim, Ctx, NodeDef, Outputs, Phase, RECORDING_PORT, RowExt,
     missing, port, row,
 };
-use crate::nodes::media::{Codec, EncodePreset, ProresProfile};
+use crate::nodes::media::{Codec, ProresProfile};
 use crate::params::Params;
 use crate::text::{format_duration, slug_name};
 use crate::time::{even_px, frames_to_ms};

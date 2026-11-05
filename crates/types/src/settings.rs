@@ -1,4 +1,5 @@
 use garde::Validate;
+use opsis_macros::choice;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 use specta::Type;
@@ -247,10 +248,55 @@ pub struct AppSettings {
     pub api: ApiSection,
     #[garde(dive)]
     pub engine: EngineSection,
+    #[garde(dive)]
+    pub media: MediaSection,
 }
 
-pub const SETTINGS_SECTIONS: [&str; 7] = [
-    "app", "traces", "live", "projects", "editor", "api", "engine",
+#[choice(export)]
+pub enum EncodePreset {
+    #[label("Fastest, biggest")]
+    Ultrafast,
+    #[label("Fast")]
+    Fast,
+    #[default]
+    #[label("Balanced")]
+    Medium,
+    #[label("Small")]
+    Slow,
+    #[label("Smallest, slowest")]
+    Veryslow,
+}
+
+impl EncodePreset {
+    pub const ALL: [Self; 5] = [
+        Self::Ultrafast,
+        Self::Fast,
+        Self::Medium,
+        Self::Slow,
+        Self::Veryslow,
+    ];
+}
+
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Default,
+    Serialize,
+    Deserialize,
+    Validate,
+    Type,
+    schemars::JsonSchema,
+)]
+#[serde(rename_all = "camelCase", default)]
+pub struct MediaSection {
+    #[garde(skip)]
+    pub encode_speed: EncodePreset,
+}
+
+pub const SETTINGS_SECTIONS: [&str; 8] = [
+    "app", "traces", "live", "projects", "editor", "api", "engine", "media",
 ];
 
 pub const RUST_ONLY_SECTIONS: [&str; 1] = ["engine"];
@@ -264,6 +310,7 @@ pub struct SettingsBook {
     pub canvas_modes: Vec<CanvasMode>,
     pub keep_last_traces: WholeRange,
     pub live_fps: WholeRange,
+    pub encode_speeds: Vec<(EncodePreset, String)>,
 }
 
 pub fn settings_book() -> SettingsBook {
@@ -276,5 +323,8 @@ pub fn settings_book() -> SettingsBook {
         canvas_modes: CanvasMode::ALL.to_vec(),
         keep_last_traces: KEEP_LAST_TRACES,
         live_fps: LIVE_FPS,
+        encode_speeds: EncodePreset::ALL
+            .map(|p| (p, p.label().to_owned()))
+            .to_vec(),
     }
 }

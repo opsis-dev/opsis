@@ -1,10 +1,11 @@
-use opsis_compile::nodes::media::{Codec, EncodePreset, Encoding, SoundFormat};
+use opsis_compile::nodes::media::{Codec, Encoding, SoundFormat};
 use opsis_media::codecs::{
     FilmEncoding, FrameGrab, H264, audio_format_args, audio_format_for, codec_info, codec_video,
     convert_args, edited_file, ffmpeg_seconds, film_encode_args, finish_args, frame_grab_args,
     grade_sound_args, grade_video_args, h264_args, mux_args, sound_file, strings,
 };
 use opsis_types::numbers;
+use opsis_types::settings::EncodePreset;
 use serde_json::{Map, Value};
 
 use crate::common::{cases, json, number, text, typed, with};
@@ -65,13 +66,13 @@ fn codec_and_file_arguments_are_as_recorded() {
         let p: Encoding = typed(&serde_json::json!({
             "codec": case["codec"],
             "crf": numbers::whole(number(&case["crf"])),
-            "preset": case["preset"],
         }));
+        let preset: EncodePreset = typed(&case["preset"]);
         with(
             case,
             &[
-                ("convert", json(convert_args(&p))),
-                ("gradeVideo", json(grade_video_args(&p))),
+                ("convert", json(convert_args(&p, preset))),
+                ("gradeVideo", json(grade_video_args(&p, preset))),
             ],
         )
     });
@@ -92,7 +93,12 @@ fn codec_and_file_arguments_are_as_recorded() {
     });
     let edited = cases(&f["edited"], |case| {
         let s = &case["streams"];
-        let out = edited_file(text(&case["ext"]), s["video"] == true, s["audio"] == true);
+        let out = edited_file(
+            text(&case["ext"]),
+            s["video"] == true,
+            s["audio"] == true,
+            EncodePreset::Medium,
+        );
         with(case, &[("out", json(out))])
     });
     let sound_files = cases(&f["soundFiles"], |case| {

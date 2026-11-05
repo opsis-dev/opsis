@@ -12522,7 +12522,6 @@
   "defaults": {
    "codec": "h264",
    "crf": 18,
-   "preset": "medium",
    "proresProfile": "hq",
    "soundQuality": "high"
   }
@@ -12574,7 +12573,6 @@
   "defaults": {
    "codec": "h264",
    "crf": 18,
-   "preset": "medium",
    "proresProfile": "hq",
    "soundQuality": "high"
   }

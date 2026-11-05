@@ -2,6 +2,7 @@ use opsis_media::reverse::{
     PieceBudget, ReversePiece, ReversedPart, frame_bytes, join_reversed_args, piece_length_ms,
     reverse_args, reverse_pieces, reverse_sound_args, reversed_parts_list,
 };
+use opsis_types::settings::EncodePreset;
 use serde_json::{Value, json};
 
 use crate::common::{cases, text, typed, with};
@@ -20,8 +21,8 @@ fn plan(case: &Value) -> Value {
         .iter()
         .flat_map(|p| {
             [
-                reverse_args("in.mp4", "out.mkv", p, true, &pcm),
-                reverse_args("in.mp4", "out.mkv", p, false, &[]),
+                reverse_args("in.mp4", "out.mkv", p, true, &pcm, EncodePreset::Medium),
+                reverse_args("in.mp4", "out.mkv", p, false, &[], EncodePreset::Medium),
             ]
         })
         .collect();
@@ -44,7 +45,16 @@ fn reverse_plans_and_arguments_are_as_recorded() {
     });
     let whole: Vec<Vec<String>> = [true, false]
         .iter()
-        .map(|s| reverse_args("in.mp4", "out.mp4", &ReversePiece::default(), *s, &[]))
+        .map(|s| {
+            reverse_args(
+                "in.mp4",
+                "out.mp4",
+                &ReversePiece::default(),
+                *s,
+                &[],
+                EncodePreset::Medium,
+            )
+        })
         .collect();
     let mp3 = ["-vn", "-c:a", "libmp3lame", "-q:a", "2"].map(str::to_owned);
     let parts = [

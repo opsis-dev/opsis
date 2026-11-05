@@ -144,20 +144,6 @@ impl ConvertCodec {
     }
 }
 
-#[choice(export)]
-pub enum EncodePreset {
-    #[label("Fastest, biggest")]
-    Ultrafast,
-    #[label("Fast")]
-    Fast,
-    #[label("Balanced")]
-    Medium,
-    #[label("Small")]
-    Slow,
-    #[label("Smallest, slowest")]
-    Veryslow,
-}
-
 #[choice]
 pub enum ProresProfile {
     #[label("Proxy")]
@@ -209,13 +195,6 @@ pub struct Encoding {
         show_if = { "codec": ["h264", "h265", "vp9"] }
     )]
     pub crf: u32,
-    #[setting(
-        "Speed vs file size",
-        default = EncodePreset::Medium,
-        advanced,
-        show_if = { "codec": ["h264", "h265"] }
-    )]
-    pub preset: EncodePreset,
     #[setting(
         "ProRes kind",
         show_if = { "codec": ["prores"] },

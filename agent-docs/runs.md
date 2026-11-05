@@ -29,6 +29,7 @@ How a node's key is made, how results follow keys as the workflow changes, how M
 - **Node keys and picture keys hold the app's version, and node keys the recording browser's hash (`Release`)**, so a new release or another browser runs everything again. The bundled FFmpeg changes only with a release.
 - **Every key that picks a file on disk is a sha256 (`versioned_hash`)**; the 64-bit `lookup_key` only matches values in memory, such as a mix plan to its result.
 - **Export cache keys include the project settings, so changing fonts re-exports.**
+- **The working files' encode speed (`settings.media.encodeSpeed`, Settings → General) is in no key**: a file made at another speed is still right, so changing it runs nothing again, and a node uses the new speed the next time it runs for its own reasons. Every media node that makes a video reads it (`encode_speed`, `media/src/executors.rs`); Render keeps its own Speed vs file size.
 
 ### Version constants
 

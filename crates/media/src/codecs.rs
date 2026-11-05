@@ -1,7 +1,8 @@
 use opsis_compile::nodes::media::{
-    Codec, ConvertCodec, EncodePreset, Encoding, ProresProfile, SoundFormat, SoundQuality,
+    Codec, ConvertCodec, Encoding, ProresProfile, SoundFormat, SoundQuality,
 };
 use opsis_compile::nodes::output::{PixelFormat, RenderProres};
+use opsis_types::settings::EncodePreset;
 use serde::Serialize;
 
 pub const FASTSTART: [&str; 2] = ["-movflags", "+faststart"];
@@ -55,9 +56,11 @@ pub fn h264_args(opts: &H264<'_>) -> Vec<String> {
     args
 }
 
-pub fn edit_video() -> Vec<String> {
+pub fn edit_video(preset: EncodePreset) -> Vec<String> {
+    let name = serde_name(&preset);
     h264_args(&H264 {
         crf: EDIT_CRF,
+        preset: (preset != EncodePreset::Medium).then_some(name.as_str()),
         ..H264::default()
     })
 }
@@ -271,11 +274,11 @@ pub fn sound_args(codec: ConvertCodec, quality: SoundQuality) -> Vec<String> {
     }
 }
 
-fn convert_video(p: &Encoding) -> Vec<String> {
+fn convert_video(p: &Encoding, preset: EncodePreset) -> Vec<String> {
     if p.codec == ConvertCodec::Prores {
         return prores_args(p.prores_profile);
     }
-    codec_video(convert_codec(p.codec), f64::from(p.crf), p.preset).unwrap_or_default()
+    codec_video(convert_codec(p.codec), f64::from(p.crf), preset).unwrap_or_default()
 }
 
 pub const fn has_sound_track(codec: Codec) -> bool {
@@ -286,9 +289,9 @@ pub fn is_image_codec(codec: Codec) -> bool {
     codec == Codec::Gif
 }
 
-pub fn convert_args(p: &Encoding) -> Vec<String> {
+pub fn convert_args(p: &Encoding, preset: EncodePreset) -> Vec<String> {
     let info = codec_info(convert_codec(p.codec));
-    let mut args = convert_video(p);
+    let mut args = convert_video(p, preset);
     if info.faststart {
         args.extend(strings(&FASTSTART));
     }
@@ -296,8 +299,8 @@ pub fn convert_args(p: &Encoding) -> Vec<String> {
     args
 }
 
-pub fn grade_video_args(p: &Encoding) -> Vec<String> {
-    let mut args = convert_video(p);
+pub fn grade_video_args(p: &Encoding, preset: EncodePreset) -> Vec<String> {
+    let mut args = convert_video(p, preset);
     if let Some(at) = args.iter().position(|a| a == "-vf") {
         args.drain(at..at + 2);
     }
@@ -414,10 +417,15 @@ pub fn sound_file(ext: &str) -> EditedFile {
     }
 }
 
-pub fn edited_file(ext: &str, video: bool, audio: bool) -> Option<EditedFile> {
+pub fn edited_file(
+    ext: &str,
+    video: bool,
+    audio: bool,
+    preset: EncodePreset,
+) -> Option<EditedFile> {
     if video {
         let mut codecs = strings(&["-vf", EVEN_FRAME]);
-        codecs.extend(edit_video());
+        codecs.extend(edit_video(preset));
         codecs.extend(if audio {
             edit_audio()
         } else {
