@@ -6,4 +6,3 @@ export function randomId(prefix?: string): string {
   const id = Array.from(bytes, (b) => ID_ALPHABET[b % ID_ALPHABET.length]).join("");
   return prefix ? `${prefix}_${id}` : id;
 }
-

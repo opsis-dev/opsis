@@ -15,4 +15,3 @@ export function debounce<A extends unknown[]>(fn: (...args: A) => void, ms: numb
   }
   return Object.assign(run, { cancel });
 }
-
