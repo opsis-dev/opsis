@@ -15,8 +15,6 @@
   },
   "dependencies": {
     "@opsis/runtime": "workspace:*",
-    "@opsis/video": "workspace:*",
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "@opsis/video": "workspace:*"
   }
 }

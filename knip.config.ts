@@ -16,7 +16,7 @@ function cssImports(text: string): string {
 }
 
 export default {
-  ignore: ["e2e/**"],
+  ignore: ["e2e/**", "**/*.generated.*", "**/generated/**", "apps/frontend/src/routeTree.gen.ts"],
   ignoreBinaries: ["zig", "rustc", "dbus-daemon", "gnome-keyring-daemon"],
   compilers: { css: cssImports },
   workspaces: {
@@ -28,7 +28,7 @@ export default {
     "apps/frontend": {
       entry: ["src/routes/**/*.tsx"],
       project: ["src/**/*.{ts,tsx,css}"],
-      ignore: ["src/components/ui/**", "src/components/*.tsx"],
+      ignore: ["src/components/ui/**", "src/components/*.tsx", "src/hooks/**"],
     },
     "apps/film": {
       project: ["src/**/*.{ts,tsx,css}"],
