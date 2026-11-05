@@ -1,7 +1,10 @@
+import ElkConstructor from "elkjs/lib/elk.bundled.js";
 import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import type { Workflow, WorkflowNode } from "@/generated/bindings";
 import { autoLayout, type CardShape } from "./layout";
+
+const elk = new ElkConstructor();
 
 function node(id: string, type: string): WorkflowNode {
   return { id, type, position: { x: 0, y: 0 }, params: {} } as unknown as WorkflowNode;
@@ -36,7 +39,7 @@ describe("tidy up layout", () => {
             [...titles, node("seq", "timeline.sequence")],
             inputs.map((i) => edge(`t${i}`, "seq", `in${i}`)),
           );
-          const placed = await autoLayout(wf, unmeasured);
+          const placed = await autoLayout(elk, wf, unmeasured);
           expect(Object.keys(placed).toSorted()).toEqual(wf.nodes.map((n) => n.id).toSorted());
         },
       ),
@@ -62,7 +65,7 @@ describe("tidy up layout", () => {
         ],
       },
     };
-    const placed = await autoLayout(wf, (n) => shapes[n.id] ?? unmeasured());
+    const placed = await autoLayout(elk, wf, (n) => shapes[n.id] ?? unmeasured());
     expect(placed.title.y + 112).toBeCloseTo(placed.seq.y + 174, 0);
   });
 });

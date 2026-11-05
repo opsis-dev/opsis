@@ -7,7 +7,6 @@ import { onMenuCommand } from "../app/menu-commands";
 import { useUiStore } from "../store/ui";
 import { useViewOptions } from "../store/view-options";
 import { useWorkflowStore, workflowEdits } from "../store/workflow";
-import { tidyLayout } from "./layout";
 import { focusPanel, PANEL_SIDES, PANEL_TOGGLES, togglePanel } from "./panels";
 import { startRun } from "./run";
 import { saveWithToast } from "./save";
@@ -37,7 +36,7 @@ const MENU_ACTIONS: MenuActions = {
     const nodes = useWorkflowStore.getState().workflow?.nodes ?? [];
     useUiStore.getState().setSelected(nodes.map((n) => n.id));
   },
-  "edit:layout": () => void tidyLayout(),
+  "edit:layout": () => void import("./tidy").then((tidy) => tidy.tidyLayout()),
   "edit:add-node": () => useUiStore.getState().setPaletteOpen(true),
   "view:toggle-minimap": () => useViewOptions.getState().toggleMinimap(),
   ...actionsFor(PANEL_SIDES, (side) => PANEL_TOGGLES[side].command, togglePanel),

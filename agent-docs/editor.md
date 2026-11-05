@@ -4,22 +4,22 @@ The editor's windows and routes, panels, the title bar and menus, the canvas, it
 
 ## Code map
 
-| Concern                        | Where                                                                                                                                                                                      |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Root and main layout routes    | `routes/__root.tsx`, `routes/_main.tsx` (`useMenuNavigation`, `useApiHost`, `useStartup`, `ExitDialog`)                                                                                    |
-| Panels                         | `editor/panels.ts`; tabs `dock.tsx`; pop-outs `windows.rs` → `open_panel_window`                                                                                                           |
-| Settings window                | `windows.rs` → `open_settings`; pages `app/settings/`; `store/app-settings.ts` → `useAppSettings`                                                                                          |
-| Exit flow                      | `exit.rs` → `ConfirmClose`, `close_even_if_page_dies`, `close_on_signals`; editor `ExitDialog`, `useHeldDrafts`, `commitHeldDrafts`                                                        |
-| Error screen                   | `app/error-screen.tsx` → `ErrorScreen`                                                                                                                                                     |
-| View state                     | `store/view-prefs.ts` → `loadViewState`, `readPref`, `writePref`, `layoutStorage`                                                                                                          |
-| Title bar                      | `app/app-bar.tsx` → `AppBar`; `app/window-drag.ts` → `windowDragHandlers`, `DRAG_START_PX`; `WindowControls`, `WindowBorder`                                                               |
-| Menus                          | `menu.rs` → `app_menu`, `app_menu_sections`; `native_menu.rs`; `useMenuShortcuts`; `run_role`, `send_menu_to_editor`                                                                       |
-| Canvas                         | `editor/use-flow-elements.ts` → `useFlowNodes`; `editor/card-shapes.ts`; `editor/card-size.ts` → `cardSize`, `measuredPorts`; `editor/layout.ts`; `editor/edge-lanes.ts` → `stepPositions` |
-| Tokens                         | `index.css`; window background `windows.rs` → `BACKGROUND`, checked by `app/window-background.test.ts`                                                                                     |
-| Editor motion                  | `app/motion.tsx` → `MotionProvider`                                                                                                                                                        |
-| Media player and image preview | `file-player.tsx`, `image-preview.tsx`                                                                                                                                                     |
-| Boot                           | `apps/frontend/public/page-errors.js`, `app/boot.ts`, `lib/platform.ts`                                                                                                                    |
-| CSP                            | `app.security.csp` in `crates/desktop/tauri.conf.json`                                                                                                                                     |
+| Concern                        | Where                                                                                                                                                                                                        |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Root and main layout routes    | `routes/__root.tsx`, `routes/_main.tsx` (`useMenuNavigation`, `useApiHost`, `useStartup`, `ExitDialog`)                                                                                                      |
+| Panels                         | `editor/panels.ts`; tabs `dock.tsx`; pop-outs `windows.rs` → `open_panel_window`                                                                                                                             |
+| Settings window                | `windows.rs` → `open_settings`; pages `app/settings/`; `store/app-settings.ts` → `useAppSettings`                                                                                                            |
+| Exit flow                      | `exit.rs` → `ConfirmClose`, `close_even_if_page_dies`, `close_on_signals`; editor `ExitDialog`, `useHeldDrafts`, `commitHeldDrafts`                                                                          |
+| Error screen                   | `app/error-screen.tsx` → `ErrorScreen`                                                                                                                                                                       |
+| View state                     | `store/view-prefs.ts` → `loadViewState`, `readPref`, `writePref`, `layoutStorage`                                                                                                                            |
+| Title bar                      | `app/app-bar.tsx` → `AppBar`; `app/window-drag.ts` → `windowDragHandlers`, `DRAG_START_PX`; `WindowControls`, `WindowBorder`                                                                                 |
+| Menus                          | `menu.rs` → `app_menu`, `app_menu_sections`; `native_menu.rs`; `useMenuShortcuts`; `run_role`, `send_menu_to_editor`                                                                                         |
+| Canvas                         | `editor/use-flow-elements.ts` → `useFlowNodes`; `editor/card-shapes.ts`; `editor/card-size.ts` → `cardSize`, `measuredPorts`; `editor/layout.ts`, `editor/tidy.ts`; `editor/edge-lanes.ts` → `stepPositions` |
+| Tokens                         | `index.css`; window background `windows.rs` → `BACKGROUND`, checked by `app/window-background.test.ts`                                                                                                       |
+| Editor motion                  | `app/motion.tsx` → `MotionProvider`                                                                                                                                                                          |
+| Media player and image preview | `file-player.tsx`, `image-preview.tsx`                                                                                                                                                                       |
+| Boot                           | `apps/frontend/public/page-errors.js`, `app/boot.ts`, `lib/platform.ts`                                                                                                                                      |
+| CSP                            | `app.security.csp` in `crates/desktop/tauri.conf.json`                                                                                                                                                       |
 
 ## Rules
 
@@ -60,6 +60,7 @@ The editor's windows and routes, panels, the title bar and menus, the canvas, it
 - **Each card's measured size and handle positions are saved per project (key `cardShapes`)** a second after the last measurement, without the nodes that are gone, and given back to React Flow on open as `measured` and `handles`, so cards off screen aren't drawn even once to be measured.
   - A card on screen is measured again by React Flow whenever its size changes; one that changed while off screen keeps its saved shape until it is shown.
 - **Tidy up layout lays the top-level cards out with ELK from the handles each card shows**, from its measured or saved shape (`measuredPorts`) or worked out from the edges for a card never measured; every edge end is a port, so a numbered input past the catalogue's own is never missing.
+- **ELK loads only when Tidy up runs and lays out in a Web Worker** (`editor/tidy.ts`, imported on demand; elkjs's own `elk-worker.min.js` as a file through `?url`), so its 1.6 MB stays out of the editor's start and a large graph never holds the page. The tests pass `elk.bundled.js`, which lays out without a worker, since Node has none.
 - **Edges are smoothstep paths; the edges entering one column turn in their own lane where their runs overlap** (`stepPositions`, from the cards' live positions), and ELK spaces the layers to fit those lanes.
 
 ### Look and motion

@@ -1,13 +1,11 @@
-import ELK, { type ElkNode, type ElkPort } from "elkjs/lib/elk.bundled.js";
+import type { ELK, ElkNode, ElkPort } from "elkjs/lib/elk-api.js";
 import type { Workflow, WorkflowNode } from "@/generated/bindings";
 import { getNodeDef } from "@/store/catalog";
 import { inputsBeforeCompile } from "@/workflow/graph";
 import { isGroupNode } from "@/workflow/nodes";
-import { useWorkflowStore, workflowEdits } from "../store/workflow";
 import { cardSize, measuredPorts, type MeasuredPort } from "./card-size";
 import { LANE_GAP } from "./edge-lanes";
 
-const elk = new ELK();
 const LAYER_GAP = 80;
 const NODE_GAP = 32;
 const EDGE_NODE_GAP = 24;
@@ -107,6 +105,7 @@ function shownShape(n: WorkflowNode): CardShape {
 }
 
 export async function autoLayout(
+  elk: ELK,
   wf: Workflow,
   shapeOf: (n: WorkflowNode) => CardShape = shownShape,
 ): Promise<Record<string, { x: number; y: number }>> {
@@ -114,10 +113,4 @@ export async function autoLayout(
   return Object.fromEntries(
     (result.children ?? []).map((c) => [c.id, { x: c.x ?? 0, y: c.y ?? 0 }]),
   );
-}
-
-export async function tidyLayout(): Promise<void> {
-  const wf = useWorkflowStore.getState().workflow;
-  if (!wf) return;
-  workflowEdits.moveNodes(await autoLayout(wf));
 }
