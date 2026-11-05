@@ -46,7 +46,6 @@ button, input, select { font: inherit; padding: 8px 12px; }
 </main>
 <script>
 document.getElementById("clock").textContent = new Date().toISOString();
-document.getElementById("card").addEventListener("dragstart", (event) => event.dataTransfer.setData("text/plain", "card"));
 const drop = document.getElementById("drop");
 drop.addEventListener("dragover", (event) => event.preventDefault());
 drop.addEventListener("drop", (event) => { event.preventDefault(); drop.append(document.getElementById("card")); });
