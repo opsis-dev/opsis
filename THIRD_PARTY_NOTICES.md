@@ -38,7 +38,6 @@ These files in `packages/video/src` started as Remocn components and are maintai
 - `elements/scene/ai-prompt-flow/use-skeleton-transition.ts`
 - `elements/scene/command-menu/command-menu-item.tsx`
 - `elements/scene/command-menu/index.tsx`
-- `elements/scene/launch-anything/assets.ts`
 - `elements/scene/launch-anything/content.ts`
 - `elements/scene/launch-anything/index.tsx`
 - `elements/scene/launch-anything/motion.ts`
@@ -124,6 +123,13 @@ These files in `packages/video/src` started as Remocn components and are maintai
 - `parts/use-button-transition.ts`
 - `parts/use-input-transition.ts`
 - `parts/use-toast-transition.ts`
+
+These photos in `public/placeholders` came with Remocn's Launch anything component:
+
+- `launch-desk.jpg`
+- `launch-earth.jpg`
+- `launch-horizon.jpg`
+- `launch-rocket.jpg`
 
 ```
 MIT License

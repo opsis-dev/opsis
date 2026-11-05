@@ -1,6 +1,10 @@
+import { assetUrl } from "#video/assets.tsx";
 import { fontOr } from "#video/common/fonts.ts";
-import { launchMedia } from "#video/elements/scene/launch-anything/assets.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
+
+function samplePhoto(name: string): string {
+  return assetUrl(`app:placeholders/launch-${name}.jpg`);
+}
 
 export function shade(color: string, percent: number) {
   return `color-mix(in srgb, ${color}, black ${percent}%)`;
@@ -55,10 +59,10 @@ export function launchScene(s: ElementSettings["launch-anything"]) {
       ideasNote: s.copyIdeasNote,
     },
     media: {
-      desk: s.photoDesk || launchMedia.desk,
-      horizon: s.photoHorizon || launchMedia.horizon,
-      rocket: s.photoRocket || launchMedia.rocket,
-      earth: s.photoEarth || launchMedia.earth,
+      desk: s.photoDesk || samplePhoto("desk"),
+      horizon: s.photoHorizon || samplePhoto("horizon"),
+      rocket: s.photoRocket || samplePhoto("rocket"),
+      earth: s.photoEarth || samplePhoto("earth"),
     },
     screenImages: {
       dashboard: s.screenDashboard,
