@@ -322,10 +322,7 @@ function streakSeeds(settings: Settings) {
   });
 }
 
-function getSpeedLinesStreaks(
-  frame: number,
-  options: SpeedLinesOptions = {},
-): SpeedLinesStreak[] {
+function getSpeedLinesStreaks(frame: number, options: SpeedLinesOptions = {}): SpeedLinesStreak[] {
   const settings = settingsOf(options);
   if (settings.mode !== "trail") return [];
   const time = getSpeedLinesTime(frame, options);

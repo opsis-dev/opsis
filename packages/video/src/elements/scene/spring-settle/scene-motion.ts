@@ -11,4 +11,3 @@ export function stagger(
 ): number {
   return Math.max(0, index ** power * base + (random(`${seed}-${index}`) - 0.5) * 2 * jitter);
 }
-

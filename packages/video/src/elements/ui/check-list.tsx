@@ -70,10 +70,7 @@ function checkListRowWidth(width: number, fontSize: number): number {
   return boxSize + boxGap + labelWidth;
 }
 
-function checkListEnterEnd(
-  items: (string | CheckListItem)[],
-  options?: CheckListTiming,
-): number {
+function checkListEnterEnd(items: (string | CheckListItem)[], options?: CheckListTiming): number {
   const step = options?.step ?? DEFAULT_STEP;
   const delay = options?.delay ?? 0;
   const itemGap = options?.itemGap ?? step * 6;

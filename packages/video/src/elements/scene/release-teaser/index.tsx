@@ -9,8 +9,6 @@ import { ReleaseLockup } from "#video/elements/scene/release-teaser/scenes/closi
 import { Statement } from "#video/elements/scene/release-teaser/scenes/statement.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
-;
-
 export function ReleaseTeaser(settings: ElementSettings["release-teaser"]) {
   const currentFrame = useFrame();
   const { fps, width, height } = useFilm();

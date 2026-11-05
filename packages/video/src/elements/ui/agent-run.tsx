@@ -890,10 +890,7 @@ function planTextOf(run: AgentRunScript) {
   return (run.plan ?? []).join("\n");
 }
 
-function getAgentRunTimeline(
-  run: AgentRunScript = defaultAgentRun,
-  options: AgentRunOptions = {},
-) {
+function getAgentRunTimeline(run: AgentRunScript = defaultAgentRun, options: AgentRunOptions = {}) {
   const seed = seedOf(options.seed);
   const compression = compressionOf(options.compression);
   const perFrame = compression / 30;
@@ -1298,10 +1295,7 @@ function getAgentRunScroll(time: number, steps: readonly AgentRunScrollStep[]) {
   return total;
 }
 
-function getAgentRunModel(
-  run: AgentRunScript = defaultAgentRun,
-  options: AgentRunOptions = {},
-) {
+function getAgentRunModel(run: AgentRunScript = defaultAgentRun, options: AgentRunOptions = {}) {
   const stage = getAgentRunFrame(options.width, options.height);
   const timeline = getAgentRunTimeline(run, options);
   const layout = getAgentRunLayout(run);

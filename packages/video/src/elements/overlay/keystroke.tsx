@@ -674,10 +674,7 @@ export function getKeystrokeDuration(
   return Math.ceil(round(motion)) + Math.round((TAIL * fps) / 30);
 }
 
-function getKeystrokeTime(
-  frame: number,
-  options: Pick<KeystrokeOptions, "fps" | "speed"> = {},
-) {
+function getKeystrokeTime(frame: number, options: Pick<KeystrokeOptions, "fps" | "speed"> = {}) {
   const elapsed = Math.max(0, numberOr(frame, 0));
   return (elapsed * rateOf(options.speed) * 30) / fpsOf(options.fps);
 }

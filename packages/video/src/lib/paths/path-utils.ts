@@ -127,4 +127,3 @@ export function waypointsToPath(points: readonly PathPoint[], smoothing = 0.25):
 
   return segments.join(" ");
 }
-

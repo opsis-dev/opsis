@@ -6,4 +6,3 @@ export const easings = {
 } as const;
 
 export type EasingName = keyof typeof easings;
-

@@ -8,4 +8,3 @@ export const EASING_EXIT = Easing.in(Easing.cubic);
 export function secondsToFrames(seconds: number, fps = DEFAULT_FPS): number {
   return Math.round(seconds * fps);
 }
-

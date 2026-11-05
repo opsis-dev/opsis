@@ -35,4 +35,3 @@ export function scaleFont(
 ): number {
   return Math.round(sizeAt1080 * (width / referenceWidth));
 }
-

@@ -13,8 +13,6 @@ import { Showcase } from "#video/elements/scene/launch-anything/scenes/showcase.
 import { Space } from "#video/elements/scene/launch-anything/scenes/space.tsx";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
-;
-
 const scenes = {
   opening: Opening,
   action: Action,
