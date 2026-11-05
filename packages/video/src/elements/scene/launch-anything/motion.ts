@@ -5,9 +5,6 @@ import { CLAMPED } from "#video/core/anim.ts";
 
 export const LAUNCH_FPS = 60;
 const LAUNCH_FRAMES = 1600;
-const LAUNCH_WIDTH = 1920;
-const LAUNCH_HEIGHT = 1080;
-
 export const launchTimeline = [
   { id: "opening", from: 0, to: 228 },
   { id: "action", from: 228, to: 354 },

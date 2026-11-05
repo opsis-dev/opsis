@@ -4,19 +4,6 @@ import { normalize } from "#video/common/math.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 
 export const RELEASE_TEASER_FPS = 60000 / 1001;
-const RELEASE_TEASER_FRAMES = 960;
-const RELEASE_TEASER_WIDTH = 1920;
-const RELEASE_TEASER_HEIGHT = 1080;
-
-const releaseTeaserTimeline = [
-  { name: "An idea", from: 0, to: 104 },
-  { name: "Better work", from: 104, to: 208 },
-  { name: "Every detail", from: 208, to: 326 },
-  { name: "Together", from: 326, to: 446 },
-  { name: "A fresh chapter", from: 446, to: 610 },
-  { name: "Release reveal", from: 610, to: 960 },
-] as const;
-
 export function atFps(frame: number, fps: number) {
   return Math.round((frame / RELEASE_TEASER_FPS) * fps);
 }
