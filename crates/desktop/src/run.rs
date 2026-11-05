@@ -87,12 +87,18 @@ impl RunHost {
 
 fn with_exports(app: &AppHandle, mut view: RunView) -> RunView {
     view.seq = app.state::<RunHost>().changes.load(Ordering::Relaxed);
-    let nodes: Vec<(String, String)> = crate::document::document_workflow(&app.state::<AppState>())
-        .map_or_default(|(_, wf)| wf.nodes.into_iter().map(|n| (n.id, n.kind)).collect());
-    view.exports = exported_artifacts(
-        nodes.iter().map(|(id, kind)| (id.as_str(), kind.as_str())),
-        &view.progress.results,
-    );
+    let state = app.state::<AppState>();
+    let editor = state.editor();
+    view.exports = editor.document.as_ref().map_or_default(|doc| {
+        exported_artifacts(
+            doc.workflow()
+                .nodes
+                .iter()
+                .map(|n| (n.id.as_str(), n.kind.as_str())),
+            &view.progress.results,
+        )
+    });
+    drop(editor);
     view
 }
 
