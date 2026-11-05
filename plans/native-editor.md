@@ -286,7 +286,7 @@ The node graph moves from React Flow to a `QGraphicsScene`: cards with typed por
 
 **In place.**
 
-- `editor/edge-lanes.ts` (`stepPositions`), `editor/layout.ts` (`measuredPorts`, ELK options: `layered`, `RIGHT`, `ORTHOGONAL`, `NETWORK_SIMPLEX`, ports with `FIXED_POS`/`FIXED_ORDER`), `editor/node-motions.ts`, `editor/use-flow-elements.ts` (the store owns positions, a drag writes one position at drag stop).
+- `editor/edge-lanes.ts` (`stepPositions`), `editor/card-size.ts` (`cardSize`, `measuredPorts`, from React Flow's measurement and the saved card shapes in `editor/card-shapes.ts`), `editor/layout.ts` (ELK options: `layered`, `RIGHT`, `ORTHOGONAL`, `NETWORK_SIMPLEX`, ports with `FIXED_POS`/`FIXED_ORDER`), `editor/tidy.ts` (ELK in its Web Worker), `editor/node-motions.ts`, `editor/use-flow-elements.ts` (the store owns positions, a drag writes one position at drag stop).
 - Card looks from the catalogue (`nodes/looks.ts`), node glyphs, card rows (`card-rows.tsx`).
 - Drops from the palette and from the file manager (`use-canvas-drop.ts`, `app/tauri.ts`).
 

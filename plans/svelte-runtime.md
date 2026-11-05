@@ -26,7 +26,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 - **Svelte 5 (runes), the latest stable release (5.57.3 on 4 November 2026).** Every library this plan uses is a stable release from an active team; the alternatives and why they lost are under [Alternatives](#alternatives).
 - **`.svelte` files are type-checked by `svelte-check` on TypeScript 6**, its supported peer range (`^5 || ^6`). TypeScript 7 keeps checking every `.ts` and `.svelte.ts` file through tsgo. Microsoft's TypeScript 7.0 announcement tells Svelte projects to stay on 6.0 for component checking until TypeScript 7.1 ships its API, and svelte-check's TypeScript 7 mode still crashes ([language-tools #3063](https://github.com/sveltejs/language-tools/issues/3063), open since June 2026).
-- **The runtime change does not fix the editor's measured slowness.** `plans/profiling-findings.md` (U1) puts most editor blocking in style, layout and paint: 21,852 DOM elements for 439 nodes, every node and edge drawn off-screen too. Any runtime renders that same DOM. Svelte Flow has the same `onlyRenderVisibleElements` option as React Flow; turn it on either way.
+- **The runtime change does not fix the editor's measured slowness.** The profile put most editor blocking in style, layout and paint: 21,852 DOM elements for 439 nodes, every node and edge drawn off-screen too. The canvas now draws only what is on screen and gives React Flow each card's saved size and handles on open (`93999ea0`), so reopening the 438-node project draws 285 cards and 14,363 elements. Any runtime renders that same DOM; Svelte Flow has the same `onlyRenderVisibleElements` option and needs the same saved shapes.
 
 ## Summary
 
@@ -278,7 +278,7 @@ Only if [native-editor.md](native-editor.md) is not taken, or for the time befor
 1. Islands: mount Svelte components inside React with `mount()` on a ref'd element, props through a `$state` object, so the editor works at every step.
 2. Order: Inspector fields (`editor/form`), the Mixer, the Timeline (the playhead and meters write signals directly instead of re-rendering every frame), the graph canvas on Svelte Flow with Opsis's own cards and `edge-lanes.ts`, then dialogs, menus, command palette and toasts on Ark UI, then the shell, routes and windows.
 3. Stores become `$state` classes; `document-mirror.ts` and `run-mirror.ts` write them.
-4. Turn on `onlyRenderVisibleElements` on the canvas (profiling U1) and stop drawing nodes twice in the minimap.
+4. Keep the canvas drawing only what is on screen (`onlyRenderVisibleElements` with the saved card shapes, as `93999ea0` does for React Flow) and stop drawing nodes twice in the minimap.
 5. Remove React, the React router, Base UI, shadcn's React components, dnd-kit, cmdk, sonner, react-resizable-panels, react-konva, `motion/react`, zustand's React hooks, Testing Library React.
 6. Rewrite `agent-docs/editor.md` and the §2 installed-code table in `AGENTS.md` (shadcn and React Flow UI rows go).
 
