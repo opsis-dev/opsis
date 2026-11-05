@@ -28,8 +28,6 @@ pub enum Gl {
     Angle,
     #[label("Software")]
     Swangle,
-    #[label("Graphics card, direct")]
-    Egl,
     #[label("Graphics card, newer drivers")]
     Vulkan,
     #[label("Software (legacy)")]

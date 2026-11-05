@@ -70490,14 +70490,12 @@
       "enum": [
        "angle",
        "swangle",
-       "egl",
        "vulkan",
        "swiftshader"
       ],
       "x-labels": {
        "angle": "Graphics card",
        "swangle": "Software",
-       "egl": "Graphics card, direct",
        "vulkan": "Graphics card, newer drivers",
        "swiftshader": "Software (legacy)"
       },
@@ -70740,14 +70738,12 @@
       "enum": [
        "angle",
        "swangle",
-       "egl",
        "vulkan",
        "swiftshader"
       ],
       "x-labels": {
        "angle": "Graphics card",
        "swangle": "Software",
-       "egl": "Graphics card, direct",
        "vulkan": "Graphics card, newer drivers",
        "swiftshader": "Software (legacy)"
       },

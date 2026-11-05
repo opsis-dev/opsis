@@ -92,7 +92,6 @@ pub const fn gl_switches(gl: Gl) -> &'static [&'static str] {
     match gl {
         Gl::Angle => &["--use-gl=angle"],
         Gl::Swangle => &["--use-gl=angle", "--use-angle=swiftshader"],
-        Gl::Egl => &["--use-gl=egl"],
         Gl::Vulkan => &[
             "--use-angle=vulkan",
             "--use-vulkan=native",
