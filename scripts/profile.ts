@@ -3,6 +3,7 @@ import { copyFileSync, existsSync, mkdirSync, readdirSync, statSync, writeFileSy
 import os from "node:os";
 import path from "node:path";
 import { parseArgs } from "node:util";
+import { buildEditorData, editorCatalog } from "./lib/editor-data";
 import { stagedFfmpeg } from "./lib/ffmpeg";
 import { CONFIG_FILE, type InsideConfig, PROFILERS, type Profiler } from "./lib/profile/config";
 import { writeInputs } from "./lib/profile/inputs";
@@ -18,7 +19,6 @@ const SAMPLY_VERSION = "0.13.1";
 const SAMPLY_SHA256 = "61875daad67888798690dea3cb2748279df6ac299c5c6a857d67eed7642473d9";
 const SITE_PORT = 4321;
 const APP = "/usr/bin/opsis-desktop";
-const EDITOR_DATA = path.join(ROOT, "target", "release", "editor-data");
 const RUN_LAST = new Set(["browser.signIn"]);
 
 const { values } = parseArgs({
@@ -57,10 +57,8 @@ function run(command: string, args: string[], cwd = ROOT): void {
 }
 
 function catalog(): Catalog {
-  run("cargo", ["build", "-q", "--release", "-p", "opsis-compile", "--bin", "editor-data"]);
-  return JSON.parse(
-    execFileSync(EDITOR_DATA, ["catalog"], { encoding: "utf8", maxBuffer: 1 << 26 }),
-  );
+  buildEditorData();
+  return editorCatalog() as Catalog;
 }
 
 function debFile(): string {

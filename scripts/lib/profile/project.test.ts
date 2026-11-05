@@ -1,7 +1,5 @@
-import { execFileSync } from "node:child_process";
-import path from "node:path";
-import { beforeAll, describe, expect, it } from "vitest";
-import { ROOT } from "../tool-config";
+import { describe, expect, it } from "vitest";
+import { editorCatalog } from "../editor-data";
 import {
   type CatalogNode,
   missingTypes,
@@ -21,25 +19,8 @@ type FullCatalog = {
   nodes: CheckedNode[];
 };
 
-const EDITOR_DATA = path.join(ROOT, "target", "release", "editor-data");
-
-let catalog: FullCatalog;
-let workflow: Workflow;
-
-beforeAll(() => {
-  execFileSync(
-    "cargo",
-    ["build", "-q", "--release", "-p", "opsis-compile", "--bin", "editor-data"],
-    {
-      cwd: ROOT,
-      stdio: "inherit",
-    },
-  );
-  catalog = JSON.parse(
-    execFileSync(EDITOR_DATA, ["catalog"], { encoding: "utf8", maxBuffer: 1 << 26 }),
-  );
-  workflow = profileWorkflow(catalog, "http://127.0.0.1:4321");
-}, 600_000);
+const catalog = editorCatalog() as FullCatalog;
+const workflow: Workflow = profileWorkflow(catalog, "http://127.0.0.1:4321");
 
 describe("the profile project", () => {
   it("holds every node type in the catalogue", () => {
