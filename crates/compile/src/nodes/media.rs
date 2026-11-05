@@ -16,13 +16,14 @@ use serde::Serialize;
 use crate::asset_ref::{extension_of, kind_from_path, project_ref};
 use crate::card_rows::{file_row, range_row, truncate_card};
 use crate::clip::{IMAGE, ItemExtra, VIDEO, item_clip, placeholder_clip};
+use crate::elements::element_meta;
 use crate::errors::SettingsError;
 use crate::node::{
     CardCtx, Category, Ctx, FileNeed, GRADE_PORT, Inputs, NodeDef, Outputs, Phase, PortFamily,
     Ports, RowExt, missing, port, row,
 };
 use crate::nodes::grade::{grade_changes_nothing, grade_needs_video, grade_step_title};
-use crate::params::{Params, to_values};
+use crate::params::{Params, Values, to_values};
 use crate::ports::{IN_PREFIX, in_index};
 use crate::text::{format_duration, grouped, percent_text, plural, signed_text};
 use crate::time::ms_to_frames;
@@ -341,6 +342,12 @@ struct FileClipProps<'a> {
     background: &'a str,
 }
 
+fn file_props(component: &str, file: &FileClipProps<'_>) -> Values {
+    let mut props = element_meta(component).map_or_default(|meta| meta.default_props.clone());
+    props.extend(to_values(file));
+    props
+}
+
 struct ClipLook<'a> {
     fit: Fit,
     muted: bool,
@@ -376,13 +383,16 @@ fn media_to_clip(node_id: &str, media: Option<&MediaValue>, look: ClipLook<'_>) 
     let Some((media, src)) = media.and_then(|m| m.src.as_ref().map(|s| (m, s))) else {
         return placeholder_clip(node_id, look.unlinked.0, look.unlinked.1, frames, extra);
     };
-    let props = |muted: bool| {
-        to_values(&FileClipProps {
-            src,
-            fit: look.fit,
-            muted,
-            background: look.background,
-        })
+    let props = |component: &str, muted: bool| {
+        file_props(
+            component,
+            &FileClipProps {
+                src,
+                fit: look.fit,
+                muted,
+                background: look.background,
+            },
+        )
     };
     match media.kind {
         MediaKind::Audio => {
@@ -400,11 +410,11 @@ fn media_to_clip(node_id: &str, media: Option<&MediaValue>, look: ClipLook<'_>) 
                 handles: look.still.map(|s| s.1),
                 ..extra
             };
-            item_clip(node_id, IMAGE, props(look.muted), frames, extra)
+            item_clip(node_id, IMAGE, props(IMAGE, look.muted), frames, extra)
         }
         MediaKind::Video => {
             let muted = look.muted || media.has_audio == Some(false);
-            item_clip(node_id, VIDEO, props(muted), frames, extra)
+            item_clip(node_id, VIDEO, props(VIDEO, muted), frames, extra)
         }
     }
 }

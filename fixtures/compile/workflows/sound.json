@@ -1009,7 +1009,12 @@
          "props": {
           "src": "project:clips/talk.mp4",
           "fit": "contain",
-          "muted": false
+          "loop": false,
+          "muted": false,
+          "volume": 1.0,
+          "playbackRate": 1.0,
+          "trimBeforeMs": 0,
+          "background": ""
          }
         }
        ]
@@ -1036,7 +1041,12 @@
          "props": {
           "src": "project:clips/talk.mp4",
           "fit": "contain",
-          "muted": false
+          "loop": false,
+          "muted": false,
+          "volume": 1.0,
+          "playbackRate": 1.0,
+          "trimBeforeMs": 0,
+          "background": ""
          }
         }
        ]
@@ -2752,7 +2762,12 @@
               "props": {
                "src": "project:clips/talk.mp4",
                "fit": "contain",
-               "muted": false
+               "loop": false,
+               "muted": false,
+               "volume": 1.0,
+               "playbackRate": 1.0,
+               "trimBeforeMs": 0,
+               "background": ""
               }
              }
             ]
@@ -3104,7 +3119,12 @@
               "props": {
                "src": "project:clips/talk.mp4",
                "fit": "contain",
-               "muted": false
+               "loop": false,
+               "muted": false,
+               "volume": 1.0,
+               "playbackRate": 1.0,
+               "trimBeforeMs": 0,
+               "background": ""
               }
              }
             ]
@@ -3979,7 +3999,12 @@
             "props": {
              "src": "project:clips/talk.mp4",
              "fit": "contain",
-             "muted": false
+             "loop": false,
+             "muted": false,
+             "volume": 1.0,
+             "playbackRate": 1.0,
+             "trimBeforeMs": 0,
+             "background": ""
             }
            }
           ]
@@ -4890,7 +4915,12 @@
             "props": {
              "src": "project:clips/talk.mp4",
              "fit": "contain",
-             "muted": false
+             "loop": false,
+             "muted": false,
+             "volume": 1.0,
+             "playbackRate": 1.0,
+             "trimBeforeMs": 0,
+             "background": ""
             }
            }
           ]
@@ -5820,7 +5850,12 @@
       "props": {
        "src": "project:clips/talk.mp4",
        "fit": "contain",
-       "muted": false
+       "loop": false,
+       "muted": false,
+       "volume": 1.0,
+       "playbackRate": 1.0,
+       "trimBeforeMs": 0,
+       "background": ""
       },
       "thumbnail": {
        "kind": "filmstrip",
@@ -6141,7 +6176,12 @@
        "props": {
         "src": "project:clips/talk.mp4",
         "fit": "contain",
-        "muted": false
+        "loop": false,
+        "muted": false,
+        "volume": 1.0,
+        "playbackRate": 1.0,
+        "trimBeforeMs": 0,
+        "background": ""
        },
        "thumbnail": {
         "kind": "filmstrip",
@@ -7002,7 +7042,12 @@
           "props": {
            "src": "project:clips/talk.mp4",
            "fit": "contain",
-           "muted": false
+           "loop": false,
+           "muted": false,
+           "volume": 1.0,
+           "playbackRate": 1.0,
+           "trimBeforeMs": 0,
+           "background": ""
           }
          }
         ]
@@ -7029,7 +7074,12 @@
           "props": {
            "src": "project:clips/talk.mp4",
            "fit": "contain",
-           "muted": false
+           "loop": false,
+           "muted": false,
+           "volume": 1.0,
+           "playbackRate": 1.0,
+           "trimBeforeMs": 0,
+           "background": ""
           }
          }
         ]
@@ -9729,7 +9779,12 @@
                "props": {
                 "src": "project:clips/talk.mp4",
                 "fit": "contain",
-                "muted": false
+                "loop": false,
+                "muted": false,
+                "volume": 1.0,
+                "playbackRate": 1.0,
+                "trimBeforeMs": 0,
+                "background": ""
                }
               }
              ]
@@ -10414,7 +10469,12 @@
                "props": {
                 "src": "project:clips/talk.mp4",
                 "fit": "contain",
-                "muted": false
+                "loop": false,
+                "muted": false,
+                "volume": 1.0,
+                "playbackRate": 1.0,
+                "trimBeforeMs": 0,
+                "background": ""
                }
               }
              ]
@@ -11673,7 +11733,12 @@
              "props": {
               "src": "project:clips/talk.mp4",
               "fit": "contain",
-              "muted": false
+              "loop": false,
+              "muted": false,
+              "volume": 1.0,
+              "playbackRate": 1.0,
+              "trimBeforeMs": 0,
+              "background": ""
              }
             }
            ]
@@ -12803,7 +12868,12 @@
              "props": {
               "src": "project:clips/talk.mp4",
               "fit": "contain",
-              "muted": false
+              "loop": false,
+              "muted": false,
+              "volume": 1.0,
+              "playbackRate": 1.0,
+              "trimBeforeMs": 0,
+              "background": ""
              }
             }
            ]
@@ -13957,7 +14027,12 @@
        "props": {
         "src": "project:clips/talk.mp4",
         "fit": "contain",
-        "muted": false
+        "loop": false,
+        "muted": false,
+        "volume": 1.0,
+        "playbackRate": 1.0,
+        "trimBeforeMs": 0,
+        "background": ""
        },
        "thumbnail": {
         "kind": "filmstrip",
@@ -14331,7 +14406,12 @@
         "props": {
          "src": "project:clips/talk.mp4",
          "fit": "contain",
-         "muted": false
+         "loop": false,
+         "muted": false,
+         "volume": 1.0,
+         "playbackRate": 1.0,
+         "trimBeforeMs": 0,
+         "background": ""
         },
         "thumbnail": {
          "kind": "filmstrip",

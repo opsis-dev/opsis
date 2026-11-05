@@ -1,5 +1,6 @@
 use opsis_compile::card_rows::{element_row, sentence};
 use opsis_compile::compile::interpolated_params;
+use opsis_compile::elements::element_meta;
 use opsis_compile::node::{CardCtx, CardInputs, MAX_CARD_ROWS, NodeDef};
 use opsis_compile::registry::{node_def, registry};
 use opsis_compile::vars::Vars;
@@ -67,6 +68,28 @@ fn shows_sound_files_as_placeholders_mutes_silent_videos_and_gives_images_one_le
         )
         .2
     );
+}
+
+#[test]
+fn clips_from_files_carry_every_default_of_their_element() {
+    for (kind, src) in [
+        ("video", "project:assets/take.mp4"),
+        ("image", "project:assets/shot.png"),
+    ] {
+        let (component, props, _) = element_of(
+            "media.toClip",
+            json!({}),
+            json!({ "media": media(kind, src, Some(true)) }),
+        );
+        let missing: Vec<&String> = element_meta(&component)
+            .expect("an element")
+            .default_props
+            .keys()
+            .filter(|key| !props.contains_key(*key))
+            .collect();
+        assert!(missing.is_empty(), "{component} lacks {missing:?}");
+        assert_eq!(props["src"], src);
+    }
 }
 
 #[test]
