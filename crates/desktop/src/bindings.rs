@@ -138,7 +138,6 @@ pub fn builder() -> Builder<tauri::Wry> {
             events::RunStateReset,
             views::ViewEventFired,
         ])
-        .types(&frontend_types())
         .dangerously_cast_bigints_to_number()
         .error_handling(ErrorHandlingMode::Throw)
 }
@@ -153,7 +152,9 @@ pub enum BindingsError {
 
 pub fn bindings() -> Result<String, BindingsError> {
     let file = tempfile::NamedTempFile::new()?;
-    builder().export(specta_typescript::Typescript::default(), file.path())?;
+    builder()
+        .types(&frontend_types())
+        .export(specta_typescript::Typescript::default(), file.path())?;
     let text = std::fs::read_to_string(file.path())?;
     Ok(tidy_export(&text))
 }
