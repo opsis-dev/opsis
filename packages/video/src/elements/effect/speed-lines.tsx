@@ -101,7 +101,6 @@ const STRETCH_GAIN = 0.007;
 const SQUASH_GAIN = 0.018;
 const PROBE = 1e-3;
 const CENTER = "translate(-50%, -50%)";
-const HOLD = 24;
 const SPAWN_START = 0.04;
 const SPAWN_END = 0.8;
 const LIFE = 0.3;
@@ -252,32 +251,10 @@ function easeOf(time: number, travel: number, bounce: number) {
   return 1 + (contact / travel) * wave * envelope;
 }
 
-function getSpeedLinesTimeline(options: SpeedLinesOptions = {}) {
-  const { mode, duration, bounce, release } = settingsOf(options);
-  if (mode === "focus") return { mode, impact: IMPACT, end: focusEnd(release) };
-  return { mode, impact: duration, end: duration + springOf(bounce).settle };
-}
-
-type SpeedLinesTimeline = ReturnType<typeof getSpeedLinesTimeline>;
-
-const speedLinesLength = getSpeedLinesTimeline().end;
-
-function getSpeedLinesDuration(options: SpeedLinesOptions = {}) {
-  const { delay, speed } = settingsOf(options);
-  if (speed === 0) return 1;
-  const { end } = getSpeedLinesTimeline(options);
-  return Math.max(1, Math.ceil(delay + (end + HOLD) / speed));
-}
-
 function getSpeedLinesTime(frame: number, options: SpeedLinesOptions = {}) {
   const { fps, delay, speed } = settingsOf(options);
   const elapsed = Math.max(0, numberOr(frame, 0) - delay);
   return elapsed * (30 / fps) * speed;
-}
-
-function getSpeedLinesEase(time: number, options: SpeedLinesOptions = {}) {
-  const { duration, bounce } = settingsOf(options);
-  return easeOf(numberOr(time, 0), duration, bounce);
 }
 
 function positionAt(time: number, settings: Settings) {
@@ -293,11 +270,6 @@ function positionAt(time: number, settings: Settings) {
     y: startY + (to.y * height - startY) * progress,
     progress,
   };
-}
-
-function getSpeedLinesPosition(time: number, options: SpeedLinesOptions = {}) {
-  const { x, y } = positionAt(numberOr(time, 0), settingsOf(options));
-  return { x, y };
 }
 
 function shapeAt(time: number, settings: Settings) {
@@ -319,12 +291,6 @@ function shapeAt(time: number, settings: Settings) {
   const strain = clamp(stretch - compression, -SQUASH, STRETCH);
   return { rotation, along: Math.exp(strain), across: Math.exp(-strain) };
 }
-
-function getSpeedLinesShape(time: number, options: SpeedLinesOptions = {}) {
-  return shapeAt(numberOr(time, 0), settingsOf(options));
-}
-
-type SpeedLinesShape = ReturnType<typeof getSpeedLinesShape>;
 
 function getSpeedLinesVelocity(frame: number, options: SpeedLinesOptions = {}) {
   const settings = settingsOf(options);
@@ -500,8 +466,6 @@ function getSpeedLinesState(frame: number, options: SpeedLinesOptions = {}) {
     path,
   };
 }
-
-type SpeedLinesState = ReturnType<typeof getSpeedLinesState>;
 
 export function SpeedLines({
   mode,

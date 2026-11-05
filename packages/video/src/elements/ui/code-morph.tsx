@@ -527,10 +527,6 @@ function versionOf(source: string) {
 
 type CodeMorphVersion = ReturnType<typeof versionOf>;
 
-function tokenizeCodeMorph(code: string) {
-  return versionOf(code).tokens;
-}
-
 interface Sides {
   from: CodeMorphToken[];
   to: CodeMorphToken[];
@@ -975,8 +971,6 @@ function getCodeMorphTimeline(options: CodeMorphOptions = {}) {
 }
 
 type CodeMorphTimeline = ReturnType<typeof getCodeMorphTimeline>;
-
-const codeMorphLength = getCodeMorphTimeline().settled;
 
 export function getCodeMorphDuration(options: CodeMorphOptions = {}) {
   const speed = Math.max(0, numberOr(options.speed, codeMorphDefaults.speed));

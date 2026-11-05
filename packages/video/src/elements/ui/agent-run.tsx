@@ -869,8 +869,6 @@ function getAgentRunFrame(width?: number, height?: number) {
   };
 }
 
-type AgentRunFrame = ReturnType<typeof getAgentRunFrame>;
-
 interface AgentRunSegment {
   kind: "think" | "gap" | "tool" | "answer";
   from: number;
@@ -956,8 +954,6 @@ function getAgentRunTimeline(
 }
 
 type AgentRunTimeline = ReturnType<typeof getAgentRunTimeline>;
-
-const agentRunLength = getAgentRunTimeline().settled;
 
 export function getAgentRunDuration(
   run: AgentRunScript = defaultAgentRun,

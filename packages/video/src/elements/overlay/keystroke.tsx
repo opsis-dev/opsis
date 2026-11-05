@@ -592,13 +592,6 @@ function schedule(chords: readonly KeystrokeChord[], hold: number) {
   return timing;
 }
 
-function getKeystrokeLeadIn(keys: string, hold = HOLD) {
-  const chords = parseKeystrokeKeys(keys);
-  if (chords.length === 0) return 0;
-  const timing = schedule(chords, within(hold, HOLD, 0, MAX_FRAMES));
-  return timing[timing.length - 1].fire - timing[0].enter;
-}
-
 function getKeystrokeTimeline(
   options: Pick<
     KeystrokeOptions,
@@ -670,8 +663,6 @@ function getKeystrokeTimeline(
 }
 
 export type KeystrokeTimeline = ReturnType<typeof getKeystrokeTimeline>;
-
-const keystrokeLength = getKeystrokeTimeline().end;
 
 export function getKeystrokeDuration(
   options: Pick<KeystrokeOptions, "steps" | "linger" | "speed" | "fps" | "hold"> = {},
@@ -836,8 +827,6 @@ function getKeystrokeState(
     groups,
   };
 }
-
-type KeystrokeState = ReturnType<typeof getKeystrokeState>;
 
 function Legend({
   legend,

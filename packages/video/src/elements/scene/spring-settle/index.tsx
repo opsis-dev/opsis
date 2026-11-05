@@ -49,8 +49,6 @@ export type SpringSettleSceneDef = {
   content: ReactNode;
 };
 
-type SpringSettlePhase = "enter" | "dwell" | "exit" | "gap";
-
 export type SpringSettleTimeline = {
   index: number;
   local: number;
@@ -93,28 +91,6 @@ function springSettleTimeline(
   }
   const local = Math.min(w, lens[index] - 1);
   return { index, local, dwellFrames: dwellOf(scenes[index], cfg) };
-}
-
-function springSettlePhase(
-  timeline: SpringSettleTimeline,
-  fps: number,
-  config?: Partial<SpringSettleConfig>,
-): SpringSettlePhase {
-  const cfg = resolveConfig(config);
-  const { local, dwellFrames } = timeline;
-  if (local >= dwellFrames) return "gap";
-  if (local >= dwellFrames - cfg.exitFrames) return "exit";
-  const settled =
-    spring({
-      frame: local,
-      fps,
-      config: {
-        damping: cfg.springDamping,
-        stiffness: cfg.springStiffness,
-        mass: cfg.springMass,
-      },
-    }) > 0.985;
-  return settled ? "dwell" : "enter";
 }
 
 function springSettleExitStyle(
