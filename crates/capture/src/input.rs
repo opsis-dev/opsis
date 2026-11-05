@@ -332,8 +332,11 @@ impl Input {
         let Some(event) = event else {
             return Ok(());
         };
-        let data =
+        let mut data =
             serde_json::to_value(&event.data).map_err(|e| CaptureError::Cdp(e.to_string()))?;
+        if let Value::Object(fields) = &mut data {
+            fields.entry("items").or_insert_with(|| json!([]));
+        }
         self.mouse.lock().await.drag = Some(data.clone());
         tab.send(
             "Input.dispatchDragEvent",

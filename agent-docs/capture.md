@@ -53,6 +53,7 @@ Browser sessions and their actions, the take value every recording shares, recor
 - **Click presses the left or right button (`ClickButton`) and, for the left, can double-click**: two presses at one point, the second with click count 2, so the page fires `dblclick`. It logs `button` (right only) and `tSecondDown`; the cursor squashes and rings at each press, a right click's ring hollow (`cursorAt`).
 - **Drag (`browser.drag`) drags onto an element (measured again after the press, failing when it isn't on screen), by an offset or along a path.**
   - The smooth method presses, waits `holdMs`, nudges 6 px (pages start drags past a threshold) and walks the points with the same 8 ms sampler as glides; glides keep their exact samples.
+  - The intercepted drag's data is sent back with `items` always present, empty when the page put nothing in `dataTransfer` (`move_watching_drags`): chromiumoxide leaves an empty list out, and Chrome refuses drag data without it (-32602).
   - It logs `tDown`, `t` (the release), `path` (at most 64 points) and `drop`. `toClickLog` makes one camera event covering both ends when they fit in half the window, else a pick-up and a drop; `cursorAt` keeps the arrow pressed until `tUpMs`. The baked cursor follows `dragover` too.
 - **The picker's Shift-click returns a spot as `x, y`, in a window sized to the take's browser.**
 - **The take logs every main-frame address change, loads and in-page route changes alike, with its time** (`ActionLog.addresses`).

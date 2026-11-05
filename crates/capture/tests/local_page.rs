@@ -18,6 +18,13 @@ folder.addEventListener("dblclick", () => { n.double++; show(); });
 folder.addEventListener("contextmenu", (e) => { e.preventDefault(); n.menu++; show(); });
 </script>"#;
 
+const DRAG_PAGE: &str = r#"<!doctype html><body style="margin:0"><div id="card" draggable="true" style="margin:100px;width:160px;height:60px;background:#ccc">Card</div><div id="zone" style="margin:100px;width:300px;height:120px;background:#eee">Drop here</div><p id="out">dropped 0</p><script>
+const zone = document.getElementById("zone");
+let drops = 0;
+zone.addEventListener("dragover", (e) => e.preventDefault());
+zone.addEventListener("drop", (e) => { e.preventDefault(); drops++; zone.append(document.getElementById("card")); document.getElementById("out").textContent = `dropped ${drops}`; });
+</script>"#;
+
 async fn play(steps: Vec<SessionStep>) -> ActionLog {
     let temp = tempfile::tempdir().unwrap();
     let env = take_env(temp.path(), Arc::new(NoSignIns));
@@ -78,6 +85,30 @@ async fn clicks_double_clicks_and_right_clicks_as_the_page_counts_them() {
     let double = clicks[1];
     assert!(double.t_down.unwrap() < double.t_second_down.unwrap());
     assert!(double.t_second_down.unwrap() <= double.t);
+}
+
+#[tokio::test]
+#[ignore = "needs the dev engine"]
+async fn drops_a_dragged_element_whose_page_puts_no_data_in_the_drag() {
+    let port = serve(DRAG_PAGE).await;
+    play(vec![
+        step(
+            BrowserAction::Navigate,
+            "go",
+            json!({ "url": format!("http://127.0.0.1:{port}/"), "after": 0 }),
+        ),
+        step(
+            BrowserAction::Drag,
+            "move",
+            json!({ "target": "Card", "to": "Drop here", "after": 0 }),
+        ),
+        step(
+            BrowserAction::Assert,
+            "check",
+            json!({ "text": "dropped 1", "timeoutMs": 2000 }),
+        ),
+    ])
+    .await;
 }
 
 #[tokio::test]
