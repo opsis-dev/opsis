@@ -19,7 +19,6 @@ const SAMPLY_VERSION = "0.13.1";
 const SAMPLY_SHA256 = "61875daad67888798690dea3cb2748279df6ac299c5c6a857d67eed7642473d9";
 const SITE_PORT = 4321;
 const APP = "/usr/bin/opsis-desktop";
-const RUN_LAST = new Set(["browser.signIn"]);
 
 const { values } = parseArgs({
   options: {
@@ -158,8 +157,7 @@ function main(): void {
   const types = new Map(workflow.nodes.map((node) => [node.id, node.type]));
   const targets = runOrder(nodes, workflow)
     .map((id) => ({ id, type: types.get(id) ?? "" }))
-    .filter((target) => !only || only.test(`${target.type} ${target.id}`))
-    .sort((a, b) => Number(RUN_LAST.has(a.type)) - Number(RUN_LAST.has(b.type)));
+    .filter((target) => !only || only.test(`${target.type} ${target.id}`));
   const runDir = path.join(
     PROFILE_DIR,
     "runs",
