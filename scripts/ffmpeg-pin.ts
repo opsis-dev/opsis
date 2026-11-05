@@ -5,6 +5,7 @@ import {
   FFMPEG_TARGETS,
   ffmpegLicenceUrl,
   ffmpegProgramUrl,
+  ffprobeProgramUrl,
 } from "./lib/ffmpeg";
 import { pinned, writeGeneratedJson } from "./lib/pins";
 
@@ -14,6 +15,7 @@ for (const [target, asset] of FFMPEG_TARGETS)
     target,
     asset,
     program: await pinned(ffmpegProgramUrl(asset), FFMPEG_CACHE),
+    probe: await pinned(ffprobeProgramUrl(asset), FFMPEG_CACHE),
     licence: await pinned(ffmpegLicenceUrl(asset), FFMPEG_CACHE),
   });
 writeGeneratedJson(FFMPEG_PINS, { release: FFMPEG_RELEASE, targets });

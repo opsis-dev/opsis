@@ -7,6 +7,7 @@ import {
   FFMPEG_TARGETS,
   ffmpegLicenceUrl,
   ffmpegProgramUrl,
+  ffprobeProgramUrl,
   readFfmpegPins,
   sidecarFileName,
 } from "./ffmpeg";
@@ -23,7 +24,7 @@ describe("the pinned FFmpeg", () => {
     );
   });
 
-  it("pins a program and its licence for every target, at the addresses built today", () => {
+  it("pins a program, its ffprobe and its licence for every target, at the addresses built today", () => {
     const pins = readFfmpegPins();
     expect(pins.release).toBe(FFMPEG_RELEASE);
     expect(pins.targets.map((pin) => [pin.target, pin.asset])).toEqual(
@@ -31,6 +32,7 @@ describe("the pinned FFmpeg", () => {
     );
     for (const pin of pins.targets) {
       expect(pin.program.url).toBe(ffmpegProgramUrl(pin.asset));
+      expect(pin.probe.url).toBe(ffprobeProgramUrl(pin.asset));
       expect(pin.licence.url).toBe(ffmpegLicenceUrl(pin.asset));
     }
   });

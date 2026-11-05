@@ -51,6 +51,7 @@
     "engine:downloads": "bun scripts/engine-downloads.ts",
     "ffmpeg:pin": "bun scripts/ffmpeg-pin.ts",
     "ffmpeg:stage": "bun scripts/ffmpeg-stage.ts",
+    "ffprobe:stage": "bun scripts/ffprobe-stage.ts",
     "notice:links": "bun scripts/notice-links.ts",
     "examples": "cargo run -q -p opsis-project --bin write-examples",
     "playwright:scripts": "bun scripts/playwright-scripts.ts",

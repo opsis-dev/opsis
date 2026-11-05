@@ -42,7 +42,7 @@ The one recording browser every capture, view and render launches, the bundled F
 ### Probing
 
 - **Nothing reads media through ffprobe: `opsis-probe` reads a file's length, container, picture (codec, size, frame rate, pixel format) and sound (codec, sample rate, channels) from its own bytes**, the way ffprobe reports them, for every probe the app makes.
-- **Its parity test (`crates/probe/tests/ffprobe.rs`, ignored) compares it with an ffprobe kept in `~/.cache/opsis-ffmpeg`, which nothing downloads**, on samples it makes with the staged FFmpeg in `~/.cache/opsis-probe-samples`.
+- **Its parity test (`crates/probe/tests/ffprobe.rs`, ignored) compares it with ffprobe from the same ffmpeg-static release as the bundled FFmpeg, in `~/.cache/opsis-ffmpeg`** (`bun run ffprobe:stage`, pinned beside FFmpeg in `scripts/lib/ffmpeg.generated.json`), on samples it makes with the staged FFmpeg in `~/.cache/opsis-probe-samples`.
 
 ### Child programs
 

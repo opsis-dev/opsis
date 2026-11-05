@@ -42,6 +42,7 @@ const ffmpegPinsSchema = z.object({
       target: z.string(),
       asset: z.string(),
       program: pinnedSchema,
+      probe: pinnedSchema,
       licence: pinnedSchema,
     }),
   ),
@@ -55,6 +56,10 @@ function releaseUrl(file: string): string {
 
 export function ffmpegProgramUrl(asset: string): string {
   return releaseUrl(`ffmpeg-${asset}.gz`);
+}
+
+export function ffprobeProgramUrl(asset: string): string {
+  return releaseUrl(`ffprobe-${asset}.gz`);
 }
 
 export function ffmpegLicenceUrl(asset: string): string {
@@ -99,6 +104,23 @@ export async function stageFfmpeg(target = hostTarget()): Promise<string> {
   mkdirSync(path.dirname(FFMPEG_LICENCE), { recursive: true });
   copyFileSync(licence, FFMPEG_LICENCE);
   return ffmpeg;
+}
+
+function stagedFfprobe(target = hostTarget()): string {
+  const exe = target.includes("-windows-") ? ".exe" : "";
+  return path.join(FFMPEG_CACHE, `ffprobe${exe}`);
+}
+
+export async function stageFfprobe(target = hostTarget()): Promise<string> {
+  const pins = readFfmpegPins().targets.find((pin) => pin.target === target);
+  if (!pins) throw new Error(`There's no ffprobe pinned for ${target}.`);
+  const archive = await verifiedDownload(pins.probe, FFMPEG_CACHE);
+  const ffprobe = stagedFfprobe(target);
+  await writeViaTemp(ffprobe, (temp) =>
+    pipeline(createReadStream(archive), createGunzip(), createWriteStream(temp)),
+  );
+  chmodSync(ffprobe, 0o755);
+  return ffprobe;
 }
 
 export async function ensureFfmpeg(): Promise<string> {
