@@ -6,31 +6,20 @@ type Entry = { signature: string; faces: FontFace[]; ready: Promise<void> };
 
 const registered = new Map<string, Entry>();
 
-export function canRegister() {
+function canRegister() {
   return typeof document !== "undefined" && typeof FontFace !== "undefined";
 }
 
-export function urlsOf(def: FontFamilyDef, resolve: Resolve) {
+function urlsOf(def: FontFamilyDef, resolve: Resolve) {
   return def.faces.map((f) => resolve(f.file));
 }
 
-export function signatureOf(def: FontFamilyDef, urls: string[]) {
+function signatureOf(def: FontFamilyDef, urls: string[]) {
   return [def.id, ...def.faces.map((f, i) => `${urls[i]} ${f.weight} ${f.style}`)].join("|");
-}
-
-function settled(face: FontFace) {
-  return face.status === "loaded" || face.status === "error";
 }
 
 export function registeredNames(): string[] {
   return [...registered.keys()];
-}
-
-export function loadedSignature(cssName: string): string | null {
-  const entry = registered.get(cssName);
-  return entry?.faces.every((face) => settled(face) || face.unicodeRange !== "U+0-10FFFF")
-    ? entry.signature
-    : null;
 }
 
 export function unregisterFaces(cssName: string): void {
