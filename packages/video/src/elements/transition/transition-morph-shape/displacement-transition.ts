@@ -100,7 +100,7 @@ export type DisplacementMaskConfig = {
   originY?: number;
 };
 
-export const MASK_DEFAULTS = {
+const MASK_DEFAULTS = {
   from: "circle",
   to: "circle",
   overshoot: 1.06,
