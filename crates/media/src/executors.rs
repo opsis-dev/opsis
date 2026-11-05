@@ -349,6 +349,12 @@ async fn trim(
     let out = edited_file(&ext_of(&input.src), moving, probe.audio.is_some()).ok_or_else(|| {
         ExecError::new("Trim works on video and sound. A still image has nothing to trim.")
     })?;
+    if p.start_ms == 0 && p.end_ms == 0 {
+        return Ok(ExecutorOutput {
+            outputs: output(MEDIA_PORT, CompileValue::Media(input.value)),
+            ..ExecutorOutput::default()
+        });
+    }
     let (start, end) = (f64::from(p.start_ms), f64::from(p.end_ms));
     let duration_ms = if p.end_ms != 0 {
         Some(end - start)

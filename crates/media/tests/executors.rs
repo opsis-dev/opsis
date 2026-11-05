@@ -188,6 +188,34 @@ fn thumbnail_takes_the_only_frame_of_a_still_image() {
 }
 
 #[tokio::test]
+async fn trim_with_no_cut_hands_the_file_on_as_it_is_and_runs_nothing() {
+    let trim = |params: Value| Setup {
+        kind: "media.trim",
+        params,
+        project_dir: Path::new("/p"),
+        names: &[],
+    };
+    let input = film("video");
+    let (result, ran) = run(
+        trim(json!({})),
+        film_probe(Some("aac")),
+        json!({ "media": input }),
+    )
+    .await;
+    let out = result.unwrap();
+    assert_eq!(serde_json::to_value(&out.outputs["media"]).unwrap(), input);
+    assert_eq!((out.artifacts.len(), ran.len()), (0, 0), "{ran:?}");
+    let (cut, ran) = run(
+        trim(json!({ "startMs": 500 })),
+        film_probe(Some("aac")),
+        json!({ "media": film("video") }),
+    )
+    .await;
+    assert!(cut.is_ok());
+    assert_eq!(ran.len(), 1);
+}
+
+#[tokio::test]
 async fn apply_grade_asks_for_a_grade() {
     let (result, _) = run(
         grade_setup(Path::new("/p"), &[]),
