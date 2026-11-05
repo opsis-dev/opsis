@@ -44,11 +44,6 @@ export function parseColor(c: string): Rgb {
   return { mode: "rgb", r: rgb.r, g: rgb.g, b: rgb.b, alpha: rgb.alpha ?? 1 };
 }
 
-function oklchToRgb(l: number, c: number, h: number): Rgb {
-  const mapped = clampChroma({ mode: "oklch", l, c, h }, "oklch", "rgb");
-  return toRgb(mapped);
-}
-
 export function rgbToOklch(rgb: Rgb): Oklch {
   const { l, c, h } = toOklch(rgb);
   return { mode: "oklch", l, c, h: Number.isFinite(h) ? h : 0 };

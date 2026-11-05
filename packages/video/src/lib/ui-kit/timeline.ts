@@ -40,19 +40,6 @@ export function useTypewriter(full: string, options: TypewriterOptions = {}): Ty
   };
 }
 
-function useCurrentState<S extends string>(steps: Step<S>[], defaultState: S, speed = 1): S {
-  const effectiveFrame = useAuthoredFrame() * speed;
-  let current = defaultState;
-  let bestAt = -Infinity;
-  steps.forEach((step) => {
-    if (step.at <= effectiveFrame && step.at >= bestAt) {
-      bestAt = step.at;
-      current = step.state;
-    }
-  });
-  return current;
-}
-
 export function useStateTransition<S extends string>(
   steps: Step<S>[],
   defaultState: S,
