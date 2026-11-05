@@ -35,7 +35,8 @@ The app's one database, the settings held in memory, the keyring and the project
 ### Secrets
 
 - **Secrets use the OS keyring** (`keyring-core` with the Apple, Windows and Secret Service stores): sign-ins are sealed with AES-256-GCM under one key kept there, and saving refuses when the platform has no secure store.
-- **The keyring is made in setup itself**, because the Linux Secret Service store blocks inside `zbus` and panics on a runtime thread.
+- **The keyring is made in setup itself, and every call to it during a run goes through `off_runtime` (`capture/src/take.rs`) onto a blocking thread**, because the Linux Secret Service store blocks inside `zbus` and panics on a runtime thread.
+  - `capture/tests/keyring_sign_in.rs` saves a sign-in through a real Secret Service from a run. It runs under its own `dbus-run-session` with `gnome-keyring-daemon --unlock --components=secrets`, and `XDG_RUNTIME_DIR` must be a short path: the daemon's control socket doesn't fit a long one and the store then waits two minutes before giving up.
 
 ### Projects folder
 

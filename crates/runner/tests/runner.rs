@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use opsis_engine::tools::EngineFiles;
 use opsis_project::stamps::file_stamp;
-use opsis_runner::context::{ExecutorOutput, Executors, RunEnv, Stamps, executor};
+use opsis_runner::context::{Executor, ExecutorOutput, Executors, RunEnv, Stamps, executor};
 use opsis_runner::runner::{RunDeps, run_workflow};
 use opsis_types::events::{RunEvent, RunRequest};
 use opsis_types::secrets::secret_file;
@@ -116,34 +116,15 @@ async fn keeps_what_it_recorded_with_a_new_sign_in_so_the_next_run_is_all_saved_
     assert_eq!(done, [("login".to_owned(), true), ("rec".to_owned(), true)]);
 }
 
-#[tokio::test]
-async fn reports_a_failed_node_skips_what_follows_and_names_it_in_the_run_result() {
-    let dir = tempfile::tempdir().unwrap();
-    let mut executors = Executors::default();
-    executors
-        .add(
-            "browser.signIn",
-            executor(|_, _| async {
-                Err(opsis_runner::context::ExecError::new(
-                    "The sign-in window closed before you signed in.",
-                ))
-            }),
-        )
-        .unwrap();
-    executors
-        .add(
-            "capture.record",
-            executor(|_, _| async { Ok(ExecutorOutput::default()) }),
-        )
-        .unwrap();
+async fn run_with(dir: &std::path::Path, executors: Executors) -> Vec<RunEvent> {
     let events = Arc::new(Mutex::new(Vec::new()));
     let seen = Arc::clone(&events);
     let deps = RunDeps {
         env: Arc::new(RunEnv {
             app_version: "test".into(),
             engine: EngineFiles::default(),
-            public_dir: dir.path().into(),
-            temp_dir: dir.path().into(),
+            public_dir: dir.into(),
+            temp_dir: dir.into(),
             settings: AppSettings::default(),
         }),
         executors: Arc::new(executors),
@@ -151,13 +132,57 @@ async fn reports_a_failed_node_skips_what_follows_and_names_it_in_the_run_result
         cancel: CancellationToken::new(),
     };
     let request = RunRequest {
-        project_dir: dir.path().to_string_lossy().into_owned(),
+        project_dir: dir.to_string_lossy().into_owned(),
         workflow: signed_in_take(),
         target_node_ids: None,
         from_node_id: None,
     };
     run_workflow("run", request, deps).await;
-    let events = events.lock().unwrap();
+    std::mem::take(&mut *events.lock().unwrap())
+}
+
+fn take_executors(sign_in: Executor) -> Executors {
+    let mut executors = Executors::default();
+    executors.add("browser.signIn", sign_in).unwrap();
+    executors
+        .add(
+            "capture.record",
+            executor(|_, _| async { Ok(ExecutorOutput::default()) }),
+        )
+        .unwrap();
+    executors
+}
+
+#[tokio::test]
+async fn fails_a_node_whose_executor_panics_and_still_ends_the_run() {
+    let dir = tempfile::tempdir().unwrap();
+    let panics = executor(|_, _| async { panic!("the keyring blocked the runtime") });
+    let events = run_with(dir.path(), take_executors(panics)).await;
+    let failed: Vec<(&str, &str)> = events
+        .iter()
+        .filter_map(|e| match e {
+            RunEvent::NodeError {
+                node_id, message, ..
+            } => Some((node_id.as_str(), message.as_str())),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(failed, [("login", "This node stopped unexpectedly.")]);
+    assert!(matches!(
+        events.last(),
+        Some(RunEvent::RunDone { ok: false, .. })
+    ));
+}
+
+#[tokio::test]
+async fn reports_a_failed_node_skips_what_follows_and_names_it_in_the_run_result() {
+    let dir = tempfile::tempdir().unwrap();
+    let fails = executor(|_, _| async {
+        Err(opsis_runner::context::ExecError::new(
+            "The sign-in window closed before you signed in.",
+        ))
+    });
+    let events = run_with(dir.path(), take_executors(fails)).await;
     assert!(
         events
             .iter()

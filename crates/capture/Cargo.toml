@@ -36,6 +36,7 @@ image = { workspace = true, features = ["jpeg"] }
 imagesize.workspace = true
 opsis-golden.workspace = true
 opsis-probe.workspace = true
+opsis-store.workspace = true
 proptest.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 

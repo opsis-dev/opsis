@@ -132,6 +132,17 @@ pub trait SignIns: Send + Sync {
     fn read(&self, name: &str) -> Result<Option<String>, SignInError>;
 }
 
+const SIGN_INS_UNREACHABLE: &str = "The saved sign-ins couldn't be reached.";
+
+pub async fn off_runtime<T: Send + 'static>(
+    work: impl FnOnce() -> Result<T, SignInError> + Send + 'static,
+) -> Result<T, String> {
+    tokio::task::spawn_blocking(work)
+        .await
+        .map_err(|_| SIGN_INS_UNREACHABLE.to_owned())?
+        .map_err(|e| e.to_string())
+}
+
 pub type LogFn = Arc<dyn Fn(LogLevel, &str) + Send + Sync>;
 pub type StepFn = Arc<dyn Fn(&str, StepStatus, Option<&str>) + Send + Sync>;
 
@@ -1339,11 +1350,10 @@ impl<'e> TakeRun<'e> {
     async fn sign_in(&mut self, step: &SessionStep, p: SignIn) -> StepResult {
         let name = secret_name(&p.secret_name);
         let node = step_name(step, None);
-        let saved = self
-            .env
-            .sign_ins
-            .read(&name)
-            .map_err(|e| failed(e.to_string()))?
+        let (sign_ins, wanted) = (Arc::clone(&self.env.sign_ins), name.clone());
+        let saved = off_runtime(move || sign_ins.read(&wanted))
+            .await
+            .map_err(failed)?
             .ok_or_else(|| {
                 failed(format!(
                     "The sign-in “{name}” isn't saved yet. Run “{node}” first."

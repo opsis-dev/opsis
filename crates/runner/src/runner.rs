@@ -1,5 +1,7 @@
+use std::any::Any;
 use std::collections::{HashMap, HashSet};
 use std::fmt;
+use std::panic::AssertUnwindSafe;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
@@ -31,6 +33,15 @@ use crate::progress::failure_message;
 
 const SKIPPED_REASON: &str = "Something before it failed";
 const CANT_RUN: &str = "This kind of node can't run.";
+const STOPPED: &str = "This node stopped unexpectedly.";
+
+fn panic_text(panic: &(dyn Any + Send)) -> &str {
+    panic
+        .downcast_ref::<&str>()
+        .copied()
+        .or_else(|| panic.downcast_ref::<String>().map(String::as_str))
+        .unwrap_or("no message")
+}
 
 const fn lane_limit(phase: Phase) -> usize {
     match phase {
@@ -249,7 +260,14 @@ impl RunState {
         if !self.forced.contains(&job.node.id) && self.reuse_cached(&job) {
             return;
         }
-        match Arc::clone(&self).execute(&job).await {
+        let outcome = AssertUnwindSafe(Arc::clone(&self).execute(&job))
+            .catch_unwind()
+            .await
+            .unwrap_or_else(|panic| {
+                log::error!("{} panicked: {}", job.node.id, panic_text(&*panic));
+                Err(ExecError::new(STOPPED))
+            });
+        match outcome {
             Ok(result) => {
                 if let Err(error) = write_cached(&self.cache_dir, &result) {
                     self.log(

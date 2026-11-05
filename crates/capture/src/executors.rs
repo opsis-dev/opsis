@@ -35,7 +35,8 @@ use crate::live::{LiveFeed, LiveSink, NodeLive};
 use crate::still::{Shot, StillRequest, still_take};
 use crate::still_layout::Size;
 use crate::take::{
-    Played, Recording, SignInError, SignIns, StepError, StepStatus, TakeEnv, record_take,
+    Played, Recording, SignInError, SignIns, StepError, StepStatus, TakeEnv, off_runtime,
+    record_take,
 };
 use crate::trace::FRAME_GAP_MS;
 
@@ -420,10 +421,8 @@ async fn sign_in(
     let p: SignIn = ctx.params()?;
     let name = secret_name(&p.secret_name);
     if !ctx.forced
-        && deps
-            .sign_ins
-            .read(&ctx.project_dir, &name)
-            .map_err(|e| ExecError::new(e.to_string()))?
+        && saved_sign_in(&deps, &ctx.project_dir, &name)
+            .await?
             .is_some()
     {
         ctx.log(LogLevel::Info, format!("Using the saved sign-in “{name}”."));
@@ -454,11 +453,31 @@ async fn sign_in(
             ctx.cancel.clone(),
         )
         .await?;
-    deps.sign_ins
-        .write(&ctx.project_dir, &name, &state)
-        .map_err(|e| ExecError::new(e.to_string()))?;
+    let (store, dir, saved_as) = (
+        Arc::clone(&deps.sign_ins),
+        ctx.project_dir.clone(),
+        name.clone(),
+    );
+    off_runtime(move || store.write(&dir, &saved_as, &state))
+        .await
+        .map_err(ExecError::new)?;
     ctx.log(LogLevel::Info, format!("Saved the sign-in as “{name}”."));
     Ok(ExecutorOutput::default())
+}
+
+async fn saved_sign_in(
+    deps: &CaptureDeps,
+    project_dir: &Path,
+    name: &str,
+) -> Result<Option<String>, ExecError> {
+    let (store, dir, name) = (
+        Arc::clone(&deps.sign_ins),
+        project_dir.to_path_buf(),
+        name.to_owned(),
+    );
+    off_runtime(move || store.read(&dir, &name))
+        .await
+        .map_err(ExecError::new)
 }
 
 pub fn sign_in_stamp(project_dir: &Path, params: &Values) -> Stamps {

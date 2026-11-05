@@ -198,7 +198,7 @@ agent-docs/            the domain docs (§8)
 
 - **Nothing uses the internet unless the user asks.** The app works offline; anything that needs the network (setting up the engine, getting fonts online) sits behind a button and asks first, and what it downloads is saved locally (`<data folder>/engine`, `<data folder>/fonts`).
 - **Never hold a lock across a call that may take it again** (the settings lock and `announce`, which reads the settings): a database lock held that way hangs the close.
-- **Nothing blocks on the async runtime.** The keyring is the one thing made in setup itself, because the Linux Secret Service store blocks inside `zbus` and panics on a runtime thread.
+- **Nothing blocks on the async runtime.** The keyring is the one thing made in setup itself, and a run reaches it only through `off_runtime` ([app-state.md](agent-docs/app-state.md)), because the Linux Secret Service store blocks inside `zbus` and panics on a runtime thread.
 - **Register long app work in `AppState.tasks`** (`begin(label)`/`end(label)`, `crates/desktop/src/state.rs`) so the exit dialog lists it.
 - **Never write intermediates to the system temp folder from the app**; every child program gets its own temp folder ([engine.md](agent-docs/engine.md)).
 - **Add a hook to the windows that need it, never to the root route** ([editor.md](agent-docs/editor.md)).

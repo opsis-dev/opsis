@@ -4874,6 +4874,7 @@ dependencies = [
  "opsis-probe",
  "opsis-project",
  "opsis-runner",
+ "opsis-store",
  "opsis-traces",
  "opsis-types",
  "proptest",
