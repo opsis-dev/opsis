@@ -128,26 +128,3 @@ export function waypointsToPath(points: readonly PathPoint[], smoothing = 0.25):
   return segments.join(" ");
 }
 
-function waypointProgress(d: string, points: readonly PathPoint[], samples = 240): number[] {
-  const length = pathLength(d);
-  if (length === 0) {
-    return points.map(() => 0);
-  }
-
-  return points.map((point) => {
-    let bestProgress = 0;
-    let bestDistance = Infinity;
-
-    for (let step = 0; step <= samples; step += 1) {
-      const progress = step / samples;
-      const sample = getPointAtLength(d, progress * length);
-      const distance = (sample.x - point.x) ** 2 + (sample.y - point.y) ** 2;
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        bestProgress = progress;
-      }
-    }
-
-    return bestProgress;
-  });
-}

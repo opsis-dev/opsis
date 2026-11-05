@@ -4,8 +4,6 @@ type ItemHost = (index: number, node: ReactElement) => ReactNode;
 
 const ItemHostContext = createContext<ItemHost | null>(null);
 
-const ItemHostProvider = ItemHostContext.Provider;
-
 export function Item({
   index,
   primary = true,

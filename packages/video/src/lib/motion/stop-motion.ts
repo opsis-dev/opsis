@@ -1,6 +1,4 @@
 import { random } from "@opsis/runtime/random.ts";
-import { spring } from "@opsis/runtime/spring.ts";
-
 export const DEFAULT_STEP = 3;
 
 export function qf(frame: number, step = DEFAULT_STEP): number {
@@ -13,37 +11,6 @@ export function qstep(frame: number, step = DEFAULT_STEP): number {
 
 export function randomBetween(seed: string, lo: number, hi: number): number {
   return lo + random(seed) * (hi - lo);
-}
-
-type Jitter = { x: number; y: number; rot: number };
-
-function paperJitter(
-  frame: number,
-  seed: string,
-  options?: { amp?: number; rotAmp?: number; step?: number },
-): Jitter {
-  const amp = options?.amp ?? 1.4;
-  const rotAmp = options?.rotAmp ?? 0.35;
-  const s = qstep(frame, options?.step ?? DEFAULT_STEP);
-  return {
-    x: randomBetween(`${seed}:x:${s}`, -amp, amp),
-    y: randomBetween(`${seed}:y:${s}`, -amp, amp),
-    rot: randomBetween(`${seed}:r:${s}`, -rotAmp, rotAmp),
-  };
-}
-
-function steppedSpring(args: {
-  frame: number;
-  fps: number;
-  delay?: number;
-  step?: number;
-  config?: { damping?: number; stiffness?: number; mass?: number };
-}): number {
-  return spring({
-    frame: qf(Math.max(0, args.frame - (args.delay ?? 0)), args.step ?? DEFAULT_STEP),
-    fps: args.fps,
-    config: args.config,
-  });
 }
 
 export function steppedRamp(

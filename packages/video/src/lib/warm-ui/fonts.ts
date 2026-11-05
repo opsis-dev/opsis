@@ -8,8 +8,6 @@ const FONTS: Record<string, string> = {
 };
 
 const DEFAULT_FONT = "Default";
-const FONT_NAMES = [DEFAULT_FONT, ...Object.keys(FONTS)];
-
 export function resolveFont(name?: string): string | undefined {
   return !name || name === DEFAULT_FONT ? undefined : (FONTS[name] ?? name);
 }

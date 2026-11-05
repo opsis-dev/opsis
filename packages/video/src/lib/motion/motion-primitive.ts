@@ -2,7 +2,6 @@ import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
 import { Easing } from "@opsis/runtime/easing.ts";
 import { interpolate } from "@opsis/runtime/interpolate.ts";
 import { spring, type SpringConfig } from "@opsis/runtime/spring.ts";
-import type { CSSProperties, ReactNode } from "react";
 import { CLAMPED } from "#video/core/anim.ts";
 import { springBouncy, springSmooth, springSnappy } from "#video/lib/motion/springs.ts";
 import { EASING_ENTER, EASING_EXIT } from "#video/lib/motion/timing.ts";
@@ -46,13 +45,6 @@ export type EnterExitOptions = {
   exitAtInFrames?: number;
   exitTravel?: number;
   exitDirection?: "reverse" | "continue";
-};
-
-type MotionPrimitiveProps = EnterExitOptions & {
-  children: ReactNode;
-  block?: boolean;
-  style?: CSSProperties;
-  className?: string;
 };
 
 export type MotionState = {
@@ -144,17 +136,3 @@ export function useEnterExit({
   };
 }
 
-type TransformOrigin =
-  | "center"
-  | "top"
-  | "bottom"
-  | "left"
-  | "right"
-  | "top left"
-  | "top right"
-  | "bottom left"
-  | "bottom right";
-
-function resolveOrigin(origin: TransformOrigin): string {
-  return origin === "center" ? "center center" : origin;
-}

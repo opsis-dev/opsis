@@ -3,12 +3,6 @@ const REFERENCE_HEIGHT = 1080;
 const HORIZONTAL_SAFE = 80;
 const VERTICAL_SAFE = 100;
 
-type SafePaddingOptions = {
-  width: number;
-  height: number;
-  ratio?: number;
-};
-
 export type SafeAreaPadding = {
   paddingLeft: number;
   paddingRight: number;
@@ -34,15 +28,6 @@ export function getSafeAreaPadding({
   };
 }
 
-function getSafePadding({ width, height, ratio }: SafePaddingOptions): number {
-  if (ratio !== undefined) {
-    return Math.round(Math.min(width, height) * ratio);
-  }
-
-  const { paddingLeft, paddingTop } = getSafeAreaPadding({ width, height });
-  return Math.max(paddingLeft, paddingTop);
-}
-
 export function scaleFont(
   sizeAt1080: number,
   width: number,
@@ -51,24 +36,3 @@ export function scaleFont(
   return Math.round(sizeAt1080 * (width / referenceWidth));
 }
 
-type Rect = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
-
-function clampRectToSafeArea(rect: Rect, frameWidth: number, frameHeight: number): Rect {
-  const safe = getSafeAreaPadding({ width: frameWidth, height: frameHeight });
-  const minX = safe.paddingLeft;
-  const minY = safe.paddingTop;
-  const maxX = frameWidth - safe.paddingRight;
-  const maxY = frameHeight - safe.paddingBottom;
-
-  const width = Math.min(rect.width, maxX - minX);
-  const height = Math.min(rect.height, maxY - minY);
-  const x = Math.min(Math.max(rect.x, minX), maxX - width);
-  const y = Math.min(Math.max(rect.y, minY), maxY - height);
-
-  return { x, y, width, height };
-}

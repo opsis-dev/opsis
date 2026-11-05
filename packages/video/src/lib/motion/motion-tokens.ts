@@ -19,12 +19,6 @@ export const STAGGER = {
   relaxed: 12,
 } as const;
 
-const EMPHASIS = {
-  subtle: 1.05,
-  medium: 1.1,
-  strong: 1.18,
-} as const;
-
 export const EASING = {
   enter: EASING_ENTER,
   exit: EASING_EXIT,
