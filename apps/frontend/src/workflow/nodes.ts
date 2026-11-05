@@ -3,13 +3,8 @@ import type { WorkflowNode } from "@/generated/bindings";
 import { getNodeDef } from "@/store/catalog";
 
 export const CARD_WIDTH = 256;
-const COLUMN_WIDTH = 300;
-const ROW_HEIGHT = 170;
-
 const GROUP_TYPE = "core.group";
 const NOTE_TYPE = "core.note";
-
-const CLIP_PORT = "clip";
 
 export function isGroupNode(node: Pick<WorkflowNode, "type">): boolean {
   return node.type === GROUP_TYPE;
