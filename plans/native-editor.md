@@ -9,7 +9,7 @@ Status: **Session**, **Shell**, **Look** and **Docking** are built (`crates/sess
 - **Session** comes first: it takes everything that isn't Tauri out of `crates/desktop`, and the Tauri editor keeps working on it until the cut-over.
 - **Build** and **Bridge** come next; every view needs them.
 - **Shell**, **Look**, **Docking**, then the views (**Graph canvas**, **Inspector**, **Timeline**, **Mixer and audio**, **Playback and pictures**, **Other windows**) in any order once the shell runs.
-- **Testing**, **Packaging** and **Cut-over** close it.
+- **Testing**, then **Cut-over**, then **Packaging** close it; packaging starts only on a go-ahead after the cut-over.
 - Each part has the same sections: **What it changes**, **Fit with Opsis** (In place / Missing), **Work**, **Decisions**, **Risks**, **Sources**.
 
 ## Conventions
@@ -52,8 +52,8 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 | Playback and pictures | film playback, image preview, streamed views, live picture                 | Bridge         |
 | Other windows         | Settings, start screen, setup, fonts, Live, terminal window                | Shell          |
 | Testing               | Rust tests, Qt view tests, end-to-end through the Local API                | each view      |
-| Packaging             | deb, rpm, AppImage, NSIS, macOS app with Qt bundled                        | Build          |
-| Cut-over              | remove Tauri, the webview editor, WebdriverIO; rewrite the docs            | everything     |
+| Cut-over              | remove Tauri, the webview editor, WebdriverIO; rewrite the docs            | Testing        |
+| Packaging             | the formats to ship, decided at its start, with Qt bundled                 | Cut-over       |
 
 ## Session
 
@@ -203,6 +203,8 @@ Windows, the title bar, menus, shortcuts and the exit flow, without a system tit
 9. Opening files and links (`tauri-plugin-opener`): `QDesktopServices::openUrl`. File dialogs (`tauri-plugin-dialog`): `QFileDialog`, which uses the desktop portal on Linux.
 
 ### Decisions
+
+- **File dialogs are the system's own on every platform**: Qt's static `QFileDialog` calls give the Explorer dialog on Windows and the open panel on macOS; on Linux the editor sets `QT_QPA_PLATFORMTHEME=xdgdesktopportal` unless it is already set (`App::Run`, `crates/qt/cpp/app.cc`), because Qt chooses the portal only inside Flatpak or Snap (`checkNeedPortalSupport` in `qguiapplication.cpp`) and otherwise draws its own dialog. Scenario runs alone use Qt's dialogs, which a test can type into.
 
 - **Notifications.** `QSystemTrayIcon::showMessage` needs a tray icon on Linux; check what Opsis notifies today and whether an in-app toast covers it.
 
@@ -374,6 +376,11 @@ Tracks, video and audio bars with filmstrips and waveforms, envelopes, markers, 
 3. Clock: the main window's clock ticks at the film's frame rate (`QElapsedTimer` with a timer per frame) and shares every frame through the session; other windows send play, pause, seek and rate to it, as today.
 4. Scrub audio through the audio engine (next part).
 
+### Decisions
+
+- **The timeline paints itself on a `QAbstractScrollArea`** (`crates/qt/cpp/timeline_canvas.cc`) rather than a `QGraphicsScene`: rows of bars are drawn from one Rust view per change (`opsis-ui` `timeline.rs`), with hit tests on the same rectangles, so there are no scene items to keep in step.
+- **Edits go through the session's `edit_timeline` during a gesture**, each move sending the whole delta since the press, as the web editor does; the session applies it to the film saved when the gesture began.
+
 ### Sources
 
 - Graphics View: https://doc.qt.io/qt-6/graphicsview.html (checked 2026-11-05)
@@ -471,6 +478,26 @@ The editor's Vitest tests (1,672 lines) and the WebdriverIO end-to-end suite (`e
 - QTest: https://doc.qt.io/qt-6/qtest.html (checked 2026-11-05)
 - Offscreen platform: https://github.com/qt/qtbase/tree/dev/src/plugins/platforms/offscreen (checked 2026-11-05)
 
+## Cut-over
+
+### What it changes
+
+The Tauri editor and everything that exists only for it go.
+
+### Work
+
+1. Delete `apps/frontend`, `crates/desktop` (after the session took its logic), `crates/desktop/capabilities`, the CSP, the editor's file server (`file_server.rs`; the film's file server in `opsis-engine` stays), `page_log.rs`, `tauri.conf.json` and `tauri.release.conf.json`.
+2. Drop `tauri`, `tauri-build`, `tauri-specta` and the `tauri-plugin-*` crates. Keep `specta` and `specta-typescript` only for `packages/video/src/generated/spec.ts` while the film page exists (after [native-renderer.md](native-renderer.md)'s cut-over nothing reads it, and they go too), and move the `=2.0.0-rc.26` pin note in `AGENTS.md` §5 (it exists for `tauri-specta`).
+3. Delete `e2e/`'s WebdriverIO setup and its 9.x pin; the new runner replaces it.
+4. `@opsis/video/common` helpers the editor imported (format, math, lists, guards, time; 830 lines) stay for the film until [native-renderer.md](native-renderer.md)'s cut-over removes it; the editor's own copies in Rust replace its imports.
+5. Rewrite `AGENTS.md` §1 (the editor is Qt Widgets; no "system webview"), §2 (installed-code table without shadcn, React Flow UI, TanStack Router and `bindings.ts`; the `DropdownMenuContent`/`TooltipContent` rule goes), §3, §4, §6 (crates `opsis-session` and `opsis-ui`; "only `opsis-ui` opens windows or dialogs").
+6. Rewrite `agent-docs/editor.md`, `document.md`, `e2e.md`, `packaging.md`, `toolchain.md`; add `agent-docs/ui.md` for the bridge and view rules.
+7. `bun run make` and the release workflow lose their Tauri bundling steps and build no installers until **Packaging**; `packaging.md` says so.
+
+### Risks
+
+- The e2e suite moves at the same time as the app it tests; keep the old suite running against the Tauri app until the new runner covers its 9 specs.
+
 ## Packaging
 
 ### What it changes
@@ -493,6 +520,7 @@ The editor's Vitest tests (1,672 lines) and the WebdriverIO end-to-end suite (`e
 
 ### Decisions
 
+- **Which formats ship.** None is required: a tarball per platform (the program plus its resources folder) runs as it is. AppImage adds one file that runs on most distros; deb and rpm add a distro install with its dependencies, menu entry and updates; the macOS app and the Windows installer are what those systems expect from a signed program. Decided at the start of this part.
 - **deb and rpm: bundle Qt or depend on the distro's Qt.** Distro Qt versions vary and Opsis needs 6.12; recommended: bundle, like the AppImage.
 
 ### Sources
@@ -500,25 +528,6 @@ The editor's Vitest tests (1,672 lines) and the WebdriverIO end-to-end suite (`e
 - linuxdeploy Qt plugin: https://github.com/linuxdeploy/linuxdeploy-plugin-qt (checked 2026-11-05)
 - Qt deployment: https://doc.qt.io/qt-6/deployment.html (checked 2026-11-05)
 - Qt licensing (LGPL-3.0): https://doc.qt.io/qt-6/licensing.html (checked 2026-11-05)
-
-## Cut-over
-
-### What it changes
-
-The Tauri editor and everything that exists only for it go.
-
-### Work
-
-1. Delete `apps/frontend`, `crates/desktop` (after the session took its logic), `crates/desktop/capabilities`, the CSP, the editor's file server (`file_server.rs`; the film's file server in `opsis-engine` stays), `page_log.rs`, `tauri.conf.json` and `tauri.release.conf.json`.
-2. Drop `tauri`, `tauri-build`, `tauri-specta` and the `tauri-plugin-*` crates. Keep `specta` and `specta-typescript` only for `packages/video/src/generated/spec.ts` while the film page exists (after [native-renderer.md](native-renderer.md)'s cut-over nothing reads it, and they go too), and move the `=2.0.0-rc.26` pin note in `AGENTS.md` §5 (it exists for `tauri-specta`).
-3. Delete `e2e/`'s WebdriverIO setup and its 9.x pin; the new runner replaces it.
-4. `@opsis/video/common` helpers the editor imported (format, math, lists, guards, time; 830 lines) stay for the film until [native-renderer.md](native-renderer.md)'s cut-over removes it; the editor's own copies in Rust replace its imports.
-5. Rewrite `AGENTS.md` §1 (the editor is Qt Widgets; no "system webview"), §2 (installed-code table without shadcn, React Flow UI, TanStack Router and `bindings.ts`; the `DropdownMenuContent`/`TooltipContent` rule goes), §3, §4, §6 (crates `opsis-session` and `opsis-ui`; "only `opsis-ui` opens windows or dialogs").
-6. Rewrite `agent-docs/editor.md`, `document.md`, `e2e.md`, `packaging.md`, `toolchain.md`; add `agent-docs/ui.md` for the bridge and view rules.
-
-### Risks
-
-- The e2e suite moves at the same time as the app it tests; keep the old suite running against the Tauri app until the new runner covers its 9 specs.
 
 ## Alternatives
 

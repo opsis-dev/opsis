@@ -9,6 +9,7 @@ mod motion;
 mod platform;
 mod project;
 mod text;
+mod timeline;
 mod ui;
 
 use std::sync::Arc;

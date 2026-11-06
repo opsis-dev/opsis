@@ -23,7 +23,7 @@ namespace opsis {
 
 namespace {
 
-constexpr int kNumberWidth = 72;
+constexpr int kNumberWidth = 56;
 constexpr int kDialLabelWidth = 72;
 constexpr int kDialValueWidth = 56;
 constexpr int kTimePlaces = 2;

@@ -12,11 +12,13 @@ use opsis_compile::graph::{IssueLevel, connection_problem_now};
 use opsis_compile::layout::auto_layout;
 use opsis_compile::node::Platform as NodePlatform;
 use opsis_compile::nodes::media::IMPORT_TYPE;
+use opsis_compile::timeline::view;
 use opsis_qt::{
     BarView, BoundsView, CategoryView, Choice, CloseView, ColorView, EventKind, FileView,
     GradientInfo, GraphView, Host, HostResult, InspectorView, MarkDrawnView, MarkPointsView,
     MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView, ProjectEntry, ProjectView,
-    ScreenArea, SettingsView, TemplateView, TextToken, VariableView, WindowPlacement,
+    RemovalView, RulerStep, ScreenArea, SettingsView, SnapView, TemplateView, TextToken,
+    TimelineView, VariableView, WindowPlacement,
 };
 use opsis_session::error::CommandError;
 use opsis_session::events::{MAIN_WINDOW, SessionEvent};
@@ -39,7 +41,7 @@ use tokio::sync::broadcast::error::RecvError;
 
 use crate::platform::QtPlatform;
 use crate::project::Extras;
-use crate::{clipboard, colors, graph, inspector, look, motion, project};
+use crate::{clipboard, colors, graph, inspector, look, motion, project, timeline};
 
 const LAYOUT_KEY: &str = "nativeDockLayout";
 const BENCH_KINDS: [&str; 4] = [
@@ -373,6 +375,16 @@ impl Ui {
             .dir()
             .map(|dir| opsis_engine::tools::shown(&dir))
     }
+}
+
+fn snap_targets(frames: &[f64]) -> Vec<view::SnapTarget> {
+    frames
+        .iter()
+        .map(|&frame| view::SnapTarget {
+            frame,
+            kind: view::SnapKind::Edge,
+        })
+        .collect()
 }
 
 impl Host for Ui {
@@ -1137,6 +1149,133 @@ impl Host for Ui {
 
     fn move_box(&self, origin: BoundsView, dx: f64, dy: f64) -> BoundsView {
         colors::moved(origin, dx, dy)
+    }
+
+    fn select_pinned(&self, ids: Vec<String>, source: &str) {
+        let pinned = (!source.is_empty()).then(|| source.to_owned());
+        let single = (ids.len() == 1).then(|| ids[0].clone());
+        let selection = Selection {
+            selected_ids: ids.clone(),
+            active_ids: ids,
+            pinned_source: pinned.clone(),
+        };
+        if let Err(error) = shared::share_selection(&self.session, MAIN_WINDOW, selection) {
+            log::warn!("sharing the selection: {}", error.0);
+        }
+        compile::set_compile_focus(&self.session, pinned.or_else(|| single.clone()), single);
+    }
+
+    fn timeline(&self) -> TimelineView {
+        let Some(workflow) = self.workflow() else {
+            return timeline::empty();
+        };
+        let selected: std::collections::HashSet<String> = shared::shared_state(&self.session)
+            .selection
+            .selected_ids
+            .into_iter()
+            .collect();
+        let film = self.state().editor().film.clone();
+        timeline::view(
+            film.as_ref(),
+            &timeline::Sources {
+                workflow: &workflow,
+                catalog: &self.catalog,
+                transitions: &self.bundle.transitions,
+                selected: &selected,
+            },
+        )
+    }
+
+    fn edit_timeline(&self, edit_json: &str) -> String {
+        let edit: opsis_types::edits::TimelineEdit = match serde_json::from_str(edit_json) {
+            Ok(edit) => edit,
+            Err(error) => return error.to_string(),
+        };
+        match document::edit_timeline(&self.session, edit) {
+            Ok(reply) => reply.error.unwrap_or_default(),
+            Err(error) => error.0,
+        }
+    }
+
+    fn edit_markers(&self, edit_json: &str) -> HostResult<()> {
+        let edit: opsis_types::edits::MarkerEdit =
+            serde_json::from_str(edit_json).map_err(|e| e.to_string())?;
+        self.edit(WorkflowEdit::Markers { edit })
+            .map(|_| ())
+            .map_err(|e| e.0)
+    }
+
+    fn share_playhead(&self, frame: f64, playing: bool, rate: f64, in_point: f64, out_point: f64) {
+        let (fps, duration) = self.state().editor().film.as_ref().map_or((30, 1), |film| {
+            (film.flat.fps, film.flat.duration_in_frames)
+        });
+        let playhead = opsis_types::shell::Playhead {
+            frame,
+            playing,
+            rate,
+            fps,
+            duration_in_frames: duration,
+            in_point: (in_point >= 0.0).then_some(in_point),
+            out_point: (out_point >= 0.0).then_some(out_point),
+        };
+        if let Err(error) = shared::share_playhead(&self.session, MAIN_WINDOW, playhead) {
+            log::debug!("sharing the playhead: {}", error.0);
+        }
+    }
+
+    fn timeline_removal(&self) -> RemovalView {
+        let selected = shared::shared_state(&self.session).selection.selected_ids;
+        document::timeline_removal(&self.session, &selected).map_or_else(
+            || RemovalView {
+                node_ids: Vec::new(),
+                edge_ids: Vec::new(),
+            },
+            |removal| RemovalView {
+                node_ids: removal.node_ids,
+                edge_ids: removal.edge_ids,
+            },
+        )
+    }
+
+    fn ruler_step(&self, px_per_frame: f64, fps: u32) -> RulerStep {
+        let (step, minor) = view::ruler_step(px_per_frame, fps, view::MIN_STEP_PX);
+        RulerStep { step, minor }
+    }
+
+    fn format_time(&self, frame: f64, fps: u32, timecode: bool) -> String {
+        view::format_time(frame, fps, timecode)
+    }
+
+    fn snap_frame(&self, frame: f64, targets: Vec<f64>, threshold: f64) -> SnapView {
+        let snapped = view::snap_frame(frame, &snap_targets(&targets), threshold);
+        SnapView {
+            value: snapped.frame,
+            snapped: snapped.target.is_some(),
+        }
+    }
+
+    fn snap_span(
+        &self,
+        from: f64,
+        to: f64,
+        delta: f64,
+        targets: Vec<f64>,
+        threshold: f64,
+    ) -> SnapView {
+        let snapped = view::snap_span(from, to, delta, &snap_targets(&targets), threshold);
+        SnapView {
+            value: snapped.delta,
+            snapped: snapped.target.is_some(),
+        }
+    }
+
+    fn wrap_playhead(&self, position: f64, in_point: f64, out_point: f64, duration: f64) -> f64 {
+        let range = view::loop_of(
+            (in_point >= 0.0).then_some(in_point),
+            (out_point >= 0.0).then_some(out_point),
+            duration,
+        );
+        view::wrap_in_loop(position, range)
     }
 
     fn edit_keyframes(&self, edit_json: &str) -> HostResult<()> {

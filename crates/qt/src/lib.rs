@@ -11,8 +11,10 @@ pub use bridge::ffi::{
     DialogKind, EdgeView, EventKind, FieldKind, FieldView, FileView, GradientInfo,
     GradientStopView, GraphView, InspectorView, IssueView, MarkDrawnView, MarkPointsView,
     MenuItemKind, MenuItemView, MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PortView,
-    PoseView, PresetView, ProjectEntry, ProjectView, RowView, ScreenArea, SettingsView, ShapeView,
-    TemplateView, TextToken, TokenKind, VariableView, WindowPlacement,
+    PoseView, PresetView, ProjectEntry, ProjectView, RemovalView, RowView, RulerStep, ScreenArea,
+    SettingsView, ShapeView, SnapView, TemplateView, TextToken, TimelineAudioView, TimelineBarView,
+    TimelineCameraKeyView, TimelineMarkView, TimelineMarkerView, TimelineTransitionView,
+    TimelineView, TokenKind, VariableView, WindowPlacement,
 };
 pub use host::{
     Host, HostResult, notify, open_path, post_event, qt_version, quit, raise_editor,

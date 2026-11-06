@@ -673,6 +673,34 @@ QFrame#MarkItem {
   border-radius: 8px;
 }
 
+QWidget#TimelineToolbar {
+  background: @background;
+  border-bottom: 1px solid @border;
+}
+
+QWidget#RangeBadge {
+  border: 1px solid @input;
+  border-radius: 6px;
+}
+
+QLabel#SourceBadge {
+  background: @secondary;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+QPushButton#TimelineClock {
+  color: @muted-foreground;
+  font-size: 12px;
+  padding: 0 4px;
+}
+
+QLineEdit#MarkerName {
+  padding: 0 4px;
+  font-size: 10px;
+}
+
 QWidget#CanvasToolbar {
   background: @popover;
   border: 1px solid @input;

@@ -3,8 +3,9 @@ use std::fmt;
 use crate::bridge::ffi::{
     self, BarView, BoundsView, CategoryView, CloseView, ColorView, DialogKind, EventKind,
     GradientInfo, GraphView, InspectorView, MarkDrawnView, MarkPointsView, MenuSectionView,
-    MotionInfo, NodeMove, PaletteEntry, PoseView, ProjectEntry, ProjectView, ScreenArea,
-    SettingsView, TemplateView, TextToken, VariableView, WindowPlacement,
+    MotionInfo, NodeMove, PaletteEntry, PoseView, ProjectEntry, ProjectView, RemovalView,
+    RulerStep, ScreenArea, SettingsView, SnapView, TemplateView, TextToken, TimelineView,
+    VariableView, WindowPlacement,
 };
 
 pub type HostResult<T> = Result<T, String>;
@@ -91,6 +92,24 @@ pub trait Host {
     fn move_box(&self, origin: BoundsView, dx: f64, dy: f64) -> BoundsView;
     fn box_kept(&self, area: BoundsView) -> bool;
     fn edit_keyframes(&self, edit_json: &str) -> HostResult<()>;
+    fn timeline(&self) -> TimelineView;
+    fn select_pinned(&self, ids: Vec<String>, source: &str);
+    fn edit_timeline(&self, edit_json: &str) -> String;
+    fn edit_markers(&self, edit_json: &str) -> HostResult<()>;
+    fn share_playhead(&self, frame: f64, playing: bool, rate: f64, in_point: f64, out_point: f64);
+    fn timeline_removal(&self) -> RemovalView;
+    fn ruler_step(&self, px_per_frame: f64, fps: u32) -> RulerStep;
+    fn format_time(&self, frame: f64, fps: u32, timecode: bool) -> String;
+    fn snap_frame(&self, frame: f64, targets: Vec<f64>, threshold: f64) -> SnapView;
+    fn snap_span(
+        &self,
+        from: f64,
+        to: f64,
+        delta: f64,
+        targets: Vec<f64>,
+        threshold: f64,
+    ) -> SnapView;
+    fn wrap_playhead(&self, position: f64, in_point: f64, out_point: f64, duration: f64) -> f64;
     fn mark_moved(&self, points: MarkPointsView, dx: f64, dy: f64) -> MarkPointsView;
     fn mark_end(&self, points: MarkPointsView, second: bool, x: f64, y: f64) -> MarkPointsView;
     fn mark_drawn(&self, kind: &str, sx: f64, sy: f64, ex: f64, ey: f64) -> MarkDrawnView;
@@ -449,6 +468,72 @@ impl Session {
 
     pub(crate) fn edit_keyframes(&self, edit_json: &str) -> HostResult<()> {
         self.0.edit_keyframes(edit_json)
+    }
+
+    pub(crate) fn timeline(&self) -> TimelineView {
+        self.0.timeline()
+    }
+
+    pub(crate) fn select_pinned(&self, ids: Vec<String>, source: &str) {
+        self.0.select_pinned(ids, source);
+    }
+
+    pub(crate) fn edit_timeline(&self, edit_json: &str) -> String {
+        self.0.edit_timeline(edit_json)
+    }
+
+    pub(crate) fn edit_markers(&self, edit_json: &str) -> HostResult<()> {
+        self.0.edit_markers(edit_json)
+    }
+
+    pub(crate) fn share_playhead(
+        &self,
+        frame: f64,
+        playing: bool,
+        rate: f64,
+        in_point: f64,
+        out_point: f64,
+    ) {
+        self.0
+            .share_playhead(frame, playing, rate, in_point, out_point);
+    }
+
+    pub(crate) fn timeline_removal(&self) -> RemovalView {
+        self.0.timeline_removal()
+    }
+
+    pub(crate) fn ruler_step(&self, px_per_frame: f64, fps: u32) -> RulerStep {
+        self.0.ruler_step(px_per_frame, fps)
+    }
+
+    pub(crate) fn format_time(&self, frame: f64, fps: u32, timecode: bool) -> String {
+        self.0.format_time(frame, fps, timecode)
+    }
+
+    pub(crate) fn snap_frame(&self, frame: f64, targets: Vec<f64>, threshold: f64) -> SnapView {
+        self.0.snap_frame(frame, targets, threshold)
+    }
+
+    pub(crate) fn snap_span(
+        &self,
+        from: f64,
+        to: f64,
+        delta: f64,
+        targets: Vec<f64>,
+        threshold: f64,
+    ) -> SnapView {
+        self.0.snap_span(from, to, delta, targets, threshold)
+    }
+
+    pub(crate) fn wrap_playhead(
+        &self,
+        position: f64,
+        in_point: f64,
+        out_point: f64,
+        duration: f64,
+    ) -> f64 {
+        self.0
+            .wrap_playhead(position, in_point, out_point, duration)
     }
 
     pub(crate) fn box_kept(&self, area: BoundsView) -> bool {

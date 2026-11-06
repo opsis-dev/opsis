@@ -1,5 +1,6 @@
 #include "widgets.h"
 
+#include <QAbstractItemView>
 #include <QEasingCurve>
 #include <QHBoxLayout>
 #include <QLayout>
@@ -13,6 +14,9 @@
 namespace opsis {
 
 namespace {
+
+constexpr int kComboMinimumChars = 4;
+constexpr int kComboPopupPadding = 32;
 
 constexpr int kSwitchWidth = 32;
 constexpr int kSwitchHeight = 18;
@@ -145,6 +149,18 @@ QSize ClampedLabel::minimumSizeHint() const {
 void ClampedLabel::resizeEvent(QResizeEvent* event) {
   QLabel::resizeEvent(event);
   setText(Clamped(width()));
+}
+
+Combo::Combo(QWidget* parent) : QComboBox(parent) {
+  setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+  setMinimumContentsLength(kComboMinimumChars);
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+}
+
+void Combo::showPopup() {
+  const int wanted = view()->sizeHintForColumn(0) + kComboPopupPadding;
+  view()->setMinimumWidth(std::max(width(), wanted));
+  QComboBox::showPopup();
 }
 
 void Combo::paintEvent(QPaintEvent* event) {

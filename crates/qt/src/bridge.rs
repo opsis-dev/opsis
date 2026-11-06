@@ -97,6 +97,104 @@ pub mod ffi {
         Camera,
     }
 
+    #[derive(Debug, Clone)]
+    struct TimelineBarView {
+        key: String,
+        node_id: String,
+        lane: u32,
+        from: f64,
+        to: f64,
+        title: String,
+        wrappers: String,
+        tone: String,
+        selected: bool,
+        related: bool,
+        recording: bool,
+    }
+
+    #[derive(Debug, Clone)]
+    struct TimelineAudioView {
+        key: String,
+        node_id: String,
+        lane: u32,
+        from: f64,
+        to: f64,
+        title: String,
+        tone: String,
+        volume: f64,
+        selected: bool,
+        hits: bool,
+        bar_key: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct TimelineMarkView {
+        key: String,
+        frame: f64,
+        label: String,
+        chapter: bool,
+        bar_key: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct TimelineMarkerView {
+        id: String,
+        frame: f64,
+        label: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct TimelineTransitionView {
+        key: String,
+        from: f64,
+        to: f64,
+        lanes: Vec<u32>,
+        label: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct TimelineCameraKeyView {
+        key: String,
+        node_id: String,
+        bar_key: String,
+        frame: f64,
+    }
+
+    #[derive(Debug, Clone)]
+    struct TimelineView {
+        has_film: bool,
+        fps: u32,
+        duration: f64,
+        lanes: u32,
+        audio_lanes: u32,
+        source_id: String,
+        source_label: String,
+        bars: Vec<TimelineBarView>,
+        audio: Vec<TimelineAudioView>,
+        marks: Vec<TimelineMarkView>,
+        markers: Vec<TimelineMarkerView>,
+        transitions: Vec<TimelineTransitionView>,
+        camera_keys: Vec<TimelineCameraKeyView>,
+    }
+
+    #[derive(Debug, Clone, Copy)]
+    struct SnapView {
+        value: f64,
+        snapped: bool,
+    }
+
+    #[derive(Debug, Clone, Copy)]
+    struct RulerStep {
+        step: f64,
+        minor: f64,
+    }
+
+    #[derive(Debug, Clone)]
+    struct RemovalView {
+        node_ids: Vec<String>,
+        edge_ids: Vec<String>,
+    }
+
     #[derive(Debug, Clone, Copy)]
     struct MarkPointsView {
         x: f64,
@@ -545,6 +643,37 @@ pub mod ffi {
         fn move_box(self: &Session, origin: BoundsView, dx: f64, dy: f64) -> BoundsView;
         fn box_kept(self: &Session, area: BoundsView) -> bool;
         fn edit_keyframes(self: &Session, edit_json: &str) -> Result<()>;
+        fn timeline(self: &Session) -> TimelineView;
+        fn select_pinned(self: &Session, ids: Vec<String>, source: &str);
+        fn edit_timeline(self: &Session, edit_json: &str) -> String;
+        fn edit_markers(self: &Session, edit_json: &str) -> Result<()>;
+        fn share_playhead(
+            self: &Session,
+            frame: f64,
+            playing: bool,
+            rate: f64,
+            in_point: f64,
+            out_point: f64,
+        );
+        fn timeline_removal(self: &Session) -> RemovalView;
+        fn ruler_step(self: &Session, px_per_frame: f64, fps: u32) -> RulerStep;
+        fn format_time(self: &Session, frame: f64, fps: u32, timecode: bool) -> String;
+        fn snap_frame(self: &Session, frame: f64, targets: Vec<f64>, threshold: f64) -> SnapView;
+        fn snap_span(
+            self: &Session,
+            from: f64,
+            to: f64,
+            delta: f64,
+            targets: Vec<f64>,
+            threshold: f64,
+        ) -> SnapView;
+        fn wrap_playhead(
+            self: &Session,
+            position: f64,
+            in_point: f64,
+            out_point: f64,
+            duration: f64,
+        ) -> f64;
         fn mark_moved(self: &Session, points: MarkPointsView, dx: f64, dy: f64) -> MarkPointsView;
         fn mark_end(
             self: &Session,

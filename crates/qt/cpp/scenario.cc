@@ -8,6 +8,7 @@
 #include <QImage>
 #include <QLabel>
 #include <QLineEdit>
+#include <QScrollArea>
 #include <QTextCursor>
 #include <QTimer>
 #include <QToolButton>
@@ -101,9 +102,11 @@ void Scenario::Next() {
   const std::function<QString()> check = step.check;
   const std::size_t number = ++index_;
   QTimer::singleShot(wait, this, [this, name, number, check] {
-    if (check || !misses_.isEmpty()) {
+    if (check || !misses_.isEmpty() || !Overflow().isEmpty()) {
       QStringList found = misses_;
       misses_.clear();
+      const QString overflow = Overflow();
+      if (!overflow.isEmpty()) found << overflow;
       if (check) {
         const QString own = check();
         if (!own.isEmpty()) found << own;
@@ -122,6 +125,28 @@ void Scenario::Next() {
         QStringLiteral("%1-%2").arg(number, 2, 10, QLatin1Char('0')).arg(name));
     Next();
   });
+}
+
+QString Scenario::Overflow() {
+  QStringList wide;
+  for (QWidget* top : QApplication::topLevelWidgets()) {
+    if (!top->isVisible()) continue;
+    for (QScrollArea* scroll : top->findChildren<QScrollArea*>()) {
+      if (!scroll->isVisible() || scroll->widget() == nullptr ||
+          scroll->horizontalScrollBarPolicy() != Qt::ScrollBarAlwaysOff) {
+        continue;
+      }
+      const int over = scroll->widget()->width() - scroll->viewport()->width();
+      if (over > 1) {
+        wide << QStringLiteral("%1 is %2 px wider than its panel")
+                    .arg(scroll->widget()->objectName().isEmpty()
+                             ? QStringLiteral("a panel")
+                             : scroll->widget()->objectName())
+                    .arg(over);
+      }
+    }
+  }
+  return wide.join(QStringLiteral("; "));
 }
 
 void Scenario::Shoot(const QString& name) {
@@ -219,5 +244,4 @@ void Scenario::BuildBench(int count) {
       },
       900);
 }
-
 }

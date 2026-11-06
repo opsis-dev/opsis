@@ -38,8 +38,11 @@
 #include "marks_field.h"
 #include "node_list.h"
 #include "opsis-qt/src/bridge.rs.h"
+#include "playback_clock.h"
 #include "scenario.h"
 #include "start_screen.h"
+#include "timeline_canvas.h"
+#include "timeline_panel.h"
 #include "top_bar.h"
 #include "var_text.h"
 #include "visual_fields.h"
@@ -64,6 +67,7 @@ constexpr double kBottomShareHigh = 0.5;
 
 struct Memo {
   std::size_t nodes = 0;
+  QString key;
   QString id;
   QString source;
   QString source_port;
@@ -1955,6 +1959,254 @@ void Scenario::BuildTour() {
         for (int i = 0; i < 3; ++i) Click(window, QStringLiteral("Undo"));
       },
       600, back);
+  const auto timeline = [window]() -> TimelineCanvas* {
+    auto* panel =
+        qobject_cast<TimelinePanel*>(window->timeline_dock()->widget());
+    return panel != nullptr ? panel->canvas() : nullptr;
+  };
+  const auto bar_spans = [timeline] {
+    std::vector<std::pair<double, double>> spans;
+    if (TimelineCanvas* canvas = timeline();
+        canvas != nullptr && canvas->view()) {
+      for (const auto& bar : canvas->view()->bars)
+        spans.emplace_back(bar.from, bar.to);
+    }
+    return spans;
+  };
+  Add(
+      QStringLiteral("timeline-shows-the-film"),
+      [window, select_titled] {
+        select_titled(QStringLiteral("Export video"));
+        QTest::qWait(kSettleMs);
+        window->timeline_dock()->setAsCurrentTab();
+      },
+      900,
+      [timeline] {
+        TimelineCanvas* canvas = timeline();
+        return Expect(canvas != nullptr && canvas->has_film() &&
+                          !canvas->view()->bars.empty(),
+                      QStringLiteral("the timeline shows no bars"));
+      });
+  Add(
+      QStringLiteral("timeline-scrub-ruler"),
+      [timeline] {
+        TimelineCanvas* canvas = timeline();
+        if (canvas == nullptr) return;
+        QTest::mouseClick(canvas->viewport(), Qt::LeftButton, {},
+                          QPoint(static_cast<int>(canvas->FrameX(60)), 8));
+      },
+      400,
+      [] {
+        const double frame = PlaybackClock::Instance()->frame();
+        return Expect(std::abs(frame - 60) <= 1,
+                      QStringLiteral("the playhead is at %1").arg(frame));
+      });
+  Add(
+      QStringLiteral("timeline-play"),
+      [this, window, memo] {
+        memo->x = PlaybackClock::Instance()->frame();
+        Click(window->timeline_dock()->widget(), QStringLiteral("Play  Space"));
+      },
+      600,
+      [memo] {
+        const PlaybackClock* clock = PlaybackClock::Instance();
+        return Expect(clock->playing() && clock->frame() > memo->x,
+                      QStringLiteral("the playhead didn't move"));
+      });
+  Add(
+      QStringLiteral("timeline-pause-with-space"),
+      [timeline] {
+        TimelineCanvas* canvas = timeline();
+        if (canvas == nullptr) return;
+        canvas->setFocus();
+        QTest::keyClick(canvas, Qt::Key_Space);
+      },
+      300,
+      [] {
+        return Expect(!PlaybackClock::Instance()->playing(),
+                      QStringLiteral("playback didn't stop"));
+      });
+  Add(
+      QStringLiteral("timeline-select-bar"),
+      [timeline, memo] {
+        TimelineCanvas* canvas = timeline();
+        if (canvas == nullptr || canvas->view()->bars.empty()) return;
+        const auto& bar = canvas->view()->bars.at(0);
+        memo->id = ToQ(bar.node_id);
+        const QRectF box = canvas->BarRect(ToQ(bar.key));
+        QTest::mouseClick(canvas->viewport(), Qt::LeftButton, {},
+                          box.center().toPoint());
+      },
+      600,
+      [memo] {
+        return Expect(ToQ(App::Get().session().selected()) == memo->id,
+                      QStringLiteral("the bar's node isn't selected"));
+      });
+  Add(
+      QStringLiteral("timeline-trim-end"),
+      [this, timeline, bar_spans, memo] {
+        TimelineCanvas* canvas = timeline();
+        if (canvas == nullptr || canvas->view()->bars.empty()) return;
+        const auto& bar = canvas->view()->bars.at(0);
+        memo->key = ToQ(bar.key);
+        memo->width = bar.to;
+        const QRectF box = canvas->BarRect(memo->key);
+        const QPoint edge(static_cast<int>(box.right()) - 2,
+                          static_cast<int>(box.center().y()));
+        Drag(canvas->viewport(), edge, edge - QPoint(30, 0), 6);
+        Q_UNUSED(bar_spans);
+      },
+      800,
+      [timeline, memo] {
+        TimelineCanvas* canvas = timeline();
+        if (canvas == nullptr) return QStringLiteral("no timeline");
+        for (const auto& bar : canvas->view()->bars) {
+          if (ToQ(bar.key) == memo->key) {
+            return Expect(
+                bar.to < memo->width,
+                QStringLiteral("the bar still ends at %1").arg(bar.to));
+          }
+        }
+        return QStringLiteral("the trimmed bar is gone");
+      });
+  Add(QStringLiteral("undo-trim"), undo, 600, [timeline, memo] {
+    TimelineCanvas* canvas = timeline();
+    if (canvas == nullptr) return QStringLiteral("no timeline");
+    for (const auto& bar : canvas->view()->bars) {
+      if (ToQ(bar.key) == memo->key) {
+        return Expect(
+            std::abs(bar.to - memo->width) < 0.5,
+            QStringLiteral("one undo left the end at %1").arg(bar.to));
+      }
+    }
+    return QStringLiteral("the bar is gone after undo");
+  });
+  Add(
+      QStringLiteral("timeline-split-tool"),
+      [timeline, bar_spans, memo] {
+        TimelineCanvas* canvas = timeline();
+        if (canvas == nullptr || canvas->view()->bars.empty()) return;
+        memo->count = bar_spans().size();
+        canvas->setFocus();
+        QTest::keyClick(canvas, Qt::Key_C);
+        const QRectF box = canvas->BarRect(ToQ(canvas->view()->bars.at(0).key));
+        QTest::mouseClick(canvas->viewport(), Qt::LeftButton, {},
+                          box.center().toPoint());
+      },
+      800,
+      [timeline, bar_spans, memo] {
+        TimelineCanvas* canvas = timeline();
+        QString problems;
+        if (canvas == nullptr || canvas->tool() != QStringLiteral("blade")) {
+          problems += QStringLiteral(" C didn't pick the Split tool");
+        }
+        if (bar_spans().size() != memo->count + 1) {
+          problems += QStringLiteral(" %1 bars after splitting")
+                          .arg(bar_spans().size());
+        }
+        return problems.trimmed();
+      });
+  Add(
+      QStringLiteral("undo-split"),
+      [timeline, undo] {
+        undo();
+        if (TimelineCanvas* canvas = timeline()) {
+          canvas->setFocus();
+          QTest::keyClick(canvas, Qt::Key_V);
+        }
+      },
+      600,
+      [bar_spans, memo] {
+        return Expect(
+            bar_spans().size() == memo->count,
+            QStringLiteral("%1 bars after undo").arg(bar_spans().size()));
+      });
+  Add(
+      QStringLiteral("timeline-marker-add-and-rename"),
+      [timeline] {
+        TimelineCanvas* canvas = timeline();
+        if (canvas == nullptr) return;
+        canvas->setFocus();
+        QTest::keyClick(canvas, Qt::Key_M);
+        QTest::qWait(kSettleMs);
+        if (canvas->view()->markers.empty()) return;
+        const QString id = ToQ(canvas->view()->markers.at(0).id);
+        QTest::mouseDClick(canvas->viewport(), Qt::LeftButton, {},
+                           canvas->MarkerRect(id).center().toPoint());
+        QTest::qWait(kSettleMs);
+        auto* line = canvas->viewport()->findChild<QLineEdit*>(
+            QStringLiteral("MarkerName"));
+        if (line == nullptr) return;
+        QTest::keyClick(line, Qt::Key_A, Qt::ControlModifier);
+        QTest::keyClicks(line, QStringLiteral("Intro"));
+        QTest::keyClick(line, Qt::Key_Return);
+      },
+      700,
+      [timeline] {
+        TimelineCanvas* canvas = timeline();
+        return Expect(canvas != nullptr &&
+                          canvas->view()->markers.size() == 1 &&
+                          ToQ(canvas->view()->markers.at(0).label) ==
+                              QStringLiteral("Intro"),
+                      QStringLiteral("no marker named Intro"));
+      });
+  Add(
+      QStringLiteral("timeline-marker-delete"),
+      [timeline] {
+        TimelineCanvas* canvas = timeline();
+        if (canvas == nullptr || canvas->view()->markers.empty()) return;
+        const QString id = ToQ(canvas->view()->markers.at(0).id);
+        QTest::mouseClick(canvas->viewport(), Qt::LeftButton, {},
+                          canvas->MarkerRect(id).center().toPoint());
+        canvas->setFocus();
+        QTest::keyClick(canvas, Qt::Key_Delete);
+      },
+      600,
+      [timeline] {
+        TimelineCanvas* canvas = timeline();
+        return Expect(canvas != nullptr && canvas->view()->markers.empty(),
+                      QStringLiteral("the marker is still there"));
+      });
+  Add(
+      QStringLiteral("undo-markers"),
+      [this, window] {
+        for (int i = 0; i < 3; ++i) Click(window, QStringLiteral("Undo"));
+      },
+      600,
+      [timeline] {
+        TimelineCanvas* canvas = timeline();
+        return Expect(canvas != nullptr && canvas->view()->markers.empty(),
+                      QStringLiteral("markers left after undo"));
+      });
+  Add(
+      QStringLiteral("timeline-zoom-keys"),
+      [timeline, memo] {
+        TimelineCanvas* canvas = timeline();
+        if (canvas == nullptr) return;
+        memo->x = canvas->px_per_frame();
+        canvas->setFocus();
+        QTest::keyClick(canvas, Qt::Key_Equal);
+      },
+      400,
+      [timeline, memo] {
+        TimelineCanvas* canvas = timeline();
+        return Expect(canvas != nullptr && canvas->px_per_frame() > memo->x,
+                      QStringLiteral("= didn't zoom in"));
+      });
+  Add(
+      QStringLiteral("timeline-fit-key"),
+      [timeline] {
+        TimelineCanvas* canvas = timeline();
+        if (canvas == nullptr) return;
+        QTest::keyClick(canvas, Qt::Key_Z);
+      },
+      400,
+      [timeline, memo] {
+        TimelineCanvas* canvas = timeline();
+        return Expect(canvas != nullptr &&
+                          std::abs(canvas->px_per_frame() - memo->x) < 1e-9,
+                      QStringLiteral("Z didn't fit the film again"));
+      });
   Add(
       QStringLiteral("hide-node-list"),
       [this, window] { Click(window, QStringLiteral("Hide node list")); }, 600,

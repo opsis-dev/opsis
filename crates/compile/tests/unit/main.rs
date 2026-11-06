@@ -34,5 +34,6 @@ mod terminal;
 mod time;
 mod timeline;
 mod timeline_edits;
+mod timeline_media;
 mod timeline_view;
 mod transition_sounds;

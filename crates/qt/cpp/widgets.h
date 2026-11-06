@@ -64,7 +64,8 @@ class ClampedLabel : public QLabel {
 
 class Combo : public QComboBox {
  public:
-  using QComboBox::QComboBox;
+  explicit Combo(QWidget* parent = nullptr);
+  void showPopup() override;
 
  protected:
   void paintEvent(QPaintEvent* event) override;

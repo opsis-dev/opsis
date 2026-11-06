@@ -557,12 +557,14 @@ QWidget* MakeBoxesField(const bridge::FieldView& field,
     column->addLayout(row);
   }
   const auto count = static_cast<int>(areas.size());
-  column->addWidget(MakeLabel(
+  auto* note = MakeLabel(
       count >= most
           ? QStringLiteral("Up to %1 areas. Remove one to add another.")
                 .arg(most)
           : QStringLiteral("%1 of %2 areas.").arg(count).arg(most),
-      "muted", box));
+      "muted", box);
+  note->setWordWrap(true);
+  column->addWidget(note);
   return box;
 }
 

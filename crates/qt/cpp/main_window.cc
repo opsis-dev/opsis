@@ -27,6 +27,7 @@
 #include "opsis-qt/src/bridge.rs.h"
 #include "settings_window.h"
 #include "start_screen.h"
+#include "timeline_panel.h"
 #include "top_bar.h"
 #include "widgets.h"
 #include "window_chrome.h"
@@ -344,10 +345,8 @@ void MainWindow::BuildDocks() {
   }
   inspector_dock_ = MakeDock(QStringLiteral("inspector"),
                              QStringLiteral("Inspector"), new InspectorPanel());
-  timeline_dock_ = MakeDock(
-      QStringLiteral("timeline"), QStringLiteral("Timeline"),
-      Placeholder(
-          QStringLiteral("The timeline isn't in the native editor yet.")));
+  timeline_dock_ = MakeDock(QStringLiteral("timeline"),
+                            QStringLiteral("Timeline"), new TimelinePanel());
   mixer_dock_ = MakeDock(
       QStringLiteral("mixer"), QStringLiteral("Mixer"),
       Placeholder(QStringLiteral("The mixer isn't in the native editor yet.")));

@@ -555,7 +555,7 @@ QWidget* MakeMarksField(const bridge::FieldView& field,
     column->addWidget(item);
   }
 
-  column->addWidget(MakeLabel(
+  auto* help = MakeLabel(
       static_cast<int>(marks.size()) >= most
           ? QStringLiteral("Up to %1 marks. Remove one to add another.")
                 .arg(most)
@@ -563,7 +563,9 @@ QWidget* MakeMarksField(const bridge::FieldView& field,
                  ? QStringLiteral("Pick a kind above and drag on the picture.")
                  : QStringLiteral("Select a mark to change it, drag it to move "
                                   "it, or press Delete to remove it.")),
-      "muted", box));
+      "muted", box);
+  help->setWordWrap(true);
+  column->addWidget(help);
 
   const auto current_tool = [group] {
     QAbstractButton* checked = group->checkedButton();

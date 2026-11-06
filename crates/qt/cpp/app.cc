@@ -175,6 +175,11 @@ int App::Run(rust::Box<bridge::Session> host) {
   if (qEnvironmentVariableIsSet("OPSIS_QT_SCENARIO")) {
     QApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
   }
+#if defined(Q_OS_LINUX)
+  if (!qEnvironmentVariableIsSet("QT_QPA_PLATFORMTHEME")) {
+    qputenv("QT_QPA_PLATFORMTHEME", "xdgdesktopportal");
+  }
+#endif
   QApplication application(argc, argv.data());
   QApplication::setApplicationName(QStringLiteral("Opsis"));
   QApplication::setOrganizationName(QStringLiteral("Opsis"));
