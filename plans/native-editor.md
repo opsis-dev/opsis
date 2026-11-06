@@ -295,7 +295,7 @@ The node graph moves from React Flow to a `QGraphicsScene`: cards with typed por
 ### Work
 
 1. Port `edge-lanes.ts`, the port measuring in `layout.ts` and `node-motions.ts` to a Rust module in `opsis-compile` (pure, beside the catalogue) with property tests; the C++ side asks for lane points through the bridge.
-2. Tidy-up: `elk-layout` (a Rust port of ELK 0.12 that takes elkjs's JSON), called from the session with today's options.
+2. Tidy-up: `layout-rs` (Nadav Rotem's Graphviz-style layered layout, MIT, no required dependencies) in `opsis-compile` (`layout.rs`), left to right with the cards' sizes and the web editor's layer and node gaps; ports are not pinned, since the lanes route the edges.
 3. Items: a `CardItem` per node (header, rows, ports), `PortItem`s, `EdgeItem`s whose paths come from Rust lane points, `GroupItem`s; rubber-band selection; selection shared through the session.
 4. Connecting: drag from a port draws a temporary edge; Rust validates the connection (`isValidConnection` today) before `edit_workflow`.
 5. View: wheel zoom and drag pan in mouse mode; two-finger pan and pinch (`QNativeGestureEvent`) in touchpad mode; the zoom slider; reveal a node.
@@ -309,14 +309,14 @@ The node graph moves from React Flow to a `QGraphicsScene`: cards with typed por
 
 ### Risks
 
-- `elk-layout` is young (created February 2026, one author). It reports 1,989 of 1,989 test models matching Java ELK; its licence (EPL-2.0 with GPL-3.0 as a secondary licence) must be added to `deny.toml`'s allow-list under its GPL-3.0 option.
+- `layout-rs` lays out like Graphviz, not ELK, so a tidied flow differs from the web editor's; `elk-layout` (a Rust port of ELK) was tried and dropped: 18 days old, one author, 80 downloads and 29 crates when checked on 2026-11-06.
 
 ### Sources
 
 - Graphics View: https://doc.qt.io/qt-6/graphicsview.html (checked 2026-11-05)
 - Natron's node graph: https://github.com/NatronGitHub/Natron/blob/master/Gui/NodeGraph.h (checked 2026-11-05)
 - Olive's node view: https://github.com/olive-editor/olive/blob/master/app/widget/nodeview/nodeview.h (checked 2026-11-05)
-- elk-layout (elk-rs): https://github.com/openedges/elk-rs, validation report https://github.com/openedges/elk-rs/blob/main/tests/release_0_12_2.md (0.12.2, checked 2026-11-04)
+- layout-rs: https://github.com/nadavrot/layout (0.1.3, checked 2026-11-06)
 
 ## Inspector
 

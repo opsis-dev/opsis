@@ -301,7 +301,7 @@ impl Ui {
             let run = run::run_state(&self.session).view.progress;
             graph::shapes(&graph::cards(&wf, &self.catalog, &compiled, &run))
         };
-        let positions = auto_layout(&wf, &shapes).map_err(|e| e.to_string())?;
+        let positions = auto_layout(&wf, &shapes);
         if positions.is_empty() {
             return Ok(());
         }

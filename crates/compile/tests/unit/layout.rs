@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use opsis_compile::layout::{CardShape, ShapePort, Side, auto_layout};
+use opsis_compile::layout::{CardShape, auto_layout};
 use opsis_types::workflow::Workflow;
 use proptest::prelude::*;
 use serde_json::json;
@@ -52,31 +52,15 @@ fn workflow(dag: &Dag) -> Workflow {
 }
 
 fn shapes(dag: &Dag) -> HashMap<String, CardShape> {
-    (0..dag.heights.len())
-        .map(|i| {
-            let id = format!("n{i}");
-            let mut ports = vec![ShapePort {
-                handle: "out".to_owned(),
-                side: Side::Out,
-                y: 50.0,
-            }];
-            ports.extend(
-                dag.edges
-                    .iter()
-                    .enumerate()
-                    .filter(|(_, (_, b))| *b == i)
-                    .map(|(e, _)| ShapePort {
-                        handle: format!("in{e}"),
-                        side: Side::In,
-                        y: 50.0,
-                    }),
-            );
+    dag.heights
+        .iter()
+        .enumerate()
+        .map(|(i, height)| {
             (
-                id,
+                format!("n{i}"),
                 CardShape {
                     width: WIDTH,
-                    height: dag.heights[i],
-                    ports,
+                    height: *height,
                 },
             )
         })
@@ -90,7 +74,7 @@ proptest! {
     fn every_card_is_placed_left_to_right_without_overlap(dag in dag()) {
         let wf = workflow(&dag);
         let shapes = shapes(&dag);
-        let placed = auto_layout(&wf, &shapes).unwrap();
+        let placed = auto_layout(&wf, &shapes);
         prop_assert_eq!(placed.len(), dag.heights.len());
         for (a, b) in &dag.edges {
             let source = placed[&format!("n{a}")].x;

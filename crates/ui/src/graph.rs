@@ -7,7 +7,7 @@ use opsis_compile::compile::compile_workflow;
 use opsis_compile::edits::workflow::absolute_position;
 use opsis_compile::graph::{GraphIssue, IssueLevel};
 use opsis_compile::lanes::{LaneBox, LaneEdge, step_positions};
-use opsis_compile::layout::{CardShape, ShapePort, Side};
+use opsis_compile::layout::CardShape;
 use opsis_qt::{CardKind, CardView, EdgeView, PortView, RowView};
 use opsis_types::cards::CardRow;
 use opsis_types::events::{NodeRunStatus, RunProgress};
@@ -393,23 +393,11 @@ pub fn shapes(cards: &[CardView]) -> HashMap<String, CardShape> {
         .iter()
         .filter(|card| card.kind == CardKind::Card)
         .map(|card| {
-            let ports = card
-                .inputs
-                .iter()
-                .map(|port| (port, Side::In))
-                .chain(card.outputs.iter().map(|port| (port, Side::Out)))
-                .map(|(port, side)| ShapePort {
-                    handle: port.id.clone(),
-                    side,
-                    y: port.y,
-                })
-                .collect();
             (
                 card.id.clone(),
                 CardShape {
                     width: card.width,
                     height: card.height,
-                    ports,
                 },
             )
         })
