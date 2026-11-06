@@ -9,7 +9,9 @@
 #include <QHash>
 #include <QLabel>
 #include <QPointer>
+#include <QPushButton>
 #include <QTimer>
+#include <QToolButton>
 #include <optional>
 
 #include "opsis-qt/src/bridge.rs.h"
@@ -112,6 +114,7 @@ class GraphCanvas : public QGraphicsView {
   void SetMinimapVisible(bool visible);
   void Reveal(const QString& id);
   int BackwardEdges() const;
+  QString ToolbarProblems() const;
   void PlayMotion(const QString& id);
   double MotionElapsed(const QString& id) const;
   const bridge::MotionInfo& MotionInfoOf(const QString& motion);
@@ -163,6 +166,7 @@ class GraphCanvas : public QGraphicsView {
   std::optional<PortHit> PortAtScene(const QPointF& point) const;
   void PlaceOverlays();
   bool TouchpadMode() const;
+  void SyncMode();
 
   QGraphicsScene scene_;
   QHash<QString, CardItem*> cards_;
@@ -170,7 +174,10 @@ class GraphCanvas : public QGraphicsView {
   QGraphicsPathItem* pending_ = nullptr;
   std::optional<PortHit> from_;
   QWidget* toolbar_ = nullptr;
-  QLabel* zoom_label_ = nullptr;
+  QPushButton* zoom_button_ = nullptr;
+  QWidget* modes_ = nullptr;
+  QToolButton* mouse_ = nullptr;
+  QToolButton* touchpad_ = nullptr;
   Minimap* minimap_ = nullptr;
   QLabel* toast_ = nullptr;
   QTimer toast_timer_;

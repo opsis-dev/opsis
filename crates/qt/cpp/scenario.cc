@@ -602,6 +602,9 @@ void Scenario::BuildTour() {
     }
   });
   Add(
+      QStringLiteral("canvas-follows-touchpad"), [] {}, 300,
+      [canvas] { return canvas->ToolbarProblems(); });
+  Add(
       QStringLiteral("settings-api-switch"),
       [window] {
         SettingsWindow* settings = window->OpenSettings();

@@ -76,6 +76,8 @@ constexpr double kShimmerHalf = 3.0;
 constexpr int kMotionFrameMs = 16;
 constexpr std::array<std::pair<double, double>, 3> kSmear = {
     {{-3.0, 0.45}, {-6.0, 0.25}, {-9.0, 0.12}}};
+constexpr int kZoomButtonWidth = 140;
+constexpr int kOverlayMargin = 12;
 constexpr double kRingOut = 3.0;
 constexpr double kBadgeHeight = 20.0;
 constexpr double kBadgeIcon = 12.0;
@@ -763,31 +765,72 @@ GraphCanvas::GraphCanvas(QWidget* parent) : QGraphicsView(parent) {
   bar->setSpacing(2);
   auto* out = MakeIconButton(QStringLiteral("minus"),
                              QStringLiteral("Zoom out"), toolbar_);
-  zoom_label_ = MakeLabel(QStringLiteral("100%"), "muted", toolbar_);
-  zoom_label_->setMinimumWidth(44);
-  zoom_label_->setAlignment(Qt::AlignCenter);
   auto* in = MakeIconButton(QStringLiteral("plus"), QStringLiteral("Zoom in"),
                             toolbar_);
-  auto* fit = MakeIconButton(QStringLiteral("maximize-2"),
+  zoom_button_ =
+      MakeButton(QStringLiteral("100%"), "ghost", QString(), toolbar_);
+  zoom_button_->setFixedWidth(kZoomButtonWidth);
+  zoom_button_->setToolTip(QStringLiteral("Zoom to 100%"));
+  auto* fit = MakeIconButton(QStringLiteral("maximize"),
                              QStringLiteral("Fit to view"), toolbar_);
-  auto* map = MakeIconButton(QStringLiteral("map"), QStringLiteral("Minimap"),
-                             toolbar_);
-  map->setCheckable(true);
-  map->setChecked(true);
   for (QWidget* widget :
-       {static_cast<QWidget*>(out), static_cast<QWidget*>(zoom_label_),
-        static_cast<QWidget*>(in), static_cast<QWidget*>(fit),
-        static_cast<QWidget*>(map)}) {
+       {static_cast<QWidget*>(out), static_cast<QWidget*>(in),
+        static_cast<QWidget*>(zoom_button_), static_cast<QWidget*>(fit)}) {
+    widget->setFocusPolicy(Qt::NoFocus);
     bar->addWidget(widget);
   }
   connect(out, &QToolButton::clicked, this,
           [this] { ZoomBy(1 / 1.2, viewport()->rect().center()); });
   connect(in, &QToolButton::clicked, this,
           [this] { ZoomBy(1.2, viewport()->rect().center()); });
+  connect(zoom_button_, &QPushButton::clicked, this,
+          [this] { ZoomBy(1.0 / zoom(), viewport()->rect().center()); });
   connect(fit, &QToolButton::clicked, this, &GraphCanvas::FitAll);
-  connect(map, &QToolButton::toggled, this, &GraphCanvas::SetMinimapVisible);
+
+  modes_ = new QWidget(this);
+  modes_->setObjectName(QStringLiteral("CanvasToolbar"));
+  modes_->setAttribute(Qt::WA_StyledBackground);
+  auto* mode_bar = new QHBoxLayout(modes_);
+  mode_bar->setContentsMargins(4, 4, 4, 4);
+  mode_bar->setSpacing(4);
+  mouse_ = MakeIconButton(
+      QStringLiteral("mouse"),
+      QStringLiteral(
+          "Mouse: the wheel zooms, drag the background to move around"),
+      modes_);
+  touchpad_ = MakeIconButton(
+      QStringLiteral("touchpad"),
+      QStringLiteral("Touchpad: two fingers move around, pinch to zoom"),
+      modes_);
+  auto* map = MakeIconButton(QStringLiteral("map"),
+                             QStringLiteral("Hide the minimap"), modes_);
+  for (QToolButton* button : {mouse_, touchpad_, map}) {
+    button->setCheckable(true);
+    button->setFocusPolicy(Qt::NoFocus);
+  }
+  map->setChecked(true);
+  mode_bar->addWidget(mouse_);
+  mode_bar->addWidget(touchpad_);
+  mode_bar->addWidget(map);
+  const auto choose = [](const QString& mode) {
+    try {
+      App::Get().session().patch_settings(ToRust(
+          QStringLiteral(R"({"editor":{"canvasMode":"%1"}})").arg(mode)));
+    } catch (const rust::Error& error) {
+      App::Get().ShowError(QString::fromUtf8(error.what()));
+    }
+  };
+  connect(mouse_, &QToolButton::clicked, this,
+          [choose] { choose(QStringLiteral("mouse")); });
+  connect(touchpad_, &QToolButton::clicked, this,
+          [choose] { choose(QStringLiteral("touchpad")); });
+  connect(map, &QToolButton::toggled, this, [this, map](bool shown) {
+    SetMinimapVisible(shown);
+    map->setToolTip(shown ? QStringLiteral("Hide the minimap")
+                          : QStringLiteral("Show the minimap"));
+  });
   connect(this, &GraphCanvas::ZoomChanged, this, [this](double value) {
-    zoom_label_->setText(QStringLiteral("%1%").arg(std::lround(value * 100)));
+    zoom_button_->setText(QStringLiteral("%1%").arg(std::lround(value * 100)));
   });
 
   minimap_ = new Minimap(this, &scene_);
@@ -834,10 +877,15 @@ GraphCanvas::GraphCanvas(QWidget* parent) : QGraphicsView(parent) {
             Toast(body.isEmpty() ? title : title + QStringLiteral(": ") + body,
                   false);
           });
-  connect(EventHub::Instance(), &EventHub::SettingsChanged, this, [this] {
-    canvas_mode_ = ToQ(App::Get().session().settings().canvas_mode);
-  });
+  connect(EventHub::Instance(), &EventHub::SettingsChanged, this,
+          &GraphCanvas::SyncMode);
+  SyncMode();
+}
+
+void GraphCanvas::SyncMode() {
   canvas_mode_ = ToQ(App::Get().session().settings().canvas_mode);
+  mouse_->setChecked(!TouchpadMode());
+  touchpad_->setChecked(TouchpadMode());
 }
 
 bool GraphCanvas::TouchpadMode() const {
@@ -1126,6 +1174,21 @@ const bridge::MotionInfo& GraphCanvas::MotionInfoOf(const QString& motion) {
   return *found;
 }
 
+QString GraphCanvas::ToolbarProblems() const {
+  QStringList problems;
+  if (mouse_->isChecked() == TouchpadMode())
+    problems << QStringLiteral("mouse button out of step");
+  if (touchpad_->isChecked() != TouchpadMode())
+    problems << QStringLiteral("touchpad button out of step");
+  if (modes_->x() < width() / 2 || modes_->y() > kOverlayMargin * 2) {
+    problems << QStringLiteral("mode pill isn't top right");
+  }
+  if (toolbar_->x() > width() / 2 || toolbar_->y() < height() / 2) {
+    problems << QStringLiteral("zoom panel isn't bottom left");
+  }
+  return problems.join(QStringLiteral("; "));
+}
+
 QStringList GraphCanvas::GroupIds() const {
   QStringList ids;
   for (const CardItem* card : cards_) {
@@ -1341,6 +1404,8 @@ void GraphCanvas::resizeEvent(QResizeEvent* event) {
 void GraphCanvas::PlaceOverlays() {
   toolbar_->adjustSize();
   toolbar_->move(12, height() - toolbar_->height() - 12);
+  modes_->adjustSize();
+  modes_->move(width() - modes_->width() - 12, 12);
   minimap_->move(width() - minimap_->width() - 12,
                  height() - minimap_->height() - 12);
   toast_->move((width() - toast_->width()) / 2,
