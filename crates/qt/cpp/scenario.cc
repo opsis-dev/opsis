@@ -2,12 +2,15 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QDir>
 #include <QElapsedTimer>
 #include <QFile>
+#include <QImage>
 #include <QLineEdit>
 #include <QTextCursor>
 #include <QTimer>
 #include <QToolButton>
+#include <QUrl>
 #include <QtTest/QTest>
 #include <algorithm>
 
@@ -24,6 +27,8 @@
 namespace opsis {
 
 namespace {
+
+constexpr int kDropSide = 64;
 
 QString Rss() {
   QFile status(QStringLiteral("/proc/self/status"));
@@ -312,6 +317,24 @@ void Scenario::BuildTour() {
       },
       700);
   Add(QStringLiteral("undo-paste"), [window] {
+    for (QAction* action : window->findChildren<QAction*>()) {
+      if (action->text() == QStringLiteral("Undo")) action->trigger();
+    }
+  });
+  Add(
+      QStringLiteral("drop-a-file"),
+      [canvas] {
+        const QString file = QDir(qEnvironmentVariable("OPSIS_USER_DATA"))
+                                 .filePath(QStringLiteral("tour-drop.png"));
+        QImage picture(kDropSide, kDropSide, QImage::Format_RGB32);
+        picture.fill(App::Get().Token("primary"));
+        picture.save(file);
+        const QPointF at =
+            canvas->mapToScene(canvas->viewport()->rect().center());
+        canvas->DropFiles({QUrl::fromLocalFile(file)}, at);
+      },
+      900);
+  Add(QStringLiteral("undo-drop"), [window] {
     for (QAction* action : window->findChildren<QAction*>()) {
       if (action->text() == QStringLiteral("Undo")) action->trigger();
     }

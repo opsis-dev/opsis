@@ -5,10 +5,12 @@ use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use indexmap::IndexMap;
+use opsis_compile::canvas::{snap_to_grid, staggered};
 use opsis_compile::catalog::{EditorNode, editor_catalog};
 use opsis_compile::compile::compile_workflow;
 use opsis_compile::graph::connection_problem_now;
 use opsis_compile::node::Platform as NodePlatform;
+use opsis_compile::nodes::media::IMPORT_TYPE;
 use opsis_qt::{
     CategoryView, Choice, CloseView, EventKind, GraphView, Host, HostResult, InspectorView,
     MenuSectionView, NodeMove, PaletteEntry, ProjectEntry, ProjectView, ScreenArea, SettingsView,
@@ -677,7 +679,7 @@ impl Host for Ui {
                 kind: node_type.to_owned(),
                 id: None,
                 label: None,
-                position: Some(Position { x, y }),
+                position: Some(snap_to_grid(Position { x, y })),
                 params: None,
             })
             .map_err(|e| e.0)?
@@ -686,6 +688,39 @@ impl Host for Ui {
             .unwrap_or_default();
         self.select(vec![id.clone()]);
         Ok(id)
+    }
+
+    fn drop_files(&self, paths: Vec<String>, x: f64, y: f64) -> HostResult<u32> {
+        let Some(dir) = self.state().editor().dir() else {
+            return Ok(0);
+        };
+        let assets = self
+            .runtime
+            .block_on(projects::import_assets(
+                self.session.clone(),
+                dir.to_string_lossy().into_owned(),
+                Some(paths),
+            ))
+            .map_err(|e| format!("Couldn't add the files: {}", e.0))?;
+        let mut added = Vec::new();
+        for (index, asset) in assets.iter().enumerate() {
+            let mut params = Map::new();
+            params.insert("path".to_owned(), Value::String(asset.clone()));
+            let ids = self
+                .edit(WorkflowEdit::AddNode {
+                    kind: IMPORT_TYPE.to_owned(),
+                    id: None,
+                    label: None,
+                    position: Some(staggered(Position { x, y }, index)),
+                    params: Some(params),
+                })
+                .map_err(|e| e.0)?;
+            added.extend(ids);
+        }
+        if !added.is_empty() {
+            self.select(added);
+        }
+        Ok(u32::try_from(assets.len()).unwrap_or(u32::MAX))
     }
 
     fn undo(&self) -> bool {

@@ -13,6 +13,9 @@
 
 #include "opsis-qt/src/bridge.rs.h"
 
+class QMimeData;
+class QUrl;
+
 namespace opsis {
 
 class GraphCanvas;
@@ -98,6 +101,7 @@ class GraphCanvas : public QGraphicsView {
   Q_INVOKABLE void paste();
   Q_INVOKABLE void selectAll() { SelectAll(); }
   void Duplicate();
+  void DropFiles(const QList<QUrl>& urls, const QPointF& at);
   bool minimap_visible() const;
   void CardMoved(const QString& id);
   void BeginConnect(const PortHit& from);
@@ -129,6 +133,7 @@ class GraphCanvas : public QGraphicsView {
   void scrollContentsBy(int dx, int dy) override;
 
  private:
+  static bool Droppable(const QMimeData* data);
   void SyncSelection();
   void RemoveSelected();
   void RouteEdge(EdgeItem* edge);

@@ -1,6 +1,7 @@
 pub mod asset_ref;
 pub mod audio;
 pub mod backdrops;
+pub mod canvas;
 pub mod card_rows;
 pub mod cards;
 pub mod catalog;

@@ -1002,25 +1002,52 @@ void GraphCanvas::PlaceOverlays() {
 }
 
 void GraphCanvas::dragEnterEvent(QDragEnterEvent* event) {
-  if (event->mimeData()->hasFormat(kNodeMime)) {
-    event->acceptProposedAction();
-  }
+  if (Droppable(event->mimeData())) event->acceptProposedAction();
 }
 
 void GraphCanvas::dragMoveEvent(QDragMoveEvent* event) {
-  if (event->mimeData()->hasFormat(kNodeMime)) {
-    event->acceptProposedAction();
+  if (Droppable(event->mimeData())) event->acceptProposedAction();
+}
+
+bool GraphCanvas::Droppable(const QMimeData* data) {
+  if (data->hasFormat(kNodeMime)) return true;
+  const QList<QUrl> urls = data->urls();
+  return std::any_of(urls.begin(), urls.end(),
+                     [](const QUrl& url) { return url.isLocalFile(); });
+}
+
+void GraphCanvas::DropFiles(const QList<QUrl>& urls, const QPointF& at) {
+  rust::Vec<rust::String> paths;
+  for (const QUrl& url : urls) {
+    if (url.isLocalFile()) paths.push_back(ToRust(url.toLocalFile()));
+  }
+  if (paths.empty()) return;
+  try {
+    const std::uint32_t added =
+        App::Get().session().drop_files(std::move(paths), at.x(), at.y());
+    if (added > 0) {
+      Toast(added == 1
+                ? QStringLiteral("Added 1 file to the project")
+                : QStringLiteral("Added %1 files to the project").arg(added),
+            false);
+    }
+  } catch (const rust::Error& error) {
+    Toast(QString::fromUtf8(error.what()), true);
   }
 }
 
 void GraphCanvas::dropEvent(QDropEvent* event) {
-  const QByteArray type = event->mimeData()->data(kNodeMime);
-  if (type.isEmpty()) return;
   const QPointF at = mapToScene(event->position().toPoint());
+  const QByteArray type = event->mimeData()->data(kNodeMime);
+  if (type.isEmpty()) {
+    DropFiles(event->mimeData()->urls(), at);
+    event->acceptProposedAction();
+    return;
+  }
   try {
     App::Get().session().add_node(
         rust::Str(type.constData(), static_cast<std::size_t>(type.size())),
-        at.x() - 128, at.y() - 22);
+        at.x(), at.y());
   } catch (const rust::Error& error) {
     Toast(QString::fromUtf8(error.what()), true);
   }

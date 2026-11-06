@@ -67,6 +67,7 @@ pub trait Host {
     fn copy_selection(&self) -> String;
     fn paste_text(&self, text: &str) -> HostResult<()>;
     fn duplicate_selection(&self) -> HostResult<()>;
+    fn drop_files(&self, paths: Vec<String>, x: f64, y: f64) -> HostResult<u32>;
     fn text_tokens(&self, value: &str, pauses: bool) -> Vec<TextToken>;
     fn join_tokens(&self, tokens: Vec<TextToken>) -> String;
     fn save(&self) -> HostResult<()>;
@@ -332,6 +333,10 @@ impl Session {
 
     pub(crate) fn duplicate_selection(&self) -> HostResult<()> {
         self.0.duplicate_selection()
+    }
+
+    pub(crate) fn drop_files(&self, paths: Vec<String>, x: f64, y: f64) -> HostResult<u32> {
+        self.0.drop_files(paths, x, y)
     }
 
     pub(crate) fn text_tokens(&self, value: &str, pauses: bool) -> Vec<TextToken> {

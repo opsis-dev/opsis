@@ -1,4 +1,5 @@
 mod action_sounds;
+mod canvas;
 mod checks;
 mod clip;
 mod compile;

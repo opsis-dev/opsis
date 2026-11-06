@@ -365,6 +365,7 @@ pub mod ffi {
         fn copy_selection(self: &Session) -> String;
         fn paste_text(self: &Session, text: &str) -> Result<()>;
         fn duplicate_selection(self: &Session) -> Result<()>;
+        fn drop_files(self: &Session, paths: Vec<String>, x: f64, y: f64) -> Result<u32>;
         fn text_tokens(self: &Session, value: &str, pauses: bool) -> Vec<TextToken>;
         fn join_tokens(self: &Session, tokens: Vec<TextToken>) -> String;
         fn save(self: &Session) -> Result<()>;
