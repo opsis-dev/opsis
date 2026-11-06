@@ -19,6 +19,7 @@ pub mod graph;
 pub mod hosted;
 pub mod ids;
 pub mod inspector;
+pub mod lanes;
 pub mod limits;
 pub mod mix;
 pub mod node;

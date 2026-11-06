@@ -5,6 +5,7 @@ use opsis_compile::cards::{CardSources, workflow_cards};
 use opsis_compile::catalog::{CatalogPort, EditorNode, node_inputs};
 use opsis_compile::compile::compile_workflow;
 use opsis_compile::edits::workflow::absolute_position;
+use opsis_compile::lanes::{LaneBox, LaneEdge, step_positions};
 use opsis_qt::{CardKind, CardView, EdgeView, PortView, RowView};
 use opsis_types::cards::CardRow;
 use opsis_types::workflow::{Workflow, WorkflowNode};
@@ -21,27 +22,8 @@ const CARD_ROW: f64 = 22.0;
 const NOTE_HEIGHT: f64 = 120.0;
 const GROUP_WIDTH: f64 = 240.0;
 const GROUP_HEIGHT: f64 = 160.0;
-const LANE_GAP: f64 = 14.0;
-const STEP_OFFSET: f64 = 20.0;
 const GROUP_TYPE: &str = "core.group";
 const NOTE_TYPE: &str = "core.note";
-
-#[derive(Debug, Clone, Copy)]
-struct LaneBox {
-    x: f64,
-    y: f64,
-    width: f64,
-    height: f64,
-}
-
-#[derive(Debug)]
-struct Run<'a> {
-    id: &'a str,
-    left: f64,
-    right: f64,
-    top: f64,
-    bottom: f64,
-}
 
 pub fn cards(wf: &Workflow, catalog: &IndexMap<String, EditorNode>) -> Vec<CardView> {
     let compiled = compile_workflow(wf, None);
@@ -217,7 +199,16 @@ pub fn edges(wf: &Workflow, cards: &[CardView]) -> Vec<EdgeView> {
             )
         })
         .collect();
-    let steps = step_positions(&boxes, wf);
+    let lanes: Vec<LaneEdge<'_>> = wf
+        .edges
+        .iter()
+        .map(|edge| LaneEdge {
+            id: &edge.id,
+            source: &edge.source,
+            target: &edge.target,
+        })
+        .collect();
+    let steps = step_positions(&boxes, &lanes);
     wf.edges
         .iter()
         .map(|edge| {
@@ -237,80 +228,4 @@ pub fn edges(wf: &Workflow, cards: &[CardView]) -> Vec<EdgeView> {
             }
         })
         .collect()
-}
-
-fn run_of<'a>(
-    id: &'a str,
-    source: &str,
-    target: &str,
-    boxes: &HashMap<&str, LaneBox>,
-) -> Option<(i64, Run<'a>)> {
-    let from = boxes.get(source)?;
-    let to = boxes.get(target)?;
-    let left = from.x + from.width + STEP_OFFSET;
-    let right = to.x - STEP_OFFSET;
-    (right > left).then(|| {
-        (
-            opsis_types::numbers::truncate(to.x.round()),
-            Run {
-                id,
-                left,
-                right,
-                top: from.y.min(to.y),
-                bottom: (from.y + from.height).max(to.y + to.height),
-            },
-        )
-    })
-}
-
-fn lanes_of(runs: &mut [Run<'_>]) -> Vec<usize> {
-    runs.sort_by(|a, b| {
-        a.top
-            .total_cmp(&b.top)
-            .then(a.bottom.total_cmp(&b.bottom))
-            .then(a.id.cmp(b.id))
-    });
-    let mut ends: Vec<f64> = Vec::new();
-    runs.iter()
-        .map(|run| {
-            let lane = ends
-                .iter()
-                .position(|end| *end < run.top)
-                .unwrap_or(ends.len());
-            if lane == ends.len() {
-                ends.push(run.bottom);
-            } else {
-                ends[lane] = run.bottom;
-            }
-            lane
-        })
-        .collect()
-}
-
-fn step_positions<'a>(boxes: &HashMap<&str, LaneBox>, wf: &'a Workflow) -> HashMap<&'a str, f64> {
-    let mut columns: IndexMap<i64, Vec<Run<'a>>> = IndexMap::new();
-    for edge in &wf.edges {
-        if let Some((column, run)) = run_of(&edge.id, &edge.source, &edge.target, boxes) {
-            columns.entry(column).or_default().push(run);
-        }
-    }
-    let mut steps = HashMap::new();
-    for runs in columns.values_mut() {
-        let lanes = lanes_of(runs);
-        let count = lanes.iter().max().map_or(1, |m| m + 1);
-        let left = runs.iter().map(|r| r.left).fold(f64::MIN, f64::max);
-        let right = runs.iter().map(|r| r.right).fold(f64::MAX, f64::min);
-        if right <= left {
-            continue;
-        }
-        let count_f = rows_height(count, 1.0);
-        let spacing = LANE_GAP.min((right - left) / (count_f + 1.0));
-        let middle = f64::midpoint(left, right);
-        for (run, lane) in runs.iter().zip(lanes) {
-            let offset = rows_height(lane, 1.0) - (count_f - 1.0) / 2.0;
-            let x = offset.mul_add(spacing, middle);
-            steps.insert(run.id, (x - run.left) / (run.right - run.left));
-        }
-    }
-    steps
 }

@@ -11,6 +11,7 @@ mod helpers;
 mod hosted;
 mod image_plans;
 mod keyframes;
+mod lanes;
 mod lengths;
 mod looks;
 mod mix;

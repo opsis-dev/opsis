@@ -2,7 +2,7 @@
 
 How Opsis replaces its editor, a React app in each OS's own webview (WebKitGTK, WKWebView, WebView2), with Qt 6.12 LTS Widgets: a C++ view layer that Rust drives through `cxx`, drawn the same on Linux, Windows and macOS, in the same process as the document, the compile and the run.
 
-Status: **Session** is built (`crates/session`; its rules are in `agent-docs/document.md`), and a first cut of the Qt view layer runs (`crates/qt`, `crates/ui`); the rest is planned. Facts were checked on 4–5 November 2026.
+Status: **Session**, **Shell**, **Look** and **Docking** are built (`crates/session`, `crates/qt`, `crates/ui`; their rules are in `agent-docs/document.md` and `agent-docs/toolchain.md`), with first cuts of the graph canvas, the Inspector (with the project panel) and Settings; the rest is planned. Facts were checked on 4–5 November 2026.
 
 ## How to read this plan
 
