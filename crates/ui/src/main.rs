@@ -4,6 +4,7 @@ mod folders;
 mod graph;
 mod inspector;
 mod look;
+mod media;
 mod menu;
 mod motion;
 mod platform;

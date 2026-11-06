@@ -19,6 +19,7 @@
 #include <cmath>
 
 #include "app.h"
+#include "event_hub.h"
 #include "playback_clock.h"
 #include "widgets.h"
 
@@ -50,6 +51,8 @@ constexpr int kTagPad = 4;
 constexpr int kSmallFont = 10;
 constexpr int kLabelFont = 11;
 constexpr double kMsPerSecond = 1000.0;
+constexpr double kStripOpacity = 0.6;
+constexpr int kCachedPictures = 64;
 
 QColor WithAlpha(QColor color, double alpha) {
   color.setAlphaF(static_cast<float>(alpha));
@@ -72,6 +75,8 @@ TimelineCanvas::TimelineCanvas(QWidget* parent) : QAbstractScrollArea(parent) {
   viewport()->setMouseTracking(true);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+  connect(EventHub::Instance(), &EventHub::MediaChanged, viewport(),
+          [this] { viewport()->update(); });
   connect(PlaybackClock::Instance(), &PlaybackClock::Changed, this, [this] {
     FollowPlayhead();
     viewport()->update();
@@ -369,6 +374,77 @@ QPointF TimelineCanvas::CameraKeyPoint(const QString& key) const {
   return {};
 }
 
+const QPixmap& TimelineCanvas::Picture(const QString& path) {
+  auto found = pictures_.find(path);
+  if (found == pictures_.end()) {
+    if (pictures_.size() > kCachedPictures) pictures_.clear();
+    found = pictures_.insert(path, QPixmap(path));
+  }
+  return found.value();
+}
+
+void TimelineCanvas::PaintFilmstrip(QPainter* painter, const QString& key,
+                                    const QRectF& box) {
+  const double offset = std::max(0.0, kHeader - box.left());
+  const double right = std::min<double>(box.right(), viewport()->width());
+  const double width = right - (box.left() + offset);
+  if (width < 1) return;
+  const bridge::FilmTiles tiles = App::Get().session().film_tiles(
+      ToRust(key), ppf_, box.height(), offset, width);
+  if (tiles.image.empty()) return;
+  const QPixmap& picture = Picture(ToQ(tiles.image));
+  if (picture.isNull()) return;
+  painter->save();
+  painter->setOpacity(kStripOpacity);
+  if (tiles.still) {
+    const double tile =
+        picture.width() * box.height() / std::max(1, picture.height());
+    const double left = box.left() + horizontalScrollBar()->value() - kHeader;
+    const double first = std::floor((left + offset) / tile) * tile - left;
+    const int count =
+        static_cast<int>(std::ceil((offset + width - first) / tile));
+    for (int n = 0; n < count; ++n) {
+      const double x = first + n * tile;
+      painter->drawPixmap(QRectF(box.left() + x, box.top(), tile, box.height()),
+                          picture, QRectF(picture.rect()));
+    }
+  } else {
+    for (const auto& tile : tiles.tiles) {
+      painter->drawPixmap(
+          QRectF(box.left() + tile.x, box.top(), tile.width, box.height()),
+          picture,
+          QRectF(static_cast<double>(tile.index * tiles.tile_width), 0,
+                 tiles.tile_width, tiles.tile_height));
+    }
+  }
+  painter->restore();
+}
+
+void TimelineCanvas::PaintWaveform(QPainter* painter, const QString& key,
+                                   const QRectF& box) {
+  const double offset = std::max(0.0, kHeader - box.left());
+  const double right = std::min<double>(box.right(), viewport()->width());
+  const auto width = static_cast<std::uint32_t>(
+      std::max(0.0, std::floor(right - (box.left() + offset))));
+  if (width == 0) return;
+  const rust::Vec<float> columns =
+      App::Get().session().wave_columns(ToRust(key), ppf_, offset, width);
+  if (columns.size() < static_cast<std::size_t>(width) * 2) return;
+  const QColor colour = Token("waveform");
+  const double mid = box.top() + box.height() / 2;
+  const double half = box.height() / 2;
+  for (std::uint32_t i = 0; i < width; ++i) {
+    const float high = columns.at(static_cast<std::size_t>(i) * 2);
+    const float low = columns.at(static_cast<std::size_t>(i) * 2 + 1);
+    if (std::isnan(high) || std::isnan(low)) continue;
+    const double top = mid - high * half;
+    const double bottom = mid - low * half;
+    painter->fillRect(
+        QRectF(box.left() + offset + i, top, 1, std::max(1.0, bottom - top)),
+        colour);
+  }
+}
+
 void TimelineCanvas::PaintBar(QPainter* painter,
                               const bridge::TimelineBarView& bar) {
   const QRectF box = BarRect(ToQ(bar.key));
@@ -382,6 +458,7 @@ void TimelineCanvas::PaintBar(QPainter* painter,
   painter->fillPath(path, fill);
   painter->save();
   painter->setClipPath(path);
+  PaintFilmstrip(painter, ToQ(bar.key), box);
   QFont font = painter->font();
   font.setPixelSize(kLabelFont);
   painter->setFont(font);
@@ -453,6 +530,7 @@ void TimelineCanvas::PaintAudio(QPainter* painter,
   painter->fillPath(path, fill);
   painter->save();
   painter->setClipPath(path);
+  PaintWaveform(painter, ToQ(bar.key), box);
   QFont font = painter->font();
   font.setPixelSize(kLabelFont);
   painter->setFont(font);

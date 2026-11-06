@@ -2,10 +2,10 @@ use std::fmt;
 
 use crate::bridge::ffi::{
     self, BarView, BoundsView, CategoryView, CloseView, ColorView, DialogKind, EventKind,
-    GradientInfo, GraphView, InspectorView, MarkDrawnView, MarkPointsView, MenuSectionView,
-    MotionInfo, NodeMove, PaletteEntry, PoseView, ProjectEntry, ProjectView, RemovalView,
-    RulerStep, ScreenArea, SettingsView, SnapView, TemplateView, TextToken, TimelineView,
-    VariableView, WindowPlacement,
+    FilmTiles, GradientInfo, GraphView, InspectorView, KeyLineView, MarkDrawnView, MarkPointsView,
+    MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView, ProjectEntry, ProjectView,
+    RemovalView, RulerStep, ScreenArea, SettingsView, SnapView, TemplateView, TextToken,
+    TimelineView, VariableView, WindowPlacement,
 };
 
 pub type HostResult<T> = Result<T, String>;
@@ -93,6 +93,17 @@ pub trait Host {
     fn box_kept(&self, area: BoundsView) -> bool;
     fn edit_keyframes(&self, edit_json: &str) -> HostResult<()>;
     fn timeline(&self) -> TimelineView;
+    fn key_line(&self, bar: &str, track: &str) -> KeyLineView;
+    fn bar_local(&self, bar: &str, abs: f64) -> f64;
+    fn film_tiles(
+        &self,
+        bar: &str,
+        px_per_frame: f64,
+        height: f64,
+        offset: f64,
+        width: f64,
+    ) -> FilmTiles;
+    fn wave_columns(&self, bar: &str, px_per_frame: f64, offset: f64, width: u32) -> Vec<f32>;
     fn select_pinned(&self, ids: Vec<String>, source: &str);
     fn edit_timeline(&self, edit_json: &str) -> String;
     fn edit_markers(&self, edit_json: &str) -> HostResult<()>;
@@ -472,6 +483,35 @@ impl Session {
 
     pub(crate) fn timeline(&self) -> TimelineView {
         self.0.timeline()
+    }
+
+    pub(crate) fn key_line(&self, bar: &str, track: &str) -> KeyLineView {
+        self.0.key_line(bar, track)
+    }
+
+    pub(crate) fn bar_local(&self, bar: &str, abs: f64) -> f64 {
+        self.0.bar_local(bar, abs)
+    }
+
+    pub(crate) fn film_tiles(
+        &self,
+        bar: &str,
+        px_per_frame: f64,
+        height: f64,
+        offset: f64,
+        width: f64,
+    ) -> FilmTiles {
+        self.0.film_tiles(bar, px_per_frame, height, offset, width)
+    }
+
+    pub(crate) fn wave_columns(
+        &self,
+        bar: &str,
+        px_per_frame: f64,
+        offset: f64,
+        width: u32,
+    ) -> Vec<f32> {
+        self.0.wave_columns(bar, px_per_frame, offset, width)
     }
 
     pub(crate) fn select_pinned(&self, ids: Vec<String>, source: &str) {

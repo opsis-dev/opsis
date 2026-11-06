@@ -2,8 +2,10 @@
 #define OPSIS_QT_CPP_TIMELINE_CANVAS_H_
 
 #include <QAbstractScrollArea>
+#include <QHash>
 #include <QJsonObject>
 #include <QLineEdit>
+#include <QPixmap>
 #include <QPointer>
 #include <QSet>
 #include <QString>
@@ -115,6 +117,9 @@ class TimelineCanvas : public QAbstractScrollArea {
   void StartRename(const QString& id);
   void ZoomAround(double factor, double x);
   void FollowPlayhead();
+  void PaintFilmstrip(QPainter* painter, const QString& key, const QRectF& box);
+  void PaintWaveform(QPainter* painter, const QString& key, const QRectF& box);
+  const QPixmap& Picture(const QString& path);
 
   std::unique_ptr<bridge::TimelineView> view_;
   double ppf_ = 2;
@@ -127,6 +132,7 @@ class TimelineCanvas : public QAbstractScrollArea {
   std::optional<double> guide_;
   std::optional<QRectF> marquee_;
   QPointer<QLineEdit> rename_;
+  QHash<QString, QPixmap> pictures_;
 };
 
 }

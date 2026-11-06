@@ -12,14 +12,16 @@ use opsis_compile::graph::{IssueLevel, connection_problem_now};
 use opsis_compile::layout::auto_layout;
 use opsis_compile::node::Platform as NodePlatform;
 use opsis_compile::nodes::media::IMPORT_TYPE;
+use opsis_compile::timeline::flatten::BarThumbnail;
 use opsis_compile::timeline::view;
 use opsis_qt::{
     BarView, BoundsView, CategoryView, Choice, CloseView, ColorView, EventKind, FileView,
-    GradientInfo, GraphView, Host, HostResult, InspectorView, MarkDrawnView, MarkPointsView,
-    MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView, ProjectEntry, ProjectView,
-    RemovalView, RulerStep, ScreenArea, SettingsView, SnapView, TemplateView, TextToken,
-    TimelineView, VariableView, WindowPlacement,
+    FilmTiles, GradientInfo, GraphView, Host, HostResult, InspectorView, KeyLineView,
+    MarkDrawnView, MarkPointsView, MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView,
+    ProjectEntry, ProjectView, RemovalView, RulerStep, ScreenArea, SettingsView, SnapView,
+    TemplateView, TextToken, TimelineView, VariableView, WindowPlacement,
 };
+use opsis_session::analysis::{self, AnalysisRequest, AnalysisResult};
 use opsis_session::error::CommandError;
 use opsis_session::events::{MAIN_WINDOW, SessionEvent};
 use opsis_session::exit::{self, Exit};
@@ -41,7 +43,7 @@ use tokio::sync::broadcast::error::RecvError;
 
 use crate::platform::QtPlatform;
 use crate::project::Extras;
-use crate::{clipboard, colors, graph, inspector, look, motion, project, timeline};
+use crate::{clipboard, colors, graph, inspector, look, media, motion, project, timeline};
 
 const LAYOUT_KEY: &str = "nativeDockLayout";
 const BENCH_KINDS: [&str; 4] = [
@@ -63,6 +65,7 @@ pub struct Ui {
     showing: AtomicBool,
     closing: Arc<Mutex<Option<CloseRequest>>>,
     compiled: Arc<Mutex<graph::Compiled>>,
+    media: media::MediaCache,
     started: Instant,
 }
 
@@ -157,6 +160,7 @@ impl Ui {
             closing: Arc::new(Mutex::new(None)),
             bundle: editor_bundle(NodePlatform::current()),
             compiled: Arc::new(Mutex::new(graph::Compiled::default())),
+            media: media::MediaCache::default(),
             started: Instant::now(),
         }
     }
@@ -167,6 +171,32 @@ impl Ui {
 
     fn state(&self) -> &AppState {
         self.session.state::<AppState>()
+    }
+
+    fn resolve(&self, dir: &Path, reference: &str) -> String {
+        let public = self.state().paths.public_dir.clone();
+        opsis_project::paths::ref_to_path(dir, &public, reference)
+            .map_or_default(|path| path.to_string_lossy().into_owned())
+    }
+
+    fn load_media(&self, key: String, request: AnalysisRequest) {
+        if !self.media.claim(&key) {
+            return;
+        }
+        let session = self.session.clone();
+        let cache = self.media.clone();
+        self.runtime.spawn(async move {
+            let waveform = matches!(request, AnalysisRequest::Waveform { .. });
+            match analysis::analyze(&session, request).await {
+                Ok(AnalysisResult::Filmstrip { filmstrip }) => {
+                    cache.put_strip(&key, Some(filmstrip));
+                }
+                Ok(AnalysisResult::Waveform { waveform }) => cache.put_wave(&key, Some(waveform)),
+                _ if waveform => cache.put_wave(&key, None),
+                _ => cache.put_strip(&key, None),
+            }
+            opsis_qt::post_event(EventKind::Media);
+        });
     }
 
     fn workflow(&self) -> Option<Workflow> {
@@ -1163,6 +1193,135 @@ impl Host for Ui {
             log::warn!("sharing the selection: {}", error.0);
         }
         compile::set_compile_focus(&self.session, pinned.or_else(|| single.clone()), single);
+    }
+
+    fn film_tiles(
+        &self,
+        bar: &str,
+        px_per_frame: f64,
+        height: f64,
+        offset: f64,
+        width: f64,
+    ) -> FilmTiles {
+        let empty = FilmTiles {
+            image: String::new(),
+            tile_width: 0,
+            tile_height: 0,
+            still: false,
+            tiles: Vec::new(),
+        };
+        let Some(dir) = self.state().editor().dir() else {
+            return empty;
+        };
+        let dir_text = dir.to_string_lossy().into_owned();
+        let editor = self.state().editor();
+        let Some(film) = editor.film.as_ref() else {
+            return empty;
+        };
+        let Some(video) = film.flat.bars.iter().find(|b| b.key == bar) else {
+            return empty;
+        };
+        match &video.thumbnail {
+            Some(BarThumbnail::Still { src }) => FilmTiles {
+                image: self.resolve(&dir, src),
+                still: true,
+                ..empty
+            },
+            Some(BarThumbnail::Filmstrip {
+                src,
+                speed,
+                trim_ms,
+            }) => {
+                let key = media::key(&dir_text, "filmstrip", src);
+                let Some(filmstrip) = self.media.filmstrip(&key) else {
+                    self.load_media(
+                        key,
+                        AnalysisRequest::Filmstrip {
+                            project_dir: dir_text,
+                            src: src.clone(),
+                        },
+                    );
+                    return empty;
+                };
+                let tiles = timeline::film_tiles(
+                    video,
+                    film.flat.fps,
+                    &timeline::Strip {
+                        filmstrip: &filmstrip,
+                        speed: *speed,
+                        trim_ms: *trim_ms,
+                    },
+                    px_per_frame,
+                    height,
+                    offset,
+                    width,
+                );
+                FilmTiles {
+                    image: self.resolve(&dir, &filmstrip.image),
+                    tile_width: filmstrip.tile_width,
+                    tile_height: filmstrip.tile_height,
+                    still: false,
+                    tiles,
+                }
+            }
+            None => empty,
+        }
+    }
+
+    fn wave_columns(&self, bar: &str, px_per_frame: f64, offset: f64, width: u32) -> Vec<f32> {
+        let Some(dir) = self.state().editor().dir() else {
+            return Vec::new();
+        };
+        let dir_text = dir.to_string_lossy().into_owned();
+        let editor = self.state().editor();
+        let Some(film) = editor.film.as_ref() else {
+            return Vec::new();
+        };
+        let Some(audio) = film.flat.audio.iter().find(|b| b.key == bar) else {
+            return Vec::new();
+        };
+        let key = media::key(&dir_text, "waveform", &audio.src);
+        let Some(wave) = self.media.waveform(&key) else {
+            self.load_media(
+                key,
+                AnalysisRequest::Waveform {
+                    project_dir: dir_text,
+                    src: audio.src.clone(),
+                },
+            );
+            return Vec::new();
+        };
+        timeline::wave_columns(audio, film.flat.fps, &wave, px_per_frame, offset, width)
+    }
+
+    fn key_line(&self, bar: &str, track: &str) -> KeyLineView {
+        let Some(workflow) = self.workflow() else {
+            return timeline::hidden_line();
+        };
+        let selected = std::collections::HashSet::new();
+        let editor = self.state().editor();
+        let Some(film) = editor.film.as_ref() else {
+            return timeline::hidden_line();
+        };
+        timeline::key_line(
+            &film.flat,
+            &timeline::Sources {
+                workflow: &workflow,
+                catalog: &self.catalog,
+                transitions: &self.bundle.transitions,
+                selected: &selected,
+            },
+            bar,
+            track,
+        )
+    }
+
+    fn bar_local(&self, bar: &str, abs: f64) -> f64 {
+        let editor = self.state().editor();
+        editor
+            .film
+            .as_ref()
+            .map_or(abs, |film| timeline::bar_local(&film.flat, bar, abs))
     }
 
     fn timeline(&self) -> TimelineView {

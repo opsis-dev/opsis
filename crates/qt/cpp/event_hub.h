@@ -24,6 +24,7 @@ class EventHub : public QObject {
   void CompiledChanged();
   void RunChanged();
   void ApiChanged();
+  void MediaChanged();
   void Notice(const QString& title, const QString& body);
 
  private:

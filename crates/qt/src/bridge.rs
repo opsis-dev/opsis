@@ -14,6 +14,43 @@ pub mod ffi {
         Compiled,
         Run,
         Api,
+        Media,
+    }
+
+    #[derive(Debug, Clone, Copy)]
+    struct KeyPointView {
+        frame: f64,
+        fraction: f64,
+        value: f64,
+        index: u32,
+    }
+
+    #[derive(Debug, Clone)]
+    struct KeyLineView {
+        shown: bool,
+        node_id: String,
+        label: String,
+        span: f64,
+        scale: f64,
+        points: Vec<KeyPointView>,
+        line: Vec<KeyPointView>,
+        volume: f64,
+    }
+
+    #[derive(Debug, Clone, Copy)]
+    struct FilmTile {
+        x: f64,
+        width: f64,
+        index: u32,
+    }
+
+    #[derive(Debug, Clone)]
+    struct FilmTiles {
+        image: String,
+        tile_width: u32,
+        tile_height: u32,
+        still: bool,
+        tiles: Vec<FilmTile>,
     }
 
     #[derive(Debug, Clone, Copy)]
@@ -175,6 +212,8 @@ pub mod ffi {
         markers: Vec<TimelineMarkerView>,
         transitions: Vec<TimelineTransitionView>,
         camera_keys: Vec<TimelineCameraKeyView>,
+        video_tracks: Vec<Choice>,
+        audio_tracks: Vec<Choice>,
     }
 
     #[derive(Debug, Clone, Copy)]
@@ -644,6 +683,23 @@ pub mod ffi {
         fn box_kept(self: &Session, area: BoundsView) -> bool;
         fn edit_keyframes(self: &Session, edit_json: &str) -> Result<()>;
         fn timeline(self: &Session) -> TimelineView;
+        fn key_line(self: &Session, bar: &str, track: &str) -> KeyLineView;
+        fn bar_local(self: &Session, bar: &str, abs: f64) -> f64;
+        fn film_tiles(
+            self: &Session,
+            bar: &str,
+            px_per_frame: f64,
+            height: f64,
+            offset: f64,
+            width: f64,
+        ) -> FilmTiles;
+        fn wave_columns(
+            self: &Session,
+            bar: &str,
+            px_per_frame: f64,
+            offset: f64,
+            width: u32,
+        ) -> Vec<f32>;
         fn select_pinned(self: &Session, ids: Vec<String>, source: &str);
         fn edit_timeline(self: &Session, edit_json: &str) -> String;
         fn edit_markers(self: &Session, edit_json: &str) -> Result<()>;
