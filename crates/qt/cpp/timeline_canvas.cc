@@ -7,9 +7,11 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QKeyEvent>
+#include <QLineF>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPainterPath>
+#include <QPolygonF>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QToolTip>
@@ -52,6 +54,13 @@ constexpr int kSmallFont = 10;
 constexpr int kLabelFont = 11;
 constexpr double kMsPerSecond = 1000.0;
 constexpr double kStripOpacity = 0.6;
+constexpr double kKeyPad = 5;
+constexpr double kKeyRadius = 4;
+constexpr double kLineGrab = 4;
+
+double KeyY(const QRectF& box, double fraction) {
+  return box.top() + kKeyPad + (1 - fraction) * (box.height() - kKeyPad * 2);
+}
 constexpr int kCachedPictures = 64;
 
 QColor WithAlpha(QColor color, double alpha) {
@@ -100,6 +109,113 @@ void TimelineCanvas::Reload() {
 void TimelineCanvas::SetTool(const QString& tool) {
   tool_ = tool;
   emit StateChanged();
+}
+
+void TimelineCanvas::SetVideoTrack(const QString& track) {
+  video_track_ = track;
+  viewport()->update();
+  emit StateChanged();
+}
+
+void TimelineCanvas::SetAudioTrack(const QString& track) {
+  audio_track_ = track;
+  viewport()->update();
+  emit StateChanged();
+}
+
+QString TimelineCanvas::TrackFor(const QString& bar) const {
+  if (view_ == nullptr) return {};
+  for (const auto& audio : view_->audio) {
+    if (ToQ(audio.key) == bar) return audio_track_;
+  }
+  return video_track_;
+}
+
+QPointF TimelineCanvas::KeyPoint(const QString& bar, int index) {
+  const QString track = TrackFor(bar);
+  if (track.isEmpty()) return {};
+  const bridge::KeyLineView line =
+      App::Get().session().key_line(ToRust(bar), ToRust(track));
+  const QRectF box = BarRect(bar);
+  for (const auto& point : line.points) {
+    if (static_cast<int>(point.index) == index) {
+      return {FrameX(point.frame), KeyY(box, point.fraction)};
+    }
+  }
+  return {};
+}
+
+void TimelineCanvas::PaintKeys(QPainter* painter, const QString& key,
+                               const QRectF& box, const QString& track) {
+  if (track.isEmpty()) return;
+  const bridge::KeyLineView line =
+      App::Get().session().key_line(ToRust(key), ToRust(track));
+  const QColor colour = Token("keyframe");
+  if (line.volume >= 0) {
+    painter->setPen(QPen(WithAlpha(colour, 0.8), 1));
+    const double y = KeyY(box, line.volume);
+    painter->drawLine(QPointF(box.left(), y), QPointF(box.right(), y));
+  }
+  if (!line.shown) return;
+  QPolygonF poly;
+  for (const auto& point : line.line) {
+    poly << QPointF(FrameX(point.frame), KeyY(box, point.fraction));
+  }
+  painter->setPen(QPen(colour, 1.25));
+  painter->setBrush(Qt::NoBrush);
+  painter->drawPolyline(poly);
+  painter->setPen(QPen(Token("background"), 1));
+  painter->setBrush(colour);
+  for (const auto& point : line.points) {
+    painter->drawEllipse(
+        QPointF(FrameX(point.frame), KeyY(box, point.fraction)), kKeyRadius,
+        kKeyRadius);
+  }
+}
+
+bool TimelineCanvas::PressKey(QMouseEvent* event) {
+  const QPointF point = event->position();
+  QString bar;
+  bool audio = false;
+  if (const auto* video = VideoAt(point)) bar = ToQ(video->key);
+  if (const auto* sound = AudioAt(point)) {
+    bar = ToQ(sound->key);
+    audio = true;
+  }
+  const QString track = TrackFor(bar);
+  if (bar.isEmpty() || track.isEmpty()) return false;
+  const bridge::KeyLineView line =
+      App::Get().session().key_line(ToRust(bar), ToRust(track));
+  const QRectF box = BarRect(bar);
+  for (const auto& key : line.points) {
+    const QPointF at(FrameX(key.frame), KeyY(box, key.fraction));
+    if (QLineF(at, point).length() <= kKeyRadius + 2) {
+      drag_ = Drag{};
+      drag_.press = Press::kKey;
+      drag_.start = point;
+      drag_.key = bar;
+      drag_.node = ToQ(line.node_id);
+      drag_.track = track;
+      drag_.index = static_cast<int>(key.index);
+      drag_.origin = key.value;
+      drag_.span = line.span;
+      drag_.scale = line.scale;
+      drag_.height = box.height();
+      return true;
+    }
+  }
+  if (audio && line.volume >= 0 &&
+      std::abs(point.y() - KeyY(box, line.volume)) <= kLineGrab) {
+    drag_ = Drag{};
+    drag_.press = Press::kVolume;
+    drag_.start = point;
+    drag_.key = bar;
+    drag_.origin = line.volume * line.span;
+    drag_.span = line.span;
+    drag_.height = box.height();
+    return true;
+  }
+  return false;
 }
 
 void TimelineCanvas::SetSnapping(bool on) {
@@ -459,6 +575,7 @@ void TimelineCanvas::PaintBar(QPainter* painter,
   painter->save();
   painter->setClipPath(path);
   PaintFilmstrip(painter, ToQ(bar.key), box);
+  PaintKeys(painter, ToQ(bar.key), box, video_track_);
   QFont font = painter->font();
   font.setPixelSize(kLabelFont);
   painter->setFont(font);
@@ -531,6 +648,7 @@ void TimelineCanvas::PaintAudio(QPainter* painter,
   painter->save();
   painter->setClipPath(path);
   PaintWaveform(painter, ToQ(bar.key), box);
+  PaintKeys(painter, ToQ(bar.key), box, audio_track_);
   QFont font = painter->font();
   font.setPixelSize(kLabelFont);
   painter->setFont(font);
@@ -851,6 +969,10 @@ void TimelineCanvas::mousePressEvent(QMouseEvent* event) {
     drag_.node = ToQ(mark->node_id);
     return;
   }
+  if ((VideoAt(point) != nullptr || AudioAt(point) != nullptr) &&
+      tool_ != QStringLiteral("blade") && PressKey(event)) {
+    return;
+  }
   if (VideoAt(point) != nullptr || AudioAt(point) != nullptr) {
     PressBar(event);
     return;
@@ -955,7 +1077,32 @@ void TimelineCanvas::mouseMoveEvent(QMouseEvent* event) {
     drag_.started = true;
     App::Get().session().begin_gesture();
   }
-  if (drag_.press == Press::kEdit) {
+  if (drag_.press == Press::kKey) {
+    const double usable = std::max(1.0, drag_.height - kKeyPad * 2);
+    const double dragged = (point.y() - drag_.start.y()) / usable * drag_.span /
+                           std::max(drag_.scale, 1e-9);
+    const double frame =
+        App::Get().session().bar_local(ToRust(drag_.key), FrameAt(point.x()));
+    SendEdit(
+        QJsonObject{
+            {QStringLiteral("op"), QStringLiteral("keyframes")},
+            {QStringLiteral("edit"),
+             QJsonObject{{QStringLiteral("op"), QStringLiteral("setKey")},
+                         {QStringLiteral("nodeId"), drag_.node},
+                         {QStringLiteral("track"), drag_.track},
+                         {QStringLiteral("index"), drag_.index},
+                         {QStringLiteral("frame"), std::max(0.0, frame)},
+                         {QStringLiteral("value"), drag_.origin - dragged}}}},
+        &drag_.error);
+  } else if (drag_.press == Press::kVolume) {
+    const double usable = std::max(1.0, drag_.height - kKeyPad * 2);
+    const double volume =
+        drag_.origin - (point.y() - drag_.start.y()) / usable * drag_.span;
+    SendEdit(QJsonObject{{QStringLiteral("op"), QStringLiteral("volume")},
+                         {QStringLiteral("bar"), drag_.key},
+                         {QStringLiteral("volume"), std::max(0.0, volume)}},
+             &drag_.error);
+  } else if (drag_.press == Press::kEdit) {
     MoveEdit(event);
   } else if (drag_.press == Press::kCameraKey) {
     SendEdit(QJsonObject{{QStringLiteral("op"), QStringLiteral("cameraKey")},
@@ -1026,7 +1173,7 @@ void TimelineCanvas::mouseReleaseEvent(QMouseEvent* event) {
   if (drag.started) {
     App::Get().session().end_gesture();
     ShowError(drag.error);
-  } else if (drag.press == Press::kCameraKey) {
+  } else if (drag.press == Press::kCameraKey || drag.press == Press::kKey) {
     Select({drag.node}, false);
   }
   viewport()->update();
@@ -1065,10 +1212,43 @@ void TimelineCanvas::StartRename(const QString& id) {
 
 void TimelineCanvas::mouseDoubleClickEvent(QMouseEvent* event) {
   if (view_ == nullptr) return;
-  if (const auto* marker = MarkerAt(event->position())) {
+  const QPointF point = event->position();
+  if (const auto* marker = MarkerAt(point)) {
     drag_ = Drag{};
     StartRename(ToQ(marker->id));
+    return;
   }
+  QString bar;
+  if (const auto* video = VideoAt(point)) bar = ToQ(video->key);
+  if (const auto* sound = AudioAt(point)) bar = ToQ(sound->key);
+  const QString track = TrackFor(bar);
+  if (bar.isEmpty() || track.isEmpty()) return;
+  auto& session = App::Get().session();
+  const bridge::KeyLineView line = session.key_line(ToRust(bar), ToRust(track));
+  if (!line.shown) return;
+  drag_ = Drag{};
+  const QRectF box = BarRect(bar);
+  QJsonObject edit{{QStringLiteral("nodeId"), ToQ(line.node_id)},
+                   {QStringLiteral("track"), track}};
+  bool on_key = false;
+  for (const auto& key : line.points) {
+    const QPointF at(FrameX(key.frame), KeyY(box, key.fraction));
+    if (QLineF(at, point).length() <= kKeyRadius + 2) {
+      edit.insert(QStringLiteral("op"), QStringLiteral("removeKey"));
+      edit.insert(QStringLiteral("index"), static_cast<int>(key.index));
+      on_key = true;
+      break;
+    }
+  }
+  if (!on_key) {
+    edit.insert(QStringLiteral("op"), QStringLiteral("addKey"));
+    edit.insert(
+        QStringLiteral("frame"),
+        std::max(0.0, session.bar_local(ToRust(bar), FrameAt(point.x()))));
+  }
+  SendEdit(QJsonObject{{QStringLiteral("op"), QStringLiteral("keyframes")},
+                       {QStringLiteral("edit"), edit}},
+           nullptr);
 }
 
 void TimelineCanvas::wheelEvent(QWheelEvent* event) {

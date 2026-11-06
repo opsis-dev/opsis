@@ -1,5 +1,6 @@
 #include "scenario.h"
 
+#include <QAbstractButton>
 #include <QAction>
 #include <QApplication>
 #include <QDir>
@@ -138,11 +139,31 @@ QString Scenario::Overflow() {
       }
       const int over = scroll->widget()->width() - scroll->viewport()->width();
       if (over > 1) {
-        wide << QStringLiteral("%1 is %2 px wider than its panel")
-                    .arg(scroll->widget()->objectName().isEmpty()
-                             ? QStringLiteral("a panel")
-                             : scroll->widget()->objectName())
-                    .arg(over);
+        QWidget* widest = nullptr;
+        for (QWidget* child : scroll->widget()->findChildren<QWidget*>()) {
+          if (!child->isVisible() || child->layout() != nullptr) continue;
+          if (widest == nullptr || child->minimumSizeHint().width() >
+                                       widest->minimumSizeHint().width()) {
+            widest = child;
+          }
+        }
+        QString name;
+        if (widest != nullptr) {
+          name = QString::fromLatin1(widest->metaObject()->className());
+          QString text = widest->accessibleName();
+          if (auto* label = qobject_cast<QLabel*>(widest)) text = label->text();
+          if (auto* button = qobject_cast<QAbstractButton*>(widest)) {
+            text = button->text();
+          }
+          if (!text.isEmpty())
+            name += QStringLiteral(" '%1'").arg(text.left(40));
+          name +=
+              QStringLiteral(" (%1 px)").arg(widest->minimumSizeHint().width());
+        }
+        wide << QStringLiteral(
+                    "the panel is %1 px wider than its dock, widest %2")
+                    .arg(over)
+                    .arg(name);
       }
     }
   }

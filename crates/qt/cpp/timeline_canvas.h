@@ -33,6 +33,11 @@ class TimelineCanvas : public QAbstractScrollArea {
   QString selected_marker() const { return selected_marker_; }
 
   void SetTool(const QString& tool);
+  QString video_track() const { return video_track_; }
+  QString audio_track() const { return audio_track_; }
+  void SetVideoTrack(const QString& track);
+  void SetAudioTrack(const QString& track);
+  QPointF KeyPoint(const QString& bar, int index);
   void SetSnapping(bool on);
   void SetTimecode(bool on);
   void ZoomBy(double factor);
@@ -69,6 +74,8 @@ class TimelineCanvas : public QAbstractScrollArea {
     kMarker,
     kCameraKey,
     kMarquee,
+    kKey,
+    kVolume,
   };
 
   struct Drag {
@@ -86,6 +93,11 @@ class TimelineCanvas : public QAbstractScrollArea {
     QString node;
     bool shift = false;
     QString error;
+    QString track;
+    int index = -1;
+    double span = 1;
+    double scale = 1;
+    double height = 1;
   };
 
   void PaintRuler(QPainter* painter);
@@ -119,6 +131,10 @@ class TimelineCanvas : public QAbstractScrollArea {
   void FollowPlayhead();
   void PaintFilmstrip(QPainter* painter, const QString& key, const QRectF& box);
   void PaintWaveform(QPainter* painter, const QString& key, const QRectF& box);
+  void PaintKeys(QPainter* painter, const QString& key, const QRectF& box,
+                 const QString& track);
+  QString TrackFor(const QString& bar) const;
+  bool PressKey(QMouseEvent* event);
   const QPixmap& Picture(const QString& path);
 
   std::unique_ptr<bridge::TimelineView> view_;
@@ -133,6 +149,8 @@ class TimelineCanvas : public QAbstractScrollArea {
   std::optional<QRectF> marquee_;
   QPointer<QLineEdit> rename_;
   QHash<QString, QPixmap> pictures_;
+  QString video_track_;
+  QString audio_track_ = QStringLiteral("volume");
 };
 
 }

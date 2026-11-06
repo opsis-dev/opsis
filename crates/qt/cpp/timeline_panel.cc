@@ -17,6 +17,8 @@ namespace {
 
 constexpr double kZoomStep = 1.5;
 constexpr int kIcon = 16;
+constexpr int kKeysWidth = 144;
+constexpr int kSoundKeysWidth = 112;
 
 struct ToolSpec {
   const char* id;
@@ -75,6 +77,8 @@ TimelinePanel::TimelinePanel(QWidget* parent)
       clock_(MakeButton(QStringLiteral("0:00 / 0:00"), "ghost")),
       snap_(
           MakeIconButton(QStringLiteral("magnet"), QString(), nullptr, kIcon)),
+      video_keys_(new Combo()),
+      audio_keys_(new Combo()),
       range_(new QWidget()),
       range_text_(new QLabel()),
       source_(new QLabel()) {
@@ -124,6 +128,16 @@ TimelinePanel::TimelinePanel(QWidget* parent)
       "Snap to the playhead, clip edges, markers, actions and beats. Hold Alt "
       "to turn it off while dragging."));
   row->addWidget(snap_);
+  video_keys_->setParent(bar);
+  video_keys_->setAccessibleName(QStringLiteral("Clip keyframes"));
+  video_keys_->setToolTip(QStringLiteral("Clip keyframes"));
+  video_keys_->setFixedWidth(kKeysWidth);
+  audio_keys_->setParent(bar);
+  audio_keys_->setAccessibleName(QStringLiteral("Sound keyframes"));
+  audio_keys_->setToolTip(QStringLiteral("Sound keyframes"));
+  audio_keys_->setFixedWidth(kSoundKeysWidth);
+  row->addWidget(video_keys_);
+  row->addWidget(audio_keys_);
   range_->setParent(bar);
   range_->setObjectName(QStringLiteral("RangeBadge"));
   range_->setAttribute(Qt::WA_StyledBackground);
@@ -165,6 +179,12 @@ TimelinePanel::TimelinePanel(QWidget* parent)
           });
   connect(snap_, &QToolButton::toggled, this,
           [this](bool on) { canvas_->SetSnapping(on); });
+  connect(video_keys_, &QComboBox::activated, this, [this](int) {
+    canvas_->SetVideoTrack(video_keys_->currentData().toString());
+  });
+  connect(audio_keys_, &QComboBox::activated, this, [this](int) {
+    canvas_->SetAudioTrack(audio_keys_->currentData().toString());
+  });
   connect(clear, &QToolButton::clicked, this,
           [] { PlaybackClock::Instance()->ClearRange(); });
   connect(out, &QToolButton::clicked, this,
@@ -186,6 +206,20 @@ TimelinePanel::TimelinePanel(QWidget* parent)
 void TimelinePanel::Reload() {
   canvas_->Reload();
   stack_->setCurrentIndex(canvas_->has_film() ? 1 : 0);
+  const bridge::TimelineView* view = canvas_->view();
+  if (view == nullptr || view->video_tracks.empty() ||
+      video_keys_->count() > 0) {
+    return;
+  }
+  video_keys_->addItem(QStringLiteral("No keyframes"), QString());
+  for (const auto& choice : view->video_tracks) {
+    video_keys_->addItem(ToQ(choice.label), ToQ(choice.value));
+  }
+  for (const auto& choice : view->audio_tracks) {
+    audio_keys_->addItem(ToQ(choice.label), ToQ(choice.value));
+  }
+  audio_keys_->setCurrentIndex(
+      std::max(0, audio_keys_->findData(canvas_->audio_track())));
 }
 
 void TimelinePanel::SyncBar() {

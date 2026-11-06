@@ -2178,6 +2178,122 @@ void Scenario::BuildTour() {
         return Expect(canvas != nullptr && canvas->view()->markers.empty(),
                       QStringLiteral("markers left after undo"));
       });
+  const auto bar_titled = [timeline](const QString& title) -> QString {
+    TimelineCanvas* canvas = timeline();
+    if (canvas == nullptr || canvas->view() == nullptr) return {};
+    for (const auto& bar : canvas->view()->bars) {
+      if (ToQ(bar.title) == title) return ToQ(bar.key);
+    }
+    return {};
+  };
+  const auto opacity_of = [] {
+    for (const auto& field : App::Get().session().inspector().fields) {
+      if (field.kind == bridge::FieldKind::Envelope) {
+        return QJsonDocument::fromJson(ToQ(field.value_json).toUtf8())
+            .object()
+            .value(QStringLiteral("opacity"))
+            .toArray();
+      }
+    }
+    return QJsonArray();
+  };
+  Add(
+      QStringLiteral("timeline-add-clip-key"),
+      [window, timeline, bar_titled, memo] {
+        TimelineCanvas* canvas = timeline();
+        if (canvas == nullptr) return;
+        for (QComboBox* combo :
+             window->timeline_dock()->widget()->findChildren<QComboBox*>()) {
+          if (combo->accessibleName() == QStringLiteral("Clip keyframes")) {
+            combo->setFocus();
+            QTest::keyClick(combo, Qt::Key_Down);
+          }
+        }
+        memo->key = bar_titled(QStringLiteral("Title card"));
+        const QRectF box = canvas->BarRect(memo->key);
+        const QPoint at(static_cast<int>(box.center().x()),
+                        static_cast<int>(box.top() + 12));
+        QTest::mouseClick(canvas->viewport(), Qt::LeftButton, {}, at);
+        QTest::mouseDClick(canvas->viewport(), Qt::LeftButton, {}, at);
+      },
+      700,
+      [timeline, opacity_of] {
+        TimelineCanvas* canvas = timeline();
+        QString problems;
+        if (canvas == nullptr ||
+            canvas->video_track() != QStringLiteral("opacity")) {
+          problems += QStringLiteral(" the clip keyframes aren't Opacity");
+        }
+        if (opacity_of().size() != 1) {
+          problems +=
+              QStringLiteral(" %1 opacity keys").arg(opacity_of().size());
+        }
+        return problems.trimmed();
+      });
+  Add(
+      QStringLiteral("timeline-drag-clip-key"),
+      [this, timeline, memo, opacity_of] {
+        TimelineCanvas* canvas = timeline();
+        if (canvas == nullptr) return;
+        memo->x = opacity_of()
+                      .at(0)
+                      .toObject()
+                      .value(QStringLiteral("value"))
+                      .toDouble();
+        const QPoint at = canvas->KeyPoint(memo->key, 0).toPoint();
+        Drag(canvas->viewport(), at, at + QPoint(0, 12), 6);
+      },
+      700,
+      [memo, opacity_of] {
+        const double value = opacity_of()
+                                 .at(0)
+                                 .toObject()
+                                 .value(QStringLiteral("value"))
+                                 .toDouble();
+        return Expect(value < memo->x,
+                      QStringLiteral("the key stayed at %1").arg(value));
+      });
+  Add(
+      QStringLiteral("timeline-remove-clip-key"),
+      [timeline, memo] {
+        TimelineCanvas* canvas = timeline();
+        if (canvas == nullptr) return;
+        const QPoint at = canvas->KeyPoint(memo->key, 0).toPoint();
+        QTest::mouseClick(canvas->viewport(), Qt::LeftButton, {}, at);
+        QTest::mouseDClick(canvas->viewport(), Qt::LeftButton, {}, at);
+      },
+      700,
+      [opacity_of] {
+        return Expect(
+            opacity_of().isEmpty(),
+            QStringLiteral("%1 opacity keys left").arg(opacity_of().size()));
+      });
+  Add(
+      QStringLiteral("undo-clip-keys"),
+      [this, window, timeline] {
+        for (int i = 0; i < 3; ++i) Click(window, QStringLiteral("Undo"));
+        for (QComboBox* combo :
+             window->timeline_dock()->widget()->findChildren<QComboBox*>()) {
+          if (combo->accessibleName() == QStringLiteral("Clip keyframes")) {
+            combo->setFocus();
+            QTest::keyClick(combo, Qt::Key_Up);
+          }
+        }
+        Q_UNUSED(timeline);
+      },
+      600,
+      [timeline, opacity_of] {
+        TimelineCanvas* canvas = timeline();
+        QString problems;
+        if (!opacity_of().isEmpty()) {
+          problems += QStringLiteral(" %1 opacity keys after undo")
+                          .arg(opacity_of().size());
+        }
+        if (canvas == nullptr || !canvas->video_track().isEmpty()) {
+          problems += QStringLiteral(" the clip keyframes are still shown");
+        }
+        return problems.trimmed();
+      });
   Add(
       QStringLiteral("timeline-zoom-keys"),
       [timeline, memo] {

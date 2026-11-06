@@ -354,6 +354,7 @@ QWidget* MakeField(const QString& label, QWidget* control,
   QFont font = title->font();
   font.setWeight(QFont::Medium);
   title->setFont(font);
+  title->setWordWrap(true);
   layout->addWidget(title);
   layout->addWidget(control);
   if (!description.isEmpty()) {
@@ -376,6 +377,7 @@ QWidget* MakeSwitchField(const QString& label, ToggleSwitch* toggle,
   QFont font = title->font();
   font.setWeight(QFont::Medium);
   title->setFont(font);
+  title->setWordWrap(true);
   texts->addWidget(title);
   if (!description.isEmpty()) {
     auto* text = MakeLabel(description, "muted", field);

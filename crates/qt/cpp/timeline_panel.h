@@ -10,6 +10,7 @@
 
 namespace opsis {
 
+class Combo;
 class TimelineCanvas;
 
 class TimelinePanel : public QWidget {
@@ -29,6 +30,8 @@ class TimelinePanel : public QWidget {
   QPushButton* clock_;
   QButtonGroup tools_;
   QToolButton* snap_;
+  Combo* video_keys_;
+  Combo* audio_keys_;
   QWidget* range_;
   QLabel* range_text_;
   QLabel* source_;
