@@ -431,6 +431,11 @@ GraphCanvas::GraphCanvas(QWidget* parent) : QGraphicsView(parent) {
   connect(&sync_timer_, &QTimer::timeout, this, &GraphCanvas::Sync);
   connect(EventHub::Instance(), &EventHub::DocumentChanged, &sync_timer_,
           qOverload<>(&QTimer::start));
+  connect(EventHub::Instance(), &EventHub::Notice, this,
+          [this](const QString& title, const QString& body) {
+            Toast(body.isEmpty() ? title : title + QStringLiteral(": ") + body,
+                  false);
+          });
   connect(EventHub::Instance(), &EventHub::SettingsChanged, this,
           [this] { canvas_mode_ = ToQ(App::Get().session().settings().canvas_mode); });
   canvas_mode_ = ToQ(App::Get().session().settings().canvas_mode);

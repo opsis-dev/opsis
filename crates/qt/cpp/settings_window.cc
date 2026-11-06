@@ -218,9 +218,9 @@ QWidget* SettingsWindow::ApiPage() {
 
 QWidget* SettingsWindow::AboutPage() {
   auto* about = new Card(QStringLiteral("Opsis"),
-                         QStringLiteral("A native editor spike: Qt 6.12 "
-                                        "Widgets and KDDockWidgets 2.5.1, "
-                                        "driven from Rust."));
+                         QStringLiteral("The native editor, built with Qt "
+                                        "6.12 Widgets and KDDockWidgets "
+                                        "2.5.1."));
   auto* logo = new QLabel();
   logo->setPixmap(App::Get().Logo(64));
   about->body()->addWidget(logo);

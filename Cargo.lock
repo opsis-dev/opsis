@@ -5480,11 +5480,15 @@ dependencies = [
 name = "opsis-ui"
 version = "0.1.0"
 dependencies = [
+ "env_logger",
  "indexmap 2.14.2",
+ "log",
  "opsis-compile",
  "opsis-document",
+ "opsis-engine",
  "opsis-project",
  "opsis-qt",
+ "opsis-session",
  "opsis-store",
  "opsis-types",
  "serde",

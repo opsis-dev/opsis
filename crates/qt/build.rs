@@ -21,7 +21,7 @@ const MOC_HEADERS: [&str; 11] = [
     "scenario.h",
 ];
 
-const SOURCES: [&str; 12] = [
+const SOURCES: [&str; 13] = [
     "app.cc",
     "event_hub.cc",
     "widgets.cc",
@@ -34,6 +34,7 @@ const SOURCES: [&str; 12] = [
     "settings_window.cc",
     "main_window.cc",
     "scenario.cc",
+    "platform.cc",
 ];
 
 fn main() {

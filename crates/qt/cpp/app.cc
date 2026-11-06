@@ -182,6 +182,11 @@ int App::Run(rust::Box<bridge::Session> host) {
   qApp->setStyleSheet(ToQ(session().style_sheet()));
   ConfigureDocks();
   EventHub::Instance();
+  session().set_active(QGuiApplication::applicationState() == Qt::ApplicationActive);
+  QObject::connect(qApp, &QGuiApplication::applicationStateChanged,
+                   [this](Qt::ApplicationState state) {
+                     session().set_active(state == Qt::ApplicationActive);
+                   });
   session().start_pump();
   auto* window = new MainWindow();
   window->show();

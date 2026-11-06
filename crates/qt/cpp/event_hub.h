@@ -20,6 +20,7 @@ class EventHub : public QObject {
   void SettingsChanged();
   void ProjectChanged();
   void Saved();
+  void Notice(const QString& title, const QString& body);
 
  private:
   explicit EventHub(QObject* parent);

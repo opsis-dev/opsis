@@ -12,6 +12,13 @@ pub mod ffi {
     }
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    enum DialogKind {
+        Folder,
+        File,
+        Files,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     enum CardKind {
         Card,
         Group,
@@ -174,6 +181,8 @@ pub mod ffi {
         fn icon_svg(self: &Session, name: &str, color: &str, stroke: f64) -> String;
         fn fonts_dir(self: &Session) -> String;
         fn log(self: &Session, line: &str);
+        fn answer_dialog(self: &Session, id: u64, paths: Vec<String>);
+        fn set_active(self: &Session, active: bool);
 
         fn examples(self: &Session) -> Vec<ProjectEntry>;
         fn recent(self: &Session) -> Vec<ProjectEntry>;
@@ -225,5 +234,19 @@ pub mod ffi {
 
         fn run_app(session: Box<Session>) -> i32;
         fn post_event(kind: EventKind);
+        fn request_dialog(
+            kind: DialogKind,
+            id: u64,
+            title: &str,
+            start: &str,
+            filter_name: &str,
+            filter_extensions: &str,
+        );
+        fn open_path(path: &str);
+        fn reveal_path(path: &str);
+        fn notify(title: &str, body: &str);
+        fn raise_editor();
+        fn quit_app(code: i32);
+        fn qt_version() -> String;
     }
 }

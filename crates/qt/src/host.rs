@@ -1,7 +1,8 @@
 use std::fmt;
 
 use crate::bridge::ffi::{
-    self, EventKind, GraphView, InspectorView, NodeMove, PaletteEntry, ProjectEntry, SettingsView,
+    self, DialogKind, EventKind, GraphView, InspectorView, NodeMove, PaletteEntry, ProjectEntry,
+    SettingsView,
 };
 
 pub type HostResult<T> = Result<T, String>;
@@ -13,6 +14,8 @@ pub trait Host {
     fn icon_svg(&self, name: &str, color: &str, stroke: f64) -> String;
     fn fonts_dir(&self) -> String;
     fn log(&self, line: &str);
+    fn answer_dialog(&self, id: u64, paths: Vec<String>);
+    fn set_active(&self, active: bool);
 
     fn examples(&self) -> Vec<ProjectEntry>;
     fn recent(&self) -> Vec<ProjectEntry>;
@@ -75,6 +78,41 @@ pub fn post_event(kind: EventKind) {
     ffi::post_event(kind);
 }
 
+pub fn request_dialog(
+    kind: DialogKind,
+    id: u64,
+    title: &str,
+    start: &str,
+    filter: Option<(&str, &str)>,
+) {
+    let (name, extensions) = filter.unwrap_or_default();
+    ffi::request_dialog(kind, id, title, start, name, extensions);
+}
+
+pub fn open_path(path: &str) {
+    ffi::open_path(path);
+}
+
+pub fn reveal_path(path: &str) {
+    ffi::reveal_path(path);
+}
+
+pub fn notify(title: &str, body: &str) {
+    ffi::notify(title, body);
+}
+
+pub fn raise_editor() {
+    ffi::raise_editor();
+}
+
+pub fn quit(code: i32) {
+    ffi::quit_app(code);
+}
+
+pub fn qt_version() -> String {
+    ffi::qt_version()
+}
+
 impl Session {
     pub(crate) fn start_pump(&self) {
         self.0.start_pump();
@@ -98,6 +136,14 @@ impl Session {
 
     pub(crate) fn log(&self, line: &str) {
         self.0.log(line);
+    }
+
+    pub(crate) fn answer_dialog(&self, id: u64, paths: Vec<String>) {
+        self.0.answer_dialog(id, paths);
+    }
+
+    pub(crate) fn set_active(&self, active: bool) {
+        self.0.set_active(active);
     }
 
     pub(crate) fn examples(&self) -> Vec<ProjectEntry> {

@@ -162,7 +162,7 @@ agent-docs/            the domain docs (§8)
 | `opsis-session`  | the open project and everything windows follow, with no window code: document, compiles, runs, shared state, settings, fonts, engine, streamed views, the exit decision, the Local API host                         |
 | `opsis-desktop`  | the Tauri app over `opsis-session`: windows, menus, the command wrappers and event forwarding, the window side of closing, the editor's file server                                                                 |
 | `opsis-qt`       | the native editor's view layer: Qt 6.12 Widgets and KDDockWidgets built from Cargo, the C++ views, the `cxx` bridge behind one safe `Host` trait; the other crate allowed `unsafe`                                  |
-| `opsis-ui`       | the native editor's state and logic behind the views, implementing `Host` over the document; the `opsis` binary                                                                                                     |
+| `opsis-ui`       | the native editor's state and logic behind the views, implementing `Host` over `opsis-session`; the `opsis` binary                                                                                                  |
 | `opsis-golden`   | dev-only: the golden-file helper and the readers and builders more than one crate's tests use (`repo`, `home`, `typed`, `text`, `number`, `cases`, `node`, `edge`)                                                  |
 | `opsis-macros`   | procedural macros (`proc-macro2`, `syn`, `quote`; no `paste` or `pastey`, since `quote` and `format_ident!` build every name)                                                                                       |
 

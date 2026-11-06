@@ -47,7 +47,7 @@ void Scenario::MaybeStart(MainWindow* window) {
   QString dir = qEnvironmentVariable("OPSIS_QT_SHOTS");
   if (dir.isEmpty()) {
     dir = QDir::homePath() +
-          QStringLiteral("/.cache/opsis-v4-research/native-editor-spike/shots/") +
+          QStringLiteral("/.cache/opsis-qt-shots/") +
           name;
   }
   QDir shots(dir);

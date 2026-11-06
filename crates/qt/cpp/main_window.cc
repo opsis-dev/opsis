@@ -187,12 +187,12 @@ void MainWindow::BuildDocks() {
                              QStringLiteral("Inspector"), new InspectorPanel());
   timeline_dock_ = MakeDock(
       QStringLiteral("timeline"), QStringLiteral("Timeline"),
-      Placeholder(QStringLiteral("The timeline isn't part of this spike.")));
+      Placeholder(QStringLiteral("The timeline isn't in the native editor yet.")));
   mixer_dock_ = MakeDock(
       QStringLiteral("mixer"), QStringLiteral("Mixer"),
-      Placeholder(QStringLiteral("The mixer isn't part of this spike.")));
+      Placeholder(QStringLiteral("The mixer isn't in the native editor yet.")));
   run_dock_ = MakeDock(QStringLiteral("run"), QStringLiteral("Run"),
-                       Placeholder(QStringLiteral("Runs aren't part of this spike.")));
+                       Placeholder(QStringLiteral("Runs aren't in the native editor yet.")));
   addDockWidget(timeline_dock_, kdw::Location_OnBottom, nullptr,
                 kdw::InitialOption(kdw::Size(0, kBottomHeight)));
   addDockWidget(nodes_dock_, kdw::Location_OnLeft, nullptr,

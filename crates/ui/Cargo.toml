@@ -14,11 +14,15 @@ path = "src/main.rs"
 workspace = true
 
 [dependencies]
+env_logger.workspace = true
 indexmap.workspace = true
+log.workspace = true
 opsis-compile.workspace = true
 opsis-document.workspace = true
+opsis-engine.workspace = true
 opsis-project.workspace = true
 opsis-qt.workspace = true
+opsis-session.workspace = true
 opsis-store.workspace = true
 opsis-types.workspace = true
 serde = { workspace = true, features = ["derive"] }
