@@ -1,10 +1,10 @@
 use std::fmt;
 
 use crate::bridge::ffi::{
-    self, BarView, CategoryView, CloseView, ColorView, DialogKind, EventKind, GradientInfo,
-    GraphView, InspectorView, MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView,
-    ProjectEntry, ProjectView, ScreenArea, SettingsView, TemplateView, TextToken, VariableView,
-    WindowPlacement,
+    self, BarView, BoundsView, CategoryView, CloseView, ColorView, DialogKind, EventKind,
+    GradientInfo, GraphView, InspectorView, MenuSectionView, MotionInfo, NodeMove, PaletteEntry,
+    PoseView, ProjectEntry, ProjectView, ScreenArea, SettingsView, TemplateView, TextToken,
+    VariableView, WindowPlacement,
 };
 
 pub type HostResult<T> = Result<T, String>;
@@ -87,6 +87,9 @@ pub trait Host {
     fn gradient_info(&self, css: &str) -> GradientInfo;
     fn import_files(&self, paths: Vec<String>) -> HostResult<Vec<String>>;
     fn file_path(&self, reference: &str) -> String;
+    fn box_from(&self, x0: f64, y0: f64, x1: f64, y1: f64) -> BoundsView;
+    fn move_box(&self, origin: BoundsView, dx: f64, dy: f64) -> BoundsView;
+    fn box_kept(&self, area: BoundsView) -> bool;
     fn edit_gradient(&self, css: &str, edit_json: &str) -> GradientInfo;
     fn save(&self) -> HostResult<()>;
 
@@ -430,6 +433,18 @@ impl Session {
 
     pub(crate) fn import_files(&self, paths: Vec<String>) -> HostResult<Vec<String>> {
         self.0.import_files(paths)
+    }
+
+    pub(crate) fn box_from(&self, x0: f64, y0: f64, x1: f64, y1: f64) -> BoundsView {
+        self.0.box_from(x0, y0, x1, y1)
+    }
+
+    pub(crate) fn move_box(&self, origin: BoundsView, dx: f64, dy: f64) -> BoundsView {
+        self.0.move_box(origin, dx, dy)
+    }
+
+    pub(crate) fn box_kept(&self, area: BoundsView) -> bool {
+        self.0.box_kept(area)
     }
 
     pub(crate) fn file_path(&self, reference: &str) -> String {

@@ -4,6 +4,7 @@
 #include <QFontMetrics>
 #include <QGridLayout>
 #include <QHBoxLayout>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QKeyEvent>
@@ -13,6 +14,7 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QPushButton>
+#include <QSlider>
 #include <QVBoxLayout>
 #include <algorithm>
 #include <cmath>
@@ -37,6 +39,9 @@ constexpr double kBigNudge = 0.1;
 constexpr double kThousandths = 1000.0;
 constexpr qreal kDot = 6.0;
 constexpr int kSpotWidth = 280;
+constexpr double kWideAspect = 16.0 / 9.0;
+constexpr qreal kRemoveSize = 16.0;
+constexpr int kFrameStepMs = 100;
 
 double Rounded(double value) {
   return std::round(std::clamp(value, 0.0, 1.0) * kThousandths) / kThousandths;
@@ -216,57 +221,67 @@ QWidget* MakeOffsetsField(const bridge::FieldView& field,
   return box;
 }
 
-SpotFrame::SpotFrame(QString label, QString x_key, QString y_key, double x,
-                     double y, double aspect, const QString& picture,
-                     CommitPatch commit, QWidget* parent)
-    : QWidget(parent),
-      label_(std::move(label)),
-      x_key_(std::move(x_key)),
-      y_key_(std::move(y_key)),
-      x_(x),
-      y_(y),
-      aspect_(aspect > 0 ? aspect : 16.0 / 9.0),
-      commit_(std::move(commit)) {
+PictureFrame::PictureFrame(double aspect, const QString& picture,
+                           QWidget* parent)
+    : QWidget(parent), aspect_(aspect > 0 ? aspect : kWideAspect) {
   if (!picture.isEmpty()) picture_.load(picture);
   setFocusPolicy(Qt::StrongFocus);
   setCursor(Qt::CrossCursor);
-  setAccessibleName(label_);
   QSizePolicy policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
   policy.setHeightForWidth(true);
   setSizePolicy(policy);
 }
 
-int SpotFrame::heightForWidth(int width) const {
+int PictureFrame::heightForWidth(int width) const {
   return static_cast<int>(std::lround(width / aspect_));
 }
 
-QSize SpotFrame::sizeHint() const {
+QSize PictureFrame::sizeHint() const {
   return {kSpotWidth, heightForWidth(kSpotWidth)};
+}
+
+QRectF PictureFrame::PaintPicture(QPainter* painter) {
+  painter->setRenderHint(QPainter::Antialiasing);
+  painter->setRenderHint(QPainter::SmoothPixmapTransform);
+  const QRectF area = QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5);
+  QPainterPath path;
+  path.addRoundedRect(area, 6, 6);
+  painter->fillPath(path, App::Get().Token("muted"));
+  if (!picture_.isNull()) {
+    painter->save();
+    painter->setClipPath(path);
+    const QSizeF scaled =
+        QSizeF(picture_.size())
+            .scaled(area.size(), Qt::KeepAspectRatioByExpanding);
+    painter->drawPixmap(
+        QRectF(area.center() - QPointF(scaled.width(), scaled.height()) / 2,
+               scaled),
+        picture_, QRectF(picture_.rect()));
+    painter->restore();
+  }
+  painter->setPen(QPen(
+      hasFocus() ? App::Get().Token("ring") : App::Get().Token("border"), 1.0));
+  painter->setBrush(Qt::NoBrush);
+  painter->drawPath(path);
+  return area;
+}
+
+SpotFrame::SpotFrame(QString label, QString x_key, QString y_key, double x,
+                     double y, double aspect, const QString& picture,
+                     CommitPatch commit, QWidget* parent)
+    : PictureFrame(aspect, picture, parent),
+      label_(std::move(label)),
+      x_key_(std::move(x_key)),
+      y_key_(std::move(y_key)),
+      x_(x),
+      y_(y),
+      commit_(std::move(commit)) {
+  setAccessibleName(label_);
 }
 
 void SpotFrame::paintEvent(QPaintEvent*) {
   QPainter painter(this);
-  painter.setRenderHint(QPainter::Antialiasing);
-  painter.setRenderHint(QPainter::SmoothPixmapTransform);
-  const QRectF area = QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5);
-  QPainterPath path;
-  path.addRoundedRect(area, 6, 6);
-  painter.fillPath(path, App::Get().Token("muted"));
-  if (!picture_.isNull()) {
-    painter.save();
-    painter.setClipPath(path);
-    const QSizeF scaled =
-        QSizeF(picture_.size())
-            .scaled(area.size(), Qt::KeepAspectRatioByExpanding);
-    painter.drawPixmap(
-        QRectF(area.center() - QPointF(scaled.width(), scaled.height()) / 2,
-               scaled),
-        picture_, QRectF(picture_.rect()));
-    painter.restore();
-  }
-  painter.setPen(QPen(
-      hasFocus() ? App::Get().Token("ring") : App::Get().Token("border"), 1.0));
-  painter.drawPath(path);
+  const QRectF area = PaintPicture(&painter);
   const QPointF dot(area.left() + x_ * area.width(),
                     area.top() + y_ * area.height());
   painter.setPen(QPen(App::Get().Token("background"), 2.0));
@@ -340,6 +355,215 @@ QWidget* MakeSpotField(const bridge::FieldView& field,
       extra.value(QStringLiteral("yKey")).toString(), field.number,
       extra.value(QStringLiteral("y")).toDouble(0.5),
       extra.value(QStringLiteral("aspect")).toDouble(), picture, commit);
+}
+
+namespace {
+
+bridge::BoundsView ToBounds(const Area& area) {
+  return bridge::BoundsView{area.x, area.y, area.width, area.height};
+}
+
+Area FromBounds(const bridge::BoundsView& bounds) {
+  return Area{bounds.x, bounds.y, bounds.width, bounds.height};
+}
+
+}
+
+BoxesFrame::BoxesFrame(std::vector<Area> areas, int most, double aspect,
+                       const QString& picture, QWidget* parent)
+    : PictureFrame(aspect, picture, parent),
+      areas_(std::move(areas)),
+      most_(most) {
+  setMouseTracking(true);
+}
+
+QRectF BoxesFrame::ToWidget(const Area& area) const {
+  const QRectF frame = QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5);
+  return {frame.left() + area.x * frame.width(),
+          frame.top() + area.y * frame.height(), area.width * frame.width(),
+          area.height * frame.height()};
+}
+
+QRectF BoxesFrame::RemoveButton(const Area& area) const {
+  const QRectF box = ToWidget(area);
+  return {box.right() - kRemoveSize / 2, box.top() - kRemoveSize / 2,
+          kRemoveSize, kRemoveSize};
+}
+
+QPointF BoxesFrame::FractionAt(const QPointF& point) const {
+  return {std::clamp(point.x() / std::max(1, width()), 0.0, 1.0),
+          std::clamp(point.y() / std::max(1, height()), 0.0, 1.0)};
+}
+
+void BoxesFrame::paintEvent(QPaintEvent*) {
+  QPainter painter(this);
+  PaintPicture(&painter);
+  QColor fill = App::Get().Token("primary");
+  fill.setAlphaF(0.25F);
+  const QColor edge = App::Get().Token("primary");
+  for (std::size_t i = 0; i < areas_.size(); ++i) {
+    const Area& area = moving_ == static_cast<int>(i) ? draft_ : areas_.at(i);
+    painter.setPen(QPen(edge, 2.0));
+    painter.setBrush(fill);
+    painter.drawRect(ToWidget(area));
+  }
+  if (drawing_) {
+    painter.setPen(QPen(edge, 2.0, Qt::DashLine));
+    painter.setBrush(fill);
+    painter.drawRect(ToWidget(draft_));
+  }
+  if (moving_ >= 0 || drawing_) return;
+  for (const Area& area : areas_) {
+    const QRectF button = RemoveButton(area);
+    painter.setPen(QPen(App::Get().Token("border"), 1.0));
+    painter.setBrush(App::Get().Token("background"));
+    painter.drawEllipse(button);
+    painter.drawPixmap(button.adjusted(3, 3, -3, -3).toRect(),
+                       App::Get().Glyph(QStringLiteral("x"),
+                                        App::Get().Token("foreground"), 10));
+  }
+}
+
+void BoxesFrame::mousePressEvent(QMouseEvent* event) {
+  setFocus();
+  const QPointF point = event->position();
+  for (int i = static_cast<int>(areas_.size()) - 1; i >= 0; --i) {
+    if (RemoveButton(areas_.at(static_cast<std::size_t>(i))).contains(point)) {
+      std::vector<Area> next = areas_;
+      next.erase(next.begin() + i);
+      emit Changed(next);
+      return;
+    }
+  }
+  start_ = FractionAt(point);
+  for (int i = static_cast<int>(areas_.size()) - 1; i >= 0; --i) {
+    if (ToWidget(areas_.at(static_cast<std::size_t>(i))).contains(point)) {
+      moving_ = i;
+      origin_ = areas_.at(static_cast<std::size_t>(i));
+      draft_ = origin_;
+      return;
+    }
+  }
+  if (static_cast<int>(areas_.size()) >= most_) return;
+  drawing_ = true;
+  draft_ = FromBounds(App::Get().session().box_from(start_.x(), start_.y(),
+                                                    start_.x(), start_.y()));
+  update();
+}
+
+void BoxesFrame::mouseMoveEvent(QMouseEvent* event) {
+  const QPointF at = FractionAt(event->position());
+  if (moving_ >= 0) {
+    draft_ = FromBounds(App::Get().session().move_box(
+        ToBounds(origin_), at.x() - start_.x(), at.y() - start_.y()));
+    update();
+  } else if (drawing_) {
+    draft_ = FromBounds(
+        App::Get().session().box_from(start_.x(), start_.y(), at.x(), at.y()));
+    update();
+  } else {
+    bool over = false;
+    for (const Area& area : areas_) {
+      over = over || ToWidget(area).contains(event->position());
+    }
+    setCursor(over ? Qt::SizeAllCursor : Qt::CrossCursor);
+  }
+}
+
+void BoxesFrame::mouseReleaseEvent(QMouseEvent*) {
+  std::vector<Area> next = areas_;
+  if (moving_ >= 0) {
+    next.at(static_cast<std::size_t>(moving_)) = draft_;
+  } else if (drawing_ && App::Get().session().box_kept(ToBounds(draft_))) {
+    next.push_back(draft_);
+  } else {
+    drawing_ = false;
+    update();
+    return;
+  }
+  moving_ = -1;
+  drawing_ = false;
+  update();
+  emit Changed(next);
+}
+
+QWidget* MakeBoxesField(const bridge::FieldView& field,
+                        const CommitValue& commit, const CommitPatch& patch) {
+  auto* box = new QWidget();
+  auto* column = new QVBoxLayout(box);
+  column->setContentsMargins(0, 0, 0, 0);
+  column->setSpacing(8);
+  const QJsonObject extra = ObjectOf(field.extra_json);
+  const QString reference = extra.value(QStringLiteral("picture")).toString();
+  const QString picture =
+      reference.isEmpty()
+          ? QString()
+          : ToQ(App::Get().session().file_path(ToRust(reference)));
+  std::vector<Area> areas;
+  for (const QJsonValue& value :
+       QJsonDocument::fromJson(ToQ(field.value_json).toUtf8()).array()) {
+    const QJsonObject item = value.toObject();
+    areas.push_back(Area{item.value(QStringLiteral("x")).toDouble(),
+                         item.value(QStringLiteral("y")).toDouble(),
+                         item.value(QStringLiteral("width")).toDouble(),
+                         item.value(QStringLiteral("height")).toDouble()});
+  }
+  const int most = static_cast<int>(std::min<std::uint32_t>(
+      field.max_items, static_cast<std::uint32_t>(INT32_MAX)));
+  auto* frame = new BoxesFrame(areas, most,
+                               extra.value(QStringLiteral("aspect")).toDouble(),
+                               picture, box);
+  frame->setAccessibleName(ToQ(field.label));
+  QObject::connect(
+      frame, &BoxesFrame::Changed, box,
+      [commit](const std::vector<Area>& next) {
+        QJsonArray array;
+        for (const Area& area : next) {
+          array.append(QJsonObject{{QStringLiteral("x"), area.x},
+                                   {QStringLiteral("y"), area.y},
+                                   {QStringLiteral("width"), area.width},
+                                   {QStringLiteral("height"), area.height}});
+        }
+        commit(QString::fromUtf8(
+            QJsonDocument(array).toJson(QJsonDocument::Compact)));
+      });
+  column->addWidget(frame);
+  const QString time_key = extra.value(QStringLiteral("timeKey")).toString();
+  const double duration = extra.value(QStringLiteral("durationMs")).toDouble();
+  if (!time_key.isEmpty() && duration > 0) {
+    auto* row = new QHBoxLayout();
+    row->setSpacing(12);
+    auto* slider = new QSlider(Qt::Horizontal, box);
+    slider->setAccessibleName(QStringLiteral("Frame to draw on"));
+    slider->setRange(0, static_cast<int>(duration));
+    slider->setSingleStep(kFrameStepMs);
+    slider->setPageStep(kFrameStepMs * 10);
+    const double time =
+        std::min(extra.value(QStringLiteral("time")).toDouble(), duration);
+    slider->setValue(static_cast<int>(time));
+    auto* shown = MakeLabel(Seconds(time) + QStringLiteral(" s"), "muted", box);
+    row->addWidget(slider, 1);
+    row->addWidget(shown);
+    QObject::connect(slider, &QSlider::sliderPressed, box,
+                     [] { FormHold::Instance()->Begin(); });
+    QObject::connect(slider, &QSlider::sliderReleased, box,
+                     [] { FormHold::Instance()->End(); });
+    QObject::connect(slider, &QSlider::valueChanged, box,
+                     [patch, time_key, shown](int value) {
+                       const int stepped = value / kFrameStepMs * kFrameStepMs;
+                       shown->setText(Seconds(stepped) + QStringLiteral(" s"));
+                       patch(QJsonObject{{time_key, stepped}});
+                     });
+    column->addLayout(row);
+  }
+  const auto count = static_cast<int>(areas.size());
+  column->addWidget(MakeLabel(
+      count >= most
+          ? QStringLiteral("Up to %1 areas. Remove one to add another.")
+                .arg(most)
+          : QStringLiteral("%1 of %2 areas.").arg(count).arg(most),
+      "muted", box));
+  return box;
 }
 
 }

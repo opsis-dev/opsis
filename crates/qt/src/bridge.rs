@@ -91,6 +91,15 @@ pub mod ffi {
         Target,
         Offsets,
         Spot,
+        Boxes,
+    }
+
+    #[derive(Debug, Clone, Copy)]
+    struct BoundsView {
+        x: f64,
+        y: f64,
+        width: f64,
+        height: f64,
     }
 
     #[derive(Debug, Clone)]
@@ -515,6 +524,9 @@ pub mod ffi {
         fn gradient_info(self: &Session, css: &str) -> GradientInfo;
         fn import_files(self: &Session, paths: Vec<String>) -> Result<Vec<String>>;
         fn file_path(self: &Session, reference: &str) -> String;
+        fn box_from(self: &Session, x0: f64, y0: f64, x1: f64, y1: f64) -> BoundsView;
+        fn move_box(self: &Session, origin: BoundsView, dx: f64, dy: f64) -> BoundsView;
+        fn box_kept(self: &Session, area: BoundsView) -> bool;
         fn edit_gradient(self: &Session, css: &str, edit_json: &str) -> GradientInfo;
         fn save(self: &Session) -> Result<()>;
 

@@ -1575,6 +1575,93 @@ void Scenario::BuildTour() {
         QStringLiteral("one undo left the spot at %1").arg(spot.number));
   });
   Add(QStringLiteral("undo-add-zoom"), undo, 500, back);
+  const auto boxes_frame = [window]() -> BoxesFrame* {
+    auto* frame = window->inspector_dock()->widget()->findChild<BoxesFrame*>();
+    if (frame != nullptr) {
+      window->inspector_dock()
+          ->widget()
+          ->findChild<QScrollArea*>()
+          ->ensureWidgetVisible(frame);
+    }
+    return frame;
+  };
+  const auto area_count = [] {
+    for (const auto& field : App::Get().session().inspector().fields) {
+      if (field.kind == bridge::FieldKind::Boxes) {
+        return static_cast<int>(
+            QJsonDocument::fromJson(ToQ(field.value_json).toUtf8())
+                .array()
+                .size());
+      }
+    }
+    return -1;
+  };
+  const auto at = [](QWidget* frame, double x, double y) {
+    return QPoint(static_cast<int>(frame->width() * x),
+                  static_cast<int>(frame->height() * y));
+  };
+  Add(
+      QStringLiteral("boxes-draw"),
+      [this, add_from_list, boxes_frame, at] {
+        add_from_list(QStringLiteral("Effects"), QStringLiteral("Redact take"));
+        QTest::qWait(kSettleMs);
+        BoxesFrame* frame = boxes_frame();
+        if (frame == nullptr) {
+          Miss(QStringLiteral("no areas frame"));
+          return;
+        }
+        QTest::qWait(kSettleMs);
+        Drag(frame, at(frame, 0.05, 0.05), at(frame, 0.3, 0.3), 6);
+      },
+      700,
+      [area_count] {
+        return Expect(area_count() == 2,
+                      QStringLiteral("%1 areas, not 2").arg(area_count()));
+      });
+  Add(
+      QStringLiteral("boxes-move"),
+      [this, boxes_frame, at] {
+        BoxesFrame* frame = boxes_frame();
+        if (frame == nullptr) {
+          Miss(QStringLiteral("no areas frame"));
+          return;
+        }
+        Drag(frame, at(frame, 0.17, 0.17), at(frame, 0.77, 0.17), 6);
+      },
+      700,
+      [boxes_frame] {
+        BoxesFrame* frame = boxes_frame();
+        if (frame == nullptr || frame->areas().size() != 2) {
+          return QStringLiteral("the areas changed count");
+        }
+        const Area& moved = frame->areas().at(1);
+        return Expect(moved.x > 0.6 && moved.x < 0.7 && moved.y < 0.1,
+                      QStringLiteral("the area sits at %1, %2")
+                          .arg(moved.x)
+                          .arg(moved.y));
+      });
+  Add(
+      QStringLiteral("boxes-remove"),
+      [boxes_frame] {
+        BoxesFrame* frame = boxes_frame();
+        if (frame == nullptr || frame->areas().size() < 2) return;
+        const QRectF box = frame->ToWidget(frame->areas().at(1));
+        QTest::mouseClick(
+            frame, Qt::LeftButton, {},
+            QPoint(static_cast<int>(box.right()), static_cast<int>(box.top())));
+      },
+      700,
+      [area_count] {
+        return Expect(
+            area_count() == 1,
+            QStringLiteral("%1 areas after removing").arg(area_count()));
+      });
+  Add(
+      QStringLiteral("undo-boxes"),
+      [this, window] {
+        for (int i = 0; i < 4; ++i) Click(window, QStringLiteral("Undo"));
+      },
+      600, back);
   Add(
       QStringLiteral("theme-mode"),
       [this, window, add_from_list] {

@@ -1,3 +1,4 @@
+pub mod areas;
 pub mod asset_ref;
 pub mod audio;
 pub mod backdrops;

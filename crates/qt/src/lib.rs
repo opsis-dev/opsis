@@ -7,11 +7,12 @@ mod bridge;
 mod host;
 
 pub use bridge::ffi::{
-    BarView, CardKind, CardView, CategoryView, Choice, CloseView, ColorView, DialogKind, EdgeView,
-    EventKind, FieldKind, FieldView, FileView, GradientInfo, GradientStopView, GraphView,
-    InspectorView, IssueView, MenuItemKind, MenuItemView, MenuSectionView, MotionInfo, NodeMove,
-    PaletteEntry, PortView, PoseView, PresetView, ProjectEntry, ProjectView, RowView, ScreenArea,
-    SettingsView, ShapeView, TemplateView, TextToken, TokenKind, VariableView, WindowPlacement,
+    BarView, BoundsView, CardKind, CardView, CategoryView, Choice, CloseView, ColorView,
+    DialogKind, EdgeView, EventKind, FieldKind, FieldView, FileView, GradientInfo,
+    GradientStopView, GraphView, InspectorView, IssueView, MenuItemKind, MenuItemView,
+    MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PortView, PoseView, PresetView,
+    ProjectEntry, ProjectView, RowView, ScreenArea, SettingsView, ShapeView, TemplateView,
+    TextToken, TokenKind, VariableView, WindowPlacement,
 };
 pub use host::{
     Host, HostResult, notify, open_path, post_event, qt_version, quit, raise_editor,

@@ -422,6 +422,10 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
       return MakeOffsetsField(field, [this, key](const QString& text) {
         Commit(key, Json(QJsonValue(text)));
       });
+    case bridge::FieldKind::Boxes:
+      return MakeBoxesField(
+          field, [this, key](const QString& json) { Commit(key, json); },
+          [this](const QJsonObject& patch) { CommitPatch(patch); });
     case bridge::FieldKind::Spot:
       return MakeSpotField(
           field, [this](const QJsonObject& patch) { CommitPatch(patch); });

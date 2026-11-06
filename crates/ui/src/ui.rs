@@ -13,10 +13,10 @@ use opsis_compile::layout::auto_layout;
 use opsis_compile::node::Platform as NodePlatform;
 use opsis_compile::nodes::media::IMPORT_TYPE;
 use opsis_qt::{
-    BarView, CategoryView, Choice, CloseView, ColorView, EventKind, FileView, GradientInfo,
-    GraphView, Host, HostResult, InspectorView, MenuSectionView, MotionInfo, NodeMove,
-    PaletteEntry, PoseView, ProjectEntry, ProjectView, ScreenArea, SettingsView, TemplateView,
-    TextToken, VariableView, WindowPlacement,
+    BarView, BoundsView, CategoryView, Choice, CloseView, ColorView, EventKind, FileView,
+    GradientInfo, GraphView, Host, HostResult, InspectorView, MenuSectionView, MotionInfo,
+    NodeMove, PaletteEntry, PoseView, ProjectEntry, ProjectView, ScreenArea, SettingsView,
+    TemplateView, TextToken, VariableView, WindowPlacement,
 };
 use opsis_session::error::CommandError;
 use opsis_session::events::{MAIN_WINDOW, SessionEvent};
@@ -1123,6 +1123,18 @@ impl Host for Ui {
 
     fn gradient_info(&self, css: &str) -> GradientInfo {
         colors::gradient(css)
+    }
+
+    fn box_from(&self, x0: f64, y0: f64, x1: f64, y1: f64) -> BoundsView {
+        colors::drawn_box(x0, y0, x1, y1)
+    }
+
+    fn move_box(&self, origin: BoundsView, dx: f64, dy: f64) -> BoundsView {
+        colors::moved(origin, dx, dy)
+    }
+
+    fn box_kept(&self, area: BoundsView) -> bool {
+        colors::kept(area)
     }
 
     fn file_path(&self, reference: &str) -> String {

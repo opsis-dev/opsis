@@ -49,7 +49,9 @@ fn form(
         let mut view = field(&path, schema, values.get(key), ctx);
         group.clone_into(&mut view.group);
         if view.kind == FieldKind::Spot {
-            view.extra_json = spot_extra(key, prefix, values, ctx).to_string();
+            view.extra_json = spot_extra(key, schema, prefix, values, ctx).to_string();
+        } else if view.kind == FieldKind::Boxes {
+            view.extra_json = Value::Object(frame_extra(schema, prefix, values, ctx)).to_string();
         }
         let nested = view.kind == FieldKind::ObjectList && depth < NESTING;
         out.push(view);
@@ -471,6 +473,10 @@ fn named_widget(
         });
         return true;
     }
+    if widget == "boxes" {
+        view.kind = FieldKind::Boxes;
+        return true;
+    }
     if widget == "spot" {
         view.kind = FieldKind::Spot;
         view.number = value.and_then(Value::as_f64).unwrap_or(SPOT_CENTRE);
@@ -503,17 +509,66 @@ pub fn spot_y_key(x_key: &str) -> String {
     }
 }
 
-fn spot_extra(key: &str, prefix: &str, values: &Map<String, Value>, ctx: &FormCtx<'_>) -> Value {
-    let y_key = spot_y_key(key);
+fn frame_extra(
+    schema: &Value,
+    prefix: &str,
+    values: &Map<String, Value>,
+    ctx: &FormCtx<'_>,
+) -> Map<String, Value> {
     let background = ctx.inspector.and_then(|i| i.spot_background.as_ref());
     let settings = &ctx.workflow.settings;
     let project_aspect = f64::from(settings.width) / f64::from(settings.height.max(1));
-    serde_json::json!({
-        "yKey": format!("{prefix}{y_key}"),
-        "y": values.get(&y_key).and_then(Value::as_f64).unwrap_or(SPOT_CENTRE),
-        "aspect": background.and_then(|b| b.aspect).unwrap_or(project_aspect),
-        "picture": background.filter(|b| b.still).map_or_default(|b| b.src.clone()),
-    })
+    let time_key = text(schema, "x-time-key");
+    let mut extra = Map::new();
+    extra.insert(
+        "aspect".to_owned(),
+        Value::from(background.and_then(|b| b.aspect).unwrap_or(project_aspect)),
+    );
+    extra.insert(
+        "picture".to_owned(),
+        Value::from(
+            background
+                .filter(|b| b.still)
+                .map_or_default(|b| b.src.clone()),
+        ),
+    );
+    extra.insert(
+        "durationMs".to_owned(),
+        Value::from(background.map_or(0.0, |b| b.duration_ms)),
+    );
+    if !time_key.is_empty() {
+        extra.insert(
+            "time".to_owned(),
+            Value::from(values.get(&time_key).and_then(Value::as_f64).unwrap_or(0.0)),
+        );
+        extra.insert(
+            "timeKey".to_owned(),
+            Value::from(format!("{prefix}{time_key}")),
+        );
+    }
+    extra
+}
+
+fn spot_extra(
+    key: &str,
+    schema: &Value,
+    prefix: &str,
+    values: &Map<String, Value>,
+    ctx: &FormCtx<'_>,
+) -> Value {
+    let y_key = spot_y_key(key);
+    let mut extra = frame_extra(schema, prefix, values, ctx);
+    extra.insert("yKey".to_owned(), Value::from(format!("{prefix}{y_key}")));
+    extra.insert(
+        "y".to_owned(),
+        Value::from(
+            values
+                .get(&y_key)
+                .and_then(Value::as_f64)
+                .unwrap_or(SPOT_CENTRE),
+        ),
+    );
+    Value::Object(extra)
 }
 
 fn theme_field(view: &mut FieldView, value: Option<&Value>) {

@@ -1,8 +1,10 @@
+use opsis_compile::areas::{big_enough, box_from, moved_box};
 use opsis_compile::color::{ColorFormat, Hsva, format_color, parse_color};
 use opsis_compile::gradient::{
     GradientEdit, GradientKind, GradientView, edit_gradient, gradient_view,
 };
-use opsis_qt::{ColorView, GradientInfo, GradientStopView};
+use opsis_qt::{BoundsView, ColorView, GradientInfo, GradientStopView};
+use opsis_types::actions::Bounds;
 
 pub fn view(text: &str) -> ColorView {
     let format = ColorFormat::of(text).id().to_owned();
@@ -81,4 +83,34 @@ pub fn gradient(css: &str) -> GradientInfo {
 pub fn edit(css: &str, edit_json: &str) -> GradientInfo {
     let edit: Option<GradientEdit> = serde_json::from_str(edit_json).ok();
     info(edit.and_then(|e| edit_gradient(css, &e)))
+}
+
+const fn bounds(view: BoundsView) -> Bounds {
+    Bounds {
+        x: view.x,
+        y: view.y,
+        width: view.width,
+        height: view.height,
+    }
+}
+
+const fn area_view(area: Bounds) -> BoundsView {
+    BoundsView {
+        x: area.x,
+        y: area.y,
+        width: area.width,
+        height: area.height,
+    }
+}
+
+pub fn drawn_box(x0: f64, y0: f64, x1: f64, y1: f64) -> BoundsView {
+    area_view(box_from(x0, y0, x1, y1))
+}
+
+pub fn moved(origin: BoundsView, dx: f64, dy: f64) -> BoundsView {
+    area_view(moved_box(bounds(origin), dx, dy))
+}
+
+pub fn kept(area: BoundsView) -> bool {
+    big_enough(bounds(area))
 }
