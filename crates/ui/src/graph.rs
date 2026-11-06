@@ -51,6 +51,8 @@ pub struct Compiled {
     pub inputs: IndexMap<String, IndexMap<String, CatalogPort>>,
     #[serde(default)]
     pub outdated: Vec<String>,
+    #[serde(default)]
+    pub inspector: Option<opsis_compile::inspector::InspectorContext>,
 }
 
 #[derive(Debug, Default)]

@@ -6,7 +6,7 @@ use std::time::Instant;
 
 use indexmap::IndexMap;
 use opsis_compile::canvas::{snap_to_grid, staggered};
-use opsis_compile::catalog::{EditorNode, editor_catalog};
+use opsis_compile::catalog::{EditorCatalog, EditorNode, editor_bundle, editor_catalog};
 use opsis_compile::compile::compile_workflow;
 use opsis_compile::graph::{IssueLevel, connection_problem_now};
 use opsis_compile::layout::auto_layout;
@@ -56,6 +56,7 @@ pub struct Ui {
     runtime: Runtime,
     platform: Arc<QtPlatform>,
     catalog: IndexMap<String, EditorNode>,
+    bundle: EditorCatalog,
     showing: AtomicBool,
     closing: Arc<Mutex<Option<CloseRequest>>>,
     compiled: Arc<Mutex<graph::Compiled>>,
@@ -151,6 +152,7 @@ impl Ui {
             catalog,
             showing: AtomicBool::new(false),
             closing: Arc::new(Mutex::new(None)),
+            bundle: editor_bundle(NodePlatform::current()),
             compiled: Arc::new(Mutex::new(graph::Compiled::default())),
             started: Instant::now(),
         }
@@ -915,7 +917,21 @@ impl Host for Ui {
             color: look::category_color(&category).to_owned(),
             glyph: def.look.as_ref().map_or_default(|l| l.glyph.clone()),
             description: def.description.clone().unwrap_or_default(),
-            fields: inspector::fields(def, node),
+            fields: {
+                let fonts = self.font_families(&wf);
+                let compiled = self.compiled.lock().expect("latest compile");
+                let context = compiled.inspector.as_ref().filter(|c| c.node_id == node.id);
+                inspector::fields(
+                    def,
+                    node,
+                    &inspector::FormCtx {
+                        inspector: context,
+                        catalog: &self.bundle,
+                        workflow: &wf,
+                        fonts: &fonts,
+                    },
+                )
+            },
             renamed: node
                 .label
                 .as_deref()
@@ -1054,6 +1070,20 @@ impl Host for Ui {
 
     fn join_tokens(&self, tokens: Vec<TextToken>) -> String {
         project::join_tokens(&tokens)
+    }
+
+    fn set_params(&self, id: &str, patch_json: &str) -> HostResult<()> {
+        let params: Map<String, Value> =
+            serde_json::from_str(patch_json).map_err(|e| e.to_string())?;
+        self.edit(WorkflowEdit::UpdateNode {
+            id: id.to_owned(),
+            patch: NodePatch {
+                params: Some(params),
+                ..NodePatch::default()
+            },
+        })
+        .map(|_| ())
+        .map_err(|e| e.0)
     }
 
     fn set_skipped(&self, id: &str, skipped: bool) -> HostResult<()> {

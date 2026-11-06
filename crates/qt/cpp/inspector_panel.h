@@ -29,6 +29,10 @@ class InspectorPanel : public QWidget {
                    bool errors, QWidget* content);
   void AddActions(QVBoxLayout* layout, const bridge::InspectorView& view,
                   QWidget* content);
+  QWidget* WithPresets(const bridge::FieldView& field, QWidget* row,
+                       QWidget* content);
+  void AddTabs(QVBoxLayout* layout, const QList<QWidget*>& basic,
+               const QList<QWidget*>& advanced, QWidget* content);
   void Commit(const QString& key, const QString& json);
   bool Editing() const;
 

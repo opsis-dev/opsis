@@ -371,6 +371,31 @@ QPushButton[variant="toggle-outline"]:checked {
   color: @foreground;
 }
 
+QFrame#FormTabs {
+  background: @muted;
+  border-radius: @radius;
+}
+
+QPushButton[variant="tab"] {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  min-height: 26px;
+  color: @muted-foreground;
+}
+
+QPushButton[variant="tab"]:checked {
+  background: @background;
+  border: 1px solid @border;
+  color: @foreground;
+}
+
+QPushButton[variant="keys"] {
+  text-align: left;
+  padding: 0 10px;
+  font-weight: 400;
+}
+
 QFrame#Segmented {
   background: @muted;
   border: 1px solid @border;

@@ -1,21 +1,28 @@
 #include "inspector_panel.h"
 
 #include <QApplication>
+#include <QButtonGroup>
 #include <QComboBox>
+#include <QDateTimeEdit>
 #include <QDoubleValidator>
 #include <QFrame>
 #include <QHBoxLayout>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonValue>
+#include <QKeyEvent>
+#include <QKeySequence>
 #include <QLineEdit>
 #include <QLocale>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QTextEdit>
+#include <QTimeZone>
 #include <algorithm>
 #include <cmath>
 #include <functional>
+#include <memory>
 
 #include "app.h"
 #include "event_hub.h"
@@ -27,6 +34,10 @@
 namespace opsis {
 
 namespace {
+
+constexpr int kToggleGap = 6;
+constexpr int kMinutePrecision = 16;
+constexpr int kJsonHeight = 96;
 
 constexpr int kActionGap = 8;
 
@@ -42,6 +53,103 @@ QString Json(const QJsonValue& value) {
           .mid(1)
           .chopped(1));
 }
+
+class KeyChordButton : public QPushButton {
+ public:
+  explicit KeyChordButton(const QString& chord) {
+    setProperty("variant", "keys");
+    setFocusPolicy(Qt::StrongFocus);
+    Show(chord);
+  }
+  void SetOnChord(std::function<void(const QString&)> on_chord) {
+    on_chord_ = std::move(on_chord);
+  }
+
+ protected:
+  void keyPressEvent(QKeyEvent* event) override {
+    if (event->key() == Qt::Key_Tab || event->key() == Qt::Key_Backtab) {
+      QPushButton::keyPressEvent(event);
+      return;
+    }
+    const QString chord = ChordOf(event);
+    if (chord.isEmpty()) return;
+    Show(chord);
+    if (on_chord_) on_chord_(chord);
+  }
+  void focusInEvent(QFocusEvent* event) override {
+    QPushButton::focusInEvent(event);
+    setText(text() + QStringLiteral("   Listening…"));
+  }
+  void focusOutEvent(QFocusEvent* event) override {
+    QPushButton::focusOutEvent(event);
+    Show(chord_);
+  }
+
+ private:
+  static QString ChordOf(const QKeyEvent* event) {
+    const int key = event->key();
+    if (key == Qt::Key_Control || key == Qt::Key_Shift || key == Qt::Key_Alt ||
+        key == Qt::Key_Meta) {
+      return {};
+    }
+    QStringList parts;
+    const Qt::KeyboardModifiers mods = event->modifiers();
+    if (mods.testFlag(Qt::ControlModifier)) parts << QStringLiteral("Control");
+    if (mods.testFlag(Qt::MetaModifier)) parts << QStringLiteral("Meta");
+    if (mods.testFlag(Qt::AltModifier)) parts << QStringLiteral("Alt");
+    if (mods.testFlag(Qt::ShiftModifier)) parts << QStringLiteral("Shift");
+    parts << KeyName(key, event->text());
+    return parts.join(QLatin1Char('+'));
+  }
+  static QString KeyName(int key, const QString& typed) {
+    switch (key) {
+      case Qt::Key_Space:
+        return QStringLiteral("Space");
+      case Qt::Key_Return:
+      case Qt::Key_Enter:
+        return QStringLiteral("Enter");
+      case Qt::Key_Escape:
+        return QStringLiteral("Escape");
+      case Qt::Key_Backspace:
+        return QStringLiteral("Backspace");
+      case Qt::Key_Delete:
+        return QStringLiteral("Delete");
+      case Qt::Key_Up:
+        return QStringLiteral("ArrowUp");
+      case Qt::Key_Down:
+        return QStringLiteral("ArrowDown");
+      case Qt::Key_Left:
+        return QStringLiteral("ArrowLeft");
+      case Qt::Key_Right:
+        return QStringLiteral("ArrowRight");
+      case Qt::Key_Home:
+        return QStringLiteral("Home");
+      case Qt::Key_End:
+        return QStringLiteral("End");
+      case Qt::Key_PageUp:
+        return QStringLiteral("PageUp");
+      case Qt::Key_PageDown:
+        return QStringLiteral("PageDown");
+      default:
+        break;
+    }
+    if (key >= Qt::Key_F1 && key <= Qt::Key_F24) {
+      return QStringLiteral("F%1").arg(key - Qt::Key_F1 + 1);
+    }
+    const QString name = QKeySequence(key).toString();
+    if (name.size() == 1) return name.toUpper();
+    return typed.isEmpty() ? name : typed.toUpper();
+  }
+  void Show(const QString& chord) {
+    chord_ = chord;
+    setText(chord.isEmpty() ? QStringLiteral("Press a key")
+                            : QString(chord).replace(QLatin1Char('+'),
+                                                     QStringLiteral("  +  ")));
+  }
+
+  QString chord_;
+  std::function<void(const QString&)> on_chord_;
+};
 
 class TextArea : public QPlainTextEdit {
  public:
@@ -129,9 +237,10 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
         }
         segmented->SetChoices(choices);
         segmented->SetValue(ToQ(field.text));
+        const bool raw = field.raw_choices;
         connect(segmented, &Segmented::Changed, this,
-                [this, key](const QString& value) {
-                  Commit(key, Json(QJsonValue(value)));
+                [this, key, raw](const QString& value) {
+                  Commit(key, raw ? value : Json(QJsonValue(value)));
                 });
         auto* holder = new QWidget();
         auto* row = new QHBoxLayout(holder);
@@ -145,11 +254,141 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
         combo->addItem(ToQ(choice.label), ToQ(choice.value));
       }
       combo->setCurrentIndex(combo->findData(ToQ(field.text)));
-      connect(
-          combo, &QComboBox::activated, this, [this, key, combo](int index) {
-            Commit(key, Json(QJsonValue(combo->itemData(index).toString())));
-          });
+      const bool raw = field.raw_choices;
+      connect(combo, &QComboBox::activated, this,
+              [this, key, combo, raw](int index) {
+                const QString value = combo->itemData(index).toString();
+                Commit(key, raw ? value : Json(QJsonValue(value)));
+              });
       return combo;
+    }
+    case bridge::FieldKind::Select: {
+      auto* combo = new Combo();
+      const QString none = ToQ(field.none_label);
+      if (!none.isEmpty() || field.text.empty()) {
+        combo->addItem(none.isEmpty() ? QStringLiteral("Choose…") : none,
+                       QString());
+      }
+      for (const auto& choice : field.choices) {
+        combo->addItem(ToQ(choice.label), ToQ(choice.value));
+      }
+      combo->setCurrentIndex(std::max(0, combo->findData(ToQ(field.text))));
+      connect(combo, &QComboBox::activated, this,
+              [this, key, combo](int index) {
+                const QString value = combo->itemData(index).toString();
+                Commit(key, value.isEmpty() ? QStringLiteral("null")
+                                            : Json(QJsonValue(value)));
+              });
+      return combo;
+    }
+    case bridge::FieldKind::EnumList: {
+      auto* holder = new QWidget();
+      auto* flow = new FlowLayout(holder, kToggleGap);
+      const QJsonArray chosen =
+          QJsonDocument::fromJson(ToQ(field.value_json).toUtf8()).array();
+      auto buttons =
+          std::make_shared<std::vector<std::pair<QString, QPushButton*>>>();
+      for (const auto& choice : field.choices) {
+        auto* button = new QPushButton(ToQ(choice.label), holder);
+        button->setProperty("variant", "toggle-outline");
+        button->setCheckable(true);
+        button->setChecked(chosen.contains(QJsonValue(ToQ(choice.value))));
+        flow->addWidget(button);
+        buttons->emplace_back(ToQ(choice.value), button);
+        connect(button, &QPushButton::clicked, this, [this, key, buttons] {
+          QJsonArray picked;
+          for (const auto& [value, toggle] : *buttons) {
+            if (toggle->isChecked()) picked.append(value);
+          }
+          Commit(key, QString::fromUtf8(QJsonDocument(picked).toJson(
+                          QJsonDocument::Compact)));
+        });
+      }
+      return holder;
+    }
+    case bridge::FieldKind::PresetNumber: {
+      auto* holder = new QWidget();
+      auto* flow = new FlowLayout(holder, kToggleGap);
+      auto* group = new QButtonGroup(holder);
+      int nearest = -1;
+      double best = 0;
+      int index = 0;
+      for (const auto& choice : field.choices) {
+        auto* button = new QPushButton(ToQ(choice.label), holder);
+        button->setProperty("variant", "toggle-outline");
+        button->setCheckable(true);
+        group->addButton(button, index);
+        flow->addWidget(button);
+        const double distance =
+            std::abs(ToQ(choice.value).toDouble() - field.number);
+        if (nearest < 0 || distance < best) {
+          nearest = index;
+          best = distance;
+        }
+        const QString value = ToQ(choice.value);
+        connect(button, &QPushButton::clicked, this,
+                [this, key, value] { Commit(key, value); });
+        ++index;
+      }
+      if (nearest >= 0) group->button(nearest)->setChecked(true);
+      return holder;
+    }
+    case bridge::FieldKind::DateTime: {
+      auto* edit = new QDateTimeEdit();
+      edit->setDisplayFormat(QStringLiteral("yyyy-MM-dd HH:mm"));
+      edit->setCalendarPopup(true);
+      const QDateTime at =
+          QDateTime::fromString(ToQ(field.text).left(kMinutePrecision),
+                                QStringLiteral("yyyy-MM-ddTHH:mm"));
+      edit->setDateTime(at.isValid() ? at : QDateTime::currentDateTime());
+      connect(edit, &QDateTimeEdit::editingFinished, this, [this, key, edit] {
+        Commit(key, Json(QJsonValue(edit->dateTime().toString(
+                        QStringLiteral("yyyy-MM-ddTHH:mm:00")))));
+      });
+      return edit;
+    }
+    case bridge::FieldKind::Timezone: {
+      auto* combo = new Combo();
+      combo->addItem(QStringLiteral("This computer's time zone"), QString());
+      for (const QByteArray& zone : QTimeZone::availableTimeZoneIds()) {
+        combo->addItem(QString::fromUtf8(zone), QString::fromUtf8(zone));
+      }
+      combo->setCurrentIndex(std::max(0, combo->findData(ToQ(field.text))));
+      connect(combo, &QComboBox::activated, this,
+              [this, key, combo](int index) {
+                const QString zone = combo->itemData(index).toString();
+                Commit(key, zone.isEmpty() ? QStringLiteral("null")
+                                           : Json(QJsonValue(zone)));
+              });
+      return combo;
+    }
+    case bridge::FieldKind::Keys: {
+      auto* keys = new KeyChordButton(ToQ(field.text));
+      keys->SetOnChord([this, key](const QString& chord) {
+        Commit(key, Json(QJsonValue(chord)));
+      });
+      return keys;
+    }
+    case bridge::FieldKind::Json: {
+      auto* area = new TextArea();
+      area->setPlainText(ToQ(field.value_json));
+      area->setFixedHeight(kJsonHeight);
+      QFont mono(QStringLiteral("JetBrains Mono"));
+      mono.setPixelSize(12);
+      area->setFont(mono);
+      const QString initial = ToQ(field.value_json);
+      area->on_commit = [this, key, area, initial] {
+        const QString text = area->toPlainText().trimmed();
+        if (text == initial) return;
+        QJsonParseError error{};
+        QJsonDocument::fromJson(QByteArray("[") + text.toUtf8() + "]", &error);
+        if (error.error != QJsonParseError::NoError) {
+          App::Get().ShowError(QStringLiteral("That isn't valid JSON."));
+          return;
+        }
+        Commit(key, text);
+      };
+      return area;
     }
     case bridge::FieldKind::Number: {
       auto* holder = new QWidget();
@@ -172,6 +411,12 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
       row->addWidget(line, 1);
       if (!field.unit.empty())
         row->addWidget(MakeLabel(ToQ(field.unit), "muted"));
+      if (field.clearable) {
+        auto* clear = MakeButton(QStringLiteral("Clear"), "ghost", QString());
+        connect(clear, &QPushButton::clicked, this,
+                [this, key] { Commit(key, QStringLiteral("null")); });
+        row->addWidget(clear);
+      }
       const double scale = field.scale;
       const bool whole = field.decimals == 0 || scale != 1.0;
       const double minimum = field.minimum;
@@ -381,6 +626,84 @@ void InspectorPanel::AddActions(QVBoxLayout* layout,
   }
 }
 
+QWidget* InspectorPanel::WithPresets(const bridge::FieldView& field,
+                                     QWidget* row, QWidget* content) {
+  auto* box = new QWidget(content);
+  auto* column = new QVBoxLayout(box);
+  column->setContentsMargins(0, 0, 0, 0);
+  column->setSpacing(6);
+  if (!field.presets_label.empty()) {
+    column->addWidget(MakeLabel(ToQ(field.presets_label), "small", box));
+  }
+  auto* holder = new QWidget(box);
+  auto* flow = new FlowLayout(holder, kToggleGap);
+  const QString node = node_;
+  for (const auto& preset : field.presets) {
+    auto* button =
+        MakeButton(ToQ(preset.label), "toggle-outline", QString(), holder);
+    const QString values = ToQ(preset.values_json);
+    connect(button, &QPushButton::clicked, this, [node, values] {
+      try {
+        App::Get().session().set_params(ToRust(node), ToRust(values));
+      } catch (const rust::Error& error) {
+        App::Get().ShowError(QString::fromUtf8(error.what()));
+      }
+    });
+    flow->addWidget(button);
+  }
+  column->addWidget(holder);
+  column->addWidget(row);
+  return box;
+}
+
+void InspectorPanel::AddTabs(QVBoxLayout* layout, const QList<QWidget*>& basic,
+                             const QList<QWidget*>& advanced,
+                             QWidget* content) {
+  auto* bar = new QFrame(content);
+  bar->setObjectName(QStringLiteral("FormTabs"));
+  auto* tabs = new QHBoxLayout(bar);
+  tabs->setContentsMargins(3, 3, 3, 3);
+  tabs->setSpacing(3);
+  auto* basic_tab = MakeButton(QStringLiteral("Basic"), "tab", QString(), bar);
+  auto* advanced_tab =
+      MakeButton(QStringLiteral("Advanced  %1").arg(advanced.size()), "tab",
+                 QString(), bar);
+  for (QPushButton* tab : {basic_tab, advanced_tab}) {
+    tab->setCheckable(true);
+    tab->setAutoExclusive(true);
+    tabs->addWidget(tab, 1);
+  }
+  layout->addWidget(bar);
+  auto* basic_page = new QWidget(content);
+  auto* basic_rows = new QVBoxLayout(basic_page);
+  basic_rows->setContentsMargins(0, 0, 0, 0);
+  basic_rows->setSpacing(14);
+  if (basic.isEmpty()) {
+    auto* empty =
+        MakeLabel(QStringLiteral("Every setting of this node is in Advanced."),
+                  "muted", basic_page);
+    empty->setWordWrap(true);
+    basic_rows->addWidget(empty);
+  }
+  for (QWidget* row : basic) basic_rows->addWidget(row);
+  auto* advanced_page = new QWidget(content);
+  auto* advanced_rows = new QVBoxLayout(advanced_page);
+  advanced_rows->setContentsMargins(0, 0, 0, 0);
+  advanced_rows->setSpacing(14);
+  for (QWidget* row : advanced) advanced_rows->addWidget(row);
+  layout->addWidget(basic_page);
+  layout->addWidget(advanced_page);
+  const auto show = [this, basic_page, advanced_page](bool on_advanced) {
+    advanced_open_ = on_advanced;
+    basic_page->setVisible(!on_advanced);
+    advanced_page->setVisible(on_advanced);
+  };
+  (advanced_open_ ? advanced_tab : basic_tab)->setChecked(true);
+  show(advanced_open_);
+  connect(basic_tab, &QPushButton::clicked, this, [show] { show(false); });
+  connect(advanced_tab, &QPushButton::clicked, this, [show] { show(true); });
+}
+
 void InspectorPanel::Rebuild() {
   App& app = App::Get();
   const bridge::InspectorView view = app.session().inspector();
@@ -404,6 +727,7 @@ void InspectorPanel::Rebuild() {
   } else {
     AddHeader(layout, view, content);
     layout->addWidget(MakeRule(content));
+    QList<QWidget*> basic;
     QList<QWidget*> advanced;
     for (const auto& field : view.fields) {
       QWidget* control = MakeControl(field);
@@ -413,33 +737,13 @@ void InspectorPanel::Rebuild() {
                                 static_cast<ToggleSwitch*>(control),
                                 ToQ(field.help), content)
               : MakeField(ToQ(field.label), control, ToQ(field.help), content);
-      if (field.advanced) {
-        advanced.append(row);
-      } else {
-        layout->addWidget(row);
-      }
+      if (!field.presets.empty()) row = WithPresets(field, row, content);
+      (field.advanced ? advanced : basic).append(row);
     }
-    if (!advanced.isEmpty()) {
-      auto* toggle =
-          MakeButton(QStringLiteral("Advanced"), "ghost",
-                     advanced_open_ ? QStringLiteral("chevron-down")
-                                    : QStringLiteral("chevron-right"),
-                     content);
-      toggle->setStyleSheet(
-          QStringLiteral("text-align: left; padding-left: 4px;"));
-      layout->addWidget(toggle);
-      for (QWidget* row : advanced) {
-        row->setVisible(advanced_open_);
-        layout->addWidget(row);
-      }
-      connect(toggle, &QPushButton::clicked, this, [this, advanced, toggle] {
-        advanced_open_ = !advanced_open_;
-        toggle->setIcon(App::Get().Icon(advanced_open_
-                                            ? QStringLiteral("chevron-down")
-                                            : QStringLiteral("chevron-right"),
-                                        App::Get().Token("foreground")));
-        for (QWidget* row : advanced) row->setVisible(advanced_open_);
-      });
+    if (advanced.isEmpty()) {
+      for (QWidget* row : basic) layout->addWidget(row);
+    } else {
+      AddTabs(layout, basic, advanced, content);
     }
     layout->addWidget(MakeRule(content));
     AddActions(layout, view, content);

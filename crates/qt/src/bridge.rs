@@ -73,6 +73,19 @@ pub mod ffi {
         Choice,
         Code,
         Other,
+        Select,
+        EnumList,
+        DateTime,
+        Timezone,
+        Keys,
+        PresetNumber,
+        Json,
+    }
+
+    #[derive(Debug, Clone)]
+    struct PresetView {
+        label: String,
+        values_json: String,
     }
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -315,6 +328,12 @@ pub mod ffi {
         choices: Vec<Choice>,
         advanced: bool,
         pauses: bool,
+        value_json: String,
+        none_label: String,
+        clearable: bool,
+        raw_choices: bool,
+        presets: Vec<PresetView>,
+        presets_label: String,
     }
 
     #[derive(Debug, Clone)]
@@ -418,6 +437,7 @@ pub mod ffi {
         fn set_param(self: &Session, id: &str, key: &str, json: &str) -> Result<()>;
         fn rename_node(self: &Session, id: &str, label: &str) -> Result<()>;
         fn set_skipped(self: &Session, id: &str, skipped: bool) -> Result<()>;
+        fn set_params(self: &Session, id: &str, patch_json: &str) -> Result<()>;
         fn run_node(self: &Session, id: &str, onwards: bool) -> Result<()>;
         fn ungroup(self: &Session, id: &str) -> Result<()>;
         fn delete_node(self: &Session, id: &str) -> Result<()>;

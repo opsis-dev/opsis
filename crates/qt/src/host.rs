@@ -61,6 +61,7 @@ pub trait Host {
     fn set_param(&self, id: &str, key: &str, json: &str) -> HostResult<()>;
     fn rename_node(&self, id: &str, label: &str) -> HostResult<()>;
     fn set_skipped(&self, id: &str, skipped: bool) -> HostResult<()>;
+    fn set_params(&self, id: &str, patch_json: &str) -> HostResult<()>;
     fn run_node(&self, id: &str, onwards: bool) -> HostResult<()>;
     fn ungroup(&self, id: &str) -> HostResult<()>;
     fn delete_node(&self, id: &str) -> HostResult<()>;
@@ -319,6 +320,10 @@ impl Session {
 
     pub(crate) fn set_skipped(&self, id: &str, skipped: bool) -> HostResult<()> {
         self.0.set_skipped(id, skipped)
+    }
+
+    pub(crate) fn set_params(&self, id: &str, patch_json: &str) -> HostResult<()> {
+        self.0.set_params(id, patch_json)
     }
 
     pub(crate) fn run_node(&self, id: &str, onwards: bool) -> HostResult<()> {

@@ -1,5 +1,6 @@
 #include <QAction>
 #include <QApplication>
+#include <QComboBox>
 #include <QDir>
 #include <QDropEvent>
 #include <QImage>
@@ -43,6 +44,7 @@ constexpr int kNudgeY = 60;
 constexpr int kGrow = 60;
 constexpr double kNear = 1.0;
 constexpr int kSettleMs = 300;
+constexpr double kMaxQuality = 12;
 constexpr int kEventuallyMs = 2000;
 constexpr int kControlsWidth = 220;
 constexpr double kBottomShareLow = 0.3;
@@ -98,6 +100,18 @@ int BackwardEdges(const bridge::GraphView& graph) {
     if (to->x < from->x + from->width) ++backward;
   }
   return backward;
+}
+
+QString FieldText(const QString& key) {
+  for (const auto& field : App::Get().session().inspector().fields) {
+    if (ToQ(field.key) == key) {
+      return field.kind == bridge::FieldKind::Number ||
+                     field.kind == bridge::FieldKind::PresetNumber
+                 ? QString::number(field.number)
+                 : ToQ(field.text);
+    }
+  }
+  return QStringLiteral("<missing>");
 }
 
 QWidget* VisibleText(QWidget* root, const QString& text) {
@@ -853,6 +867,163 @@ void Scenario::BuildTour() {
       });
   Add(QStringLiteral("undo-quick-add"), undo, 500);
 
+  const auto add_from_list = [this, window](const QString& section,
+                                            const QString& title) {
+    auto* tree = window->nodes_dock()->widget()->findChild<QTreeWidget*>();
+    for (int i = 0; i < tree->topLevelItemCount(); ++i) {
+      QTreeWidgetItem* group = tree->topLevelItem(i);
+      if (group->text(0) != section) continue;
+      for (int j = 0; j < group->childCount(); ++j) {
+        if (group->child(j)->text(0) != title) continue;
+        tree->scrollToItem(group->child(j));
+        QTest::mouseClick(tree->viewport(), Qt::LeftButton, {},
+                          tree->visualItemRect(group->child(j)).center());
+        return;
+      }
+    }
+    Miss(QStringLiteral("no %1 › %2 in the node list").arg(section, title));
+  };
+  Add(
+      QStringLiteral("size-preset"),
+      [this, window, canvas, view, memo] {
+        const bridge::GraphView graph = Graph();
+        const auto* card = CardTitled(graph, QStringLiteral("Open browser"));
+        if (card == nullptr) {
+          Miss(QStringLiteral("no Open browser card"));
+          return;
+        }
+        memo->id = ToQ(card->id);
+        Click(canvas, QStringLiteral("Fit to view"));
+        ClickAt(view, canvas->ViewPointOf(memo->id));
+        QTest::qWait(kSettleMs);
+        Click(window->inspector_dock()->widget(), QStringLiteral("1280 × 720"));
+      },
+      700,
+      [] {
+        return Expect(FieldText(QStringLiteral("viewportWidth")) ==
+                          QStringLiteral("1280"),
+                      QStringLiteral("the size preset left the width at %1")
+                          .arg(FieldText(QStringLiteral("viewportWidth"))));
+      });
+  Add(
+      QStringLiteral("advanced-tab-timezone"),
+      [this, window] {
+        QWidget* panel = window->inspector_dock()->widget();
+        QAbstractButton* tab = nullptr;
+        for (QAbstractButton* button :
+             panel->findChildren<QAbstractButton*>()) {
+          if (button->isVisible() &&
+              button->text().startsWith(QStringLiteral("Advanced"))) {
+            tab = button;
+          }
+        }
+        if (tab == nullptr) {
+          Miss(QStringLiteral("no Advanced tab"));
+          return;
+        }
+        QTest::mouseClick(tab, Qt::LeftButton);
+        for (QComboBox* combo : panel->findChildren<QComboBox*>()) {
+          if (combo->isVisible() && combo->count() > 1 &&
+              combo->itemText(0) ==
+                  QStringLiteral("This computer's time zone")) {
+            combo->setFocus();
+            QTest::keyClick(combo, Qt::Key_Down);
+            return;
+          }
+        }
+        Miss(QStringLiteral("no time zone list in Advanced"));
+      },
+      700,
+      [] {
+        return Expect(!FieldText(QStringLiteral("timezone")).isEmpty(),
+                      QStringLiteral("no time zone was chosen"));
+      });
+  Add(QStringLiteral("undo-timezone-and-size"), [this, window] {
+    Click(window, QStringLiteral("Undo"));
+    Click(window, QStringLiteral("Undo"));
+    for (QAbstractButton* button :
+         window->inspector_dock()->widget()->findChildren<QAbstractButton*>()) {
+      if (button->isVisible() && button->text() == QStringLiteral("Basic")) {
+        QTest::mouseClick(button, Qt::LeftButton);
+      }
+    }
+  });
+  Add(
+      QStringLiteral("keys-field"),
+      [this, window, add_from_list] {
+        add_from_list(QStringLiteral("Terminal"), QStringLiteral("Press keys"));
+        QTest::qWait(kSettleMs);
+        for (QPushButton* button :
+             window->inspector_dock()->widget()->findChildren<QPushButton*>()) {
+          if (button->isVisible() &&
+              button->property("variant") == QStringLiteral("keys")) {
+            QTest::mouseClick(button, Qt::LeftButton);
+            QTest::keyClick(button, Qt::Key_K,
+                            Qt::ControlModifier | Qt::ShiftModifier);
+            return;
+          }
+        }
+        Miss(QStringLiteral("no keys field"));
+      },
+      700,
+      [] {
+        return Expect(FieldText(QStringLiteral("keys")) ==
+                          QStringLiteral("Control+Shift+K"),
+                      QStringLiteral("the keys field holds '%1'")
+                          .arg(FieldText(QStringLiteral("keys"))));
+      });
+  Add(QStringLiteral("undo-keys"), [this, window] {
+    Click(window, QStringLiteral("Undo"));
+    Click(window, QStringLiteral("Undo"));
+  });
+  Add(
+      QStringLiteral("backdrop-select"),
+      [this, window, add_from_list] {
+        add_from_list(QStringLiteral("Record"), QStringLiteral("Screenshot"));
+        QTest::qWait(kSettleMs);
+        for (QComboBox* combo :
+             window->inspector_dock()->widget()->findChildren<QComboBox*>()) {
+          if (combo->isVisible() &&
+              combo->findData(QStringLiteral("glaze")) >= 0) {
+            combo->setFocus();
+            QTest::keyClick(combo, Qt::Key_Down);
+            return;
+          }
+        }
+        Miss(QStringLiteral("no backdrop list"));
+      },
+      700,
+      [] {
+        const QString backdrop = FieldText(QStringLiteral("backdrop"));
+        return Expect(
+            !backdrop.isEmpty() && backdrop != QStringLiteral("glaze"),
+            QStringLiteral("the backdrop is still '%1'").arg(backdrop));
+      });
+  Add(QStringLiteral("undo-backdrop"), [this, window] {
+    Click(window, QStringLiteral("Undo"));
+    Click(window, QStringLiteral("Undo"));
+  });
+  Add(
+      QStringLiteral("quality-toggles"),
+      [this, window, add_from_list] {
+        add_from_list(QStringLiteral("Media"), QStringLiteral("Convert"));
+        QTest::qWait(kSettleMs);
+        Click(window->inspector_dock()->widget(), QStringLiteral("Max"));
+      },
+      700,
+      [] {
+        for (const auto& field : App::Get().session().inspector().fields) {
+          if (field.kind == bridge::FieldKind::PresetNumber) {
+            return Expect(std::abs(field.number - kMaxQuality) < kNear,
+                          QStringLiteral("quality is %1").arg(field.number));
+          }
+        }
+        return QStringLiteral("no quality toggles");
+      });
+  Add(QStringLiteral("undo-quality"), [this, window] {
+    Click(window, QStringLiteral("Undo"));
+    Click(window, QStringLiteral("Undo"));
+  });
   Add(
       QStringLiteral("hide-node-list"),
       [this, window] { Click(window, QStringLiteral("Hide node list")); }, 600,

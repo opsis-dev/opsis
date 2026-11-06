@@ -4,7 +4,7 @@ use opsis_types::values::{
     BrowserSessionValue, CompileValue, MediaKind, NodeResult, RecordingValue, TakeKind,
 };
 use opsis_types::workflow::Workflow;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::asset_ref::kind_from_path;
@@ -24,19 +24,19 @@ use crate::vars::{PROJECT_NAME_VAR, SITE_ADDRESS_VAR, interpolate_text, workflow
 const NO_PAGE: &str = "Add a Go to page action before this one, so there's a page to pick from.";
 const MAX_SWATCHES: usize = 16;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 pub struct VarInfo {
     pub name: String,
     pub value: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 pub struct ActionRef {
     pub id: String,
     pub label: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct SpotBackground {
     pub src: String,
@@ -46,20 +46,20 @@ pub struct SpotBackground {
     pub aspect: Option<f64>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 pub struct PickerPage {
     pub url: String,
     pub viewport: Option<Viewport>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(tag = "kind", rename_all = "camelCase")]
 pub enum PickerTarget {
     Page(PickerPage),
     Problem { message: String },
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct InspectorContext {
     pub node_id: String,
@@ -75,7 +75,7 @@ pub struct InspectorContext {
     pub take_kind: Option<TakeKind>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 pub struct PortChoice {
     pub port: String,
     pub label: String,
