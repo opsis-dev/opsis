@@ -1,5 +1,5 @@
-#ifndef OPSIS_QT_SPIKE_CPP_WIDGETS_H_
-#define OPSIS_QT_SPIKE_CPP_WIDGETS_H_
+#ifndef OPSIS_QT_CPP_WIDGETS_H_
+#define OPSIS_QT_CPP_WIDGETS_H_
 
 #include <QAbstractButton>
 #include <QButtonGroup>

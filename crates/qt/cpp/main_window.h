@@ -1,5 +1,5 @@
-#ifndef OPSIS_QT_SPIKE_CPP_MAIN_WINDOW_H_
-#define OPSIS_QT_SPIKE_CPP_MAIN_WINDOW_H_
+#ifndef OPSIS_QT_CPP_MAIN_WINDOW_H_
+#define OPSIS_QT_CPP_MAIN_WINDOW_H_
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <kddockwidgets/qtwidgets/views/MainWindow.h>
@@ -15,6 +15,7 @@ namespace opsis {
 class AppBar;
 class GraphCanvas;
 class InspectorPanel;
+class CategoryRail;
 class NodeList;
 class SettingsWindow;
 class StartScreen;
@@ -27,6 +28,7 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
 
   GraphCanvas* canvas() const { return canvas_; }
   StartScreen* start_screen() const { return start_; }
+  CategoryRail* rail() const { return rail_; }
   SettingsWindow* OpenSettings();
   KDDockWidgets::QtWidgets::DockWidget* inspector_dock() const {
     return inspector_dock_;
@@ -49,6 +51,8 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   void BuildDocks();
   void ShowEditor();
   void ShowStart();
+  void AddNode(const QString& type);
+  void SyncRail();
   void SaveLayout();
   void SyncTitle();
   void ToggleDock(KDDockWidgets::QtWidgets::DockWidget* dock);
@@ -67,6 +71,7 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
 
   AppBar* app_bar_;
   QStackedWidget* stack_;
+  CategoryRail* rail_;
   StartScreen* start_;
   GraphCanvas* canvas_;
   KDDockWidgets::QtWidgets::DockWidget* nodes_dock_ = nullptr;

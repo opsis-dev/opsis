@@ -1,5 +1,5 @@
-#ifndef OPSIS_QT_SPIKE_CPP_APP_H_
-#define OPSIS_QT_SPIKE_CPP_APP_H_
+#ifndef OPSIS_QT_CPP_APP_H_
+#define OPSIS_QT_CPP_APP_H_
 
 #include <QColor>
 #include <QHash>

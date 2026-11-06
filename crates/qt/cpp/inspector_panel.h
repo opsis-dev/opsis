@@ -1,5 +1,5 @@
-#ifndef OPSIS_QT_SPIKE_CPP_INSPECTOR_PANEL_H_
-#define OPSIS_QT_SPIKE_CPP_INSPECTOR_PANEL_H_
+#ifndef OPSIS_QT_CPP_INSPECTOR_PANEL_H_
+#define OPSIS_QT_CPP_INSPECTOR_PANEL_H_
 
 #include <QScrollArea>
 #include <QVBoxLayout>

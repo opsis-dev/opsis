@@ -1,5 +1,5 @@
-#ifndef OPSIS_QT_SPIKE_CPP_EVENT_HUB_H_
-#define OPSIS_QT_SPIKE_CPP_EVENT_HUB_H_
+#ifndef OPSIS_QT_CPP_EVENT_HUB_H_
+#define OPSIS_QT_CPP_EVENT_HUB_H_
 
 #include <QObject>
 #include <cstdint>

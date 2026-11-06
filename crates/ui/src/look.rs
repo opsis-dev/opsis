@@ -62,6 +62,26 @@ const CATEGORY_COLORS: [(&str, &str); 17] = [
     ("Utility", NEUTRAL),
 ];
 
+const CATEGORY_ICONS: [(&str, &str); 17] = [
+    ("Browser", "globe"),
+    ("Terminal", "square-terminal"),
+    ("Capture", "video"),
+    ("Camera", "scan-search"),
+    ("Cursor", "mouse-pointer-2"),
+    ("Text & overlays", "type"),
+    ("Transitions", "blend"),
+    ("Backgrounds", "wallpaper"),
+    ("Effects", "sparkles"),
+    ("Grade", "palette"),
+    ("Elements", "shapes"),
+    ("Audio", "music"),
+    ("Timeline", "layers"),
+    ("Media", "file-play"),
+    ("Image", "image"),
+    ("Output", "clapperboard"),
+    ("Utility", "sticky-note"),
+];
+
 const PORT_COLORS: [(&str, &str); 10] = [
     ("browser-session", "#38bdf8"),
     ("terminal-session", "#4ade80"),
@@ -107,6 +127,13 @@ pub fn token(name: &str) -> String {
 
 pub fn category_color(category: &str) -> &'static str {
     lookup(&CATEGORY_COLORS, category)
+}
+
+pub fn category_icon(category: &str) -> &'static str {
+    CATEGORY_ICONS
+        .iter()
+        .find(|(name, _)| *name == category)
+        .map_or("box", |(_, icon)| icon)
 }
 
 pub fn category_order(category: &str) -> usize {

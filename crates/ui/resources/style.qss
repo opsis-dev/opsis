@@ -363,6 +363,28 @@ QWidget#StartScreen {
   background: @background;
 }
 
+QWidget#CategoryRail {
+  background: @sidebar;
+  border-right: 1px solid @border;
+}
+
+QWidget#CategoryRail > QToolButton {
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: @radius;
+}
+
+QFrame#Popover {
+  background: @popover;
+  border: 1px solid @input;
+  border-radius: @radius;
+}
+
+QFrame#Popover QWidget#Panel,
+QFrame#Popover QTreeWidget {
+  background: @popover;
+}
+
 QWidget#SettingsSidebar {
   background: @sidebar;
   border-right: 1px solid @border;
@@ -439,6 +461,13 @@ QScrollBar::sub-page {
   border: none;
   width: 0;
   height: 0;
+}
+
+QTabWidget::pane {
+  border: none;
+  border-top: 1px solid @border;
+  top: -1px;
+  background: @sidebar;
 }
 
 QTabBar {

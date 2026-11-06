@@ -10,8 +10,9 @@ use opsis_compile::compile::compile_workflow;
 use opsis_compile::graph::connection_problem_now;
 use opsis_compile::node::Platform as NodePlatform;
 use opsis_qt::{
-    Choice, CloseView, EventKind, GraphView, Host, HostResult, InspectorView, MenuSectionView,
-    NodeMove, PaletteEntry, ProjectEntry, ScreenArea, SettingsView, TemplateView, WindowPlacement,
+    CategoryView, Choice, CloseView, EventKind, GraphView, Host, HostResult, InspectorView,
+    MenuSectionView, NodeMove, PaletteEntry, ProjectEntry, ScreenArea, SettingsView, TemplateView,
+    WindowPlacement,
 };
 use opsis_session::error::CommandError;
 use opsis_session::events::{MAIN_WINDOW, SessionEvent};
@@ -482,6 +483,7 @@ impl Host for Ui {
                     look::category_order(&category),
                     PaletteEntry {
                         node_type: n.kind.clone(),
+                        category_id: category.clone(),
                         title: n.title.clone(),
                         category: n.category_label.clone(),
                         color: look::category_color(&category).to_owned(),
@@ -493,6 +495,21 @@ impl Host for Ui {
             .collect();
         entries.sort_by_key(|(order, _)| *order);
         entries.into_iter().map(|(_, e)| e).collect()
+    }
+
+    fn categories(&self) -> Vec<CategoryView> {
+        let mut seen: Vec<CategoryView> = Vec::new();
+        for entry in self.palette() {
+            if seen.iter().all(|c| c.id != entry.category_id) {
+                seen.push(CategoryView {
+                    icon: look::category_icon(&entry.category_id).to_owned(),
+                    id: entry.category_id,
+                    label: entry.category,
+                    color: entry.color,
+                });
+            }
+        }
+        seen
     }
 
     fn begin_gesture(&self) {

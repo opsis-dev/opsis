@@ -6,12 +6,15 @@
 #include <QFile>
 #include <QLineEdit>
 #include <QTimer>
+#include <QToolButton>
 #include <QtTest/QTest>
+#include <algorithm>
 
 #include "app.h"
 #include "graph_canvas.h"
 #include "inspector_panel.h"
 #include "main_window.h"
+#include "node_list.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "settings_window.h"
 #include "widgets.h"
@@ -92,10 +95,15 @@ void Scenario::Next() {
 
 void Scenario::Shoot(const QString& name) {
   int count = 0;
-  for (QWidget* widget : QApplication::topLevelWidgets()) {
+  QWidgetList windows = QApplication::topLevelWidgets();
+  std::stable_partition(windows.begin(), windows.end(), [](QWidget* widget) {
+    return widget->objectName() == QStringLiteral("Window");
+  });
+  for (QWidget* widget : windows) {
     if (!widget->isVisible() || !widget->isWindow()) continue;
+    const bool popover = widget->objectName() == QStringLiteral("Popover");
     if (widget->windowType() == Qt::ToolTip ||
-        widget->windowType() == Qt::Popup)
+        (widget->windowType() == Qt::Popup && !popover))
       continue;
     if (widget->width() < 40 || widget->height() < 40) continue;
     const QString suffix =
@@ -258,8 +266,18 @@ void Scenario::BuildTour() {
     App::Get().Log(QStringLiteral("nodes open after Ctrl+B: %1")
                        .arg(window->nodes_dock()->isOpen()));
   });
-  Add(QStringLiteral("restore-nodes-panel"),
-      [window] { QTest::keyClick(window, Qt::Key_B, Qt::ControlModifier); });
+  Add(
+      QStringLiteral("rail-popover"),
+      [window] {
+        const auto buttons = window->rail()->findChildren<QToolButton*>();
+        if (buttons.size() > 2)
+          QTest::mouseClick(buttons.at(2), Qt::LeftButton);
+      },
+      600);
+  Add(QStringLiteral("restore-nodes-panel"), [window] {
+    if (QWidget* popup = QApplication::activePopupWidget()) popup->close();
+    QTest::keyClick(window, Qt::Key_B, Qt::ControlModifier);
+  });
   Add(
       QStringLiteral("group-from-menu"),
       [window, canvas] {

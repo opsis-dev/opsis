@@ -1,5 +1,5 @@
-#ifndef OPSIS_QT_SPIKE_CPP_DOCK_STYLE_H_
-#define OPSIS_QT_SPIKE_CPP_DOCK_STYLE_H_
+#ifndef OPSIS_QT_CPP_DOCK_STYLE_H_
+#define OPSIS_QT_CPP_DOCK_STYLE_H_
 
 #include <kddockwidgets/qtwidgets/ViewFactory.h>
 

@@ -1,5 +1,5 @@
-#ifndef OPSIS_QT_SPIKE_CPP_BRIDGE_FFI_H_
-#define OPSIS_QT_SPIKE_CPP_BRIDGE_FFI_H_
+#ifndef OPSIS_QT_CPP_BRIDGE_FFI_H_
+#define OPSIS_QT_CPP_BRIDGE_FFI_H_
 
 #include <cstdint>
 

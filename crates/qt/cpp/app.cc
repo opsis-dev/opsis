@@ -161,7 +161,6 @@ void App::ConfigureDocks() {
   config.setViewFactory(new DockViewFactory());
   config.setSeparatorThickness(kSeparatorThickness);
   config.setFlags(KDDockWidgets::Config::Flag_HideTitleBarWhenTabsVisible |
-                  KDDockWidgets::Config::Flag_AlwaysShowTabs |
                   KDDockWidgets::Config::Flag_AllowReorderTabs |
                   KDDockWidgets::Config::Flag_TitleBarHasMaximizeButton);
 }

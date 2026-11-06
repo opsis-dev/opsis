@@ -26,6 +26,13 @@ class DockTitleBar : public kdw::QtWidgets::TitleBar {
     setFixedHeight(kTitleHeight);
   }
 
+  void setVisible(bool visible) override {
+    const kdw::Core::Group* group = controller_->group();
+    const bool docked = group != nullptr && group->isInMainWindow();
+    setFixedHeight(docked ? 0 : kTitleHeight);
+    kdw::QtWidgets::TitleBar::setVisible(visible);
+  }
+
  protected:
   void paintEvent(QPaintEvent*) override {
     App& app = App::Get();

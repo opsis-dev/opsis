@@ -1,5 +1,5 @@
-#ifndef OPSIS_QT_SPIKE_CPP_NODE_LIST_H_
-#define OPSIS_QT_SPIKE_CPP_NODE_LIST_H_
+#ifndef OPSIS_QT_CPP_NODE_LIST_H_
+#define OPSIS_QT_CPP_NODE_LIST_H_
 
 #include <QLineEdit>
 #include <QTreeWidget>
@@ -20,7 +20,9 @@ class NodeList : public QWidget {
   Q_OBJECT
 
  public:
-  explicit NodeList(QWidget* parent = nullptr);
+  explicit NodeList(const QString& category = QString(),
+                    const QString& label = QString(),
+                    QWidget* parent = nullptr);
 
  signals:
   void AddRequested(const QString& node_type);
@@ -30,6 +32,20 @@ class NodeList : public QWidget {
 
   QLineEdit* search_;
   NodeTree* tree_;
+};
+
+class CategoryRail : public QWidget {
+  Q_OBJECT
+
+ public:
+  explicit CategoryRail(QWidget* parent = nullptr);
+
+ signals:
+  void ShowList();
+  void AddRequested(const QString& node_type);
+
+ private:
+  void OpenCategory(QWidget* anchor, const QString& id, const QString& label);
 };
 
 }

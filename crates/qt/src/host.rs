@@ -1,8 +1,9 @@
 use std::fmt;
 
 use crate::bridge::ffi::{
-    self, CloseView, DialogKind, EventKind, GraphView, InspectorView, MenuSectionView, NodeMove,
-    PaletteEntry, ProjectEntry, ScreenArea, SettingsView, TemplateView, WindowPlacement,
+    self, CategoryView, CloseView, DialogKind, EventKind, GraphView, InspectorView,
+    MenuSectionView, NodeMove, PaletteEntry, ProjectEntry, ScreenArea, SettingsView, TemplateView,
+    WindowPlacement,
 };
 
 pub type HostResult<T> = Result<T, String>;
@@ -32,6 +33,7 @@ pub trait Host {
 
     fn graph(&self) -> GraphView;
     fn palette(&self) -> Vec<PaletteEntry>;
+    fn categories(&self) -> Vec<CategoryView>;
     fn begin_gesture(&self);
     fn end_gesture(&self);
     fn move_nodes(&self, moves: Vec<NodeMove>) -> HostResult<()>;
@@ -220,6 +222,10 @@ impl Session {
 
     pub(crate) fn palette(&self) -> Vec<PaletteEntry> {
         self.0.palette()
+    }
+
+    pub(crate) fn categories(&self) -> Vec<CategoryView> {
+        self.0.categories()
     }
 
     pub(crate) fn begin_gesture(&self) {

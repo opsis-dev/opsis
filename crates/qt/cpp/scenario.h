@@ -1,5 +1,5 @@
-#ifndef OPSIS_QT_SPIKE_CPP_SCENARIO_H_
-#define OPSIS_QT_SPIKE_CPP_SCENARIO_H_
+#ifndef OPSIS_QT_CPP_SCENARIO_H_
+#define OPSIS_QT_CPP_SCENARIO_H_
 
 #include <QDir>
 #include <QObject>

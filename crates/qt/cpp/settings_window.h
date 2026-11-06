@@ -1,5 +1,5 @@
-#ifndef OPSIS_QT_SPIKE_CPP_SETTINGS_WINDOW_H_
-#define OPSIS_QT_SPIKE_CPP_SETTINGS_WINDOW_H_
+#ifndef OPSIS_QT_CPP_SETTINGS_WINDOW_H_
+#define OPSIS_QT_CPP_SETTINGS_WINDOW_H_
 
 #include <QLineEdit>
 #include <QListWidget>

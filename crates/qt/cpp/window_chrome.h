@@ -1,5 +1,5 @@
-#ifndef OPSIS_QT_SPIKE_CPP_WINDOW_CHROME_H_
-#define OPSIS_QT_SPIKE_CPP_WINDOW_CHROME_H_
+#ifndef OPSIS_QT_CPP_WINDOW_CHROME_H_
+#define OPSIS_QT_CPP_WINDOW_CHROME_H_
 
 #include <QLabel>
 #include <QMenuBar>

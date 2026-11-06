@@ -1,5 +1,5 @@
-#ifndef OPSIS_QT_SPIKE_CPP_GRAPH_CANVAS_H_
-#define OPSIS_QT_SPIKE_CPP_GRAPH_CANVAS_H_
+#ifndef OPSIS_QT_CPP_GRAPH_CANVAS_H_
+#define OPSIS_QT_CPP_GRAPH_CANVAS_H_
 
 #include <QGraphicsItem>
 #include <QGraphicsPathItem>

@@ -63,12 +63,19 @@ MainWindow::MainWindow()
   new WindowChrome(this);
   app_bar_ = new AppBar(this, QStringLiteral("Opsis"), true);
   setMenuWidget(app_bar_);
+  setCenterWidgetMargins(QMargins());
   stack_ = new QStackedWidget(this);
   start_ = new StartScreen(stack_);
   canvas_ = new GraphCanvas(stack_);
   stack_->addWidget(start_);
   stack_->addWidget(canvas_);
   setPersistentCentralWidget(stack_);
+  rail_ = new CategoryRail(this);
+  rail_->hide();
+  internalLayout()->insertWidget(0, rail_);
+  connect(rail_, &CategoryRail::ShowList, this,
+          [this] { FocusDock(nodes_dock_); });
+  connect(rail_, &CategoryRail::AddRequested, this, &MainWindow::AddNode);
   save_window_.setSingleShot(true);
   save_window_.setInterval(kSaveWindowAfterMs);
   connect(&save_window_, &QTimer::timeout, this, &MainWindow::SaveWindow);
@@ -282,6 +289,19 @@ void MainWindow::ShowCloseDialog() {
       closing, closing && dont_ask != nullptr && dont_ask->isChecked());
 }
 
+void MainWindow::AddNode(const QString& type) {
+  const QPointF at = canvas_->mapToScene(canvas_->viewport()->rect().center());
+  Guard([&] {
+    App::Get().session().add_node(ToRust(type), at.x() - 128, at.y() - 22);
+  });
+}
+
+void MainWindow::SyncRail() {
+  const bool editing = stack_->currentWidget() == canvas_;
+  rail_->setVisible(editing && nodes_dock_ != nullptr &&
+                    !nodes_dock_->isOpen());
+}
+
 kdw::QtWidgets::DockWidget* MainWindow::MakeDock(const QString& id,
                                                  const QString& title,
                                                  QWidget* content) {
@@ -293,15 +313,11 @@ kdw::QtWidgets::DockWidget* MainWindow::MakeDock(const QString& id,
 
 void MainWindow::BuildDocks() {
   auto* nodes = new NodeList();
-  connect(nodes, &NodeList::AddRequested, this, [this](const QString& type) {
-    const QPointF at =
-        canvas_->mapToScene(canvas_->viewport()->rect().center());
-    Guard([&] {
-      App::Get().session().add_node(ToRust(type), at.x() - 128, at.y() - 22);
-    });
-  });
+  connect(nodes, &NodeList::AddRequested, this, &MainWindow::AddNode);
   nodes_dock_ =
       MakeDock(QStringLiteral("nodes"), QStringLiteral("Nodes"), nodes);
+  connect(nodes_dock_, &kdw::QtWidgets::DockWidget::isOpenChanged, this,
+          &MainWindow::SyncRail);
   inspector_dock_ = MakeDock(QStringLiteral("inspector"),
                              QStringLiteral("Inspector"), new InspectorPanel());
   timeline_dock_ = MakeDock(
@@ -343,6 +359,7 @@ void MainWindow::ShowEditor() {
       if (!dock->isOpen()) dock->open();
     }
   }
+  SyncRail();
   canvas_->Sync();
   canvas_->FitAll();
   SyncTitle();
@@ -358,6 +375,7 @@ void MainWindow::ShowStart() {
   }
   start_->Reload();
   stack_->setCurrentWidget(start_);
+  SyncRail();
   app_bar_->SetSubtitle(QString());
   SetEnabled(QStringLiteral("edit:undo"), false);
   SetEnabled(QStringLiteral("edit:redo"), false);

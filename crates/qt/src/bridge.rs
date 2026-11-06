@@ -165,8 +165,17 @@ pub mod ffi {
     }
 
     #[derive(Debug, Clone)]
+    struct CategoryView {
+        id: String,
+        label: String,
+        color: String,
+        icon: String,
+    }
+
+    #[derive(Debug, Clone)]
     struct PaletteEntry {
         node_type: String,
+        category_id: String,
         title: String,
         category: String,
         color: String,
@@ -259,6 +268,7 @@ pub mod ffi {
 
         fn graph(self: &Session) -> GraphView;
         fn palette(self: &Session) -> Vec<PaletteEntry>;
+        fn categories(self: &Session) -> Vec<CategoryView>;
         fn begin_gesture(self: &Session);
         fn end_gesture(self: &Session);
         fn move_nodes(self: &Session, moves: Vec<NodeMove>) -> Result<()>;
