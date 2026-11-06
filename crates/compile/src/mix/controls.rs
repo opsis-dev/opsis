@@ -28,7 +28,9 @@ fn round_to_step(value: f64, step: f64) -> f64 {
 
 pub fn value_to_fraction(range: KnobRange, value: f64) -> f64 {
     if range.log {
-        (value / range.min).log(range.max / range.min).clamp(0.0, 1.0)
+        (value / range.min)
+            .log(range.max / range.min)
+            .clamp(0.0, 1.0)
     } else if range.max > range.min {
         ((value - range.min) / (range.max - range.min)).clamp(0.0, 1.0)
     } else {

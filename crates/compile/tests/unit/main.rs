@@ -20,6 +20,7 @@ mod looks;
 mod marks;
 mod mix;
 mod mix_controls;
+mod mix_eq;
 mod motions;
 mod nodes_a;
 mod nodes_b;
