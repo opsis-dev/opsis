@@ -1,0 +1,6 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+  <qresource prefix="/opsis">
+    <file alias="logo.svg">../../../brand/logo.svg</file>
+  </qresource>
+</RCC>

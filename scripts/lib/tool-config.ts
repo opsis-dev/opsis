@@ -21,6 +21,7 @@ export const IGNORED_PATHS = [
   "crates/compile/src/fonts/bundled.generated.json",
   "crates/compile/src/terminal/themes.generated.json",
   "crates/engine/src/downloads.generated.json",
+  "crates/qt-spike/glyphs.generated.json",
   "scripts/lib/ffmpeg.generated.json",
   "crates/capture/src/playwright/*.generated.*",
   "apps/frontend/src/generated/bindings.ts",

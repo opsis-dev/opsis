@@ -1,0 +1,231 @@
+use crate::look::{icon_svg, style_sheet, token};
+use crate::session::{Session, fonts_dir, start_session};
+
+#[cxx::bridge(namespace = "opsis::bridge")]
+pub mod ffi {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    enum EventKind {
+        Document,
+        Selection,
+        Settings,
+        Project,
+        Saved,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    enum CardKind {
+        Card,
+        Group,
+        Note,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    enum FieldKind {
+        Text,
+        Textarea,
+        Number,
+        Switch,
+        Choice,
+        Other,
+    }
+
+    #[derive(Debug, Clone)]
+    struct Choice {
+        value: String,
+        label: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct ProjectEntry {
+        name: String,
+        dir: String,
+        detail: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct PortView {
+        id: String,
+        label: String,
+        kind: String,
+        color: String,
+        optional: bool,
+        y: f64,
+    }
+
+    #[derive(Debug, Clone)]
+    struct RowView {
+        icon: String,
+        text: String,
+        muted: bool,
+    }
+
+    #[derive(Debug, Clone)]
+    struct CardView {
+        id: String,
+        node_type: String,
+        kind: CardKind,
+        title: String,
+        category: String,
+        color: String,
+        glyph: String,
+        x: f64,
+        y: f64,
+        width: f64,
+        height: f64,
+        inputs: Vec<PortView>,
+        outputs: Vec<PortView>,
+        rows: Vec<RowView>,
+        disabled: bool,
+        problem: String,
+        text: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct EdgeView {
+        id: String,
+        source: String,
+        source_handle: String,
+        target: String,
+        target_handle: String,
+        color: String,
+        step: f64,
+    }
+
+    #[derive(Debug, Clone)]
+    struct GraphView {
+        name: String,
+        dir: String,
+        nodes: Vec<CardView>,
+        edges: Vec<EdgeView>,
+        revision: u64,
+        can_undo: bool,
+        can_redo: bool,
+        dirty: bool,
+    }
+
+    #[derive(Debug, Clone)]
+    struct PaletteEntry {
+        node_type: String,
+        title: String,
+        category: String,
+        color: String,
+        glyph: String,
+        description: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct NodeMove {
+        id: String,
+        x: f64,
+        y: f64,
+    }
+
+    #[derive(Debug, Clone)]
+    struct FieldView {
+        key: String,
+        label: String,
+        help: String,
+        kind: FieldKind,
+        text: String,
+        number: f64,
+        minimum: f64,
+        maximum: f64,
+        step: f64,
+        decimals: u32,
+        unit: String,
+        zero_label: String,
+        scale: f64,
+        checked: bool,
+        choices: Vec<Choice>,
+        advanced: bool,
+    }
+
+    #[derive(Debug, Clone)]
+    struct InspectorView {
+        id: String,
+        title: String,
+        label: String,
+        category: String,
+        color: String,
+        glyph: String,
+        description: String,
+        fields: Vec<FieldView>,
+    }
+
+    #[derive(Debug, Clone)]
+    struct SettingsView {
+        on_start: String,
+        start_options: Vec<Choice>,
+        confirm_exit: bool,
+        encode_speed: String,
+        encode_speeds: Vec<Choice>,
+        default_dir: String,
+        canvas_mode: String,
+        canvas_modes: Vec<Choice>,
+        api_enabled: bool,
+        data_dir: String,
+    }
+
+    extern "Rust" {
+        type Session;
+
+        fn start_session() -> Result<Box<Session>>;
+        fn start_pump(self: &Session);
+        fn style_sheet() -> String;
+        fn token(name: &str) -> String;
+        fn icon_svg(name: &str, color: &str, stroke: f64) -> String;
+        fn fonts_dir() -> String;
+        fn log(self: &Session, line: &str);
+
+        fn examples(self: &Session) -> Vec<ProjectEntry>;
+        fn recent(self: &Session) -> Vec<ProjectEntry>;
+        fn open_project(self: &Session, dir: &str) -> Result<()>;
+        fn open_example(self: &Session, dir: &str) -> Result<()>;
+        fn create_project(self: &Session, name: &str) -> Result<()>;
+        fn generate_project(self: &Session, count: u32) -> Result<()>;
+        fn close_project(self: &Session);
+        fn has_project(self: &Session) -> bool;
+
+        fn graph(self: &Session) -> GraphView;
+        fn palette(self: &Session) -> Vec<PaletteEntry>;
+        fn begin_gesture(self: &Session);
+        fn end_gesture(self: &Session);
+        fn move_nodes(self: &Session, moves: Vec<NodeMove>) -> Result<()>;
+        fn connection_problem(
+            self: &Session,
+            source: &str,
+            source_handle: &str,
+            target: &str,
+            target_handle: &str,
+        ) -> String;
+        fn connect(
+            self: &Session,
+            source: &str,
+            source_handle: &str,
+            target: &str,
+            target_handle: &str,
+        ) -> Result<()>;
+        fn remove(self: &Session, nodes: Vec<String>, edges: Vec<String>) -> Result<()>;
+        fn add_node(self: &Session, node_type: &str, x: f64, y: f64) -> Result<String>;
+        fn undo(self: &Session) -> bool;
+        fn redo(self: &Session) -> bool;
+        fn select(self: &Session, id: &str);
+        fn selected(self: &Session) -> String;
+        fn inspector(self: &Session) -> InspectorView;
+        fn set_param(self: &Session, id: &str, key: &str, json: &str) -> Result<()>;
+        fn rename_node(self: &Session, id: &str, label: &str) -> Result<()>;
+        fn save(self: &Session) -> Result<()>;
+
+        fn settings(self: &Session) -> SettingsView;
+        fn patch_settings(self: &Session, json: &str) -> Result<()>;
+        fn load_layout(self: &Session) -> String;
+        fn save_layout(self: &Session, layout: &str);
+    }
+
+    unsafe extern "C++" {
+        include!("opsis-qt-spike/cpp/bridge_ffi.h");
+
+        fn run_app() -> i32;
+        fn post_event(kind: EventKind);
+    }
+}

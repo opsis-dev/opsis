@@ -21,6 +21,7 @@ The suite that drives the real app through WebdriverIO: how the app is built for
 - **`build.rs` picks the e2e capabilities and tells cargo to watch the `capabilities` folder**, because with its own pattern `tauri_build` watches only `tauri.conf.json` and an edited capability isn't compiled in.
 - **The build goes to `target/e2e`, so `cargo test` never overwrites it.**
 - **The tests run in a virtual display only**: `xvfb-run` with `WAYLAND_DISPLAY` unset and `GDK_BACKEND=x11` (otherwise GTK opens the window on the desktop's Wayland display); `wdio.conf.ts` and `close-check.ts` refuse to start without it.
+- **A Qt program in the virtual display needs `env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=xcb` besides `DISPLAY`**: Qt picks its Wayland plugin whenever `WAYLAND_DISPLAY` is set and ignores `DISPLAY`, so the window opens on the desktop. The Qt spike's scenario mode (`OPSIS_QT_SCENARIO`, `crates/qt-spike/cpp/scenario.cc`) refuses to run on any plugin but `xcb` or `offscreen`.
 - **Each run gets a fresh data folder in `~/.cache/opsis-e2e`** (`OPSIS_USER_DATA`): the database seeded with the API on and the dev engine's recording browser as the `settings.engine` path, `examples/` copied, and `OPSIS_FFMPEG` set to the staged FFmpeg. Failure screenshots go to `~/.cache/opsis-e2e/failures`.
 - **The app checks the engine at start, so specs that record or export wait for it (`engineReady`).**
 - **The virtual display hides the window but not the sound, so a spec mutes any player it presses Play on.**

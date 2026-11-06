@@ -1,0 +1,240 @@
+#include "widgets.h"
+
+#include <QEasingCurve>
+#include <QHBoxLayout>
+#include <QPainter>
+#include <QPainterPath>
+
+#include "app.h"
+
+namespace opsis {
+
+namespace {
+
+constexpr int kSwitchWidth = 32;
+constexpr int kSwitchHeight = 18;
+constexpr int kSwitchMs = 120;
+
+}
+
+ToggleSwitch::ToggleSwitch(QWidget* parent) : QAbstractButton(parent) {
+  setCheckable(true);
+  setCursor(Qt::PointingHandCursor);
+  setFocusPolicy(Qt::StrongFocus);
+  animation_.setDuration(kSwitchMs);
+  animation_.setEasingCurve(QEasingCurve::OutCubic);
+  connect(&animation_, &QVariantAnimation::valueChanged, this,
+          [this](const QVariant& value) {
+            knob_ = value.toReal();
+            update();
+          });
+}
+
+QSize ToggleSwitch::sizeHint() const { return {kSwitchWidth, kSwitchHeight}; }
+
+void ToggleSwitch::SetCheckedQuietly(bool checked) {
+  const QSignalBlocker blocker(this);
+  setChecked(checked);
+  animation_.stop();
+  knob_ = checked ? 1.0 : 0.0;
+  update();
+}
+
+void ToggleSwitch::checkStateSet() { Animate(); }
+
+void ToggleSwitch::nextCheckState() {
+  QAbstractButton::nextCheckState();
+  Animate();
+}
+
+void ToggleSwitch::Animate() {
+  animation_.stop();
+  animation_.setStartValue(knob_);
+  animation_.setEndValue(isChecked() ? 1.0 : 0.0);
+  animation_.start();
+}
+
+void ToggleSwitch::paintEvent(QPaintEvent*) {
+  App& app = App::Get();
+  QPainter painter(this);
+  painter.setRenderHint(QPainter::Antialiasing);
+  const QRectF track(0.5, 0.5, kSwitchWidth - 1, kSwitchHeight - 1);
+  const QColor off = app.Token("input");
+  const QColor on = app.Token("primary");
+  QColor fill;
+  fill.setRgbF(off.redF() + (on.redF() - off.redF()) * knob_,
+               off.greenF() + (on.greenF() - off.greenF()) * knob_,
+               off.blueF() + (on.blueF() - off.blueF()) * knob_,
+               off.alphaF() + (on.alphaF() - off.alphaF()) * knob_);
+  painter.setPen(hasFocus() ? QPen(app.Token("ring"), 1) : Qt::NoPen);
+  painter.setBrush(fill);
+  painter.drawRoundedRect(track, kSwitchHeight / 2.0, kSwitchHeight / 2.0);
+  const qreal diameter = kSwitchHeight - 4;
+  const qreal x = 2 + (kSwitchWidth - diameter - 4) * knob_;
+  painter.setPen(Qt::NoPen);
+  painter.setBrush(knob_ > 0.5 ? app.Token("primary-foreground")
+                               : app.Token("foreground"));
+  painter.drawEllipse(QRectF(x, 2, diameter, diameter));
+}
+
+Segmented::Segmented(QWidget* parent) : QFrame(parent) {
+  setObjectName(QStringLiteral("Segmented"));
+  auto* layout = new QHBoxLayout(this);
+  layout->setContentsMargins(2, 2, 2, 2);
+  layout->setSpacing(2);
+  group_.setExclusive(true);
+  connect(&group_, &QButtonGroup::idClicked, this, [this](int id) {
+    emit Changed(values_.at(static_cast<std::size_t>(id)));
+  });
+}
+
+void Segmented::SetChoices(
+    const std::vector<std::pair<QString, QString>>& choices) {
+  values_.clear();
+  int id = 0;
+  for (const auto& [value, label] : choices) {
+    auto* button = new QPushButton(label, this);
+    button->setProperty("variant", "segment");
+    button->setCheckable(true);
+    button->setCursor(Qt::PointingHandCursor);
+    group_.addButton(button, id++);
+    layout()->addWidget(button);
+    values_.push_back(value);
+  }
+}
+
+void Segmented::SetValue(const QString& value) {
+  for (std::size_t i = 0; i < values_.size(); ++i) {
+    if (values_[i] == value) {
+      group_.button(static_cast<int>(i))->setChecked(true);
+    }
+  }
+}
+
+QString Segmented::value() const {
+  const int id = group_.checkedId();
+  return id < 0 ? QString() : values_.at(static_cast<std::size_t>(id));
+}
+
+Card::Card(const QString& title, const QString& description, QWidget* parent)
+    : QFrame(parent) {
+  setProperty("role", "card");
+  auto* layout = new QVBoxLayout(this);
+  layout->setContentsMargins(20, 18, 20, 20);
+  layout->setSpacing(4);
+  layout->addWidget(MakeLabel(title, "title", this));
+  if (!description.isEmpty()) {
+    auto* text = MakeLabel(description, "muted", this);
+    text->setWordWrap(true);
+    layout->addWidget(text);
+  }
+  layout->addSpacing(12);
+  body_ = new QVBoxLayout();
+  body_->setSpacing(16);
+  layout->addLayout(body_);
+}
+
+QLabel* MakeLabel(const QString& text, const char* role, QWidget* parent) {
+  auto* label = new QLabel(text, parent);
+  if (role != nullptr) label->setProperty("role", role);
+  return label;
+}
+
+QFrame* MakeRule(QWidget* parent) {
+  auto* rule = new QFrame(parent);
+  rule->setProperty("role", "rule");
+  return rule;
+}
+
+QToolButton* MakeIconButton(const QString& icon, const QString& tip,
+                            QWidget* parent, int size) {
+  auto* button = new QToolButton(parent);
+  button->setIcon(App::Get().Icon(icon, App::Get().Token("foreground"), size));
+  button->setIconSize(QSize(size, size));
+  button->setToolTip(tip);
+  button->setCursor(Qt::PointingHandCursor);
+  button->setAutoRaise(true);
+  return button;
+}
+
+QPushButton* MakeButton(const QString& text, const char* variant,
+                        const QString& icon, QWidget* parent) {
+  auto* button = new QPushButton(text, parent);
+  if (variant != nullptr) button->setProperty("variant", variant);
+  if (!icon.isEmpty()) {
+    const bool primary = variant != nullptr && QByteArray(variant) == "primary";
+    button->setIcon(App::Get().Icon(
+        icon, App::Get().Token(primary ? "primary-foreground" : "foreground"),
+        16));
+  }
+  button->setCursor(Qt::PointingHandCursor);
+  return button;
+}
+
+QWidget* MakeField(const QString& label, QWidget* control,
+                   const QString& description, QWidget* parent) {
+  auto* field = new QWidget(parent);
+  auto* layout = new QVBoxLayout(field);
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->setSpacing(6);
+  auto* title = MakeLabel(label, nullptr, field);
+  QFont font = title->font();
+  font.setWeight(QFont::Medium);
+  title->setFont(font);
+  layout->addWidget(title);
+  layout->addWidget(control);
+  if (!description.isEmpty()) {
+    auto* text = MakeLabel(description, "muted", field);
+    text->setWordWrap(true);
+    layout->addWidget(text);
+  }
+  return field;
+}
+
+QWidget* MakeSwitchField(const QString& label, ToggleSwitch* toggle,
+                         const QString& description, QWidget* parent) {
+  auto* field = new QWidget(parent);
+  auto* row = new QHBoxLayout(field);
+  row->setContentsMargins(0, 0, 0, 0);
+  row->setSpacing(12);
+  auto* texts = new QVBoxLayout();
+  texts->setSpacing(4);
+  auto* title = MakeLabel(label, nullptr, field);
+  QFont font = title->font();
+  font.setWeight(QFont::Medium);
+  title->setFont(font);
+  texts->addWidget(title);
+  if (!description.isEmpty()) {
+    auto* text = MakeLabel(description, "muted", field);
+    text->setWordWrap(true);
+    texts->addWidget(text);
+  }
+  row->addLayout(texts, 1);
+  row->addWidget(toggle, 0, Qt::AlignTop);
+  return field;
+}
+
+QLabel* MakeBadge(const QString& glyph, const QColor& color, int size,
+                  QWidget* parent) {
+  App& app = App::Get();
+  const qreal ratio = parent != nullptr ? parent->devicePixelRatioF() : 1.0;
+  QPixmap pixmap(QSize(size, size) * ratio);
+  pixmap.setDevicePixelRatio(ratio);
+  pixmap.fill(Qt::transparent);
+  {
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(color);
+    painter.drawRoundedRect(QRectF(0, 0, size, size), size / 4.0, size / 4.0);
+    const int inner = size * 7 / 12;
+    painter.drawPixmap((size - inner) / 2, (size - inner) / 2,
+                       app.Glyph(glyph, Qt::black, inner));
+  }
+  auto* label = new QLabel(parent);
+  label->setPixmap(pixmap);
+  label->setFixedSize(size, size);
+  return label;
+}
+
+}

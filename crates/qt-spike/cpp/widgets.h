@@ -1,0 +1,83 @@
+#ifndef OPSIS_QT_SPIKE_CPP_WIDGETS_H_
+#define OPSIS_QT_SPIKE_CPP_WIDGETS_H_
+
+#include <QAbstractButton>
+#include <QButtonGroup>
+#include <QFrame>
+#include <QLabel>
+#include <QPushButton>
+#include <QToolButton>
+#include <QVariantAnimation>
+#include <QVBoxLayout>
+#include <utility>
+#include <vector>
+
+namespace opsis {
+
+class ToggleSwitch : public QAbstractButton {
+  Q_OBJECT
+
+ public:
+  explicit ToggleSwitch(QWidget* parent = nullptr);
+  QSize sizeHint() const override;
+  void SetCheckedQuietly(bool checked);
+
+ protected:
+  void paintEvent(QPaintEvent* event) override;
+  void checkStateSet() override;
+  void nextCheckState() override;
+
+ private:
+  void Animate();
+
+  QVariantAnimation animation_;
+  qreal knob_ = 0.0;
+};
+
+class Segmented : public QFrame {
+  Q_OBJECT
+
+ public:
+  explicit Segmented(QWidget* parent = nullptr);
+  void SetChoices(const std::vector<std::pair<QString, QString>>& choices);
+  void SetValue(const QString& value);
+  QString value() const;
+
+ signals:
+  void Changed(const QString& value);
+
+ private:
+  QButtonGroup group_;
+  std::vector<QString> values_;
+};
+
+class Card : public QFrame {
+ public:
+  Card(const QString& title, const QString& description,
+       QWidget* parent = nullptr);
+  QVBoxLayout* body() const { return body_; }
+
+ private:
+  QVBoxLayout* body_;
+};
+
+QLabel* MakeLabel(const QString& text, const char* role = nullptr,
+                  QWidget* parent = nullptr);
+QFrame* MakeRule(QWidget* parent = nullptr);
+QToolButton* MakeIconButton(const QString& icon, const QString& tip,
+                            QWidget* parent = nullptr, int size = 16);
+QPushButton* MakeButton(const QString& text, const char* variant = nullptr,
+                        const QString& icon = QString(),
+                        QWidget* parent = nullptr);
+QWidget* MakeField(const QString& label, QWidget* control,
+                   const QString& description = QString(),
+                   QWidget* parent = nullptr);
+QWidget* MakeSwitchField(const QString& label, ToggleSwitch* toggle,
+                         const QString& description = QString(),
+                         QWidget* parent = nullptr);
+QLabel* MakeBadge(const QString& glyph, const QColor& color, int size,
+                  QWidget* parent = nullptr);
+
+}
+
+#endif
