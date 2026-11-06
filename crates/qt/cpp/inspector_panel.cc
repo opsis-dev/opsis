@@ -65,6 +65,13 @@ InspectorPanel::InspectorPanel(QWidget* parent) : QWidget(parent) {
   });
   connect(EventHub::Instance(), &EventHub::ProjectChanged, this,
           &InspectorPanel::Rebuild);
+  connect(qApp, &QApplication::focusChanged, this, [this](QWidget*, QWidget*) {
+    App::Get().session().report_drafts(Editing());
+  });
+  connect(EventHub::Instance(), &EventHub::FlushDrafts, this, [] {
+    if (QWidget* focus = QApplication::focusWidget()) focus->clearFocus();
+    App::Get().session().save_flushed();
+  });
   Rebuild();
 }
 

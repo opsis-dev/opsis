@@ -1,8 +1,8 @@
 use std::fmt;
 
 use crate::bridge::ffi::{
-    self, DialogKind, EventKind, GraphView, InspectorView, NodeMove, PaletteEntry, ProjectEntry,
-    SettingsView,
+    self, CloseView, DialogKind, EventKind, GraphView, InspectorView, MenuSectionView, NodeMove,
+    PaletteEntry, ProjectEntry, SettingsView,
 };
 
 pub type HostResult<T> = Result<T, String>;
@@ -49,7 +49,7 @@ pub trait Host {
     fn add_node(&self, node_type: &str, x: f64, y: f64) -> HostResult<String>;
     fn undo(&self) -> bool;
     fn redo(&self) -> bool;
-    fn select(&self, id: &str);
+    fn select(&self, ids: Vec<String>);
     fn selected(&self) -> String;
     fn inspector(&self) -> InspectorView;
     fn set_param(&self, id: &str, key: &str, json: &str) -> HostResult<()>;
@@ -58,6 +58,15 @@ pub trait Host {
 
     fn settings(&self) -> SettingsView;
     fn patch_settings(&self, json: &str) -> HostResult<()>;
+    fn menu(&self) -> Vec<MenuSectionView>;
+    fn menu_command(&self, id: &str) -> HostResult<()>;
+    fn close_allowed(&self) -> bool;
+    fn request_close(&self);
+    fn close_view(&self) -> CloseView;
+    fn close_shown(&self);
+    fn decide_close(&self, close: bool, dont_ask: bool);
+    fn report_drafts(&self, held: bool);
+    fn save_flushed(&self);
     fn load_layout(&self) -> String;
     fn save_layout(&self, layout: &str);
 }
@@ -235,8 +244,8 @@ impl Session {
         self.0.redo()
     }
 
-    pub(crate) fn select(&self, id: &str) {
-        self.0.select(id);
+    pub(crate) fn select(&self, ids: Vec<String>) {
+        self.0.select(ids);
     }
 
     pub(crate) fn selected(&self) -> String {
@@ -265,6 +274,42 @@ impl Session {
 
     pub(crate) fn patch_settings(&self, json: &str) -> HostResult<()> {
         self.0.patch_settings(json)
+    }
+
+    pub(crate) fn menu(&self) -> Vec<MenuSectionView> {
+        self.0.menu()
+    }
+
+    pub(crate) fn menu_command(&self, id: &str) -> HostResult<()> {
+        self.0.menu_command(id)
+    }
+
+    pub(crate) fn close_allowed(&self) -> bool {
+        self.0.close_allowed()
+    }
+
+    pub(crate) fn request_close(&self) {
+        self.0.request_close();
+    }
+
+    pub(crate) fn close_view(&self) -> CloseView {
+        self.0.close_view()
+    }
+
+    pub(crate) fn close_shown(&self) {
+        self.0.close_shown();
+    }
+
+    pub(crate) fn decide_close(&self, close: bool, dont_ask: bool) {
+        self.0.decide_close(close, dont_ask);
+    }
+
+    pub(crate) fn report_drafts(&self, held: bool) {
+        self.0.report_drafts(held);
+    }
+
+    pub(crate) fn save_flushed(&self) {
+        self.0.save_flushed();
     }
 
     pub(crate) fn load_layout(&self) -> String {

@@ -9,6 +9,35 @@ pub mod ffi {
         Settings,
         Project,
         Saved,
+        CloseAsked,
+        FlushDrafts,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    enum MenuItemKind {
+        Command,
+        Role,
+        Separator,
+    }
+
+    #[derive(Debug, Clone)]
+    struct MenuItemView {
+        kind: MenuItemKind,
+        id: String,
+        label: String,
+        shortcut: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct MenuSectionView {
+        label: String,
+        items: Vec<MenuItemView>,
+    }
+
+    #[derive(Debug, Clone)]
+    struct CloseView {
+        ask: bool,
+        busy: Vec<String>,
     }
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -216,7 +245,7 @@ pub mod ffi {
         fn add_node(self: &Session, node_type: &str, x: f64, y: f64) -> Result<String>;
         fn undo(self: &Session) -> bool;
         fn redo(self: &Session) -> bool;
-        fn select(self: &Session, id: &str);
+        fn select(self: &Session, ids: Vec<String>);
         fn selected(self: &Session) -> String;
         fn inspector(self: &Session) -> InspectorView;
         fn set_param(self: &Session, id: &str, key: &str, json: &str) -> Result<()>;
@@ -225,6 +254,15 @@ pub mod ffi {
 
         fn settings(self: &Session) -> SettingsView;
         fn patch_settings(self: &Session, json: &str) -> Result<()>;
+        fn menu(self: &Session) -> Vec<MenuSectionView>;
+        fn menu_command(self: &Session, id: &str) -> Result<()>;
+        fn close_allowed(self: &Session) -> bool;
+        fn request_close(self: &Session);
+        fn close_view(self: &Session) -> CloseView;
+        fn close_shown(self: &Session);
+        fn decide_close(self: &Session, close: bool, dont_ask: bool);
+        fn report_drafts(self: &Session, held: bool);
+        fn save_flushed(self: &Session);
         fn load_layout(self: &Session) -> String;
         fn save_layout(self: &Session, layout: &str);
     }

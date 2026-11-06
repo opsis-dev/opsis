@@ -1,5 +1,6 @@
 #include "scenario.h"
 
+#include <QAction>
 #include <QApplication>
 #include <QElapsedTimer>
 #include <QFile>
@@ -259,6 +260,37 @@ void Scenario::BuildTour() {
   });
   Add(QStringLiteral("restore-nodes-panel"),
       [window] { QTest::keyClick(window, Qt::Key_B, Qt::ControlModifier); });
+  Add(
+      QStringLiteral("group-from-menu"),
+      [window, canvas] {
+        canvas->SelectAll();
+        for (QAction* action : window->findChildren<QAction*>()) {
+          if (action->text() == QStringLiteral("Group selection"))
+            action->trigger();
+        }
+      },
+      700);
+  Add(QStringLiteral("undo-group"), [window] {
+    for (QAction* action : window->findChildren<QAction*>()) {
+      if (action->text() == QStringLiteral("Undo")) action->trigger();
+    }
+  });
+  Add(
+      QStringLiteral("ask-to-close"),
+      [window] {
+        QTimer::singleShot(0, window, [window] { window->close(); });
+      },
+      900);
+  Add(
+      QStringLiteral("cancel-close"),
+      [] {
+        QWidget* dialog = QApplication::activeModalWidget();
+        if (dialog == nullptr) return;
+        for (QPushButton* button : dialog->findChildren<QPushButton*>()) {
+          if (button->text() == QStringLiteral("Cancel")) button->click();
+        }
+      },
+      700);
   Add(
       QStringLiteral("settings-general"), [window] { window->OpenSettings(); },
       700);

@@ -86,6 +86,7 @@ class GraphCanvas : public QGraphicsView {
 
   void Sync();
   void FitAll();
+  void SelectAll();
   void ZoomBy(double factor, const QPointF& anchor);
   double zoom() const;
   void SetMinimapVisible(bool visible);

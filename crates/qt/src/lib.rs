@@ -7,8 +7,9 @@ mod bridge;
 mod host;
 
 pub use bridge::ffi::{
-    CardKind, CardView, Choice, DialogKind, EdgeView, EventKind, FieldKind, FieldView, GraphView,
-    InspectorView, NodeMove, PaletteEntry, PortView, ProjectEntry, RowView, SettingsView,
+    CardKind, CardView, Choice, CloseView, DialogKind, EdgeView, EventKind, FieldKind, FieldView,
+    GraphView, InspectorView, MenuItemKind, MenuItemView, MenuSectionView, NodeMove, PaletteEntry,
+    PortView, ProjectEntry, RowView, SettingsView,
 };
 pub use host::{
     Host, HostResult, notify, open_path, post_event, qt_version, quit, raise_editor,

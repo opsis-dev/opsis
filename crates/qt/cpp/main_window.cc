@@ -3,10 +3,13 @@
 #include <kddockwidgets/LayoutSaver.h>
 
 #include <QApplication>
+#include <QCheckBox>
 #include <QCloseEvent>
+#include <QDialog>
 #include <QFileDialog>
 #include <QMenu>
 #include <QMenuBar>
+#include <QTimer>
 #include <QVBoxLayout>
 #include <functional>
 
@@ -91,6 +94,8 @@ MainWindow::MainWindow()
   connect(EventHub::Instance(), &EventHub::DocumentChanged, this,
           &MainWindow::SyncTitle);
   connect(EventHub::Instance(), &EventHub::Saved, this, &MainWindow::SyncTitle);
+  connect(EventHub::Instance(), &EventHub::CloseAsked, this,
+          &MainWindow::ShowCloseDialog);
   ShowStart();
 }
 
@@ -123,54 +128,152 @@ void MainWindow::CloseProject() {
 
 void MainWindow::BuildMenus() {
   QMenuBar* bar = app_bar_->menu_bar();
-  QMenu* file = bar->addMenu(QStringLiteral("File"));
-  file->addAction(
-      QStringLiteral("New project…"), QKeySequence::New, this,
-      [this] { emit start_->CreateRequested(QStringLiteral("Untitled")); });
-  file->addAction(QStringLiteral("Open project…"), QKeySequence::Open, this,
-                  [this] { emit start_->BrowseRequested(); });
-  file->addAction(QStringLiteral("Save"), QKeySequence::Save, this,
-                  [this] { Guard([] { App::Get().session().save(); }); });
-  file->addAction(QStringLiteral("Close project"),
-                  QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_W), this,
-                  &MainWindow::CloseProject);
-  file->addSeparator();
-  file->addAction(QStringLiteral("Settings"),
-                  QKeySequence(Qt::CTRL | Qt::Key_Comma), this,
-                  [this] { OpenSettings(); });
-  file->addSeparator();
-  file->addAction(QStringLiteral("Quit"), QKeySequence::Quit, this,
-                  &QWidget::close);
+  for (const auto& section : App::Get().session().menu()) {
+    QMenu* menu = bar->addMenu(ToQ(section.label));
+    for (const auto& item : section.items) {
+      if (item.kind == bridge::MenuItemKind::Separator) {
+        menu->addSeparator();
+        continue;
+      }
+      const QString id = ToQ(item.id);
+      QAction* action = menu->addAction(ToQ(item.label));
+      if (!item.shortcut.empty()) {
+        action->setShortcut(QKeySequence(ToQ(item.shortcut)));
+      }
+      const bool role = item.kind == bridge::MenuItemKind::Role;
+      connect(action, &QAction::triggered, this, [this, id, role] {
+        if (role) {
+          RunRole(id);
+        } else {
+          Dispatch(id);
+        }
+      });
+      actions_.insert(id, action);
+    }
+  }
+}
 
-  QMenu* edit = bar->addMenu(QStringLiteral("Edit"));
-  undo_ = edit->addAction(QStringLiteral("Undo"), QKeySequence::Undo, this,
-                          [] { App::Get().session().undo(); });
-  redo_ = edit->addAction(QStringLiteral("Redo"),
-                          QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_Z), this,
-                          [] { App::Get().session().redo(); });
-
-  QMenu* view = bar->addMenu(QStringLiteral("View"));
-  view->addAction(QStringLiteral("Nodes"), QKeySequence(Qt::CTRL | Qt::Key_B),
-                  this, [this] { ToggleDock(nodes_dock_); });
-  view->addAction(QStringLiteral("Inspector"),
-                  QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_B), this,
-                  [this] { ToggleDock(inspector_dock_); });
-  view->addAction(QStringLiteral("Bottom panel"),
-                  QKeySequence(Qt::CTRL | Qt::Key_J), this,
-                  [this] { ToggleDock(timeline_dock_); });
-  view->addSeparator();
-  view->addAction(QStringLiteral("Fit to view"),
-                  QKeySequence(Qt::SHIFT | Qt::Key_1), this,
-                  [this] { canvas_->FitAll(); });
-  view->addAction(QStringLiteral("Minimap"), this, [this] {
+void MainWindow::Dispatch(const QString& id) {
+  if (id == QStringLiteral("project:new")) {
+    emit start_->CreateRequested(QStringLiteral("Untitled"));
+  } else if (id == QStringLiteral("project:open")) {
+    emit start_->BrowseRequested();
+  } else if (id == QStringLiteral("view:settings")) {
+    OpenSettings();
+  } else if (id == QStringLiteral("view:projects")) {
+    CloseProject();
+  } else if (id == QStringLiteral("view:toggle-left")) {
+    ToggleDock(nodes_dock_);
+  } else if (id == QStringLiteral("view:toggle-right")) {
+    ToggleDock(inspector_dock_);
+  } else if (id == QStringLiteral("view:toggle-bottom")) {
+    ToggleDock(timeline_dock_);
+  } else if (id == QStringLiteral("view:toggle-minimap")) {
     canvas_->SetMinimapVisible(!canvas_->minimap_visible());
-  });
+  } else if (id == QStringLiteral("view:focus-timeline")) {
+    FocusDock(timeline_dock_);
+  } else if (id == QStringLiteral("view:focus-mixer")) {
+    FocusDock(mixer_dock_);
+  } else if (id == QStringLiteral("view:focus-run")) {
+    FocusDock(run_dock_);
+  } else if (id == QStringLiteral("edit:select-all")) {
+    canvas_->SelectAll();
+  } else if (id == QStringLiteral("edit:add-node")) {
+    FocusDock(nodes_dock_);
+  } else {
+    try {
+      App::Get().session().menu_command(ToRust(id));
+    } catch (const rust::Error& error) {
+      canvas_->Toast(QString::fromUtf8(error.what()), true);
+    }
+  }
+}
 
-  QMenu* help = bar->addMenu(QStringLiteral("Help"));
-  help->addAction(QStringLiteral("About Opsis"), this, [this] {
-    SettingsWindow* window = OpenSettings();
-    window->ShowPage(window->page_count() - 1);
-  });
+void MainWindow::RunRole(const QString& id) {
+  const QString role = id.mid(QStringLiteral("role:").size());
+  QWidget* focus = QApplication::focusWidget();
+  if (role == QStringLiteral("cut") || role == QStringLiteral("copy") ||
+      role == QStringLiteral("paste") || role == QStringLiteral("selectAll")) {
+    if (focus != nullptr) {
+      QMetaObject::invokeMethod(focus, role.toLatin1().constData());
+    }
+  } else if (role == QStringLiteral("quit") ||
+             role == QStringLiteral("close")) {
+    close();
+  } else if (role == QStringLiteral("minimize")) {
+    showMinimized();
+  } else if (role == QStringLiteral("toggleMaximize")) {
+    if (isMaximized()) {
+      showNormal();
+    } else {
+      showMaximized();
+    }
+  } else if (role == QStringLiteral("togglefullscreen")) {
+    if (isFullScreen()) {
+      showNormal();
+    } else {
+      showFullScreen();
+    }
+  }
+}
+
+void MainWindow::FocusDock(kdw::QtWidgets::DockWidget* dock) {
+  if (dock == nullptr) return;
+  if (!dock->isOpen()) dock->open();
+  dock->setAsCurrentTab();
+  dock->raise();
+  dock->widget()->setFocus();
+}
+
+void MainWindow::ShowCloseDialog() {
+  const bridge::CloseView asked = App::Get().session().close_view();
+  QDialog dialog(this);
+  dialog.setObjectName(QStringLiteral("CloseDialog"));
+  dialog.setWindowTitle(QStringLiteral("Opsis"));
+  dialog.setMinimumWidth(420);
+  auto* layout = new QVBoxLayout(&dialog);
+  layout->setContentsMargins(24, 22, 24, 20);
+  layout->setSpacing(10);
+  layout->addWidget(
+      MakeLabel(asked.ask ? QStringLiteral("Are you sure you want to exit?")
+                          : QStringLiteral("Some work hasn't finished yet"),
+                "title", &dialog));
+  const bool busy = !asked.busy.empty();
+  auto* about = MakeLabel(
+      busy ? QStringLiteral("Closing now stops it:")
+           : QStringLiteral(
+                 "Your project is saved. You can pick up where you left off."),
+      "muted", &dialog);
+  about->setWordWrap(true);
+  layout->addWidget(about);
+  for (const auto& item : asked.busy) {
+    auto* line = MakeLabel(QStringLiteral("•  ") + ToQ(item), "muted", &dialog);
+    line->setWordWrap(true);
+    layout->addWidget(line);
+  }
+  QCheckBox* dont_ask = nullptr;
+  if (asked.ask) {
+    dont_ask = new QCheckBox(QStringLiteral("Don't ask again"), &dialog);
+    layout->addWidget(dont_ask);
+  }
+  auto* buttons = new QHBoxLayout();
+  buttons->addStretch(1);
+  auto* cancel =
+      MakeButton(QStringLiteral("Cancel"), nullptr, QString(), &dialog);
+  auto* exit =
+      MakeButton(busy ? QStringLiteral("Close anyway") : QStringLiteral("Exit"),
+                 busy ? "destructive" : "primary", QString(), &dialog);
+  buttons->addWidget(cancel);
+  buttons->addWidget(exit);
+  layout->addSpacing(8);
+  layout->addLayout(buttons);
+  connect(cancel, &QPushButton::clicked, &dialog, &QDialog::reject);
+  connect(exit, &QPushButton::clicked, &dialog, &QDialog::accept);
+  exit->setDefault(true);
+  QTimer::singleShot(0, &dialog, [] { App::Get().session().close_shown(); });
+  const bool closing = dialog.exec() == QDialog::Accepted;
+  App::Get().session().decide_close(
+      closing, closing && dont_ask != nullptr && dont_ask->isChecked());
 }
 
 kdw::QtWidgets::DockWidget* MainWindow::MakeDock(const QString& id,
@@ -249,8 +352,8 @@ void MainWindow::ShowStart() {
   start_->Reload();
   stack_->setCurrentWidget(start_);
   app_bar_->SetSubtitle(QString());
-  undo_->setEnabled(false);
-  redo_->setEnabled(false);
+  SetEnabled(QStringLiteral("edit:undo"), false);
+  SetEnabled(QStringLiteral("edit:redo"), false);
 }
 
 void MainWindow::SaveLayout() {
@@ -266,8 +369,12 @@ void MainWindow::SyncTitle() {
   app_bar_->SetSubtitle(ToQ(graph.name) + QStringLiteral("  ·  ") +
                         (graph.dirty ? QStringLiteral("Unsaved changes")
                                      : QStringLiteral("Saved")));
-  undo_->setEnabled(graph.can_undo);
-  redo_->setEnabled(graph.can_redo);
+  SetEnabled(QStringLiteral("edit:undo"), graph.can_undo);
+  SetEnabled(QStringLiteral("edit:redo"), graph.can_redo);
+}
+
+void MainWindow::SetEnabled(const QString& id, bool enabled) {
+  if (QAction* action = actions_.value(id)) action->setEnabled(enabled);
 }
 
 void MainWindow::ToggleDock(kdw::QtWidgets::DockWidget* dock) {
@@ -291,11 +398,14 @@ SettingsWindow* MainWindow::OpenSettings() {
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
+  if (App::Get().session().close_allowed()) {
+    if (settings_ != nullptr) settings_->close();
+    event->accept();
+    return;
+  }
   SaveLayout();
-  Guard([] { App::Get().session().save(); });
-  if (settings_ != nullptr) settings_->close();
-  event->accept();
-  QApplication::quit();
+  event->ignore();
+  App::Get().session().request_close();
 }
 
 }

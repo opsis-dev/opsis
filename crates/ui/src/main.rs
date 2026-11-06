@@ -2,6 +2,7 @@ mod folders;
 mod graph;
 mod inspector;
 mod look;
+mod menu;
 mod platform;
 mod ui;
 

@@ -1,7 +1,7 @@
 use std::fmt;
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use indexmap::IndexMap;
@@ -10,16 +10,19 @@ use opsis_compile::compile::compile_workflow;
 use opsis_compile::graph::connection_problem_now;
 use opsis_compile::node::Platform as NodePlatform;
 use opsis_qt::{
-    Choice, EventKind, GraphView, Host, HostResult, InspectorView, NodeMove, PaletteEntry,
-    ProjectEntry, SettingsView,
+    Choice, CloseView, EventKind, GraphView, Host, HostResult, InspectorView, MenuSectionView,
+    NodeMove, PaletteEntry, ProjectEntry, SettingsView,
 };
 use opsis_session::error::CommandError;
 use opsis_session::events::{MAIN_WINDOW, SessionEvent};
+use opsis_session::exit::{self, Exit};
 use opsis_session::state::AppState;
-use opsis_session::{Session, compile, document, projects, settings, shared};
+use opsis_session::{Session, compile, document, projects, run, settings, shared};
+use opsis_types::actions::Viewport;
 use opsis_types::edits::{EdgeEnds, NodePatch, WorkflowEdit};
+use opsis_types::events::RunTargets;
 use opsis_types::settings::settings_book;
-use opsis_types::shell::Selection;
+use opsis_types::shell::{CloseDecision, CloseRequest, MenuCommand, Selection};
 use opsis_types::workflow::{Position, WORKFLOW_FILE, Workflow};
 use serde_json::{Map, Value};
 use tokio::runtime::Runtime;
@@ -44,6 +47,7 @@ pub struct Ui {
     platform: Arc<QtPlatform>,
     catalog: IndexMap<String, EditorNode>,
     showing: AtomicBool,
+    closing: Arc<Mutex<Option<CloseRequest>>>,
     started: Instant,
 }
 
@@ -99,6 +103,8 @@ fn copy_dir(from: &Path, to: &Path) -> std::io::Result<()> {
 
 const fn event_kind(event: &SessionEvent) -> Option<EventKind> {
     match event {
+        SessionEvent::ConfirmClose(_) => Some(EventKind::CloseAsked),
+        SessionEvent::FlushSave(_) => Some(EventKind::FlushDrafts),
         SessionEvent::DocumentChanged(_) | SessionEvent::ProjectReloaded(_) => {
             Some(EventKind::Document)
         }
@@ -120,6 +126,7 @@ impl Ui {
             platform,
             catalog,
             showing: AtomicBool::new(false),
+            closing: Arc::new(Mutex::new(None)),
             started: Instant::now(),
         }
     }
@@ -223,6 +230,35 @@ impl Ui {
         Ok(())
     }
 
+    fn group_selection(&self) -> HostResult<()> {
+        let ids = shared::shared_state(&self.session).selection.selected_ids;
+        if ids.len() < 2 {
+            return Err("Select two or more nodes to group them.".to_owned());
+        }
+        let sizes = self
+            .graph()
+            .nodes
+            .iter()
+            .filter(|card| ids.contains(&card.id))
+            .map(|card| {
+                (
+                    card.id.clone(),
+                    Viewport {
+                        width: opsis_types::numbers::whole(card.width),
+                        height: opsis_types::numbers::whole(card.height),
+                    },
+                )
+            })
+            .collect();
+        self.edit(WorkflowEdit::Group {
+            ids,
+            title: "Group".to_owned(),
+            sizes,
+        })
+        .map(|_| ())
+        .map_err(|e| e.0)
+    }
+
     fn view_key(&self) -> Option<String> {
         self.state()
             .editor()
@@ -234,10 +270,14 @@ impl Ui {
 impl Host for Ui {
     fn start_pump(&self) {
         let mut events = self.session.subscribe();
+        let closing = Arc::clone(&self.closing);
         std::thread::spawn(move || {
             loop {
                 match events.blocking_recv() {
                     Ok(addressed) => {
+                        if let SessionEvent::ConfirmClose(asked) = &addressed.event {
+                            *closing.lock().expect("close question") = Some(asked.0.clone());
+                        }
                         let mine = addressed.to.as_deref().is_none_or(|to| to == MAIN_WINDOW);
                         if let Some(kind) = event_kind(&addressed.event).filter(|_| mine) {
                             opsis_qt::post_event(kind);
@@ -493,7 +533,7 @@ impl Host for Ui {
             return Ok(());
         }
         if nodes.contains(&self.selected()) {
-            self.select("");
+            self.select(Vec::new());
         }
         self.edit(WorkflowEdit::RemoveParts {
             node_ids: nodes,
@@ -516,7 +556,7 @@ impl Host for Ui {
             .into_iter()
             .next()
             .unwrap_or_default();
-        self.select(&id);
+        self.select(vec![id.clone()]);
         Ok(id)
     }
 
@@ -528,11 +568,7 @@ impl Host for Ui {
         document::redo(&self.session).is_ok()
     }
 
-    fn select(&self, id: &str) {
-        let ids: Vec<String> = Some(id.to_owned())
-            .filter(|s| !s.is_empty())
-            .into_iter()
-            .collect();
+    fn select(&self, ids: Vec<String>) {
         if shared::shared_state(&self.session).selection.selected_ids == ids {
             return;
         }
@@ -653,6 +689,94 @@ impl Host for Ui {
             .block_on(settings::patch_settings(self.session.clone(), patch))
             .map(|_| ())
             .map_err(|e| e.0)
+    }
+
+    fn menu(&self) -> Vec<MenuSectionView> {
+        crate::menu::menu(cfg!(target_os = "macos"))
+    }
+
+    fn menu_command(&self, id: &str) -> HostResult<()> {
+        let command: MenuCommand =
+            serde_json::from_value(Value::String(id.to_owned())).map_err(failed)?;
+        match command {
+            MenuCommand::ProjectSave => self.save(),
+            MenuCommand::EditUndo => {
+                self.undo();
+                Ok(())
+            }
+            MenuCommand::EditRedo => {
+                self.redo();
+                Ok(())
+            }
+            MenuCommand::RunStart => self
+                .runtime
+                .block_on(run::run_workflow(
+                    self.session.clone(),
+                    RunTargets {
+                        target_node_ids: None,
+                        from_node_id: None,
+                    },
+                ))
+                .map(|_| ())
+                .map_err(|e| e.0),
+            MenuCommand::RunCancel => {
+                run::cancel_run(&self.session);
+                Ok(())
+            }
+            MenuCommand::EditGroup => self.group_selection(),
+            MenuCommand::EditLayout => {
+                Err("Tidying the layout isn't in the native editor yet.".to_owned())
+            }
+            _ => Err(format!("The views handle {id}.")),
+        }
+    }
+
+    fn close_allowed(&self) -> bool {
+        self.session.state::<Exit>().allowed()
+    }
+
+    fn request_close(&self) {
+        if !self.session.state::<Exit>().start_asking() {
+            return;
+        }
+        let session = self.session.clone();
+        self.runtime.spawn(async move {
+            let closing = exit::confirm(&session).await;
+            session.state::<Exit>().finish_asking(closing);
+            if closing {
+                opsis_qt::quit(0);
+            }
+        });
+    }
+
+    fn close_view(&self) -> CloseView {
+        let asked = self.closing.lock().expect("close question").clone();
+        asked.map_or_else(
+            || CloseView {
+                ask: false,
+                busy: Vec::new(),
+            },
+            |asked| CloseView {
+                ask: asked.ask,
+                busy: asked.busy,
+            },
+        )
+    }
+
+    fn close_shown(&self) {
+        exit::close_shown(&self.session);
+    }
+
+    fn decide_close(&self, close: bool, dont_ask: bool) {
+        exit::decide_close(&self.session, CloseDecision { close, dont_ask });
+    }
+
+    fn report_drafts(&self, held: bool) {
+        exit::report_drafts(&self.session, held);
+    }
+
+    fn save_flushed(&self) {
+        exit::save_flushed(&self.session);
     }
 
     fn load_layout(&self) -> String {

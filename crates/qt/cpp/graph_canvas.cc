@@ -548,15 +548,16 @@ void GraphCanvas::CommitMoves() {
 
 void GraphCanvas::SyncSelection() {
   if (syncing_) return;
-  const QList<QGraphicsItem*> selected = scene_.selectedItems();
-  QString id;
-  for (QGraphicsItem* item : selected) {
-    if (auto* card = dynamic_cast<CardItem*>(item)) {
-      id = card->id();
-      break;
-    }
+  rust::Vec<rust::String> ids;
+  for (QGraphicsItem* item : scene_.selectedItems()) {
+    if (auto* card = dynamic_cast<CardItem*>(item))
+      ids.push_back(ToRust(card->id()));
   }
-  App::Get().session().select(ToRust(id));
+  App::Get().session().select(std::move(ids));
+}
+
+void GraphCanvas::SelectAll() {
+  for (CardItem* card : std::as_const(cards_)) card->setSelected(true);
 }
 
 void GraphCanvas::BeginConnect(const PortHit& from) {
@@ -778,7 +779,7 @@ void GraphCanvas::keyPressEvent(QKeyEvent* event) {
     return;
   }
   if (event->matches(QKeySequence::SelectAll)) {
-    for (CardItem* card : std::as_const(cards_)) card->setSelected(true);
+    SelectAll();
     event->accept();
     return;
   }

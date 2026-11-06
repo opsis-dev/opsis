@@ -5,6 +5,7 @@
 #include <kddockwidgets/qtwidgets/views/MainWindow.h>
 
 #include <QAction>
+#include <QHash>
 #include <QPointer>
 #include <QStackedWidget>
 
@@ -48,6 +49,11 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   void SaveLayout();
   void SyncTitle();
   void ToggleDock(KDDockWidgets::QtWidgets::DockWidget* dock);
+  void FocusDock(KDDockWidgets::QtWidgets::DockWidget* dock);
+  void Dispatch(const QString& id);
+  void RunRole(const QString& id);
+  void SetEnabled(const QString& id, bool enabled);
+  void ShowCloseDialog();
   void Guard(const std::function<void()>& action);
   KDDockWidgets::QtWidgets::DockWidget* MakeDock(const QString& id,
                                                  const QString& title,
@@ -63,8 +69,7 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   KDDockWidgets::QtWidgets::DockWidget* mixer_dock_ = nullptr;
   KDDockWidgets::QtWidgets::DockWidget* run_dock_ = nullptr;
   bool docked_ = false;
-  QAction* undo_ = nullptr;
-  QAction* redo_ = nullptr;
+  QHash<QString, QAction*> actions_;
   QPointer<SettingsWindow> settings_;
 };
 

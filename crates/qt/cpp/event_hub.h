@@ -19,6 +19,8 @@ class EventHub : public QObject {
   void SettingsChanged();
   void ProjectChanged();
   void Saved();
+  void CloseAsked();
+  void FlushDrafts();
   void Notice(const QString& title, const QString& body);
 
  private:

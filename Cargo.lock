@@ -5491,6 +5491,7 @@ dependencies = [
  "opsis-session",
  "opsis-store",
  "opsis-types",
+ "proptest",
  "serde",
  "serde_json",
  "thiserror 2.0.21",
