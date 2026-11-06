@@ -17,7 +17,7 @@ const DEFINES: [&str; 6] = [
     "QT_TESTLIB_LIB",
 ];
 
-const MOC_HEADERS: [&str; 16] = [
+const MOC_HEADERS: [&str; 18] = [
     "event_hub.h",
     "widgets.h",
     "window_chrome.h",
@@ -34,9 +34,11 @@ const MOC_HEADERS: [&str; 16] = [
     "project_panel.h",
     "top_bar.h",
     "color_picker.h",
+    "form_hold.h",
+    "gradient_field.h",
 ];
 
-const SOURCES: [&str; 22] = [
+const SOURCES: [&str; 25] = [
     "app.cc",
     "event_hub.cc",
     "widgets.cc",
@@ -59,6 +61,9 @@ const SOURCES: [&str; 22] = [
     "e2e_steps.cc",
     "list_fields.cc",
     "color_picker.cc",
+    "form_hold.cc",
+    "gradient_field.cc",
+    "visual_fields.cc",
 ];
 
 fn main() {

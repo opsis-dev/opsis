@@ -1,8 +1,10 @@
 #include <QAction>
 #include <QApplication>
 #include <QComboBox>
+#include <QDialogButtonBox>
 #include <QDir>
 #include <QDropEvent>
+#include <QFileDialog>
 #include <QImage>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -29,6 +31,7 @@
 
 #include "app.h"
 #include "color_picker.h"
+#include "gradient_field.h"
 #include "graph_canvas.h"
 #include "main_window.h"
 #include "node_list.h"
@@ -1342,6 +1345,224 @@ void Scenario::BuildTour() {
                   QStringLiteral("one undo left %1").arg(colour_value()));
   });
   Add(QStringLiteral("undo-add-tooltip"), undo, 500, back);
+  const auto gradient_field = [window]() -> GradientField* {
+    for (auto* field :
+         window->inspector_dock()->widget()->findChildren<GradientField*>()) {
+      if (field->isVisible()) return field;
+    }
+    return nullptr;
+  };
+  const auto stops_in = [](const QString& css) {
+    return static_cast<int>(css.count(QLatin1Char('%')));
+  };
+  const auto pick_kind = [window](const QString& kind) {
+    for (QComboBox* combo :
+         window->inspector_dock()->widget()->findChildren<QComboBox*>()) {
+      if (combo->isVisible() && combo->findData(kind) >= 0) {
+        if (combo->currentData().toString() == kind) return true;
+        combo->setFocus();
+        QTest::keyClick(combo, Qt::Key_Down);
+        return false;
+      }
+    }
+    return true;
+  };
+  Add(
+      QStringLiteral("gradient-field"),
+      [add_from_list, pick_kind] {
+        add_from_list(QStringLiteral("Camera"), QStringLiteral("Backdrop"));
+        QTest::qWait(kSettleMs);
+        for (int i = 0; i < 3 && !pick_kind(QStringLiteral("gradient")); ++i) {
+          QTest::qWait(kSettleMs);
+        }
+      },
+      700,
+      [gradient_field] {
+        GradientField* field = gradient_field();
+        return Expect(field != nullptr && field->StopCount() == 2,
+                      QStringLiteral("no gradient with two stops"));
+      });
+  Add(
+      QStringLiteral("gradient-add-stop"),
+      [this, gradient_field] {
+        GradientField* field = gradient_field();
+        if (field == nullptr) {
+          Miss(QStringLiteral("no gradient field"));
+          return;
+        }
+        StopBar* bar = field->bar();
+        const QRectF track = bar->Track();
+        QTest::mouseClick(bar, Qt::LeftButton, {},
+                          QPoint(static_cast<int>(track.center().x()),
+                                 static_cast<int>(track.center().y())));
+      },
+      600,
+      [stops_in] {
+        const QString css = FieldText(QStringLiteral("gradient"));
+        return Expect(stops_in(css) == 3,
+                      QStringLiteral("the gradient is %1").arg(css));
+      });
+  Add(
+      QStringLiteral("gradient-drag-stop"),
+      [this, gradient_field, memo] {
+        memo->other = FieldText(QStringLiteral("gradient"));
+        GradientField* field = gradient_field();
+        if (field == nullptr) {
+          Miss(QStringLiteral("no gradient field"));
+          return;
+        }
+        StopBar* bar = field->bar();
+        const QPoint from = bar->HandleOf(0).toPoint();
+        const QRectF track = bar->Track();
+        const QPoint to(static_cast<int>(track.left() + track.width() * 0.3),
+                        from.y());
+        Drag(bar, from, to, 6);
+      },
+      700,
+      [memo] {
+        const QString css = FieldText(QStringLiteral("gradient"));
+        return Expect(
+            css != memo->other && css.contains(QStringLiteral(" 30%")),
+            QStringLiteral("the gradient is %1").arg(css));
+      });
+  Add(QStringLiteral("undo-gradient-drag"), undo, 600, [memo] {
+    const QString css = FieldText(QStringLiteral("gradient"));
+    return Expect(css == memo->other,
+                  QStringLiteral("one undo left %1").arg(css));
+  });
+  Add(
+      QStringLiteral("undo-gradient"),
+      [this, window] {
+        for (int i = 0; i < 4; ++i) Click(window, QStringLiteral("Undo"));
+      },
+      600, back);
+  Add(
+      QStringLiteral("asset-choose-opens-dialog"),
+      [this, window, add_from_list, pick_kind] {
+        add_from_list(QStringLiteral("Camera"), QStringLiteral("Backdrop"));
+        QTest::qWait(kSettleMs);
+        for (int i = 0; i < 4 && !pick_kind(QStringLiteral("asset")); ++i) {
+          QTest::qWait(kSettleMs);
+        }
+        ClickLater(window->inspector_dock()->widget(),
+                   QStringLiteral("Choose"));
+      },
+      900,
+      [] {
+        return Expect(qobject_cast<QFileDialog*>(
+                          QApplication::activeModalWidget()) != nullptr,
+                      QStringLiteral("no file dialog opened"));
+      });
+  Add(
+      QStringLiteral("asset-pick-file"),
+      [] {
+        auto* dialog =
+            qobject_cast<QFileDialog*>(QApplication::activeModalWidget());
+        if (dialog == nullptr) return;
+        const QString file = QDir(qEnvironmentVariable("OPSIS_USER_DATA"))
+                                 .filePath(QStringLiteral("backdrop.png"));
+        QImage picture(kDropSide, kDropSide, QImage::Format_RGB32);
+        picture.fill(Qt::darkCyan);
+        picture.save(file);
+        auto* name =
+            dialog->findChild<QLineEdit*>(QStringLiteral("fileNameEdit"));
+        if (name == nullptr) {
+          dialog->reject();
+          return;
+        }
+        name->setFocus();
+        QTest::keyClicks(name, file);
+        QTest::qWait(kSettleMs);
+        auto* buttons = dialog->findChild<QDialogButtonBox*>();
+        QPushButton* open = buttons != nullptr
+                                ? buttons->button(QDialogButtonBox::Open)
+                                : nullptr;
+        if (open == nullptr) {
+          QTest::keyClick(name, Qt::Key_Return);
+          return;
+        }
+        QTest::mouseClick(open, Qt::LeftButton);
+      },
+      1200,
+      [] {
+        if (QApplication::activeModalWidget() != nullptr) {
+          QApplication::activeModalWidget()->close();
+          return QStringLiteral("the file dialog is still open");
+        }
+        const QString asset = FieldText(QStringLiteral("asset"));
+        return Expect(asset.contains(QStringLiteral("backdrop")) &&
+                          !asset.startsWith(QLatin1Char('/')),
+                      QStringLiteral("the image is '%1'").arg(asset));
+      });
+  Add(
+      QStringLiteral("undo-asset"),
+      [this, window] {
+        for (int i = 0; i < 5; ++i) Click(window, QStringLiteral("Undo"));
+      },
+      600, back);
+  Add(
+      QStringLiteral("theme-mode"),
+      [this, window, add_from_list] {
+        add_from_list(QStringLiteral("Camera"), QStringLiteral("Device frame"));
+        QTest::qWait(kSettleMs);
+        Click(window->inspector_dock()->widget(), QStringLiteral("Light"));
+      },
+      700,
+      [] {
+        return Expect(
+            FieldText(QStringLiteral("theme")) == QStringLiteral("light"),
+            QStringLiteral("the theme is %1")
+                .arg(FieldText(QStringLiteral("theme"))));
+      });
+  Add(
+      QStringLiteral("theme-colours-open"),
+      [this, window] {
+        Click(window->inspector_dock()->widget(), QStringLiteral("Colours"));
+      },
+      500,
+      [window] {
+        int shown = 0;
+        for (auto* input :
+             window->inspector_dock()->widget()->findChildren<ColorInput*>()) {
+          if (input->isVisible()) ++shown;
+        }
+        return Expect(shown > 1, QStringLiteral("%1 theme colours").arg(shown));
+      });
+  Add(
+      QStringLiteral("theme-colour-typed"),
+      [this, window] {
+        for (auto* input :
+             window->inspector_dock()->widget()->findChildren<ColorInput*>()) {
+          if (!input->isVisible()) continue;
+          auto* line = input->findChild<QLineEdit*>();
+          QTest::mouseClick(line, Qt::LeftButton);
+          QTest::keyClicks(line, QStringLiteral("#ff0000"));
+          QTest::keyClick(line, Qt::Key_Return);
+          return;
+        }
+        Miss(QStringLiteral("no theme colour to type in"));
+      },
+      700,
+      [this, window] {
+        QString problems;
+        for (const auto& field : App::Get().session().inspector().fields) {
+          if (ToQ(field.key) == QStringLiteral("theme") &&
+              !ToQ(field.value_json).contains(QStringLiteral("#ff0000"))) {
+            problems += QStringLiteral(" the colour wasn't saved");
+          }
+        }
+        if (Find(window->inspector_dock()->widget(),
+                 QStringLiteral("Colours (1 changed)")) == nullptr) {
+          problems += QStringLiteral(" no count of changed colours");
+        }
+        return problems.trimmed();
+      });
+  Add(
+      QStringLiteral("undo-theme"),
+      [this, window] {
+        for (int i = 0; i < 3; ++i) Click(window, QStringLiteral("Undo"));
+      },
+      600, back);
   Add(
       QStringLiteral("hide-node-list"),
       [this, window] { Click(window, QStringLiteral("Hide node list")); }, 600,

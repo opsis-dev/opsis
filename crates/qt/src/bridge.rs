@@ -85,6 +85,29 @@ pub mod ffi {
         ColorList,
         ObjectList,
         Color,
+        Gradient,
+        Theme,
+        Asset,
+        Target,
+    }
+
+    #[derive(Debug, Clone)]
+    struct GradientStopView {
+        color: String,
+        at: f64,
+    }
+
+    #[derive(Debug, Clone)]
+    struct GradientInfo {
+        valid: bool,
+        linear: bool,
+        angle: f64,
+        stops: Vec<GradientStopView>,
+        css: String,
+        strip: String,
+        can_add: bool,
+        can_remove: bool,
+        selected: i32,
     }
 
     #[derive(Debug, Clone)]
@@ -353,6 +376,7 @@ pub mod ffi {
         min_items: u32,
         max_items: u32,
         new_item_json: String,
+        extra_json: String,
     }
 
     #[derive(Debug, Clone)]
@@ -486,6 +510,9 @@ pub mod ffi {
         fn join_tokens(self: &Session, tokens: Vec<TextToken>) -> String;
         fn parse_color(self: &Session, text: &str) -> ColorView;
         fn format_color(self: &Session, h: f64, s: f64, v: f64, a: f64, format: &str) -> String;
+        fn gradient_info(self: &Session, css: &str) -> GradientInfo;
+        fn import_files(self: &Session, paths: Vec<String>) -> Result<Vec<String>>;
+        fn edit_gradient(self: &Session, css: &str, edit_json: &str) -> GradientInfo;
         fn save(self: &Session) -> Result<()>;
 
         fn settings(self: &Session) -> SettingsView;

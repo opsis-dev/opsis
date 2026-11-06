@@ -36,8 +36,7 @@ QWidget* MakeStringList(const bridge::FieldView& field,
 QWidget* MakeNumberList(const bridge::FieldView& field,
                         const CommitJson& commit);
 QWidget* MakeColorList(const bridge::FieldView& field,
-                       const QStringList& swatches, const CommitJson& commit,
-                       const std::function<void()>& closed);
+                       const QStringList& swatches, const CommitJson& commit);
 QWidget* MakeObjectList(const bridge::FieldView& field,
                         const CommitJson& commit, QSet<QString>* closed,
                         QHash<QString, QVBoxLayout*>* bodies);

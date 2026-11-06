@@ -13,10 +13,10 @@ use opsis_compile::layout::auto_layout;
 use opsis_compile::node::Platform as NodePlatform;
 use opsis_compile::nodes::media::IMPORT_TYPE;
 use opsis_qt::{
-    BarView, CategoryView, Choice, CloseView, ColorView, EventKind, FileView, GraphView, Host,
-    HostResult, InspectorView, MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView,
-    ProjectEntry, ProjectView, ScreenArea, SettingsView, TemplateView, TextToken, VariableView,
-    WindowPlacement,
+    BarView, CategoryView, Choice, CloseView, ColorView, EventKind, FileView, GradientInfo,
+    GraphView, Host, HostResult, InspectorView, MenuSectionView, MotionInfo, NodeMove,
+    PaletteEntry, PoseView, ProjectEntry, ProjectView, ScreenArea, SettingsView, TemplateView,
+    TextToken, VariableView, WindowPlacement,
 };
 use opsis_session::error::CommandError;
 use opsis_session::events::{MAIN_WINDOW, SessionEvent};
@@ -1119,6 +1119,29 @@ impl Host for Ui {
 
     fn format_color(&self, h: f64, s: f64, v: f64, a: f64, format: &str) -> String {
         colors::text(h, s, v, a, format)
+    }
+
+    fn gradient_info(&self, css: &str) -> GradientInfo {
+        colors::gradient(css)
+    }
+
+    fn import_files(&self, paths: Vec<String>) -> HostResult<Vec<String>> {
+        let dir = self
+            .state()
+            .editor()
+            .dir()
+            .ok_or_else(|| "No project is open.".to_owned())?;
+        self.runtime
+            .block_on(projects::import_assets(
+                self.session.clone(),
+                dir.to_string_lossy().into_owned(),
+                Some(paths),
+            ))
+            .map_err(|e| format!("Couldn't add the file: {}", e.0))
+    }
+
+    fn edit_gradient(&self, css: &str, edit_json: &str) -> GradientInfo {
+        colors::edit(css, edit_json)
     }
 
     fn set_params(&self, id: &str, patch_json: &str) -> HostResult<()> {

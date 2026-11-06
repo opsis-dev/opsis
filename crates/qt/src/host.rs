@@ -1,9 +1,10 @@
 use std::fmt;
 
 use crate::bridge::ffi::{
-    self, BarView, CategoryView, CloseView, ColorView, DialogKind, EventKind, GraphView,
-    InspectorView, MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView, ProjectEntry,
-    ProjectView, ScreenArea, SettingsView, TemplateView, TextToken, VariableView, WindowPlacement,
+    self, BarView, CategoryView, CloseView, ColorView, DialogKind, EventKind, GradientInfo,
+    GraphView, InspectorView, MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView,
+    ProjectEntry, ProjectView, ScreenArea, SettingsView, TemplateView, TextToken, VariableView,
+    WindowPlacement,
 };
 
 pub type HostResult<T> = Result<T, String>;
@@ -83,6 +84,9 @@ pub trait Host {
     fn join_tokens(&self, tokens: Vec<TextToken>) -> String;
     fn parse_color(&self, text: &str) -> ColorView;
     fn format_color(&self, h: f64, s: f64, v: f64, a: f64, format: &str) -> String;
+    fn gradient_info(&self, css: &str) -> GradientInfo;
+    fn import_files(&self, paths: Vec<String>) -> HostResult<Vec<String>>;
+    fn edit_gradient(&self, css: &str, edit_json: &str) -> GradientInfo;
     fn save(&self) -> HostResult<()>;
 
     fn settings(&self) -> SettingsView;
@@ -417,6 +421,18 @@ impl Session {
 
     pub(crate) fn format_color(&self, h: f64, s: f64, v: f64, a: f64, format: &str) -> String {
         self.0.format_color(h, s, v, a, format)
+    }
+
+    pub(crate) fn gradient_info(&self, css: &str) -> GradientInfo {
+        self.0.gradient_info(css)
+    }
+
+    pub(crate) fn import_files(&self, paths: Vec<String>) -> HostResult<Vec<String>> {
+        self.0.import_files(paths)
+    }
+
+    pub(crate) fn edit_gradient(&self, css: &str, edit_json: &str) -> GradientInfo {
+        self.0.edit_gradient(css, edit_json)
     }
 
     pub(crate) fn save(&self) -> HostResult<()> {

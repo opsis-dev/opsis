@@ -172,6 +172,9 @@ int App::Run(rust::Box<bridge::Session> host) {
   static std::array<char*, 2> argv = {name.data(), nullptr};
   QApplication::setHighDpiScaleFactorRoundingPolicy(
       Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+  if (qEnvironmentVariableIsSet("OPSIS_QT_SCENARIO")) {
+    QApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
+  }
   QApplication application(argc, argv.data());
   QApplication::setApplicationName(QStringLiteral("Opsis"));
   QApplication::setOrganizationName(QStringLiteral("Opsis"));

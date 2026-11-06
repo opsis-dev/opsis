@@ -46,6 +46,7 @@ class InspectorPanel : public QWidget {
   QSet<QString> closed_items_;
   QHash<QString, QVBoxLayout*> bodies_;
   QStringList swatches_;
+  QHash<QString, int> gradient_stops_;
 };
 
 }

@@ -14,6 +14,7 @@
 #include <utility>
 
 #include "app.h"
+#include "form_hold.h"
 #include "motion.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "widgets.h"
@@ -271,7 +272,7 @@ ColorPicker* ColorPicker::Open(QWidget* anchor, const QString& value,
   auto* picker = new ColorPicker(anchor->window(), value, fallback, swatches,
                                  std::move(on_change));
   open_ = picker;
-  App::Get().session().begin_gesture();
+  FormHold::Instance()->Begin();
   picker->adjustSize();
   QPoint at = anchor->mapToGlobal(QPoint(0, anchor->height() + 4));
   if (const QScreen* screen = anchor->screen()) {
@@ -436,8 +437,7 @@ void ColorPicker::hideEvent(QHideEvent* event) {
   if (ended_) return;
   ended_ = true;
   if (sampling_) releaseMouse();
-  App::Get().session().end_gesture();
-  emit Closed();
+  FormHold::Instance()->End();
 }
 
 ColorChip::ColorChip(QString value, int size, QWidget* parent)
@@ -500,20 +500,25 @@ ColorInput::ColorInput(const QString& label, const QString& value,
   });
   connect(chip_, &QToolButton::clicked, this, [this, label, swatches] {
     ColorPicker* picker = ColorPicker::Open(
-        chip_, line_->text(), QString(), swatches,
+        chip_, line_->text(), fallback_, swatches,
         [self = QPointer<ColorInput>(this)](const QString& picked) {
           if (self == nullptr) return;
           self->Show(picked);
           emit self->Changed(picked);
         });
     picker->setAccessibleName(QStringLiteral("Pick %1").arg(label.toLower()));
-    connect(picker, &ColorPicker::Closed, this, &ColorInput::PickerClosed,
-            Qt::QueuedConnection);
   });
 }
 
+void ColorInput::SetFallback(const QString& fallback) {
+  fallback_ = fallback;
+  line_->setToolTip(
+      QStringLiteral("%1 %2").arg(empty_label_, fallback).trimmed());
+  Show(line_->text());
+}
+
 void ColorInput::Show(const QString& value) {
-  chip_->SetValue(value);
+  chip_->SetValue(value.isEmpty() ? fallback_ : value);
   if (line_->text() != value) line_->setText(value);
   if (clear_ != nullptr) clear_->setVisible(!value.isEmpty());
 }

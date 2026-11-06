@@ -5,10 +5,12 @@
 #include <QComboBox>
 #include <QDateTimeEdit>
 #include <QDoubleValidator>
+#include <QFileDialog>
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QJsonObject>
 #include <QJsonValue>
 #include <QKeyEvent>
 #include <QKeySequence>
@@ -27,10 +29,13 @@
 #include "app.h"
 #include "color_picker.h"
 #include "event_hub.h"
+#include "form_hold.h"
+#include "gradient_field.h"
 #include "list_fields.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "project_panel.h"
 #include "var_text.h"
+#include "visual_fields.h"
 #include "widgets.h"
 
 namespace opsis {
@@ -186,6 +191,8 @@ InspectorPanel::InspectorPanel(QWidget* parent) : QWidget(parent) {
   });
   connect(EventHub::Instance(), &EventHub::ProjectChanged, this,
           &InspectorPanel::Rebuild);
+  connect(FormHold::Instance(), &FormHold::Released, this,
+          &InspectorPanel::Rebuild, Qt::QueuedConnection);
   const auto refresh_project = [this] {
     if (node_.isEmpty() && !Editing()) Rebuild();
   };
@@ -203,7 +210,7 @@ InspectorPanel::InspectorPanel(QWidget* parent) : QWidget(parent) {
 }
 
 bool InspectorPanel::Editing() const {
-  if (ColorPicker::IsOpen()) return true;
+  if (FormHold::Instance()->Held()) return true;
   QWidget* focus = window() != nullptr ? window()->focusWidget() : nullptr;
   if (focus == nullptr || content_ == nullptr ||
       !content_->isAncestorOf(focus)) {
@@ -386,10 +393,85 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
       return MakeNumberList(
           field, [this, key](const QString& json) { Commit(key, json); });
     case bridge::FieldKind::ColorList:
-      return MakeColorList(
-          field, swatches_,
-          [this, key](const QString& json) { Commit(key, json); },
-          [this] { Rebuild(); });
+      return MakeColorList(field, swatches_, [this, key](const QString& json) {
+        Commit(key, json);
+      });
+    case bridge::FieldKind::Asset: {
+      auto* holder = new QWidget();
+      auto* row = new QHBoxLayout(holder);
+      row->setContentsMargins(0, 0, 0, 0);
+      row->setSpacing(8);
+      auto* line = new QLineEdit(holder);
+      line->setText(ToQ(field.text));
+      line->setPlaceholderText(QStringLiteral("Choose a file"));
+      line->setAccessibleName(ToQ(field.label));
+      row->addWidget(line, 1);
+      auto* choose = MakeButton(QStringLiteral("Choose"), "outline",
+                                QStringLiteral("folder-open"), holder);
+      row->addWidget(choose);
+      connect(line, &QLineEdit::editingFinished, this, [this, key, line] {
+        if (!line->isModified()) return;
+        Commit(key, Json(QJsonValue(line->text().trimmed())));
+      });
+      connect(choose, &QPushButton::clicked, this, [this, key] {
+        const QString path = QFileDialog::getOpenFileName(
+            QWidget::window(), QStringLiteral("Import files into the project"));
+        if (path.isEmpty()) return;
+        try {
+          rust::Vec<rust::String> paths;
+          paths.push_back(ToRust(path));
+          const rust::Vec<rust::String> added =
+              App::Get().session().import_files(std::move(paths));
+          if (!added.empty()) Commit(key, Json(QJsonValue(ToQ(added.front()))));
+        } catch (const rust::Error& error) {
+          App::Get().ShowError(QString::fromUtf8(error.what()));
+        }
+      });
+      return holder;
+    }
+    case bridge::FieldKind::Target: {
+      auto* line = new QLineEdit();
+      line->setText(ToQ(field.text));
+      line->setPlaceholderText(QStringLiteral("Its visible text"));
+      line->setAccessibleName(ToQ(field.label));
+      connect(line, &QLineEdit::editingFinished, this, [this, key, line] {
+        if (!line->isModified() || node_.isEmpty()) return;
+        const QJsonObject patch{{key, line->text()},
+                                {key + QStringLiteral("Role"), QJsonValue()}};
+        try {
+          App::Get().session().set_params(
+              ToRust(node_),
+              ToRust(QString::fromUtf8(
+                  QJsonDocument(patch).toJson(QJsonDocument::Compact))));
+        } catch (const rust::Error& error) {
+          App::Get().ShowError(QString::fromUtf8(error.what()));
+        }
+      });
+      return line;
+    }
+    case bridge::FieldKind::Theme: {
+      const QString open_key = QStringLiteral("theme:") + key;
+      return MakeThemeField(
+          field, swatches_, closed_items_.contains(open_key),
+          [this, open_key](bool open) {
+            if (open) {
+              closed_items_.insert(open_key);
+            } else {
+              closed_items_.remove(open_key);
+            }
+          },
+          [this, key](const QString& json) { Commit(key, json); });
+    }
+    case bridge::FieldKind::Gradient: {
+      auto* gradient = new GradientField(
+          ToQ(field.text), swatches_, gradient_stops_.value(key, 0),
+          [this, key](int index) { gradient_stops_.insert(key, index); });
+      connect(gradient, &GradientField::Changed, this,
+              [this, key](const QString& css) {
+                Commit(key, Json(QJsonValue(css)));
+              });
+      return gradient;
+    }
     case bridge::FieldKind::Color: {
       auto* input = new ColorInput(ToQ(field.label), ToQ(field.text),
                                    ToQ(field.zero_label), swatches_);
@@ -398,7 +480,6 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
                 Commit(key, value.isEmpty() ? QStringLiteral("\"\"")
                                             : Json(QJsonValue(value)));
               });
-      connect(input, &ColorInput::PickerClosed, this, &InspectorPanel::Rebuild);
       return input;
     }
     case bridge::FieldKind::ObjectList:

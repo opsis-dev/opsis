@@ -218,8 +218,7 @@ QWidget* MakeNumberList(const bridge::FieldView& field,
 }
 
 QWidget* MakeColorList(const bridge::FieldView& field,
-                       const QStringList& swatches, const CommitJson& commit,
-                       const std::function<void()>& closed) {
+                       const QStringList& swatches, const CommitJson& commit) {
   auto* box = new QWidget();
   auto* flow = new FlowLayout(box, 6);
   const QJsonArray items = ArrayOf(field);
@@ -231,8 +230,8 @@ QWidget* MakeColorList(const bridge::FieldView& field,
         QStringLiteral("Colour %1: %2").arg(i + 1).arg(items.at(i).toString()));
     QObject::connect(
         swatch, &QToolButton::clicked, box,
-        [items, i, commit, closed, swatch, swatches] {
-          ColorPicker* picker = ColorPicker::Open(
+        [items, i, commit, swatch, swatches] {
+          ColorPicker::Open(
               swatch, items.at(i).toString(), QString(), swatches,
               [items, i, commit,
                chip = QPointer<ColorChip>(swatch)](const QString& picked) {
@@ -241,8 +240,6 @@ QWidget* MakeColorList(const bridge::FieldView& field,
                 next.replace(i, picked);
                 commit(JsonText(next));
               });
-          QObject::connect(picker, &ColorPicker::Closed, picker, closed,
-                           Qt::QueuedConnection);
         });
     swatch->setContextMenuPolicy(Qt::ActionsContextMenu);
     if (static_cast<std::uint32_t>(count) > field.min_items) {

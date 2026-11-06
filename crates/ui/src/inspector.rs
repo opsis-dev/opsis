@@ -287,6 +287,7 @@ fn blank(key: &str, schema: &Value, value: Option<&Value>, ctx: &FormCtx<'_>) ->
             .and_then(|n| u32::try_from(n).ok())
             .unwrap_or(u32::MAX),
         new_item_json: String::new(),
+        extra_json: String::new(),
     }
 }
 
@@ -432,6 +433,9 @@ fn string_widget(widget: &str) -> Option<FieldKind> {
         "timezone" => FieldKind::Timezone,
         "keys" => FieldKind::Keys,
         "datetime" => FieldKind::DateTime,
+        "gradient" => FieldKind::Gradient,
+        "asset" => FieldKind::Asset,
+        "target" => FieldKind::Target,
         _ => return None,
     })
 }
@@ -451,6 +455,10 @@ fn named_widget(
         view.text = value.map_or_default(plain);
         return true;
     }
+    if widget == "theme" {
+        theme_field(view, value);
+        return true;
+    }
     let presets = match widget {
         "quality" => &ctx.catalog.quality_presets,
         "loudness" => &ctx.catalog.loudness_presets,
@@ -468,9 +476,33 @@ fn named_widget(
     true
 }
 
+fn theme_field(view: &mut FieldView, value: Option<&Value>) {
+    view.kind = FieldKind::Theme;
+    let mode = value
+        .and_then(|v| v.get("mode"))
+        .and_then(Value::as_str)
+        .unwrap_or("dark")
+        .to_owned();
+    let presets: Value = serde_json::from_str(&view.extra_json).unwrap_or(Value::Null);
+    view.choices = presets
+        .get(&mode)
+        .and_then(Value::as_object)
+        .into_iter()
+        .flatten()
+        .map(|(token, _)| Choice {
+            value: token.clone(),
+            label: opsis_compile::text::humanize(token),
+        })
+        .collect();
+    view.text = mode;
+}
+
 fn field(key: &str, schema: &Value, value: Option<&Value>, ctx: &FormCtx<'_>) -> FieldView {
     let mut view = blank(key, schema, value, ctx);
     let widget = text(schema, "x-widget");
+    if let Some(themes) = schema.get("x-themes") {
+        view.extra_json = themes.to_string();
+    }
     let kinds = types(schema);
     if !widget.is_empty() && named_widget(&mut view, &widget, value, ctx) {
         return view;

@@ -95,9 +95,6 @@ class ColorPicker : public QFrame {
   static bool IsOpen();
   void SetValue(const QString& value);
 
- signals:
-  void Closed();
-
  protected:
   void mousePressEvent(QMouseEvent* event) override;
   void hideEvent(QHideEvent* event) override;
@@ -142,10 +139,11 @@ class ColorInput : public QWidget {
   ColorInput(const QString& label, const QString& value,
              const QString& empty_label, const QStringList& swatches,
              QWidget* parent = nullptr);
+  void SetValue(const QString& value) { Show(value); }
+  void SetFallback(const QString& fallback);
 
  signals:
   void Changed(const QString& value);
-  void PickerClosed();
 
  private:
   void Show(const QString& value);
@@ -154,6 +152,7 @@ class ColorInput : public QWidget {
   QLineEdit* line_;
   QToolButton* clear_ = nullptr;
   QString empty_label_;
+  QString fallback_;
 };
 
 }
