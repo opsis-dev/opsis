@@ -136,6 +136,7 @@ class GraphCanvas : public QGraphicsView {
   void Toast(const QString& message, bool error);
   QString Measure(int frames);
   QPoint ViewPointOf(const QString& node) const;
+  QPoint ViewPointOfEdge(const QString& edge) const;
   QPoint ViewPointOfPort(const QString& node, const QString& port,
                          bool output) const;
   int card_count() const { return static_cast<int>(cards_.size()); }

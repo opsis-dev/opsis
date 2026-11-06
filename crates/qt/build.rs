@@ -35,7 +35,7 @@ const MOC_HEADERS: [&str; 15] = [
     "top_bar.h",
 ];
 
-const SOURCES: [&str; 19] = [
+const SOURCES: [&str; 20] = [
     "app.cc",
     "event_hub.cc",
     "widgets.cc",
@@ -55,6 +55,7 @@ const SOURCES: [&str; 19] = [
     "var_text.cc",
     "project_panel.cc",
     "top_bar.cc",
+    "e2e_steps.cc",
 ];
 
 fn main() {

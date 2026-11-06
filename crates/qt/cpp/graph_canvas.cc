@@ -147,12 +147,19 @@ void CardItem::SetCard(const bridge::CardView& card) {
 }
 
 QRectF CardItem::boundingRect() const {
-  return {-kPortHit, -kRingOut, card_.width + 2 * kPortHit,
-          card_.height + 2 * kRingOut};
+  const double margin = std::max(kRingOut, kHandleReach);
+  return {-kPortHit, -margin, card_.width + 2 * kPortHit,
+          card_.height + 2 * margin};
 }
 
 QPainterPath CardItem::shape() const {
   QPainterPath path;
+  if (card_.kind == bridge::CardKind::Group && isSelected()) {
+    path.addRect(QRectF(0, 0, card_.width, card_.height)
+                     .adjusted(-kHandleReach, -kHandleReach, kHandleReach,
+                               kHandleReach));
+    return path;
+  }
   path.addRoundedRect(QRectF(0, 0, card_.width, card_.height), kRadius,
                       kRadius);
   for (const auto& port : card_.inputs) {
@@ -195,7 +202,10 @@ QVariant CardItem::itemChange(GraphicsItemChange change,
     canvas_->MoveChildren(id_, value.toPointF() - pos());
   }
   if (change == ItemPositionHasChanged) canvas_->CardMoved(id_);
-  if (change == ItemSelectedHasChanged) update();
+  if (change == ItemSelectedHasChanged) {
+    prepareGeometryChange();
+    update();
+  }
   return QGraphicsItem::itemChange(change, value);
 }
 
@@ -1469,6 +1479,12 @@ QPoint GraphCanvas::ViewPointOf(const QString& node) const {
   CardItem* card = cards_.value(node);
   if (card == nullptr) return {};
   return mapFromScene(card->mapToScene(card->card().width / 2, 22));
+}
+
+QPoint GraphCanvas::ViewPointOfEdge(const QString& edge) const {
+  EdgeItem* item = edges_.value(edge);
+  if (item == nullptr) return {};
+  return mapFromScene(item->mapToScene(item->path().pointAtPercent(0.5)));
 }
 
 QPoint GraphCanvas::ViewPointOfPort(const QString& node, const QString& port,

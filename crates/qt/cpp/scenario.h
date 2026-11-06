@@ -1,9 +1,11 @@
 #ifndef OPSIS_QT_CPP_SCENARIO_H_
 #define OPSIS_QT_CPP_SCENARIO_H_
 
+#include <QAbstractButton>
 #include <QDir>
 #include <QObject>
 #include <QString>
+#include <QStringList>
 #include <functional>
 #include <vector>
 
@@ -33,6 +35,12 @@ class Scenario : public QObject {
   void Next();
   void Shoot(const QString& name);
   void Drag(QWidget* target, QPoint from, QPoint to, int steps = 12);
+  void Miss(const QString& what) { misses_ << what; }
+  QAbstractButton* Find(QWidget* root, const QString& name);
+  void Click(QWidget* root, const QString& name);
+  void ClickLater(QWidget* root, const QString& name);
+  void ClickMenu(const QString& section, const QString& item);
+  void ClickAt(QWidget* target, QPoint at);
 
   MainWindow* window_;
   QString name_;
@@ -40,6 +48,7 @@ class Scenario : public QObject {
   std::vector<Step> steps_;
   std::size_t index_ = 0;
   bool shooting_ = true;
+  QStringList misses_;
   int checked_ = 0;
   int failed_ = 0;
 };
