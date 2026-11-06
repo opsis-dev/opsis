@@ -1,10 +1,12 @@
 #include "start_screen.h"
 
+#include <QFontMetrics>
+#include <QGridLayout>
 #include <QHBoxLayout>
-#include <QInputDialog>
+#include <QKeySequence>
 #include <QLabel>
-#include <QVBoxLayout>
-#include <algorithm>
+#include <QScrollArea>
+#include <array>
 
 #include "app.h"
 #include "opsis-qt/src/bridge.rs.h"
@@ -14,111 +16,275 @@ namespace opsis {
 
 namespace {
 
-constexpr int kColumnWidth = 360;
-constexpr int kDirRole = Qt::UserRole + 1;
+constexpr int kMaxWidth = 1024;
+constexpr int kTemplateIcon = 32;
 
-QListWidget* MakeProjectList(QWidget* parent) {
-  auto* list = new QListWidget(parent);
-  list->setIconSize(QSize(18, 18));
-  list->setSpacing(1);
-  list->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-  list->setCursor(Qt::PointingHandCursor);
-  return list;
+QLabel* SectionTitle(const QString& text, QWidget* parent) {
+  return MakeLabel(text.toUpper(), "section", parent);
 }
 
+QString ShortcutFor(const QString& id) {
+  for (const auto& section : App::Get().session().menu()) {
+    for (const auto& item : section.items) {
+      if (ToQ(item.id) == id && !item.shortcut.empty()) {
+        return QKeySequence(ToQ(item.shortcut))
+            .toString(QKeySequence::NativeText);
+      }
+    }
+  }
+  return {};
+}
+
+QLabel* Passive(QLabel* label) {
+  label->setAttribute(Qt::WA_TransparentForMouseEvents);
+  return label;
+}
+
+class ElidedLabel : public QLabel {
+ public:
+  ElidedLabel(const QString& text, QWidget* parent)
+      : QLabel(parent), full_(text) {
+    setProperty("role", "muted");
+    setMinimumWidth(40);
+    setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    setAttribute(Qt::WA_TransparentForMouseEvents);
+    setToolTip(text);
+  }
+
+ protected:
+  void resizeEvent(QResizeEvent* event) override {
+    QLabel::resizeEvent(event);
+    setText(fontMetrics().elidedText(full_, Qt::ElideLeft, width()));
+  }
+
+ private:
+  QString full_;
+};
+
+}
+
+RowButton::RowButton(QWidget* parent, const char* variant)
+    : QPushButton(parent), row_(new QHBoxLayout(this)) {
+  setProperty("variant", variant);
+  setCursor(Qt::PointingHandCursor);
+  row_->setContentsMargins(8, 6, 8, 6);
+  row_->setSpacing(12);
+  QSizePolicy policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+  policy.setHeightForWidth(true);
+  setSizePolicy(policy);
+}
+
+QSize RowButton::sizeHint() const { return row_->sizeHint(); }
+
+QSize RowButton::minimumSizeHint() const { return row_->minimumSize(); }
+
+bool RowButton::hasHeightForWidth() const { return row_->hasHeightForWidth(); }
+
+int RowButton::heightForWidth(int width) const {
+  return row_->totalHeightForWidth(width);
 }
 
 StartScreen::StartScreen(QWidget* parent) : QWidget(parent) {
   setObjectName(QStringLiteral("StartScreen"));
   setAttribute(Qt::WA_StyledBackground);
-  auto* outer = new QHBoxLayout(this);
-  outer->addStretch(1);
-  auto* column = new QVBoxLayout();
-  column->setSpacing(10);
-  column->addStretch(1);
-  auto* logo = new QLabel(this);
-  logo->setPixmap(App::Get().Logo(56));
-  column->addWidget(logo, 0, Qt::AlignLeft);
-  column->addSpacing(8);
-  column->addWidget(MakeLabel(QStringLiteral("Opsis"), "heading", this));
-  auto* tagline = MakeLabel(
-      QStringLiteral("Record browser and terminal takes, then turn them into "
-                     "finished videos."),
-      "muted", this);
-  tagline->setWordWrap(true);
-  column->addWidget(tagline);
-  column->addSpacing(12);
-  auto* actions = new QHBoxLayout();
-  actions->setSpacing(8);
-  auto* create = MakeButton(QStringLiteral("New project"), "primary",
-                            QStringLiteral("file-plus"), this);
-  auto* open = MakeButton(QStringLiteral("Open project"), nullptr,
-                          QStringLiteral("folder-open"), this);
-  actions->addWidget(create);
-  actions->addWidget(open);
-  actions->addStretch(1);
-  column->addLayout(actions);
-  column->addSpacing(16);
-  column->addWidget(MakeLabel(QStringLiteral("RECENT"), "section", this));
-  recent_ = MakeProjectList(this);
-  column->addWidget(recent_);
-  column->addSpacing(8);
-  column->addWidget(MakeLabel(QStringLiteral("EXAMPLES"), "section", this));
-  examples_ = MakeProjectList(this);
-  examples_->setMaximumHeight(230);
-  column->addWidget(examples_);
-  column->addStretch(2);
-  auto* holder = new QWidget(this);
-  holder->setFixedWidth(kColumnWidth);
-  holder->setLayout(column);
-  outer->addWidget(holder);
-  outer->addStretch(1);
+  auto* outer = new QVBoxLayout(this);
+  outer->setContentsMargins(0, 0, 0, 0);
+  auto* scroll = new QScrollArea(this);
+  scroll->setWidgetResizable(true);
+  scroll->setFrameShape(QFrame::NoFrame);
+  outer->addWidget(scroll);
+  auto* page = new QWidget();
+  auto* center = new QHBoxLayout(page);
+  center->setContentsMargins(40, 56, 40, 56);
+  auto* holder = new QWidget(page);
+  holder->setMaximumWidth(kMaxWidth);
+  auto* grid = new QHBoxLayout(holder);
+  grid->setContentsMargins(0, 0, 0, 0);
+  grid->setSpacing(48);
 
-  connect(create, &QPushButton::clicked, this, [this] {
-    bool ok = false;
-    const QString name = QInputDialog::getText(
-        this, QStringLiteral("New project"), QStringLiteral("Name"),
-        QLineEdit::Normal, QStringLiteral("Untitled"), &ok);
-    if (ok) emit CreateRequested(name);
-  });
-  connect(open, &QPushButton::clicked, this, &StartScreen::BrowseRequested);
-  connect(recent_, &QListWidget::itemClicked, this,
-          [this](QListWidgetItem* item) {
-            emit OpenRequested(item->data(kDirRole).toString(), false);
-          });
-  connect(examples_, &QListWidget::itemClicked, this,
-          [this](QListWidgetItem* item) {
-            emit OpenRequested(item->data(kDirRole).toString(), true);
-          });
+  auto* left = new QVBoxLayout();
+  left->setSpacing(40);
+  left->addWidget(ActionList());
+  auto* recent = new QWidget(holder);
+  recent_ = new QVBoxLayout(recent);
+  recent_->setContentsMargins(0, 0, 0, 0);
+  recent_->setSpacing(2);
+  left->addWidget(recent);
+  left->addStretch(1);
+
+  auto* right = new QVBoxLayout();
+  right->setSpacing(40);
+  engine_ = EngineAlert();
+  right->addWidget(engine_);
+  right->addWidget(TemplateGrid());
+  right->addStretch(1);
+
+  auto* left_column = new QWidget(holder);
+  left_column->setLayout(left);
+  auto* right_column = new QWidget(holder);
+  right_column->setLayout(right);
+  for (QWidget* column : {left_column, right_column}) {
+    column->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+  }
+  grid->addWidget(left_column, 100);
+  grid->addWidget(right_column, 115);
+  holder->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  center->addStretch(1);
+  center->addWidget(holder, 1000, Qt::AlignVCenter);
+  center->addStretch(1);
+  scroll->setWidget(page);
   Reload();
 }
 
-void StartScreen::Reload() {
+QWidget* StartScreen::ActionList() {
+  auto* section = new QWidget(this);
+  auto* layout = new QVBoxLayout(section);
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->setSpacing(2);
+  layout->addWidget(SectionTitle(QStringLiteral("Start"), section));
+  struct Action {
+    QString icon;
+    QString label;
+    QString command;
+  };
+  const std::array<Action, 3> actions = {{
+      {QStringLiteral("plus"), QStringLiteral("New project…"),
+       QStringLiteral("project:new")},
+      {QStringLiteral("folder-open"), QStringLiteral("Open project…"),
+       QStringLiteral("project:open")},
+      {QStringLiteral("settings"), QStringLiteral("Settings"),
+       QStringLiteral("view:settings")},
+  }};
   App& app = App::Get();
-  const QIcon folder = app.Icon(QStringLiteral("folder-open"),
-                                app.Token("muted-foreground"), 18);
-  const QIcon example =
-      app.Icon(QStringLiteral("play"), app.Token("muted-foreground"), 18);
-  recent_->clear();
-  recent_->setFixedHeight(0);
-  for (const auto& entry : app.session().recent()) {
-    auto* item = new QListWidgetItem(folder, ToQ(entry.name), recent_);
-    item->setData(kDirRole, ToQ(entry.dir));
-    item->setToolTip(ToQ(entry.detail));
+  for (const Action& action : actions) {
+    auto* row = new RowButton(section);
+    auto* icon = Passive(new QLabel(row));
+    icon->setPixmap(app.Glyph(action.icon, app.Token("muted-foreground"), 16));
+    row->row()->addWidget(icon);
+    row->row()->addWidget(Passive(MakeLabel(action.label, nullptr, row)), 1);
+    const QString keys = ShortcutFor(action.command);
+    if (!keys.isEmpty())
+      row->row()->addWidget(Passive(MakeLabel(keys, "kbd", row)));
+    layout->addWidget(row);
+    const QString command = action.command;
+    connect(row, &QPushButton::clicked, this, [this, command] {
+      if (command == QStringLiteral("project:new")) {
+        emit NewProjectRequested(QString(), false);
+      } else if (command == QStringLiteral("project:open")) {
+        emit BrowseRequested();
+      } else {
+        emit SettingsRequested();
+      }
+    });
   }
-  if (recent_->count() == 0) {
-    auto* item =
-        new QListWidgetItem(QStringLiteral("No recent projects"), recent_);
-    item->setFlags(Qt::NoItemFlags);
+  return section;
+}
+
+QWidget* StartScreen::EngineAlert() {
+  auto* card = new QFrame(this);
+  card->setProperty("role", "alert");
+  auto* row = new QHBoxLayout(card);
+  row->setContentsMargins(16, 14, 16, 16);
+  row->setSpacing(12);
+  auto* icon = new QLabel(card);
+  icon->setPixmap(App::Get().Glyph(QStringLiteral("download"),
+                                   App::Get().Token("foreground"), 16));
+  row->addWidget(icon, 0, Qt::AlignTop);
+  auto* texts = new QVBoxLayout();
+  texts->setSpacing(6);
+  texts->addWidget(
+      MakeLabel(QStringLiteral("Set up the recording engine"), "title", card));
+  auto* body = MakeLabel(
+      QStringLiteral(
+          "Editing works now. Recording and exporting need the engine."),
+      "muted", card);
+  body->setWordWrap(true);
+  texts->addWidget(body);
+  auto* open =
+      MakeButton(QStringLiteral("Open Settings"), nullptr, QString(), card);
+  connect(open, &QPushButton::clicked, this, &StartScreen::SettingsRequested);
+  auto* buttons = new QHBoxLayout();
+  buttons->addWidget(open);
+  buttons->addStretch(1);
+  texts->addLayout(buttons);
+  row->addLayout(texts, 1);
+  return card;
+}
+
+QWidget* StartScreen::TemplateGrid() {
+  auto* section = new QWidget(this);
+  auto* layout = new QVBoxLayout(section);
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->setSpacing(8);
+  layout->addWidget(
+      SectionTitle(QStringLiteral("Start from a template"), section));
+  auto* grid = new QGridLayout();
+  grid->setSpacing(8);
+  App& app = App::Get();
+  int index = 0;
+  for (const auto& entry : app.session().templates()) {
+    auto* card = new RowButton(section, "template");
+    QHBoxLayout* row = card->row();
+    row->setContentsMargins(12, 12, 12, 12);
+    auto* icon = Passive(new QLabel(card));
+    icon->setObjectName(QStringLiteral("TemplateIcon"));
+    icon->setFixedSize(kTemplateIcon, kTemplateIcon);
+    icon->setAlignment(Qt::AlignCenter);
+    icon->setPixmap(
+        app.Glyph(ToQ(entry.icon), app.Token("muted-foreground"), 16));
+    row->addWidget(icon, 0, Qt::AlignTop);
+    auto* texts = new QVBoxLayout();
+    texts->setSpacing(2);
+    auto* title = Passive(MakeLabel(ToQ(entry.title), nullptr, card));
+    QFont font = title->font();
+    font.setWeight(QFont::Medium);
+    title->setFont(font);
+    texts->addWidget(title);
+    auto* about = Passive(MakeLabel(ToQ(entry.description), "small", card));
+    about->setWordWrap(true);
+    texts->addWidget(about);
+    row->addLayout(texts, 1);
+    grid->addWidget(card, index / 2, index % 2, Qt::AlignTop);
+    const QString id = ToQ(entry.id);
+    connect(card, &QPushButton::clicked, this,
+            [this, id] { emit NewProjectRequested(id, true); });
+    ++index;
   }
-  recent_->setFixedHeight(std::min(170, recent_->count() * 34 + 6));
-  examples_->clear();
-  for (const auto& entry : app.session().examples()) {
-    auto* item = new QListWidgetItem(
-        example, ToQ(entry.name) + QStringLiteral("  ·  ") + ToQ(entry.detail),
-        examples_);
-    item->setData(kDirRole, ToQ(entry.dir));
+  layout->addLayout(grid);
+  return section;
+}
+
+void StartScreen::Reload() {
+  while (QLayoutItem* item = recent_->takeAt(0)) {
+    delete item->widget();
+    delete item;
   }
+  recent_->addWidget(SectionTitle(QStringLiteral("Recent"), this));
+  const auto entries = App::Get().session().recent();
+  if (entries.empty()) {
+    auto* empty = MakeLabel(
+        QStringLiteral("No projects yet. Start from a template to see a "
+                       "recording turn into a video."),
+        "muted", this);
+    empty->setWordWrap(true);
+    recent_->addWidget(empty);
+  }
+  for (const auto& entry : entries) {
+    auto* row = new RowButton(this);
+    row->setToolTip(ToQ(entry.dir));
+    auto* name = Passive(MakeLabel(ToQ(entry.name), nullptr, row));
+    QFont font = name->font();
+    font.setWeight(QFont::Medium);
+    name->setFont(font);
+    row->row()->addWidget(name);
+    row->row()->addWidget(new ElidedLabel(ToQ(entry.dir), row), 1);
+    row->row()->addWidget(Passive(MakeLabel(ToQ(entry.detail), "small", row)));
+    const QString dir = ToQ(entry.dir);
+    connect(row, &QPushButton::clicked, this,
+            [this, dir] { emit OpenRequested(dir); });
+    recent_->addWidget(row);
+  }
+  engine_->setVisible(App::Get().session().engine_missing());
 }
 
 }

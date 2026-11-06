@@ -78,6 +78,14 @@ pub mod ffi {
     }
 
     #[derive(Debug, Clone)]
+    struct TemplateView {
+        id: String,
+        title: String,
+        description: String,
+        icon: String,
+    }
+
+    #[derive(Debug, Clone)]
     struct PortView {
         id: String,
         label: String,
@@ -217,7 +225,16 @@ pub mod ffi {
         fn recent(self: &Session) -> Vec<ProjectEntry>;
         fn open_project(self: &Session, dir: &str) -> Result<()>;
         fn open_example(self: &Session, dir: &str) -> Result<()>;
-        fn create_project(self: &Session, name: &str) -> Result<()>;
+        fn create_project(
+            self: &Session,
+            name: &str,
+            template_id: &str,
+            location: &str,
+        ) -> Result<()>;
+        fn templates(self: &Session) -> Vec<TemplateView>;
+        fn engine_missing(self: &Session) -> bool;
+        fn project_location(self: &Session) -> String;
+        fn project_folder(self: &Session, parent: &str, name: &str) -> String;
         fn generate_project(self: &Session, count: u32) -> Result<()>;
         fn close_project(self: &Session);
         fn has_project(self: &Session) -> bool;

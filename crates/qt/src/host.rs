@@ -2,7 +2,7 @@ use std::fmt;
 
 use crate::bridge::ffi::{
     self, CloseView, DialogKind, EventKind, GraphView, InspectorView, MenuSectionView, NodeMove,
-    PaletteEntry, ProjectEntry, SettingsView,
+    PaletteEntry, ProjectEntry, SettingsView, TemplateView,
 };
 
 pub type HostResult<T> = Result<T, String>;
@@ -21,7 +21,11 @@ pub trait Host {
     fn recent(&self) -> Vec<ProjectEntry>;
     fn open_project(&self, dir: &str) -> HostResult<()>;
     fn open_example(&self, dir: &str) -> HostResult<()>;
-    fn create_project(&self, name: &str) -> HostResult<()>;
+    fn create_project(&self, name: &str, template_id: &str, location: &str) -> HostResult<()>;
+    fn templates(&self) -> Vec<TemplateView>;
+    fn engine_missing(&self) -> bool;
+    fn project_location(&self) -> String;
+    fn project_folder(&self, parent: &str, name: &str) -> String;
     fn generate_project(&self, count: u32) -> HostResult<()>;
     fn close_project(&self);
     fn has_project(&self) -> bool;
@@ -171,8 +175,29 @@ impl Session {
         self.0.open_example(dir)
     }
 
-    pub(crate) fn create_project(&self, name: &str) -> HostResult<()> {
-        self.0.create_project(name)
+    pub(crate) fn create_project(
+        &self,
+        name: &str,
+        template_id: &str,
+        location: &str,
+    ) -> HostResult<()> {
+        self.0.create_project(name, template_id, location)
+    }
+
+    pub(crate) fn templates(&self) -> Vec<TemplateView> {
+        self.0.templates()
+    }
+
+    pub(crate) fn engine_missing(&self) -> bool {
+        self.0.engine_missing()
+    }
+
+    pub(crate) fn project_location(&self) -> String {
+        self.0.project_location()
+    }
+
+    pub(crate) fn project_folder(&self, parent: &str, name: &str) -> String {
+        self.0.project_folder(parent, name)
     }
 
     pub(crate) fn generate_project(&self, count: u32) -> HostResult<()> {

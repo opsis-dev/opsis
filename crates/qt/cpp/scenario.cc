@@ -322,6 +322,34 @@ void Scenario::BuildTour() {
   Add(
       QStringLiteral("close-project"), [window] { window->CloseProject(); },
       800);
+  Add(
+      QStringLiteral("new-project-dialog"),
+      [window] {
+        for (QAction* action : window->findChildren<QAction*>()) {
+          if (action->text() == QStringLiteral("New project…")) {
+            QTimer::singleShot(0, action, &QAction::trigger);
+          }
+        }
+      },
+      900);
+  Add(
+      QStringLiteral("create-project"),
+      [] {
+        QWidget* dialog = QApplication::activeModalWidget();
+        if (dialog == nullptr) return;
+        const QList<QLineEdit*> lines = dialog->findChildren<QLineEdit*>();
+        if (lines.size() < 2) return;
+        lines.at(0)->setText(QStringLiteral("Launch demo"));
+        lines.at(1)->setText(ToQ(App::Get().session().settings().data_dir) +
+                             QStringLiteral("/projects"));
+        for (QPushButton* button : dialog->findChildren<QPushButton*>()) {
+          if (button->text() == QStringLiteral("Create")) button->click();
+        }
+      },
+      1200);
+  Add(
+      QStringLiteral("back-to-start"), [window] { window->CloseProject(); },
+      900);
 }
 
 void Scenario::BuildBench(int count) {

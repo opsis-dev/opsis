@@ -5488,6 +5488,7 @@ dependencies = [
  "opsis-engine",
  "opsis-project",
  "opsis-qt",
+ "opsis-runner",
  "opsis-session",
  "opsis-store",
  "opsis-types",

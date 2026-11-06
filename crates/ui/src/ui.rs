@@ -11,7 +11,7 @@ use opsis_compile::graph::connection_problem_now;
 use opsis_compile::node::Platform as NodePlatform;
 use opsis_qt::{
     Choice, CloseView, EventKind, GraphView, Host, HostResult, InspectorView, MenuSectionView,
-    NodeMove, PaletteEntry, ProjectEntry, SettingsView,
+    NodeMove, PaletteEntry, ProjectEntry, SettingsView, TemplateView,
 };
 use opsis_session::error::CommandError;
 use opsis_session::events::{MAIN_WINDOW, SessionEvent};
@@ -40,6 +40,7 @@ const BENCH_KINDS: [&str; 4] = [
 ];
 const BENCH_COLUMNS: u32 = 10;
 const BLANK_TEMPLATE: &str = "blank";
+const RECENT_LIMIT: usize = 10;
 
 pub struct Ui {
     session: Session,
@@ -166,10 +167,19 @@ impl Ui {
     }
 
     fn create_in(&self, name: &str, parent: &Path) -> Result<PathBuf, CommandError> {
+        self.create_from(name, BLANK_TEMPLATE, parent)
+    }
+
+    fn create_from(
+        &self,
+        name: &str,
+        template: &str,
+        parent: &Path,
+    ) -> Result<PathBuf, CommandError> {
         let created = self.runtime.block_on(projects::create_project(
             self.session.clone(),
             name.to_owned(),
-            BLANK_TEMPLATE.to_owned(),
+            template.to_owned(),
             Some(parent.to_string_lossy().into_owned()),
         ))?;
         let dir = created
@@ -354,9 +364,10 @@ impl Host for Ui {
             .unwrap_or_default()
             .into_iter()
             .filter(|r| Path::new(&r.dir).join(WORKFLOW_FILE).exists())
+            .take(RECENT_LIMIT)
             .map(|r| ProjectEntry {
                 name: r.name,
-                detail: r.dir.clone(),
+                detail: crate::text::time_ago(r.opened_at, opsis_runner::context::now_ms()),
                 dir: r.dir,
             })
             .collect()
@@ -379,10 +390,36 @@ impl Host for Ui {
         self.open_dir(&copy).map_err(|e| e.0)
     }
 
-    fn create_project(&self, name: &str) -> HostResult<()> {
-        let parent = projects::project_locations(&self.session).default_dir;
-        let parent = opsis_project::files::expand_home(&parent, &self.state().paths.home);
-        self.create_in(name, &parent).map(|_| ()).map_err(|e| e.0)
+    fn create_project(&self, name: &str, template_id: &str, location: &str) -> HostResult<()> {
+        let parent = opsis_project::files::expand_home(location, &self.state().paths.home);
+        self.create_from(name, template_id, &parent)
+            .map(|_| ())
+            .map_err(|e| e.0)
+    }
+
+    fn templates(&self) -> Vec<TemplateView> {
+        projects::list_templates()
+            .into_iter()
+            .map(|template| TemplateView {
+                id: template.id,
+                title: template.title,
+                description: template.description,
+                icon: plain(&template.icon),
+            })
+            .collect()
+    }
+
+    fn engine_missing(&self) -> bool {
+        let engine = opsis_session::engine::get_engine_status(&self.session);
+        engine.browser.path.is_none() || engine.browser.problem.is_some()
+    }
+
+    fn project_location(&self) -> String {
+        projects::project_locations(&self.session).suggested_dir
+    }
+
+    fn project_folder(&self, parent: &str, name: &str) -> String {
+        projects::project_folder(&self.session, parent, name)
     }
 
     fn generate_project(&self, count: u32) -> HostResult<()> {

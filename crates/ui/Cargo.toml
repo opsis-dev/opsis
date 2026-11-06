@@ -22,6 +22,7 @@ opsis-document.workspace = true
 opsis-engine.workspace = true
 opsis-project.workspace = true
 opsis-qt.workspace = true
+opsis-runner.workspace = true
 opsis-session.workspace = true
 opsis-store.workspace = true
 opsis-types.workspace = true

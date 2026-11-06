@@ -14,6 +14,7 @@ const UI_ICONS = [
   "chevron-down",
   "chevron-right",
   "copy",
+  "download",
   "file-plus",
   "folder-open",
   "layout-grid",

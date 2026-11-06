@@ -1,10 +1,24 @@
-#ifndef OPSIS_QT_SPIKE_CPP_START_SCREEN_H_
-#define OPSIS_QT_SPIKE_CPP_START_SCREEN_H_
+#ifndef OPSIS_QT_CPP_START_SCREEN_H_
+#define OPSIS_QT_CPP_START_SCREEN_H_
 
-#include <QListWidget>
+#include <QPushButton>
+#include <QVBoxLayout>
 #include <QWidget>
 
 namespace opsis {
+
+class RowButton : public QPushButton {
+ public:
+  explicit RowButton(QWidget* parent = nullptr, const char* variant = "row");
+  QHBoxLayout* row() const { return row_; }
+  QSize sizeHint() const override;
+  QSize minimumSizeHint() const override;
+  bool hasHeightForWidth() const override;
+  int heightForWidth(int width) const override;
+
+ private:
+  QHBoxLayout* row_;
+};
 
 class StartScreen : public QWidget {
   Q_OBJECT
@@ -14,13 +28,18 @@ class StartScreen : public QWidget {
   void Reload();
 
  signals:
-  void OpenRequested(const QString& dir, bool example);
-  void CreateRequested(const QString& name);
+  void OpenRequested(const QString& dir);
+  void NewProjectRequested(const QString& template_id, bool fixed);
   void BrowseRequested();
+  void SettingsRequested();
 
  private:
-  QListWidget* recent_;
-  QListWidget* examples_;
+  QWidget* ActionList();
+  QWidget* TemplateGrid();
+  QWidget* EngineAlert();
+
+  QVBoxLayout* recent_ = nullptr;
+  QWidget* engine_ = nullptr;
 };
 
 }

@@ -51,6 +51,7 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   void ToggleDock(KDDockWidgets::QtWidgets::DockWidget* dock);
   void FocusDock(KDDockWidgets::QtWidgets::DockWidget* dock);
   void Dispatch(const QString& id);
+  void NewProject(const QString& template_id, bool fixed);
   void RunRole(const QString& id);
   void SetEnabled(const QString& id, bool enabled);
   void ShowCloseDialog();

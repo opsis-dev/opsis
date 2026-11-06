@@ -17,6 +17,7 @@
 #include "event_hub.h"
 #include "graph_canvas.h"
 #include "inspector_panel.h"
+#include "new_project_dialog.h"
 #include "node_list.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "settings_window.h"
@@ -67,18 +68,11 @@ MainWindow::MainWindow()
   setPersistentCentralWidget(stack_);
   BuildMenus();
 
-  connect(start_, &StartScreen::OpenRequested, this,
-          [this](const QString& dir, bool example) {
-            if (example) {
-              OpenExample(dir);
-            } else {
-              OpenFolder(dir);
-            }
-          });
-  connect(start_, &StartScreen::CreateRequested, this,
-          [this](const QString& name) {
-            Guard([&] { App::Get().session().create_project(ToRust(name)); });
-          });
+  connect(start_, &StartScreen::OpenRequested, this, &MainWindow::OpenFolder);
+  connect(start_, &StartScreen::NewProjectRequested, this,
+          &MainWindow::NewProject);
+  connect(start_, &StartScreen::SettingsRequested, this,
+          [this] { OpenSettings(); });
   connect(start_, &StartScreen::BrowseRequested, this, [this] {
     const QString dir =
         QFileDialog::getExistingDirectory(this, QStringLiteral("Open project"));
@@ -153,9 +147,14 @@ void MainWindow::BuildMenus() {
   }
 }
 
+void MainWindow::NewProject(const QString& template_id, bool fixed) {
+  NewProjectDialog dialog(template_id, fixed, this);
+  dialog.exec();
+}
+
 void MainWindow::Dispatch(const QString& id) {
   if (id == QStringLiteral("project:new")) {
-    emit start_->CreateRequested(QStringLiteral("Untitled"));
+    NewProject(QString(), false);
   } else if (id == QStringLiteral("project:open")) {
     emit start_->BrowseRequested();
   } else if (id == QStringLiteral("view:settings")) {
