@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
+import { ensureFfmpeg } from "./lib/ffmpeg";
 import { ROOT } from "./lib/tool-config";
 
 const SCENARIO = "tour";
@@ -37,9 +38,13 @@ function build(): void {
   if (built.status !== 0) throw new Error("building the native editor failed");
 }
 
-function runScenario(display: number): Promise<{ code: number | null; output: string }> {
+function runScenario(
+  display: number,
+  ffmpeg: string,
+): Promise<{ code: number | null; output: string }> {
   const env: Record<string, string | undefined> = {
     ...process.env,
+    OPSIS_FFMPEG: ffmpeg,
     DISPLAY: `:${display}`,
     QT_QPA_PLATFORM: "xcb",
     OPSIS_USER_DATA: DATA_DIR,
@@ -77,7 +82,7 @@ async function main(): Promise<number> {
   });
   try {
     await waitFor(`/tmp/.X11-unix/X${display}`, START_WAIT_MS);
-    const { code, output } = await runScenario(display);
+    const { code, output } = await runScenario(display, await ensureFfmpeg());
     const lines = output.split("\n").filter((line) => CHECK_LINE.test(line));
     for (const line of lines) console.log(line.replace(/^\[[^\]]*\] /, ""));
     const finished = lines.some((line) => /scenario \S+ done/.test(line));
