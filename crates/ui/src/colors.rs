@@ -3,7 +3,10 @@ use opsis_compile::color::{ColorFormat, Hsva, format_color, parse_color};
 use opsis_compile::gradient::{
     GradientEdit, GradientKind, GradientView, edit_gradient, gradient_view,
 };
-use opsis_qt::{BoundsView, ColorView, GradientInfo, GradientStopView};
+use opsis_compile::marks::{MarkPoints, Point, drawn, moved as mark_moved, with_end};
+use opsis_qt::{
+    BoundsView, ColorView, GradientInfo, GradientStopView, MarkDrawnView, MarkPointsView,
+};
 use opsis_types::actions::Bounds;
 
 pub fn view(text: &str) -> ColorView {
@@ -113,4 +116,43 @@ pub fn moved(origin: BoundsView, dx: f64, dy: f64) -> BoundsView {
 
 pub fn kept(area: BoundsView) -> bool {
     big_enough(bounds(area))
+}
+
+const fn mark_points(view: MarkPointsView) -> MarkPoints {
+    MarkPoints {
+        x: view.x,
+        y: view.y,
+        x2: view.x2,
+        y2: view.y2,
+    }
+}
+
+const fn points_view(points: MarkPoints) -> MarkPointsView {
+    MarkPointsView {
+        x: points.x,
+        y: points.y,
+        x2: points.x2,
+        y2: points.y2,
+    }
+}
+
+pub fn mark_shifted(points: MarkPointsView, dx: f64, dy: f64) -> MarkPointsView {
+    points_view(mark_moved(mark_points(points), dx, dy))
+}
+
+pub fn mark_end(points: MarkPointsView, second: bool, x: f64, y: f64) -> MarkPointsView {
+    points_view(with_end(mark_points(points), second, Point { x, y }))
+}
+
+pub fn mark_drawn(kind: &str, sx: f64, sy: f64, ex: f64, ey: f64) -> MarkDrawnView {
+    let points = drawn(kind, Point { x: sx, y: sy }, Point { x: ex, y: ey });
+    MarkDrawnView {
+        kept: points.is_some(),
+        points: points_view(points.unwrap_or(MarkPoints {
+            x: sx,
+            y: sy,
+            x2: ex,
+            y2: ey,
+        })),
+    }
 }

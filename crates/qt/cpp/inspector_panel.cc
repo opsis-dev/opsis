@@ -31,7 +31,9 @@
 #include "event_hub.h"
 #include "form_hold.h"
 #include "gradient_field.h"
+#include "keyframe_fields.h"
 #include "list_fields.h"
+#include "marks_field.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "project_panel.h"
 #include "var_text.h"
@@ -234,6 +236,18 @@ void InspectorPanel::Commit(const QString& key, const QString& json) {
   }
 }
 
+void InspectorPanel::EditKeyframes(const QJsonObject& edit) {
+  if (node_.isEmpty()) return;
+  QJsonObject change = edit;
+  change.insert(QStringLiteral("nodeId"), node_);
+  try {
+    App::Get().session().edit_keyframes(ToRust(QString::fromUtf8(
+        QJsonDocument(change).toJson(QJsonDocument::Compact))));
+  } catch (const rust::Error& error) {
+    App::Get().ShowError(QString::fromUtf8(error.what()));
+  }
+}
+
 void InspectorPanel::CommitPatch(const QJsonObject& patch) {
   if (node_.isEmpty()) return;
   try {
@@ -422,6 +436,19 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
       return MakeOffsetsField(field, [this, key](const QString& text) {
         Commit(key, Json(QJsonValue(text)));
       });
+    case bridge::FieldKind::Envelope:
+      return MakeEnvelopeField(
+          field, [this](const QJsonObject& edit) { EditKeyframes(edit); });
+    case bridge::FieldKind::Camera:
+      return MakeCameraField(
+          field, [this](const QJsonObject& edit) { EditKeyframes(edit); });
+    case bridge::FieldKind::Marks:
+      return MakeMarksField(
+          field, &bodies_, marks_state_.value(key),
+          [this, key](const MarksState& state) {
+            marks_state_.insert(key, state);
+          },
+          [this, key](const QString& json) { Commit(key, json); });
     case bridge::FieldKind::Boxes:
       return MakeBoxesField(
           field, [this, key](const QString& json) { Commit(key, json); },

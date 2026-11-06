@@ -9,6 +9,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include "marks_field.h"
 #include "rust/cxx.h"
 
 namespace opsis {
@@ -39,6 +40,7 @@ class InspectorPanel : public QWidget {
                const QList<QWidget*>& advanced, QWidget* content);
   void Commit(const QString& key, const QString& json);
   void CommitPatch(const QJsonObject& patch);
+  void EditKeyframes(const QJsonObject& edit);
   bool Editing() const;
 
   QScrollArea* scroll_;
@@ -49,6 +51,7 @@ class InspectorPanel : public QWidget {
   QHash<QString, QVBoxLayout*> bodies_;
   QStringList swatches_;
   QHash<QString, int> gradient_stops_;
+  QHash<QString, MarksState> marks_state_;
 };
 
 }

@@ -26,6 +26,7 @@ class PictureFrame : public QWidget {
   bool hasHeightForWidth() const override { return true; }
   int heightForWidth(int width) const override;
   QSize sizeHint() const override;
+  int PictureWidth() const { return picture_.width(); }
 
  protected:
   QRectF PaintPicture(QPainter* painter);

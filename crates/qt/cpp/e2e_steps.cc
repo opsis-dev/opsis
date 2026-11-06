@@ -35,6 +35,7 @@
 #include "gradient_field.h"
 #include "graph_canvas.h"
 #include "main_window.h"
+#include "marks_field.h"
 #include "node_list.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "scenario.h"
@@ -1660,6 +1661,235 @@ void Scenario::BuildTour() {
       QStringLiteral("undo-boxes"),
       [this, window] {
         for (int i = 0; i < 4; ++i) Click(window, QStringLiteral("Undo"));
+      },
+      600, back);
+  const auto marks_frame = [window]() -> MarksFrame* {
+    auto* frame = window->inspector_dock()->widget()->findChild<MarksFrame*>();
+    if (frame != nullptr) {
+      window->inspector_dock()
+          ->widget()
+          ->findChild<QScrollArea*>()
+          ->ensureWidgetVisible(frame);
+    }
+    return frame;
+  };
+  const auto saved_marks = [] {
+    for (const auto& field : App::Get().session().inspector().fields) {
+      if (field.kind == bridge::FieldKind::Marks) {
+        return QJsonDocument::fromJson(ToQ(field.value_json).toUtf8()).array();
+      }
+    }
+    return QJsonArray();
+  };
+  Add(
+      QStringLiteral("marks-draw-arrow"),
+      [this, add_from_list, marks_frame, at] {
+        add_from_list(QStringLiteral("Image"), QStringLiteral("Annotate"));
+        QTest::qWait(kSettleMs);
+        MarksFrame* frame = marks_frame();
+        if (frame == nullptr) {
+          Miss(QStringLiteral("no marks frame"));
+          return;
+        }
+        QTest::qWait(kSettleMs);
+        Drag(frame, at(frame, 0.2, 0.2), at(frame, 0.6, 0.5), 6);
+      },
+      700,
+      [this, window, saved_marks] {
+        const QJsonArray marks = saved_marks();
+        QString problems;
+        if (marks.size() != 1 ||
+            marks.at(0).toObject().value(QStringLiteral("kind")).toString() !=
+                QStringLiteral("arrow")) {
+          problems += QStringLiteral(" no arrow was drawn");
+        }
+        if (Find(window->inspector_dock()->widget(),
+                 QStringLiteral("Remove")) == nullptr) {
+          problems += QStringLiteral(" the new mark's settings aren't shown");
+        }
+        return problems.trimmed();
+      });
+  Add(
+      QStringLiteral("marks-step-click"),
+      [this, window, marks_frame, at] {
+        Click(window->inspector_dock()->widget(),
+              QStringLiteral("Step number"));
+        MarksFrame* frame = marks_frame();
+        if (frame == nullptr) return;
+        QTest::mouseClick(frame, Qt::LeftButton, {}, at(frame, 0.8, 0.8));
+      },
+      700,
+      [saved_marks] {
+        const QJsonArray marks = saved_marks();
+        return Expect(
+            marks.size() == 2 && marks.at(1)
+                                         .toObject()
+                                         .value(QStringLiteral("kind"))
+                                         .toString() == QStringLiteral("step"),
+            QStringLiteral("%1 marks after placing a step").arg(marks.size()));
+      });
+  Add(
+      QStringLiteral("marks-move-arrow"),
+      [this, window, marks_frame, at] {
+        Click(window->inspector_dock()->widget(),
+              QStringLiteral("Select and move"));
+        MarksFrame* frame = marks_frame();
+        if (frame == nullptr) return;
+        Drag(frame, at(frame, 0.4, 0.35), at(frame, 0.5, 0.45), 6);
+      },
+      700,
+      [saved_marks] {
+        const QJsonObject arrow = saved_marks().at(0).toObject();
+        const double x = arrow.value(QStringLiteral("x")).toDouble();
+        return Expect(std::abs(x - 0.3) < 0.02,
+                      QStringLiteral("the arrow starts at %1").arg(x));
+      });
+  Add(
+      QStringLiteral("marks-delete-key"),
+      [marks_frame] {
+        MarksFrame* frame = marks_frame();
+        if (frame == nullptr) return;
+        frame->setFocus();
+        QTest::keyClick(frame, Qt::Key_Delete);
+      },
+      700,
+      [saved_marks] {
+        const QJsonArray marks = saved_marks();
+        return Expect(
+            marks.size() == 1 && marks.at(0)
+                                         .toObject()
+                                         .value(QStringLiteral("kind"))
+                                         .toString() == QStringLiteral("step"),
+            QStringLiteral("%1 marks after Delete").arg(marks.size()));
+      });
+  Add(
+      QStringLiteral("undo-marks"),
+      [this, window] {
+        for (int i = 0; i < 5; ++i) Click(window, QStringLiteral("Undo"));
+      },
+      600, back);
+  const auto opacity_keys = [] {
+    for (const auto& field : App::Get().session().inspector().fields) {
+      if (field.kind == bridge::FieldKind::Envelope) {
+        return QJsonDocument::fromJson(ToQ(field.value_json).toUtf8())
+            .object()
+            .value(QStringLiteral("opacity"))
+            .toArray();
+      }
+    }
+    return QJsonArray();
+  };
+  const auto inspector_line = [window](const QString& name) -> QLineEdit* {
+    for (QLineEdit* line :
+         window->inspector_dock()->widget()->findChildren<QLineEdit*>()) {
+      if (line->isVisible() && line->accessibleName() == name) return line;
+    }
+    return nullptr;
+  };
+  Add(
+      QStringLiteral("envelope-add-key"),
+      [this, window, select_titled] {
+        select_titled(QStringLiteral("Title card"));
+        QTest::qWait(kSettleMs);
+        QWidget* panel = window->inspector_dock()->widget();
+        for (QAbstractButton* button :
+             panel->findChildren<QAbstractButton*>()) {
+          if (button->isVisible() &&
+              button->text().startsWith(QStringLiteral("Advanced"))) {
+            QTest::mouseClick(button, Qt::LeftButton);
+          }
+        }
+        QTest::qWait(kSettleMs);
+        for (QAbstractButton* button :
+             panel->findChildren<QAbstractButton*>()) {
+          if (button->isVisible() &&
+              button->accessibleName() ==
+                  QStringLiteral("Add opacity keyframe")) {
+            panel->findChild<QScrollArea*>()->ensureWidgetVisible(button);
+            QTest::mouseClick(button, Qt::LeftButton);
+            return;
+          }
+        }
+        Miss(QStringLiteral("no Add for the opacity track"));
+      },
+      700,
+      [opacity_keys] {
+        return Expect(
+            opacity_keys().size() == 1,
+            QStringLiteral("%1 opacity keys").arg(opacity_keys().size()));
+      });
+  Add(
+      QStringLiteral("envelope-type-value"),
+      [this, inspector_line] {
+        QLineEdit* value = inspector_line(QStringLiteral("Value"));
+        if (value == nullptr) {
+          Miss(QStringLiteral("no keyframe value box"));
+          return;
+        }
+        QTest::mouseClick(value, Qt::LeftButton);
+        QTest::keyClick(value, Qt::Key_A, Qt::ControlModifier);
+        QTest::keyClicks(value, QStringLiteral("50"));
+        QTest::keyClick(value, Qt::Key_Return);
+      },
+      700,
+      [opacity_keys] {
+        const double value = opacity_keys()
+                                 .at(0)
+                                 .toObject()
+                                 .value(QStringLiteral("value"))
+                                 .toDouble(-1);
+        return Expect(std::abs(value - 0.5) < 1e-9,
+                      QStringLiteral("the key holds %1").arg(value));
+      });
+  Add(
+      QStringLiteral("envelope-remove-key"),
+      [this, window] {
+        Click(window->inspector_dock()->widget(),
+              QStringLiteral("Remove keyframe"));
+      },
+      700,
+      [opacity_keys] {
+        return Expect(
+            opacity_keys().isEmpty(),
+            QStringLiteral("%1 opacity keys left").arg(opacity_keys().size()));
+      });
+  Add(
+      QStringLiteral("undo-envelope"),
+      [this, window] {
+        for (int i = 0; i < 3; ++i) Click(window, QStringLiteral("Undo"));
+      },
+      600,
+      [opacity_keys] {
+        return Expect(opacity_keys().isEmpty(),
+                      QStringLiteral("%1 opacity keys after undoing")
+                          .arg(opacity_keys().size()));
+      });
+  Add(
+      QStringLiteral("camera-field-needs-the-film"),
+      [add_from_list, pick_kind] {
+        add_from_list(QStringLiteral("Text & overlays"),
+                      QStringLiteral("3D text"));
+        QTest::qWait(kSettleMs);
+        for (int i = 0; i < 12 && !pick_kind(QStringLiteral("keyframes"));
+             ++i) {
+          QTest::qWait(kSettleMs);
+        }
+      },
+      700,
+      [this, window] {
+        QAbstractButton* add = Find(window->inspector_dock()->widget(),
+                                    QStringLiteral("Add key at playhead"));
+        return Expect(
+            add != nullptr && !add->isEnabled() &&
+                add->toolTip().startsWith(QStringLiteral("Put this node")),
+            QStringLiteral("no disabled Add key at playhead"));
+      });
+  Add(
+      QStringLiteral("undo-camera"),
+      [this, window, memo] {
+        for (int i = 0; i < 14 && Graph().nodes.size() != memo->nodes; ++i) {
+          Click(window, QStringLiteral("Undo"));
+        }
       },
       600, back);
   Add(

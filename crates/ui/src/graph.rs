@@ -53,6 +53,37 @@ pub struct Compiled {
     pub outdated: Vec<String>,
     #[serde(default)]
     pub inspector: Option<opsis_compile::inspector::InspectorContext>,
+    #[serde(default)]
+    pub flat: Option<FlatLinks>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+pub struct FlatLinks {
+    #[serde(default)]
+    pub bars: Vec<FlatBarLinks>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+pub struct FlatBarLinks {
+    #[serde(default)]
+    pub chain: Vec<FlatLink>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FlatLink {
+    #[serde(default)]
+    pub node_id: Option<String>,
+    pub from: f64,
+    pub rate: f64,
+}
+
+pub fn playhead_in_node(flat: &FlatLinks, node_id: &str, frame: f64) -> Option<f64> {
+    flat.bars
+        .iter()
+        .flat_map(|bar| &bar.chain)
+        .find(|link| link.node_id.as_deref() == Some(node_id))
+        .map(|link| ((frame - link.from) * link.rate).round().max(0.0))
 }
 
 #[derive(Debug, Default)]
@@ -404,4 +435,43 @@ pub fn shapes(cards: &[CardView]) -> HashMap<String, CardShape> {
             )
         })
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use proptest::prelude::*;
+
+    use super::*;
+
+    fn links(nodes: &[(String, f64, f64)]) -> FlatLinks {
+        FlatLinks {
+            bars: vec![FlatBarLinks {
+                chain: nodes
+                    .iter()
+                    .map(|(id, from, rate)| FlatLink {
+                        node_id: Some(id.clone()),
+                        from: *from,
+                        rate: *rate,
+                    })
+                    .collect(),
+            }],
+        }
+    }
+
+    proptest! {
+        #[test]
+        fn the_playhead_in_a_node_is_a_whole_frame_from_its_start(
+            from in 0f64..10_000.0,
+            rate in 0.1f64..4.0,
+            frame in 0f64..20_000.0,
+        ) {
+            let flat = links(&[("clip".to_owned(), from, rate)]);
+            let local = playhead_in_node(&flat, "clip", frame);
+            prop_assert!(local.is_some_and(|f| f >= 0.0 && f.fract() == 0.0));
+            if frame >= from {
+                prop_assert!((local.unwrap_or(-1.0) - ((frame - from) * rate).round()).abs() < f64::EPSILON);
+            }
+            prop_assert_eq!(playhead_in_node(&flat, "elsewhere", frame), None);
+        }
+    }
 }

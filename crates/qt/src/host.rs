@@ -2,9 +2,9 @@ use std::fmt;
 
 use crate::bridge::ffi::{
     self, BarView, BoundsView, CategoryView, CloseView, ColorView, DialogKind, EventKind,
-    GradientInfo, GraphView, InspectorView, MenuSectionView, MotionInfo, NodeMove, PaletteEntry,
-    PoseView, ProjectEntry, ProjectView, ScreenArea, SettingsView, TemplateView, TextToken,
-    VariableView, WindowPlacement,
+    GradientInfo, GraphView, InspectorView, MarkDrawnView, MarkPointsView, MenuSectionView,
+    MotionInfo, NodeMove, PaletteEntry, PoseView, ProjectEntry, ProjectView, ScreenArea,
+    SettingsView, TemplateView, TextToken, VariableView, WindowPlacement,
 };
 
 pub type HostResult<T> = Result<T, String>;
@@ -90,6 +90,10 @@ pub trait Host {
     fn box_from(&self, x0: f64, y0: f64, x1: f64, y1: f64) -> BoundsView;
     fn move_box(&self, origin: BoundsView, dx: f64, dy: f64) -> BoundsView;
     fn box_kept(&self, area: BoundsView) -> bool;
+    fn edit_keyframes(&self, edit_json: &str) -> HostResult<()>;
+    fn mark_moved(&self, points: MarkPointsView, dx: f64, dy: f64) -> MarkPointsView;
+    fn mark_end(&self, points: MarkPointsView, second: bool, x: f64, y: f64) -> MarkPointsView;
+    fn mark_drawn(&self, kind: &str, sx: f64, sy: f64, ex: f64, ey: f64) -> MarkDrawnView;
     fn edit_gradient(&self, css: &str, edit_json: &str) -> GradientInfo;
     fn save(&self) -> HostResult<()>;
 
@@ -443,8 +447,37 @@ impl Session {
         self.0.move_box(origin, dx, dy)
     }
 
+    pub(crate) fn edit_keyframes(&self, edit_json: &str) -> HostResult<()> {
+        self.0.edit_keyframes(edit_json)
+    }
+
     pub(crate) fn box_kept(&self, area: BoundsView) -> bool {
         self.0.box_kept(area)
+    }
+
+    pub(crate) fn mark_moved(&self, points: MarkPointsView, dx: f64, dy: f64) -> MarkPointsView {
+        self.0.mark_moved(points, dx, dy)
+    }
+
+    pub(crate) fn mark_end(
+        &self,
+        points: MarkPointsView,
+        second: bool,
+        x: f64,
+        y: f64,
+    ) -> MarkPointsView {
+        self.0.mark_end(points, second, x, y)
+    }
+
+    pub(crate) fn mark_drawn(
+        &self,
+        kind: &str,
+        sx: f64,
+        sy: f64,
+        ex: f64,
+        ey: f64,
+    ) -> MarkDrawnView {
+        self.0.mark_drawn(kind, sx, sy, ex, ey)
     }
 
     pub(crate) fn file_path(&self, reference: &str) -> String {

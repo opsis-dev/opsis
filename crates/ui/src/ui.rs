@@ -14,9 +14,9 @@ use opsis_compile::node::Platform as NodePlatform;
 use opsis_compile::nodes::media::IMPORT_TYPE;
 use opsis_qt::{
     BarView, BoundsView, CategoryView, Choice, CloseView, ColorView, EventKind, FileView,
-    GradientInfo, GraphView, Host, HostResult, InspectorView, MenuSectionView, MotionInfo,
-    NodeMove, PaletteEntry, PoseView, ProjectEntry, ProjectView, ScreenArea, SettingsView,
-    TemplateView, TextToken, VariableView, WindowPlacement,
+    GradientInfo, GraphView, Host, HostResult, InspectorView, MarkDrawnView, MarkPointsView,
+    MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView, ProjectEntry, ProjectView,
+    ScreenArea, SettingsView, TemplateView, TextToken, VariableView, WindowPlacement,
 };
 use opsis_session::error::CommandError;
 use opsis_session::events::{MAIN_WINDOW, SessionEvent};
@@ -938,6 +938,12 @@ impl Host for Ui {
                         catalog: &self.bundle,
                         workflow: &wf,
                         fonts: &fonts,
+                        playhead: shared::shared_state(&self.session).playhead.and_then(|p| {
+                            compiled
+                                .flat
+                                .as_ref()
+                                .and_then(|f| graph::playhead_in_node(f, &node.id, p.frame))
+                        }),
                     },
                 )
             },
@@ -1133,8 +1139,28 @@ impl Host for Ui {
         colors::moved(origin, dx, dy)
     }
 
+    fn edit_keyframes(&self, edit_json: &str) -> HostResult<()> {
+        let edit: opsis_types::edits::KeyframeEdit =
+            serde_json::from_str(edit_json).map_err(|e| e.to_string())?;
+        self.edit(WorkflowEdit::Keyframes { edit })
+            .map(|_| ())
+            .map_err(|e| e.0)
+    }
+
     fn box_kept(&self, area: BoundsView) -> bool {
         colors::kept(area)
+    }
+
+    fn mark_moved(&self, points: MarkPointsView, dx: f64, dy: f64) -> MarkPointsView {
+        colors::mark_shifted(points, dx, dy)
+    }
+
+    fn mark_end(&self, points: MarkPointsView, second: bool, x: f64, y: f64) -> MarkPointsView {
+        colors::mark_end(points, second, x, y)
+    }
+
+    fn mark_drawn(&self, kind: &str, sx: f64, sy: f64, ex: f64, ey: f64) -> MarkDrawnView {
+        colors::mark_drawn(kind, sx, sy, ex, ey)
     }
 
     fn file_path(&self, reference: &str) -> String {

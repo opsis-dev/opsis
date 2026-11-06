@@ -2,6 +2,7 @@ use opsis_compile::catalog::{EditorCatalog, EditorNode};
 use opsis_compile::inspector::InspectorContext;
 use opsis_compile::text::format_duration;
 use opsis_qt::{Choice, FieldKind, FieldView, PresetView};
+use opsis_types::timeline::EnvelopeKey;
 use opsis_types::workflow::{Workflow, WorkflowNode};
 use serde_json::{Map, Value};
 
@@ -15,6 +16,7 @@ pub struct FormCtx<'a> {
     pub catalog: &'a EditorCatalog,
     pub workflow: &'a Workflow,
     pub fonts: &'a [String],
+    pub playhead: Option<f64>,
 }
 
 const NESTING: usize = 2;
@@ -52,8 +54,18 @@ fn form(
             view.extra_json = spot_extra(key, schema, prefix, values, ctx).to_string();
         } else if view.kind == FieldKind::Boxes {
             view.extra_json = Value::Object(frame_extra(schema, prefix, values, ctx)).to_string();
+        } else if view.kind == FieldKind::Envelope {
+            view.extra_json = envelope_extra(schema, ctx).to_string();
+        } else if view.kind == FieldKind::Camera {
+            view.extra_json = camera_extra(ctx).to_string();
+        } else if view.kind == FieldKind::Marks {
+            view.extra_json = marks_extra(key, schema, prefix, values, ctx).to_string();
+            view.new_item_json = schema
+                .get("items")
+                .map_or_else(|| "{}".to_owned(), |item| new_item(item).to_string());
         }
-        let nested = view.kind == FieldKind::ObjectList && depth < NESTING;
+        let nested =
+            matches!(view.kind, FieldKind::ObjectList | FieldKind::Marks) && depth < NESTING;
         out.push(view);
         if !nested {
             continue;
@@ -473,6 +485,18 @@ fn named_widget(
         });
         return true;
     }
+    if widget == "envelope" {
+        view.kind = FieldKind::Envelope;
+        return true;
+    }
+    if widget == "camera" {
+        view.kind = FieldKind::Camera;
+        return true;
+    }
+    if widget == "marks" {
+        view.kind = FieldKind::Marks;
+        return true;
+    }
     if widget == "boxes" {
         view.kind = FieldKind::Boxes;
         return true;
@@ -547,6 +571,85 @@ fn frame_extra(
         );
     }
     extra
+}
+
+const fn track_format(key: EnvelopeKey) -> (&'static str, f64) {
+    match key {
+        EnvelopeKey::Scale => ("×", 1.0),
+        EnvelopeKey::Pan => ("", 100.0),
+        _ => ("%", 100.0),
+    }
+}
+
+fn keyframe_book(ctx: &FormCtx<'_>) -> Map<String, Value> {
+    let mut extra = Map::new();
+    extra.insert(
+        "eases".to_owned(),
+        serde_json::to_value(&ctx.catalog.timeline.eases).unwrap_or(Value::Null),
+    );
+    extra.insert("fps".to_owned(), Value::from(ctx.workflow.settings.fps));
+    extra
+}
+
+fn envelope_extra(schema: &Value, ctx: &FormCtx<'_>) -> Value {
+    let mut extra = keyframe_book(ctx);
+    let tracks: Vec<Value> = opsis_compile::envelope::envelope_tracks()
+        .into_iter()
+        .filter_map(|track| {
+            let key = serde_json::to_value(track.key).ok()?;
+            let name = key.as_str()?.to_owned();
+            schema.pointer(&format!("/properties/{name}"))?;
+            let (unit, factor) = track_format(track.key);
+            Some(serde_json::json!({
+                "key": name,
+                "label": track.label,
+                "unit": unit,
+                "factor": factor,
+            }))
+        })
+        .collect();
+    extra.insert("tracks".to_owned(), Value::from(tracks));
+    Value::Object(extra)
+}
+
+fn camera_extra(ctx: &FormCtx<'_>) -> Value {
+    let mut extra = keyframe_book(ctx);
+    extra.insert(
+        "dials".to_owned(),
+        serde_json::to_value(&ctx.catalog.timeline.camera_dials).unwrap_or(Value::Null),
+    );
+    extra.insert(
+        "playhead".to_owned(),
+        ctx.playhead.map_or(Value::Null, Value::from),
+    );
+    Value::Object(extra)
+}
+
+fn marks_extra(
+    key: &str,
+    schema: &Value,
+    prefix: &str,
+    values: &Map<String, Value>,
+    ctx: &FormCtx<'_>,
+) -> Value {
+    let mut extra = frame_extra(schema, prefix, values, ctx);
+    let first = values.get("firstStep").and_then(Value::as_i64).unwrap_or(1);
+    let marks = values
+        .get(key)
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    extra.insert("firstStep".to_owned(), Value::from(first));
+    extra.insert(
+        "steps".to_owned(),
+        Value::from(
+            opsis_compile::marks::step_numbers(&marks, first)
+                .into_iter()
+                .map(|n| n.map_or(Value::Null, Value::from))
+                .collect::<Vec<_>>(),
+        ),
+    );
+    Value::Object(extra)
 }
 
 fn spot_extra(

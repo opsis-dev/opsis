@@ -17,7 +17,7 @@ const DEFINES: [&str; 6] = [
     "QT_TESTLIB_LIB",
 ];
 
-const MOC_HEADERS: [&str; 19] = [
+const MOC_HEADERS: [&str; 20] = [
     "event_hub.h",
     "widgets.h",
     "window_chrome.h",
@@ -37,9 +37,10 @@ const MOC_HEADERS: [&str; 19] = [
     "form_hold.h",
     "gradient_field.h",
     "visual_fields.h",
+    "marks_field.h",
 ];
 
-const SOURCES: [&str; 25] = [
+const SOURCES: [&str; 27] = [
     "app.cc",
     "event_hub.cc",
     "widgets.cc",
@@ -65,6 +66,8 @@ const SOURCES: [&str; 25] = [
     "form_hold.cc",
     "gradient_field.cc",
     "visual_fields.cc",
+    "marks_field.cc",
+    "keyframe_fields.cc",
 ];
 
 fn main() {

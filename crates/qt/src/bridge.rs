@@ -92,6 +92,23 @@ pub mod ffi {
         Offsets,
         Spot,
         Boxes,
+        Marks,
+        Envelope,
+        Camera,
+    }
+
+    #[derive(Debug, Clone, Copy)]
+    struct MarkPointsView {
+        x: f64,
+        y: f64,
+        x2: f64,
+        y2: f64,
+    }
+
+    #[derive(Debug, Clone, Copy)]
+    struct MarkDrawnView {
+        kept: bool,
+        points: MarkPointsView,
     }
 
     #[derive(Debug, Clone, Copy)]
@@ -527,6 +544,23 @@ pub mod ffi {
         fn box_from(self: &Session, x0: f64, y0: f64, x1: f64, y1: f64) -> BoundsView;
         fn move_box(self: &Session, origin: BoundsView, dx: f64, dy: f64) -> BoundsView;
         fn box_kept(self: &Session, area: BoundsView) -> bool;
+        fn edit_keyframes(self: &Session, edit_json: &str) -> Result<()>;
+        fn mark_moved(self: &Session, points: MarkPointsView, dx: f64, dy: f64) -> MarkPointsView;
+        fn mark_end(
+            self: &Session,
+            points: MarkPointsView,
+            second: bool,
+            x: f64,
+            y: f64,
+        ) -> MarkPointsView;
+        fn mark_drawn(
+            self: &Session,
+            kind: &str,
+            sx: f64,
+            sy: f64,
+            ex: f64,
+            ey: f64,
+        ) -> MarkDrawnView;
         fn edit_gradient(self: &Session, css: &str, edit_json: &str) -> GradientInfo;
         fn save(self: &Session) -> Result<()>;
 

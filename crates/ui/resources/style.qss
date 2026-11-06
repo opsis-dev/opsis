@@ -667,6 +667,12 @@ QToolButton#CanvasFloat:hover {
   border: 1px solid @input;
 }
 
+QFrame#MarkItem {
+  background: @card;
+  border: 1px solid @border;
+  border-radius: 8px;
+}
+
 QWidget#CanvasToolbar {
   background: @popover;
   border: 1px solid @input;
