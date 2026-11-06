@@ -874,6 +874,13 @@ impl Host for Ui {
         let Some(wf) = self.workflow() else {
             return empty;
         };
+        let selected = shared::shared_state(&self.session)
+            .selection
+            .selected_ids
+            .len();
+        if selected > 1 {
+            return empty;
+        }
         let Some(node) = wf.node(&self.selected()) else {
             return empty;
         };
@@ -1012,7 +1019,12 @@ impl Host for Ui {
     }
 
     fn variables(&self) -> Vec<VariableView> {
-        self.workflow().map_or_default(|wf| project::variables(&wf))
+        self.workflow().map_or_default(|wf| {
+            opsis_compile::vars::workflow_vars(&wf.name, &wf.variables)
+                .into_iter()
+                .map(|(name, value)| VariableView { name, value })
+                .collect()
+        })
     }
 
     fn project_edit(&self, json: &str) -> HostResult<()> {

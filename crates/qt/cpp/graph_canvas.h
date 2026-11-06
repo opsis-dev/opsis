@@ -115,6 +115,7 @@ class GraphCanvas : public QGraphicsView {
   void Reveal(const QString& id);
   int BackwardEdges() const;
   QString ToolbarProblems() const;
+  bool GridShown() const { return grid_shown_; }
   void PlayMotion(const QString& id);
   double MotionElapsed(const QString& id) const;
   const bridge::MotionInfo& MotionInfoOf(const QString& motion);
@@ -174,7 +175,7 @@ class GraphCanvas : public QGraphicsView {
   QHash<QString, EdgeItem*> edges_;
   QGraphicsPathItem* pending_ = nullptr;
   std::optional<PortHit> from_;
-  QWidget* toolbar_ = nullptr;
+  bool grid_shown_ = true;
   QPushButton* zoom_button_ = nullptr;
   QWidget* modes_ = nullptr;
   QToolButton* mouse_ = nullptr;

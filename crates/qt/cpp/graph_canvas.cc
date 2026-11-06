@@ -76,7 +76,8 @@ constexpr double kShimmerHalf = 3.0;
 constexpr int kMotionFrameMs = 16;
 constexpr std::array<std::pair<double, double>, 3> kSmear = {
     {{-3.0, 0.45}, {-6.0, 0.25}, {-9.0, 0.12}}};
-constexpr int kZoomButtonWidth = 140;
+constexpr int kZoomButtonWidth = 56;
+constexpr int kPillRuleHeight = 18;
 constexpr int kOverlayMargin = 12;
 constexpr double kRingOut = 3.0;
 constexpr double kBadgeHeight = 20.0;
@@ -767,28 +768,17 @@ GraphCanvas::GraphCanvas(QWidget* parent) : QGraphicsView(parent) {
   connect(&scene_, &QGraphicsScene::selectionChanged, this,
           &GraphCanvas::SyncSelection);
 
-  toolbar_ = new QWidget(this);
-  toolbar_->setObjectName(QStringLiteral("CanvasToolbar"));
-  toolbar_->setAttribute(Qt::WA_StyledBackground);
-  auto* bar = new QHBoxLayout(toolbar_);
-  bar->setContentsMargins(4, 4, 4, 4);
-  bar->setSpacing(2);
-  auto* out = MakeIconButton(QStringLiteral("minus"),
-                             QStringLiteral("Zoom out"), toolbar_);
-  auto* in = MakeIconButton(QStringLiteral("plus"), QStringLiteral("Zoom in"),
-                            toolbar_);
-  zoom_button_ =
-      MakeButton(QStringLiteral("100%"), "ghost", QString(), toolbar_);
+  auto* out =
+      MakeIconButton(QStringLiteral("minus"), QStringLiteral("Zoom out"), this);
+  auto* in =
+      MakeIconButton(QStringLiteral("plus"), QStringLiteral("Zoom in"), this);
+  zoom_button_ = MakeButton(QStringLiteral("100%"), "ghost", QString(), this);
   zoom_button_->setFixedWidth(kZoomButtonWidth);
   zoom_button_->setToolTip(QStringLiteral("Zoom to 100%"));
   auto* fit = MakeIconButton(QStringLiteral("maximize"),
-                             QStringLiteral("Fit to view"), toolbar_);
-  for (QWidget* widget :
-       {static_cast<QWidget*>(out), static_cast<QWidget*>(in),
-        static_cast<QWidget*>(zoom_button_), static_cast<QWidget*>(fit)}) {
-    widget->setFocusPolicy(Qt::NoFocus);
-    bar->addWidget(widget);
-  }
+                             QStringLiteral("Fit to view"), this);
+  const std::array<QWidget*, 4> zoom_controls = {out, in, zoom_button_, fit};
+  for (QWidget* widget : zoom_controls) widget->setFocusPolicy(Qt::NoFocus);
   connect(out, &QToolButton::clicked, this,
           [this] { ZoomBy(1 / 1.2, viewport()->rect().center()); });
   connect(in, &QToolButton::clicked, this,
@@ -819,6 +809,24 @@ GraphCanvas::GraphCanvas(QWidget* parent) : QGraphicsView(parent) {
     button->setFocusPolicy(Qt::NoFocus);
   }
   map->setChecked(true);
+  for (QWidget* widget : zoom_controls) mode_bar->addWidget(widget);
+  auto* rule = new QFrame(modes_);
+  rule->setProperty("role", "vrule");
+  rule->setFixedSize(1, kPillRuleHeight);
+  mode_bar->addWidget(rule);
+  auto* grid = MakeIconButton(QStringLiteral("grid-3x3"),
+                              QStringLiteral("Hide the grid"), modes_);
+  grid->setCheckable(true);
+  grid->setChecked(true);
+  grid->setFocusPolicy(Qt::NoFocus);
+  connect(grid, &QToolButton::toggled, this, [this, grid](bool shown) {
+    grid_shown_ = shown;
+    grid->setToolTip(shown ? QStringLiteral("Hide the grid")
+                           : QStringLiteral("Show the grid"));
+    resetCachedContent();
+    viewport()->update();
+  });
+  mode_bar->addWidget(grid);
   mode_bar->addWidget(mouse_);
   mode_bar->addWidget(touchpad_);
   mode_bar->addWidget(map);
@@ -1193,8 +1201,8 @@ QString GraphCanvas::ToolbarProblems() const {
   if (modes_->x() < width() / 2 || modes_->y() > kOverlayMargin * 2) {
     problems << QStringLiteral("mode pill isn't top right");
   }
-  if (toolbar_->x() > width() / 2 || toolbar_->y() < height() / 2) {
-    problems << QStringLiteral("zoom panel isn't bottom left");
+  if (zoom_button_->parentWidget() != modes_) {
+    problems << QStringLiteral("the zoom controls aren't in the top-right row");
   }
   return problems.join(QStringLiteral("; "));
 }
@@ -1265,6 +1273,7 @@ bool GraphCanvas::minimap_visible() const { return minimap_->isVisible(); }
 void GraphCanvas::drawBackground(QPainter* painter, const QRectF& rect) {
   App& app = App::Get();
   painter->fillRect(rect, app.Token("background"));
+  if (!grid_shown_) return;
   double gap = kGridGap;
   while (gap * zoom() < 10) gap *= 2;
   const QColor dot = app.Token("grid-dot");
@@ -1412,8 +1421,6 @@ void GraphCanvas::resizeEvent(QResizeEvent* event) {
 }
 
 void GraphCanvas::PlaceOverlays() {
-  toolbar_->adjustSize();
-  toolbar_->move(12, height() - toolbar_->height() - 12);
   modes_->adjustSize();
   modes_->move(width() - modes_->width() - 12, 12);
   minimap_->move(width() - minimap_->width() - 12,

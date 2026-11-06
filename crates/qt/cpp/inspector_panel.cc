@@ -161,6 +161,7 @@ class TextArea : public QPlainTextEdit {
   void focusOutEvent(QFocusEvent* event) override {
     QPlainTextEdit::focusOutEvent(event);
     if (on_commit) on_commit();
+    document()->setModified(false);
   }
 };
 
@@ -202,11 +203,17 @@ InspectorPanel::InspectorPanel(QWidget* parent) : QWidget(parent) {
 
 bool InspectorPanel::Editing() const {
   QWidget* focus = window() != nullptr ? window()->focusWidget() : nullptr;
-  return focus != nullptr && content_ != nullptr &&
-         content_->isAncestorOf(focus) &&
-         (qobject_cast<QLineEdit*>(focus) != nullptr ||
-          qobject_cast<QPlainTextEdit*>(focus) != nullptr ||
-          qobject_cast<QTextEdit*>(focus) != nullptr);
+  if (focus == nullptr || content_ == nullptr ||
+      !content_->isAncestorOf(focus)) {
+    return false;
+  }
+  if (auto* line = qobject_cast<QLineEdit*>(focus)) return line->isModified();
+  if (auto* surface = qobject_cast<VarSurface*>(focus))
+    return surface->HasDraft();
+  if (auto* area = qobject_cast<QPlainTextEdit*>(focus)) {
+    return area->document()->isModified();
+  }
+  return false;
 }
 
 void InspectorPanel::Commit(const QString& key, const QString& json) {
@@ -557,28 +564,23 @@ void InspectorPanel::AddProblems(QVBoxLayout* layout,
   auto* box = new QVBoxLayout(alert);
   box->setContentsMargins(12, 10, 12, 10);
   box->setSpacing(4);
-  const auto count = problems.size();
-  const QString title =
-      errors
-          ? (count == 1 ? QStringLiteral("Something needs attention")
-                        : QStringLiteral("%1 things need attention").arg(count))
-          : (count == 1 ? QStringLiteral("Something to check")
-                        : QStringLiteral("%1 things to check").arg(count));
-  auto* head = new QHBoxLayout();
-  head->setSpacing(8);
-  auto* icon = new QLabel(alert);
-  icon->setPixmap(App::Get().Glyph(
-      QStringLiteral("circle-alert"),
-      App::Get().Token(errors ? "destructive" : "foreground"), kAlertIcon));
-  head->addWidget(icon);
-  head->addWidget(
-      MakeLabel(title, errors ? "error-title" : "title-small", alert), 1);
-  box->addLayout(head);
+  bool first = true;
   for (const auto& problem : problems) {
+    auto* row = new QHBoxLayout();
+    row->setSpacing(8);
+    auto* icon = new QLabel(alert);
+    if (first) {
+      icon->setPixmap(App::Get().Glyph(
+          QStringLiteral("circle-alert"),
+          App::Get().Token(errors ? "destructive" : "foreground"), kAlertIcon));
+    }
+    icon->setFixedWidth(kAlertIcon);
+    row->addWidget(icon, 0, Qt::AlignTop);
     auto* line = MakeLabel(ToQ(problem), errors ? "error" : "muted", alert);
     line->setWordWrap(true);
-    line->setContentsMargins(kAlertIcon + 8, 0, 0, 0);
-    box->addWidget(line);
+    row->addWidget(line, 1);
+    box->addLayout(row);
+    first = false;
   }
   layout->addWidget(alert);
 }
@@ -776,6 +778,10 @@ void InspectorPanel::Rebuild() {
   const int scroll = scroll_->verticalScrollBar() != nullptr
                          ? scroll_->verticalScrollBar()->value()
                          : 0;
+  for (QLineEdit* line : content->findChildren<QLineEdit*>()) {
+    connect(line, &QLineEdit::editingFinished, line,
+            [line] { line->setModified(false); });
+  }
   scroll_->setWidget(content);
   content_ = content;
   scroll_->verticalScrollBar()->setValue(scroll);

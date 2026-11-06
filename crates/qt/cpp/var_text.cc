@@ -194,6 +194,21 @@ QString VarSurface::Value() const {
   return ToQ(App::Get().session().join_tokens(std::move(tokens)));
 }
 
+int VarSurface::MissingChips() const {
+  int missing = 0;
+  for (QTextBlock block = document()->begin(); block.isValid();
+       block = block.next()) {
+    for (auto it = block.begin(); !it.atEnd(); ++it) {
+      const QTextCharFormat format = it.fragment().charFormat();
+      if (format.objectType() == kChipType &&
+          format.boolProperty(kChipMissing)) {
+        missing += it.fragment().length();
+      }
+    }
+  }
+  return missing;
+}
+
 void VarSurface::InsertVariable(const QString& name) {
   bridge::TextToken token{bridge::TokenKind::Var, ToRust(name)};
   textCursor().insertText(QString(kObject), ChipFormat(token, Variables()));

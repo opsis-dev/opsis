@@ -66,7 +66,6 @@ class CategoryRail : public QWidget {
   explicit CategoryRail(QWidget* parent = nullptr);
 
  signals:
-  void ShowList();
   void AddRequested(const QString& node_type);
 
  private:

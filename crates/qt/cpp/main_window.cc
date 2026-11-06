@@ -88,8 +88,6 @@ MainWindow::MainWindow()
   rail_ = new CategoryRail(this);
   rail_->hide();
   internalLayout()->insertWidget(0, rail_);
-  connect(rail_, &CategoryRail::ShowList, this,
-          [this] { FocusDock(nodes_dock_); });
   connect(rail_, &CategoryRail::AddRequested, this, &MainWindow::AddNode);
   save_window_.setSingleShot(true);
   save_window_.setInterval(kSaveWindowAfterMs);

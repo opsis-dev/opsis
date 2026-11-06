@@ -14,6 +14,7 @@
 #include <QMimeData>
 #include <QPointer>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QScrollBar>
 #include <QTextCursor>
 #include <QTimer>
@@ -359,11 +360,13 @@ void Scenario::BuildTour() {
         if (VisibleText(list, QStringLiteral("No nodes found.")) == nullptr) {
           problems += QStringLiteral(" no 'No nodes found.'");
         }
-        auto* search = list->findChild<QLineEdit*>();
-        QTest::keyClick(search, Qt::Key_A, Qt::ControlModifier);
-        QTest::keyClick(search, Qt::Key_Backspace);
         return problems.trimmed();
       });
+  Add(QStringLiteral("clear-node-list-search"), [window] {
+    auto* search = window->nodes_dock()->widget()->findChild<QLineEdit*>();
+    QTest::keyClick(search, Qt::Key_A, Qt::ControlModifier);
+    QTest::keyClick(search, Qt::Key_Backspace);
+  });
   Add(
       QStringLiteral("hover-node-list-row"),
       [window] {
@@ -409,16 +412,18 @@ void Scenario::BuildTour() {
         });
       },
       900,
-      [this, window] {
+      [] {
         const bridge::ProjectView project = App::Get().session().project();
         const QString problem =
             Expect(project.width == project.height,
                    QStringLiteral("the canvas is %1 × %2, not square")
                        .arg(project.width)
                        .arg(project.height));
-        Click(window->inspector_dock()->widget(), QStringLiteral("16:9"));
         return problem;
       });
+  Add(QStringLiteral("back-to-16-9"), [this, window] {
+    Click(window->inspector_dock()->widget(), QStringLiteral("16:9"));
+  });
   Add(
       QStringLiteral("select-card"),
       [this, canvas, view, memo] {
@@ -531,7 +536,16 @@ void Scenario::BuildTour() {
         return QStringLiteral(
             "the page address wasn't saved with its variable");
       });
-  Add(QStringLiteral("undo-typing"), undo, 500);
+  Add(QStringLiteral("undo-typing"), undo, 500, [window] {
+    for (VarSurface* surface :
+         window->inspector_dock()->widget()->findChildren<VarSurface*>()) {
+      if (surface->isVisible() &&
+          surface->Value().endsWith(QStringLiteral("home"))) {
+        return QStringLiteral("the Inspector still shows the typed address");
+      }
+    }
+    return QString();
+  });
 
   Add(
       QStringLiteral("rename-in-inspector"),
@@ -578,7 +592,15 @@ void Scenario::BuildTour() {
                 .arg(card != nullptr ? ToQ(card->title) : QString(),
                      ToQ(App::Get().session().inspector().label)));
       });
-  Add(QStringLiteral("undo-rename"), undo, 500);
+  Add(QStringLiteral("undo-rename"), undo, 500, [window] {
+    for (QLineEdit* line :
+         window->inspector_dock()->widget()->findChildren<QLineEdit*>()) {
+      if (line->isVisible() && line->text() == QStringLiteral("Shop page")) {
+        return QStringLiteral("the Inspector still shows the new name");
+      }
+    }
+    return QString();
+  });
   Add(
       QStringLiteral("skip-node-switch"),
       [this, window] {
@@ -704,6 +726,20 @@ void Scenario::BuildTour() {
         return Expect(
             static_cast<std::size_t>(selected) >= memo->count,
             QStringLiteral("%1 of %2 selected").arg(selected).arg(memo->count));
+      });
+  Add(
+      QStringLiteral("multi-select-shows-project-panel"), [] {}, 300,
+      [this, window] {
+        QWidget* panel = window->inspector_dock()->widget();
+        bool counted = false;
+        for (QLabel* label : panel->findChildren<QLabel*>()) {
+          counted = counted ||
+                    (label->isVisible() &&
+                     label->text().endsWith(QStringLiteral("nodes selected")));
+        }
+        return Expect(counted && Find(panel, QStringLiteral(
+                                                 "Group selection")) != nullptr,
+                      QStringLiteral("no group prompt for the selection"));
       });
   Add(
       QStringLiteral("group-from-menu"),
@@ -1151,6 +1187,41 @@ void Scenario::BuildTour() {
     for (int i = 0; i < 3; ++i) Click(window, QStringLiteral("Undo"));
   });
   Add(
+      QStringLiteral("export-video-panel"),
+      [add_from_list] {
+        add_from_list(QStringLiteral("Export"), QStringLiteral("Export video"));
+      },
+      900,
+      [window] {
+        QString problems;
+        QWidget* panel = window->inspector_dock()->widget();
+        for (QScrollArea* scroll : panel->findChildren<QScrollArea*>()) {
+          if (scroll->widget() != nullptr &&
+              scroll->widget()->minimumSizeHint().width() >
+                  scroll->viewport()->width()) {
+            problems += QStringLiteral(" the panel is wider than the dock");
+          }
+        }
+        bool toggles = false;
+        for (const auto& field : App::Get().session().inspector().fields) {
+          if (ToQ(field.label) == QStringLiteral("Shapes")) {
+            toggles = field.kind == bridge::FieldKind::EnumList;
+          }
+        }
+        if (!toggles) problems += QStringLiteral(" Shapes isn't toggles");
+        for (VarSurface* surface : panel->findChildren<VarSurface*>()) {
+          if (surface->isVisible() && surface->MissingChips() > 0) {
+            problems += QStringLiteral(" a built-in variable shows as missing");
+          }
+        }
+        if (VisibleText(panel, QStringLiteral("Something needs attention")) !=
+            nullptr) {
+          problems += QStringLiteral(" the problems still have a title");
+        }
+        return problems.trimmed();
+      });
+  Add(QStringLiteral("undo-export-video"), undo, 500);
+  Add(
       QStringLiteral("hide-node-list"),
       [this, window] { Click(window, QStringLiteral("Hide node list")); }, 600,
       [window] {
@@ -1173,18 +1244,40 @@ void Scenario::BuildTour() {
         QWidget* popup = QApplication::activePopupWidget();
         const bool open = popup != nullptr &&
                           popup->objectName() == QStringLiteral("Popover");
-        if (popup != nullptr) popup->close();
         return Expect(open, QStringLiteral("no category popover"));
       });
+  Add(QStringLiteral("close-category-popover"), [] {
+    if (QWidget* popup = QApplication::activePopupWidget()) popup->close();
+  });
   Add(
-      QStringLiteral("show-node-list-from-rail"),
-      [this, window] {
-        Click(window->rail(), QStringLiteral("Show node list"));
-      },
-      600,
+      QStringLiteral("show-node-list-from-top-bar"),
+      [this, window] { Click(window, QStringLiteral("Show node list")); }, 600,
       [window] {
-        return Expect(window->nodes_dock()->isOpen(),
-                      QStringLiteral("the node list didn't come back"));
+        QString problems;
+        for (QAbstractButton* button :
+             window->rail()->findChildren<QAbstractButton*>()) {
+          if (button->toolTip().startsWith(QStringLiteral("Show node list"))) {
+            problems += QStringLiteral(" the rail repeats the show button");
+          }
+        }
+        if (!window->nodes_dock()->isOpen()) {
+          problems += QStringLiteral(" the node list didn't come back");
+        }
+        return problems.trimmed();
+      });
+  Add(
+      QStringLiteral("hide-the-grid"),
+      [this, canvas] { Click(canvas, QStringLiteral("Hide the grid")); }, 400,
+      [canvas] {
+        return Expect(!canvas->GridShown(),
+                      QStringLiteral("the grid is still on"));
+      });
+  Add(
+      QStringLiteral("show-the-grid"),
+      [this, canvas] { Click(canvas, QStringLiteral("Show the grid")); }, 400,
+      [canvas] {
+        return Expect(canvas->GridShown(),
+                      QStringLiteral("the grid stayed off"));
       });
 
   Add(

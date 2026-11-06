@@ -32,6 +32,8 @@ class VarSurface : public QTextEdit {
   QString Value() const;
   void InsertVariable(const QString& name);
   void InsertPause();
+  bool HasDraft() const { return Value() != committed_; }
+  int MissingChips() const;
 
  signals:
   void Committed(const QString& value);

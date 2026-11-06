@@ -186,13 +186,6 @@ CategoryRail::CategoryRail(QWidget* parent) : QWidget(parent) {
   auto* layout = new QVBoxLayout(this);
   layout->setContentsMargins(0, 8, 0, 8);
   layout->setSpacing(4);
-  auto* show = MakeIconButton(QStringLiteral("panel-left-open"),
-                              QStringLiteral("Show node list"), this);
-  layout->addWidget(show, 0, Qt::AlignHCenter);
-  connect(show, &QToolButton::clicked, this, &CategoryRail::ShowList);
-  auto* rule = MakeRule(this);
-  rule->setFixedWidth(24);
-  layout->addWidget(rule, 0, Qt::AlignHCenter);
   for (const auto& category : App::Get().session().categories()) {
     auto* button = new QToolButton(this);
     button->setIcon(

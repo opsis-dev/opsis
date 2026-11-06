@@ -134,7 +134,8 @@ void Scenario::Shoot(const QString& name) {
   for (QWidget* widget : windows) {
     if (!widget->isVisible() || !widget->isWindow()) continue;
     const bool popover = widget->objectName() == QStringLiteral("Popover");
-    if (widget->windowType() == Qt::ToolTip ||
+    const bool card = widget->objectName() == QStringLiteral("HoverCard");
+    if ((widget->windowType() == Qt::ToolTip && !card) ||
         (widget->windowType() == Qt::Popup && !popover))
       continue;
     if (widget->width() < 40 || widget->height() < 40) continue;

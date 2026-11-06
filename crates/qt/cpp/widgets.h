@@ -30,6 +30,7 @@ class FlowLayout : public QLayout {
   QLayoutItem* itemAt(int index) const override;
   QLayoutItem* takeAt(int index) override;
   Qt::Orientations expandingDirections() const override { return {}; }
+  void SetGap(int gap) { gap_ = gap; }
   bool hasHeightForWidth() const override { return true; }
   int heightForWidth(int width) const override;
   QSize minimumSize() const override;

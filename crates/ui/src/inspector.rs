@@ -475,7 +475,7 @@ fn field(key: &str, schema: &Value, value: Option<&Value>, ctx: &FormCtx<'_>) ->
     if !widget.is_empty() && named_widget(&mut view, &widget, value, ctx) {
         return view;
     }
-    if !widget.is_empty() && widget != "color" {
+    if !widget.is_empty() && !matches!(widget.as_str(), "color" | "multiselect") {
         view.kind = FieldKind::Other;
         view.text = summary(&widget, value);
     } else if let Some(choices) = schema.get("enum").and_then(Value::as_array) {

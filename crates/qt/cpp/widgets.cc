@@ -46,7 +46,9 @@ QLayoutItem* FlowLayout::takeAt(int index) {
 }
 
 int FlowLayout::heightForWidth(int width) const {
-  return Arrange(QRect(0, 0, width, 0), false);
+  const QMargins margins = contentsMargins();
+  return Arrange(QRect(0, 0, width, 0).marginsRemoved(margins), false) +
+         margins.top() + margins.bottom();
 }
 
 QSize FlowLayout::minimumSize() const {
@@ -54,14 +56,26 @@ QSize FlowLayout::minimumSize() const {
   for (const QLayoutItem* item : items_) {
     size = size.expandedTo(item->minimumSize());
   }
-  return size;
+  const QMargins margins = contentsMargins();
+  return size.grownBy(margins);
 }
 
-QSize FlowLayout::sizeHint() const { return minimumSize(); }
+QSize FlowLayout::sizeHint() const {
+  int width = 0;
+  int height = 0;
+  for (const QLayoutItem* item : items_) {
+    const QSize hint = item->sizeHint();
+    width += hint.width() + (width > 0 ? gap_ : 0);
+    height = std::max(height, hint.height());
+  }
+  const QMargins margins = contentsMargins();
+  return {width + margins.left() + margins.right(),
+          height + margins.top() + margins.bottom()};
+}
 
 void FlowLayout::setGeometry(const QRect& rect) {
   QLayout::setGeometry(rect);
-  Arrange(rect, true);
+  Arrange(rect.marginsRemoved(contentsMargins()), true);
 }
 
 int FlowLayout::Arrange(const QRect& rect, bool apply) const {
@@ -211,9 +225,11 @@ void ToggleSwitch::paintEvent(QPaintEvent*) {
 
 Segmented::Segmented(QWidget* parent) : QFrame(parent) {
   setObjectName(QStringLiteral("Segmented"));
-  auto* layout = new QHBoxLayout(this);
+  auto* layout = new FlowLayout(this, 2);
   layout->setContentsMargins(2, 2, 2, 2);
-  layout->setSpacing(2);
+  QSizePolicy policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+  policy.setHeightForWidth(true);
+  setSizePolicy(policy);
   group_.setExclusive(true);
   connect(&group_, &QButtonGroup::idClicked, this, [this](int id) {
     emit Changed(values_.at(static_cast<std::size_t>(id)));
@@ -238,7 +254,7 @@ void Segmented::SetChoices(
 void Segmented::SetOutline() {
   setObjectName(QStringLiteral("SegmentedOutline"));
   layout()->setContentsMargins(0, 0, 0, 0);
-  layout()->setSpacing(kOutlineGap);
+  static_cast<FlowLayout*>(layout())->SetGap(kOutlineGap);
   for (QAbstractButton* button : group_.buttons()) {
     button->setProperty("variant", "toggle-outline");
   }

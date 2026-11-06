@@ -306,6 +306,8 @@ The node graph moves from React Flow to a `QGraphicsScene`: cards with typed por
 ### Decisions
 
 - **Where the graph logic lives.** `opsis-compile` has the catalogue and cards; a new pure crate is the alternative if `opsis-compile` grows too large.
+- **The canvas controls sit in one pill at the top right**: zoom out, the percentage (100 %), zoom in, fit, a show or hide grid toggle, then the mouse, touchpad and minimap toggles; the web editor's bottom-left zoom panel is not kept.
+- **The collapsed node list's rail has only the category buttons**; the top bar's node list toggle brings the list back.
 
 ### Risks
 
@@ -337,6 +339,12 @@ The schema-driven form and its 30 widget kinds (`FieldWidget` in `crates/compile
 3. Drafts and gestures: focus starts a gesture, commit or blur ends it; the exit flow asks for held drafts as today.
 4. Lists: text, number, palette and row lists with reorder, duplicate and collapse.
 5. The font picker draws each family from bytes `opsis-fonts` provides (`QFontDatabase::addApplicationFontFromData`).
+
+### Decisions
+
+- **Problem alerts list each problem without a title line**; the first carries the icon.
+- **Built-in variables (`workflow_vars`, such as Project name) are offered and shown as known chips**, never as missing.
+- **Multiselect fields are toggles that wrap**, like enum lists, so a long list never widens the panel.
 
 ### Risks
 
