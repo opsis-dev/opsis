@@ -8,6 +8,7 @@
 #include <QHash>
 #include <QPointer>
 #include <QStackedWidget>
+#include <QTimer>
 
 namespace opsis {
 
@@ -40,6 +41,8 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
 
  protected:
   void closeEvent(QCloseEvent* event) override;
+  void moveEvent(QMoveEvent* event) override;
+  void resizeEvent(QResizeEvent* event) override;
 
  private:
   void BuildMenus();
@@ -55,6 +58,8 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   void RunRole(const QString& id);
   void SetEnabled(const QString& id, bool enabled);
   void ShowCloseDialog();
+  void ApplyProjectWindow();
+  void SaveWindow();
   void Guard(const std::function<void()>& action);
   KDDockWidgets::QtWidgets::DockWidget* MakeDock(const QString& id,
                                                  const QString& title,
@@ -71,6 +76,7 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   KDDockWidgets::QtWidgets::DockWidget* run_dock_ = nullptr;
   bool docked_ = false;
   QHash<QString, QAction*> actions_;
+  QTimer save_window_;
   QPointer<SettingsWindow> settings_;
 };
 

@@ -11,12 +11,13 @@ use opsis_compile::graph::connection_problem_now;
 use opsis_compile::node::Platform as NodePlatform;
 use opsis_qt::{
     Choice, CloseView, EventKind, GraphView, Host, HostResult, InspectorView, MenuSectionView,
-    NodeMove, PaletteEntry, ProjectEntry, SettingsView, TemplateView,
+    NodeMove, PaletteEntry, ProjectEntry, ScreenArea, SettingsView, TemplateView, WindowPlacement,
 };
 use opsis_session::error::CommandError;
 use opsis_session::events::{MAIN_WINDOW, SessionEvent};
 use opsis_session::exit::{self, Exit};
 use opsis_session::state::AppState;
+use opsis_session::windows::{self, SavedWindow, WorkArea};
 use opsis_session::{Session, compile, document, projects, run, settings, shared};
 use opsis_types::actions::Viewport;
 use opsis_types::edits::{EdgeEnds, NodePatch, WorkflowEdit};
@@ -814,6 +815,66 @@ impl Host for Ui {
 
     fn save_flushed(&self) {
         exit::save_flushed(&self.session);
+    }
+
+    fn project_window(&self, areas: Vec<ScreenArea>) -> WindowPlacement {
+        let unknown = WindowPlacement {
+            known: false,
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            maximized: true,
+        };
+        let Some(dir) = self.view_key() else {
+            return unknown;
+        };
+        let Ok(view) = self
+            .runtime
+            .block_on(settings::view_state(&self.session, dir))
+        else {
+            return unknown;
+        };
+        let Some(saved) = windows::saved_window(&view) else {
+            return unknown;
+        };
+        let areas: Vec<WorkArea> = areas
+            .into_iter()
+            .map(|a| WorkArea {
+                x: a.x,
+                y: a.y,
+                width: a.width,
+                height: a.height,
+            })
+            .collect();
+        windows::visible_bounds(saved.bounds(), &areas).map_or(
+            WindowPlacement {
+                maximized: saved.maximized,
+                ..unknown
+            },
+            |bounds| WindowPlacement {
+                known: true,
+                x: bounds.x,
+                y: bounds.y,
+                width: bounds.width,
+                height: bounds.height,
+                maximized: saved.maximized,
+            },
+        )
+    }
+
+    fn save_window(&self, placement: WindowPlacement) {
+        let session = self.session.clone();
+        self.runtime.spawn(async move {
+            let saved = SavedWindow {
+                x: placement.x,
+                y: placement.y,
+                width: placement.width,
+                height: placement.height,
+                maximized: placement.maximized,
+            };
+            windows::save_main_window(&session, saved).await;
+        });
     }
 
     fn load_layout(&self) -> String {

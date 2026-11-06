@@ -24,6 +24,7 @@ pub mod state;
 pub mod terminal_live;
 pub mod terminal_paint;
 pub mod views;
+pub mod windows;
 
 pub use session::{Part, Session};
 

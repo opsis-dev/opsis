@@ -7,8 +7,10 @@
 #include <QCloseEvent>
 #include <QDialog>
 #include <QFileDialog>
+#include <QGuiApplication>
 #include <QMenu>
 #include <QMenuBar>
+#include <QScreen>
 #include <QTimer>
 #include <QVBoxLayout>
 #include <functional>
@@ -34,6 +36,7 @@ namespace kdw = KDDockWidgets;
 constexpr int kSideWidth = 260;
 constexpr int kInspectorWidth = 340;
 constexpr int kBottomHeight = 240;
+constexpr int kSaveWindowAfterMs = 400;
 
 QWidget* Placeholder(const QString& text) {
   auto* panel = new QWidget();
@@ -66,6 +69,9 @@ MainWindow::MainWindow()
   stack_->addWidget(start_);
   stack_->addWidget(canvas_);
   setPersistentCentralWidget(stack_);
+  save_window_.setSingleShot(true);
+  save_window_.setInterval(kSaveWindowAfterMs);
+  connect(&save_window_, &QTimer::timeout, this, &MainWindow::SaveWindow);
   BuildMenus();
 
   connect(start_, &StartScreen::OpenRequested, this, &MainWindow::OpenFolder);
@@ -116,6 +122,7 @@ void MainWindow::Generate(int count) {
 }
 
 void MainWindow::CloseProject() {
+  SaveWindow();
   SaveLayout();
   App::Get().session().close_project();
 }
@@ -328,6 +335,7 @@ void MainWindow::BuildDocks() {
 
 void MainWindow::ShowEditor() {
   stack_->setCurrentWidget(canvas_);
+  ApplyProjectWindow();
   if (!docked_) {
     BuildDocks();
   } else {
@@ -396,7 +404,45 @@ SettingsWindow* MainWindow::OpenSettings() {
   return settings_;
 }
 
+void MainWindow::ApplyProjectWindow() {
+  rust::Vec<bridge::ScreenArea> areas;
+  for (QScreen* screen : QGuiApplication::screens()) {
+    const QRect area = screen->availableGeometry();
+    areas.push_back({area.x(), area.y(), area.width(), area.height()});
+  }
+  const bridge::WindowPlacement placement =
+      App::Get().session().project_window(std::move(areas));
+  if (isFullScreen()) return;
+  if (placement.known) {
+    if (isMaximized()) showNormal();
+    QWidget::setGeometry(
+        QRect(placement.x, placement.y, placement.width, placement.height));
+  }
+  if (placement.maximized) showMaximized();
+}
+
+void MainWindow::SaveWindow() {
+  if (!App::Get().session().has_project() || isMinimized() || isFullScreen()) {
+    return;
+  }
+  const QRect bounds = isMaximized() ? normalGeometry() : geometry();
+  App::Get().session().save_window({true, bounds.x(), bounds.y(),
+                                    bounds.width(), bounds.height(),
+                                    isMaximized()});
+}
+
+void MainWindow::moveEvent(QMoveEvent* event) {
+  kdw::QtWidgets::MainWindow::moveEvent(event);
+  save_window_.start();
+}
+
+void MainWindow::resizeEvent(QResizeEvent* event) {
+  kdw::QtWidgets::MainWindow::resizeEvent(event);
+  save_window_.start();
+}
+
 void MainWindow::closeEvent(QCloseEvent* event) {
+  SaveWindow();
   if (App::Get().session().close_allowed()) {
     if (settings_ != nullptr) settings_->close();
     event->accept();

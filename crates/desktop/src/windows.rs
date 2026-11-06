@@ -3,10 +3,10 @@ use std::time::Duration;
 
 use opsis_session::error::{CommandError, CommandResult};
 use opsis_session::state::AppState;
+use opsis_session::windows::{SavedWindow, WorkArea, save_main_window, saved_window};
 use opsis_store::windows::Bounds;
 use opsis_types::numbers;
 use opsis_types::shell::{DockPanelName, SettingsPage, WindowRole, WindowState};
-use serde::Deserialize;
 use serde_json::{Map, Value, json};
 use tauri::window::Color;
 use tauri::{
@@ -25,11 +25,8 @@ pub const SETTINGS_WINDOW: &str = "settings";
 pub const LIVE_WINDOW: &str = "live";
 const PANEL_PREFIX: &str = "panel-";
 const TERMINAL_PREFIX: &str = "terminal-";
-const MAIN_WINDOW_KEY: &str = "mainWindow";
 const BACKGROUND: Color = Color(0x10, 0x10, 0x13, 0xff);
 const SAVE_BOUNDS_AFTER: Duration = Duration::from_millis(400);
-const MIN_VISIBLE_PX: i32 = 40;
-const ABOVE_WORK_AREA_PX: i32 = 20;
 const ZOOM_STEP: f64 = 0.1;
 const ZOOM_LIMITS: (f64, f64) = (0.3, 3.0);
 
@@ -70,20 +67,21 @@ fn base_builder<'a>(
 }
 
 fn visible_bounds(app: &AppHandle, bounds: Bounds) -> Option<Bounds> {
-    let monitors = app.available_monitors().ok()?;
-    let fits = monitors.iter().any(|m| {
-        let area = m.work_area();
-        let (x, y) = (area.position.x, area.position.y);
-        let (w, h) = (
-            numbers::signed(area.size.width),
-            numbers::signed(area.size.height),
-        );
-        let across =
-            bounds.x < x + w - MIN_VISIBLE_PX && bounds.x + bounds.width > x + MIN_VISIBLE_PX;
-        let reachable = bounds.y >= y - ABOVE_WORK_AREA_PX && bounds.y < y + h - MIN_VISIBLE_PX;
-        across && reachable
-    });
-    fits.then_some(bounds)
+    let areas: Vec<WorkArea> = app
+        .available_monitors()
+        .ok()?
+        .iter()
+        .map(|monitor| {
+            let area = monitor.work_area();
+            WorkArea {
+                x: area.position.x,
+                y: area.position.y,
+                width: numbers::signed(area.size.width),
+                height: numbers::signed(area.size.height),
+            }
+        })
+        .collect();
+    opsis_session::windows::visible_bounds(bounds, &areas)
 }
 
 fn place(window: &WebviewWindow, bounds: Bounds) {
@@ -217,22 +215,11 @@ fn announce_panels(app: &AppHandle) {
     }
 }
 
-#[derive(Deserialize)]
-struct SavedWindow {
-    x: i32,
-    y: i32,
-    width: i32,
-    height: i32,
-    maximized: bool,
-}
-
 pub fn apply_project_window(window: &WebviewWindow, view: &Map<String, Value>) {
     if window.is_fullscreen().unwrap_or(false) {
         return;
     }
-    let saved = view
-        .get(MAIN_WINDOW_KEY)
-        .and_then(|v| serde_json::from_value::<SavedWindow>(v.clone()).ok());
+    let saved = saved_window(view);
     let Some(saved) = saved else {
         if let Err(error) = window.maximize() {
             log::warn!("maximizing the window: {error}");
@@ -244,15 +231,7 @@ pub fn apply_project_window(window: &WebviewWindow, view: &Map<String, Value>) {
     {
         log::warn!("restoring the window: {error}");
     }
-    if let Some(bounds) = visible_bounds(
-        window.app_handle(),
-        Bounds {
-            x: saved.x,
-            y: saved.y,
-            width: saved.width,
-            height: saved.height,
-        },
-    ) {
+    if let Some(bounds) = visible_bounds(window.app_handle(), saved.bounds()) {
         place(window, bounds);
     }
     if saved.maximized
@@ -289,17 +268,14 @@ async fn save_bounds_now(window: &Window) {
         return;
     };
     if window.label() == MAIN_WINDOW {
-        let dir = state.editor().dir();
-        if let Some(dir) = dir {
-            let value = json!({ "x": bounds.x, "y": bounds.y, "width": bounds.width, "height": bounds.height, "maximized": maximized });
-            if let Err(error) = state
-                .db()
-                .write_view_state(&dir.to_string_lossy(), MAIN_WINDOW_KEY, &value)
-                .await
-            {
-                log::warn!("saving the window's size: {error}");
-            }
-        }
+        let saved = SavedWindow {
+            x: bounds.x,
+            y: bounds.y,
+            width: bounds.width,
+            height: bounds.height,
+            maximized,
+        };
+        save_main_window(&session, saved).await;
         return;
     }
     if maximized {

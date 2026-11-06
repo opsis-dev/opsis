@@ -77,6 +77,24 @@ pub mod ffi {
         detail: String,
     }
 
+    #[derive(Debug, Clone, Copy)]
+    struct ScreenArea {
+        x: i32,
+        y: i32,
+        width: i32,
+        height: i32,
+    }
+
+    #[derive(Debug, Clone, Copy)]
+    struct WindowPlacement {
+        known: bool,
+        x: i32,
+        y: i32,
+        width: i32,
+        height: i32,
+        maximized: bool,
+    }
+
     #[derive(Debug, Clone)]
     struct TemplateView {
         id: String,
@@ -280,6 +298,8 @@ pub mod ffi {
         fn decide_close(self: &Session, close: bool, dont_ask: bool);
         fn report_drafts(self: &Session, held: bool);
         fn save_flushed(self: &Session);
+        fn project_window(self: &Session, areas: Vec<ScreenArea>) -> WindowPlacement;
+        fn save_window(self: &Session, placement: WindowPlacement);
         fn load_layout(self: &Session) -> String;
         fn save_layout(self: &Session, layout: &str);
     }

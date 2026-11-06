@@ -5362,6 +5362,7 @@ dependencies = [
  "opsis-terminal",
  "opsis-traces",
  "opsis-types",
+ "proptest",
  "serde",
  "serde_json",
  "specta",

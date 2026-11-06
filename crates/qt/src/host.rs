@@ -2,7 +2,7 @@ use std::fmt;
 
 use crate::bridge::ffi::{
     self, CloseView, DialogKind, EventKind, GraphView, InspectorView, MenuSectionView, NodeMove,
-    PaletteEntry, ProjectEntry, SettingsView, TemplateView,
+    PaletteEntry, ProjectEntry, ScreenArea, SettingsView, TemplateView, WindowPlacement,
 };
 
 pub type HostResult<T> = Result<T, String>;
@@ -71,6 +71,8 @@ pub trait Host {
     fn decide_close(&self, close: bool, dont_ask: bool);
     fn report_drafts(&self, held: bool);
     fn save_flushed(&self);
+    fn project_window(&self, areas: Vec<ScreenArea>) -> WindowPlacement;
+    fn save_window(&self, placement: WindowPlacement);
     fn load_layout(&self) -> String;
     fn save_layout(&self, layout: &str);
 }
@@ -335,6 +337,14 @@ impl Session {
 
     pub(crate) fn save_flushed(&self) {
         self.0.save_flushed();
+    }
+
+    pub(crate) fn project_window(&self, areas: Vec<ScreenArea>) -> WindowPlacement {
+        self.0.project_window(areas)
+    }
+
+    pub(crate) fn save_window(&self, placement: WindowPlacement) {
+        self.0.save_window(placement);
     }
 
     pub(crate) fn load_layout(&self) -> String {
