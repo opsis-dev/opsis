@@ -49,8 +49,16 @@ class CardItem : public QGraphicsItem {
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
 
  private:
+  static constexpr unsigned kLeft = 1U;
+  static constexpr unsigned kRight = 2U;
+  static constexpr unsigned kTop = 4U;
+  static constexpr unsigned kBottom = 8U;
+
+  unsigned EdgesAt(const QPointF& local) const;
+  void PaintResizeHandles(QPainter* painter);
   void PaintCard(QPainter* painter, bool detailed);
   void PaintRing(QPainter* painter, const QRectF& body);
   double PaintBadge(QPainter* painter);
@@ -61,6 +69,9 @@ class CardItem : public QGraphicsItem {
   bridge::CardView card_;
   QString id_;
   bool connecting_ = false;
+  unsigned resizing_ = 0;
+  QRectF resize_from_;
+  QPointF press_at_;
 };
 
 class EdgeItem : public QGraphicsPathItem {
@@ -98,6 +109,10 @@ class GraphCanvas : public QGraphicsView {
   void SetMinimapVisible(bool visible);
   void Reveal(const QString& id);
   int BackwardEdges() const;
+  CardItem* Card(const QString& id) const { return cards_.value(id); }
+  QStringList GroupIds() const;
+  void MoveChildren(const QString& group, const QPointF& delta);
+  void ResizeGroup(const QString& id, const QRectF& rect);
   Q_INVOKABLE void copy();
   Q_INVOKABLE void paste();
   Q_INVOKABLE void selectAll() { SelectAll(); }
@@ -115,6 +130,7 @@ class GraphCanvas : public QGraphicsView {
   QPoint ViewPointOfPort(const QString& node, const QString& port,
                          bool output) const;
   int card_count() const { return static_cast<int>(cards_.size()); }
+  QStringList CardIds() const { return cards_.keys(); }
 
  signals:
   void ZoomChanged(double zoom);

@@ -13,6 +13,8 @@
 #include <QUrl>
 #include <QtTest/QTest>
 #include <algorithm>
+#include <cmath>
+#include <memory>
 
 #include "app.h"
 #include "graph_canvas.h"
@@ -29,6 +31,15 @@ namespace opsis {
 namespace {
 
 constexpr int kDropSide = 64;
+constexpr double kGroupNudge = 90.0;
+constexpr double kGroupGrow = 60.0;
+
+struct GroupState {
+  QString group;
+  QString child;
+  QPointF before;
+  double width = 0;
+};
 
 QString Rss() {
   QFile status(QStringLiteral("/proc/self/status"));
@@ -409,6 +420,75 @@ void Scenario::BuildTour() {
         }
       },
       700);
+  auto group_state = std::make_shared<GroupState>();
+  Add(
+      QStringLiteral("drag-group"),
+      [canvas, group_state] {
+        const QStringList groups = canvas->GroupIds();
+        if (groups.isEmpty()) return;
+        group_state->group = groups.first();
+        for (const QString& id : canvas->CardIds()) {
+          CardItem* card = canvas->Card(id);
+          if (ToQ(card->card().parent) == group_state->group) {
+            group_state->child = id;
+            group_state->before = card->pos();
+            break;
+          }
+        }
+        canvas->scene()->clearSelection();
+        CardItem* group = canvas->Card(group_state->group);
+        group->setPos(group->pos() + QPointF(kGroupNudge, 0));
+        canvas->CommitMoves();
+      },
+      700,
+      [canvas, group_state] {
+        CardItem* child = canvas->Card(group_state->child);
+        if (child == nullptr) return QStringLiteral("no grouped card");
+        const double moved = child->pos().x() - group_state->before.x();
+        return std::abs(moved - kGroupNudge) < 0.5
+                   ? QString()
+                   : QStringLiteral("child moved %1, not %2")
+                         .arg(moved)
+                         .arg(kGroupNudge);
+      });
+  Add(
+      QStringLiteral("resize-group"),
+      [canvas, group_state] {
+        CardItem* group = canvas->Card(group_state->group);
+        CardItem* child = canvas->Card(group_state->child);
+        if (group == nullptr || child == nullptr) return;
+        group_state->before = child->pos();
+        group_state->width = group->card().width;
+        canvas->ResizeGroup(group_state->group,
+                            QRectF(group->pos() - QPointF(kGroupGrow, 0),
+                                   QSizeF(group->card().width + kGroupGrow,
+                                          group->card().height)));
+      },
+      700,
+      [canvas, group_state] {
+        CardItem* group = canvas->Card(group_state->group);
+        CardItem* child = canvas->Card(group_state->child);
+        if (group == nullptr || child == nullptr) {
+          return QStringLiteral("the group is gone");
+        }
+        if (std::abs(group->card().width - group_state->width - kGroupGrow) >
+            0.5) {
+          return QStringLiteral("group is %1 wide").arg(group->card().width);
+        }
+        const QPointF drift = child->pos() - group_state->before;
+        return drift.manhattanLength() < 0.5
+                   ? QString()
+                   : QStringLiteral("child drifted by %1, %2")
+                         .arg(drift.x())
+                         .arg(drift.y());
+      });
+  Add(QStringLiteral("undo-resize-and-drag"), [window] {
+    for (int i = 0; i < 2; ++i) {
+      for (QAction* action : window->findChildren<QAction*>()) {
+        if (action->text() == QStringLiteral("Undo")) action->trigger();
+      }
+    }
+  });
   Add(QStringLiteral("undo-group"), [window] {
     for (QAction* action : window->findChildren<QAction*>()) {
       if (action->text() == QStringLiteral("Undo")) action->trigger();

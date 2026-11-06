@@ -5,6 +5,7 @@
 #include <QConicalGradient>
 #include <QElapsedTimer>
 #include <QFontMetricsF>
+#include <QGraphicsSceneHoverEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QGuiApplication>
 #include <QHBoxLayout>
@@ -43,6 +44,18 @@ constexpr double kMaxZoom = 2.5;
 constexpr int kRevealMs = 300;
 constexpr double kMinRevealZoom = 0.8;
 constexpr double kRevealPadding = 0.4;
+constexpr double kGroupBorderMix = 0.53;
+constexpr double kGroupFillMix = 0.06;
+constexpr double kGroupRadius = 12.0;
+constexpr double kGroupTagPadX = 12.0;
+constexpr double kGroupTagHeight = 24.0;
+constexpr double kGroupMinWidth = 240.0;
+constexpr double kGroupMinHeight = 160.0;
+constexpr double kHandle = 7.0;
+constexpr double kHandleReach = 6.0;
+constexpr double kNoteBorderMix = 0.4;
+constexpr double kNoteFillMix = 0.1;
+constexpr double kNoteInkMix = 0.3;
 constexpr double kRingOut = 3.0;
 constexpr double kBadgeHeight = 20.0;
 constexpr double kBadgeIcon = 12.0;
@@ -96,7 +109,7 @@ QString Elided(const QFont& font, const QString& text, double width) {
 CardItem::CardItem(GraphCanvas* canvas, const bridge::CardView& card)
     : canvas_(canvas), card_(card), id_(ToQ(card.id)) {
   setFlags(ItemIsSelectable | ItemIsMovable | ItemSendsGeometryChanges);
-  setAcceptHoverEvents(false);
+  setAcceptHoverEvents(card.kind == bridge::CardKind::Group);
   if (qEnvironmentVariableIsEmpty("OPSIS_QT_NO_ITEM_CACHE")) {
     setCacheMode(DeviceCoordinateCache);
   }
@@ -155,6 +168,10 @@ QPointF CardItem::PortPoint(const QString& port, bool output) const {
 
 QVariant CardItem::itemChange(GraphicsItemChange change,
                               const QVariant& value) {
+  if (change == ItemPositionChange && card_.kind == bridge::CardKind::Group &&
+      resizing_ == 0U) {
+    canvas_->MoveChildren(id_, value.toPointF() - pos());
+  }
   if (change == ItemPositionHasChanged) canvas_->CardMoved(id_);
   if (change == ItemSelectedHasChanged) update();
   return QGraphicsItem::itemChange(change, value);
@@ -162,6 +179,13 @@ QVariant CardItem::itemChange(GraphicsItemChange change,
 
 void CardItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
   if (event->button() == Qt::LeftButton) {
+    if (const unsigned edges = EdgesAt(event->pos()); edges != 0) {
+      resizing_ = edges;
+      resize_from_ = QRectF(pos(), QSizeF(card_.width, card_.height));
+      press_at_ = event->scenePos();
+      event->accept();
+      return;
+    }
     if (auto hit = PortAt(event->pos())) {
       connecting_ = true;
       canvas_->BeginConnect(*hit);
@@ -173,6 +197,32 @@ void CardItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
 }
 
 void CardItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
+  if (resizing_ != 0U) {
+    const QPointF delta = event->scenePos() - press_at_;
+    QRectF rect = resize_from_;
+    if ((resizing_ & kLeft) != 0U) {
+      rect.setLeft(
+          std::min(rect.left() + delta.x(), rect.right() - kGroupMinWidth));
+    }
+    if ((resizing_ & kRight) != 0U) {
+      rect.setRight(
+          std::max(rect.right() + delta.x(), rect.left() + kGroupMinWidth));
+    }
+    if ((resizing_ & kTop) != 0U) {
+      rect.setTop(
+          std::min(rect.top() + delta.y(), rect.bottom() - kGroupMinHeight));
+    }
+    if ((resizing_ & kBottom) != 0U) {
+      rect.setBottom(
+          std::max(rect.bottom() + delta.y(), rect.top() + kGroupMinHeight));
+    }
+    prepareGeometryChange();
+    card_.width = rect.width();
+    card_.height = rect.height();
+    setPos(rect.topLeft());
+    update();
+    return;
+  }
   if (connecting_) {
     canvas_->UpdateConnect(event->scenePos());
     return;
@@ -181,6 +231,11 @@ void CardItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
 }
 
 void CardItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
+  if (resizing_ != 0U) {
+    resizing_ = 0;
+    canvas_->ResizeGroup(id_, QRectF(pos(), QSizeF(card_.width, card_.height)));
+    return;
+  }
   if (connecting_) {
     connecting_ = false;
     canvas_->FinishConnect(event->scenePos());
@@ -188,6 +243,26 @@ void CardItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
   }
   QGraphicsItem::mouseReleaseEvent(event);
   canvas_->CommitMoves();
+}
+
+void CardItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event) {
+  const unsigned edges = EdgesAt(event->pos());
+  const bool diagonal_down =
+      edges == (kLeft | kTop) || edges == (kRight | kBottom);
+  const bool diagonal_up =
+      edges == (kRight | kTop) || edges == (kLeft | kBottom);
+  if (diagonal_down) {
+    setCursor(Qt::SizeFDiagCursor);
+  } else if (diagonal_up) {
+    setCursor(Qt::SizeBDiagCursor);
+  } else if ((edges & (kLeft | kRight)) != 0U) {
+    setCursor(Qt::SizeHorCursor);
+  } else if ((edges & (kTop | kBottom)) != 0U) {
+    setCursor(Qt::SizeVerCursor);
+  } else {
+    unsetCursor();
+  }
+  QGraphicsItem::hoverMoveEvent(event);
 }
 
 void CardItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
@@ -394,28 +469,79 @@ void CardItem::PaintGroup(QPainter* painter) {
   App& app = App::Get();
   QColor color = QColor::fromString(ToQ(card_.text));
   if (!color.isValid()) color = app.Token("muted-foreground");
-  const QRectF body(0, 0, card_.width, card_.height);
-  painter->setPen(QPen(Mix(color, 0.53), isSelected() ? 2 : 1));
-  painter->setBrush(Mix(color, 0.06));
-  painter->drawRoundedRect(body, kRadius, kRadius);
+  const QRectF body(1, 1, card_.width - 2, card_.height - 2);
+  QPen border(Mix(color, kGroupBorderMix), 2, Qt::DashLine);
+  border.setDashPattern({3, 3});
+  painter->setPen(border);
+  painter->setBrush(Mix(color, kGroupFillMix));
+  painter->drawRoundedRect(body, kGroupRadius, kGroupRadius);
   QFont font = QApplication::font();
+  font.setPixelSize(12);
   font.setWeight(QFont::DemiBold);
+  const QString title = ToQ(card_.title);
+  const double width =
+      QFontMetricsF(font).horizontalAdvance(title) + 2 * kGroupTagPadX;
+  const QRectF tag(0, 0, std::min(width, card_.width), kGroupTagHeight);
+  QPainterPath shape;
+  shape.moveTo(tag.topLeft() + QPointF(kGroupRadius, 0));
+  shape.lineTo(tag.topRight());
+  shape.lineTo(tag.right(), tag.bottom() - kGroupRadius);
+  shape.quadTo(tag.bottomRight(), tag.bottomRight() - QPointF(kGroupRadius, 0));
+  shape.lineTo(tag.bottomLeft());
+  shape.lineTo(tag.left(), tag.top() + kGroupRadius);
+  shape.quadTo(tag.topLeft(), tag.topLeft() + QPointF(kGroupRadius, 0));
+  painter->setPen(Qt::NoPen);
+  painter->setBrush(color);
+  painter->drawPath(shape);
   painter->setFont(font);
-  painter->setPen(app.Token("foreground"));
-  painter->drawText(body.adjusted(12, 8, -12, 0), Qt::AlignTop | Qt::AlignLeft,
-                    ToQ(card_.title));
+  painter->setPen(Qt::black);
+  painter->drawText(tag, Qt::AlignCenter, title);
+  if (isSelected()) PaintResizeHandles(painter);
+}
+
+void CardItem::PaintResizeHandles(QPainter* painter) {
+  App& app = App::Get();
+  painter->setPen(QPen(app.Token("ring"), 1));
+  painter->setBrush(Qt::NoBrush);
+  painter->drawRect(QRectF(0, 0, card_.width, card_.height));
+  painter->setBrush(app.Token("foreground"));
+  const double half = kHandle / 2;
+  for (const QPointF& corner :
+       {QPointF(0, 0), QPointF(card_.width, 0), QPointF(0, card_.height),
+        QPointF(card_.width, card_.height)}) {
+    painter->drawRect(
+        QRectF(corner - QPointF(half, half), QSizeF(kHandle, kHandle)));
+  }
+}
+
+unsigned CardItem::EdgesAt(const QPointF& local) const {
+  if (card_.kind != bridge::CardKind::Group || !isSelected()) return 0;
+  unsigned edges = 0;
+  if (std::abs(local.x()) <= kHandleReach) edges |= kLeft;
+  if (std::abs(local.x() - card_.width) <= kHandleReach) edges |= kRight;
+  if (std::abs(local.y()) <= kHandleReach) edges |= kTop;
+  if (std::abs(local.y() - card_.height) <= kHandleReach) edges |= kBottom;
+  return edges;
 }
 
 void CardItem::PaintNote(QPainter* painter) {
   App& app = App::Get();
-  const QRectF body(0, 0, card_.width, card_.height);
+  QColor color = QColor::fromString(ToQ(card_.color));
+  if (!color.isValid()) color = app.Token("muted-foreground");
+  const QRectF body(0.5, 0.5, card_.width - 1, card_.height - 1);
   painter->setPen(
-      QPen(isSelected() ? app.Token("selection") : app.Token("border"),
+      QPen(isSelected() ? app.Token("selection") : Mix(color, kNoteBorderMix),
            isSelected() ? 2 : 1));
-  painter->setBrush(app.Token("muted"));
+  painter->setBrush(Mix(color, kNoteFillMix));
   painter->drawRoundedRect(body, kRadius, kRadius);
-  painter->setPen(app.Token("foreground"));
-  painter->drawText(body.adjusted(12, 10, -12, -10),
+  QFont font = QApplication::font();
+  font.setPixelSize(12);
+  painter->setFont(font);
+  painter->setPen(QColor::fromRgbF(
+      static_cast<float>(color.redF() * kNoteInkMix + (1 - kNoteInkMix)),
+      static_cast<float>(color.greenF() * kNoteInkMix + (1 - kNoteInkMix)),
+      static_cast<float>(color.blueF() * kNoteInkMix + (1 - kNoteInkMix))));
+  painter->drawText(body.adjusted(12, 12, -12, -12),
                     Qt::AlignTop | Qt::AlignLeft | Qt::TextWordWrap,
                     ToQ(card_.text));
 }
@@ -653,14 +779,38 @@ void GraphCanvas::CardMoved(const QString& id) {
   }
 }
 
+void GraphCanvas::MoveChildren(const QString& group, const QPointF& delta) {
+  for (CardItem* card : std::as_const(cards_)) {
+    if (ToQ(card->card().parent) == group && !card->isSelected()) {
+      card->setPos(card->pos() + delta);
+    }
+  }
+}
+
+void GraphCanvas::ResizeGroup(const QString& id, const QRectF& rect) {
+  try {
+    App::Get().session().resize_node(ToRust(id), rect.x(), rect.y(),
+                                     rect.width(), rect.height());
+  } catch (const rust::Error& error) {
+    Toast(QString::fromUtf8(error.what()), true);
+  }
+}
+
 void GraphCanvas::CommitMoves() {
-  rust::Vec<bridge::NodeMove> moves;
+  QSet<QString> moved;
   for (CardItem* card : std::as_const(cards_)) {
     const QPointF at = card->pos();
     if (std::abs(at.x() - card->card().x) > 0.01 ||
         std::abs(at.y() - card->card().y) > 0.01) {
-      moves.push_back(bridge::NodeMove{ToRust(card->id()), at.x(), at.y()});
+      moved.insert(card->id());
     }
+  }
+  rust::Vec<bridge::NodeMove> moves;
+  for (const QString& id : std::as_const(moved)) {
+    CardItem* card = cards_.value(id);
+    if (moved.contains(ToQ(card->card().parent))) continue;
+    moves.push_back(
+        bridge::NodeMove{ToRust(id), card->pos().x(), card->pos().y()});
   }
   if (moves.empty()) return;
   bridge::Session& session = App::Get().session();
@@ -798,6 +948,14 @@ void GraphCanvas::FitAll() {
   }
   emit ZoomChanged(zoom());
   minimap_->viewport()->update();
+}
+
+QStringList GraphCanvas::GroupIds() const {
+  QStringList ids;
+  for (const CardItem* card : cards_) {
+    if (card->card().kind == bridge::CardKind::Group) ids.append(card->id());
+  }
+  return ids;
 }
 
 int GraphCanvas::BackwardEdges() const {

@@ -230,6 +230,7 @@ fn card(
         outputs: Vec::new(),
         rows: Vec::new(),
         disabled: node.disabled.unwrap_or(false),
+        parent: node.parent_id.clone().unwrap_or_default(),
         problem: error.unwrap_or_default(),
         warning: String::new(),
         text: String::new(),
@@ -253,6 +254,10 @@ fn card(
         NOTE_TYPE => {
             view.kind = CardKind::Note;
             view.text = text_param(node, def, "text");
+            let color = text_param(node, def, "color");
+            if !color.is_empty() {
+                view.color = color;
+            }
             let size = node.size.as_ref();
             view.width = size.map_or(CARD_WIDTH, |s| f64::from(s.width));
             view.height = size.map_or(NOTE_HEIGHT, |s| f64::from(s.height));

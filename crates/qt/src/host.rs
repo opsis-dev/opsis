@@ -68,6 +68,7 @@ pub trait Host {
     fn paste_text(&self, text: &str) -> HostResult<()>;
     fn duplicate_selection(&self) -> HostResult<()>;
     fn drop_files(&self, paths: Vec<String>, x: f64, y: f64) -> HostResult<u32>;
+    fn resize_node(&self, id: &str, x: f64, y: f64, width: f64, height: f64) -> HostResult<()>;
     fn text_tokens(&self, value: &str, pauses: bool) -> Vec<TextToken>;
     fn join_tokens(&self, tokens: Vec<TextToken>) -> String;
     fn save(&self) -> HostResult<()>;
@@ -337,6 +338,17 @@ impl Session {
 
     pub(crate) fn drop_files(&self, paths: Vec<String>, x: f64, y: f64) -> HostResult<u32> {
         self.0.drop_files(paths, x, y)
+    }
+
+    pub(crate) fn resize_node(
+        &self,
+        id: &str,
+        x: f64,
+        y: f64,
+        width: f64,
+        height: f64,
+    ) -> HostResult<()> {
+        self.0.resize_node(id, x, y, width, height)
     }
 
     pub(crate) fn text_tokens(&self, value: &str, pauses: bool) -> Vec<TextToken> {

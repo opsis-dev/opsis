@@ -709,6 +709,65 @@ impl Host for Ui {
         Ok(id)
     }
 
+    fn resize_node(&self, id: &str, x: f64, y: f64, width: f64, height: f64) -> HostResult<()> {
+        let wf = self
+            .workflow()
+            .ok_or_else(|| "No project is open.".to_owned())?;
+        let node = wf.node(id).ok_or_else(|| "That node is gone.".to_owned())?;
+        let parent = node
+            .parent_id
+            .as_deref()
+            .and_then(|p| wf.node(p))
+            .map_or(Position { x: 0.0, y: 0.0 }, |p| {
+                opsis_compile::edits::workflow::absolute_position(&wf, p)
+            });
+        let whole = opsis_types::numbers::whole;
+        let shift = Position {
+            x: x - parent.x - node.position.x,
+            y: y - parent.y - node.position.y,
+        };
+        let children: IndexMap<String, Position> = wf
+            .nodes
+            .iter()
+            .filter(|child| child.parent_id.as_deref() == Some(id))
+            .map(|child| {
+                (
+                    child.id.clone(),
+                    Position {
+                        x: child.position.x - shift.x,
+                        y: child.position.y - shift.y,
+                    },
+                )
+            })
+            .collect();
+        document::begin_gesture(&self.session);
+        let moved = if children.is_empty() {
+            Ok(Vec::new())
+        } else {
+            self.edit(WorkflowEdit::MoveNodes {
+                positions: children,
+            })
+        };
+        let resized = moved.and_then(|_| {
+            self.edit(WorkflowEdit::UpdateNode {
+                id: id.to_owned(),
+                patch: NodePatch {
+                    position: Some(Position {
+                        x: x - parent.x,
+                        y: y - parent.y,
+                    }),
+                    size: Some(Viewport {
+                        width: whole(width),
+                        height: whole(height),
+                    }),
+                    ..NodePatch::default()
+                },
+            })
+        });
+        document::end_gesture(&self.session);
+        resized.map(|_| ()).map_err(|e| e.0)
+    }
+
     fn drop_files(&self, paths: Vec<String>, x: f64, y: f64) -> HostResult<u32> {
         let Some(dir) = self.state().editor().dir() else {
             return Ok(0);

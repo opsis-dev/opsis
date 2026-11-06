@@ -191,6 +191,7 @@ pub mod ffi {
         outputs: Vec<PortView>,
         rows: Vec<RowView>,
         disabled: bool,
+        parent: String,
         problem: String,
         warning: String,
         text: String,
@@ -366,6 +367,14 @@ pub mod ffi {
         fn paste_text(self: &Session, text: &str) -> Result<()>;
         fn duplicate_selection(self: &Session) -> Result<()>;
         fn drop_files(self: &Session, paths: Vec<String>, x: f64, y: f64) -> Result<u32>;
+        fn resize_node(
+            self: &Session,
+            id: &str,
+            x: f64,
+            y: f64,
+            width: f64,
+            height: f64,
+        ) -> Result<()>;
         fn text_tokens(self: &Session, value: &str, pauses: bool) -> Vec<TextToken>;
         fn join_tokens(self: &Session, tokens: Vec<TextToken>) -> String;
         fn save(self: &Session) -> Result<()>;
