@@ -365,6 +365,33 @@ void Scenario::BuildTour() {
       if (action->text() == QStringLiteral("Undo")) action->trigger();
     }
   });
+  auto motion_card = std::make_shared<QString>();
+  Add(
+      QStringLiteral("play-node-motion"),
+      [canvas, motion_card] {
+        for (const QString& id : canvas->CardIds()) {
+          if (!canvas->Card(id)->card().motion.empty()) {
+            *motion_card = id;
+            canvas->PlayMotion(id);
+            return;
+          }
+        }
+      },
+      150,
+      [canvas, motion_card] {
+        if (motion_card->isEmpty())
+          return QStringLiteral("no card has a motion");
+        return canvas->MotionElapsed(*motion_card) >= 0
+                   ? QString()
+                   : QStringLiteral("the motion didn't start");
+      });
+  Add(
+      QStringLiteral("node-motion-ends"), [] {}, 1500,
+      [canvas, motion_card] {
+        return canvas->MotionElapsed(*motion_card) < 0
+                   ? QString()
+                   : QStringLiteral("the motion is still playing");
+      });
   Add(
       QStringLiteral("tidy-up-layout"),
       [window, canvas] {

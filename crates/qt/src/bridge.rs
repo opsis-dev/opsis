@@ -80,6 +80,38 @@ pub mod ffi {
         text: String,
     }
 
+    #[derive(Debug, Clone, Copy)]
+    struct PoseView {
+        tx: f64,
+        ty: f64,
+        sx: f64,
+        sy: f64,
+        rotate: f64,
+        tilt_x: f64,
+        tilt_y: f64,
+        opacity: f64,
+        blur: f64,
+        clip_top: f64,
+        iris: f64,
+        sweep: f64,
+        mask: f64,
+        dash: f64,
+        split_x: f64,
+        split_y: f64,
+        rgb: f64,
+        smear: f64,
+    }
+
+    #[derive(Debug, Clone)]
+    struct MotionInfo {
+        ms: u32,
+        origin_x: f64,
+        origin_y: f64,
+        part: String,
+        clip: bool,
+        mask: String,
+    }
+
     #[derive(Debug, Clone)]
     struct VariableView {
         name: String,
@@ -192,6 +224,7 @@ pub mod ffi {
         rows: Vec<RowView>,
         disabled: bool,
         parent: String,
+        motion: String,
         problem: String,
         warning: String,
         text: String,
@@ -364,6 +397,8 @@ pub mod ffi {
         fn project_edit(self: &Session, json: &str) -> Result<()>;
         fn clear_saved_results(self: &Session) -> Result<()>;
         fn copy_selection(self: &Session) -> String;
+        fn motion_info(self: &Session, motion: &str) -> MotionInfo;
+        fn motion_pose(self: &Session, motion: &str, elapsed_ms: f64) -> PoseView;
         fn paste_text(self: &Session, text: &str) -> Result<()>;
         fn duplicate_selection(self: &Session) -> Result<()>;
         fn drop_files(self: &Session, paths: Vec<String>, x: f64, y: f64) -> Result<u32>;

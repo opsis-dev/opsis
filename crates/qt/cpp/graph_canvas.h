@@ -1,6 +1,7 @@
 #ifndef OPSIS_QT_CPP_GRAPH_CANVAS_H_
 #define OPSIS_QT_CPP_GRAPH_CANVAS_H_
 
+#include <QElapsedTimer>
 #include <QGraphicsItem>
 #include <QGraphicsPathItem>
 #include <QGraphicsScene>
@@ -50,6 +51,7 @@ class CardItem : public QGraphicsItem {
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
+  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
 
  private:
   static constexpr unsigned kLeft = 1U;
@@ -60,6 +62,7 @@ class CardItem : public QGraphicsItem {
   unsigned EdgesAt(const QPointF& local) const;
   void PaintResizeHandles(QPainter* painter);
   void PaintCard(QPainter* painter, bool detailed);
+  void PaintGlyph(QPainter* painter, const QRectF& badge, const QColor& accent);
   void PaintRing(QPainter* painter, const QRectF& body);
   double PaintBadge(QPainter* painter);
   void PaintGroup(QPainter* painter);
@@ -109,6 +112,9 @@ class GraphCanvas : public QGraphicsView {
   void SetMinimapVisible(bool visible);
   void Reveal(const QString& id);
   int BackwardEdges() const;
+  void PlayMotion(const QString& id);
+  double MotionElapsed(const QString& id) const;
+  const bridge::MotionInfo& MotionInfoOf(const QString& motion);
   CardItem* Card(const QString& id) const { return cards_.value(id); }
   QStringList GroupIds() const;
   void MoveChildren(const QString& group, const QPointF& delta);
@@ -170,6 +176,10 @@ class GraphCanvas : public QGraphicsView {
   QTimer toast_timer_;
   QTimer sync_timer_;
   QTimer spin_timer_;
+  QTimer motion_timer_;
+  QElapsedTimer motion_clock_;
+  QHash<QString, qint64> motion_started_;
+  QHash<QString, bridge::MotionInfo> motion_infos_;
   double spin_angle_ = 0;
   QPoint pan_from_;
   bool panning_ = false;

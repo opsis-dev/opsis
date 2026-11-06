@@ -10,6 +10,7 @@
 #include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QKeyEvent>
+#include <QLinearGradient>
 #include <QMimeData>
 #include <QNativeGestureEvent>
 #include <QPainter>
@@ -18,8 +19,11 @@
 #include <QStyleOptionGraphicsItem>
 #include <QToolButton>
 #include <QVariantAnimation>
+#include <QtMath>
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <iterator>
 #include <vector>
 
 #include "app.h"
@@ -56,6 +60,22 @@ constexpr double kHandleReach = 6.0;
 constexpr double kNoteBorderMix = 0.4;
 constexpr double kNoteFillMix = 0.1;
 constexpr double kNoteInkMix = 0.3;
+constexpr double kGlyphInset = 5.0;
+constexpr double kGlyphSize = 14.0;
+constexpr int kGlyphPx = 14;
+constexpr double kRingPen = 1.5;
+constexpr double kFlareHalf = 8.0;
+constexpr int kFlareAlpha = 200;
+constexpr double kClockStart = 90.0;
+constexpr double kWipeReach = 1.35;
+constexpr double kBlurAlpha = 0.45;
+constexpr double kShimmerDim = 0.3;
+constexpr double kShimmerFrom = 1.5;
+constexpr double kShimmerTravel = 2.0;
+constexpr double kShimmerHalf = 3.0;
+constexpr int kMotionFrameMs = 16;
+constexpr std::array<std::pair<double, double>, 3> kSmear = {
+    {{-3.0, 0.45}, {-6.0, 0.25}, {-9.0, 0.12}}};
 constexpr double kRingOut = 3.0;
 constexpr double kBadgeHeight = 20.0;
 constexpr double kBadgeIcon = 12.0;
@@ -109,7 +129,7 @@ QString Elided(const QFont& font, const QString& text, double width) {
 CardItem::CardItem(GraphCanvas* canvas, const bridge::CardView& card)
     : canvas_(canvas), card_(card), id_(ToQ(card.id)) {
   setFlags(ItemIsSelectable | ItemIsMovable | ItemSendsGeometryChanges);
-  setAcceptHoverEvents(card.kind == bridge::CardKind::Group);
+  setAcceptHoverEvents(true);
   if (qEnvironmentVariableIsEmpty("OPSIS_QT_NO_ITEM_CACHE")) {
     setCacheMode(DeviceCoordinateCache);
   }
@@ -245,6 +265,125 @@ void CardItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
   canvas_->CommitMoves();
 }
 
+void CardItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event) {
+  if (card_.kind == bridge::CardKind::Card) canvas_->PlayMotion(id_);
+  QGraphicsItem::hoverEnterEvent(event);
+}
+
+void CardItem::PaintGlyph(QPainter* painter, const QRectF& badge,
+                          const QColor& accent) {
+  App& app = App::Get();
+  const QString name = ToQ(card_.glyph);
+  const QRectF box(badge.x() + kGlyphInset, badge.y() + kGlyphInset, kGlyphSize,
+                   kGlyphSize);
+  const double elapsed = canvas_->MotionElapsed(id_);
+  if (elapsed < 0) {
+    painter->drawPixmap(box.topLeft(), app.Glyph(name, Qt::black, kGlyphPx));
+    return;
+  }
+  const QString motion = ToQ(card_.motion);
+  const bridge::MotionInfo& info = canvas_->MotionInfoOf(motion);
+  const bridge::PoseView pose =
+      app.session().motion_pose(card_.motion, elapsed);
+  const QString part = ToQ(info.part);
+  painter->save();
+  if (part == QStringLiteral("ring") || part == QStringLiteral("flare")) {
+    painter->drawPixmap(box.topLeft(), app.Glyph(name, Qt::black, kGlyphPx));
+    painter->setOpacity(pose.opacity);
+    if (part == QStringLiteral("ring")) {
+      painter->setBrush(Qt::NoBrush);
+      painter->setPen(QPen(accent, kRingPen));
+      const double radius = badge.width() / 2 * pose.sx;
+      painter->drawEllipse(badge.center(), radius, radius);
+    } else {
+      painter->setClipRect(badge);
+      const double x = badge.center().x() + pose.tx * badge.width();
+      QLinearGradient light(x - kFlareHalf, 0, x + kFlareHalf, 0);
+      light.setColorAt(0.0, QColor(255, 255, 255, 0));
+      light.setColorAt(0.5, QColor(255, 255, 255, kFlareAlpha));
+      light.setColorAt(1.0, QColor(255, 255, 255, 0));
+      painter->fillRect(badge, light);
+    }
+    painter->restore();
+    return;
+  }
+  if (info.clip) painter->setClipRect(badge, Qt::IntersectClip);
+  const QPointF origin(info.origin_x * kGlyphSize, info.origin_y * kGlyphSize);
+  QTransform transform;
+  transform.translate(
+      box.x() + origin.x() + (pose.tx + pose.split_x) * kGlyphSize,
+      box.y() + origin.y() + (pose.ty + pose.split_y) * kGlyphSize);
+  transform.rotate(pose.rotate);
+  transform.scale(pose.sx * std::cos(qDegreesToRadians(pose.tilt_y)),
+                  pose.sy * std::cos(qDegreesToRadians(pose.tilt_x)));
+  transform.translate(-origin.x(), -origin.y());
+  painter->setTransform(transform, true);
+  painter->setOpacity(painter->opacity() * pose.opacity);
+  const QRectF local(0, 0, kGlyphSize, kGlyphSize);
+  QPainterPath clip;
+  clip.addRect(QRectF(0, pose.clip_top * kGlyphSize, kGlyphSize,
+                      kGlyphSize * (1 - pose.clip_top)));
+  QPainterPath iris;
+  iris.addEllipse(local.center(), pose.iris * kGlyphSize,
+                  pose.iris * kGlyphSize);
+  clip = clip.intersected(iris);
+  const QString mask = ToQ(info.mask);
+  if (mask == QStringLiteral("clock")) {
+    QPainterPath pie;
+    pie.moveTo(local.center());
+    pie.arcTo(local.adjusted(-kGlyphSize, -kGlyphSize, kGlyphSize, kGlyphSize),
+              kClockStart, -pose.sweep);
+    pie.closeSubpath();
+    clip = clip.intersected(pie);
+  } else if (mask == QStringLiteral("wipe")) {
+    QPainterPath shown;
+    shown.addRect(QRectF(
+        0, 0, kGlyphSize * std::clamp(kWipeReach - 2 * pose.mask, 0.0, 1.0),
+        kGlyphSize));
+    clip = clip.intersected(shown);
+  }
+  if (part == QStringLiteral("shapes")) {
+    QPainterPath drawn;
+    drawn.addRect(QRectF(0, 0, kGlyphSize * (1 - pose.dash), kGlyphSize));
+    clip = clip.intersected(drawn);
+  }
+  painter->setClipPath(clip, Qt::IntersectClip);
+  const QPixmap glyph = app.Glyph(name, Qt::black, kGlyphPx);
+  if (pose.rgb != 0) {
+    painter->drawPixmap(QPointF(-pose.rgb, 0),
+                        app.Glyph(name, QColor(0xff, 0x2d, 0x55), kGlyphPx));
+    painter->drawPixmap(QPointF(pose.rgb, 0),
+                        app.Glyph(name, QColor(0x00, 0xe5, 0xff), kGlyphPx));
+  }
+  const double base = painter->opacity();
+  for (const auto& [shift, alpha] : kSmear) {
+    if (pose.smear <= 0) break;
+    painter->setOpacity(base * alpha);
+    painter->drawPixmap(QPointF(shift * pose.smear, 0), glyph);
+  }
+  if (pose.blur > 0) {
+    painter->setOpacity(base * kBlurAlpha);
+    for (const QPointF& shift :
+         {QPointF(-pose.blur / 2, 0), QPointF(pose.blur / 2, 0),
+          QPointF(0, -pose.blur / 2), QPointF(0, pose.blur / 2)}) {
+      painter->drawPixmap(shift, glyph);
+    }
+  }
+  painter->setOpacity(base * (pose.blur > 0 ? kBlurAlpha : 1.0));
+  if (mask == QStringLiteral("shimmer")) {
+    painter->setOpacity(base * kShimmerDim);
+    painter->drawPixmap(QPointF(0, 0), glyph);
+    const double centre =
+        kGlyphSize * (kShimmerFrom - kShimmerTravel * pose.mask);
+    painter->setClipRect(
+        QRectF(centre - kShimmerHalf, 0, 2 * kShimmerHalf, kGlyphSize),
+        Qt::IntersectClip);
+    painter->setOpacity(base);
+  }
+  painter->drawPixmap(QPointF(0, 0), glyph);
+  painter->restore();
+}
+
 void CardItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event) {
   const unsigned edges = EdgesAt(event->pos());
   const bool diagonal_down =
@@ -311,8 +450,7 @@ void CardItem::PaintCard(QPainter* painter, bool detailed) {
   painter->setPen(Qt::NoPen);
   painter->setBrush(accent);
   painter->drawRoundedRect(badge, 6, 6);
-  painter->drawPixmap(QPointF(badge.x() + 5, badge.y() + 5),
-                      app.Glyph(ToQ(card_.glyph), Qt::black, 14));
+  PaintGlyph(painter, badge, accent);
   QFont title = QApplication::font();
   title.setPixelSize(14);
   title.setWeight(QFont::DemiBold);
@@ -670,6 +808,20 @@ GraphCanvas::GraphCanvas(QWidget* parent) : QGraphicsView(parent) {
           qOverload<>(&QTimer::start));
   connect(EventHub::Instance(), &EventHub::RunChanged, &sync_timer_,
           qOverload<>(&QTimer::start));
+  motion_timer_.setInterval(kMotionFrameMs);
+  connect(&motion_timer_, &QTimer::timeout, this, [this] {
+    const qint64 now = motion_clock_.elapsed();
+    for (auto it = motion_started_.begin(); it != motion_started_.end();) {
+      CardItem* card = cards_.value(it.key());
+      const bool over =
+          card == nullptr ||
+          now - it.value() >
+              static_cast<qint64>(MotionInfoOf(ToQ(card->card().motion)).ms);
+      if (card != nullptr) card->update();
+      it = over ? motion_started_.erase(it) : std::next(it);
+    }
+    if (motion_started_.isEmpty()) motion_timer_.stop();
+  });
   spin_timer_.setInterval(kSpinFrameMs);
   connect(&spin_timer_, &QTimer::timeout, this, [this] {
     spin_angle_ = std::fmod(spin_angle_ + kSpinStep, 360.0);
@@ -948,6 +1100,30 @@ void GraphCanvas::FitAll() {
   }
   emit ZoomChanged(zoom());
   minimap_->viewport()->update();
+}
+
+void GraphCanvas::PlayMotion(const QString& id) {
+  CardItem* card = cards_.value(id);
+  if (card == nullptr || card->card().motion.empty() || ReducedMotion()) return;
+  if (motion_started_.contains(id)) return;
+  if (!motion_clock_.isValid()) motion_clock_.start();
+  motion_started_.insert(id, motion_clock_.elapsed());
+  if (!motion_timer_.isActive()) motion_timer_.start();
+}
+
+double GraphCanvas::MotionElapsed(const QString& id) const {
+  const auto found = motion_started_.find(id);
+  if (found == motion_started_.end()) return -1;
+  return static_cast<double>(motion_clock_.elapsed() - *found);
+}
+
+const bridge::MotionInfo& GraphCanvas::MotionInfoOf(const QString& motion) {
+  auto found = motion_infos_.find(motion);
+  if (found == motion_infos_.end()) {
+    found = motion_infos_.insert(
+        motion, App::Get().session().motion_info(ToRust(motion)));
+  }
+  return *found;
 }
 
 QStringList GraphCanvas::GroupIds() const {

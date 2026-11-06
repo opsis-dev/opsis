@@ -9,9 +9,9 @@ mod host;
 pub use bridge::ffi::{
     CardKind, CardView, CategoryView, Choice, CloseView, DialogKind, EdgeView, EventKind,
     FieldKind, FieldView, GraphView, InspectorView, IssueView, MenuItemKind, MenuItemView,
-    MenuSectionView, NodeMove, PaletteEntry, PortView, ProjectEntry, ProjectView, RowView,
-    ScreenArea, SettingsView, ShapeView, TemplateView, TextToken, TokenKind, VariableView,
-    WindowPlacement,
+    MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PortView, PoseView, ProjectEntry,
+    ProjectView, RowView, ScreenArea, SettingsView, ShapeView, TemplateView, TextToken, TokenKind,
+    VariableView, WindowPlacement,
 };
 pub use host::{
     Host, HostResult, notify, open_path, post_event, qt_version, quit, raise_editor,

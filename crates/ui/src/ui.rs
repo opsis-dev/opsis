@@ -14,8 +14,8 @@ use opsis_compile::node::Platform as NodePlatform;
 use opsis_compile::nodes::media::IMPORT_TYPE;
 use opsis_qt::{
     CategoryView, Choice, CloseView, EventKind, GraphView, Host, HostResult, InspectorView,
-    MenuSectionView, NodeMove, PaletteEntry, ProjectEntry, ProjectView, ScreenArea, SettingsView,
-    TemplateView, TextToken, VariableView, WindowPlacement,
+    MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView, ProjectEntry, ProjectView,
+    ScreenArea, SettingsView, TemplateView, TextToken, VariableView, WindowPlacement,
 };
 use opsis_session::error::CommandError;
 use opsis_session::events::{MAIN_WINDOW, SessionEvent};
@@ -37,7 +37,7 @@ use tokio::sync::broadcast::error::RecvError;
 
 use crate::platform::QtPlatform;
 use crate::project::Extras;
-use crate::{clipboard, graph, inspector, look, project};
+use crate::{clipboard, graph, inspector, look, motion, project};
 
 const LAYOUT_KEY: &str = "nativeDockLayout";
 const BENCH_KINDS: [&str; 4] = [
@@ -927,6 +927,14 @@ impl Host for Ui {
             return Ok(());
         };
         projects::clear_cache(&self.session, &dir.to_string_lossy()).map_err(|e| e.0)
+    }
+
+    fn motion_info(&self, motion: &str) -> MotionInfo {
+        motion::info(motion)
+    }
+
+    fn motion_pose(&self, motion: &str, elapsed_ms: f64) -> PoseView {
+        motion::pose(motion, elapsed_ms)
     }
 
     fn copy_selection(&self) -> String {

@@ -17,6 +17,7 @@ mod layout;
 mod lengths;
 mod looks;
 mod mix;
+mod motions;
 mod nodes_a;
 mod nodes_b;
 mod nodes_c;

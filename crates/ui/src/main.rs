@@ -4,6 +4,7 @@ mod graph;
 mod inspector;
 mod look;
 mod menu;
+mod motion;
 mod platform;
 mod project;
 mod text;

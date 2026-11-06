@@ -24,6 +24,7 @@ pub mod lanes;
 pub mod layout;
 pub mod limits;
 pub mod mix;
+pub mod motions;
 pub mod node;
 pub mod nodes;
 pub mod params;

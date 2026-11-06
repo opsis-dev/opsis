@@ -231,6 +231,10 @@ fn card(
         rows: Vec::new(),
         disabled: node.disabled.unwrap_or(false),
         parent: node.parent_id.clone().unwrap_or_default(),
+        motion: def
+            .and_then(|d| d.look.as_ref())
+            .and_then(|l| l.motion)
+            .map_or_default(|m| plain(&m)),
         problem: error.unwrap_or_default(),
         warning: String::new(),
         text: String::new(),

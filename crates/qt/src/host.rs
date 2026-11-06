@@ -2,8 +2,8 @@ use std::fmt;
 
 use crate::bridge::ffi::{
     self, CategoryView, CloseView, DialogKind, EventKind, GraphView, InspectorView,
-    MenuSectionView, NodeMove, PaletteEntry, ProjectEntry, ProjectView, ScreenArea, SettingsView,
-    TemplateView, TextToken, VariableView, WindowPlacement,
+    MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView, ProjectEntry, ProjectView,
+    ScreenArea, SettingsView, TemplateView, TextToken, VariableView, WindowPlacement,
 };
 
 pub type HostResult<T> = Result<T, String>;
@@ -65,6 +65,8 @@ pub trait Host {
     fn project_edit(&self, json: &str) -> HostResult<()>;
     fn clear_saved_results(&self) -> HostResult<()>;
     fn copy_selection(&self) -> String;
+    fn motion_info(&self, motion: &str) -> MotionInfo;
+    fn motion_pose(&self, motion: &str, elapsed_ms: f64) -> PoseView;
     fn paste_text(&self, text: &str) -> HostResult<()>;
     fn duplicate_selection(&self) -> HostResult<()>;
     fn drop_files(&self, paths: Vec<String>, x: f64, y: f64) -> HostResult<u32>;
@@ -326,6 +328,14 @@ impl Session {
 
     pub(crate) fn copy_selection(&self) -> String {
         self.0.copy_selection()
+    }
+
+    pub(crate) fn motion_info(&self, motion: &str) -> MotionInfo {
+        self.0.motion_info(motion)
+    }
+
+    pub(crate) fn motion_pose(&self, motion: &str, elapsed_ms: f64) -> PoseView {
+        self.0.motion_pose(motion, elapsed_ms)
     }
 
     pub(crate) fn paste_text(&self, text: &str) -> HostResult<()> {
