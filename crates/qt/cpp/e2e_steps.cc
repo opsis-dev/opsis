@@ -41,6 +41,8 @@ constexpr int kNudgeX = 120;
 constexpr int kNudgeY = 60;
 constexpr int kGrow = 60;
 constexpr double kNear = 1.0;
+constexpr double kBottomShareLow = 0.3;
+constexpr double kBottomShareHigh = 0.5;
 
 struct Memo {
   QString id;
@@ -228,6 +230,72 @@ void Scenario::BuildTour() {
       QStringLiteral("top-bar"), [] {}, 200,
       [window] { return window->top_bar()->Problems(); });
 
+  Add(
+      QStringLiteral("bottom-panel-height"), [] {}, 100,
+      [window] {
+        const double dock = window->timeline_dock()->height();
+        const double column = dock + window->canvas()->height();
+        const double share = column > 0 ? dock / column : 0;
+        return Expect(share > kBottomShareLow && share < kBottomShareHigh,
+                      QStringLiteral("the bottom panel takes %1% of the column")
+                          .arg(std::lround(share * 100)));
+      });
+  Add(
+      QStringLiteral("pop-out-timeline"),
+      [this, window] {
+        Click(window, QStringLiteral("Open timeline in a new window"));
+      },
+      800,
+      [window] {
+        return Expect(
+            window->timeline_dock()->isFloating(),
+            QStringLiteral("the timeline didn't open in its own window"));
+      });
+  Add(
+      QStringLiteral("dock-timeline-back"),
+      [this, window] {
+        QWidget* floating = window->timeline_dock()->QWidget::window();
+        QWidget* title = nullptr;
+        for (QWidget* child : floating->findChildren<QWidget*>()) {
+          if (child->isVisible() && child->height() > 0 &&
+              QString::fromLatin1(child->metaObject()->className())
+                  .contains(QStringLiteral("TitleBar"))) {
+            title = child;
+            break;
+          }
+        }
+        if (title == nullptr) {
+          Miss(QStringLiteral("the floating timeline has no title bar"));
+          return;
+        }
+        QTest::mouseDClick(title, Qt::LeftButton, {},
+                           QPoint(title->width() / 3, title->height() / 2));
+      },
+      800,
+      [window] {
+        return Expect(
+            !window->timeline_dock()->isFloating(),
+            QStringLiteral("double-clicking the title didn't dock it"));
+      });
+  Add(
+      QStringLiteral("collapse-bottom-panel"),
+      [this, window] {
+        Click(window, QStringLiteral("Hide the bottom panel"));
+      },
+      600,
+      [window] {
+        return Expect(!window->timeline_dock()->isOpen() &&
+                          !window->timeline_dock()->isVisible(),
+                      QStringLiteral("the bottom panel is still open"));
+      });
+  Add(
+      QStringLiteral("show-bottom-panel-from-top-bar"),
+      [this, window] { Click(window, QStringLiteral("Show bottom panel")); },
+      600,
+      [window] {
+        return Expect(window->timeline_dock()->isOpen(),
+                      QStringLiteral("the bottom panel didn't come back"));
+      });
   Add(
       QStringLiteral("search-node-list"),
       [window] {

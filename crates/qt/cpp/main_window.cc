@@ -1,6 +1,7 @@
 #include "main_window.h"
 
 #include <kddockwidgets/LayoutSaver.h>
+#include <kddockwidgets/core/DockWidget.h>
 
 #include <QApplication>
 #include <QCheckBox>
@@ -13,6 +14,7 @@
 #include <QScreen>
 #include <QTimer>
 #include <QVBoxLayout>
+#include <array>
 #include <functional>
 
 #include "app.h"
@@ -41,7 +43,7 @@ namespace kdw = KDDockWidgets;
 
 constexpr int kSideWidth = 260;
 constexpr int kInspectorWidth = 340;
-constexpr int kBottomHeight = 240;
+constexpr double kBottomShare = 0.4;
 constexpr int kSaveWindowAfterMs = 400;
 
 QWidget* Placeholder(const QString& text) {
@@ -193,7 +195,7 @@ void MainWindow::Dispatch(const QString& id) {
   } else if (id == QStringLiteral("view:toggle-right")) {
     ToggleDock(inspector_dock_);
   } else if (id == QStringLiteral("view:toggle-bottom")) {
-    ToggleDock(timeline_dock_);
+    ToggleBottom();
   } else if (id == QStringLiteral("view:toggle-minimap")) {
     canvas_->SetMinimapVisible(!canvas_->minimap_visible());
   } else if (id == QStringLiteral("view:focus-timeline")) {
@@ -337,7 +339,8 @@ void MainWindow::BuildDocks() {
       MakeDock(QStringLiteral("nodes"), QStringLiteral("Nodes"), nodes);
   connect(nodes_dock_, &kdw::QtWidgets::DockWidget::isOpenChanged, this,
           &MainWindow::SyncRail);
-  for (auto* dock : {nodes_dock_, inspector_dock_, timeline_dock_}) {
+  for (auto* dock :
+       {nodes_dock_, inspector_dock_, timeline_dock_, mixer_dock_, run_dock_}) {
     connect(dock, &kdw::QtWidgets::DockWidget::isOpenChanged, this,
             &MainWindow::SyncPanels);
   }
@@ -353,8 +356,10 @@ void MainWindow::BuildDocks() {
   run_dock_ = MakeDock(
       QStringLiteral("run"), QStringLiteral("Run"),
       Placeholder(QStringLiteral("Runs aren't in the native editor yet.")));
+  const int bottom =
+      static_cast<int>((height() - app_bar_->height()) * kBottomShare);
   addDockWidget(timeline_dock_, kdw::Location_OnBottom, nullptr,
-                kdw::InitialOption(kdw::Size(0, kBottomHeight)));
+                kdw::InitialOption(kdw::Size(0, bottom)));
   addDockWidget(nodes_dock_, kdw::Location_OnLeft, nullptr,
                 kdw::InitialOption(kdw::Size(kSideWidth, 0)));
   addDockWidget(inspector_dock_, kdw::Location_OnRight, nullptr,
@@ -423,7 +428,7 @@ void MainWindow::SyncTitle() {
 
 void MainWindow::SyncPanels() {
   if (!docked_) return;
-  top_bar_->SetPanels(nodes_dock_->isOpen(), timeline_dock_->isOpen(),
+  top_bar_->SetPanels(nodes_dock_->isOpen(), BottomOpen(),
                       inspector_dock_->isOpen());
 }
 
@@ -448,6 +453,33 @@ void MainWindow::QuickAdd() {
 
 void MainWindow::SetEnabled(const QString& id, bool enabled) {
   if (QAction* action = actions_.value(id)) action->setEnabled(enabled);
+}
+
+bool MainWindow::BottomOpen() const {
+  return timeline_dock_->isOpen() || mixer_dock_->isOpen() ||
+         run_dock_->isOpen();
+}
+
+void MainWindow::ToggleBottom() {
+  if (!docked_) return;
+  const std::array<kdw::QtWidgets::DockWidget*, 3> docks = {
+      timeline_dock_, mixer_dock_, run_dock_};
+  if (BottomOpen()) {
+    bottom_current_ = nullptr;
+    for (auto* dock : docks) {
+      if (dock->isOpen() && dock->dockWidget()->isCurrentTab()) {
+        bottom_current_ = dock;
+      }
+    }
+    for (auto* dock : docks) dock->forceClose();
+  } else {
+    timeline_dock_->open();
+    timeline_dock_->addDockWidgetAsTab(mixer_dock_);
+    timeline_dock_->addDockWidgetAsTab(run_dock_);
+    (bottom_current_ != nullptr ? bottom_current_ : timeline_dock_)
+        ->setAsCurrentTab();
+  }
+  SyncPanels();
 }
 
 void MainWindow::ToggleDock(kdw::QtWidgets::DockWidget* dock) {

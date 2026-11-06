@@ -17,6 +17,9 @@ class DockViewFactory : public KDDockWidgets::QtWidgets::ViewFactory {
   KDDockWidgets::Core::View* createGroup(
       KDDockWidgets::Core::Group* controller,
       KDDockWidgets::Core::View* parent) const override;
+  KDDockWidgets::Core::View* createStack(
+      KDDockWidgets::Core::Stack* controller,
+      KDDockWidgets::Core::View* parent) const override;
   KDDockWidgets::Core::View* createSeparator(
       KDDockWidgets::Core::Separator* controller,
       KDDockWidgets::Core::View* parent) const override;

@@ -56,6 +56,7 @@ const UI_ICONS = [
   "shapes",
   "sparkles",
   "square",
+  "square-arrow-out-up-right",
   "square-terminal",
   "sticky-note",
   "touchpad",

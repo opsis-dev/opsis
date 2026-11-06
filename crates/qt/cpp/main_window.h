@@ -38,10 +38,15 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   KDDockWidgets::QtWidgets::DockWidget* nodes_dock() const {
     return nodes_dock_;
   }
+  KDDockWidgets::QtWidgets::DockWidget* timeline_dock() const {
+    return timeline_dock_;
+  }
   void OpenExample(const QString& dir);
   void OpenFolder(const QString& dir);
   void Generate(int count);
   void CloseProject();
+
+  Q_INVOKABLE void RunCommand(const QString& id) { Dispatch(id); }
 
  protected:
   void closeEvent(QCloseEvent* event) override;
@@ -56,6 +61,8 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   void AddNode(const QString& type);
   void SyncRail();
   void SyncPanels();
+  void ToggleBottom();
+  bool BottomOpen() const;
   void QuickAdd();
   void SaveLayout();
   void SyncTitle();
@@ -77,6 +84,7 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   QStackedWidget* stack_;
   CategoryRail* rail_;
   TopBar* top_bar_;
+  KDDockWidgets::QtWidgets::DockWidget* bottom_current_ = nullptr;
   StartScreen* start_;
   GraphCanvas* canvas_;
   KDDockWidgets::QtWidgets::DockWidget* nodes_dock_ = nullptr;
