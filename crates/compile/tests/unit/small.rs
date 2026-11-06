@@ -554,3 +554,32 @@ proptest! {
         prop_assert_eq!(PreparedRef::new(kind, &outside), None);
     }
 }
+
+mod color_formats {
+    use opsis_compile::color::{ColorFormat, Hsva, format_color, parse_color, rgb_of};
+    use proptest::prelude::*;
+
+    proptest! {
+        #[test]
+        fn a_formatted_colour_parses_back_to_the_same_colour(
+            h in 0.0f64..360.0,
+            s in 0.0f64..=1.0,
+            v in 0.0f64..=1.0,
+            a in prop_oneof![Just(1.0f64), 0.0f64..1.0],
+            which in 0usize..4,
+        ) {
+            let format = ColorFormat::ALL[which];
+            let original = format_color(Hsva { h, s, v, a }, ColorFormat::Hex);
+            let text = format_color(Hsva { h, s, v, a }, format);
+            prop_assert_eq!(ColorFormat::of(&text), format);
+            let back = parse_color(&text).expect("a colour it wrote");
+            prop_assert!((back.a - a).abs() < 0.01, "{} alpha {} vs {}", text, back.a, a);
+            let (want, got) = (rgb_of(&original).unwrap(), rgb_of(&text).unwrap());
+            let rounded = matches!(format, ColorFormat::Hsl | ColorFormat::Oklch);
+            let tolerance = if rounded { 4.0 / 255.0 } else { 2.0 / 255.0 };
+            prop_assert!((want.r - got.r).abs() <= tolerance
+                && (want.g - got.g).abs() <= tolerance
+                && (want.b - got.b).abs() <= tolerance, "{} vs {}", original, text);
+        }
+    }
+}

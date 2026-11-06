@@ -5,3 +5,4 @@
 # It is recommended to check this file in to source control so that
 # everyone who runs the test benefits from these saved cases.
 cc a1b7771db347f105d5389e776e30b708a1b6bffddb2cd664639ce81bf79971c7 # shrinks to parts = [" "], dots = 0
+cc 8bf1ba5a12ec089230383964723f8ce7e48ddfef279fd387c1a6fe8495df083f # shrinks to h = 189.4768031535263, s = 0.19184658437959945, v = 0.0817458908205131, a = 1.0, which = 3
