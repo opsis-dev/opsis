@@ -77,7 +77,7 @@ constexpr int kMotionFrameMs = 16;
 constexpr std::array<std::pair<double, double>, 3> kSmear = {
     {{-3.0, 0.45}, {-6.0, 0.25}, {-9.0, 0.12}}};
 constexpr int kZoomButtonWidth = 56;
-constexpr int kPillRuleHeight = 18;
+constexpr int kFloatSize = 36;
 constexpr int kOverlayMargin = 12;
 constexpr double kRingOut = 3.0;
 constexpr double kBadgeHeight = 20.0;
@@ -788,11 +788,23 @@ GraphCanvas::GraphCanvas(QWidget* parent) : QGraphicsView(parent) {
   connect(fit, &QToolButton::clicked, this, &GraphCanvas::FitAll);
 
   modes_ = new QWidget(this);
-  modes_->setObjectName(QStringLiteral("CanvasToolbar"));
-  modes_->setAttribute(Qt::WA_StyledBackground);
-  auto* mode_bar = new QHBoxLayout(modes_);
-  mode_bar->setContentsMargins(4, 4, 4, 4);
-  mode_bar->setSpacing(4);
+  modes_->setObjectName(QStringLiteral("CanvasControls"));
+  auto* controls = new QHBoxLayout(modes_);
+  controls->setContentsMargins(0, 0, 0, 0);
+  controls->setSpacing(8);
+  const auto card = [this](QHBoxLayout** row) {
+    auto* box = new QWidget(modes_);
+    box->setObjectName(QStringLiteral("CanvasToolbar"));
+    box->setAttribute(Qt::WA_StyledBackground);
+    *row = new QHBoxLayout(box);
+    (*row)->setContentsMargins(4, 4, 4, 4);
+    (*row)->setSpacing(4);
+    return box;
+  };
+  QHBoxLayout* zoom_row = nullptr;
+  QWidget* zoom_card = card(&zoom_row);
+  QHBoxLayout* mode_row = nullptr;
+  QWidget* mode_card = card(&mode_row);
   mouse_ = MakeIconButton(
       QStringLiteral("mouse"),
       QStringLiteral(
@@ -809,11 +821,10 @@ GraphCanvas::GraphCanvas(QWidget* parent) : QGraphicsView(parent) {
     button->setFocusPolicy(Qt::NoFocus);
   }
   map->setChecked(true);
-  for (QWidget* widget : zoom_controls) mode_bar->addWidget(widget);
-  auto* rule = new QFrame(modes_);
-  rule->setProperty("role", "vrule");
-  rule->setFixedSize(1, kPillRuleHeight);
-  mode_bar->addWidget(rule);
+  for (QWidget* widget : zoom_controls) {
+    widget->setParent(zoom_card);
+    zoom_row->addWidget(widget);
+  }
   auto* grid = MakeIconButton(QStringLiteral("grid-3x3"),
                               QStringLiteral("Hide the grid"), modes_);
   grid->setCheckable(true);
@@ -826,10 +837,26 @@ GraphCanvas::GraphCanvas(QWidget* parent) : QGraphicsView(parent) {
     resetCachedContent();
     viewport()->update();
   });
-  mode_bar->addWidget(grid);
-  mode_bar->addWidget(mouse_);
-  mode_bar->addWidget(touchpad_);
-  mode_bar->addWidget(map);
+  mouse_->setParent(mode_card);
+  touchpad_->setParent(mode_card);
+  mode_row->addWidget(mouse_);
+  mode_row->addWidget(touchpad_);
+  for (const auto& [floating, glyph] :
+       {std::pair{grid, QStringLiteral("grid-3x3")},
+        std::pair{map, QStringLiteral("map")}}) {
+    floating->setObjectName(QStringLiteral("CanvasFloat"));
+    floating->setFixedSize(kFloatSize, kFloatSize);
+    connect(floating, &QToolButton::toggled, floating,
+            [floating, glyph](bool on) {
+              App& app = App::Get();
+              floating->setIcon(app.Icon(
+                  glyph, app.Token(on ? "foreground" : "muted-foreground")));
+            });
+  }
+  controls->addWidget(zoom_card);
+  controls->addWidget(grid);
+  controls->addWidget(mode_card);
+  controls->addWidget(map);
   const auto choose = [](const QString& mode) {
     try {
       App::Get().session().patch_settings(ToRust(
@@ -1201,7 +1228,7 @@ QString GraphCanvas::ToolbarProblems() const {
   if (modes_->x() < width() / 2 || modes_->y() > kOverlayMargin * 2) {
     problems << QStringLiteral("mode pill isn't top right");
   }
-  if (zoom_button_->parentWidget() != modes_) {
+  if (!modes_->isAncestorOf(zoom_button_)) {
     problems << QStringLiteral("the zoom controls aren't in the top-right row");
   }
   return problems.join(QStringLiteral("; "));

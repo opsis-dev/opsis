@@ -450,6 +450,15 @@ QLineEdit[role="search"] {
   padding-left: 8px;
 }
 
+QLineEdit#Mono {
+  font-family: "JetBrains Mono";
+  font-size: 12px;
+}
+
+QLineEdit[invalid="true"] {
+  border: 1px solid @destructive;
+}
+
 QComboBox::drop-down {
   border: none;
   width: 20px;
@@ -644,6 +653,18 @@ QSlider::handle:horizontal {
   height: 12px;
   margin: -4px 0;
   border-radius: 6px;
+}
+
+QToolButton#CanvasFloat,
+QToolButton#CanvasFloat:checked {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+}
+
+QToolButton#CanvasFloat:hover {
+  background: @popover;
+  border: 1px solid @input;
 }
 
 QWidget#CanvasToolbar {

@@ -4,6 +4,7 @@
 #include <QHash>
 #include <QScrollArea>
 #include <QSet>
+#include <QStringList>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -44,6 +45,7 @@ class InspectorPanel : public QWidget {
   bool advanced_open_ = false;
   QSet<QString> closed_items_;
   QHash<QString, QVBoxLayout*> bodies_;
+  QStringList swatches_;
 };
 
 }

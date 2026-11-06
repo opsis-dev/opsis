@@ -306,7 +306,7 @@ The node graph moves from React Flow to a `QGraphicsScene`: cards with typed por
 ### Decisions
 
 - **Where the graph logic lives.** `opsis-compile` has the catalogue and cards; a new pure crate is the alternative if `opsis-compile` grows too large.
-- **The canvas controls sit in one pill at the top right**: zoom out, the percentage (100 %), zoom in, fit, a show or hide grid toggle, then the mouse, touchpad and minimap toggles; the web editor's bottom-left zoom panel is not kept.
+- **The canvas controls sit at the top right as four pieces**: a card with zoom out, zoom in, the percentage (100 %) and fit; a bare grid toggle; a card with the mouse and touchpad modes; a bare minimap toggle. The web editor's bottom-left zoom panel is not kept.
 - **The collapsed node list's rail has only the category buttons**; the top bar's node list toggle brings the list back.
 
 ### Risks

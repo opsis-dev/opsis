@@ -7,8 +7,8 @@ mod bridge;
 mod host;
 
 pub use bridge::ffi::{
-    BarView, CardKind, CardView, CategoryView, Choice, CloseView, DialogKind, EdgeView, EventKind,
-    FieldKind, FieldView, FileView, GraphView, InspectorView, IssueView, MenuItemKind,
+    BarView, CardKind, CardView, CategoryView, Choice, CloseView, ColorView, DialogKind, EdgeView,
+    EventKind, FieldKind, FieldView, FileView, GraphView, InspectorView, IssueView, MenuItemKind,
     MenuItemView, MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PortView, PoseView,
     PresetView, ProjectEntry, ProjectView, RowView, ScreenArea, SettingsView, ShapeView,
     TemplateView, TextToken, TokenKind, VariableView, WindowPlacement,

@@ -13,9 +13,10 @@ use opsis_compile::layout::auto_layout;
 use opsis_compile::node::Platform as NodePlatform;
 use opsis_compile::nodes::media::IMPORT_TYPE;
 use opsis_qt::{
-    BarView, CategoryView, Choice, CloseView, EventKind, FileView, GraphView, Host, HostResult,
-    InspectorView, MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView, ProjectEntry,
-    ProjectView, ScreenArea, SettingsView, TemplateView, TextToken, VariableView, WindowPlacement,
+    BarView, CategoryView, Choice, CloseView, ColorView, EventKind, FileView, GraphView, Host,
+    HostResult, InspectorView, MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView,
+    ProjectEntry, ProjectView, ScreenArea, SettingsView, TemplateView, TextToken, VariableView,
+    WindowPlacement,
 };
 use opsis_session::error::CommandError;
 use opsis_session::events::{MAIN_WINDOW, SessionEvent};
@@ -38,7 +39,7 @@ use tokio::sync::broadcast::error::RecvError;
 
 use crate::platform::QtPlatform;
 use crate::project::Extras;
-use crate::{clipboard, graph, inspector, look, motion, project};
+use crate::{clipboard, colors, graph, inspector, look, motion, project};
 
 const LAYOUT_KEY: &str = "nativeDockLayout";
 const BENCH_KINDS: [&str; 4] = [
@@ -870,6 +871,7 @@ impl Host for Ui {
             errors: Vec::new(),
             warnings: Vec::new(),
             files: Vec::new(),
+            swatches: Vec::new(),
         };
         let Some(wf) = self.workflow() else {
             return empty;
@@ -950,6 +952,14 @@ impl Host for Ui {
             errors,
             warnings,
             files,
+            swatches: self
+                .compiled
+                .lock()
+                .expect("latest compile")
+                .inspector
+                .as_ref()
+                .filter(|c| c.node_id == node.id)
+                .map_or_default(|c| c.swatches.clone()),
         }
     }
 
@@ -1101,6 +1111,14 @@ impl Host for Ui {
 
     fn join_tokens(&self, tokens: Vec<TextToken>) -> String {
         project::join_tokens(&tokens)
+    }
+
+    fn parse_color(&self, text: &str) -> ColorView {
+        colors::view(text)
+    }
+
+    fn format_color(&self, h: f64, s: f64, v: f64, a: f64, format: &str) -> String {
+        colors::text(h, s, v, a, format)
     }
 
     fn set_params(&self, id: &str, patch_json: &str) -> HostResult<()> {

@@ -28,6 +28,7 @@
 #include <memory>
 
 #include "app.h"
+#include "color_picker.h"
 #include "graph_canvas.h"
 #include "main_window.h"
 #include "node_list.h"
@@ -42,6 +43,7 @@ namespace opsis {
 
 namespace {
 
+constexpr int kMenuLeftMost = 80;
 constexpr int kDropSide = 64;
 constexpr int kNudgeX = 120;
 constexpr int kNudgeY = 60;
@@ -55,6 +57,7 @@ constexpr double kBottomShareLow = 0.3;
 constexpr double kBottomShareHigh = 0.5;
 
 struct Memo {
+  std::size_t nodes = 0;
   QString id;
   QString source;
   QString source_port;
@@ -226,6 +229,13 @@ void Scenario::BuildTour() {
               rule->x() < window->width() - kControlsWidth) {
             problems +=
                 QStringLiteral(" a divider sits at %1 px").arg(rule->x());
+          }
+        }
+        for (QMenuBar* menus :
+             window->menuWidget()->findChildren<QMenuBar*>()) {
+          if (menus->isVisible() && menus->x() > kMenuLeftMost) {
+            problems +=
+                QStringLiteral(" the menu sits at %1 px").arg(menus->x());
           }
         }
         return problems.trimmed();
@@ -918,8 +928,9 @@ void Scenario::BuildTour() {
       });
   Add(QStringLiteral("undo-quick-add"), undo, 500);
 
-  const auto add_from_list = [this, window](const QString& section,
-                                            const QString& title) {
+  const auto add_from_list = [this, window, memo](const QString& section,
+                                                  const QString& title) {
+    memo->nodes = Graph().nodes.size();
     auto* tree = window->nodes_dock()->widget()->findChild<QTreeWidget*>();
     for (int i = 0; i < tree->topLevelItemCount(); ++i) {
       QTreeWidgetItem* group = tree->topLevelItem(i);
@@ -933,6 +944,13 @@ void Scenario::BuildTour() {
       }
     }
     Miss(QStringLiteral("no %1 › %2 in the node list").arg(section, title));
+  };
+  const auto back = [memo] {
+    const std::size_t nodes = Graph().nodes.size();
+    return Expect(nodes == memo->nodes,
+                  QStringLiteral("%1 nodes after the undo, not %2")
+                      .arg(nodes)
+                      .arg(memo->nodes));
   };
   Add(
       QStringLiteral("size-preset"),
@@ -1023,10 +1041,13 @@ void Scenario::BuildTour() {
                       QStringLiteral("the keys field holds '%1'")
                           .arg(FieldText(QStringLiteral("keys"))));
       });
-  Add(QStringLiteral("undo-keys"), [this, window] {
-    Click(window, QStringLiteral("Undo"));
-    Click(window, QStringLiteral("Undo"));
-  });
+  Add(
+      QStringLiteral("undo-keys"),
+      [this, window] {
+        Click(window, QStringLiteral("Undo"));
+        Click(window, QStringLiteral("Undo"));
+      },
+      500, back);
   Add(
       QStringLiteral("backdrop-select"),
       [this, window, add_from_list] {
@@ -1050,10 +1071,13 @@ void Scenario::BuildTour() {
             !backdrop.isEmpty() && backdrop != QStringLiteral("glaze"),
             QStringLiteral("the backdrop is still '%1'").arg(backdrop));
       });
-  Add(QStringLiteral("undo-backdrop"), [this, window] {
-    Click(window, QStringLiteral("Undo"));
-    Click(window, QStringLiteral("Undo"));
-  });
+  Add(
+      QStringLiteral("undo-backdrop"),
+      [this, window] {
+        Click(window, QStringLiteral("Undo"));
+        Click(window, QStringLiteral("Undo"));
+      },
+      500, back);
   Add(
       QStringLiteral("quality-toggles"),
       [this, window, add_from_list] {
@@ -1071,10 +1095,13 @@ void Scenario::BuildTour() {
         }
         return QStringLiteral("no quality toggles");
       });
-  Add(QStringLiteral("undo-quality"), [this, window] {
-    Click(window, QStringLiteral("Undo"));
-    Click(window, QStringLiteral("Undo"));
-  });
+  Add(
+      QStringLiteral("undo-quality"),
+      [this, window] {
+        Click(window, QStringLiteral("Undo"));
+        Click(window, QStringLiteral("Undo"));
+      },
+      500, back);
   const auto select_titled = [this, canvas, view](const QString& title) {
     const bridge::GraphView graph = Graph();
     const auto* card = CardTitled(graph, title);
@@ -1139,6 +1166,12 @@ void Scenario::BuildTour() {
             QStringLiteral("removing the cut didn't shorten the list"));
       });
   Add(
+      QStringLiteral("undo-open-terminal"),
+      [this, window] {
+        for (int i = 0; i < 3; ++i) Click(window, QStringLiteral("Undo"));
+      },
+      500, back);
+  Add(
       QStringLiteral("color-list-add"),
       [this, window, memo, select_titled] {
         select_titled(QStringLiteral("Shader mesh gradient"));
@@ -1183,9 +1216,12 @@ void Scenario::BuildTour() {
         }
         return QStringLiteral("the typed row wasn't saved in the list");
       });
-  Add(QStringLiteral("undo-string-list"), [this, window] {
-    for (int i = 0; i < 3; ++i) Click(window, QStringLiteral("Undo"));
-  });
+  Add(
+      QStringLiteral("undo-string-list"),
+      [this, window] {
+        for (int i = 0; i < 3; ++i) Click(window, QStringLiteral("Undo"));
+      },
+      500, back);
   Add(
       QStringLiteral("export-video-panel"),
       [add_from_list] {
@@ -1220,7 +1256,92 @@ void Scenario::BuildTour() {
         }
         return problems.trimmed();
       });
-  Add(QStringLiteral("undo-export-video"), undo, 500);
+  Add(QStringLiteral("undo-export-video"), undo, 500, back);
+  const auto colour_value = [] {
+    for (const auto& field : App::Get().session().inspector().fields) {
+      if (field.kind == bridge::FieldKind::Color &&
+          ToQ(field.label) == QStringLiteral("Colour")) {
+        return ToQ(field.text);
+      }
+    }
+    return QStringLiteral("<no colour field>");
+  };
+  Add(
+      QStringLiteral("color-field-opens-picker"),
+      [this, window, add_from_list, memo, colour_value] {
+        add_from_list(QStringLiteral("Text & overlays"),
+                      QStringLiteral("Tooltip"));
+        QTest::qWait(kSettleMs);
+        memo->other = colour_value();
+        Click(window->inspector_dock()->widget(),
+              QStringLiteral("Pick colour"));
+      },
+      700,
+      [] {
+        auto* picker =
+            qobject_cast<ColorPicker*>(QApplication::activePopupWidget());
+        return Expect(picker != nullptr && picker->isVisible(),
+                      QStringLiteral("no colour picker opened"));
+      });
+  Add(
+      QStringLiteral("color-picker-hue-and-oklch"),
+      [this] {
+        auto* picker =
+            qobject_cast<ColorPicker*>(QApplication::activePopupWidget());
+        if (picker == nullptr) {
+          Miss(QStringLiteral("the picker closed"));
+          return;
+        }
+        QWidget* area = nullptr;
+        QWidget* hue = nullptr;
+        for (QWidget* child : picker->findChildren<QWidget*>()) {
+          if (child->accessibleName() == QStringLiteral("Hue")) hue = child;
+          if (child->accessibleName() ==
+              QStringLiteral("Saturation and brightness")) {
+            area = child;
+          }
+        }
+        if (area == nullptr || hue == nullptr) {
+          Miss(QStringLiteral("the picker has no area or hue slider"));
+          return;
+        }
+        QTest::mouseClick(area, Qt::LeftButton, {},
+                          QPoint(area->width() * 3 / 4, area->height() / 4));
+        QTest::mouseClick(hue, Qt::LeftButton, {},
+                          QPoint(hue->width() / 3, hue->height() / 2));
+        Click(picker, QStringLiteral("OKLCH"));
+      },
+      700,
+      [colour_value] {
+        const QString value = colour_value();
+        return Expect(value.startsWith(QStringLiteral("oklch(")),
+                      QStringLiteral("the colour is %1").arg(value));
+      });
+  Add(
+      QStringLiteral("close-color-picker"),
+      [] {
+        if (QWidget* popup = QApplication::activePopupWidget()) {
+          QTest::keyClick(popup, Qt::Key_Escape);
+        }
+      },
+      600,
+      [window, colour_value] {
+        QString shown;
+        for (QLineEdit* line :
+             window->inspector_dock()->widget()->findChildren<QLineEdit*>()) {
+          if (line->isVisible() &&
+              line->accessibleName() == QStringLiteral("Colour")) {
+            shown = line->text();
+          }
+        }
+        return Expect(!ColorPicker::IsOpen() && shown == colour_value(),
+                      QStringLiteral("the field shows %1").arg(shown));
+      });
+  Add(QStringLiteral("undo-color-pick"), undo, 600, [memo, colour_value] {
+    return Expect(colour_value() == memo->other,
+                  QStringLiteral("one undo left %1").arg(colour_value()));
+  });
+  Add(QStringLiteral("undo-add-tooltip"), undo, 500, back);
   Add(
       QStringLiteral("hide-node-list"),
       [this, window] { Click(window, QStringLiteral("Hide node list")); }, 600,

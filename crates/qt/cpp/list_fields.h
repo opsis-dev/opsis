@@ -5,6 +5,7 @@
 #include <QJsonArray>
 #include <QLabel>
 #include <QSet>
+#include <QStringList>
 #include <QVBoxLayout>
 #include <QWidget>
 #include <functional>
@@ -35,7 +36,8 @@ QWidget* MakeStringList(const bridge::FieldView& field,
 QWidget* MakeNumberList(const bridge::FieldView& field,
                         const CommitJson& commit);
 QWidget* MakeColorList(const bridge::FieldView& field,
-                       const CommitJson& commit);
+                       const QStringList& swatches, const CommitJson& commit,
+                       const std::function<void()>& closed);
 QWidget* MakeObjectList(const bridge::FieldView& field,
                         const CommitJson& commit, QSet<QString>* closed,
                         QHash<QString, QVBoxLayout*>* bodies);

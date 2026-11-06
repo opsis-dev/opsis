@@ -1,9 +1,9 @@
 use std::fmt;
 
 use crate::bridge::ffi::{
-    self, BarView, CategoryView, CloseView, DialogKind, EventKind, GraphView, InspectorView,
-    MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView, ProjectEntry, ProjectView,
-    ScreenArea, SettingsView, TemplateView, TextToken, VariableView, WindowPlacement,
+    self, BarView, CategoryView, CloseView, ColorView, DialogKind, EventKind, GraphView,
+    InspectorView, MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView, ProjectEntry,
+    ProjectView, ScreenArea, SettingsView, TemplateView, TextToken, VariableView, WindowPlacement,
 };
 
 pub type HostResult<T> = Result<T, String>;
@@ -81,6 +81,8 @@ pub trait Host {
     fn resize_node(&self, id: &str, x: f64, y: f64, width: f64, height: f64) -> HostResult<()>;
     fn text_tokens(&self, value: &str, pauses: bool) -> Vec<TextToken>;
     fn join_tokens(&self, tokens: Vec<TextToken>) -> String;
+    fn parse_color(&self, text: &str) -> ColorView;
+    fn format_color(&self, h: f64, s: f64, v: f64, a: f64, format: &str) -> String;
     fn save(&self) -> HostResult<()>;
 
     fn settings(&self) -> SettingsView;
@@ -407,6 +409,14 @@ impl Session {
 
     pub(crate) fn join_tokens(&self, tokens: Vec<TextToken>) -> String {
         self.0.join_tokens(tokens)
+    }
+
+    pub(crate) fn parse_color(&self, text: &str) -> ColorView {
+        self.0.parse_color(text)
+    }
+
+    pub(crate) fn format_color(&self, h: f64, s: f64, v: f64, a: f64, format: &str) -> String {
+        self.0.format_color(h, s, v, a, format)
     }
 
     pub(crate) fn save(&self) -> HostResult<()> {

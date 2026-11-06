@@ -38,6 +38,19 @@ impl ColorFormat {
         }
     }
 
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::Hex => "hex",
+            Self::Rgb => "rgb",
+            Self::Hsl => "hsl",
+            Self::Oklch => "oklch",
+        }
+    }
+
+    pub fn from_id(id: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|f| f.id() == id)
+    }
+
     pub fn of(value: &str) -> Self {
         let text = value.trim().to_lowercase();
         if text.starts_with("rgb") {

@@ -1,6 +1,5 @@
 #include "list_fields.h"
 
-#include <QColorDialog>
 #include <QDoubleValidator>
 #include <QHBoxLayout>
 #include <QJsonDocument>
@@ -13,6 +12,7 @@
 #include <memory>
 
 #include "app.h"
+#include "color_picker.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "var_text.h"
 #include "widgets.h"
@@ -218,30 +218,32 @@ QWidget* MakeNumberList(const bridge::FieldView& field,
 }
 
 QWidget* MakeColorList(const bridge::FieldView& field,
-                       const CommitJson& commit) {
+                       const QStringList& swatches, const CommitJson& commit,
+                       const std::function<void()>& closed) {
   auto* box = new QWidget();
   auto* flow = new FlowLayout(box, 6);
   const QJsonArray items = ArrayOf(field);
   const int count = static_cast<int>(items.size());
   for (int i = 0; i < count; ++i) {
-    auto* swatch = new QToolButton(box);
+    auto* swatch = new ColorChip(items.at(i).toString(), kSwatch, box);
     swatch->setObjectName(QStringLiteral("Swatch"));
-    swatch->setFixedSize(kSwatch, kSwatch);
     swatch->setToolTip(
         QStringLiteral("Colour %1: %2").arg(i + 1).arg(items.at(i).toString()));
-    swatch->setStyleSheet(
-        QStringLiteral("QToolButton#Swatch { background: %1; }")
-            .arg(items.at(i).toString()));
-    QObject::connect(swatch, &QToolButton::clicked, box,
-                     [items, i, commit, box] {
-                       const QColor chosen = QColorDialog::getColor(
-                           QColor::fromString(items.at(i).toString()), box,
-                           QString(), QColorDialog::DontUseNativeDialog);
-                       if (!chosen.isValid()) return;
-                       QJsonArray next = items;
-                       next.replace(i, chosen.name());
-                       commit(JsonText(next));
-                     });
+    QObject::connect(
+        swatch, &QToolButton::clicked, box,
+        [items, i, commit, closed, swatch, swatches] {
+          ColorPicker* picker = ColorPicker::Open(
+              swatch, items.at(i).toString(), QString(), swatches,
+              [items, i, commit,
+               chip = QPointer<ColorChip>(swatch)](const QString& picked) {
+                if (chip != nullptr) chip->SetValue(picked);
+                QJsonArray next = items;
+                next.replace(i, picked);
+                commit(JsonText(next));
+              });
+          QObject::connect(picker, &ColorPicker::Closed, picker, closed,
+                           Qt::QueuedConnection);
+        });
     swatch->setContextMenuPolicy(Qt::ActionsContextMenu);
     if (static_cast<std::uint32_t>(count) > field.min_items) {
       auto* remove =

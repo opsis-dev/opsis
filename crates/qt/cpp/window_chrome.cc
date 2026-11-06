@@ -59,7 +59,10 @@ AppBar::AppBar(QWidget* window, bool resizable, bool menu)
   logo->setPixmap(App::Get().Logo(kLogoSize));
   logo->setContentsMargins(kLogoMargin, 0, kLogoMargin, 0);
   layout->addWidget(logo);
-  content_ = new QHBoxLayout();
+  auto* content_host = new QWidget(this);
+  content_host->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  content_ = new QHBoxLayout(content_host);
+  content_->setContentsMargins(0, 0, 0, 0);
   content_->setSpacing(8);
   if (menu) {
     menu_bar_ = new QMenuBar(this);
@@ -71,7 +74,7 @@ AppBar::AppBar(QWidget* window, bool resizable, bool menu)
     rule->setFixedSize(1, kRuleHeight);
     layout->addWidget(rule);
   }
-  layout->addLayout(content_, 1);
+  layout->addWidget(content_host, 1);
   api_ = new QPushButton(QStringLiteral("API"), this);
   api_->setObjectName(QStringLiteral("ApiBadge"));
   api_->setFocusPolicy(Qt::NoFocus);

@@ -44,6 +44,7 @@ const UI_ICONS = [
   "mouse-pointer-2",
   "music",
   "palette",
+  "pipette",
   "panel-bottom",
   "panel-left",
   "panel-left-open",

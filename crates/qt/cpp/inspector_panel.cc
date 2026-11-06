@@ -25,6 +25,7 @@
 #include <memory>
 
 #include "app.h"
+#include "color_picker.h"
 #include "event_hub.h"
 #include "list_fields.h"
 #include "opsis-qt/src/bridge.rs.h"
@@ -202,6 +203,7 @@ InspectorPanel::InspectorPanel(QWidget* parent) : QWidget(parent) {
 }
 
 bool InspectorPanel::Editing() const {
+  if (ColorPicker::IsOpen()) return true;
   QWidget* focus = window() != nullptr ? window()->focusWidget() : nullptr;
   if (focus == nullptr || content_ == nullptr ||
       !content_->isAncestorOf(focus)) {
@@ -385,7 +387,20 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
           field, [this, key](const QString& json) { Commit(key, json); });
     case bridge::FieldKind::ColorList:
       return MakeColorList(
-          field, [this, key](const QString& json) { Commit(key, json); });
+          field, swatches_,
+          [this, key](const QString& json) { Commit(key, json); },
+          [this] { Rebuild(); });
+    case bridge::FieldKind::Color: {
+      auto* input = new ColorInput(ToQ(field.label), ToQ(field.text),
+                                   ToQ(field.zero_label), swatches_);
+      connect(input, &ColorInput::Changed, this,
+              [this, key](const QString& value) {
+                Commit(key, value.isEmpty() ? QStringLiteral("\"\"")
+                                            : Json(QJsonValue(value)));
+              });
+      connect(input, &ColorInput::PickerClosed, this, &InspectorPanel::Rebuild);
+      return input;
+    }
     case bridge::FieldKind::ObjectList:
       return MakeObjectList(
           field, [this, key](const QString& json) { Commit(key, json); },
@@ -725,6 +740,8 @@ void InspectorPanel::Rebuild() {
   const bridge::InspectorView view = app.session().inspector();
   if (ToQ(view.id) != node_) advanced_open_ = false;
   node_ = ToQ(view.id);
+  swatches_.clear();
+  for (const auto& swatch : view.swatches) swatches_.append(ToQ(swatch));
   auto* content = new QWidget();
   auto* layout = new QVBoxLayout(content);
   layout->setContentsMargins(16, 14, 16, 16);

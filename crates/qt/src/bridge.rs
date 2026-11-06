@@ -84,6 +84,17 @@ pub mod ffi {
         NumberList,
         ColorList,
         ObjectList,
+        Color,
+    }
+
+    #[derive(Debug, Clone)]
+    struct ColorView {
+        valid: bool,
+        h: f64,
+        s: f64,
+        v: f64,
+        a: f64,
+        format: String,
     }
 
     #[derive(Debug, Clone)]
@@ -363,6 +374,7 @@ pub mod ffi {
         errors: Vec<String>,
         warnings: Vec<String>,
         files: Vec<FileView>,
+        swatches: Vec<String>,
     }
 
     #[derive(Debug, Clone)]
@@ -472,6 +484,8 @@ pub mod ffi {
         ) -> Result<()>;
         fn text_tokens(self: &Session, value: &str, pauses: bool) -> Vec<TextToken>;
         fn join_tokens(self: &Session, tokens: Vec<TextToken>) -> String;
+        fn parse_color(self: &Session, text: &str) -> ColorView;
+        fn format_color(self: &Session, h: f64, s: f64, v: f64, a: f64, format: &str) -> String;
         fn save(self: &Session) -> Result<()>;
 
         fn settings(self: &Session) -> SettingsView;
