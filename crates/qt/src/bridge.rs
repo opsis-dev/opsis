@@ -13,6 +13,14 @@ pub mod ffi {
         FlushDrafts,
         Compiled,
         Run,
+        Api,
+    }
+
+    #[derive(Debug, Clone, Copy)]
+    struct BarView {
+        api_enabled: bool,
+        api_listening: bool,
+        running: bool,
     }
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -277,6 +285,8 @@ pub mod ffi {
         color: String,
         glyph: String,
         description: String,
+        inputs: String,
+        outputs: String,
     }
 
     #[derive(Debug, Clone)]
@@ -397,6 +407,8 @@ pub mod ffi {
         fn project_edit(self: &Session, json: &str) -> Result<()>;
         fn clear_saved_results(self: &Session) -> Result<()>;
         fn copy_selection(self: &Session) -> String;
+        fn bar(self: &Session) -> BarView;
+        fn reveal_outputs(self: &Session) -> Result<()>;
         fn motion_info(self: &Session, motion: &str) -> MotionInfo;
         fn motion_pose(self: &Session, motion: &str, elapsed_ms: f64) -> PoseView;
         fn paste_text(self: &Session, text: &str) -> Result<()>;

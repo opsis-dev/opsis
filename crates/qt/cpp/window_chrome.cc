@@ -2,22 +2,29 @@
 
 #include <QApplication>
 #include <QEvent>
+#include <QFrame>
 #include <QHBoxLayout>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QStyle>
 #include <QWindow>
 
 #include "app.h"
+#include "event_hub.h"
+#include "opsis-qt/src/bridge.rs.h"
 #include "widgets.h"
 
 namespace opsis {
 
 namespace {
 
-constexpr int kBarHeight = 40;
+constexpr int kBarHeight = 48;
 constexpr int kDragStartPx = 3;
 constexpr int kResizeMargin = 6;
 constexpr int kLogoSize = 20;
+constexpr int kLogoMargin = 4;
+constexpr int kBarPadLeft = 8;
+constexpr int kRuleHeight = 20;
 
 class BorderOverlay : public QWidget {
  public:
@@ -40,28 +47,47 @@ bool Framed(const QWidget* window) {
 
 }
 
-AppBar::AppBar(QWidget* window, const QString& title, bool resizable)
+AppBar::AppBar(QWidget* window, bool resizable, bool menu)
     : QWidget(window), window_(window) {
   setObjectName(QStringLiteral("AppBar"));
   setAttribute(Qt::WA_StyledBackground);
   setFixedHeight(kBarHeight);
   auto* layout = new QHBoxLayout(this);
-  layout->setContentsMargins(10, 0, 0, 0);
+  layout->setContentsMargins(kBarPadLeft, 0, 0, 0);
   layout->setSpacing(8);
   auto* logo = new QLabel(this);
   logo->setPixmap(App::Get().Logo(kLogoSize));
+  logo->setContentsMargins(kLogoMargin, 0, kLogoMargin, 0);
   layout->addWidget(logo);
-  auto* name = new QLabel(title, this);
-  name->setObjectName(QStringLiteral("AppTitle"));
-  layout->addWidget(name);
-  menu_bar_ = new QMenuBar(this);
-  menu_bar_->setNativeMenuBar(false);
-  layout->addWidget(menu_bar_, 0, Qt::AlignVCenter);
-  layout->addStretch(1);
-  subtitle_ = new QLabel(this);
-  subtitle_->setObjectName(QStringLiteral("AppSubtitle"));
-  layout->addWidget(subtitle_);
-  layout->addSpacing(12);
+  content_ = new QHBoxLayout();
+  content_->setSpacing(8);
+  if (menu) {
+    menu_bar_ = new QMenuBar(this);
+    menu_bar_->setNativeMenuBar(false);
+    layout->addWidget(menu_bar_, 0, Qt::AlignVCenter);
+    auto* rule = new QFrame(this);
+    rule->setProperty("role", "vrule");
+    rule->setFixedSize(1, kRuleHeight);
+    layout->addWidget(rule);
+  }
+  layout->addLayout(content_, 1);
+  api_ = new QPushButton(QStringLiteral("API"), this);
+  api_->setObjectName(QStringLiteral("ApiBadge"));
+  api_->setFocusPolicy(Qt::NoFocus);
+  api_->setCursor(Qt::PointingHandCursor);
+  layout->addWidget(api_);
+  connect(api_, &QPushButton::clicked, this, &AppBar::ApiBadgeClicked);
+  connect(EventHub::Instance(), &EventHub::ApiChanged, this,
+          &AppBar::SyncApiBadge);
+  connect(EventHub::Instance(), &EventHub::SettingsChanged, this,
+          &AppBar::SyncApiBadge);
+  SyncApiBadge();
+  auto* controls_rule = new QFrame(this);
+  controls_rule->setProperty("role", "vrule");
+  controls_rule->setFixedSize(1, kRuleHeight);
+  layout->addSpacing(4);
+  layout->addWidget(controls_rule);
+  layout->addSpacing(4);
   const QColor ink = App::Get().Token("foreground");
   auto make = [&](const QString& icon, const QString& tip, const char* object) {
     auto* button = new QToolButton(this);
@@ -87,7 +113,19 @@ AppBar::AppBar(QWidget* window, const QString& title, bool resizable)
   window_->installEventFilter(this);
 }
 
-void AppBar::SetSubtitle(const QString& text) { subtitle_->setText(text); }
+void AppBar::SyncApiBadge() {
+  const bridge::BarView bar = App::Get().session().bar();
+  api_->setVisible(bar.api_enabled);
+  api_->setProperty("tone", bar.api_listening ? "secondary" : "destructive");
+  api_->setToolTip(
+      bar.api_listening
+          ? QStringLiteral(
+                "Scripts and agents on this computer can use the open project.")
+          : QStringLiteral("The API is switched on but isn't running. Open "
+                           "its settings to see why."));
+  api_->style()->unpolish(api_);
+  api_->style()->polish(api_);
+}
 
 void AppBar::ToggleMaximized() {
   if (window_->isMaximized()) {

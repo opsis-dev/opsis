@@ -10,6 +10,7 @@ const ICONS_FILE = path.join(FRONTEND_DIR, "editor", "icons.ts");
 const OUT = path.join(ROOT, "crates", "ui", "glyphs.generated.json");
 
 const UI_ICONS = [
+  "arrow-left",
   "blend",
   "box",
   "braces",

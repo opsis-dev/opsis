@@ -4,6 +4,7 @@
 #include <QHBoxLayout>
 #include <QPainter>
 #include <QPainterPath>
+#include <QTextLayout>
 
 #include "app.h"
 #include "motion.h"
@@ -19,6 +20,57 @@ constexpr double kChevronHalf = 3.5;
 constexpr double kChevronPen = 1.5;
 constexpr double kChevronInset = 14.0;
 
+}
+
+ClampedLabel::ClampedLabel(const QString& text, int lines, QWidget* parent)
+    : QLabel(parent), full_(text), lines_(lines) {
+  setWordWrap(false);
+  setAlignment(Qt::AlignLeft | Qt::AlignTop);
+  setToolTip(text);
+  QSizePolicy policy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+  policy.setHeightForWidth(true);
+  setSizePolicy(policy);
+}
+
+QString ClampedLabel::Clamped(int width) const {
+  if (width <= 0) return full_;
+  QTextLayout layout(full_, font());
+  layout.beginLayout();
+  QStringList rows;
+  int start = 0;
+  for (int row = 0; row < lines_; ++row) {
+    QTextLine line = layout.createLine();
+    if (!line.isValid()) break;
+    line.setLineWidth(width);
+    start = line.textStart();
+    if (row + 1 == lines_) {
+      rows << fontMetrics().elidedText(full_.mid(start), Qt::ElideRight, width);
+    } else {
+      rows << full_.mid(start, line.textLength()).trimmed();
+    }
+  }
+  layout.endLayout();
+  return rows.join(QLatin1Char('\n'));
+}
+
+int ClampedLabel::heightForWidth(int width) const {
+  const int rows =
+      static_cast<int>(Clamped(width).count(QLatin1Char('\n'))) + 1;
+  return rows * fontMetrics().lineSpacing();
+}
+
+QSize ClampedLabel::sizeHint() const {
+  return {fontMetrics().horizontalAdvance(full_) / lines_,
+          lines_ * fontMetrics().lineSpacing()};
+}
+
+QSize ClampedLabel::minimumSizeHint() const {
+  return {0, fontMetrics().lineSpacing()};
+}
+
+void ClampedLabel::resizeEvent(QResizeEvent* event) {
+  QLabel::resizeEvent(event);
+  setText(Clamped(width()));
 }
 
 void Combo::paintEvent(QPaintEvent* event) {

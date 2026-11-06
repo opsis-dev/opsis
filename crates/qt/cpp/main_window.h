@@ -16,6 +16,7 @@ class AppBar;
 class GraphCanvas;
 class InspectorPanel;
 class CategoryRail;
+class TopBar;
 class NodeList;
 class SettingsWindow;
 class StartScreen;
@@ -29,6 +30,7 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   GraphCanvas* canvas() const { return canvas_; }
   StartScreen* start_screen() const { return start_; }
   CategoryRail* rail() const { return rail_; }
+  TopBar* top_bar() const { return top_bar_; }
   SettingsWindow* OpenSettings();
   KDDockWidgets::QtWidgets::DockWidget* inspector_dock() const {
     return inspector_dock_;
@@ -53,6 +55,8 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   void ShowStart();
   void AddNode(const QString& type);
   void SyncRail();
+  void SyncPanels();
+  void QuickAdd();
   void SaveLayout();
   void SyncTitle();
   void ToggleDock(KDDockWidgets::QtWidgets::DockWidget* dock);
@@ -72,6 +76,7 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   AppBar* app_bar_;
   QStackedWidget* stack_;
   CategoryRail* rail_;
+  TopBar* top_bar_;
   StartScreen* start_;
   GraphCanvas* canvas_;
   KDDockWidgets::QtWidgets::DockWidget* nodes_dock_ = nullptr;

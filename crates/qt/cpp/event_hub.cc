@@ -42,6 +42,9 @@ void EventHub::Dispatch(std::uint8_t kind) {
     case bridge::EventKind::Run:
       emit RunChanged();
       break;
+    case bridge::EventKind::Api:
+      emit ApiChanged();
+      break;
     default:
       break;
   }

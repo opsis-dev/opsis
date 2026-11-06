@@ -245,8 +245,8 @@ QWidget* StartScreen::TemplateGrid() {
     font.setWeight(QFont::Medium);
     title->setFont(font);
     texts->addWidget(title);
-    auto* about = Passive(MakeLabel(ToQ(entry.description), "small", card));
-    about->setWordWrap(true);
+    auto* about = Passive(new ClampedLabel(ToQ(entry.description), 2, card));
+    about->setProperty("role", "small");
     texts->addWidget(about);
     texts->addStretch(1);
     row->addLayout(texts, 1);

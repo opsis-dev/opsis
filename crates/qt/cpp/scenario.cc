@@ -6,6 +6,7 @@
 #include <QElapsedTimer>
 #include <QFile>
 #include <QImage>
+#include <QLabel>
 #include <QLineEdit>
 #include <QTextCursor>
 #include <QTimer>
@@ -23,6 +24,7 @@
 #include "node_list.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "settings_window.h"
+#include "top_bar.h"
 #include "var_text.h"
 #include "widgets.h"
 
@@ -187,6 +189,43 @@ void Scenario::BuildTour() {
         }
       },
       900);
+  Add(
+      QStringLiteral("node-list-search"),
+      [window] {
+        auto* list = window->nodes_dock()->widget()->findChild<QLineEdit*>();
+        if (list != nullptr) list->setText(QStringLiteral("zzzqqq"));
+      },
+      300,
+      [window] {
+        auto* nodes = qobject_cast<NodeList*>(window->nodes_dock()->widget());
+        QString problems = nodes != nullptr ? nodes->Problems()
+                                            : QStringLiteral("no node list");
+        bool empty_shown = false;
+        for (QLabel* label :
+             window->nodes_dock()->widget()->findChildren<QLabel*>()) {
+          if (label->isVisible() &&
+              label->text() == QStringLiteral("No nodes found.")) {
+            empty_shown = true;
+          }
+        }
+        if (!empty_shown) problems += QStringLiteral("; no empty message");
+        if (auto* search =
+                window->nodes_dock()->widget()->findChild<QLineEdit*>()) {
+          search->clear();
+        }
+        return problems;
+      });
+  Add(
+      QStringLiteral("editor-top-bar"), [] {}, 300,
+      [window] {
+        QString problems = window->top_bar()->Problems();
+        for (QLabel* label : window->findChildren<QLabel*>()) {
+          if (label->isVisible() && label->text() == QStringLiteral("Opsis")) {
+            problems += QStringLiteral("; the app bar still says Opsis");
+          }
+        }
+        return problems;
+      });
   Add(QStringLiteral("select-card"), [canvas, first_card] {
     QTest::mouseClick(canvas->viewport(), Qt::LeftButton, {},
                       canvas->ViewPointOf(first_card()));

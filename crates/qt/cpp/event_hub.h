@@ -23,6 +23,7 @@ class EventHub : public QObject {
   void FlushDrafts();
   void CompiledChanged();
   void RunChanged();
+  void ApiChanged();
   void Notice(const QString& title, const QString& body);
 
  private:

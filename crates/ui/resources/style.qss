@@ -15,12 +15,6 @@ QWidget#AppBar {
   border-bottom: 1px solid @border;
 }
 
-QLabel#AppTitle {
-  color: @foreground;
-  font-weight: 500;
-}
-
-QLabel#AppSubtitle,
 QLabel[role="muted"] {
   color: @muted-foreground;
 }
@@ -54,6 +48,38 @@ QMenuBar::item {
   background: transparent;
   padding: 4px 8px;
   border-radius: 4px;
+  font-size: 14px;
+}
+
+QFrame[role="vrule"] {
+  background: @border;
+  border: none;
+}
+
+QLabel[role="badge"] {
+  border: 1px solid @border;
+  border-radius: 8px;
+  padding: 1px 8px;
+  font-size: 12px;
+}
+
+QPushButton#ApiBadge {
+  min-height: 20px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: none;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+QPushButton#ApiBadge[tone="secondary"] {
+  background: @secondary;
+  color: @foreground;
+}
+
+QPushButton#ApiBadge[tone="destructive"] {
+  background: @destructive;
+  color: white;
 }
 
 QMenuBar::item:selected,
@@ -371,6 +397,20 @@ QWidget#CategoryRail {
 QWidget#CategoryRail > QToolButton {
   min-width: 32px;
   min-height: 32px;
+  border-radius: @radius;
+}
+
+QLabel#StickyHeading {
+  background: @sidebar;
+  color: @muted-foreground;
+  font-size: 12px;
+  font-weight: 500;
+  padding-left: 8px;
+}
+
+QFrame#HoverCard {
+  background: @popover;
+  border: 1px solid @input;
   border-radius: @radius;
 }
 

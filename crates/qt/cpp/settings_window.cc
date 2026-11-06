@@ -19,6 +19,8 @@ namespace opsis {
 
 namespace {
 
+constexpr int kApiPage = 3;
+
 constexpr int kSidebarWidth = 200;
 constexpr int kPageWidth = 640;
 
@@ -51,7 +53,12 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QWidget(parent, Qt::Window) {
   auto* layout = new QVBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setSpacing(0);
-  layout->addWidget(new AppBar(this, QStringLiteral("Settings"), true));
+  auto* bar = new AppBar(this, true, false);
+  bar->content()->addWidget(
+      MakeLabel(QStringLiteral("Settings"), "title", bar));
+  bar->content()->addStretch(1);
+  connect(bar, &AppBar::ApiBadgeClicked, this, [this] { ShowPage(kApiPage); });
+  layout->addWidget(bar);
   auto* body = new QHBoxLayout();
   body->setSpacing(0);
   layout->addLayout(body, 1);

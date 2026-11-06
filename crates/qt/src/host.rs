@@ -1,7 +1,7 @@
 use std::fmt;
 
 use crate::bridge::ffi::{
-    self, CategoryView, CloseView, DialogKind, EventKind, GraphView, InspectorView,
+    self, BarView, CategoryView, CloseView, DialogKind, EventKind, GraphView, InspectorView,
     MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView, ProjectEntry, ProjectView,
     ScreenArea, SettingsView, TemplateView, TextToken, VariableView, WindowPlacement,
 };
@@ -65,6 +65,8 @@ pub trait Host {
     fn project_edit(&self, json: &str) -> HostResult<()>;
     fn clear_saved_results(&self) -> HostResult<()>;
     fn copy_selection(&self) -> String;
+    fn bar(&self) -> BarView;
+    fn reveal_outputs(&self) -> HostResult<()>;
     fn motion_info(&self, motion: &str) -> MotionInfo;
     fn motion_pose(&self, motion: &str, elapsed_ms: f64) -> PoseView;
     fn paste_text(&self, text: &str) -> HostResult<()>;
@@ -328,6 +330,14 @@ impl Session {
 
     pub(crate) fn copy_selection(&self) -> String {
         self.0.copy_selection()
+    }
+
+    pub(crate) fn bar(&self) -> BarView {
+        self.0.bar()
+    }
+
+    pub(crate) fn reveal_outputs(&self) -> HostResult<()> {
+        self.0.reveal_outputs()
     }
 
     pub(crate) fn motion_info(&self, motion: &str) -> MotionInfo {

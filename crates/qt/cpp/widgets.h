@@ -15,6 +15,24 @@
 
 namespace opsis {
 
+class ClampedLabel : public QLabel {
+ public:
+  ClampedLabel(const QString& text, int lines, QWidget* parent = nullptr);
+  bool hasHeightForWidth() const override { return true; }
+  int heightForWidth(int width) const override;
+  QSize sizeHint() const override;
+  QSize minimumSizeHint() const override;
+
+ protected:
+  void resizeEvent(QResizeEvent* event) override;
+
+ private:
+  QString Clamped(int width) const;
+
+  QString full_;
+  int lines_;
+};
+
 class Combo : public QComboBox {
  public:
   using QComboBox::QComboBox;

@@ -13,9 +13,9 @@ use opsis_compile::layout::auto_layout;
 use opsis_compile::node::Platform as NodePlatform;
 use opsis_compile::nodes::media::IMPORT_TYPE;
 use opsis_qt::{
-    CategoryView, Choice, CloseView, EventKind, GraphView, Host, HostResult, InspectorView,
-    MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView, ProjectEntry, ProjectView,
-    ScreenArea, SettingsView, TemplateView, TextToken, VariableView, WindowPlacement,
+    BarView, CategoryView, Choice, CloseView, EventKind, GraphView, Host, HostResult,
+    InspectorView, MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView, ProjectEntry,
+    ProjectView, ScreenArea, SettingsView, TemplateView, TextToken, VariableView, WindowPlacement,
 };
 use opsis_session::error::CommandError;
 use opsis_session::events::{MAIN_WINDOW, SessionEvent};
@@ -27,6 +27,7 @@ use opsis_session::{Session, compile, document, projects, run, settings, shared}
 use opsis_types::actions::Viewport;
 use opsis_types::edits::{EdgeEnds, NodePatch, WorkflowEdit};
 use opsis_types::events::RunTargets;
+use opsis_types::project::OUT_DIR;
 use opsis_types::settings::settings_book;
 use opsis_types::shell::{CloseDecision, CloseRequest, MenuCommand, Selection};
 use opsis_types::workflow::{Position, WORKFLOW_FILE, Workflow};
@@ -67,6 +68,17 @@ impl fmt::Debug for Ui {
             .field("session", &self.session)
             .finish_non_exhaustive()
     }
+}
+
+fn port_labels(ports: &IndexMap<String, opsis_compile::catalog::CatalogPort>) -> String {
+    if ports.is_empty() {
+        return "Nothing".to_owned();
+    }
+    ports
+        .values()
+        .map(|port| port.label.as_str())
+        .collect::<Vec<_>>()
+        .join(", ")
 }
 
 pub fn plain(value: &impl serde::Serialize) -> String {
@@ -121,6 +133,7 @@ const fn event_kind(event: &SessionEvent) -> Option<EventKind> {
         SessionEvent::SelectionShared(_) => Some(EventKind::Selection),
         SessionEvent::SettingsChanged(_) => Some(EventKind::Settings),
         SessionEvent::RunViewChanged(_) | SessionEvent::RunStateReset(_) => Some(EventKind::Run),
+        SessionEvent::ApiStatusChanged(_) => Some(EventKind::Api),
         _ => None,
     }
 }
@@ -583,6 +596,8 @@ impl Host for Ui {
                         color: look::category_color(&category).to_owned(),
                         glyph: n.look.as_ref().map_or_default(|l| l.glyph.clone()),
                         description: n.description.clone().unwrap_or_default(),
+                        inputs: port_labels(&n.inputs),
+                        outputs: port_labels(&n.outputs),
                     },
                 )
             })
@@ -935,6 +950,28 @@ impl Host for Ui {
 
     fn motion_pose(&self, motion: &str, elapsed_ms: f64) -> PoseView {
         motion::pose(motion, elapsed_ms)
+    }
+
+    fn bar(&self) -> BarView {
+        let api = opsis_session::api::api_status(&self.session);
+        BarView {
+            api_enabled: api.enabled,
+            api_listening: api.listening,
+            running: self.session.state::<RunHost>().is_running(),
+        }
+    }
+
+    fn reveal_outputs(&self) -> HostResult<()> {
+        let Some(dir) = self.state().editor().dir() else {
+            return Ok(());
+        };
+        std::fs::create_dir_all(dir.join(OUT_DIR)).map_err(|e| e.to_string())?;
+        settings::reveal_in_folder(
+            &self.session,
+            &dir.to_string_lossy(),
+            Some(OUT_DIR.to_owned()),
+        )
+        .map_err(|e| e.0)
     }
 
     fn copy_selection(&self) -> String {

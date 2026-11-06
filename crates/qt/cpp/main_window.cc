@@ -25,12 +25,17 @@
 #include "opsis-qt/src/bridge.rs.h"
 #include "settings_window.h"
 #include "start_screen.h"
+#include "top_bar.h"
 #include "widgets.h"
 #include "window_chrome.h"
 
 namespace opsis {
 
 namespace {
+
+constexpr int kApiPage = 3;
+constexpr int kQuickAddWidth = 520;
+constexpr int kQuickAddHeight = 480;
 
 namespace kdw = KDDockWidgets;
 
@@ -62,8 +67,15 @@ MainWindow::MainWindow()
   setWindowTitle(QStringLiteral("Opsis"));
   resize(1440, 900);
   new WindowChrome(this);
-  app_bar_ = new AppBar(this, QStringLiteral("Opsis"), true);
+  app_bar_ = new AppBar(this, true, true);
+  top_bar_ = new TopBar(app_bar_);
+  app_bar_->content()->addWidget(top_bar_);
+  top_bar_->hide();
   setMenuWidget(app_bar_);
+  connect(top_bar_, &TopBar::Command, this, &MainWindow::Dispatch);
+  connect(app_bar_, &AppBar::ApiBadgeClicked, this,
+          [this] { OpenSettings()->ShowPage(kApiPage); });
+  connect(EventHub::Instance(), &EventHub::RunChanged, top_bar_, &TopBar::Sync);
   setCenterWidgetMargins(QMargins());
   stack_ = new QStackedWidget(this);
   start_ = new StartScreen(stack_);
@@ -193,7 +205,7 @@ void MainWindow::Dispatch(const QString& id) {
   } else if (id == QStringLiteral("edit:select-all")) {
     canvas_->SelectAll();
   } else if (id == QStringLiteral("edit:add-node")) {
-    FocusDock(nodes_dock_);
+    QuickAdd();
   } else {
     try {
       App::Get().session().menu_command(ToRust(id));
@@ -325,6 +337,10 @@ void MainWindow::BuildDocks() {
       MakeDock(QStringLiteral("nodes"), QStringLiteral("Nodes"), nodes);
   connect(nodes_dock_, &kdw::QtWidgets::DockWidget::isOpenChanged, this,
           &MainWindow::SyncRail);
+  for (auto* dock : {nodes_dock_, inspector_dock_, timeline_dock_}) {
+    connect(dock, &kdw::QtWidgets::DockWidget::isOpenChanged, this,
+            &MainWindow::SyncPanels);
+  }
   inspector_dock_ = MakeDock(QStringLiteral("inspector"),
                              QStringLiteral("Inspector"), new InspectorPanel());
   timeline_dock_ = MakeDock(
@@ -367,6 +383,8 @@ void MainWindow::ShowEditor() {
     }
   }
   SyncRail();
+  top_bar_->show();
+  SyncPanels();
   canvas_->Sync();
   canvas_->FitAll();
   SyncTitle();
@@ -383,7 +401,7 @@ void MainWindow::ShowStart() {
   start_->Reload();
   stack_->setCurrentWidget(start_);
   SyncRail();
-  app_bar_->SetSubtitle(QString());
+  top_bar_->hide();
   SetEnabled(QStringLiteral("edit:undo"), false);
   SetEnabled(QStringLiteral("edit:redo"), false);
 }
@@ -398,11 +416,34 @@ void MainWindow::SaveLayout() {
 void MainWindow::SyncTitle() {
   const bridge::GraphView graph = App::Get().session().graph();
   if (graph.name.empty()) return;
-  app_bar_->SetSubtitle(ToQ(graph.name) + QStringLiteral("  ·  ") +
-                        (graph.dirty ? QStringLiteral("Unsaved changes")
-                                     : QStringLiteral("Saved")));
+  top_bar_->Sync();
   SetEnabled(QStringLiteral("edit:undo"), graph.can_undo);
   SetEnabled(QStringLiteral("edit:redo"), graph.can_redo);
+}
+
+void MainWindow::SyncPanels() {
+  if (!docked_) return;
+  top_bar_->SetPanels(nodes_dock_->isOpen(), timeline_dock_->isOpen(),
+                      inspector_dock_->isOpen());
+}
+
+void MainWindow::QuickAdd() {
+  if (!App::Get().session().has_project()) return;
+  QDialog dialog(this);
+  dialog.setObjectName(QStringLiteral("QuickAdd"));
+  dialog.setWindowTitle(QStringLiteral("Add node"));
+  dialog.resize(kQuickAddWidth, kQuickAddHeight);
+  auto* layout = new QVBoxLayout(&dialog);
+  layout->setContentsMargins(0, 0, 0, 0);
+  auto* list = new NodeList(QString(), QString(), &dialog);
+  list->SetPlaceholder(QStringLiteral("Add a node…"));
+  layout->addWidget(list);
+  connect(list, &NodeList::AddRequested, &dialog,
+          [this, &dialog](const QString& type) {
+            AddNode(type);
+            dialog.accept();
+          });
+  dialog.exec();
 }
 
 void MainWindow::SetEnabled(const QString& id, bool enabled) {
