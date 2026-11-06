@@ -1,9 +1,8 @@
 #ifndef OPSIS_QT_SPIKE_CPP_EVENT_HUB_H_
 #define OPSIS_QT_SPIKE_CPP_EVENT_HUB_H_
 
-#include <cstdint>
-
 #include <QObject>
+#include <cstdint>
 
 namespace opsis {
 

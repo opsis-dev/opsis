@@ -7,7 +7,7 @@
 namespace opsis {
 
 EventHub* EventHub::Instance() {
-  static EventHub* hub = new EventHub(QCoreApplication::instance());
+  static auto* hub = new EventHub(QCoreApplication::instance());
   return hub;
 }
 

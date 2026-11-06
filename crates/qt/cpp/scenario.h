@@ -25,7 +25,8 @@ class Scenario : public QObject {
   };
 
   Scenario(MainWindow* window, const QString& name, const QDir& shots);
-  void Add(const QString& name, std::function<void()> action, int wait_ms = 450);
+  void Add(const QString& name, std::function<void()> action,
+           int wait_ms = 450);
   void BuildTour();
   void BuildBench(int count);
   void Next();

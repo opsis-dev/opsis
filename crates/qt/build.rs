@@ -5,7 +5,17 @@ use qt_build_utils::{MocArguments, QtBuild, QtInstallationQMake};
 
 const QT_MODULES: [&str; 5] = ["Core", "Gui", "Widgets", "Svg", "Test"];
 const QT_MIN_MINOR: u64 = 12;
-const KDDW_TAG: &str = "v2.5.1";
+const KDDW_VERSION: &str = "2.5.1";
+const QT_VERSION: &str = "6.12.0";
+
+const DEFINES: [&str; 6] = [
+    "KDDW_FRONTEND_QT",
+    "KDDW_FRONTEND_QTWIDGETS",
+    "QT_WIDGETS_LIB",
+    "QT_GUI_LIB",
+    "QT_CORE_LIB",
+    "QT_TESTLIB_LIB",
+];
 
 const MOC_HEADERS: [&str; 11] = [
     "event_hub.h",
@@ -42,7 +52,11 @@ fn main() {
         PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("Cargo sets CARGO_MANIFEST_DIR"));
     let home = PathBuf::from(env::var("HOME").expect("HOME is set"));
     let qt_prefix = env::var("OPSIS_QT").map_or_else(
-        |_| home.join(".cache/opsis-qt/6.12.0/gcc_64"),
+        |_| {
+            home.join(".cache/opsis-qt")
+                .join(QT_VERSION)
+                .join(qt_folder())
+        },
         PathBuf::from,
     );
     let installation = QtInstallationQMake::try_from(qt_prefix.join("bin").join("qmake6"))
@@ -95,14 +109,12 @@ fn main() {
     build
         .std("c++17")
         .includes(&includes)
-        .define("KDDW_FRONTEND_QT", None)
-        .define("KDDW_FRONTEND_QTWIDGETS", None)
-        .define("QT_WIDGETS_LIB", None)
-        .define("QT_GUI_LIB", None)
-        .define("QT_CORE_LIB", None)
-        .define("QT_TESTLIB_LIB", None)
         .flag_if_supported("-Wno-unused-parameter")
         .flag_if_supported("-Wno-deprecated-declarations");
+    for define in DEFINES {
+        build.define(define, None);
+    }
+    write_compile_commands(&out, &cpp, &includes);
     let kddw_lib = kddw.join("lib");
     let link_args = if static_qt(&qt_prefix) {
         build.define("KDDOCKWIDGETS_STATICLIB", None);
@@ -136,12 +148,12 @@ fn main() {
 
 fn build_kddw(qt_prefix: &Path, home: &Path) -> PathBuf {
     let source = env::var("OPSIS_KDDW_SOURCE").map_or_else(
-        |_| home.join(".cache/opsis-v4-research/native-editor-spike/clones/kddockwidgets"),
+        |_| home.join(format!(".cache/opsis-qt/kddockwidgets-{KDDW_VERSION}")),
         PathBuf::from,
     );
     assert!(
         source.join("CMakeLists.txt").exists(),
-        "KDDockWidgets {KDDW_TAG} is needed in {} (a shallow clone of that tag, or set OPSIS_KDDW_SOURCE)",
+        "KDDockWidgets {KDDW_VERSION} is needed in {} (bun run qt:install, or set OPSIS_KDDW_SOURCE)",
         source.display()
     );
     cmake::Config::new(&source)
@@ -279,4 +291,55 @@ fn static_link_args(qt_prefix: &Path, kddw_lib: &Path, imports: &[PathBuf]) -> V
         .chain(std::iter::once("-Wl,--end-group".to_owned()))
         .chain(links.system)
         .collect()
+}
+
+fn qt_folder() -> &'static str {
+    let os = env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();
+    let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
+    match (os.as_str(), arch.as_str()) {
+        ("macos", _) => "macos",
+        ("windows", _) => "msvc2022_64",
+        (_, "aarch64") => "gcc_arm64",
+        _ => "gcc_64",
+    }
+}
+
+fn json_string(text: &str) -> String {
+    let mut quoted = String::with_capacity(text.len() + 2);
+    quoted.push('"');
+    for ch in text.chars() {
+        match ch {
+            '"' => quoted.push_str("\\\""),
+            '\\' => quoted.push_str("\\\\"),
+            _ => quoted.push(ch),
+        }
+    }
+    quoted.push('"');
+    quoted
+}
+
+fn write_compile_commands(out: &Path, cpp: &Path, includes: &[PathBuf]) {
+    let mut arguments = vec!["c++".to_owned(), "-std=c++17".to_owned()];
+    arguments.extend(includes.iter().map(|dir| format!("-I{}", dir.display())));
+    arguments.extend(DEFINES.iter().map(|define| format!("-D{define}")));
+    let entries: Vec<String> = SOURCES
+        .iter()
+        .map(|source| {
+            let file = cpp.join(source).to_string_lossy().into_owned();
+            let args: Vec<String> = arguments
+                .iter()
+                .map(String::as_str)
+                .chain(["-c", file.as_str()])
+                .map(json_string)
+                .collect();
+            format!(
+                "{{\"directory\": {}, \"file\": {}, \"arguments\": [{}]}}",
+                json_string(&cpp.to_string_lossy()),
+                json_string(&file),
+                args.join(", ")
+            )
+        })
+        .collect();
+    let text = format!("[\n{}\n]\n", entries.join(",\n"));
+    std::fs::write(out.join("compile_commands.json"), text).expect("writing compile_commands.json");
 }

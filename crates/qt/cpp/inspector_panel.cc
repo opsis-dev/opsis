@@ -3,17 +3,17 @@
 #include <QApplication>
 #include <QComboBox>
 #include <QDoubleValidator>
-#include <QLocale>
-#include <algorithm>
 #include <QHBoxLayout>
 #include <QJsonDocument>
 #include <QJsonValue>
 #include <QLineEdit>
+#include <QLocale>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScrollBar>
-#include <functional>
+#include <algorithm>
 #include <cmath>
+#include <functional>
 
 #include "app.h"
 #include "event_hub.h"
@@ -70,7 +70,8 @@ InspectorPanel::InspectorPanel(QWidget* parent) : QWidget(parent) {
 
 bool InspectorPanel::Editing() const {
   QWidget* focus = QApplication::focusWidget();
-  return focus != nullptr && content_ != nullptr && content_->isAncestorOf(focus) &&
+  return focus != nullptr && content_ != nullptr &&
+         content_->isAncestorOf(focus) &&
          (qobject_cast<QLineEdit*>(focus) != nullptr ||
           qobject_cast<QPlainTextEdit*>(focus) != nullptr);
 }
@@ -120,9 +121,10 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
         combo->addItem(ToQ(choice.label), ToQ(choice.value));
       }
       combo->setCurrentIndex(combo->findData(ToQ(field.text)));
-      connect(combo, &QComboBox::activated, this, [this, key, combo](int index) {
-        Commit(key, Json(QJsonValue(combo->itemData(index).toString())));
-      });
+      connect(
+          combo, &QComboBox::activated, this, [this, key, combo](int index) {
+            Commit(key, Json(QJsonValue(combo->itemData(index).toString())));
+          });
       return combo;
     }
     case bridge::FieldKind::Number: {
@@ -132,18 +134,20 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
       row->setSpacing(8);
       auto* line = new QLineEdit();
       const int decimals = static_cast<int>(field.decimals);
-      auto* validator = new QDoubleValidator(field.minimum, field.maximum,
-                                             decimals, line);
+      auto* validator =
+          new QDoubleValidator(field.minimum, field.maximum, decimals, line);
       validator->setNotation(QDoubleValidator::StandardNotation);
       validator->setLocale(QLocale::c());
       line->setValidator(validator);
       const QString zero = ToQ(field.zero_label);
       const bool zero_shown = !zero.isEmpty() && field.number == 0.0;
-      line->setText(zero_shown ? QString()
-                               : QLocale::c().toString(field.number, 'f', decimals));
+      line->setText(zero_shown
+                        ? QString()
+                        : QLocale::c().toString(field.number, 'f', decimals));
       line->setPlaceholderText(zero);
       row->addWidget(line, 1);
-      if (!field.unit.empty()) row->addWidget(MakeLabel(ToQ(field.unit), "muted"));
+      if (!field.unit.empty())
+        row->addWidget(MakeLabel(ToQ(field.unit), "muted"));
       const double scale = field.scale;
       const bool whole = field.decimals == 0 || scale != 1.0;
       const double minimum = field.minimum;
@@ -153,9 +157,10 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
               [this, key, line, scale, whole, minimum, maximum, initial] {
                 if (line->text() == initial) return;
                 bool ok = false;
-                const double typed = line->text().isEmpty()
-                                         ? 0.0
-                                         : QLocale::c().toDouble(line->text(), &ok);
+                const double typed =
+                    line->text().isEmpty()
+                        ? 0.0
+                        : QLocale::c().toDouble(line->text(), &ok);
                 if (!ok && !line->text().isEmpty()) return;
                 const double raw = std::clamp(typed, minimum, maximum) * scale;
                 Commit(key, whole ? QString::number(std::llround(raw))
@@ -207,8 +212,9 @@ void InspectorPanel::Rebuild() {
   layout->setSpacing(14);
   if (node_.isEmpty()) {
     layout->addStretch(1);
-    auto* empty = MakeLabel(QStringLiteral("Select a node to change its settings."),
-                            "muted", content);
+    auto* empty =
+        MakeLabel(QStringLiteral("Select a node to change its settings."),
+                  "muted", content);
     empty->setAlignment(Qt::AlignCenter);
     empty->setWordWrap(true);
     layout->addWidget(empty);
@@ -216,8 +222,8 @@ void InspectorPanel::Rebuild() {
   } else {
     auto* header = new QHBoxLayout();
     header->setSpacing(10);
-    header->addWidget(MakeBadge(ToQ(view.glyph), QColor::fromString(ToQ(view.color)),
-                                28, content));
+    header->addWidget(MakeBadge(
+        ToQ(view.glyph), QColor::fromString(ToQ(view.color)), 28, content));
     auto* name = new QLineEdit(ToQ(view.label), content);
     name->setProperty("role", "flat");
     const QString node = node_;
@@ -232,8 +238,9 @@ void InspectorPanel::Rebuild() {
     });
     header->addWidget(name, 1);
     layout->addLayout(header);
-    auto* category = MakeLabel(ToQ(view.category) + QStringLiteral(" · ") + ToQ(view.title),
-                               "muted", content);
+    auto* category =
+        MakeLabel(ToQ(view.category) + QStringLiteral(" · ") + ToQ(view.title),
+                  "muted", content);
     layout->addWidget(category);
     if (!view.description.empty()) {
       auto* about = MakeLabel(ToQ(view.description), "muted", content);
@@ -244,12 +251,12 @@ void InspectorPanel::Rebuild() {
     QList<QWidget*> advanced;
     for (const auto& field : view.fields) {
       QWidget* control = MakeControl(field);
-      QWidget* row = field.kind == bridge::FieldKind::Switch
-                         ? MakeSwitchField(ToQ(field.label),
-                                           static_cast<ToggleSwitch*>(control),
-                                           ToQ(field.help), content)
-                         : MakeField(ToQ(field.label), control, ToQ(field.help),
-                                     content);
+      QWidget* row =
+          field.kind == bridge::FieldKind::Switch
+              ? MakeSwitchField(ToQ(field.label),
+                                static_cast<ToggleSwitch*>(control),
+                                ToQ(field.help), content)
+              : MakeField(ToQ(field.label), control, ToQ(field.help), content);
       if (field.advanced) {
         advanced.append(row);
       } else {
@@ -257,11 +264,13 @@ void InspectorPanel::Rebuild() {
       }
     }
     if (!advanced.isEmpty()) {
-      auto* toggle = MakeButton(QStringLiteral("Advanced"), "ghost",
-                                advanced_open_ ? QStringLiteral("chevron-down")
-                                               : QStringLiteral("chevron-right"),
-                                content);
-      toggle->setStyleSheet(QStringLiteral("text-align: left; padding-left: 4px;"));
+      auto* toggle =
+          MakeButton(QStringLiteral("Advanced"), "ghost",
+                     advanced_open_ ? QStringLiteral("chevron-down")
+                                    : QStringLiteral("chevron-right"),
+                     content);
+      toggle->setStyleSheet(
+          QStringLiteral("text-align: left; padding-left: 4px;"));
       layout->addWidget(toggle);
       for (QWidget* row : advanced) {
         row->setVisible(advanced_open_);
@@ -269,10 +278,10 @@ void InspectorPanel::Rebuild() {
       }
       connect(toggle, &QPushButton::clicked, this, [this, advanced, toggle] {
         advanced_open_ = !advanced_open_;
-        toggle->setIcon(App::Get().Icon(
-            advanced_open_ ? QStringLiteral("chevron-down")
-                           : QStringLiteral("chevron-right"),
-            App::Get().Token("foreground")));
+        toggle->setIcon(App::Get().Icon(advanced_open_
+                                            ? QStringLiteral("chevron-down")
+                                            : QStringLiteral("chevron-right"),
+                                        App::Get().Token("foreground")));
         for (QWidget* row : advanced) row->setVisible(advanced_open_);
       });
     }

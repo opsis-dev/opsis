@@ -7,8 +7,8 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QToolButton>
-#include <QVariantAnimation>
 #include <QVBoxLayout>
+#include <QVariantAnimation>
 #include <utility>
 #include <vector>
 

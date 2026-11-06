@@ -1,12 +1,13 @@
 #include "dock_style.h"
 
-#include <QPainter>
 #include <kddockwidgets/core/Group.h>
 #include <kddockwidgets/core/TitleBar.h>
 #include <kddockwidgets/qtcommon/View.h>
 #include <kddockwidgets/qtwidgets/views/Group.h>
 #include <kddockwidgets/qtwidgets/views/Separator.h>
 #include <kddockwidgets/qtwidgets/views/TitleBar.h>
+
+#include <QPainter>
 
 #include "app.h"
 
@@ -64,8 +65,8 @@ class DockSeparator : public kdw::QtWidgets::Separator {
  protected:
   void paintEvent(QPaintEvent*) override {
     QPainter painter(this);
-    painter.fillRect(rect(), App::Get().Token(
-                                 underMouse() ? "ring" : "window-border"));
+    painter.fillRect(rect(),
+                     App::Get().Token(underMouse() ? "ring" : "window-border"));
   }
 };
 

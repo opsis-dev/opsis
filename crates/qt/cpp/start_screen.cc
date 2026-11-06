@@ -95,8 +95,8 @@ StartScreen::StartScreen(QWidget* parent) : QWidget(parent) {
 
 void StartScreen::Reload() {
   App& app = App::Get();
-  const QIcon folder =
-      app.Icon(QStringLiteral("folder-open"), app.Token("muted-foreground"), 18);
+  const QIcon folder = app.Icon(QStringLiteral("folder-open"),
+                                app.Token("muted-foreground"), 18);
   const QIcon example =
       app.Icon(QStringLiteral("play"), app.Token("muted-foreground"), 18);
   recent_->clear();
@@ -107,11 +107,11 @@ void StartScreen::Reload() {
     item->setToolTip(ToQ(entry.detail));
   }
   if (recent_->count() == 0) {
-    auto* item = new QListWidgetItem(QStringLiteral("No recent projects"), recent_);
+    auto* item =
+        new QListWidgetItem(QStringLiteral("No recent projects"), recent_);
     item->setFlags(Qt::NoItemFlags);
   }
-  recent_->setFixedHeight(
-      std::min(170, recent_->count() * 34 + 6));
+  recent_->setFixedHeight(std::min(170, recent_->count() * 34 + 6));
   examples_->clear();
   for (const auto& entry : app.session().examples()) {
     auto* item = new QListWidgetItem(

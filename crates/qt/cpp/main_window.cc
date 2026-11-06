@@ -1,5 +1,7 @@
 #include "main_window.h"
 
+#include <kddockwidgets/LayoutSaver.h>
+
 #include <QApplication>
 #include <QCloseEvent>
 #include <QFileDialog>
@@ -7,7 +9,6 @@
 #include <QMenuBar>
 #include <QVBoxLayout>
 #include <functional>
-#include <kddockwidgets/LayoutSaver.h>
 
 #include "app.h"
 #include "event_hub.h"
@@ -71,9 +72,10 @@ MainWindow::MainWindow()
               OpenFolder(dir);
             }
           });
-  connect(start_, &StartScreen::CreateRequested, this, [this](const QString& name) {
-    Guard([&] { App::Get().session().create_project(ToRust(name)); });
-  });
+  connect(start_, &StartScreen::CreateRequested, this,
+          [this](const QString& name) {
+            Guard([&] { App::Get().session().create_project(ToRust(name)); });
+          });
   connect(start_, &StartScreen::BrowseRequested, this, [this] {
     const QString dir =
         QFileDialog::getExistingDirectory(this, QStringLiteral("Open project"));
@@ -122,37 +124,44 @@ void MainWindow::CloseProject() {
 void MainWindow::BuildMenus() {
   QMenuBar* bar = app_bar_->menu_bar();
   QMenu* file = bar->addMenu(QStringLiteral("File"));
-  file->addAction(QStringLiteral("New project…"), QKeySequence::New, this,
-                  [this] { emit start_->CreateRequested(QStringLiteral("Untitled")); });
+  file->addAction(
+      QStringLiteral("New project…"), QKeySequence::New, this,
+      [this] { emit start_->CreateRequested(QStringLiteral("Untitled")); });
   file->addAction(QStringLiteral("Open project…"), QKeySequence::Open, this,
                   [this] { emit start_->BrowseRequested(); });
   file->addAction(QStringLiteral("Save"), QKeySequence::Save, this,
                   [this] { Guard([] { App::Get().session().save(); }); });
-  file->addAction(QStringLiteral("Close project"), QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_W),
-                  this, &MainWindow::CloseProject);
+  file->addAction(QStringLiteral("Close project"),
+                  QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_W), this,
+                  &MainWindow::CloseProject);
   file->addSeparator();
-  file->addAction(QStringLiteral("Settings"), QKeySequence(Qt::CTRL | Qt::Key_Comma),
-                  this, [this] { OpenSettings(); });
+  file->addAction(QStringLiteral("Settings"),
+                  QKeySequence(Qt::CTRL | Qt::Key_Comma), this,
+                  [this] { OpenSettings(); });
   file->addSeparator();
-  file->addAction(QStringLiteral("Quit"), QKeySequence::Quit, this, &QWidget::close);
+  file->addAction(QStringLiteral("Quit"), QKeySequence::Quit, this,
+                  &QWidget::close);
 
   QMenu* edit = bar->addMenu(QStringLiteral("Edit"));
   undo_ = edit->addAction(QStringLiteral("Undo"), QKeySequence::Undo, this,
                           [] { App::Get().session().undo(); });
-  redo_ = edit->addAction(QStringLiteral("Redo"), QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_Z),
-                          this, [] { App::Get().session().redo(); });
+  redo_ = edit->addAction(QStringLiteral("Redo"),
+                          QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_Z), this,
+                          [] { App::Get().session().redo(); });
 
   QMenu* view = bar->addMenu(QStringLiteral("View"));
-  view->addAction(QStringLiteral("Nodes"), QKeySequence(Qt::CTRL | Qt::Key_B), this,
-                  [this] { ToggleDock(nodes_dock_); });
+  view->addAction(QStringLiteral("Nodes"), QKeySequence(Qt::CTRL | Qt::Key_B),
+                  this, [this] { ToggleDock(nodes_dock_); });
   view->addAction(QStringLiteral("Inspector"),
                   QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_B), this,
                   [this] { ToggleDock(inspector_dock_); });
-  view->addAction(QStringLiteral("Bottom panel"), QKeySequence(Qt::CTRL | Qt::Key_J),
-                  this, [this] { ToggleDock(timeline_dock_); });
+  view->addAction(QStringLiteral("Bottom panel"),
+                  QKeySequence(Qt::CTRL | Qt::Key_J), this,
+                  [this] { ToggleDock(timeline_dock_); });
   view->addSeparator();
-  view->addAction(QStringLiteral("Fit to view"), QKeySequence(Qt::SHIFT | Qt::Key_1),
-                  this, [this] { canvas_->FitAll(); });
+  view->addAction(QStringLiteral("Fit to view"),
+                  QKeySequence(Qt::SHIFT | Qt::Key_1), this,
+                  [this] { canvas_->FitAll(); });
   view->addAction(QStringLiteral("Minimap"), this, [this] {
     canvas_->SetMinimapVisible(!canvas_->minimap_visible());
   });
@@ -182,17 +191,20 @@ void MainWindow::BuildDocks() {
       App::Get().session().add_node(ToRust(type), at.x() - 128, at.y() - 22);
     });
   });
-  nodes_dock_ = MakeDock(QStringLiteral("nodes"), QStringLiteral("Nodes"), nodes);
+  nodes_dock_ =
+      MakeDock(QStringLiteral("nodes"), QStringLiteral("Nodes"), nodes);
   inspector_dock_ = MakeDock(QStringLiteral("inspector"),
                              QStringLiteral("Inspector"), new InspectorPanel());
   timeline_dock_ = MakeDock(
       QStringLiteral("timeline"), QStringLiteral("Timeline"),
-      Placeholder(QStringLiteral("The timeline isn't in the native editor yet.")));
+      Placeholder(
+          QStringLiteral("The timeline isn't in the native editor yet.")));
   mixer_dock_ = MakeDock(
       QStringLiteral("mixer"), QStringLiteral("Mixer"),
       Placeholder(QStringLiteral("The mixer isn't in the native editor yet.")));
-  run_dock_ = MakeDock(QStringLiteral("run"), QStringLiteral("Run"),
-                       Placeholder(QStringLiteral("Runs aren't in the native editor yet.")));
+  run_dock_ = MakeDock(
+      QStringLiteral("run"), QStringLiteral("Run"),
+      Placeholder(QStringLiteral("Runs aren't in the native editor yet.")));
   addDockWidget(timeline_dock_, kdw::Location_OnBottom, nullptr,
                 kdw::InitialOption(kdw::Size(0, kBottomHeight)));
   addDockWidget(nodes_dock_, kdw::Location_OnLeft, nullptr,
@@ -229,8 +241,8 @@ void MainWindow::ShowEditor() {
 void MainWindow::ShowStart() {
   if (docked_) {
     SaveLayout();
-    for (auto* dock :
-         {nodes_dock_, inspector_dock_, timeline_dock_, mixer_dock_, run_dock_}) {
+    for (auto* dock : {nodes_dock_, inspector_dock_, timeline_dock_,
+                       mixer_dock_, run_dock_}) {
       dock->forceClose();
     }
   }

@@ -62,10 +62,12 @@ void ToggleSwitch::paintEvent(QPaintEvent*) {
   const QColor off = app.Token("input");
   const QColor on = app.Token("primary");
   QColor fill;
-  fill.setRgbF(off.redF() + (on.redF() - off.redF()) * knob_,
-               off.greenF() + (on.greenF() - off.greenF()) * knob_,
-               off.blueF() + (on.blueF() - off.blueF()) * knob_,
-               off.alphaF() + (on.alphaF() - off.alphaF()) * knob_);
+  const auto blend = [this](float from, float to) {
+    return static_cast<float>(from + (to - from) * knob_);
+  };
+  fill.setRgbF(blend(off.redF(), on.redF()), blend(off.greenF(), on.greenF()),
+               blend(off.blueF(), on.blueF()),
+               blend(off.alphaF(), on.alphaF()));
   painter.setPen(hasFocus() ? QPen(app.Token("ring"), 1) : Qt::NoPen);
   painter.setBrush(fill);
   painter.drawRoundedRect(track, kSwitchHeight / 2.0, kSwitchHeight / 2.0);
@@ -105,7 +107,7 @@ void Segmented::SetChoices(
 
 void Segmented::SetValue(const QString& value) {
   for (std::size_t i = 0; i < values_.size(); ++i) {
-    if (values_[i] == value) {
+    if (values_.at(i) == value) {
       group_.button(static_cast<int>(i))->setChecked(true);
     }
   }

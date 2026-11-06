@@ -60,7 +60,7 @@ class CardItem : public QGraphicsItem {
 
 class EdgeItem : public QGraphicsPathItem {
  public:
-  EdgeItem(const bridge::EdgeView& edge);
+  explicit EdgeItem(const bridge::EdgeView& edge);
   void SetEdge(const bridge::EdgeView& edge);
   const bridge::EdgeView& edge() const { return edge_; }
   QString id() const { return id_; }

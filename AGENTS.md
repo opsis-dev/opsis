@@ -11,10 +11,10 @@
 
 ## 2. Hard rules
 
-- **No comments. Any kind. Anywhere.** No `//`, `///`, `//!`, no `/* */`, no JSDoc, no file headers, no CSS comments, in source, tests, scripts and config, in TS, Rust and Zig.
+- **No comments. Any kind. Anywhere.** No `//`, `///`, `//!`, no `/* */`, no JSDoc, no file headers, no CSS comments, in source, tests, scripts and config, in TS, Rust, Zig and C++.
   - If something needs explaining, the name is wrong or the function is too big; a constraint that spans the codebase goes in this file, a domain's in its doc.
   - Allowed comment-shaped lines are functional directives only: `oxlint-disable…`, `/// <reference …>`, `@ts-…`. Rust attributes (`#[expect(…)]`, `#[cfg(…)]`) and a lint exception's `reason` are not comments.
-  - `bun run lint:comments` (`scripts/comments.ts`, part of `lint` and `lint:fix`) checks every TS file through `oxc-parser` and CSS, Rust and Zig files line by line, everywhere but installed and generated code. TypeScript 7 has no parser API; its native compiler only type-checks.
+  - `bun run lint:comments` (`scripts/comments.ts`, part of `lint` and `lint:fix`) checks every TS file through `oxc-parser`, C++ files line by line outside string literals, and CSS, Rust and Zig files line by line, everywhere but installed and generated code. TypeScript 7 has no parser API; its native compiler only type-checks.
 - **TS file names are kebab-case** (`trace-panel.tsx`), like the shadcn components; the code inside keeps its usual names (`TracePanel`).
   - oxlint enforces it (`unicorn/filename-case`). The one exception is TanStack Router's `__root.tsx`; pathless layouts such as `_main.tsx` pass.
   - Rust module files are snake_case, because a module name must be an identifier.
@@ -68,6 +68,7 @@
 - **Every tool config is a `*.config.ts`, except the Rust ones**, which are TOML at the root (`rust-toolchain.toml`, `rustfmt.toml`, `deny.toml`). Shared TS tool configs are in `scripts/lib/` (`oxlint-base.ts`, `oxfmt-base.ts`, `vitest-base.ts`, `tool-config.ts`).
 - **Rust builds on one pinned nightly, `rust-toolchain.toml`**, with `rust-version` in `[workspace.package]` refusing an older compiler. Moving it touches several files and another repository ([toolchain.md](agent-docs/toolchain.md)).
 - **Zig 0.17 builds `opsis-vt`'s wrapper**, and `crates/vt/build.rs` refuses any other version ([toolchain.md](agent-docs/toolchain.md)).
+- **Qt 6.12 and KDDockWidgets 2.5.1 build `opsis-qt`**, from `~/.cache/opsis-qt` after `bun run qt:install`; its C++ follows Google style ([toolchain.md](agent-docs/toolchain.md)).
 - **Rust imports are grouped std, external crates, then the workspace's own, one `use` per module, and struct fields use the shorthand.** `rustfmt.toml` keeps the imports so (`group_imports = "StdExternalCrate"`, `imports_granularity = "Module"`, applied only by the nightly).
 - **`bun start` (`scripts/start.ts`) stages FFmpeg when missing and runs `tauri dev` in `crates/desktop`.** Exports and terminal previews also need `bun run film:bundle`, live terminal pictures `bun run terminal:bundle`; make each again whenever `packages/video` or `packages/runtime` changes.
 - **To see a change in the running app, use the `check-app` skill** (`.claude/skills/check-app`): it seeds `~/.cache/opsis-check` (short, so the API socket fits), starts `bun start` in a virtual display and drives it through the Local API.
@@ -77,8 +78,8 @@
 ## 4. Verifying
 
 - **Verify with `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`.** The `:fix` variants fix and report the rest; do not run the non-fix variants first.
-  - `lint:fix` runs oxlint, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo deny check advisories licenses` (`lint:deny`), the Zig wrapper build (`lint:zig`) and the comment check.
-  - `format:fix` runs oxfmt (TS, JSON and Markdown), `cargo fmt --all` and `zig fmt` (`format:zig`); `test` runs every package's Vitest and `cargo test --workspace`.
+  - `lint:fix` runs oxlint, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo deny check advisories licenses` (`lint:deny`), the Zig wrapper build (`lint:zig`), `clang-tidy` on the C++ (`lint:cpp`) and the comment check.
+  - `format:fix` runs oxfmt (TS, JSON and Markdown), `cargo fmt --all`, `zig fmt` (`format:zig`) and `clang-format` on the C++; `test` runs every package's Vitest and `cargo test --workspace`.
 - **Clippy runs `pedantic` and `nursery` as warnings and `-D warnings` fails on any of them.** The permanent workspace allows and why each exists are in [toolchain.md](agent-docs/toolchain.md); never add a workspace line.
 - **A lint exception is local, on the item or statement, and written `#[expect(lint, reason = "…")]`**, the reason saying why the flagged code is meant; `unfulfilled_lint_expectations` reports it once the lint stops firing.
   - An exception that holds in only some builds sits in a `cfg_attr` for those builds (`native_menu`, dead outside macOS).

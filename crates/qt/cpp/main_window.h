@@ -1,11 +1,12 @@
 #ifndef OPSIS_QT_SPIKE_CPP_MAIN_WINDOW_H_
 #define OPSIS_QT_SPIKE_CPP_MAIN_WINDOW_H_
 
+#include <kddockwidgets/qtwidgets/views/DockWidget.h>
+#include <kddockwidgets/qtwidgets/views/MainWindow.h>
+
 #include <QAction>
 #include <QPointer>
 #include <QStackedWidget>
-#include <kddockwidgets/qtwidgets/views/DockWidget.h>
-#include <kddockwidgets/qtwidgets/views/MainWindow.h>
 
 namespace opsis {
 

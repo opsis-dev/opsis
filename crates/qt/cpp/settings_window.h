@@ -27,7 +27,8 @@ class SettingsWindow : public QWidget {
   QWidget* AboutPage();
   QWidget* Page(const QString& title, const QList<QWidget*>& cards);
   void Load();
-  void Patch(const QString& section, const QString& key, const QJsonValue& value);
+  void Patch(const QString& section, const QString& key,
+             const QJsonValue& value);
 
   QListWidget* sidebar_;
   QStackedWidget* pages_;

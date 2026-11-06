@@ -5,7 +5,7 @@ import { parseSync } from "oxc-parser";
 import { ROOT } from "./lib/tool-config";
 
 const CHECKED =
-  /^(apps|packages|crates|scripts|e2e)\/.*\.(ts|tsx|mts|css|rs|zig|zon)$|^[^/]+\.config\.ts$/;
+  /^(apps|packages|crates|scripts|e2e)\/.*\.(ts|tsx|mts|css|rs|zig|zon|cc|h|qss)$|^[^/]+\.config\.ts$/;
 const SKIPPED = [
   /^apps\/frontend\/src\/components\//,
   /^apps\/frontend\/src\/routeTree\.gen\.ts$/,
@@ -28,6 +28,15 @@ function scriptComments(file: string, text: string): number[] {
     .map((comment) => lineOf(text, comment.start));
 }
 
+const CPP_STRING = /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g;
+const CPP_COMMENT = /\/\/|\/\*|\*\//;
+
+function cppComments(text: string): number[] {
+  return text
+    .split("\n")
+    .flatMap((line, index) => (CPP_COMMENT.test(line.replace(CPP_STRING, "")) ? [index] : []));
+}
+
 function otherComments(text: string): number[] {
   return text
     .split("\n")
@@ -44,7 +53,11 @@ const files = execFileSync("git", ["ls-files", "--cached", "--others", "--exclud
 
 const found = files.flatMap((file) => {
   const text = readFileSync(path.join(ROOT, file), "utf8");
-  const lines = /\.(ts|tsx|mts)$/.test(file) ? scriptComments(file, text) : otherComments(text);
+  const lines = /\.(ts|tsx|mts)$/.test(file)
+    ? scriptComments(file, text)
+    : /\.(cc|h)$/.test(file)
+      ? cppComments(text)
+      : otherComments(text);
   const all = text.split("\n");
   return lines.toSorted((a, b) => a - b).map((line) => `${file}:${line + 1}: ${all[line]?.trim()}`);
 });

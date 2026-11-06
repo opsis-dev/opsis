@@ -143,9 +143,10 @@ QWidget* SettingsWindow::GeneralPage() {
                      "and Apply grade make along the way."));
   encode_speed_ = new Segmented();
   encode_speed_->SetChoices(Choices(view.encode_speeds));
-  connect(encode_speed_, &Segmented::Changed, this, [this](const QString& value) {
-    Patch(QStringLiteral("media"), QStringLiteral("encodeSpeed"), value);
-  });
+  connect(
+      encode_speed_, &Segmented::Changed, this, [this](const QString& value) {
+        Patch(QStringLiteral("media"), QStringLiteral("encodeSpeed"), value);
+      });
   working->body()->addWidget(MakeField(
       QStringLiteral("Speed vs file size"), Holder(encode_speed_),
       QStringLiteral("Faster makes bigger files. Files already made stay as "
@@ -181,7 +182,8 @@ QWidget* SettingsWindow::ProjectsPage() {
   auto* data = new Card(QStringLiteral("App data"),
                         QStringLiteral("Settings, recent projects and the "
                                        "engine live in this folder."));
-  auto* where = MakeLabel(ToQ(App::Get().session().settings().data_dir), "muted");
+  auto* where =
+      MakeLabel(ToQ(App::Get().session().settings().data_dir), "muted");
   where->setTextInteractionFlags(Qt::TextSelectableByMouse);
   where->setFont(QFont(QStringLiteral("JetBrains Mono"), 11));
   data->body()->addWidget(where);
@@ -191,10 +193,12 @@ QWidget* SettingsWindow::ProjectsPage() {
 QWidget* SettingsWindow::EditorPage() {
   auto* canvas = new Card(QStringLiteral("Canvas"), QString());
   canvas_mode_ = new Segmented();
-  canvas_mode_->SetChoices(Choices(App::Get().session().settings().canvas_modes));
-  connect(canvas_mode_, &Segmented::Changed, this, [this](const QString& value) {
-    Patch(QStringLiteral("editor"), QStringLiteral("canvasMode"), value);
-  });
+  canvas_mode_->SetChoices(
+      Choices(App::Get().session().settings().canvas_modes));
+  connect(
+      canvas_mode_, &Segmented::Changed, this, [this](const QString& value) {
+        Patch(QStringLiteral("editor"), QStringLiteral("canvasMode"), value);
+      });
   canvas->body()->addWidget(MakeField(
       QStringLiteral("Scrolling"), Holder(canvas_mode_),
       QStringLiteral("With a mouse, the wheel zooms. With a touchpad, two "
@@ -250,8 +254,8 @@ void SettingsWindow::Patch(const QString& section, const QString& key,
   QJsonObject patch;
   patch.insert(section, inner);
   try {
-    App::Get().session().patch_settings(
-        ToRust(QString::fromUtf8(QJsonDocument(patch).toJson(QJsonDocument::Compact))));
+    App::Get().session().patch_settings(ToRust(QString::fromUtf8(
+        QJsonDocument(patch).toJson(QJsonDocument::Compact))));
   } catch (const rust::Error& error) {
     App::Get().ShowError(QString::fromUtf8(error.what()));
   }

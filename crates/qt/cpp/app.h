@@ -1,13 +1,12 @@
 #ifndef OPSIS_QT_SPIKE_CPP_APP_H_
 #define OPSIS_QT_SPIKE_CPP_APP_H_
 
-#include <optional>
-
 #include <QColor>
 #include <QHash>
 #include <QIcon>
 #include <QPixmap>
 #include <QString>
+#include <optional>
 
 #include "rust/cxx.h"
 

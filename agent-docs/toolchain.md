@@ -14,6 +14,8 @@ The Rust nightly and how to move it, the Zig build of `opsis-vt`'s wrapper, the 
 | Opsis oxlint rules                     | `scripts/oxlint-plugin-opsis.ts`                                                                                      |
 | Shared oxlint, oxfmt, Vitest configs   | `scripts/lib/oxlint-base.ts`, `scripts/lib/oxfmt-base.ts`, `scripts/lib/vitest-base.ts`, `scripts/lib/tool-config.ts` |
 | Comment check                          | `scripts/comments.ts`                                                                                                 |
+| Qt and KDDockWidgets for `opsis-qt`    | `scripts/qt-install.ts` (`bun run qt:install`); `crates/qt/build.rs` → `QT_VERSION`, `KDDW_VERSION`, `qt_folder`      |
+| C++ format and lint                    | `scripts/cpp.ts` → `STYLE`, `CHECKS`; `compile_commands.json` written by `crates/qt/build.rs`                         |
 | Rust test runner (stages FFmpeg first) | `scripts/test-rust.ts`                                                                                                |
 
 ## Rules
@@ -34,6 +36,12 @@ The Rust nightly and how to move it, the Zig build of `opsis-vt`'s wrapper, the 
   - `struct_excessive_bools`: it flags structs with more than three `bool` fields, mostly settings structs with their switches.
   - `significant_drop_tightening`: it guesses a lock's lifetime from its last use, so it flags guards something still borrows and locks held across an `await` on purpose. A lock that blocks others needlessly is still tightened by hand (`check_media_files`).
   - `module_name_repetitions`: it flags item names that repeat their module's name; it sits in `restriction`, and the allow keeps it off should Clippy move it into `pedantic`.
+- **`opsis-qt` builds against Qt 6.12.0 and KDDockWidgets 2.5.1 from `~/.cache/opsis-qt`**, which `bun run qt:install` fills: Qt through aqtinstall (`uvx`), KDDockWidgets from its release tarball, pinned by URL, sha256 and size. `build.rs` never downloads; it refuses a Qt older than 6.12 and names `qt:install` when either is missing.
+  - `OPSIS_QT` names another Qt (CI points it at `jurplel/install-qt-action`'s install) and `OPSIS_KDDW_SOURCE` another KDDockWidgets source.
+  - A static Qt (one with `libQt6Core.a`) is linked statically, with its platform plugins imported by name (`STATIC_PLUGINS`) and linked as one group; the shared Qt is linked with an rpath.
+  - KDDockWidgets builds against Qt's private Widgets headers, so moving Qt means rebuilding and re-checking it.
+- **C++ is formatted to Google style with namespace comments off** (`{BasedOnStyle: Google, FixNamespaceComments: false}`), since closing-brace comments are comments. `clang-format` 23.1.5 and `clang-tidy` 23.1.4 run from their PyPI builds through `uvx`, pinned in `scripts/cpp.ts`.
+- **`lint:cpp` runs `clang-tidy` with `bugprone-*`, `modernize-*` and `cppcoreguidelines-*` on `crates/qt/cpp` only**, minus the checks that fight Qt: owning memory (Qt's parents own widgets), casts in event handlers, varargs, member initializers (Qt builds child widgets in the constructor body, in layout order), magic numbers and swappable parameters.
 - **The Opsis oxlint rules that fix code add their import from `common/`**, so run `lint:fix` until it reports nothing ([AGENTS.md](../AGENTS.md) §2).
 
 ## Deliberate limits

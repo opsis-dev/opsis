@@ -2,8 +2,8 @@
 
 #include <QApplication>
 #include <QHeaderView>
-#include <QPainter>
 #include <QMimeData>
+#include <QPainter>
 #include <QVBoxLayout>
 
 #include "app.h"
@@ -14,7 +14,7 @@ namespace opsis {
 
 namespace {
 
-constexpr char kNodeMime[] = "application/x-opsis-node";
+constexpr QLatin1StringView kNodeMime("application/x-opsis-node");
 constexpr int kTypeRole = Qt::UserRole + 1;
 constexpr int kBadge = 20;
 
@@ -30,7 +30,7 @@ QIcon BadgeIcon(const QString& glyph, const QColor& color) {
   painter.drawRoundedRect(QRectF(0, 0, kBadge, kBadge), 4, 4);
   painter.drawPixmap(4, 4, App::Get().Glyph(glyph, Qt::black, 12));
   painter.end();
-  return QIcon(pixmap);
+  return {pixmap};
 }
 
 }
@@ -47,14 +47,12 @@ NodeTree::NodeTree(QWidget* parent) : QTreeWidget(parent) {
   setUniformRowHeights(true);
 }
 
-QStringList NodeTree::mimeTypes() const {
-  return {QLatin1String(kNodeMime)};
-}
+QStringList NodeTree::mimeTypes() const { return {kNodeMime}; }
 
 QMimeData* NodeTree::mimeData(const QList<QTreeWidgetItem*>& items) const {
   auto* data = new QMimeData();
   if (!items.isEmpty()) {
-    data->setData(QLatin1String(kNodeMime),
+    data->setData(kNodeMime,
                   items.first()->data(0, kTypeRole).toString().toUtf8());
   }
   return data;
@@ -95,7 +93,8 @@ NodeList::NodeList(QWidget* parent) : QWidget(parent) {
       section->setExpanded(true);
     }
     auto* item = new QTreeWidgetItem(section, {ToQ(entry.title)});
-    item->setIcon(0, BadgeIcon(ToQ(entry.glyph), QColor::fromString(ToQ(entry.color))));
+    item->setIcon(
+        0, BadgeIcon(ToQ(entry.glyph), QColor::fromString(ToQ(entry.color))));
     item->setData(0, kTypeRole, ToQ(entry.node_type));
     item->setToolTip(0, ToQ(entry.description));
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable |

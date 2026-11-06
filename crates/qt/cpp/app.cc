@@ -1,7 +1,9 @@
 #include "app.h"
 
+#include <kddockwidgets/Config.h>
+#include <kddockwidgets/KDDockWidgets.h>
+
 #include <QApplication>
-#include <QtCore/QtResource>
 #include <QDir>
 #include <QFile>
 #include <QFontDatabase>
@@ -10,8 +12,9 @@
 #include <QStyleFactory>
 #include <QSvgRenderer>
 #include <QTimer>
-#include <kddockwidgets/Config.h>
-#include <kddockwidgets/KDDockWidgets.h>
+#include <QtCore/QtResource>
+#include <array>
+#include <string>
 
 #include "dock_style.h"
 #include "event_hub.h"
@@ -52,7 +55,7 @@ QString ToQ(const rust::String& text) {
 
 rust::String ToRust(const QString& text) {
   const QByteArray bytes = text.toUtf8();
-  return rust::String(bytes.constData(), static_cast<std::size_t>(bytes.size()));
+  return {bytes.constData(), static_cast<std::size_t>(bytes.size())};
 }
 
 App& App::Get() {
@@ -60,7 +63,10 @@ App& App::Get() {
   return app;
 }
 
-bridge::Session& App::session() { return **session_; }
+bridge::Session& App::session() {
+  if (!session_.has_value()) qFatal("the session was used before the app ran");
+  return **session_;
+}
 
 QColor App::Token(const QString& name) {
   auto found = tokens_.find(name);
@@ -70,10 +76,9 @@ QColor App::Token(const QString& name) {
   if (text.startsWith(QStringLiteral("rgba("))) {
     const QStringList parts =
         text.mid(5, text.size() - 6).split(QLatin1Char(','));
-    color = QColor(parts.value(0).trimmed().toInt(),
-                   parts.value(1).trimmed().toInt(),
-                   parts.value(2).trimmed().toInt(),
-                   parts.value(3).trimmed().toInt());
+    color = QColor(
+        parts.value(0).trimmed().toInt(), parts.value(1).trimmed().toInt(),
+        parts.value(2).trimmed().toInt(), parts.value(3).trimmed().toInt());
   } else {
     color = QColor::fromString(text);
   }
@@ -93,7 +98,8 @@ QPixmap App::Glyph(const QString& name, const QColor& color, int size,
   if (found != glyphs_.end()) return *found;
   const rust::String svg = session().icon_svg(
       ToRust(name), ToRust(color.name(QColor::HexRgb)), stroke);
-  QSvgRenderer renderer(QByteArray(svg.data(), static_cast<qsizetype>(svg.size())));
+  QSvgRenderer renderer(
+      QByteArray(svg.data(), static_cast<qsizetype>(svg.size())));
   QPixmap pixmap(QSize(size, size) * ratio);
   pixmap.fill(Qt::transparent);
   {
@@ -144,8 +150,8 @@ void App::LoadFonts() {
     const int id = QFontDatabase::addApplicationFont(dir.filePath(file));
     Log(QStringLiteral("font %1: %2")
             .arg(file, id < 0 ? QStringLiteral("not loaded")
-                              : QFontDatabase::applicationFontFamilies(id)
-                                    .join(QLatin1Char(','))));
+                              : QFontDatabase::applicationFontFamilies(id).join(
+                                    QLatin1Char(','))));
   }
 }
 
@@ -162,11 +168,11 @@ void App::ConfigureDocks() {
 
 int App::Run(rust::Box<bridge::Session> host) {
   static int argc = 1;
-  static char name[] = "opsis-qt";
-  static char* argv[] = {name, nullptr};
+  static std::string name = "opsis";
+  static std::array<char*, 2> argv = {name.data(), nullptr};
   QApplication::setHighDpiScaleFactorRoundingPolicy(
       Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
-  QApplication application(argc, argv);
+  QApplication application(argc, argv.data());
   QApplication::setApplicationName(QStringLiteral("Opsis"));
   QApplication::setOrganizationName(QStringLiteral("Opsis"));
   InitResources();
@@ -182,7 +188,8 @@ int App::Run(rust::Box<bridge::Session> host) {
   qApp->setStyleSheet(ToQ(session().style_sheet()));
   ConfigureDocks();
   EventHub::Instance();
-  session().set_active(QGuiApplication::applicationState() == Qt::ApplicationActive);
+  session().set_active(QGuiApplication::applicationState() ==
+                       Qt::ApplicationActive);
   QObject::connect(qApp, &QGuiApplication::applicationStateChanged,
                    [this](Qt::ApplicationState state) {
                      session().set_active(state == Qt::ApplicationActive);
@@ -195,7 +202,8 @@ int App::Run(rust::Box<bridge::Session> host) {
     QString rss;
     if (status.open(QIODevice::ReadOnly)) {
       for (const QByteArray& line : status.readAll().split('\n')) {
-        if (line.startsWith("VmRSS:")) rss = QString::fromLatin1(line.mid(6).trimmed());
+        if (line.startsWith("VmRSS:"))
+          rss = QString::fromLatin1(line.mid(6).trimmed());
       }
     }
     Log(QStringLiteral("first window shown, rss %1").arg(rss));

@@ -44,11 +44,12 @@ void request_dialog(DialogKind kind, std::uint64_t id, rust::Str title,
   if (!filter_name.empty()) {
     QStringList patterns;
     for (const QString& extension :
-         FromStr(filter_extensions).split(QLatin1Char(' '), Qt::SkipEmptyParts)) {
+         FromStr(filter_extensions)
+             .split(QLatin1Char(' '), Qt::SkipEmptyParts)) {
       patterns.append(QStringLiteral("*.") + extension);
     }
     filter = QStringLiteral("%1 (%2)").arg(FromStr(filter_name),
-                                          patterns.join(QLatin1Char(' ')));
+                                           patterns.join(QLatin1Char(' ')));
   }
   const bool queued = OnGuiThread([kind, id, heading, folder, filter] {
     QWidget* parent = QApplication::activeWindow();
@@ -95,7 +96,7 @@ void notify(rust::Str title, rust::Str body) {
   const QString text = FromStr(body);
   OnGuiThread([heading, text] {
     if (QWidget* window = EditorWindow()) QApplication::alert(window);
-    emit opsis::EventHub::Instance()->Notice(heading, text);
+    emit opsis::EventHub::Instance() -> Notice(heading, text);
   });
 }
 
@@ -113,6 +114,6 @@ void quit_app(std::int32_t code) {
   OnGuiThread([code] { QCoreApplication::exit(code); });
 }
 
-rust::String qt_version() { return rust::String(qVersion()); }
+rust::String qt_version() { return {qVersion()}; }
 
 }

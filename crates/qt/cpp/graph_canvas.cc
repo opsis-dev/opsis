@@ -38,20 +38,20 @@ constexpr double kDetailZoom = 0.45;
 constexpr int kToastMs = 3200;
 constexpr int kMinimapWidth = 200;
 constexpr int kMinimapHeight = 140;
-constexpr char kNodeMime[] = "application/x-opsis-node";
+constexpr QLatin1StringView kNodeMime("application/x-opsis-node");
 
 QColor Mix(const QColor& color, double alpha) {
   QColor mixed = color;
-  mixed.setAlphaF(alpha);
+  mixed.setAlphaF(static_cast<float>(alpha));
   return mixed;
 }
 
 QPainterPath RoundedPolyline(const std::vector<QPointF>& points) {
   QPainterPath path(points.front());
   for (std::size_t i = 1; i + 1 < points.size(); ++i) {
-    const QPointF prev = points[i - 1];
-    const QPointF corner = points[i];
-    const QPointF next = points[i + 1];
+    const QPointF prev = points.at(i - 1);
+    const QPointF corner = points.at(i);
+    const QPointF next = points.at(i + 1);
     const double into = QLineF(prev, corner).length();
     const double out = QLineF(corner, next).length();
     const double radius = std::min({kCorner, into / 2, out / 2});
@@ -94,7 +94,7 @@ void CardItem::SetCard(const bridge::CardView& card) {
 }
 
 QRectF CardItem::boundingRect() const {
-  return QRectF(-kPortHit, -2, card_.width + 2 * kPortHit, card_.height + 4);
+  return {-kPortHit, -2, card_.width + 2 * kPortHit, card_.height + 4};
 }
 
 QPainterPath CardItem::shape() const {
@@ -255,11 +255,11 @@ void CardItem::PaintCard(QPainter* painter, bool detailed) {
   double y = kHeader + 8 + static_cast<double>(port_rows) * 24 +
              (port_rows > 0 ? 4 : 0);
   for (const auto& row : card_.rows) {
-    const QColor ink = row.muted ? app.Token("muted-foreground")
-                                 : app.Token("foreground");
-    painter->drawPixmap(QPointF(12, y + 4),
-                        app.Glyph(ToQ(row.icon), app.Token("muted-foreground"),
-                                  14));
+    const QColor ink =
+        row.muted ? app.Token("muted-foreground") : app.Token("foreground");
+    painter->drawPixmap(
+        QPointF(12, y + 4),
+        app.Glyph(ToQ(row.icon), app.Token("muted-foreground"), 14));
     painter->setPen(ink);
     painter->drawText(QRectF(32, y, card_.width - 44, kRowHeight),
                       Qt::AlignVCenter | Qt::AlignLeft,
@@ -300,9 +300,9 @@ void CardItem::PaintGroup(QPainter* painter) {
 void CardItem::PaintNote(QPainter* painter) {
   App& app = App::Get();
   const QRectF body(0, 0, card_.width, card_.height);
-  painter->setPen(QPen(isSelected() ? app.Token("selection")
-                                    : app.Token("border"),
-                       isSelected() ? 2 : 1));
+  painter->setPen(
+      QPen(isSelected() ? app.Token("selection") : app.Token("border"),
+           isSelected() ? 2 : 1));
   painter->setBrush(app.Token("muted"));
   painter->drawRoundedRect(body, kRadius, kRadius);
   painter->setPen(app.Token("foreground"));
@@ -388,8 +388,8 @@ GraphCanvas::GraphCanvas(QWidget* parent) : QGraphicsView(parent) {
   auto* bar = new QHBoxLayout(toolbar_);
   bar->setContentsMargins(4, 4, 4, 4);
   bar->setSpacing(2);
-  auto* out = MakeIconButton(QStringLiteral("minus"), QStringLiteral("Zoom out"),
-                             toolbar_);
+  auto* out = MakeIconButton(QStringLiteral("minus"),
+                             QStringLiteral("Zoom out"), toolbar_);
   zoom_label_ = MakeLabel(QStringLiteral("100%"), "muted", toolbar_);
   zoom_label_->setMinimumWidth(44);
   zoom_label_->setAlignment(Qt::AlignCenter);
@@ -401,10 +401,10 @@ GraphCanvas::GraphCanvas(QWidget* parent) : QGraphicsView(parent) {
                              toolbar_);
   map->setCheckable(true);
   map->setChecked(true);
-  for (QWidget* widget : {static_cast<QWidget*>(out),
-                          static_cast<QWidget*>(zoom_label_),
-                          static_cast<QWidget*>(in), static_cast<QWidget*>(fit),
-                          static_cast<QWidget*>(map)}) {
+  for (QWidget* widget :
+       {static_cast<QWidget*>(out), static_cast<QWidget*>(zoom_label_),
+        static_cast<QWidget*>(in), static_cast<QWidget*>(fit),
+        static_cast<QWidget*>(map)}) {
     bar->addWidget(widget);
   }
   connect(out, &QToolButton::clicked, this,
@@ -436,8 +436,9 @@ GraphCanvas::GraphCanvas(QWidget* parent) : QGraphicsView(parent) {
             Toast(body.isEmpty() ? title : title + QStringLiteral(": ") + body,
                   false);
           });
-  connect(EventHub::Instance(), &EventHub::SettingsChanged, this,
-          [this] { canvas_mode_ = ToQ(App::Get().session().settings().canvas_mode); });
+  connect(EventHub::Instance(), &EventHub::SettingsChanged, this, [this] {
+    canvas_mode_ = ToQ(App::Get().session().settings().canvas_mode);
+  });
   canvas_mode_ = ToQ(App::Get().session().settings().canvas_mode);
 }
 
@@ -503,11 +504,12 @@ void GraphCanvas::Sync() {
   }
   syncing_ = false;
   minimap_->Refit();
-  App::Get().Log(QStringLiteral("sync %1 cards %2 edges: read %3 ms, total %4 ms")
-                     .arg(graph.nodes.size())
-                     .arg(graph.edges.size())
-                     .arg(read_ms)
-                     .arg(timer.elapsed()));
+  App::Get().Log(
+      QStringLiteral("sync %1 cards %2 edges: read %3 ms, total %4 ms")
+          .arg(graph.nodes.size())
+          .arg(graph.edges.size())
+          .arg(read_ms)
+          .arg(timer.elapsed()));
 }
 
 void GraphCanvas::RouteEdge(EdgeItem* edge) {
@@ -597,9 +599,8 @@ void GraphCanvas::FinishConnect(const QPointF& scene_point) {
 }
 
 std::optional<PortHit> GraphCanvas::PortAtScene(const QPointF& point) const {
-  const QList<QGraphicsItem*> hits =
-      scene_.items(QRectF(point - QPointF(kPortHit, kPortHit),
-                          QSizeF(2 * kPortHit, 2 * kPortHit)));
+  const QList<QGraphicsItem*> hits = scene_.items(QRectF(
+      point - QPointF(kPortHit, kPortHit), QSizeF(2 * kPortHit, 2 * kPortHit)));
   for (QGraphicsItem* item : hits) {
     if (auto* card = dynamic_cast<CardItem*>(item)) {
       if (auto hit = card->PortAt(card->mapFromScene(point))) return hit;
@@ -689,8 +690,12 @@ void GraphCanvas::drawBackground(QPainter* painter, const QRectF& rect) {
   painter->setPen(Qt::NoPen);
   painter->setBrush(dot);
   std::vector<QRectF> dots;
-  for (double x = left; x < rect.right(); x += gap) {
-    for (double y = top; y < rect.bottom(); y += gap) {
+  const auto columns = static_cast<int>(std::ceil((rect.right() - left) / gap));
+  const auto rows = static_cast<int>(std::ceil((rect.bottom() - top) / gap));
+  for (int column = 0; column <= columns; ++column) {
+    for (int row = 0; row <= rows; ++row) {
+      const double x = left + column * gap;
+      const double y = top + row * gap;
       dots.emplace_back(x - size / 2, y - size / 2, size, size);
     }
   }
@@ -790,29 +795,30 @@ void GraphCanvas::PlaceOverlays() {
   toolbar_->move(12, height() - toolbar_->height() - 12);
   minimap_->move(width() - minimap_->width() - 12,
                  height() - minimap_->height() - 12);
-  toast_->move((width() - toast_->width()) / 2, height() - toast_->height() - 64);
+  toast_->move((width() - toast_->width()) / 2,
+               height() - toast_->height() - 64);
 }
 
 void GraphCanvas::dragEnterEvent(QDragEnterEvent* event) {
-  if (event->mimeData()->hasFormat(QLatin1String(kNodeMime))) {
+  if (event->mimeData()->hasFormat(kNodeMime)) {
     event->acceptProposedAction();
   }
 }
 
 void GraphCanvas::dragMoveEvent(QDragMoveEvent* event) {
-  if (event->mimeData()->hasFormat(QLatin1String(kNodeMime))) {
+  if (event->mimeData()->hasFormat(kNodeMime)) {
     event->acceptProposedAction();
   }
 }
 
 void GraphCanvas::dropEvent(QDropEvent* event) {
-  const QByteArray type = event->mimeData()->data(QLatin1String(kNodeMime));
+  const QByteArray type = event->mimeData()->data(kNodeMime);
   if (type.isEmpty()) return;
   const QPointF at = mapToScene(event->position().toPoint());
   try {
-    App::Get().session().add_node(rust::Str(type.constData(),
-                                            static_cast<std::size_t>(type.size())),
-                                  at.x() - 128, at.y() - 22);
+    App::Get().session().add_node(
+        rust::Str(type.constData(), static_cast<std::size_t>(type.size())),
+        at.x() - 128, at.y() - 22);
   } catch (const rust::Error& error) {
     Toast(QString::fromUtf8(error.what()), true);
   }
@@ -854,8 +860,10 @@ QString GraphCanvas::Measure(int frames) {
   double sum = 0;
   for (double value : times) sum += value;
   const double mean = sum / static_cast<double>(times.size());
-  const double p95 = times[times.size() * 95 / 100];
-  return QStringLiteral("%1 frames over %2 cards: mean %3 ms, p95 %4 ms, max %5 ms, wall %6 ms")
+  const double p95 = times.at(times.size() * 95 / 100);
+  return QStringLiteral(
+             "%1 frames over %2 cards: mean %3 ms, p95 %4 ms, max %5 ms, wall "
+             "%6 ms")
       .arg(frames)
       .arg(cards_.size())
       .arg(mean, 0, 'f', 2)
