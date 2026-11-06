@@ -9,6 +9,7 @@ use opsis_compile::canvas::{snap_to_grid, staggered};
 use opsis_compile::catalog::{EditorNode, editor_catalog};
 use opsis_compile::compile::compile_workflow;
 use opsis_compile::graph::connection_problem_now;
+use opsis_compile::layout::auto_layout;
 use opsis_compile::node::Platform as NodePlatform;
 use opsis_compile::nodes::media::IMPORT_TYPE;
 use opsis_qt::{
@@ -289,6 +290,24 @@ impl Ui {
             return project::issues(wf, results);
         }
         project::issue_views(compiled.issues.iter().cloned())
+    }
+
+    fn tidy_layout(&self) -> HostResult<()> {
+        let Some(wf) = self.workflow() else {
+            return Ok(());
+        };
+        let shapes = {
+            let compiled = self.compiled.lock().expect("latest compile");
+            let run = run::run_state(&self.session).view.progress;
+            graph::shapes(&graph::cards(&wf, &self.catalog, &compiled, &run))
+        };
+        let positions = auto_layout(&wf, &shapes).map_err(|e| e.to_string())?;
+        if positions.is_empty() {
+            return Ok(());
+        }
+        self.edit(WorkflowEdit::MoveNodes { positions })
+            .map(|_| ())
+            .map_err(|e| e.0)
     }
 
     fn paste(&self, subgraph: clipboard::Subgraph) -> HostResult<()> {
@@ -957,9 +976,7 @@ impl Host for Ui {
                 Ok(())
             }
             MenuCommand::EditGroup => self.group_selection(),
-            MenuCommand::EditLayout => {
-                Err("Tidying the layout isn't in the native editor yet.".to_owned())
-            }
+            MenuCommand::EditLayout => self.tidy_layout(),
             _ => Err(format!("The views handle {id}.")),
         }
     }

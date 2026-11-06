@@ -97,6 +97,7 @@ class GraphCanvas : public QGraphicsView {
   double spin_angle() const { return spin_angle_; }
   void SetMinimapVisible(bool visible);
   void Reveal(const QString& id);
+  int BackwardEdges() const;
   Q_INVOKABLE void copy();
   Q_INVOKABLE void paste();
   Q_INVOKABLE void selectAll() { SelectAll(); }

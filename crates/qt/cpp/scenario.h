@@ -22,11 +22,12 @@ class Scenario : public QObject {
     QString name;
     std::function<void()> action;
     int wait_ms;
+    std::function<QString()> check;
   };
 
   Scenario(MainWindow* window, const QString& name, const QDir& shots);
-  void Add(const QString& name, std::function<void()> action,
-           int wait_ms = 450);
+  void Add(const QString& name, std::function<void()> action, int wait_ms = 450,
+           std::function<QString()> check = {});
   void BuildTour();
   void BuildBench(int count);
   void Next();
@@ -38,6 +39,8 @@ class Scenario : public QObject {
   QDir shots_;
   std::vector<Step> steps_;
   std::size_t index_ = 0;
+  int checked_ = 0;
+  int failed_ = 0;
 };
 
 }

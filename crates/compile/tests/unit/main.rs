@@ -13,6 +13,7 @@ mod hosted;
 mod image_plans;
 mod keyframes;
 mod lanes;
+mod layout;
 mod lengths;
 mod looks;
 mod mix;

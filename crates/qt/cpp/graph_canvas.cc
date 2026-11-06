@@ -800,6 +800,18 @@ void GraphCanvas::FitAll() {
   minimap_->viewport()->update();
 }
 
+int GraphCanvas::BackwardEdges() const {
+  int backward = 0;
+  for (const EdgeItem* edge : edges_) {
+    const CardItem* from = cards_.value(edge->source());
+    const CardItem* to = cards_.value(edge->target());
+    if (from == nullptr || to == nullptr) continue;
+    if (to->card().kind != bridge::CardKind::Card) continue;
+    if (to->pos().x() < from->pos().x() + from->card().width) ++backward;
+  }
+  return backward;
+}
+
 void GraphCanvas::Reveal(const QString& id) {
   CardItem* card = cards_.value(id);
   if (card == nullptr) return;

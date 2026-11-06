@@ -76,15 +76,18 @@ Scenario::Scenario(MainWindow* window, const QString& name, const QDir& shots)
 }
 
 void Scenario::Add(const QString& name, std::function<void()> action,
-                   int wait_ms) {
-  steps_.push_back(Step{name, std::move(action), wait_ms});
+                   int wait_ms, std::function<QString()> check) {
+  steps_.push_back(Step{name, std::move(action), wait_ms, std::move(check)});
 }
 
 void Scenario::Next() {
   if (index_ >= steps_.size()) {
-    App::Get().Log(
-        QStringLiteral("scenario %1 done, rss %2").arg(name_, Rss()));
-    QCoreApplication::exit(0);
+    App::Get().Log(QStringLiteral("scenario %1 done, rss %2, checks %3 "
+                                  "passed, %4 failed")
+                       .arg(name_, Rss())
+                       .arg(checked_ - failed_)
+                       .arg(failed_));
+    QCoreApplication::exit(failed_ == 0 ? 0 : 1);
     return;
   }
   const Step& step = steps_.at(index_);
@@ -92,8 +95,20 @@ void Scenario::Next() {
   step.action();
   const int wait = step.wait_ms;
   const QString name = step.name;
+  const std::function<QString()> check = step.check;
   const std::size_t number = ++index_;
-  QTimer::singleShot(wait, this, [this, name, number] {
+  QTimer::singleShot(wait, this, [this, name, number, check] {
+    if (check) {
+      const QString problem = check();
+      ++checked_;
+      if (problem.isEmpty()) {
+        App::Get().Log(QStringLiteral("check %1: ok").arg(name));
+      } else {
+        ++failed_;
+        App::Get().Log(
+            QStringLiteral("check %1: FAILED %2").arg(name, problem));
+      }
+    }
     Shoot(
         QStringLiteral("%1-%2").arg(number, 2, 10, QLatin1Char('0')).arg(name));
     Next();
@@ -339,6 +354,32 @@ void Scenario::BuildTour() {
       if (action->text() == QStringLiteral("Undo")) action->trigger();
     }
   });
+  Add(
+      QStringLiteral("tidy-up-layout"),
+      [window, canvas] {
+        for (QAction* action : window->findChildren<QAction*>()) {
+          if (action->text() == QStringLiteral("Tidy up layout")) {
+            action->trigger();
+          }
+        }
+        QTimer::singleShot(200, canvas, [canvas] { canvas->FitAll(); });
+      },
+      900,
+      [canvas] {
+        const int backward = canvas->BackwardEdges();
+        return backward == 0
+                   ? QString()
+                   : QStringLiteral("%1 edges run right to left").arg(backward);
+      });
+  Add(
+      QStringLiteral("undo-tidy-up"),
+      [window, canvas] {
+        for (QAction* action : window->findChildren<QAction*>()) {
+          if (action->text() == QStringLiteral("Undo")) action->trigger();
+        }
+        QTimer::singleShot(200, canvas, [canvas] { canvas->FitAll(); });
+      },
+      700);
   Add(
       QStringLiteral("run-all"),
       [window] {

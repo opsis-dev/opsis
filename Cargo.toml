@@ -23,6 +23,7 @@ cxx = "1"
 cxx-build = "1"
 draco-gltf = "0.7"
 ebur128 = "0.1"
+elk-layout = "0.12"
 env_logger = "0.11"
 fast_image_resize = { version = "6", features = ["image"] }
 filetime = "0.2"
