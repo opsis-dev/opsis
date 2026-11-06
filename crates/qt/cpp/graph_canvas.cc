@@ -18,6 +18,7 @@
 
 #include "app.h"
 #include "event_hub.h"
+#include "motion.h"
 #include "widgets.h"
 
 namespace opsis {
@@ -34,7 +35,7 @@ constexpr double kCorner = 8.0;
 constexpr double kGridGap = 20.0;
 constexpr double kMinZoom = 0.1;
 constexpr double kMaxZoom = 2.5;
-constexpr double kDetailZoom = 0.45;
+constexpr double kDetailZoom = 0.12;
 constexpr int kToastMs = 3200;
 constexpr int kMinimapWidth = 200;
 constexpr int kMinimapHeight = 140;
@@ -424,7 +425,7 @@ GraphCanvas::GraphCanvas(QWidget* parent) : QGraphicsView(parent) {
   toast_->setObjectName(QStringLiteral("Toast"));
   toast_->hide();
   toast_timer_.setSingleShot(true);
-  connect(&toast_timer_, &QTimer::timeout, toast_, &QWidget::hide);
+  connect(&toast_timer_, &QTimer::timeout, toast_, [this] { FadeOut(toast_); });
 
   sync_timer_.setSingleShot(true);
   sync_timer_.setInterval(0);
@@ -634,8 +635,8 @@ void GraphCanvas::Toast(const QString& message, bool error) {
   toast_->style()->polish(toast_);
   toast_->adjustSize();
   PlaceOverlays();
-  toast_->show();
   toast_->raise();
+  if (!toast_->isVisible()) FadeIn(toast_);
   toast_timer_.start(kToastMs);
 }
 

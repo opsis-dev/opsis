@@ -19,6 +19,7 @@
 #include "event_hub.h"
 #include "graph_canvas.h"
 #include "inspector_panel.h"
+#include "motion.h"
 #include "new_project_dialog.h"
 #include "node_list.h"
 #include "opsis-qt/src/bridge.rs.h"
@@ -298,8 +299,14 @@ void MainWindow::AddNode(const QString& type) {
 
 void MainWindow::SyncRail() {
   const bool editing = stack_->currentWidget() == canvas_;
-  rail_->setVisible(editing && nodes_dock_ != nullptr &&
-                    !nodes_dock_->isOpen());
+  const bool shown =
+      editing && nodes_dock_ != nullptr && !nodes_dock_->isOpen();
+  if (shown == rail_->isVisible()) return;
+  if (shown) {
+    GrowWidth(rail_, CategoryRail::kWidth);
+  } else {
+    rail_->hide();
+  }
 }
 
 kdw::QtWidgets::DockWidget* MainWindow::MakeDock(const QString& id,

@@ -2,8 +2,8 @@ use std::fmt;
 
 use crate::bridge::ffi::{
     self, CategoryView, CloseView, DialogKind, EventKind, GraphView, InspectorView,
-    MenuSectionView, NodeMove, PaletteEntry, ProjectEntry, ScreenArea, SettingsView, TemplateView,
-    WindowPlacement,
+    MenuSectionView, NodeMove, PaletteEntry, ProjectEntry, ProjectView, ScreenArea, SettingsView,
+    TemplateView, TextToken, VariableView, WindowPlacement,
 };
 
 pub type HostResult<T> = Result<T, String>;
@@ -60,6 +60,12 @@ pub trait Host {
     fn inspector(&self) -> InspectorView;
     fn set_param(&self, id: &str, key: &str, json: &str) -> HostResult<()>;
     fn rename_node(&self, id: &str, label: &str) -> HostResult<()>;
+    fn project(&self) -> ProjectView;
+    fn variables(&self) -> Vec<VariableView>;
+    fn project_edit(&self, json: &str) -> HostResult<()>;
+    fn clear_saved_results(&self) -> HostResult<()>;
+    fn text_tokens(&self, value: &str, pauses: bool) -> Vec<TextToken>;
+    fn join_tokens(&self, tokens: Vec<TextToken>) -> String;
     fn save(&self) -> HostResult<()>;
 
     fn settings(&self) -> SettingsView;
@@ -295,6 +301,30 @@ impl Session {
 
     pub(crate) fn rename_node(&self, id: &str, label: &str) -> HostResult<()> {
         self.0.rename_node(id, label)
+    }
+
+    pub(crate) fn project(&self) -> ProjectView {
+        self.0.project()
+    }
+
+    pub(crate) fn variables(&self) -> Vec<VariableView> {
+        self.0.variables()
+    }
+
+    pub(crate) fn project_edit(&self, json: &str) -> HostResult<()> {
+        self.0.project_edit(json)
+    }
+
+    pub(crate) fn clear_saved_results(&self) -> HostResult<()> {
+        self.0.clear_saved_results()
+    }
+
+    pub(crate) fn text_tokens(&self, value: &str, pauses: bool) -> Vec<TextToken> {
+        self.0.text_tokens(value, pauses)
+    }
+
+    pub(crate) fn join_tokens(&self, tokens: Vec<TextToken>) -> String {
+        self.0.join_tokens(tokens)
     }
 
     pub(crate) fn save(&self) -> HostResult<()> {

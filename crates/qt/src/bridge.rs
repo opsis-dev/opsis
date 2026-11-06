@@ -61,7 +61,59 @@ pub mod ffi {
         Number,
         Switch,
         Choice,
+        Code,
         Other,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    enum TokenKind {
+        Text,
+        Var,
+        Pause,
+    }
+
+    #[derive(Debug, Clone)]
+    struct TextToken {
+        kind: TokenKind,
+        text: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct VariableView {
+        name: String,
+        value: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct IssueView {
+        error: bool,
+        message: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct ShapeView {
+        label: String,
+        width: u32,
+        height: u32,
+    }
+
+    #[derive(Debug, Clone)]
+    struct ProjectView {
+        name: String,
+        width: u32,
+        height: u32,
+        fps: u32,
+        background: String,
+        background_hint: String,
+        shapes: Vec<ShapeView>,
+        main_font: String,
+        heading_font: String,
+        code_font: String,
+        fonts: Vec<String>,
+        variables: Vec<VariableView>,
+        issues: Vec<IssueView>,
+        running: bool,
+        selected: u32,
     }
 
     #[derive(Debug, Clone)]
@@ -208,6 +260,7 @@ pub mod ffi {
         checked: bool,
         choices: Vec<Choice>,
         advanced: bool,
+        pauses: bool,
     }
 
     #[derive(Debug, Clone)]
@@ -295,6 +348,12 @@ pub mod ffi {
         fn inspector(self: &Session) -> InspectorView;
         fn set_param(self: &Session, id: &str, key: &str, json: &str) -> Result<()>;
         fn rename_node(self: &Session, id: &str, label: &str) -> Result<()>;
+        fn project(self: &Session) -> ProjectView;
+        fn variables(self: &Session) -> Vec<VariableView>;
+        fn project_edit(self: &Session, json: &str) -> Result<()>;
+        fn clear_saved_results(self: &Session) -> Result<()>;
+        fn text_tokens(self: &Session, value: &str, pauses: bool) -> Vec<TextToken>;
+        fn join_tokens(self: &Session, tokens: Vec<TextToken>) -> String;
         fn save(self: &Session) -> Result<()>;
 
         fn settings(self: &Session) -> SettingsView;

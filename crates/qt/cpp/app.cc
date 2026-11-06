@@ -18,6 +18,7 @@
 
 #include "dock_style.h"
 #include "event_hub.h"
+#include "look_style.h"
 #include "main_window.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "scenario.h"
@@ -179,7 +180,9 @@ int App::Run(rust::Box<bridge::Session> host) {
   Log(QStringLiteral("session ready, platform %1")
           .arg(QApplication::platformName()));
   LoadFonts();
-  QApplication::setStyle(QStyleFactory::create(QStringLiteral("Fusion")));
+  QApplication::setStyle(
+      new LookStyle(QStyleFactory::create(QStringLiteral("Fusion"))));
+  qApp->installEventFilter(new FocusRing(qApp));
   QApplication::setPalette(DarkPalette(*this));
   QFont font(QStringLiteral("Inter"));
   font.setPixelSize(13);

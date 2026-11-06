@@ -38,6 +38,8 @@ class CategoryRail : public QWidget {
   Q_OBJECT
 
  public:
+  static constexpr int kWidth = 44;
+
   explicit CategoryRail(QWidget* parent = nullptr);
 
  signals:

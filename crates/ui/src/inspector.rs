@@ -89,6 +89,7 @@ fn field(key: &str, schema: &Value, value: Option<&Value>) -> FieldView {
         checked: false,
         choices: Vec::new(),
         advanced: flag(schema, "x-advanced"),
+        pauses: flag(schema, "x-pauses"),
     };
     let widget = text(schema, "x-widget");
     let kinds = types(schema);
@@ -96,7 +97,10 @@ fn field(key: &str, schema: &Value, value: Option<&Value>) -> FieldView {
         view.kind = FieldKind::Choice;
         view.choices = choice_list(schema, choices);
         view.text = value.map_or_default(plain);
-    } else if widget == "textarea" || widget == "code" {
+    } else if widget == "code" {
+        view.kind = FieldKind::Code;
+        view.text = value.map_or_default(plain);
+    } else if widget == "textarea" {
         view.kind = FieldKind::Textarea;
         view.text = value.map_or_default(plain);
     } else if !widget.is_empty() {

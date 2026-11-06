@@ -6,6 +6,7 @@
 #include <QPainterPath>
 
 #include "app.h"
+#include "motion.h"
 
 namespace opsis {
 
@@ -14,15 +15,31 @@ namespace {
 constexpr int kSwitchWidth = 32;
 constexpr int kSwitchHeight = 18;
 constexpr int kSwitchMs = 120;
+constexpr double kChevronHalf = 3.5;
+constexpr double kChevronPen = 1.5;
+constexpr double kChevronInset = 14.0;
 
+}
+
+void Combo::paintEvent(QPaintEvent* event) {
+  QComboBox::paintEvent(event);
+  QPainter painter(this);
+  painter.setRenderHint(QPainter::Antialiasing);
+  painter.setPen(QPen(App::Get().Token("muted-foreground"), kChevronPen,
+                      Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+  const QPointF middle(width() - kChevronInset, height() / 2.0);
+  QPainterPath path;
+  path.moveTo(middle + QPointF(-kChevronHalf, -kChevronHalf / 2));
+  path.lineTo(middle + QPointF(0, kChevronHalf / 2));
+  path.lineTo(middle + QPointF(kChevronHalf, -kChevronHalf / 2));
+  painter.drawPath(path);
 }
 
 ToggleSwitch::ToggleSwitch(QWidget* parent) : QAbstractButton(parent) {
   setCheckable(true);
   setCursor(Qt::PointingHandCursor);
   setFocusPolicy(Qt::StrongFocus);
-  animation_.setDuration(kSwitchMs);
-  animation_.setEasingCurve(QEasingCurve::OutCubic);
+  animation_.setEasingCurve(EaseOut());
   connect(&animation_, &QVariantAnimation::valueChanged, this,
           [this](const QVariant& value) {
             knob_ = value.toReal();
@@ -49,6 +66,7 @@ void ToggleSwitch::nextCheckState() {
 
 void ToggleSwitch::Animate() {
   animation_.stop();
+  animation_.setDuration(MotionMs(kSwitchMs));
   animation_.setStartValue(knob_);
   animation_.setEndValue(isChecked() ? 1.0 : 0.0);
   animation_.start();

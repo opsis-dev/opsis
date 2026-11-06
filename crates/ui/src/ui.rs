@@ -11,12 +11,13 @@ use opsis_compile::graph::connection_problem_now;
 use opsis_compile::node::Platform as NodePlatform;
 use opsis_qt::{
     CategoryView, Choice, CloseView, EventKind, GraphView, Host, HostResult, InspectorView,
-    MenuSectionView, NodeMove, PaletteEntry, ProjectEntry, ScreenArea, SettingsView, TemplateView,
-    WindowPlacement,
+    MenuSectionView, NodeMove, PaletteEntry, ProjectEntry, ProjectView, ScreenArea, SettingsView,
+    TemplateView, TextToken, VariableView, WindowPlacement,
 };
 use opsis_session::error::CommandError;
 use opsis_session::events::{MAIN_WINDOW, SessionEvent};
 use opsis_session::exit::{self, Exit};
+use opsis_session::run::RunHost;
 use opsis_session::state::AppState;
 use opsis_session::windows::{self, SavedWindow, WorkArea};
 use opsis_session::{Session, compile, document, projects, run, settings, shared};
@@ -31,7 +32,8 @@ use tokio::runtime::Runtime;
 use tokio::sync::broadcast::error::RecvError;
 
 use crate::platform::QtPlatform;
-use crate::{graph, inspector, look};
+use crate::project::Extras;
+use crate::{graph, inspector, look, project};
 
 const LAYOUT_KEY: &str = "nativeDockLayout";
 const BENCH_KINDS: [&str; 4] = [
@@ -62,7 +64,7 @@ impl fmt::Debug for Ui {
     }
 }
 
-fn plain(value: &impl serde::Serialize) -> String {
+pub fn plain(value: &impl serde::Serialize) -> String {
     match serde_json::to_value(value) {
         Ok(Value::String(text)) => text,
         Ok(other) => other.to_string(),
@@ -269,6 +271,35 @@ impl Ui {
         })
         .map(|_| ())
         .map_err(|e| e.0)
+    }
+
+    fn font_families(&self, wf: &Workflow) -> Vec<String> {
+        let choices = self.runtime.block_on(opsis_session::fonts::font_choices(
+            &self.session,
+            String::new(),
+            wf.settings.fonts.families.clone(),
+        ));
+        let mut families: Vec<String> = Vec::new();
+        let listed = choices.map_or_else(
+            |error| {
+                log::warn!("listing the fonts: {}", error.0);
+                Vec::new()
+            },
+            |choices| {
+                choices
+                    .project
+                    .into_iter()
+                    .chain(choices.built_in)
+                    .chain(choices.library)
+                    .collect()
+            },
+        );
+        for choice in listed {
+            if !families.contains(&choice.def.family) {
+                families.push(choice.def.family);
+            }
+        }
+        families
     }
 
     fn view_key(&self) -> Option<String> {
@@ -705,6 +736,50 @@ impl Host for Ui {
         })
         .map(|_| ())
         .map_err(|e| e.0)
+    }
+
+    fn project(&self) -> ProjectView {
+        let Some(wf) = self.workflow() else {
+            return project::empty();
+        };
+        let results = self.state().editor().results.clone();
+        let selected = shared::shared_state(&self.session)
+            .selection
+            .selected_ids
+            .len();
+        project::view(
+            &wf,
+            Extras {
+                fonts: self.font_families(&wf),
+                issues: project::issues(&wf, &results),
+                running: self.session.state::<RunHost>().is_running(),
+                selected: u32::try_from(selected).unwrap_or(u32::MAX),
+            },
+        )
+    }
+
+    fn variables(&self) -> Vec<VariableView> {
+        self.workflow().map_or_default(|wf| project::variables(&wf))
+    }
+
+    fn project_edit(&self, json: &str) -> HostResult<()> {
+        let edit: WorkflowEdit = serde_json::from_str(json).map_err(|e| e.to_string())?;
+        self.edit(edit).map(|_| ()).map_err(|e| e.0)
+    }
+
+    fn clear_saved_results(&self) -> HostResult<()> {
+        let Some(dir) = self.state().editor().dir() else {
+            return Ok(());
+        };
+        projects::clear_cache(&self.session, &dir.to_string_lossy()).map_err(|e| e.0)
+    }
+
+    fn text_tokens(&self, value: &str, pauses: bool) -> Vec<TextToken> {
+        project::text_tokens(value, pauses)
+    }
+
+    fn join_tokens(&self, tokens: Vec<TextToken>) -> String {
+        project::join_tokens(&tokens)
     }
 
     fn save(&self) -> HostResult<()> {

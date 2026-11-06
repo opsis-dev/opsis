@@ -5,6 +5,7 @@
 #include <QElapsedTimer>
 #include <QFile>
 #include <QLineEdit>
+#include <QTextCursor>
 #include <QTimer>
 #include <QToolButton>
 #include <QtTest/QTest>
@@ -17,6 +18,7 @@
 #include "node_list.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "settings_window.h"
+#include "var_text.h"
 #include "widgets.h"
 
 namespace opsis {
@@ -233,6 +235,27 @@ void Scenario::BuildTour() {
       },
       700);
   Add(
+      QStringLiteral("edit-variable-text"),
+      [window] {
+        for (VarSurface* surface :
+             window->inspector_dock()->widget()->findChildren<VarSurface*>()) {
+          surface->setFocus();
+          surface->moveCursor(QTextCursor::End);
+          QTest::keyClicks(surface, QStringLiteral("home"));
+          App::Get().Log(
+              QStringLiteral("variable text reads %1").arg(surface->Value()));
+          QTest::keyClick(surface, Qt::Key_Return);
+          surface->clearFocus();
+          return;
+        }
+      },
+      700);
+  Add(QStringLiteral("undo-variable-text"), [window] {
+    for (QAction* action : window->findChildren<QAction*>()) {
+      if (action->text() == QStringLiteral("Undo")) action->trigger();
+    }
+  });
+  Add(
       QStringLiteral("edit-pause"),
       [window] {
         for (QLineEdit* line :
@@ -312,6 +335,17 @@ void Scenario::BuildTour() {
   Add(
       QStringLiteral("settings-general"), [window] { window->OpenSettings(); },
       700);
+  Add(QStringLiteral("settings-focus-ring"), [window] {
+    SettingsWindow* settings = window->OpenSettings();
+    settings->activateWindow();
+    QTest::qWaitForWindowActive(settings, 2000);
+    QWidget* focus = QApplication::focusWidget();
+    QTest::keyClick(focus != nullptr ? focus : settings, Qt::Key_Tab);
+    QTest::keyClick(QApplication::focusWidget() != nullptr
+                        ? QApplication::focusWidget()
+                        : settings,
+                    Qt::Key_Tab);
+  });
   Add(QStringLiteral("settings-projects"),
       [window] { window->OpenSettings()->ShowPage(1); });
   Add(QStringLiteral("settings-editor-touchpad"), [window] {

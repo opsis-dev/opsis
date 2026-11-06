@@ -4,6 +4,7 @@ mod inspector;
 mod look;
 mod menu;
 mod platform;
+mod project;
 mod text;
 mod ui;
 

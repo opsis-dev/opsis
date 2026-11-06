@@ -3,6 +3,7 @@
 
 #include <QAbstractButton>
 #include <QButtonGroup>
+#include <QComboBox>
 #include <QFrame>
 #include <QLabel>
 #include <QPushButton>
@@ -13,6 +14,14 @@
 #include <vector>
 
 namespace opsis {
+
+class Combo : public QComboBox {
+ public:
+  using QComboBox::QComboBox;
+
+ protected:
+  void paintEvent(QPaintEvent* event) override;
+};
 
 class ToggleSwitch : public QAbstractButton {
   Q_OBJECT

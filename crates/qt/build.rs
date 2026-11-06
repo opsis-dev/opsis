@@ -17,7 +17,7 @@ const DEFINES: [&str; 6] = [
     "QT_TESTLIB_LIB",
 ];
 
-const MOC_HEADERS: [&str; 12] = [
+const MOC_HEADERS: [&str; 14] = [
     "event_hub.h",
     "widgets.h",
     "window_chrome.h",
@@ -30,9 +30,11 @@ const MOC_HEADERS: [&str; 12] = [
     "main_window.h",
     "scenario.h",
     "new_project_dialog.h",
+    "var_text.h",
+    "project_panel.h",
 ];
 
-const SOURCES: [&str; 14] = [
+const SOURCES: [&str; 18] = [
     "app.cc",
     "event_hub.cc",
     "widgets.cc",
@@ -47,6 +49,10 @@ const SOURCES: [&str; 14] = [
     "scenario.cc",
     "platform.cc",
     "new_project_dialog.cc",
+    "motion.cc",
+    "look_style.cc",
+    "var_text.cc",
+    "project_panel.cc",
 ];
 
 fn main() {

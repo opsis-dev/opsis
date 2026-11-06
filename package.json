@@ -60,6 +60,7 @@
     "types:export": "cargo run -q -p opsis-desktop --features export-bindings --bin export-bindings && cargo run -q -p opsis-compile --bin export-spec",
     "elements:render": "cargo run -q --release -p opsis-render --bin render-elements --",
     "glyphs:bundle": "bun scripts/node-glyphs.ts",
+    "ui:glyphs": "bun scripts/ui-glyphs.ts",
     "cursors:bundle": "bun scripts/mac-cursors.ts",
     "terminal:themes": "bun scripts/terminal-themes.ts",
     "db:prepare": "bun scripts/sqlx-prepare.ts",

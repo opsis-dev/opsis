@@ -70,6 +70,7 @@ AppBar::AppBar(QWidget* window, const QString& title, bool resizable)
     button->setIconSize(QSize(16, 16));
     button->setToolTip(tip);
     button->setFixedHeight(kBarHeight);
+    button->setFocusPolicy(Qt::NoFocus);
     layout->addWidget(button);
     return button;
   };

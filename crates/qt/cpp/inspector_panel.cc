@@ -11,6 +11,7 @@
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QTextEdit>
 #include <algorithm>
 #include <cmath>
 #include <functional>
@@ -18,6 +19,8 @@
 #include "app.h"
 #include "event_hub.h"
 #include "opsis-qt/src/bridge.rs.h"
+#include "project_panel.h"
+#include "var_text.h"
 #include "widgets.h"
 
 namespace opsis {
@@ -80,7 +83,8 @@ bool InspectorPanel::Editing() const {
   return focus != nullptr && content_ != nullptr &&
          content_->isAncestorOf(focus) &&
          (qobject_cast<QLineEdit*>(focus) != nullptr ||
-          qobject_cast<QPlainTextEdit*>(focus) != nullptr);
+          qobject_cast<QPlainTextEdit*>(focus) != nullptr ||
+          qobject_cast<QTextEdit*>(focus) != nullptr);
 }
 
 void InspectorPanel::Commit(const QString& key, const QString& json) {
@@ -123,7 +127,7 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
         row->addStretch(1);
         return holder;
       }
-      auto* combo = new QComboBox();
+      auto* combo = new Combo();
       for (const auto& choice : field.choices) {
         combo->addItem(ToQ(choice.label), ToQ(choice.value));
       }
@@ -175,13 +179,24 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
               });
       return holder;
     }
-    case bridge::FieldKind::Textarea: {
+    case bridge::FieldKind::Textarea:
+    case bridge::FieldKind::Text: {
+      auto* text = new VarText(ToQ(field.text),
+                               field.kind == bridge::FieldKind::Textarea,
+                               field.pauses, ToQ(field.zero_label));
+      connect(text, &VarText::Committed, this,
+              [this, key](const QString& value) {
+                Commit(key, Json(QJsonValue(value)));
+              });
+      return text;
+    }
+    case bridge::FieldKind::Code: {
       auto* area = new TextArea();
       area->setPlainText(ToQ(field.text));
       area->setFixedHeight(96);
-      if (key == QStringLiteral("code") || key == QStringLiteral("script")) {
-        area->setFont(QFont(QStringLiteral("JetBrains Mono"), 12));
-      }
+      QFont mono(QStringLiteral("JetBrains Mono"));
+      mono.setPixelSize(12);
+      area->setFont(mono);
       const QString initial = ToQ(field.text);
       area->on_commit = [this, key, area, initial] {
         if (area->toPlainText() != initial) {
@@ -189,17 +204,6 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
         }
       };
       return area;
-    }
-    case bridge::FieldKind::Text: {
-      auto* line = new QLineEdit(ToQ(field.text));
-      const QString initial = ToQ(field.text);
-      connect(line, &QLineEdit::editingFinished, this,
-              [this, key, line, initial] {
-                if (line->text() != initial) {
-                  Commit(key, Json(QJsonValue(line->text())));
-                }
-              });
-      return line;
     }
     default: {
       auto* text = MakeLabel(ToQ(field.text), "muted");
@@ -217,7 +221,10 @@ void InspectorPanel::Rebuild() {
   auto* layout = new QVBoxLayout(content);
   layout->setContentsMargins(16, 14, 16, 16);
   layout->setSpacing(14);
-  if (node_.isEmpty()) {
+  if (node_.isEmpty() && app.session().has_project()) {
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(new ProjectPanel(content));
+  } else if (node_.isEmpty()) {
     layout->addStretch(1);
     auto* empty =
         MakeLabel(QStringLiteral("Select a node to change its settings."),

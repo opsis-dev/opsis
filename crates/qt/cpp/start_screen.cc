@@ -220,10 +220,15 @@ QWidget* StartScreen::TemplateGrid() {
       SectionTitle(QStringLiteral("Start from a template"), section));
   auto* grid = new QGridLayout();
   grid->setSpacing(8);
+  grid->setColumnStretch(0, 1);
+  grid->setColumnStretch(1, 1);
   App& app = App::Get();
   int index = 0;
   for (const auto& entry : app.session().templates()) {
     auto* card = new RowButton(section, "template");
+    QSizePolicy fill(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    fill.setHeightForWidth(true);
+    card->setSizePolicy(fill);
     QHBoxLayout* row = card->row();
     row->setContentsMargins(12, 12, 12, 12);
     auto* icon = Passive(new QLabel(card));
@@ -243,8 +248,9 @@ QWidget* StartScreen::TemplateGrid() {
     auto* about = Passive(MakeLabel(ToQ(entry.description), "small", card));
     about->setWordWrap(true);
     texts->addWidget(about);
+    texts->addStretch(1);
     row->addLayout(texts, 1);
-    grid->addWidget(card, index / 2, index % 2, Qt::AlignTop);
+    grid->addWidget(card, index / 2, index % 2);
     const QString id = ToQ(entry.id);
     connect(card, &QPushButton::clicked, this,
             [this, id] { emit NewProjectRequested(id, true); });

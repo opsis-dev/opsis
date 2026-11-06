@@ -9,6 +9,7 @@
 #include <QVBoxLayout>
 
 #include "app.h"
+#include "motion.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "widgets.h"
 
@@ -19,7 +20,6 @@ namespace {
 constexpr QLatin1StringView kNodeMime("application/x-opsis-node");
 constexpr int kTypeRole = Qt::UserRole + 1;
 constexpr int kBadge = 20;
-constexpr int kRailWidth = 44;
 constexpr int kPopoverWidth = 256;
 constexpr int kPopoverHeight = 400;
 
@@ -128,7 +128,7 @@ NodeList::NodeList(const QString& category, const QString& label,
 CategoryRail::CategoryRail(QWidget* parent) : QWidget(parent) {
   setObjectName(QStringLiteral("CategoryRail"));
   setAttribute(Qt::WA_StyledBackground);
-  setFixedWidth(kRailWidth);
+  setFixedWidth(kWidth);
   auto* layout = new QVBoxLayout(this);
   layout->setContentsMargins(0, 8, 0, 8);
   layout->setSpacing(4);
@@ -173,7 +173,7 @@ void CategoryRail::OpenCategory(QWidget* anchor, const QString& id,
           });
   popup->resize(kPopoverWidth, kPopoverHeight);
   popup->move(anchor->mapToGlobal(QPoint(anchor->width() + 12, 0)));
-  popup->show();
+  FadeIn(popup, kMotionMs, kRisePx);
 }
 
 void NodeList::Filter(const QString& text) {

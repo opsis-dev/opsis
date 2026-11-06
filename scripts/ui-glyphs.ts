@@ -12,6 +12,7 @@ const OUT = path.join(ROOT, "crates", "ui", "glyphs.generated.json");
 const UI_ICONS = [
   "blend",
   "box",
+  "braces",
   "chevron-down",
   "chevron-right",
   "clapperboard",
@@ -35,6 +36,7 @@ const UI_ICONS = [
   "panel-left",
   "panel-left-open",
   "panel-right",
+  "pause",
   "play",
   "plus",
   "redo-2",
