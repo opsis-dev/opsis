@@ -8,7 +8,7 @@ The one recording browser every capture, view and render launches, the bundled F
 | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
 | Browser pins       | `engine/src/downloads.generated.json` (`bun run engine:downloads`)                                                                 |
 | Installer          | `engine/src/install.rs` (into `<data folder>/engine`)                                                                              |
-| Browser check      | `desktop/src/engine.rs` → `verify_on_start`, `checked_engine_files`, `engine_checking`; `capture/src/browser.rs` → `check_browser` |
+| Browser check      | `session/src/engine.rs` → `verify_on_start`, `checked_engine_files`, `engine_checking`; `capture/src/browser.rs` → `check_browser` |
 | Engine files       | `engine_files`, `EngineFiles`, `EngineMissing`                                                                                     |
 | Seed stamps        | `scripts/lib/browser-stamp.ts`                                                                                                     |
 | Bundled FFmpeg     | `engine/src/ffmpeg.rs` → `bundled_ffmpeg`, `FfmpegMissing`; pins `scripts/lib/ffmpeg.generated.json`                               |

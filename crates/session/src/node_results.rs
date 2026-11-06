@@ -17,8 +17,8 @@ use opsis_runner::context::now_ms;
 use opsis_runner::keys::{KeyInputs, Release, hash_nodes};
 use opsis_types::values::{CompileValue, NodeResult};
 use opsis_types::workflow::Workflow;
-use tauri::{AppHandle, Manager};
 
+use crate::Session;
 use crate::engine::{engine_files, engine_tools};
 use crate::state::AppState;
 
@@ -26,12 +26,12 @@ const MEDIA_PORT: &str = "media";
 const UNREADABLE: &str = "This file can't be read as a video, an image or a sound.";
 const RETRY_OPENING: Duration = Duration::from_secs(10);
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct NodeKeys {
     keyed: Mutex<Keyed>,
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 struct Keyed {
     dir: Option<PathBuf>,
     current: HashMap<String, String>,
@@ -40,7 +40,7 @@ struct Keyed {
     unreadable: HashMap<String, Unreadable>,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 struct Unreadable {
     message: String,
     retry_at: Option<Instant>,
@@ -65,15 +65,16 @@ fn adopt(
     true
 }
 
+#[derive(Debug)]
 pub struct Refreshed {
     pub outdated: Vec<String>,
     pub problems: Vec<GraphIssue>,
 }
 
-fn current_keys(app: &AppHandle, dir: &Path, workflow: &Workflow) -> HashMap<String, String> {
+fn current_keys(app: &Session, dir: &Path, workflow: &Workflow) -> HashMap<String, String> {
     let state = app.state::<AppState>();
-    let engine = engine_files(&state);
-    let version = app.package_info().version.to_string();
+    let engine = engine_files(state);
+    let version = crate::APP_VERSION.to_owned();
     let executors = crate::run::executors(app);
     let vars = workflow_vars(&workflow.name, &workflow.variables);
     let sorted = topo_sort(workflow);
@@ -107,7 +108,7 @@ fn saved_result(dir: &Path, key: &str) -> Option<NodeResult> {
 }
 
 pub fn refresh(
-    app: &AppHandle,
+    app: &Session,
     dir: &Path,
     workflow: &Workflow,
     results: &mut IndexMap<String, NodeResult>,
@@ -175,7 +176,7 @@ fn unreadable_issues(
         .collect()
 }
 
-pub fn held(app: &AppHandle, dir: &Path, results: &IndexMap<String, NodeResult>) -> Refreshed {
+pub fn held(app: &Session, dir: &Path, results: &IndexMap<String, NodeResult>) -> Refreshed {
     let node_keys = app.state::<NodeKeys>();
     let keyed = node_keys.keyed.lock().expect("node keys");
     if keyed.dir.as_deref() != Some(dir) {
@@ -200,7 +201,7 @@ pub fn held(app: &AppHandle, dir: &Path, results: &IndexMap<String, NodeResult>)
     }
 }
 
-pub fn file_problems(app: &AppHandle) -> Vec<GraphIssue> {
+pub fn file_problems(app: &Session) -> Vec<GraphIssue> {
     let open = app.state::<AppState>().editor().dir();
     let node_keys = app.state::<NodeKeys>();
     let keyed = node_keys.keyed.lock().expect("node keys");
@@ -221,7 +222,7 @@ fn media_file_src(compiled: &CompileResult, id: &str) -> Option<String> {
 }
 
 pub fn check_media_files(
-    app: &AppHandle,
+    app: &Session,
     dir: &Path,
     workflow: &Workflow,
     compiled: &CompileResult,
@@ -271,12 +272,12 @@ pub fn check_media_files(
             src,
             file,
         };
-        tauri::async_runtime::spawn(check.run());
+        crate::runtime::spawn(check.run());
     }
 }
 
 struct FileCheck {
-    app: AppHandle,
+    app: Session,
     dir: PathBuf,
     id: String,
     key: String,
@@ -301,7 +302,7 @@ fn remembered(error: &FileCheckError) -> Option<Unreadable> {
 
 impl FileCheck {
     async fn run(self) {
-        let tools = engine_tools(&self.app.state::<AppState>());
+        let tools = engine_tools(self.app.state::<AppState>());
         let started = Instant::now();
         let checked = check_media_file(&*tools, &self.file, &self.src).await;
         let keys = self.app.state::<NodeKeys>();
@@ -329,7 +330,7 @@ impl FileCheck {
                 if let Some(unreadable) = remembered(&error) {
                     if let Some(at) = unreadable.retry_at {
                         let app = self.app.clone();
-                        tauri::async_runtime::spawn(async move {
+                        crate::runtime::spawn(async move {
                             tokio::time::sleep_until(at.into()).await;
                             crate::compile::request(&app);
                         });

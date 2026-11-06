@@ -6,52 +6,47 @@
 #[cfg(all(feature = "e2e", not(debug_assertions)))]
 compile_error!("The e2e feature embeds a WebDriver server; it is for debug builds only.");
 
-mod analysis;
-mod api;
 pub mod bindings;
-mod compile;
-mod document;
-mod engine;
-mod error;
+mod commands;
 mod events;
 mod exit;
 mod file_server;
-mod fonts;
+mod forward;
 mod frames;
-mod gradients;
-mod menu;
 #[cfg_attr(
     not(target_os = "macos"),
     expect(dead_code, reason = "only macOS shows the native menu")
 )]
 mod native_menu;
-mod node_results;
 mod page_log;
-mod paths;
-mod projects;
-mod run;
-mod settings;
-mod shared;
-mod startup;
-mod state;
-mod terminal_live;
-mod terminal_paint;
-mod views;
+mod platform;
 mod windows;
 
+use std::sync::Arc;
+
+use opsis_session::Session;
+use opsis_session::paths::{AppPaths, HostFolders};
 use opsis_store::keys::{KeyError, Keyring};
 use tauri::{AppHandle, Manager, RunEvent};
 
-use crate::analysis::Mixes;
-use crate::exit::Exit;
-use crate::paths::AppPaths;
-use crate::run::RunHost;
-use crate::state::AppState;
-use crate::views::Views;
+use crate::platform::TauriPlatform;
 use crate::windows::WindowRuntime;
 
+pub fn session_of(app: &AppHandle) -> Session {
+    app.state::<Session>().inner().clone()
+}
+
+fn host_folders(app: &tauri::App) -> Result<HostFolders, tauri::Error> {
+    let path = app.path();
+    Ok(HostFolders {
+        config: path.config_dir()?,
+        resources: path.resource_dir()?,
+        home: path.home_dir()?,
+    })
+}
+
 fn start(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
-    let paths = AppPaths::new(app.handle())?;
+    let paths = AppPaths::new(&host_folders(app)?)?;
     let ended = opsis_engine::children::end_children_of_gone_apps(
         &paths.temp_root,
         &opsis_engine::temp::process_alive,
@@ -93,23 +88,14 @@ async fn open(
     paths: AppPaths,
     keys: Result<Keyring, KeyError>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let state = AppState::new(paths, keys).await?;
+    let platform = Arc::new(TauriPlatform { app: app.clone() });
+    let session = Session::start(paths, keys, platform).await?;
+    app.manage(session.clone());
     let files = file_server::start(app)?;
-    app.manage(state);
     app.manage(files);
-    app.manage(RunHost::default());
-    app.manage(shared::Shared::default());
-    app.manage(Exit::default());
-    app.manage(Views::default());
-    app.manage(terminal_live::LiveTapes::default());
-    app.manage(Mixes::default());
-    app.manage(node_results::NodeKeys::default());
     app.manage(WindowRuntime::default());
-    app.manage(api::Api::new(app));
-    api::follow_setting(app);
-    #[cfg(unix)]
-    exit::close_on_signals(app);
-    engine::verify_on_start(app);
+    forward::start(app, &session);
+    session.begin();
     windows::open_main(app).map_err(|e| e.0)?;
     Ok(())
 }
@@ -137,15 +123,9 @@ pub fn run() {
         .expect("the app starts")
         .run(|app, event| {
             if matches!(event, RunEvent::Exit)
-                && let Some(state) = app.try_state::<AppState>()
+                && let Some(session) = app.try_state::<Session>()
             {
-                app.state::<RunHost>().cancel();
-                let ended = opsis_engine::children::end_remembered_children();
-                if !ended.is_empty() {
-                    log::info!("ended the browsers still open: {ended:?}");
-                }
-                api::stop(app);
-                opsis_engine::temp::remove_child_temp(&state.paths.views_temp);
+                session.end();
             }
         });
 }

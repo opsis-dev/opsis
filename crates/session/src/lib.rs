@@ -1,0 +1,30 @@
+pub mod analysis;
+pub mod api;
+pub mod compile;
+pub mod document;
+pub mod engine;
+pub mod error;
+pub mod events;
+pub mod exit;
+pub mod fonts;
+pub mod frames;
+pub mod gradients;
+pub mod menu;
+pub mod node_results;
+pub mod paths;
+pub mod platform;
+pub mod projects;
+pub mod run;
+pub mod runtime;
+mod session;
+pub mod settings;
+pub mod shared;
+pub mod startup;
+pub mod state;
+pub mod terminal_live;
+pub mod terminal_paint;
+pub mod views;
+
+pub use session::{Part, Session};
+
+pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");

@@ -2,7 +2,7 @@
 
 How Opsis replaces its editor, a React app in each OS's own webview (WebKitGTK, WKWebView, WebView2), with Qt 6.12 LTS Widgets: a C++ view layer that Rust drives through `cxx`, drawn the same on Linux, Windows and macOS, in the same process as the document, the compile and the run.
 
-Status: plan only. Nothing here is built yet. Facts were checked on 4–5 November 2026.
+Status: **Session** is built (`crates/session`; its rules are in `agent-docs/document.md`), and a first cut of the Qt view layer runs (`crates/qt`, `crates/ui`); the rest is planned. Facts were checked on 4–5 November 2026.
 
 ## How to read this plan
 
@@ -76,7 +76,7 @@ Everything in `crates/desktop` that isn't Tauri moves into `crates/session` (`op
 1. Create `crates/session` with the modules above minus `windows.rs`, `menu.rs`, `native_menu.rs`, `file_server.rs`, `page_log.rs` and `bindings.rs`. Window bounds logic (`visible_bounds`, `bounds_key`, the database rows) moves too; only the code that builds windows stays behind.
 2. Replace every `Event::emit(app)` with a send on a `tokio::sync::broadcast::Sender<SessionEvent>`; `SessionEvent` derives `Debug` and carries the same payload types (`opsis-types`).
 3. Replace `AppHandle` parameters with `&Session`; keep the per-window concerns (which window a selection came from) as plain ids.
-4. `crates/desktop` keeps its commands as thin wrappers that call the session and forward `SessionEvent`s to `emit`, so the Tauri editor behaves exactly as before. `ApiHost` (`crates/desktop/src/api.rs`) moves into the session.
+4. `crates/desktop` keeps its commands as thin wrappers that call the session and forward `SessionEvent`s to `emit`, so the Tauri editor behaves exactly as before. `ApiHost` (`crates/session/src/api.rs`) moves into the session.
 5. Register long work in the session's task list (`begin`/`end`), as `AppState.tasks` does today.
 6. Move the session's rules into `agent-docs/document.md` and name the crate in `AGENTS.md` §6.
 
@@ -407,7 +407,7 @@ The media player for exported films and sounds, image previews, the streamed vie
 
 ### Fit with Opsis
 
-**In place.** `opsis-footage`'s `Decoder` runs the FFmpeg sidecar and returns `RawFrame`s with timestamps; `opsis-probe` reads lengths and chapters' containers; streamed views and live frames arrive as JPEG with a header (`crates/desktop/src/frames.rs`), with input sent back through `views::view_input` and `terminal_live::terminal_input`.
+**In place.** `opsis-footage`'s `Decoder` runs the FFmpeg sidecar and returns `RawFrame`s with timestamps; `opsis-probe` reads lengths and chapters' containers; streamed views and live frames arrive as JPEG with a header (`crates/session/src/frames.rs`), with input sent back through `views::view_input` and `terminal_live::terminal_input`.
 
 **Missing.** A player widget, A/V sync, chapter display, picture widgets.
 

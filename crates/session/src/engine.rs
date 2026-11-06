@@ -14,20 +14,18 @@ use opsis_types::engine::{
 };
 use opsis_types::settings::EngineSection;
 use serde_json::{Map, Value};
-use tauri::{AppHandle, Manager, State};
-use tauri_plugin_dialog::DialogExt;
-use tauri_specta::Event;
 use tokio_util::sync::CancellationToken;
 
+use crate::Session;
 use crate::error::{CommandError, CommandResult};
-use crate::events::{EngineChanged, EngineInstallProgress};
+use crate::events::{Emit, EngineChanged, EngineInstallProgress};
 use crate::settings::announce;
 use crate::state::AppState;
 
 const ENGINE_TASK: &str = "The engine is being set up.";
 const BROWSER: &str = "recording browser";
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct EngineChecks {
     problem: Option<String>,
     checking: bool,
@@ -106,15 +104,15 @@ pub fn engine_tools(state: &AppState) -> Tools {
     Arc::new(Ffmpeg::new(&engine_files(state)))
 }
 
-fn send_status(app: &AppHandle) {
-    let status = engine_status(&app.state::<AppState>());
+fn send_status(app: &Session) {
+    let status = engine_status(app.state::<AppState>());
     if let Err(error) = EngineChanged(status).emit(app) {
         log::warn!("sending the engine status: {error}");
     }
     crate::compile::request(app);
 }
 
-async fn save(app: &AppHandle, checked: Option<CheckedTool>) -> CommandResult<()> {
+async fn save(app: &Session, checked: Option<CheckedTool>) -> CommandResult<()> {
     let state = app.state::<AppState>();
     let fields = Map::from_iter([("browser".to_owned(), serde_json::to_value(&checked)?)]);
     let patch = Map::from_iter([("engine".to_owned(), Value::Object(fields))]);
@@ -123,7 +121,7 @@ async fn save(app: &AppHandle, checked: Option<CheckedTool>) -> CommandResult<()
     Ok(())
 }
 
-fn set_check(app: &AppHandle, checking: bool, problem: Option<String>) {
+fn set_check(app: &Session, checking: bool, problem: Option<String>) {
     let state = app.state::<AppState>();
     {
         let mut checks = state.engine_checks();
@@ -161,7 +159,7 @@ async fn hashed(
 }
 
 async fn check_and_save(
-    app: &AppHandle,
+    app: &Session,
     path: &Path,
     known: Option<String>,
 ) -> Result<(), ToolProblem> {
@@ -189,7 +187,7 @@ async fn check_and_save(
     result
 }
 
-async fn verify_changed(app: &AppHandle, saved: CheckedTool) {
+async fn verify_changed(app: &Session, saved: CheckedTool) {
     let path = PathBuf::from(&saved.path);
     let hash = hash_of(&path).await.ok();
     if let (Some(hash), Ok(stamp)) = (&hash, file_stamp(&path))
@@ -215,8 +213,8 @@ async fn verify_changed(app: &AppHandle, saved: CheckedTool) {
     }
 }
 
-pub fn verify_on_start(app: &AppHandle) {
-    let Some(checked) = saved_engine(&app.state::<AppState>()).browser else {
+pub fn verify_on_start(app: &Session) {
+    let Some(checked) = saved_engine(app.state::<AppState>()).browser else {
         return;
     };
     match file_stamp(Path::new(&checked.path)) {
@@ -228,7 +226,7 @@ pub fn verify_on_start(app: &AppHandle) {
         Ok(_) => {
             set_check(app, true, None);
             let app = app.clone();
-            tauri::async_runtime::spawn(async move {
+            crate::runtime::spawn(async move {
                 verify_changed(&app, checked).await;
                 send_status(&app);
             });
@@ -258,7 +256,7 @@ enum SetupError {
     Check(#[from] ToolProblem),
 }
 
-async fn download_and_check(app: &AppHandle) -> Result<(), SetupError> {
+async fn download_and_check(app: &Session) -> Result<(), SetupError> {
     let state = app.state::<AppState>();
     let dir = download_dir(&state.paths.user_data);
     let emitter = app.clone();
@@ -280,10 +278,8 @@ async fn download_and_check(app: &AppHandle) -> Result<(), SetupError> {
     check_and_save(app, browser, None).await?;
     Ok(())
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn install_engine(app: AppHandle, state: State<'_, AppState>) -> CommandResult<()> {
+pub async fn install_engine(app: Session) -> CommandResult<()> {
+    let state = app.state::<AppState>();
     state.tasks.begin(ENGINE_TASK);
     let result = download_and_check(&app).await;
     state.tasks.end(ENGINE_TASK);
@@ -301,26 +297,10 @@ pub async fn install_engine(app: AppHandle, state: State<'_, AppState>) -> Comma
     Ok(result?)
 }
 
-async fn pick_file(app: &AppHandle) -> Option<PathBuf> {
-    let (sender, receiver) = tokio::sync::oneshot::channel();
-    app.dialog()
-        .file()
-        .set_title(format!("Choose the {BROWSER}"))
-        .pick_file(move |file| {
-            if sender.send(file).is_err() {
-                log::debug!("the file dialog closed after its caller left");
-            }
-        });
-    receiver
-        .await
-        .ok()
-        .flatten()
-        .and_then(|f| f.into_path().ok())
+async fn pick_file(app: &Session) -> Option<PathBuf> {
+    crate::platform::pick_file(app.platform(), &format!("Choose the {BROWSER}")).await
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn choose_browser(app: AppHandle) -> CommandResult<bool> {
+pub async fn choose_browser(app: Session) -> CommandResult<bool> {
     let Some(path) = pick_file(&app).await else {
         return Ok(false);
     };
@@ -329,11 +309,9 @@ pub async fn choose_browser(app: AppHandle) -> CommandResult<bool> {
         .map_err(|e| CommandError(e.to_string()))?;
     Ok(true)
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn get_engine_status(state: State<'_, AppState>) -> EngineStatus {
-    engine_status(&state)
+pub fn get_engine_status(app: &Session) -> EngineStatus {
+    let state = app.state::<AppState>();
+    engine_status(state)
 }
 
 #[cfg(test)]

@@ -18,13 +18,13 @@ use opsis_types::project::{OpenProject, ProjectFileChange, SaveResult};
 use opsis_types::workflow::Workflow;
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use tauri::{AppHandle, Manager, State};
-use tauri_specta::Event;
 
+use crate::Session;
 use crate::error::{CommandError, CommandResult};
-use crate::events::{DiskChangeAsked, DocumentChanged, ProjectFilesChanged, ProjectReloaded};
+use crate::events::{
+    DiskChangeAsked, DocumentChanged, Emit, MAIN_WINDOW, ProjectFilesChanged, ProjectReloaded,
+};
 use crate::state::{AppState, DiskChange, Editor};
-use crate::windows::MAIN_WINDOW;
 
 const AUTOSAVE_DELAY: Duration = Duration::from_millis(800);
 pub const VERSION_UNCHOSEN: &str =
@@ -48,10 +48,10 @@ pub enum DiskChoice {
     Wait,
 }
 
-fn announce(app: &AppHandle) {
+fn announce(app: &Session) {
     let state = app.state::<AppState>();
     let changed = state.editor().document.as_mut().map(|doc| DocumentChanged {
-        document: shown_state(&state, doc),
+        document: shown_state(state, doc),
         edited: doc.take_edited(),
     });
     let Some(changed) = changed else {
@@ -70,12 +70,12 @@ fn shown_state(state: &AppState, doc: &Document) -> DocumentState {
     }
 }
 
-fn schedule_autosave(app: &AppHandle) {
+fn schedule_autosave(app: &Session) {
     let state = app.state::<AppState>();
     state.save_due.store(true, Ordering::Relaxed);
     let turn = state.autosave.fetch_add(1, Ordering::Relaxed) + 1;
     let app = app.clone();
-    tauri::async_runtime::spawn(async move {
+    crate::runtime::spawn(async move {
         tokio::time::sleep(AUTOSAVE_DELAY).await;
         if app.state::<AppState>().autosave.load(Ordering::Relaxed) != turn {
             return;
@@ -86,7 +86,7 @@ fn schedule_autosave(app: &AppHandle) {
     });
 }
 
-pub fn changed(app: &AppHandle) {
+pub fn changed(app: &Session) {
     schedule_autosave(app);
     announce(app);
     crate::compile::request(app);
@@ -102,7 +102,7 @@ pub fn document_workflow(state: &AppState) -> Option<(PathBuf, Workflow)> {
     Some((doc.dir().to_path_buf(), doc.workflow().clone()))
 }
 
-fn ask_about_disk(app: &AppHandle, workflow: Option<Workflow>, version: String) {
+fn ask_about_disk(app: &Session, workflow: Option<Workflow>, version: String) {
     let readable = workflow.is_some();
     app.state::<AppState>().editor().disk_change = Some(DiskChange { workflow, version });
     if let Err(error) = (DiskChangeAsked { readable }).emit_to(app, MAIN_WINDOW) {
@@ -110,7 +110,7 @@ fn ask_about_disk(app: &AppHandle, workflow: Option<Workflow>, version: String) 
     }
 }
 
-pub async fn save(app: &AppHandle) -> CommandResult<bool> {
+pub async fn save(app: &Session) -> CommandResult<bool> {
     let state = app.state::<AppState>();
     let _turn = state.saving.lock().await;
     let due = state.autosave.load(Ordering::Relaxed);
@@ -122,7 +122,7 @@ pub async fn save(app: &AppHandle) -> CommandResult<bool> {
     saved
 }
 
-async fn write(app: &AppHandle) -> CommandResult<bool> {
+async fn write(app: &Session) -> CommandResult<bool> {
     let state = app.state::<AppState>();
     let (dir, workflow, revision, base) = {
         let editor = state.editor();
@@ -160,7 +160,7 @@ async fn write(app: &AppHandle) -> CommandResult<bool> {
     }
 }
 
-fn outside_change(app: &AppHandle, change: ProjectFileChange) {
+fn outside_change(app: &Session, change: ProjectFileChange) {
     let state = app.state::<AppState>();
     let load = {
         let editor = state.editor();
@@ -186,7 +186,7 @@ fn outside_change(app: &AppHandle, change: ProjectFileChange) {
     }
 }
 
-fn watch(app: &AppHandle, dir: &Path) -> CommandResult<()> {
+fn watch(app: &Session, dir: &Path) -> CommandResult<()> {
     let state = app.state::<AppState>();
     let mut watching = state.watching.lock().expect("watching");
     if watching.dir.as_deref() == Some(dir) {
@@ -231,9 +231,9 @@ async fn opened_project(state: &AppState, dir: &Path) -> CommandResult<OpenProje
     })
 }
 
-pub async fn open(app: &AppHandle, dir: &Path) -> CommandResult<OpenProject> {
+pub async fn open(app: &Session, dir: &Path) -> CommandResult<OpenProject> {
     let state = app.state::<AppState>();
-    if document_dir(&state).as_deref() != Some(dir) {
+    if document_dir(state).as_deref() != Some(dir) {
         save(app).await?;
         let project = state.projects.open(dir)?;
         state
@@ -259,11 +259,11 @@ pub async fn open(app: &AppHandle, dir: &Path) -> CommandResult<OpenProject> {
     }
     watch(app, dir)?;
     changed(app);
-    opened_project(&state, dir).await
+    opened_project(state, dir).await
 }
 
 pub async fn adopt(
-    app: &AppHandle,
+    app: &Session,
     dir: &Path,
     workflow: Workflow,
     version: String,
@@ -280,10 +280,10 @@ pub async fn adopt(
     crate::shared::forget_project(app);
     watch(app, dir)?;
     changed(app);
-    opened_project(&state, dir).await
+    opened_project(state, dir).await
 }
 
-pub fn follow_loaded_files(app: &AppHandle, dir: PathBuf, refs: Vec<String>) {
+pub fn follow_loaded_files(app: &Session, dir: PathBuf, refs: Vec<String>) {
     let state = app.state::<AppState>();
     let mut watching = state.watching.lock().expect("watching");
     if watching.refs.as_ref() == Some(&(dir.clone(), refs.clone())) {
@@ -311,7 +311,7 @@ fn refused_edge(editor: &Editor, ends: &EdgeEnds) -> Option<String> {
     .map(|p| p.message)
 }
 
-pub fn edit(app: &AppHandle, edit: WorkflowEdit) -> Result<Edited, DocumentError> {
+pub fn edit(app: &Session, edit: WorkflowEdit) -> Result<Edited, DocumentError> {
     let edited = {
         let state = app.state::<AppState>();
         let mut editor = state.editor();
@@ -327,7 +327,7 @@ pub fn edit(app: &AppHandle, edit: WorkflowEdit) -> Result<Edited, DocumentError
     Ok(edited)
 }
 
-pub fn step(app: &AppHandle, redo: bool) -> Result<u64, DocumentError> {
+pub fn step(app: &Session, redo: bool) -> Result<u64, DocumentError> {
     let revision = {
         let state = app.state::<AppState>();
         let mut editor = state.editor();
@@ -348,40 +348,27 @@ fn with_document(state: &AppState, change: impl FnOnce(&mut Document)) {
         change(doc);
     }
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn document_state(state: State<'_, AppState>) -> Option<DocumentState> {
+pub fn document_state(app: &Session) -> Option<DocumentState> {
+    let state = app.state::<AppState>();
     state
         .editor()
         .document
         .as_ref()
-        .map(|doc| shown_state(&state, doc))
+        .map(|doc| shown_state(state, doc))
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn edit_workflow(app: AppHandle, edit: WorkflowEdit) -> CommandResult<Edited> {
-    Ok(self::edit(&app, edit)?)
+pub fn edit_workflow(app: &Session, edit: WorkflowEdit) -> CommandResult<Edited> {
+    Ok(self::edit(app, edit)?)
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn undo(app: AppHandle) -> CommandResult<()> {
-    step(&app, false)?;
+pub fn undo(app: &Session) -> CommandResult<()> {
+    step(app, false)?;
     Ok(())
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn redo(app: AppHandle) -> CommandResult<()> {
-    step(&app, true)?;
+pub fn redo(app: &Session) -> CommandResult<()> {
+    step(app, true)?;
     Ok(())
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn begin_gesture(state: State<'_, AppState>) {
+pub fn begin_gesture(app: &Session) {
+    let state = app.state::<AppState>();
     let mut guard = state.editor();
     let editor = &mut *guard;
     let starting = editor
@@ -395,10 +382,8 @@ pub fn begin_gesture(state: State<'_, AppState>) {
         doc.begin_gesture();
     }
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn end_gesture(app: AppHandle, state: State<'_, AppState>) {
+pub fn end_gesture(app: &Session) {
+    let state = app.state::<AppState>();
     {
         let mut editor = state.editor();
         if let Some(doc) = editor.document.as_mut() {
@@ -408,20 +393,17 @@ pub fn end_gesture(app: AppHandle, state: State<'_, AppState>) {
             }
         }
     }
-    announce(&app);
+    announce(app);
     let closed = state
         .editor()
         .document
         .as_ref()
         .is_some_and(|doc| doc.gesture_start().is_none());
     if closed {
-        crate::compile::request(&app);
+        crate::compile::request(app);
     }
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn edit_timeline(app: AppHandle, edit: TimelineEdit) -> CommandResult<TimelineReply> {
+pub fn edit_timeline(app: &Session, edit: TimelineEdit) -> CommandResult<TimelineReply> {
     let reply = {
         let state = app.state::<AppState>();
         let mut editor = state.editor();
@@ -434,28 +416,20 @@ pub fn edit_timeline(app: AppHandle, edit: TimelineEdit) -> CommandResult<Timeli
         doc.edit_timeline(edit, &film)
     };
     if reply.error.is_none() {
-        changed(&app);
+        changed(app);
     }
     Ok(reply)
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn timeline_removal(state: State<'_, AppState>, selected: Vec<String>) -> Option<Removal> {
+pub fn timeline_removal(app: &Session, selected: &[String]) -> Option<Removal> {
+    let state = app.state::<AppState>();
     let editor = state.editor();
     let film = editor.film.as_ref()?;
-    editor.document.as_ref()?.timeline_removal(film, &selected)
+    editor.document.as_ref()?.timeline_removal(film, selected)
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn save_project(app: AppHandle) -> CommandResult<bool> {
+pub async fn save_project(app: Session) -> CommandResult<bool> {
     save(&app).await
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn resolve_disk_change(app: AppHandle, choice: DiskChoice) -> CommandResult<bool> {
+pub async fn resolve_disk_change(app: Session, choice: DiskChoice) -> CommandResult<bool> {
     let pending = app.state::<AppState>().editor().disk_change.take();
     let Some(DiskChange { workflow, version }) = pending else {
         return Ok(true);
@@ -463,12 +437,12 @@ pub async fn resolve_disk_change(app: AppHandle, choice: DiskChoice) -> CommandR
     let state = app.state::<AppState>();
     match (choice, workflow) {
         (DiskChoice::Load, Some(workflow)) => {
-            with_document(&state, |doc| doc.load_from_disk(workflow, version));
+            with_document(state, |doc| doc.load_from_disk(workflow, version));
             changed(&app);
             Ok(true)
         }
         (DiskChoice::KeepMine, _) => {
-            with_document(&state, |doc| doc.keep_file_version(version));
+            with_document(state, |doc| doc.keep_file_version(version));
             save(&app).await
         }
         _ => Ok(false),

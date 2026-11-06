@@ -1,10 +1,10 @@
 use opsis_capture::terminal_paint::{Painted, TerminalPainter};
 use opsis_compile::terminal::terminal_fonts;
 use opsis_types::terminal::TerminalLook;
-use tauri::{AppHandle, Manager};
 use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
 
+use crate::Session;
 use crate::engine::checked_engine_files;
 use crate::state::AppState;
 
@@ -23,13 +23,13 @@ impl<T> Drop for PaintQueue<T> {
 }
 
 impl<T: Clone + Send + Sync + 'static> PaintQueue<T> {
-    pub fn start<F>(app: &AppHandle, look: TerminalLook, painted: F) -> Self
+    pub fn start<F>(app: &Session, look: TerminalLook, painted: F) -> Self
     where
         F: Fn(Painted, Vec<u8>, T) + Send + Sync + 'static,
     {
         let (latest, waiting) = watch::channel(None);
         let stop = CancellationToken::new();
-        tauri::async_runtime::spawn(paint_until_stopped(
+        crate::runtime::spawn(paint_until_stopped(
             app.clone(),
             look,
             waiting,
@@ -44,9 +44,9 @@ impl<T: Clone + Send + Sync + 'static> PaintQueue<T> {
     }
 }
 
-async fn open_painter(app: &AppHandle, stop: &CancellationToken) -> Option<TerminalPainter> {
+async fn open_painter(app: &Session, stop: &CancellationToken) -> Option<TerminalPainter> {
     let state = app.state::<AppState>();
-    let engine = checked_engine_files(&state, stop).await;
+    let engine = checked_engine_files(state, stop).await;
     let browser = match engine.browser() {
         Ok(browser) => browser.to_path_buf(),
         Err(error) => {
@@ -73,7 +73,7 @@ async fn open_painter(app: &AppHandle, stop: &CancellationToken) -> Option<Termi
 }
 
 async fn paint_until_stopped<T, F>(
-    app: AppHandle,
+    app: Session,
     look: TerminalLook,
     mut waiting: watch::Receiver<Waiting<T>>,
     stop: CancellationToken,

@@ -11,8 +11,8 @@ use opsis_types::analysis::{Filmstrip, Waveform};
 use opsis_types::mix::MixResult;
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use tauri::State;
 
+use crate::Session;
 use crate::engine::engine_tools;
 use crate::error::CommandResult;
 use crate::state::AppState;
@@ -52,7 +52,7 @@ pub enum AnalysisResult {
     Error { error: String },
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Mixes {
     latest: Mutex<HashMap<PathBuf, u64>>,
     next: AtomicU64,
@@ -95,15 +95,10 @@ async fn mix(state: &AppState, mixes: &Mixes, project: &Path, plan: &MixPlan) ->
         Err(error) => failed(error),
     }
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn analyze(
-    state: State<'_, AppState>,
-    mixes: State<'_, Mixes>,
-    request: AnalysisRequest,
-) -> CommandResult<AnalysisResult> {
-    let tools = engine_tools(&state);
+pub async fn analyze(app: &Session, request: AnalysisRequest) -> CommandResult<AnalysisResult> {
+    let state = app.state::<AppState>();
+    let mixes = app.state::<Mixes>();
+    let tools = engine_tools(state);
     Ok(match request {
         AnalysisRequest::Waveform { project_dir, src } => analyze_waveform(
             &src,
@@ -128,7 +123,7 @@ pub async fn analyze(
         .await
         .map_or_else(failed, |filmstrip| AnalysisResult::Filmstrip { filmstrip }),
         AnalysisRequest::Mix { project_dir, plan } => {
-            mix(&state, &mixes, Path::new(&project_dir), &plan).await
+            mix(state, mixes, Path::new(&project_dir), &plan).await
         }
     })
 }

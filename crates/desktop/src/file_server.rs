@@ -7,11 +7,12 @@ use axum::http::{StatusCode, Uri};
 use axum::response::{IntoResponse, Response};
 use opsis_compile::asset_ref::{RefTarget, join_url, library_rel_path, ref_target};
 use opsis_engine::http_files::file_routes;
+use opsis_session::state::AppState;
 use percent_encoding::percent_decode_str;
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
 use tower::ServiceExt;
 
-use crate::state::AppState;
+use crate::session_of;
 
 pub struct FileRoot(String);
 
@@ -25,7 +26,8 @@ fn requested_ref(path: &str, token: &str) -> Option<String> {
 }
 
 fn location(app: &AppHandle, file: &str) -> Option<(PathBuf, String)> {
-    let state = app.state::<AppState>();
+    let session = session_of(app);
+    let state = session.state::<AppState>();
     if let Some(rel) = library_rel_path(file) {
         return Some((state.paths.fonts_dir(), rel.to_owned()));
     }

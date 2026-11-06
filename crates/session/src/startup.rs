@@ -4,7 +4,7 @@ use opsis_store::db::StoreError;
 #[derive(Debug, thiserror::Error)]
 pub enum StartupError {
     #[error("The app's folders can't be found: {0}")]
-    Folders(#[from] tauri::Error),
+    Folders(String),
     #[error(transparent)]
     Platform(#[from] UnsupportedPlatform),
     #[error("The app's data folder can't be made: {0}")]

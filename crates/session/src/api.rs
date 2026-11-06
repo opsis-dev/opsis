@@ -14,27 +14,25 @@ use opsis_types::edits::{Edited, WorkflowEdit};
 use opsis_types::events::{RunEvent, RunTargets};
 use opsis_types::shell::ApiServerStatus;
 use opsis_types::workflow::Workflow;
-use tauri::{AppHandle, Manager, State};
-use tauri_specta::Event;
 use tokio::sync::broadcast;
 
+use crate::Session;
 use crate::document::DocumentError;
-use crate::events::{ApiStatusChanged, OpenRequested};
+use crate::events::{ApiStatusChanged, Emit, MAIN_WINDOW, OpenRequested};
 use crate::run::{RunHost, StartError};
 use crate::state::AppState;
-use crate::windows::MAIN_WINDOW;
 
 const RUN_EVENTS_KEPT: usize = 256;
 
+#[derive(Debug)]
 pub struct Api {
     server: ApiServer,
     events: broadcast::Sender<String>,
 }
 
 impl Api {
-    pub fn new(app: &AppHandle) -> Self {
-        let state = app.state::<AppState>();
-        let home = app.path().home_dir().unwrap_or_default();
+    pub fn new(state: &AppState) -> Self {
+        let home = state.paths.home.clone();
         let username = std::env::var("USERNAME")
             .or_else(|_| std::env::var("USER"))
             .unwrap_or_default();
@@ -82,7 +80,7 @@ fn start_failure(error: &StartError) -> HostError {
     HostError::new(status, error.to_string())
 }
 
-fn run_state(app: &AppHandle) -> RunState {
+fn run_state(app: &Session) -> RunState {
     let run_id = crate::run::active_run(app);
     RunState {
         running: run_id.is_some(),
@@ -90,7 +88,7 @@ fn run_state(app: &AppHandle) -> RunState {
     }
 }
 
-fn project_state(app: &AppHandle) -> HostResult<ProjectState> {
+fn project_state(app: &Session) -> HostResult<ProjectState> {
     let document = app
         .state::<AppState>()
         .editor()
@@ -110,12 +108,12 @@ fn project_state(app: &AppHandle) -> HostResult<ProjectState> {
 }
 
 struct AppApi {
-    app: AppHandle,
+    app: Session,
 }
 
 impl ApiHost for AppApi {
     fn version(&self) -> String {
-        self.app.package_info().version.to_string()
+        crate::APP_VERSION.to_owned()
     }
 
     fn problems(&self, workflow: &Workflow) -> Vec<GraphIssue> {
@@ -191,16 +189,16 @@ impl ApiHost for AppApi {
     }
 }
 
-fn announce(app: &AppHandle, status: ApiServerStatus) {
+fn announce(app: &Session, status: ApiServerStatus) {
     if let Err(error) = ApiStatusChanged(status).emit(app) {
         log::warn!("sending the API status: {error}");
     }
 }
 
-pub fn follow_setting(app: &AppHandle) {
+pub fn follow_setting(app: &Session) {
     let enabled = app.state::<AppState>().settings().api.enabled;
     let app = app.clone();
-    tauri::async_runtime::spawn(async move {
+    crate::runtime::spawn(async move {
         let api = app.state::<Api>();
         if api.server.status().enabled == enabled && (api.server.status().listening || !enabled) {
             return;
@@ -213,11 +211,11 @@ pub fn follow_setting(app: &AppHandle) {
     });
 }
 
-pub fn stop(app: &AppHandle) {
+pub fn stop(app: &Session) {
     app.state::<Api>().server.stop();
 }
 
-pub fn run_event(app: &AppHandle, event: &RunEvent) {
+pub fn run_event(app: &Session, event: &RunEvent) {
     let api = app.state::<Api>();
     if api.events.receiver_count() == 0 {
         return;
@@ -231,9 +229,7 @@ pub fn run_event(app: &AppHandle, event: &RunEvent) {
         Err(error) => log::warn!("writing a run event for the API: {error}"),
     }
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn api_status(api: State<'_, Api>) -> ApiServerStatus {
+pub fn api_status(app: &Session) -> ApiServerStatus {
+    let api = app.state::<Api>();
     api.server.status()
 }

@@ -7,7 +7,7 @@ The HTTP API scripts and agents use to read, change and run the open project. Pa
 | Concern                | Where                                                                            |
 | ---------------------- | -------------------------------------------------------------------------------- |
 | Routes                 | `api/src/routes.rs` → `ApiHost`                                                  |
-| Host implementation    | `desktop/src/api.rs`                                                             |
+| Host implementation    | `session/src/api.rs`                                                             |
 | Socket address         | `api/src/address.rs` → `api_address`                                             |
 | OpenAPI document       | `api/src/openapi.rs`                                                             |
 | Validation             | `check_workflow`, `workflow_problems`, `workflow_problems_with`, `file_problems` |

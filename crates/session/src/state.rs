@@ -21,12 +21,13 @@ use crate::engine::EngineChecks;
 use crate::paths::AppPaths;
 use crate::startup::StartupError;
 
+#[derive(Debug)]
 pub struct DiskChange {
     pub workflow: Option<Workflow>,
     pub version: String,
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Editor {
     pub document: Option<Document>,
     pub disk_change: Option<DiskChange>,
@@ -43,13 +44,13 @@ impl Editor {
     }
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct CompileQueue {
     pub waiting: AtomicBool,
     pub turn: tokio::sync::Mutex<()>,
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Watching {
     pub dir: Option<PathBuf>,
     pub project: Option<ProjectWatch>,
@@ -57,7 +58,7 @@ pub struct Watching {
     pub refs: Option<(PathBuf, Vec<String>)>,
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Tasks(Mutex<HashMap<String, usize>>);
 
 impl Tasks {
@@ -85,6 +86,7 @@ impl Tasks {
     }
 }
 
+#[derive(Debug)]
 pub struct AppState {
     pub paths: AppPaths,
     db: Database,

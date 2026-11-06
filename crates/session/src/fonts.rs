@@ -5,112 +5,78 @@ use opsis_compile::fonts::{font_choice, font_choices as choices_for, is_known_fa
 use opsis_fonts::library::{InspectedFonts, InstalledFamily, installed_families, system_fonts};
 use opsis_fonts::online::FontCatalogEntry;
 use opsis_types::fonts::{FontChoice, FontChoices, FontFamilyDef};
-use tauri::{AppHandle, State};
-use tauri_plugin_dialog::DialogExt;
 
+use crate::Session;
 use crate::error::{CommandError, CommandResult};
 use crate::state::AppState;
 
 const DOWNLOAD_TASK: &str = "A font is being downloaded.";
 const FONT_FILES: [&str; 6] = ["ttf", "otf", "woff", "woff2", "ttc", "zip"];
-
-#[tauri::command]
-#[specta::specta]
-pub async fn list_fonts(state: State<'_, AppState>) -> CommandResult<Vec<FontChoice>> {
+pub async fn list_fonts(app: &Session) -> CommandResult<Vec<FontChoice>> {
+    let state = app.state::<AppState>();
     let library = state.fonts.list(state.db()).await?;
     Ok(library.iter().map(|def| font_choice(def, "")).collect())
 }
-
-#[tauri::command]
-#[specta::specta]
 pub async fn font_choices(
-    state: State<'_, AppState>,
+    app: &Session,
     value: String,
     project: Vec<FontFamilyDef>,
 ) -> CommandResult<FontChoices> {
+    let state = app.state::<AppState>();
     let library = state.fonts.list(state.db()).await?;
     Ok(choices_for(&value, &project, &library))
 }
-
-#[tauri::command]
-#[specta::specta]
 pub async fn inspect_font_files(
-    app: AppHandle,
-    state: State<'_, AppState>,
+    app: Session,
     paths: Option<Vec<String>>,
 ) -> CommandResult<Option<InspectedFonts>> {
+    let state = app.state::<AppState>();
     let files: Vec<PathBuf> = if let Some(paths) = paths {
         paths.into_iter().map(PathBuf::from).collect()
     } else {
-        let (sender, receiver) = tokio::sync::oneshot::channel();
-        app.dialog()
-            .file()
-            .set_title("Add fonts")
-            .add_filter("Fonts", &FONT_FILES)
-            .pick_files(move |files| {
-                if sender.send(files).is_err() {
-                    log::debug!("the font dialog closed after its caller left");
-                }
-            });
-        receiver
-            .await
-            .ok()
-            .flatten()
-            .unwrap_or_default()
-            .into_iter()
-            .filter_map(|f| f.into_path().ok())
-            .collect()
+        let filter = crate::platform::FileFilter {
+            name: "Fonts".to_owned(),
+            extensions: FONT_FILES.iter().map(|e| (*e).to_owned()).collect(),
+        };
+        crate::platform::pick_files(app.platform(), "Add fonts", Some(filter)).await
     };
     if files.is_empty() {
         return Ok(None);
     }
     Ok(Some(state.fonts.inspect_files(&files)?))
 }
-
-#[tauri::command]
-#[specta::specta]
 pub async fn installed_font_families() -> CommandResult<Vec<InstalledFamily>> {
     Ok(tokio::task::spawn_blocking(|| installed_families(&system_fonts())).await?)
 }
-
-#[tauri::command]
-#[specta::specta]
 pub async fn inspect_installed_fonts(
-    state: State<'_, AppState>,
+    app: &Session,
     families: Vec<String>,
 ) -> CommandResult<InspectedFonts> {
+    let state = app.state::<AppState>();
     let system = tokio::task::spawn_blocking(system_fonts).await?;
     Ok(state.fonts.inspect_installed(&system, &families))
 }
-
-#[tauri::command]
-#[specta::specta]
 pub async fn add_inspected_fonts(
-    state: State<'_, AppState>,
+    app: &Session,
     token: String,
     families: Vec<String>,
 ) -> CommandResult<Vec<FontFamilyDef>> {
+    let state = app.state::<AppState>();
     Ok(state
         .fonts
         .add_inspected(state.db(), &token, &families)
         .await?)
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn release_inspected_fonts(state: State<'_, AppState>, token: String) {
-    state.fonts.release_inspected(&token);
+pub fn release_inspected_fonts(app: &Session, token: &str) {
+    let state = app.state::<AppState>();
+    state.fonts.release_inspected(token);
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn remove_font(state: State<'_, AppState>, id: String) -> CommandResult<()> {
+pub async fn remove_font(app: &Session, id: String) -> CommandResult<()> {
+    let state = app.state::<AppState>();
     Ok(state.fonts.remove(state.db(), &id).await?)
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn font_catalog(state: State<'_, AppState>) -> CommandResult<Vec<FontCatalogEntry>> {
+pub async fn font_catalog(app: &Session) -> CommandResult<Vec<FontCatalogEntry>> {
+    let state = app.state::<AppState>();
     let library = state.fonts.list(state.db()).await?;
     let mut entries = Arc::unwrap_or_clone(state.fonts_online.catalog().await?);
     for entry in &mut entries {
@@ -118,10 +84,8 @@ pub async fn font_catalog(state: State<'_, AppState>) -> CommandResult<Vec<FontC
     }
     Ok(entries)
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn download_font(state: State<'_, AppState>, id: String) -> CommandResult<FontFamilyDef> {
+pub async fn download_font(app: &Session, id: String) -> CommandResult<FontFamilyDef> {
+    let state = app.state::<AppState>();
     state.tasks.begin(DOWNLOAD_TASK);
     let downloaded = state
         .fonts_online
@@ -130,14 +94,12 @@ pub async fn download_font(state: State<'_, AppState>, id: String) -> CommandRes
     state.tasks.end(DOWNLOAD_TASK);
     Ok(downloaded?)
 }
-
-#[tauri::command]
-#[specta::specta]
 pub async fn use_font_in_project(
-    state: State<'_, AppState>,
+    app: &Session,
     dir: String,
     font_id: String,
 ) -> CommandResult<FontFamilyDef> {
+    let state = app.state::<AppState>();
     let library = state.fonts.list(state.db()).await?;
     let def = library
         .into_iter()

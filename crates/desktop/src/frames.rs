@@ -1,21 +1,11 @@
-use serde::Serialize;
+use std::fmt;
+use std::sync::Arc;
+
 use specta::Type;
 use specta::datatype::DataType;
 use tauri::ipc::{Channel, InvokeResponseBody, IpcResponse};
 
 pub struct Frame(Vec<u8>);
-
-impl Frame {
-    pub fn packed(header: &impl Serialize, jpeg: &[u8]) -> Option<Self> {
-        let header = serde_json::to_vec(header).ok()?;
-        let length = u32::try_from(header.len()).ok()?;
-        let mut bytes = Vec::with_capacity(4 + header.len() + jpeg.len());
-        bytes.extend_from_slice(&length.to_le_bytes());
-        bytes.extend_from_slice(&header);
-        bytes.extend_from_slice(jpeg);
-        Some(Self(bytes))
-    }
-}
 
 impl IpcResponse for Frame {
     fn body(self) -> tauri::Result<InvokeResponseBody> {
@@ -31,9 +21,24 @@ impl Type for Frame {
 
 pub type FrameChannel = Channel<Frame>;
 
-pub fn send(channel: &FrameChannel, header: &impl Serialize, jpeg: &[u8]) -> bool {
-    match Frame::packed(header, jpeg) {
-        Some(frame) => channel.send(frame).is_ok(),
-        None => false,
+struct ChannelSink(FrameChannel);
+
+impl fmt::Debug for ChannelSink {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("ChannelSink").field(&self.0.id()).finish()
     }
+}
+
+impl opsis_session::platform::FrameSender for ChannelSink {
+    fn id(&self) -> u32 {
+        self.0.id()
+    }
+
+    fn send(&self, frame: Vec<u8>) -> bool {
+        self.0.send(Frame(frame)).is_ok()
+    }
+}
+
+pub fn sink(channel: FrameChannel) -> opsis_session::frames::FrameChannel {
+    Arc::new(ChannelSink(channel))
 }

@@ -74,6 +74,7 @@ opsis-project = { path = "crates/project" }
 opsis-qt = { path = "crates/qt" }
 opsis-render = { path = "crates/render" }
 opsis-runner = { path = "crates/runner" }
+opsis-session = { path = "crates/session" }
 opsis-store = { path = "crates/store" }
 opsis-stream = { path = "crates/stream" }
 opsis-terminal = { path = "crates/terminal" }

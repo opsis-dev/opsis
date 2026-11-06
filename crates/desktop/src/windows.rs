@@ -1,6 +1,8 @@
 use std::sync::Mutex;
 use std::time::Duration;
 
+use opsis_session::error::{CommandError, CommandResult};
+use opsis_session::state::AppState;
 use opsis_store::windows::Bounds;
 use opsis_types::numbers;
 use opsis_types::shell::{DockPanelName, SettingsPage, WindowRole, WindowState};
@@ -13,11 +15,10 @@ use tauri::{
 };
 use tauri_specta::Event;
 
-use crate::error::{CommandError, CommandResult};
 use crate::events::{
     LiveWindowWatching, PanelWindowsChanged, SettingsPageShown, WindowStateChanged,
 };
-use crate::state::AppState;
+use crate::session_of;
 
 pub const MAIN_WINDOW: &str = "main";
 pub const SETTINGS_WINDOW: &str = "settings";
@@ -278,8 +279,8 @@ fn send_state(window: &Window) {
 }
 
 async fn save_bounds_now(window: &Window) {
-    let app = window.app_handle();
-    let state = app.state::<AppState>();
+    let session = session_of(window.app_handle());
+    let state = session.state::<AppState>();
     if window.is_minimized().unwrap_or(false) || window.is_fullscreen().unwrap_or(false) {
         return;
     }
@@ -341,7 +342,8 @@ pub fn on_window_event(window: &Window, event: &WindowEvent) {
             let destroyed = window.clone();
             tauri::async_runtime::spawn(async move { save_bounds_now(&destroyed).await });
             let app = window.app_handle();
-            app.state::<crate::run::RunHost>()
+            session_of(app)
+                .state::<opsis_session::run::RunHost>()
                 .live
                 .lock()
                 .expect("live channels")

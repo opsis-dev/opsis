@@ -1,3 +1,4 @@
+use opsis_session::menu::app_menu;
 use opsis_types::shell::{MenuCommand, MenuEntry, WindowRole};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -7,7 +8,6 @@ use tauri::{AppHandle, Manager, WebviewWindow, Wry};
 use tauri_specta::Event;
 
 use crate::events::MenuCommandFired;
-use crate::menu::app_menu;
 use crate::windows::{MAIN_WINDOW, run_role};
 
 const COMMAND_PREFIX: &str = "command:";

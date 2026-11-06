@@ -8,7 +8,7 @@ How a release build is made, what it ships, where a packaged app reads its resou
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
 | Build                    | `bun run make` → `scripts/make.ts`; `crates/desktop/tauri.release.conf.json`                                                          |
 | Staging                  | `scripts/stage.ts`; `scripts/lib/engine.ts` → `writeChromiumCredits`; `scripts/lib/unzip.ts`; `scripts/lib/ffmpeg.ts` → `stageFfmpeg` |
-| Resource paths           | `crates/desktop/src/paths.rs` → `AppPaths`                                                                                            |
+| Resource paths           | `crates/session/src/paths.rs` → `AppPaths`                                                                                            |
 | Release profile          | `[profile.release]` in `Cargo.toml`                                                                                                   |
 | CI                       | `.github/workflows/build.yml`                                                                                                         |
 | Icons                    | `brand/logo.svg` → `bun run brand:icons` → `brand/icons/` → `bun run app:icons` → `crates/desktop/icons`                              |

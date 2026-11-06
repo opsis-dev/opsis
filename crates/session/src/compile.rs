@@ -22,11 +22,10 @@ use opsis_types::workflow::{PortType, Workflow};
 use serde::Serialize;
 use serde_json::json;
 use specta::Type;
-use tauri::{AppHandle, Manager, State};
-use tauri_specta::Event;
 
+use crate::Session;
 use crate::error::CommandResult;
-use crate::events::Compiled;
+use crate::events::{Compiled, Emit};
 use crate::node_results::{check_media_files, held, refresh};
 use crate::state::AppState;
 
@@ -128,7 +127,7 @@ fn editor_compile(input: &CompileInput) -> EditorCompile {
     }
 }
 
-fn refreshed_compile(app: &AppHandle, input: &mut CompileInput) -> EditorCompile {
+fn refreshed_compile(app: &Session, input: &mut CompileInput) -> EditorCompile {
     let refreshed = if input.gesturing {
         held(app, &input.dir, &input.results)
     } else {
@@ -147,30 +146,32 @@ fn film_of(compiled: &EditorCompile) -> Option<Film> {
     })
 }
 
-fn emit(app: &AppHandle, compiled: &EditorCompile) {
-    if let Err(error) = serde_json::to_value(compiled)
-        .map_err(tauri::Error::from)
-        .and_then(|v| Compiled(v).emit(app))
-    {
-        log::warn!("sending the compile result: {error}");
+fn emit(app: &Session, compiled: &EditorCompile) {
+    match serde_json::to_value(compiled) {
+        Ok(value) => {
+            if let Err(error) = Compiled(value).emit(app) {
+                log::warn!("sending the compile result: {error}");
+            }
+        }
+        Err(error) => log::warn!("writing the compile result: {error}"),
     }
 }
 
-pub fn request(app: &AppHandle) {
+pub fn request(app: &Session) {
     let state = app.state::<AppState>();
     if state.compiles.waiting.swap(true, Ordering::AcqRel) {
         return;
     }
     let app = app.clone();
-    tauri::async_runtime::spawn(async move {
+    crate::runtime::spawn(async move {
         let state = app.state::<AppState>();
         let _turn = state.compiles.turn.lock().await;
         state.compiles.waiting.store(false, Ordering::Release);
-        let Some(mut input) = compile_input(&state) else {
+        let Some(mut input) = compile_input(state) else {
             return;
         };
         let emitter = app.clone();
-        let compiled = tauri::async_runtime::spawn_blocking(move || {
+        let compiled = crate::runtime::spawn_blocking(move || {
             let compiled = refreshed_compile(&emitter, &mut input);
             emitter.state::<AppState>().editor().film = film_of(&compiled);
             emit(&emitter, &compiled);
@@ -195,15 +196,8 @@ pub fn request(app: &AppHandle) {
         }
     });
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn set_compile_focus(
-    app: AppHandle,
-    state: State<'_, AppState>,
-    selected: Option<String>,
-    inspected: Option<String>,
-) {
+pub fn set_compile_focus(app: &Session, selected: Option<String>, inspected: Option<String>) {
+    let state = app.state::<AppState>();
     {
         let mut editor = state.editor();
         if editor.selected == selected && editor.inspected == inspected {
@@ -212,25 +206,17 @@ pub fn set_compile_focus(
         editor.selected = selected;
         editor.inspected = inspected;
     }
-    request(&app);
+    request(app);
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn latest_compile(
-    app: AppHandle,
-    state: State<'_, AppState>,
-) -> CommandResult<Option<EditorCompile>> {
-    let Some(mut input) = compile_input(&state) else {
+pub async fn latest_compile(app: Session) -> CommandResult<Option<EditorCompile>> {
+    let state = app.state::<AppState>();
+    let Some(mut input) = compile_input(state) else {
         return Ok(None);
     };
     Ok(Some(
-        tauri::async_runtime::spawn_blocking(move || refreshed_compile(&app, &mut input)).await?,
+        crate::runtime::spawn_blocking(move || refreshed_compile(&app, &mut input)).await?,
     ))
 }
-
-#[tauri::command]
-#[specta::specta]
 pub fn editor_catalog() -> EditorCatalog {
     editor_bundle(Platform::current())
 }

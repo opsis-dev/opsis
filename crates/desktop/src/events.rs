@@ -1,3 +1,5 @@
+use opsis_session::compile::EditorCompile;
+use opsis_stream::view::ViewEvent;
 use opsis_types::edits::DocumentState;
 use opsis_types::engine::{EngineInstallEvent, EngineStatus};
 use opsis_types::events::{LogLine, RunEvent, RunState, RunView};
@@ -12,8 +14,6 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use specta::Type;
 use tauri_specta::Event;
-
-use crate::compile::EditorCompile;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
 pub struct DocumentChanged {
@@ -118,3 +118,11 @@ pub struct RunLogged(pub LogLine);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
 pub struct RunStateReset(pub RunState);
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
+#[serde(rename_all = "camelCase")]
+pub struct ViewEventFired {
+    pub id: String,
+    #[specta(type = ViewEvent)]
+    pub event: Value,
+}

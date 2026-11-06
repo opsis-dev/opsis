@@ -9,14 +9,13 @@ use opsis_terminal::live::{LiveOptions, LiveTape};
 use opsis_terminal::tape::write;
 use opsis_types::terminal::{TerminalInput, TerminalLook, TerminalTheme};
 use serde::Serialize;
-use tauri::{AppHandle, Manager, State};
 use tokio::sync::oneshot;
 use tokio_util::sync::CancellationToken;
 
+use crate::Session;
 use crate::error::{CommandError, CommandResult};
 use crate::frames::{FrameChannel, send};
 use crate::terminal_paint::PaintQueue;
-use crate::windows::open_terminal_window;
 
 const FRAME_GAP: Duration = Duration::from_millis(33);
 
@@ -35,6 +34,7 @@ struct TerminalFrameHeader {
 
 type Channel = Arc<Mutex<Option<FrameChannel>>>;
 
+#[derive(Debug)]
 struct Entry {
     tape: Mutex<Option<LiveTape>>,
     theme: TerminalTheme,
@@ -45,7 +45,7 @@ struct Entry {
 }
 
 fn painter(
-    app: &AppHandle,
+    app: &Session,
     look: TerminalLook,
     cols: u16,
     rows: u16,
@@ -106,7 +106,7 @@ impl Entry {
     }
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct LiveTapes {
     open: Mutex<HashMap<String, Arc<Entry>>>,
 }
@@ -133,7 +133,7 @@ fn pump_until_closed(entry: &Arc<Entry>) {
 }
 
 async fn record(
-    app: AppHandle,
+    app: Session,
     request: LiveTapeRequest,
     cancel: CancellationToken,
 ) -> Result<Option<String>, ExecError> {
@@ -163,19 +163,13 @@ async fn record(
     });
     lock(&app.state::<LiveTapes>().open).insert(id.clone(), Arc::clone(&entry));
     pump_until_closed(&entry);
-    match open_terminal_window(&app, &id, &request.title).await {
-        Ok(window) => {
-            let closed = entry.closed.clone();
-            window.on_window_event(move |event| {
-                if matches!(event, tauri::WindowEvent::Destroyed) {
-                    closed.cancel();
-                }
-            });
-        }
-        Err(error) => {
-            log::error!("opening the terminal window: {}", error.0);
-            entry.closed.cancel();
-        }
+    let closed = entry.closed.clone();
+    let opened =
+        app.platform()
+            .open_terminal_window(&id, &request.title, Box::new(move || closed.cancel()));
+    if let Err(error) = opened {
+        log::error!("opening the terminal window: {error}");
+        entry.closed.cancel();
     }
     let save = tokio::select! {
         answer = receiver => answer.unwrap_or(false),
@@ -184,11 +178,7 @@ async fn record(
     };
     entry.closed.cancel();
     lock(&app.state::<LiveTapes>().open).remove(&id);
-    if let Some(window) = app.get_webview_window(&crate::windows::terminal_label(&id))
-        && let Err(error) = window.destroy()
-    {
-        log::warn!("closing the terminal window: {error}");
-    }
+    app.platform().close_terminal_window(&id);
     let tape = lock(&entry.tape).take();
     let tape = tokio::task::spawn_blocking(move || tape.map(LiveTape::finish))
         .await
@@ -196,8 +186,9 @@ async fn record(
     Ok(tape.filter(|_| save).map(|t| write(&t)))
 }
 
+#[derive(Debug)]
 pub struct AppLiveTapes {
-    pub app: AppHandle,
+    pub app: Session,
 }
 
 impl LiveTapeHost for AppLiveTapes {
@@ -209,27 +200,15 @@ impl LiveTapeHost for AppLiveTapes {
         Box::pin(record(self.app.clone(), request, cancel))
     }
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn attach_terminal(
-    tapes: State<'_, LiveTapes>,
-    id: String,
-    frames: FrameChannel,
-) -> CommandResult<()> {
-    let entry = tapes.entry(&id)?;
+pub fn attach_terminal(app: &Session, id: &str, frames: FrameChannel) -> CommandResult<()> {
+    let tapes = app.state::<LiveTapes>();
+    let entry = tapes.entry(id)?;
     *lock(&entry.frames) = Some(frames);
     entry.send_frame();
     Ok(())
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn terminal_input(
-    tapes: State<'_, LiveTapes>,
-    id: String,
-    input: TerminalInput,
-) -> CommandResult<()> {
+pub async fn terminal_input(app: &Session, id: String, input: TerminalInput) -> CommandResult<()> {
+    let tapes = app.state::<LiveTapes>();
     let entry = tapes.entry(&id)?;
     tokio::task::spawn_blocking(move || {
         let mut tape = lock(&entry.tape);
@@ -240,11 +219,9 @@ pub async fn terminal_input(
     })
     .await?
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn finish_terminal(tapes: State<'_, LiveTapes>, id: String, save: bool) -> CommandResult<()> {
-    let entry = tapes.entry(&id)?;
+pub fn finish_terminal(app: &Session, id: &str, save: bool) -> CommandResult<()> {
+    let tapes = app.state::<LiveTapes>();
+    let entry = tapes.entry(id)?;
     if let Some(done) = lock(&entry.done).take()
         && done.send(save).is_err()
     {

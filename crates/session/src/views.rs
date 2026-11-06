@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use opsis_capture::live::FrameSink;
@@ -8,19 +7,16 @@ use opsis_stream::picker::{PickRequest, PickResult, pick};
 use opsis_stream::view::{StreamView, ViewEvent, ViewInput, ViewSink, ViewSize};
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use tauri::{AppHandle, Manager, State, WebviewUrl, WebviewWindowBuilder};
-use tauri_plugin_dialog::DialogExt;
-use tauri_specta::Event;
 use tokio_util::sync::CancellationToken;
 
+use crate::Session;
 use crate::engine::checked_engine_files;
 use crate::error::{CommandError, CommandResult};
+use crate::events::Emit;
 use crate::frames::{FrameChannel, send};
 use crate::state::AppState;
 
-const VIEW_PREFIX: &str = "view-";
-
-#[derive(Debug, Clone, Serialize, Deserialize, Type, tauri_specta::Event)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewEventFired {
     pub id: String,
@@ -28,12 +24,13 @@ pub struct ViewEventFired {
     pub event: serde_json::Value,
 }
 
+#[derive(Debug)]
 struct Entry {
     view: Arc<StreamView>,
     closed: CancellationToken,
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Views {
     open: Mutex<HashMap<String, Entry>>,
 }
@@ -58,7 +55,7 @@ struct FrameHeader {
 }
 
 struct ChannelSink {
-    app: AppHandle,
+    app: Session,
     id: String,
     frames: FrameChannel,
 }
@@ -71,21 +68,27 @@ impl FrameSink for ChannelSink {
 
 impl ViewSink for ChannelSink {
     fn event(&self, event: ViewEvent) {
-        let event = serde_json::to_value(&event).map_err(tauri::Error::from);
-        if let Err(error) = event.and_then(|event| {
-            (ViewEventFired {
-                id: self.id.clone(),
-                event,
-            })
-            .emit(&self.app)
-        }) {
+        let event = match serde_json::to_value(&event) {
+            Ok(event) => event,
+            Err(error) => {
+                log::warn!("writing a view event: {error}");
+                return;
+            }
+        };
+        if let Err(error) = (ViewEventFired {
+            id: self.id.clone(),
+            event,
+        })
+        .emit(&self.app)
+        {
             log::warn!("sending a view event: {error}");
         }
     }
 }
 
+#[derive(Debug)]
 pub struct AppViewHost {
-    pub app: AppHandle,
+    pub app: Session,
 }
 
 impl ViewHost for AppViewHost {
@@ -103,24 +106,14 @@ impl ViewHost for AppViewHost {
                     closed: closed.clone(),
                 },
             );
-        let label = format!("{VIEW_PREFIX}{id}");
-        let url = WebviewUrl::App(format!("index.html#/view/{id}").into());
-        let built = WebviewWindowBuilder::new(&self.app, &label, url)
-            .title(title)
-            .inner_size(1280.0, 900.0)
-            .build();
-        match built {
-            Ok(window) => {
-                window.on_window_event(move |event| {
-                    if matches!(event, tauri::WindowEvent::Destroyed) {
-                        closed.cancel();
-                    }
-                });
-            }
-            Err(error) => {
-                log::error!("opening a view window: {error}");
-                closed.cancel();
-            }
+        let on_close = closed.clone();
+        let opened =
+            self.app
+                .platform()
+                .open_view_window(&id, title, Box::new(move || on_close.cancel()));
+        if let Err(error) = opened {
+            log::error!("opening a view window: {error}");
+            closed.cancel();
         }
     }
 
@@ -137,11 +130,8 @@ impl ViewHost for AppViewHost {
             }
             id
         };
-        if let Some(window) =
-            id.and_then(|id| self.app.get_webview_window(&format!("{VIEW_PREFIX}{id}")))
-            && let Err(error) = window.destroy()
-        {
-            log::warn!("closing a view window: {error}");
+        if let Some(id) = id {
+            self.app.platform().close_view_window(&id);
         }
     }
 }
@@ -153,116 +143,60 @@ async fn view_env(state: &AppState) -> CommandResult<ViewEnv> {
         temp_dir: state.paths.views_temp.clone(),
     })
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn pick_element(
-    app: AppHandle,
-    state: State<'_, AppState>,
-    request: PickRequest,
-) -> CommandResult<Option<PickResult>> {
-    let env = view_env(&state).await?;
+pub async fn pick_element(app: Session, request: PickRequest) -> CommandResult<Option<PickResult>> {
+    let state = app.state::<AppState>();
+    let env = view_env(state).await?;
     let host = AppViewHost { app: app.clone() };
     Ok(pick(&env, &host, &request, &CancellationToken::new()).await?)
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn attach_view(
-    app: AppHandle,
-    views: State<'_, Views>,
-    id: String,
-    frames: FrameChannel,
-) -> CommandResult<()> {
+pub fn attach_view(app: Session, id: String, frames: FrameChannel) -> CommandResult<()> {
+    let views = app.state::<Views>();
     let view = views.view(&id)?;
     view.attach(Arc::new(ChannelSink { app, id, frames }));
     Ok(())
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn view_input(
-    views: State<'_, Views>,
-    id: String,
-    input: ViewInput,
-) -> CommandResult<()> {
+pub async fn view_input(app: &Session, id: String, input: ViewInput) -> CommandResult<()> {
+    let views = app.state::<Views>();
     Ok(views.view(&id)?.input(&input).await?)
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn view_resize(views: State<'_, Views>, id: String, size: ViewSize) -> CommandResult<()> {
+pub async fn view_resize(app: &Session, id: String, size: ViewSize) -> CommandResult<()> {
+    let views = app.state::<Views>();
     Ok(views.view(&id)?.resize(size).await?)
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn view_navigate(views: State<'_, Views>, id: String, url: String) -> CommandResult<()> {
+pub async fn view_navigate(app: &Session, id: String, url: String) -> CommandResult<()> {
+    let views = app.state::<Views>();
     Ok(views.view(&id)?.navigate(&url).await?)
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn view_go(views: State<'_, Views>, id: String, steps: i64) -> CommandResult<()> {
+pub async fn view_go(app: &Session, id: String, steps: i64) -> CommandResult<()> {
+    let views = app.state::<Views>();
     Ok(views.view(&id)?.go(steps).await?)
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn view_reload(views: State<'_, Views>, id: String) -> CommandResult<()> {
+pub async fn view_reload(app: &Session, id: String) -> CommandResult<()> {
+    let views = app.state::<Views>();
     Ok(views.view(&id)?.reload().await?)
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn view_switch_tab(
-    views: State<'_, Views>,
-    id: String,
-    tab: String,
-) -> CommandResult<()> {
+pub async fn view_switch_tab(app: &Session, id: String, tab: String) -> CommandResult<()> {
+    let views = app.state::<Views>();
     Ok(views.view(&id)?.switch_tab(&tab).await?)
 }
-
-#[tauri::command]
-#[specta::specta]
 pub async fn view_answer_dialog(
-    views: State<'_, Views>,
+    app: &Session,
     id: String,
     accept: bool,
     prompt: String,
 ) -> CommandResult<()> {
+    let views = app.state::<Views>();
     Ok(views.view(&id)?.answer_dialog(accept, &prompt).await?)
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn view_choose_files(
-    app: AppHandle,
-    views: State<'_, Views>,
-    id: String,
-) -> CommandResult<()> {
+pub async fn view_choose_files(app: Session, id: String) -> CommandResult<()> {
+    let views = app.state::<Views>();
     let view = views.view(&id)?;
-    let (sender, receiver) = tokio::sync::oneshot::channel();
-    app.dialog().file().pick_files(move |files| {
-        if sender.send(files).is_err() {
-            log::debug!("the file dialog closed after its caller left");
-        }
-    });
-    let files: Vec<PathBuf> = receiver
-        .await
-        .ok()
-        .flatten()
-        .unwrap_or_default()
-        .into_iter()
-        .filter_map(|f| f.into_path().ok())
-        .collect();
+    let files = crate::platform::pick_files(app.platform(), "Choose files", None).await;
     Ok(view.choose_files(&files).await?)
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn view_close(views: State<'_, Views>, id: String) {
-    if let Some(entry) = views.open.lock().expect("views").get(&id) {
+pub fn view_close(app: &Session, id: &str) {
+    let views = app.state::<Views>();
+    if let Some(entry) = views.open.lock().expect("views").get(id) {
         entry.closed.cancel();
     }
 }

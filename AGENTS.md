@@ -135,7 +135,7 @@ plans/                 planned work
 agent-docs/            the domain docs (§8)
 ```
 
-- **Rust crates live in `crates/<domain>`, named `opsis-<domain>`, one domain each; nothing Rust lives in `apps/`.** Only `opsis-desktop` opens windows or dialogs.
+- **Rust crates live in `crates/<domain>`, named `opsis-<domain>`, one domain each; nothing Rust lives in `apps/`.** Only `opsis-desktop` and `opsis-qt` open windows or dialogs; `opsis-session` asks its host through `Platform`.
 
 | Crate            | Domain                                                                                                                                                                                                              |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -159,7 +159,8 @@ agent-docs/            the domain docs (§8)
 | `opsis-capture`  | the recording browser over CDP: sessions, selectors, actions, the screencast encoder, smooth takes, sign-in steps, stills, the film's `FrameDriver`, `TerminalPainter`                                              |
 | `opsis-stream`   | the streamed views (sign-in, element picker)                                                                                                                                                                        |
 | `opsis-api`      | the Local API                                                                                                                                                                                                       |
-| `opsis-desktop`  | the Tauri app that composes them: windows, menus, commands and events, the exit flow, the editor's file server                                                                                                      |
+| `opsis-session`  | the open project and everything windows follow, with no window code: document, compiles, runs, shared state, settings, fonts, engine, streamed views, the exit decision, the Local API host                         |
+| `opsis-desktop`  | the Tauri app over `opsis-session`: windows, menus, the command wrappers and event forwarding, the window side of closing, the editor's file server                                                                 |
 | `opsis-qt`       | the native editor's view layer: Qt 6.12 Widgets and KDDockWidgets built from Cargo, the C++ views, the `cxx` bridge behind one safe `Host` trait; the other crate allowed `unsafe`                                  |
 | `opsis-ui`       | the native editor's state and logic behind the views, implementing `Host` over the document; the `opsis` binary                                                                                                     |
 | `opsis-golden`   | dev-only: the golden-file helper and the readers and builders more than one crate's tests use (`repo`, `home`, `typed`, `text`, `number`, `cases`, `node`, `edge`)                                                  |
@@ -201,7 +202,7 @@ agent-docs/            the domain docs (§8)
 - **Nothing uses the internet unless the user asks.** The app works offline; anything that needs the network (setting up the engine, getting fonts online) sits behind a button and asks first, and what it downloads is saved locally (`<data folder>/engine`, `<data folder>/fonts`).
 - **Never hold a lock across a call that may take it again** (the settings lock and `announce`, which reads the settings): a database lock held that way hangs the close.
 - **Nothing blocks on the async runtime.** The keyring is the one thing made in setup itself, and a run reaches it only through `off_runtime` ([app-state.md](agent-docs/app-state.md)), because the Linux Secret Service store blocks inside `zbus` and panics on a runtime thread.
-- **Register long app work in `AppState.tasks`** (`begin(label)`/`end(label)`, `crates/desktop/src/state.rs`) so the exit dialog lists it.
+- **Register long app work in `AppState.tasks`** (`begin(label)`/`end(label)`, `crates/session/src/state.rs`) so the exit dialog lists it.
 - **Never write intermediates to the system temp folder from the app**; every child program gets its own temp folder ([engine.md](agent-docs/engine.md)).
 - **Add a hook to the windows that need it, never to the root route** ([editor.md](agent-docs/editor.md)).
 - **Components that read a node by id handle it being gone**: the Inspector's fading-out panel renders once more after a delete.

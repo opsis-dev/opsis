@@ -2,10 +2,11 @@ use opsis_compile::ts_export::frontend_types;
 use opsis_types::ts_export::tidy_export;
 use tauri_specta::{Builder, ErrorHandlingMode, collect_commands, collect_events};
 
-use crate::{
-    analysis, api, compile, document, engine, events, exit, file_server, fonts, gradients,
-    page_log, projects, run, settings, shared, terminal_live, views, windows,
+use crate::commands::{
+    analysis, api, compile, document, engine, exit, fonts, gradients, projects, run, settings,
+    shared, terminal_live, views,
 };
+use crate::{events, file_server, page_log, windows};
 
 pub const BINDINGS_FILE: &str = "apps/frontend/src/generated/bindings.ts";
 
@@ -136,7 +137,7 @@ pub fn builder() -> Builder<tauri::Wry> {
             events::RunViewChanged,
             events::RunLogged,
             events::RunStateReset,
-            views::ViewEventFired,
+            events::ViewEventFired,
         ])
         .dangerously_cast_bigints_to_number()
         .error_handling(ErrorHandlingMode::Throw)

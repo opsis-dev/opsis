@@ -21,30 +21,29 @@ use opsis_types::live::LiveEvent;
 use opsis_types::values::LastRun;
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use tauri::{AppHandle, Manager, State};
-use tauri_plugin_notification::NotificationExt;
-use tauri_specta::Event;
 use tokio_util::sync::CancellationToken;
 
+use crate::Session;
 use crate::engine::{engine_files, engine_tools};
 use crate::error::{CommandError, CommandResult};
 use crate::events::{
-    LiveNoted, LiveWindowWatching, RunEventFired, RunLogged, RunStateReset, RunViewChanged,
+    Emit, LIVE_WINDOW, LiveNoted, LiveWindowWatching, MAIN_WINDOW, RunEventFired, RunLogged,
+    RunStateReset, RunViewChanged,
 };
 use crate::frames::{FrameChannel, send};
 use crate::settings::ProjectSignIns;
 use crate::state::AppState;
 use crate::terminal_paint::PaintQueue;
 use crate::views::AppViewHost;
-use crate::windows::{LIVE_WINDOW, MAIN_WINDOW};
 
+#[derive(Debug)]
 struct ActiveRun {
     run_id: String,
     project_dir: String,
     cancel: CancellationToken,
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct RunHost {
     active: Mutex<Option<ActiveRun>>,
     view: Mutex<RunView>,
@@ -85,7 +84,7 @@ impl RunHost {
     }
 }
 
-fn with_exports(app: &AppHandle, mut view: RunView) -> RunView {
+fn with_exports(app: &Session, mut view: RunView) -> RunView {
     view.seq = app.state::<RunHost>().changes.load(Ordering::Relaxed);
     let state = app.state::<AppState>();
     let editor = state.editor();
@@ -102,14 +101,14 @@ fn with_exports(app: &AppHandle, mut view: RunView) -> RunView {
     view
 }
 
-fn emit_view(app: &AppHandle) {
+fn emit_view(app: &Session) {
     let view = app.state::<RunHost>().view().clone();
     if let Err(error) = RunViewChanged(with_exports(app, view)).emit(app) {
         log::warn!("sending the run state: {error}");
     }
 }
 
-fn emit_reset(app: &AppHandle) {
+fn emit_reset(app: &Session) {
     let mut state = app.state::<RunHost>().state();
     state.view = with_exports(app, state.view);
     if let Err(error) = RunStateReset(state).emit(app) {
@@ -117,7 +116,7 @@ fn emit_reset(app: &AppHandle) {
     }
 }
 
-pub fn reseed(app: &AppHandle, dir: &str, last_run: Option<&LastRun>) {
+pub fn reseed(app: &Session, dir: &str, last_run: Option<&LastRun>) {
     let host = app.state::<RunHost>();
     let running_here = host
         .active
@@ -134,7 +133,7 @@ pub fn reseed(app: &AppHandle, dir: &str, last_run: Option<&LastRun>) {
     emit_reset(app);
 }
 
-pub fn forget_errors(app: &AppHandle, ids: &[String]) {
+pub fn forget_errors(app: &Session, ids: &[String]) {
     let host = app.state::<RunHost>();
     if forget_run_errors(&mut host.view(), ids) {
         host.changed();
@@ -160,7 +159,7 @@ struct LiveHeader<'a> {
 
 #[derive(Clone)]
 struct AppLive {
-    app: AppHandle,
+    app: Session,
 }
 
 struct TerminalLive {
@@ -265,9 +264,9 @@ impl LiveFeed for AppLive {
     }
 }
 
-pub fn executors(app: &AppHandle) -> Executors {
+pub fn executors(app: &Session) -> Executors {
     let state = app.state::<AppState>();
-    let tools = engine_tools(&state);
+    let tools = engine_tools(state);
     let engine = Arc::new(RenderEngine {
         tools: Arc::clone(&tools),
         film_bundle: state.paths.film_bundle.clone(),
@@ -276,7 +275,7 @@ pub fn executors(app: &AppHandle) -> Executors {
         tools: Arc::clone(&tools),
         sign_ins: Arc::new(ProjectSignIns { app: app.clone() }),
         login: Arc::new(StreamLogin {
-            engine: engine_files(&state),
+            engine: engine_files(state),
             temp_dir: state.paths.views_temp.clone(),
             host: Arc::new(AppViewHost { app: app.clone() }),
         }),
@@ -344,22 +343,16 @@ fn finished_message(event: &RunEvent) -> Option<(String, String)> {
     })
 }
 
-fn notify_finished(app: &AppHandle, event: &RunEvent) {
-    let focused = app
-        .get_webview_window(MAIN_WINDOW)
-        .and_then(|w| w.is_focused().ok())
-        .unwrap_or(false);
-    if focused {
+fn notify_finished(app: &Session, event: &RunEvent) {
+    if app.platform().editor_focused() {
         return;
     }
-    if let Some((title, body)) = finished_message(event)
-        && let Err(error) = app.notification().builder().title(title).body(body).show()
-    {
-        log::warn!("showing a notification: {error}");
+    if let Some((title, body)) = finished_message(event) {
+        app.platform().notify(&title, &body);
     }
 }
 
-fn on_event(app: &AppHandle, run_id: &str, event: RunEvent) {
+fn on_event(app: &Session, run_id: &str, event: RunEvent) {
     let host = app.state::<RunHost>();
     let line = apply_to_view(&mut host.view(), &mut host.log(), &event, now_ms());
     host.changed();
@@ -416,13 +409,12 @@ impl From<CommandError> for StartError {
     }
 }
 
-pub async fn start(app: &AppHandle, targets: RunTargets) -> Result<StartedRun, StartError> {
+pub async fn start(app: &Session, targets: RunTargets) -> Result<StartedRun, StartError> {
     if !crate::document::save(app).await? {
         return Err(StartError::VersionUnchosen);
     }
     let state = app.state::<AppState>();
-    let (dir, workflow) =
-        crate::document::document_workflow(&state).ok_or(StartError::NoProject)?;
+    let (dir, workflow) = crate::document::document_workflow(state).ok_or(StartError::NoProject)?;
     let request = RunRequest::new(dir.to_string_lossy().into_owned(), workflow, targets);
     let host = app.state::<RunHost>();
     let run_id = uuid::Uuid::new_v4().to_string();
@@ -447,7 +439,7 @@ pub async fn start(app: &AppHandle, targets: RunTargets) -> Result<StartedRun, S
         &child_temp_name(ChildKind::Run, &run_id, std::process::id()),
     )
     .map_err(|e| StartError::Failed(e.to_string()))?;
-    if crate::engine::engine_checking(&state) {
+    if crate::engine::engine_checking(state) {
         on_event(
             app,
             &run_id,
@@ -460,10 +452,10 @@ pub async fn start(app: &AppHandle, targets: RunTargets) -> Result<StartedRun, S
             },
         );
     }
-    let engine = crate::engine::checked_engine_files(&state, &cancel).await;
+    let engine = crate::engine::checked_engine_files(state, &cancel).await;
     let settings = state.settings();
     let env = Arc::new(RunEnv {
-        app_version: app.package_info().version.to_string(),
+        app_version: crate::APP_VERSION.to_owned(),
         engine,
         public_dir: state.paths.public_dir.clone(),
         temp_dir: temp_dir.clone(),
@@ -478,14 +470,14 @@ pub async fn start(app: &AppHandle, targets: RunTargets) -> Result<StartedRun, S
         cancel,
     };
     let id = run_id.clone();
-    tauri::async_runtime::spawn(async move {
+    crate::runtime::spawn(async move {
         run_runner(&id, request, deps).await;
         remove_child_temp(&temp_dir);
     });
     Ok(StartedRun { run_id })
 }
 
-pub fn active_run(app: &AppHandle) -> Option<String> {
+pub fn active_run(app: &Session) -> Option<String> {
     app.state::<RunHost>()
         .active
         .lock()
@@ -493,67 +485,46 @@ pub fn active_run(app: &AppHandle) -> Option<String> {
         .as_ref()
         .map(|r| r.run_id.clone())
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn run_workflow(app: AppHandle, targets: RunTargets) -> CommandResult<StartedRun> {
+pub async fn run_workflow(app: Session, targets: RunTargets) -> CommandResult<StartedRun> {
     Ok(start(&app, targets).await?)
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn cancel_run(host: State<'_, RunHost>) {
+pub fn cancel_run(app: &Session) {
+    let host = app.state::<RunHost>();
     host.cancel();
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn run_state(app: AppHandle) -> RunState {
+pub fn run_state(app: &Session) -> RunState {
     let mut state = app.state::<RunHost>().state();
-    state.view = with_exports(&app, state.view);
+    state.view = with_exports(app, state.view);
     state
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn clear_run_log(app: AppHandle) {
+pub fn clear_run_log(app: &Session) {
     let host = app.state::<RunHost>();
     host.log().clear();
     host.changed();
-    emit_reset(&app);
+    emit_reset(app);
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn unwatch_live(host: State<'_, RunHost>, window: tauri::WebviewWindow, channel: u32) {
+pub fn unwatch_live(app: &Session, window: &str, channel: u32) {
+    let host = app.state::<RunHost>();
     let mut live = host.live.lock().expect("live channels");
-    if live.get(window.label()).is_some_and(|c| c.id() == channel) {
-        live.remove(window.label());
+    if live.get(window).is_some_and(|c| c.id() == channel) {
+        live.remove(window);
     }
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn watch_live(
-    host: State<'_, RunHost>,
-    window: tauri::WebviewWindow,
-    frames: FrameChannel,
-) -> Vec<LiveNoted> {
+pub fn watch_live(app: &Session, window: &str, frames: FrameChannel) -> Vec<LiveNoted> {
+    let host = app.state::<RunHost>();
     host.live
         .lock()
         .expect("live channels")
-        .insert(window.label().to_owned(), frames);
-    if window.label() == LIVE_WINDOW
-        && let Err(error) = LiveWindowWatching(true).emit_to(window.app_handle(), MAIN_WINDOW)
+        .insert(window.to_owned(), frames);
+    if window == LIVE_WINDOW
+        && let Err(error) = LiveWindowWatching(true).emit_to(app, MAIN_WINDOW)
     {
         log::warn!("telling the editor the live window is watching: {error}");
     }
     host.live_notes.lock().expect("live notes").clone()
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn live_window_watching(host: State<'_, RunHost>) -> bool {
+pub fn live_window_watching(app: &Session) -> bool {
+    let host = app.state::<RunHost>();
     host.live
         .lock()
         .expect("live channels")

@@ -2,7 +2,6 @@ use std::path::{Path, PathBuf};
 
 use opsis_engine::paths::ShellPlatform;
 use opsis_engine::temp::{ChildKind, child_temp_name};
-use tauri::{AppHandle, Manager};
 
 use crate::startup::StartupError;
 
@@ -12,8 +11,16 @@ const FILM_BUNDLE_DIR: &str = "film-bundle";
 const TERMINAL_BUNDLE_DIR: &str = "terminal-bundle";
 
 #[derive(Debug, Clone)]
+pub struct HostFolders {
+    pub config: PathBuf,
+    pub resources: PathBuf,
+    pub home: PathBuf,
+}
+
+#[derive(Debug, Clone)]
 pub struct AppPaths {
     pub user_data: PathBuf,
+    pub home: PathBuf,
     pub resources: PathBuf,
     pub packaged: bool,
     pub public_dir: PathBuf,
@@ -29,14 +36,14 @@ fn repo_root() -> PathBuf {
 }
 
 impl AppPaths {
-    pub fn new(app: &AppHandle) -> Result<Self, StartupError> {
+    pub fn new(folders: &HostFolders) -> Result<Self, StartupError> {
         let user_data = match std::env::var_os(USER_DATA_ENV) {
             Some(dir) => PathBuf::from(dir),
-            None => app.path().config_dir()?.join(APP_FOLDER),
+            None => folders.config.join(APP_FOLDER),
         };
         let packaged = !cfg!(debug_assertions);
         let resources = if packaged {
-            app.path().resource_dir()?
+            folders.resources.clone()
         } else {
             repo_root()
         };
@@ -57,6 +64,7 @@ impl AppPaths {
                 std::process::id(),
             )),
             user_data,
+            home: folders.home.clone(),
             resources,
             packaged,
             platform,

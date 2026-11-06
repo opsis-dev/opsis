@@ -16,36 +16,26 @@ use opsis_types::settings::{AppSettings, RUST_ONLY_SECTIONS};
 use opsis_types::shell::{AppVersions, EnvStatus, MenuSection, ViewPrefChange};
 use opsis_types::trace::TraceModel;
 use serde_json::Value;
-use tauri::{AppHandle, Manager, State};
-use tauri_plugin_opener::OpenerExt;
-use tauri_specta::Event;
 
+use crate::Session;
 use crate::engine::engine_status;
 use crate::error::{CommandError, CommandResult};
-use crate::events::{SettingsChanged, ViewPrefChanged};
+use crate::events::{Emit, SettingsChanged, ViewPrefChanged};
 use crate::menu::app_menu;
 use crate::state::AppState;
 
-pub fn announce(app: &AppHandle, settings: AppSettings) {
+pub fn announce(app: &Session, settings: AppSettings) {
     if let Err(error) = SettingsChanged(settings).emit(app) {
         log::warn!("sending the settings to the windows: {error}");
     }
     crate::api::follow_setting(app);
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn get_settings(state: State<'_, AppState>) -> AppSettings {
+pub fn get_settings(app: &Session) -> AppSettings {
+    let state = app.state::<AppState>();
     state.settings()
 }
-
-#[tauri::command]
-#[specta::specta]
-pub async fn patch_settings(
-    app: AppHandle,
-    state: State<'_, AppState>,
-    patch: SettingsPatch,
-) -> CommandResult<AppSettings> {
+pub async fn patch_settings(app: Session, patch: SettingsPatch) -> CommandResult<AppSettings> {
+    let state = app.state::<AppState>();
     if let Some(section) = RUST_ONLY_SECTIONS.iter().find(|s| patch.contains_key(**s)) {
         return Err(CommandError(format!(
             "The {section} settings are only changed by Opsis itself."
@@ -55,25 +45,20 @@ pub async fn patch_settings(
     announce(&app, settings.clone());
     Ok(settings)
 }
-
-#[tauri::command]
-#[specta::specta]
 pub async fn view_state(
-    state: State<'_, AppState>,
+    app: &Session,
     dir: String,
 ) -> CommandResult<serde_json::Map<String, Value>> {
+    let state = app.state::<AppState>();
     Ok(state.db().read_view_state(&dir).await?)
 }
-
-#[tauri::command]
-#[specta::specta]
 pub async fn set_view_pref(
-    app: AppHandle,
-    state: State<'_, AppState>,
+    app: Session,
     dir: String,
     key: String,
     value: Value,
 ) -> CommandResult<()> {
+    let state = app.state::<AppState>();
     if state.db().write_view_state(&dir, &key, &value).await?
         && let Err(error) = ViewPrefChanged(ViewPrefChange { dir, key, value }).emit(&app)
     {
@@ -81,27 +66,23 @@ pub async fn set_view_pref(
     }
     Ok(())
 }
-
-#[tauri::command]
-#[specta::specta]
 pub fn app_menu_sections() -> Vec<MenuSection> {
     app_menu(cfg!(target_os = "macos"))
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn get_environment(app: AppHandle, state: State<'_, AppState>) -> EnvStatus {
+pub fn get_environment(app: &Session) -> EnvStatus {
+    let state = app.state::<AppState>();
+    let versions = app.platform().versions();
     EnvStatus {
         platform: std::env::consts::OS.to_owned(),
         arch: std::env::consts::ARCH.to_owned(),
         is_packaged: state.paths.packaged,
         user_data: state.paths.user_data.to_string_lossy().into_owned(),
         versions: AppVersions {
-            app: app.package_info().version.to_string(),
-            tauri: tauri::VERSION.to_owned(),
-            webview: tauri::webview_version().unwrap_or_default(),
+            app: crate::APP_VERSION.to_owned(),
+            tauri: versions.shell,
+            webview: versions.view,
         },
-        engine: engine_status(&state),
+        engine: engine_status(state),
     }
 }
 
@@ -145,31 +126,20 @@ fn licence_sources(state: &AppState) -> Vec<LicenceSource> {
         },
     ]
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn list_licences(state: State<'_, AppState>) -> CommandResult<Vec<LicenceEntry>> {
-    Ok(licence_entries(&licence_sources(&state))?)
+pub fn list_licences(app: &Session) -> CommandResult<Vec<LicenceEntry>> {
+    let state = app.state::<AppState>();
+    Ok(licence_entries(&licence_sources(state))?)
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn open_licence_file(
-    app: AppHandle,
-    state: State<'_, AppState>,
-    file: String,
-) -> CommandResult<()> {
-    if !is_licence_file(&licence_sources(&state), Path::new(&file)) {
+pub fn open_licence_file(app: &Session, file: &str) -> CommandResult<()> {
+    let state = app.state::<AppState>();
+    if !is_licence_file(&licence_sources(state), Path::new(&file)) {
         return Err(CommandError("That isn't one of the licence files.".into()));
     }
-    Ok(app.opener().open_path(file, None::<&str>)?)
+    Ok(app.platform().open_path(Path::new(&file))?)
 }
-
-#[tauri::command]
-#[specta::specta]
-pub fn reveal_in_folder(app: AppHandle, dir: String, file: Option<String>) -> CommandResult<()> {
+pub fn reveal_in_folder(app: &Session, dir: &str, file: Option<String>) -> CommandResult<()> {
     let Some(file) = file else {
-        return Ok(app.opener().open_path(dir, None::<&str>)?);
+        return Ok(app.platform().open_path(Path::new(&dir))?);
     };
     let path = match ref_target(&file) {
         RefTarget::Project(rel) => Path::new(&dir).join(rel),
@@ -178,17 +148,15 @@ pub fn reveal_in_folder(app: AppHandle, dir: String, file: Option<String>) -> Co
             return Err(CommandError("That file isn't on this computer.".into()));
         }
     };
-    Ok(app.opener().reveal_item_in_dir(path)?)
+    Ok(app.platform().reveal_path(&path)?)
+}
+pub fn read_trace(dir: &str, trace_id: &str) -> CommandResult<TraceModel> {
+    Ok(read_project_trace(Path::new(&dir), trace_id)?)
 }
 
-#[tauri::command]
-#[specta::specta]
-pub fn read_trace(dir: String, trace_id: String) -> CommandResult<TraceModel> {
-    Ok(read_project_trace(Path::new(&dir), &trace_id)?)
-}
-
+#[derive(Debug)]
 pub struct ProjectSignIns {
-    pub app: AppHandle,
+    pub app: Session,
 }
 
 impl SignInStore for ProjectSignIns {

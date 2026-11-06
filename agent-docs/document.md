@@ -6,6 +6,8 @@ The open project lives in Rust: every window edits it through typed commands and
 
 | Concern                       | Where                                                                                    |
 | ----------------------------- | ---------------------------------------------------------------------------------------- |
+| Session                       | `crates/session` → `Session`, `Part`, `events::SessionEvent`, `platform::Platform`       |
+| Tauri host of the session     | `crates/desktop/src/commands/`, `forward.rs`, `platform.rs` → `TauriPlatform`            |
 | Document                      | `crates/document` → `Document`                                                           |
 | Workflow and timeline edits   | `WorkflowEdit`, `TimelineEdit` (`crates/compile/src/edits/`)                             |
 | Editor mirror                 | `store/workflow.ts` → `useWorkflowStore`, `workflowEdits`; `useDocumentMirror`           |
@@ -19,6 +21,14 @@ The open project lives in Rust: every window edits it through typed commands and
 | Live PiP and window           | `LivePip`; `open_live_window` (route `#/live`, label `live`)                             |
 
 ## Rules
+
+### The session
+
+- **`opsis-session` owns the open project, the document, compiles, runs, shared state, settings, fonts, the engine, streamed views and the exit decision, with no window code.** A host (the Tauri app today, `opsis-ui` next) starts it with `Session::start`, subscribes to its events, then calls `Session::begin`, and calls `Session::end` when the app exits.
+- **The session never opens a window or a dialog itself: it asks the host through `Platform`** (folder and file pickers, opening paths, notifications, raising the editor, exiting, the streamed view and terminal windows). Window-specific work in a command (a project's window bounds) stays in the host's wrapper.
+- **Events leave the session on one `tokio` broadcast channel of `Addressed` events**, each for every window or for one window by label (`MAIN_WINDOW`, `LIVE_WINDOW`). A host that lags re-reads current state, as a window does on mount.
+- **The Tauri app forwards each session event as the `tauri-specta` event of the same name** (`forward.rs`): its structs in `crates/desktop/src/events.rs` mirror the session's, so `bindings.ts` stays as it was. A command that returns a session event type returns the desktop mirror, since two exported types can't share a name.
+- **Frames reach a window through a `FrameSender`** (`platform.rs`), Tauri's IPC channel in the Tauri app, packed by `frames::packed`.
 
 ### Edits
 

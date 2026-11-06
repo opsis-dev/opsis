@@ -10,24 +10,14 @@ publish.workspace = true
 [dependencies]
 axum.workspace = true
 env_logger.workspace = true
-futures.workspace = true
-indexmap.workspace = true
 log.workspace = true
-opsis-api.workspace = true
-opsis-capture.workspace = true
 opsis-compile.workspace = true
-opsis-document.workspace = true
 opsis-engine.workspace = true
 opsis-fonts.workspace = true
-opsis-image.workspace = true
-opsis-media.workspace = true
 opsis-project.workspace = true
-opsis-render.workspace = true
-opsis-runner.workspace = true
+opsis-session.workspace = true
 opsis-store.workspace = true
 opsis-stream.workspace = true
-opsis-terminal.workspace = true
-opsis-traces.workspace = true
 opsis-types.workspace = true
 percent-encoding.workspace = true
 serde = { workspace = true, features = ["derive"] }
@@ -50,7 +40,6 @@ tokio = { workspace = true, features = [
   "fs",
   "signal",
 ] }
-tokio-util.workspace = true
 tower.workspace = true
 uuid.workspace = true
 

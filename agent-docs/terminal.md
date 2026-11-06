@@ -20,8 +20,8 @@ Ghostty behind `opsis-vt`, terminal sessions and takes, tapes and cast files, th
 | Cast import                       | `import.rs` → `import_cast`                                                                                                                                     |
 | Prepared frames                   | `prepare.rs`; `frames.rs` (the `OPSTERM2` file)                                                                                                                 |
 | Live feed                         | `live_feed.rs` → `TakeLive`, `LiveEvent`                                                                                                                        |
-| Live tape window                  | `crates/desktop/src/terminal_live.rs` → `LiveTapeHost`; `terminal_input`, `finish_terminal`                                                                     |
-| Paint queue                       | `crates/desktop/src/terminal_paint.rs` → `PaintQueue`                                                                                                           |
+| Live tape window                  | `crates/session/src/terminal_live.rs` → `LiveTapeHost`; `terminal_input`, `finish_terminal`                                                                     |
+| Paint queue                       | `crates/session/src/terminal_paint.rs` → `PaintQueue`                                                                                                           |
 | Terminal page painter             | `crates/capture/src/terminal_paint.rs` → `TerminalPainter`; `crates/compile/src/terminal/mod.rs` → `terminal_fonts`                                             |
 | Preview spec                      | `crates/compile/src/terminal/preview.rs` → `preview_spec`, `preview_size`; `TakePreview` (`TerminalDeps`), `opsis-render`'s `TakePreviews`                      |
 | Cells to pixels                   | `crates/compile/src/terminal/mod.rs` → `regrid_log`; `ActionLog.cells`; `caret_track`                                                                           |
