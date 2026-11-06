@@ -64,6 +64,7 @@ AppBar::AppBar(QWidget* window, bool resizable, bool menu)
   if (menu) {
     menu_bar_ = new QMenuBar(this);
     menu_bar_->setNativeMenuBar(false);
+    menu_bar_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
     layout->addWidget(menu_bar_, 0, Qt::AlignVCenter);
     auto* rule = new QFrame(this);
     rule->setProperty("role", "vrule");

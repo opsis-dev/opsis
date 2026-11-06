@@ -352,6 +352,25 @@ QToolButton#CloseButton:hover {
   background: @destructive;
 }
 
+QPushButton[variant="toggle-outline"] {
+  background: transparent;
+  border: 1px solid @input;
+  border-radius: @radius;
+  min-height: 30px;
+  padding: 0 10px;
+  color: @muted-foreground;
+}
+
+QPushButton[variant="toggle-outline"]:hover {
+  color: @foreground;
+}
+
+QPushButton[variant="toggle-outline"]:checked {
+  background: @toggle-on;
+  border: 1px solid @toggle-on-border;
+  color: @foreground;
+}
+
 QFrame#Segmented {
   background: @muted;
   border: 1px solid @border;

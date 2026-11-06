@@ -2,6 +2,7 @@
 
 #include <QEasingCurve>
 #include <QHBoxLayout>
+#include <QLayout>
 #include <QPainter>
 #include <QPainterPath>
 #include <QTextLayout>
@@ -16,10 +17,69 @@ namespace {
 constexpr int kSwitchWidth = 32;
 constexpr int kSwitchHeight = 18;
 constexpr int kSwitchMs = 120;
+constexpr int kOutlineGap = 6;
 constexpr double kChevronHalf = 3.5;
 constexpr double kChevronPen = 1.5;
 constexpr double kChevronInset = 14.0;
 
+}
+
+FlowLayout::FlowLayout(QWidget* parent, int spacing)
+    : QLayout(parent), gap_(spacing) {
+  setContentsMargins(0, 0, 0, 0);
+}
+
+FlowLayout::~FlowLayout() {
+  while (QLayoutItem* item = takeAt(0)) delete item;
+}
+
+void FlowLayout::addItem(QLayoutItem* item) { items_.append(item); }
+
+int FlowLayout::count() const { return static_cast<int>(items_.size()); }
+
+QLayoutItem* FlowLayout::itemAt(int index) const {
+  return index >= 0 && index < items_.size() ? items_.at(index) : nullptr;
+}
+
+QLayoutItem* FlowLayout::takeAt(int index) {
+  return index >= 0 && index < items_.size() ? items_.takeAt(index) : nullptr;
+}
+
+int FlowLayout::heightForWidth(int width) const {
+  return Arrange(QRect(0, 0, width, 0), false);
+}
+
+QSize FlowLayout::minimumSize() const {
+  QSize size;
+  for (const QLayoutItem* item : items_) {
+    size = size.expandedTo(item->minimumSize());
+  }
+  return size;
+}
+
+QSize FlowLayout::sizeHint() const { return minimumSize(); }
+
+void FlowLayout::setGeometry(const QRect& rect) {
+  QLayout::setGeometry(rect);
+  Arrange(rect, true);
+}
+
+int FlowLayout::Arrange(const QRect& rect, bool apply) const {
+  int x = rect.x();
+  int y = rect.y();
+  int row = 0;
+  for (QLayoutItem* item : items_) {
+    const QSize hint = item->sizeHint();
+    if (x + hint.width() > rect.right() + 1 && row > 0) {
+      x = rect.x();
+      y += row + gap_;
+      row = 0;
+    }
+    if (apply) item->setGeometry(QRect(QPoint(x, y), hint));
+    x += hint.width() + gap_;
+    row = std::max(row, hint.height());
+  }
+  return y + row - rect.y();
 }
 
 ClampedLabel::ClampedLabel(const QString& text, int lines, QWidget* parent)
@@ -172,6 +232,15 @@ void Segmented::SetChoices(
     group_.addButton(button, id++);
     layout()->addWidget(button);
     values_.push_back(value);
+  }
+}
+
+void Segmented::SetOutline() {
+  setObjectName(QStringLiteral("SegmentedOutline"));
+  layout()->setContentsMargins(0, 0, 0, 0);
+  layout()->setSpacing(kOutlineGap);
+  for (QAbstractButton* button : group_.buttons()) {
+    button->setProperty("variant", "toggle-outline");
   }
 }
 

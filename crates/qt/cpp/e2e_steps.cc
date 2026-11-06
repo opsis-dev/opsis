@@ -9,6 +9,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QMimeData>
+#include <QPointer>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QTextCursor>
@@ -41,6 +42,9 @@ constexpr int kNudgeX = 120;
 constexpr int kNudgeY = 60;
 constexpr int kGrow = 60;
 constexpr double kNear = 1.0;
+constexpr int kSettleMs = 300;
+constexpr int kEventuallyMs = 2000;
+constexpr int kControlsWidth = 220;
 constexpr double kBottomShareLow = 0.3;
 constexpr double kBottomShareHigh = 0.5;
 
@@ -74,6 +78,11 @@ const bridge::CardView* CardWithId(const bridge::GraphView& graph,
   }
   return nullptr;
 }
+
+const bridge::CardView* CardWithId(bridge::GraphView&& graph,
+                                   const QString& id) = delete;
+const bridge::CardView* CardTitled(bridge::GraphView&& graph,
+                                   const QString& title) = delete;
 
 QString Expect(bool ok, const QString& what) { return ok ? QString() : what; }
 
@@ -177,8 +186,19 @@ void Scenario::BuildTour() {
   Add(
       QStringLiteral("start-screen"), [] {}, 300,
       [window] {
-        return Expect(window->start_screen()->isVisible(),
-                      QStringLiteral("the start screen isn't showing"));
+        QString problems =
+            Expect(window->start_screen()->isVisible(),
+                   QStringLiteral("the start screen isn't showing"));
+        for (QFrame* rule : window->menuWidget()->findChildren<QFrame*>()) {
+          if (rule->isVisible() &&
+              rule->property("role") == QStringLiteral("vrule") &&
+              rule->x() > window->width() / 2 &&
+              rule->x() < window->width() - kControlsWidth) {
+            problems +=
+                QStringLiteral(" a divider sits at %1 px").arg(rule->x());
+          }
+        }
+        return problems.trimmed();
       });
   Add(
       QStringLiteral("pick-sample-template"),
@@ -352,6 +372,25 @@ void Scenario::BuildTour() {
   });
 
   Add(
+      QStringLiteral("project-canvas-toggle"),
+      [this, window, view] {
+        ClickAt(view, QPoint(4, 4));
+        QTimer::singleShot(300, window, [this, window] {
+          Click(window->inspector_dock()->widget(), QStringLiteral("1:1"));
+        });
+      },
+      900,
+      [this, window] {
+        const bridge::ProjectView project = App::Get().session().project();
+        const QString problem =
+            Expect(project.width == project.height,
+                   QStringLiteral("the canvas is %1 × %2, not square")
+                       .arg(project.width)
+                       .arg(project.height));
+        Click(window->inspector_dock()->widget(), QStringLiteral("16:9"));
+        return problem;
+      });
+  Add(
       QStringLiteral("select-card"),
       [this, canvas, view, memo] {
         const bridge::GraphView graph = Graph();
@@ -376,7 +415,7 @@ void Scenario::BuildTour() {
         ClickAt(view, canvas->ViewPointOf(memo->id));
       },
       900,
-      [memo] {
+      [window, memo] {
         QString problems;
         if (ToQ(App::Get().session().selected()) != memo->id) {
           problems += QStringLiteral("the card isn't selected; ");
@@ -384,12 +423,25 @@ void Scenario::BuildTour() {
         if (ToQ(App::Get().session().inspector().id) != memo->id) {
           problems += QStringLiteral("the Inspector doesn't show it");
         }
+        QWidget* panel = window->inspector_dock()->widget();
+        for (QWidget* child : panel->findChildren<QWidget*>()) {
+          if (!child->isVisible() || child->width() <= 0) continue;
+          const int right = child->mapTo(panel, QPoint(child->width(), 0)).x();
+          if (right > panel->width() + 1) {
+            problems += QStringLiteral(
+                            "something in the Inspector runs %1 px past "
+                            "its edge")
+                            .arg(right - panel->width());
+            break;
+          }
+        }
         return problems;
       });
   Add(
       QStringLiteral("drag-card"),
       [this, canvas, view, memo] {
-        const auto* card = CardWithId(Graph(), memo->id);
+        const bridge::GraphView graph_1 = Graph();
+        const auto* card = CardWithId(graph_1, memo->id);
         if (card == nullptr) {
           Miss(QStringLiteral("no card"));
           return;
@@ -401,7 +453,8 @@ void Scenario::BuildTour() {
       },
       700,
       [memo] {
-        const auto* card = CardWithId(Graph(), memo->id);
+        const bridge::GraphView graph_2 = Graph();
+        const auto* card = CardWithId(graph_2, memo->id);
         const bool moved = card != nullptr && card->x > memo->x + kNear &&
                            card->y > memo->y + kNear;
         return Expect(moved,
@@ -417,7 +470,8 @@ void Scenario::BuildTour() {
       },
       500,
       [memo] {
-        const auto* card = CardWithId(Graph(), memo->id);
+        const bridge::GraphView graph_3 = Graph();
+        const auto* card = CardWithId(graph_3, memo->id);
         return Expect(card != nullptr && std::abs(card->x - memo->x) < kNear,
                       QStringLiteral("Ctrl+Z didn't move it back"));
       });
@@ -452,7 +506,8 @@ void Scenario::BuildTour() {
 
   Add(
       QStringLiteral("rename-in-inspector"),
-      [this, window] {
+      [this, window, memo] {
+        QTest::qWait(kSettleMs);
         QLineEdit* name = nullptr;
         for (QLineEdit* line :
              window->inspector_dock()->widget()->findChildren<QLineEdit*>()) {
@@ -467,16 +522,32 @@ void Scenario::BuildTour() {
           return;
         }
         QTest::mouseClick(name, Qt::LeftButton);
+        if (!QTest::qWaitFor([name] { return name->hasFocus(); }, kSettleMs)) {
+          Miss(QStringLiteral("the Name field didn't take focus"));
+          return;
+        }
         QTest::keyClick(name, Qt::Key_A, Qt::ControlModifier);
         QTest::keyClicks(name, QStringLiteral("Shop page"));
         QTest::keyClick(name, Qt::Key_Return);
       },
       600,
       [memo] {
-        const auto* card = CardWithId(Graph(), memo->id);
+        QTest::qWaitFor(
+            [memo] {
+              const bridge::GraphView graph_4 = Graph();
+              const auto* card = CardWithId(graph_4, memo->id);
+              return card != nullptr &&
+                     ToQ(card->title) == QStringLiteral("Shop page");
+            },
+            kEventuallyMs);
+        const bridge::GraphView graph_5 = Graph();
+        const auto* card = CardWithId(graph_5, memo->id);
         return Expect(
             card != nullptr && ToQ(card->title) == QStringLiteral("Shop page"),
-            QStringLiteral("the card wasn't renamed"));
+            QStringLiteral(
+                "the card wasn't renamed: title '%1', inspector '%2'")
+                .arg(card != nullptr ? ToQ(card->title) : QString(),
+                     ToQ(App::Get().session().inspector().label)));
       });
   Add(QStringLiteral("undo-rename"), undo, 500);
   Add(
@@ -496,12 +567,14 @@ void Scenario::BuildTour() {
       },
       600,
       [memo] {
-        const auto* card = CardWithId(Graph(), memo->id);
+        const bridge::GraphView graph_6 = Graph();
+        const auto* card = CardWithId(graph_6, memo->id);
         return Expect(card != nullptr && card->disabled,
                       QStringLiteral("the card isn't skipped"));
       });
   Add(QStringLiteral("undo-skip"), undo, 500, [memo] {
-    const auto* card = CardWithId(Graph(), memo->id);
+    const bridge::GraphView graph_7 = Graph();
+    const auto* card = CardWithId(graph_7, memo->id);
     return Expect(card != nullptr && !card->disabled,
                   QStringLiteral("Undo didn't bring the card back"));
   });
@@ -635,7 +708,8 @@ void Scenario::BuildTour() {
       },
       1200,
       [memo] {
-        const auto* child = CardWithId(Graph(), memo->id);
+        const bridge::GraphView graph_8 = Graph();
+        const auto* child = CardWithId(graph_8, memo->id);
         return Expect(child != nullptr && child->x > memo->x + kNear,
                       QStringLiteral("the group's card didn't move with it"));
       });

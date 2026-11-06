@@ -177,6 +177,7 @@ void ProjectPanel::AddCanvas(QVBoxLayout* layout,
     }
   }
   shapes->SetChoices(choices);
+  shapes->SetOutline();
   shapes->SetValue(current);
   std::vector<std::pair<QString, std::pair<int, int>>> sizes;
   for (const auto& shape : view.shapes) {
@@ -226,6 +227,7 @@ void ProjectPanel::AddCanvas(QVBoxLayout* layout,
                               QStringLiteral("%1 fps").arg(rate));
   }
   rates->SetChoices(rate_choices);
+  rates->SetOutline();
   rates->SetValue(QString::number(view.fps));
   connect(rates, &Segmented::Changed, this, [](const QString& value) {
     SetSettings({{QStringLiteral("fps"), value.toInt()}});

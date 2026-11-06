@@ -28,6 +28,8 @@ namespace opsis {
 
 namespace {
 
+constexpr int kActionGap = 8;
+
 constexpr int kHeaderBadge = 40;
 constexpr int kAlertIcon = 16;
 
@@ -63,6 +65,7 @@ InspectorPanel::InspectorPanel(QWidget* parent) : QWidget(parent) {
   layout->setContentsMargins(0, 0, 0, 0);
   scroll_ = new QScrollArea(this);
   scroll_->setWidgetResizable(true);
+  scroll_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   scroll_->setFrameShape(QFrame::NoFrame);
   layout->addWidget(scroll_);
   connect(EventHub::Instance(), &EventHub::SelectionChanged, this,
@@ -89,7 +92,7 @@ InspectorPanel::InspectorPanel(QWidget* parent) : QWidget(parent) {
 }
 
 bool InspectorPanel::Editing() const {
-  QWidget* focus = QApplication::focusWidget();
+  QWidget* focus = window() != nullptr ? window()->focusWidget() : nullptr;
   return focus != nullptr && content_ != nullptr &&
          content_->isAncestorOf(focus) &&
          (qobject_cast<QLineEdit*>(focus) != nullptr ||
@@ -325,8 +328,8 @@ void InspectorPanel::AddActions(QVBoxLayout* layout,
                                 const bridge::InspectorView& view,
                                 QWidget* content) {
   const QString node = node_;
-  auto* row = new QHBoxLayout();
-  row->setSpacing(8);
+  auto* actions = new QWidget(content);
+  auto* row = new FlowLayout(actions, kActionGap);
   const auto guard = [](const std::function<void()>& action) {
     try {
       action();
@@ -364,8 +367,7 @@ void InspectorPanel::AddActions(QVBoxLayout* layout,
     guard([&] { App::Get().session().delete_node(ToRust(node)); });
   });
   row->addWidget(remove);
-  row->addStretch(1);
-  layout->addLayout(row);
+  layout->addWidget(actions);
   if (view.files.empty()) return;
   layout->addWidget(MakeLabel(QStringLiteral("Files"), "title-small", content));
   for (const auto& file : view.files) {

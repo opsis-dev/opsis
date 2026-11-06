@@ -6,6 +6,7 @@
 #include <QComboBox>
 #include <QFrame>
 #include <QLabel>
+#include <QLayout>
 #include <QPushButton>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -14,6 +15,33 @@
 #include <vector>
 
 namespace opsis {
+
+class FlowLayout : public QLayout {
+ public:
+  explicit FlowLayout(QWidget* parent, int spacing);
+  FlowLayout(const FlowLayout&) = delete;
+  FlowLayout& operator=(const FlowLayout&) = delete;
+  FlowLayout(FlowLayout&&) = delete;
+  FlowLayout& operator=(FlowLayout&&) = delete;
+  ~FlowLayout() override;
+
+  void addItem(QLayoutItem* item) override;
+  int count() const override;
+  QLayoutItem* itemAt(int index) const override;
+  QLayoutItem* takeAt(int index) override;
+  Qt::Orientations expandingDirections() const override { return {}; }
+  bool hasHeightForWidth() const override { return true; }
+  int heightForWidth(int width) const override;
+  QSize minimumSize() const override;
+  QSize sizeHint() const override;
+  void setGeometry(const QRect& rect) override;
+
+ private:
+  int Arrange(const QRect& rect, bool apply) const;
+
+  QList<QLayoutItem*> items_;
+  int gap_;
+};
 
 class ClampedLabel : public QLabel {
  public:
@@ -67,6 +95,7 @@ class Segmented : public QFrame {
  public:
   explicit Segmented(QWidget* parent = nullptr);
   void SetChoices(const std::vector<std::pair<QString, QString>>& choices);
+  void SetOutline();
   void SetValue(const QString& value);
   QString value() const;
 

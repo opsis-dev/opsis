@@ -17,6 +17,8 @@ constexpr int kSpinnerFrameMs = 33;
 constexpr double kSpinnerStep = 12.0;
 constexpr int kSpinnerSpan = 270 * 16;
 constexpr int kNameMaxWidth = 280;
+constexpr int kAddIcon = 16;
+constexpr int kBadgeMaxHeight = 28;
 
 QFrame* VerticalRule(QWidget* parent) {
   auto* rule = new QFrame(parent);
@@ -78,7 +80,7 @@ TopBar::TopBar(QWidget* parent) : QWidget(parent) {
   layout->addWidget(name_);
   saved_ = new QLabel(this);
   saved_->setProperty("role", "badge");
-  layout->addWidget(saved_);
+  layout->addWidget(saved_, 0, Qt::AlignVCenter);
   layout->addSpacing(4);
   layout->addWidget(VerticalRule(this));
   layout->addSpacing(4);
@@ -91,17 +93,25 @@ TopBar::TopBar(QWidget* parent) : QWidget(parent) {
   layout->addWidget(Tool(QStringLiteral("layout-grid"),
                          QStringLiteral("Tidy up layout"),
                          QStringLiteral("edit:layout")));
-  auto* add = MakeButton(QStringLiteral("Add node"), "ghost",
-                         QStringLiteral("plus"), this);
+  auto* add = new QPushButton(this);
+  add->setProperty("variant", "ghost");
   add->setFocusPolicy(Qt::NoFocus);
+  add->setCursor(Qt::PointingHandCursor);
+  add->setAccessibleName(QStringLiteral("Add node"));
   auto* add_layout = new QHBoxLayout(add);
-  add_layout->setContentsMargins(0, 0, 8, 0);
-  add_layout->addStretch(1);
+  add_layout->setContentsMargins(10, 0, 8, 0);
+  add_layout->setSpacing(6);
+  auto* plus = new QLabel(add);
+  plus->setPixmap(App::Get().Glyph(QStringLiteral("plus"),
+                                   App::Get().Token("foreground"), kAddIcon));
+  auto* text = MakeLabel(QStringLiteral("Add node"), nullptr, add);
   auto* keys =
       MakeLabel(ShortcutFor(QStringLiteral("edit:add-node")), "kbd", add);
-  keys->setAttribute(Qt::WA_TransparentForMouseEvents);
-  add_layout->addWidget(keys);
-  add->setMinimumWidth(add->sizeHint().width() + keys->sizeHint().width() + 8);
+  for (QLabel* label : {plus, text, keys}) {
+    label->setAttribute(Qt::WA_TransparentForMouseEvents);
+    add_layout->addWidget(label);
+  }
+  add->setMinimumWidth(add_layout->sizeHint().width());
   connect(add, &QPushButton::clicked, this,
           [this] { emit Command(QStringLiteral("edit:add-node")); });
   layout->addWidget(add);
@@ -197,6 +207,17 @@ QString TopBar::Problems() const {
     problems << QStringLiteral("a panel toggle is off");
   }
   if (!run_->isVisible()) problems << QStringLiteral("no Run button");
+  if (saved_->height() > kBadgeMaxHeight) {
+    problems << QStringLiteral("the saved badge is %1 px tall")
+                    .arg(saved_->height());
+  }
+  for (QPushButton* button : findChildren<QPushButton*>()) {
+    if (button->isVisible() && button->layout() != nullptr &&
+        button->width() < button->layout()->sizeHint().width()) {
+      problems
+          << QStringLiteral("'%1' is cut off").arg(button->accessibleName());
+    }
+  }
   return problems.join(QStringLiteral("; "));
 }
 
