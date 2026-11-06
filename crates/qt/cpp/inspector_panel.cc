@@ -234,6 +234,28 @@ void InspectorPanel::Commit(const QString& key, const QString& json) {
   }
 }
 
+void InspectorPanel::CommitPatch(const QJsonObject& patch) {
+  if (node_.isEmpty()) return;
+  try {
+    bool has_path = false;
+    for (auto it = patch.begin(); it != patch.end(); ++it) {
+      has_path = has_path || it.key().contains(QLatin1Char('/'));
+    }
+    if (!has_path) {
+      App::Get().session().set_params(
+          ToRust(node_), ToRust(QString::fromUtf8(QJsonDocument(patch).toJson(
+                             QJsonDocument::Compact))));
+      return;
+    }
+    for (auto it = patch.begin(); it != patch.end(); ++it) {
+      App::Get().session().set_param(ToRust(node_), ToRust(it.key()),
+                                     ToRust(Json(it.value())));
+    }
+  } catch (const rust::Error& error) {
+    App::Get().ShowError(QString::fromUtf8(error.what()));
+  }
+}
+
 QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
   const QString key = ToQ(field.key);
   switch (field.kind) {
@@ -396,6 +418,13 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
       return MakeColorList(field, swatches_, [this, key](const QString& json) {
         Commit(key, json);
       });
+    case bridge::FieldKind::Offsets:
+      return MakeOffsetsField(field, [this, key](const QString& text) {
+        Commit(key, Json(QJsonValue(text)));
+      });
+    case bridge::FieldKind::Spot:
+      return MakeSpotField(
+          field, [this](const QJsonObject& patch) { CommitPatch(patch); });
     case bridge::FieldKind::Asset: {
       auto* holder = new QWidget();
       auto* row = new QHBoxLayout(holder);

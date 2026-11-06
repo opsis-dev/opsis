@@ -89,6 +89,8 @@ pub mod ffi {
         Theme,
         Asset,
         Target,
+        Offsets,
+        Spot,
     }
 
     #[derive(Debug, Clone)]
@@ -512,6 +514,7 @@ pub mod ffi {
         fn format_color(self: &Session, h: f64, s: f64, v: f64, a: f64, format: &str) -> String;
         fn gradient_info(self: &Session, css: &str) -> GradientInfo;
         fn import_files(self: &Session, paths: Vec<String>) -> Result<Vec<String>>;
+        fn file_path(self: &Session, reference: &str) -> String;
         fn edit_gradient(self: &Session, css: &str, edit_json: &str) -> GradientInfo;
         fn save(self: &Session) -> Result<()>;
 

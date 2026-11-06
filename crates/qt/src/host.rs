@@ -86,6 +86,7 @@ pub trait Host {
     fn format_color(&self, h: f64, s: f64, v: f64, a: f64, format: &str) -> String;
     fn gradient_info(&self, css: &str) -> GradientInfo;
     fn import_files(&self, paths: Vec<String>) -> HostResult<Vec<String>>;
+    fn file_path(&self, reference: &str) -> String;
     fn edit_gradient(&self, css: &str, edit_json: &str) -> GradientInfo;
     fn save(&self) -> HostResult<()>;
 
@@ -429,6 +430,10 @@ impl Session {
 
     pub(crate) fn import_files(&self, paths: Vec<String>) -> HostResult<Vec<String>> {
         self.0.import_files(paths)
+    }
+
+    pub(crate) fn file_path(&self, reference: &str) -> String {
+        self.0.file_path(reference)
     }
 
     pub(crate) fn edit_gradient(&self, css: &str, edit_json: &str) -> GradientInfo {

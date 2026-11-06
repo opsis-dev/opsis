@@ -8,6 +8,7 @@
 #include <QImage>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QJsonObject>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -40,6 +41,7 @@
 #include "start_screen.h"
 #include "top_bar.h"
 #include "var_text.h"
+#include "visual_fields.h"
 #include "widgets.h"
 
 namespace opsis {
@@ -1500,6 +1502,79 @@ void Scenario::BuildTour() {
         for (int i = 0; i < 5; ++i) Click(window, QStringLiteral("Undo"));
       },
       600, back);
+  const auto field_of = [](bridge::FieldKind kind) {
+    for (const auto& field : App::Get().session().inspector().fields) {
+      if (field.kind == kind) return field;
+    }
+    return bridge::FieldView{};
+  };
+  Add(
+      QStringLiteral("offsets-field"),
+      [this, window, select_titled] {
+        select_titled(QStringLiteral("Layers"));
+        QTest::qWait(kSettleMs);
+        for (QLineEdit* line :
+             window->inspector_dock()->widget()->findChildren<QLineEdit*>()) {
+          if (line->isVisible() &&
+              line->accessibleName() == QStringLiteral("Layer 2")) {
+            QTest::mouseClick(line, Qt::LeftButton);
+            QTest::keyClick(line, Qt::Key_A, Qt::ControlModifier);
+            QTest::keyClicks(line, QStringLiteral("1.5"));
+            QTest::keyClick(line, Qt::Key_Return);
+            return;
+          }
+        }
+        Miss(QStringLiteral("no Layer 2 start"));
+      },
+      700,
+      [field_of] {
+        const QString value = ToQ(field_of(bridge::FieldKind::Offsets).text);
+        return Expect(value == QStringLiteral("0,1500"),
+                      QStringLiteral("the starts are '%1'").arg(value));
+      });
+  Add(QStringLiteral("undo-offsets"), undo, 500, [field_of] {
+    const QString value = ToQ(field_of(bridge::FieldKind::Offsets).text);
+    return Expect(value.isEmpty(),
+                  QStringLiteral("the starts are still '%1'").arg(value));
+  });
+  Add(
+      QStringLiteral("spot-drag"),
+      [this, window, add_from_list] {
+        add_from_list(QStringLiteral("Camera"), QStringLiteral("Zoom here"));
+        QTest::qWait(kSettleMs);
+        auto* frame =
+            window->inspector_dock()->widget()->findChild<SpotFrame*>();
+        if (frame == nullptr) {
+          Miss(QStringLiteral("no spot frame"));
+          return;
+        }
+        window->inspector_dock()
+            ->widget()
+            ->findChild<QScrollArea*>()
+            ->ensureWidgetVisible(frame);
+        QTest::qWait(kSettleMs);
+        const QPoint from(frame->width() / 2, frame->height() / 2);
+        const QPoint to(frame->width() / 4, frame->height() * 3 / 4);
+        Drag(frame, from, to, 6);
+      },
+      800,
+      [field_of] {
+        const bridge::FieldView spot = field_of(bridge::FieldKind::Spot);
+        const double y = QJsonDocument::fromJson(ToQ(spot.extra_json).toUtf8())
+                             .object()
+                             .value(QStringLiteral("y"))
+                             .toDouble();
+        return Expect(
+            std::abs(spot.number - 0.25) < 0.02 && std::abs(y - 0.75) < 0.02,
+            QStringLiteral("the spot is %1, %2").arg(spot.number).arg(y));
+      });
+  Add(QStringLiteral("undo-spot-drag"), undo, 600, [field_of] {
+    const bridge::FieldView spot = field_of(bridge::FieldKind::Spot);
+    return Expect(
+        spot.number == 0.5,
+        QStringLiteral("one undo left the spot at %1").arg(spot.number));
+  });
+  Add(QStringLiteral("undo-add-zoom"), undo, 500, back);
   Add(
       QStringLiteral("theme-mode"),
       [this, window, add_from_list] {

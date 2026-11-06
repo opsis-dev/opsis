@@ -2,6 +2,7 @@
 #define OPSIS_QT_CPP_INSPECTOR_PANEL_H_
 
 #include <QHash>
+#include <QJsonObject>
 #include <QScrollArea>
 #include <QSet>
 #include <QStringList>
@@ -37,6 +38,7 @@ class InspectorPanel : public QWidget {
   void AddTabs(QVBoxLayout* layout, const QList<QWidget*>& basic,
                const QList<QWidget*>& advanced, QWidget* content);
   void Commit(const QString& key, const QString& json);
+  void CommitPatch(const QJsonObject& patch);
   bool Editing() const;
 
   QScrollArea* scroll_;

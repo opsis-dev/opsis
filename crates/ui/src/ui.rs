@@ -1125,6 +1125,15 @@ impl Host for Ui {
         colors::gradient(css)
     }
 
+    fn file_path(&self, reference: &str) -> String {
+        let Some(dir) = self.state().editor().dir() else {
+            return String::new();
+        };
+        let public = self.state().paths.public_dir.clone();
+        opsis_project::paths::ref_to_path(&dir, &public, reference)
+            .map_or_default(|path| path.to_string_lossy().into_owned())
+    }
+
     fn import_files(&self, paths: Vec<String>) -> HostResult<Vec<String>> {
         let dir = self
             .state()

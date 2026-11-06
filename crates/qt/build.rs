@@ -17,7 +17,7 @@ const DEFINES: [&str; 6] = [
     "QT_TESTLIB_LIB",
 ];
 
-const MOC_HEADERS: [&str; 18] = [
+const MOC_HEADERS: [&str; 19] = [
     "event_hub.h",
     "widgets.h",
     "window_chrome.h",
@@ -36,6 +36,7 @@ const MOC_HEADERS: [&str; 18] = [
     "color_picker.h",
     "form_hold.h",
     "gradient_field.h",
+    "visual_fields.h",
 ];
 
 const SOURCES: [&str; 25] = [

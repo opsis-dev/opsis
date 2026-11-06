@@ -18,6 +18,7 @@ pub struct FormCtx<'a> {
 }
 
 const NESTING: usize = 2;
+const SPOT_CENTRE: f64 = 0.5;
 const SUMMARY_SKIPS: [&str; 5] = ["asset", "color", "code", "sound", "music"];
 const SUMMARY_CHARS: usize = 60;
 
@@ -47,6 +48,9 @@ fn form(
         let path = format!("{prefix}{key}");
         let mut view = field(&path, schema, values.get(key), ctx);
         group.clone_into(&mut view.group);
+        if view.kind == FieldKind::Spot {
+            view.extra_json = spot_extra(key, prefix, values, ctx).to_string();
+        }
         let nested = view.kind == FieldKind::ObjectList && depth < NESTING;
         out.push(view);
         if !nested {
@@ -459,6 +463,19 @@ fn named_widget(
         theme_field(view, value);
         return true;
     }
+    if widget == "offsets" {
+        view.kind = FieldKind::Offsets;
+        view.text = value.map_or_default(plain);
+        view.number = ctx.inspector.map_or(1.0, |i| {
+            f64::from(u32::try_from(i.layers.max(1)).unwrap_or(1))
+        });
+        return true;
+    }
+    if widget == "spot" {
+        view.kind = FieldKind::Spot;
+        view.number = value.and_then(Value::as_f64).unwrap_or(SPOT_CENTRE);
+        return true;
+    }
     let presets = match widget {
         "quality" => &ctx.catalog.quality_presets,
         "loudness" => &ctx.catalog.loudness_presets,
@@ -474,6 +491,29 @@ fn named_widget(
         })
         .collect();
     true
+}
+
+pub fn spot_y_key(x_key: &str) -> String {
+    if x_key == "x" {
+        "y".to_owned()
+    } else if let Some(stem) = x_key.strip_suffix('X') {
+        format!("{stem}Y")
+    } else {
+        format!("{x_key}Y")
+    }
+}
+
+fn spot_extra(key: &str, prefix: &str, values: &Map<String, Value>, ctx: &FormCtx<'_>) -> Value {
+    let y_key = spot_y_key(key);
+    let background = ctx.inspector.and_then(|i| i.spot_background.as_ref());
+    let settings = &ctx.workflow.settings;
+    let project_aspect = f64::from(settings.width) / f64::from(settings.height.max(1));
+    serde_json::json!({
+        "yKey": format!("{prefix}{y_key}"),
+        "y": values.get(&y_key).and_then(Value::as_f64).unwrap_or(SPOT_CENTRE),
+        "aspect": background.and_then(|b| b.aspect).unwrap_or(project_aspect),
+        "picture": background.filter(|b| b.still).map_or_default(|b| b.src.clone()),
+    })
 }
 
 fn theme_field(view: &mut FieldView, value: Option<&Value>) {
@@ -693,6 +733,12 @@ mod tests {
     use super::*;
 
     proptest! {
+        #[test]
+        fn a_spot_y_key_swaps_the_trailing_x_for_y(stem in "[a-z][a-zA-Z]{0,8}") {
+            prop_assert_eq!(spot_y_key(&format!("{stem}X")), format!("{stem}Y"));
+            prop_assert_ne!(spot_y_key(&stem), stem);
+        }
+
         #[test]
         fn setting_an_item_field_changes_only_that_field(
             names in proptest::collection::vec("[a-z]{1,6}", 1..6),
