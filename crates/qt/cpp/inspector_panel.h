@@ -1,7 +1,9 @@
 #ifndef OPSIS_QT_CPP_INSPECTOR_PANEL_H_
 #define OPSIS_QT_CPP_INSPECTOR_PANEL_H_
 
+#include <QHash>
 #include <QScrollArea>
+#include <QSet>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -40,6 +42,8 @@ class InspectorPanel : public QWidget {
   QWidget* content_ = nullptr;
   QString node_;
   bool advanced_open_ = false;
+  QSet<QString> closed_items_;
+  QHash<QString, QVBoxLayout*> bodies_;
 };
 
 }

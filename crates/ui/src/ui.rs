@@ -948,7 +948,26 @@ impl Host for Ui {
 
     fn set_param(&self, id: &str, key: &str, json: &str) -> HostResult<()> {
         let mut params = Map::new();
-        params.insert(key.to_owned(), inspector::parsed_value(json));
+        let value = inspector::parsed_value(json);
+        if let Some((top, rest)) = key.split_once('/') {
+            let wf = self
+                .workflow()
+                .ok_or_else(|| "No project is open.".to_owned())?;
+            let node = wf.node(id).ok_or_else(|| "That node is gone.".to_owned())?;
+            let current = node
+                .params
+                .get(top)
+                .cloned()
+                .or_else(|| {
+                    self.catalog
+                        .get(&node.kind)
+                        .and_then(|d| d.defaults.get(top).cloned())
+                })
+                .unwrap_or(Value::Null);
+            params.insert(top.to_owned(), inspector::set_at(current, rest, value));
+        } else {
+            params.insert(key.to_owned(), value);
+        }
         self.edit(WorkflowEdit::UpdateNode {
             id: id.to_owned(),
             patch: NodePatch {

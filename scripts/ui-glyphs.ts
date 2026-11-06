@@ -30,6 +30,7 @@ const UI_ICONS = [
   "file-plus",
   "folder-open",
   "globe",
+  "grip-vertical",
   "image",
   "layers",
   "layout-grid",

@@ -371,6 +371,17 @@ QPushButton[variant="toggle-outline"]:checked {
   color: @foreground;
 }
 
+QFrame[role="list-item"] {
+  background: @sidebar;
+  border: 1px solid @border;
+  border-radius: @radius;
+}
+
+QToolButton#Swatch {
+  border: 1px solid @input;
+  border-radius: @radius;
+}
+
 QFrame#FormTabs {
   background: @muted;
   border-radius: @radius;

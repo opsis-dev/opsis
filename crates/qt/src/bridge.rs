@@ -80,6 +80,10 @@ pub mod ffi {
         Keys,
         PresetNumber,
         Json,
+        StringList,
+        NumberList,
+        ColorList,
+        ObjectList,
     }
 
     #[derive(Debug, Clone)]
@@ -334,6 +338,10 @@ pub mod ffi {
         raw_choices: bool,
         presets: Vec<PresetView>,
         presets_label: String,
+        group: String,
+        min_items: u32,
+        max_items: u32,
+        new_item_json: String,
     }
 
     #[derive(Debug, Clone)]

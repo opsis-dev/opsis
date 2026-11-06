@@ -26,6 +26,7 @@
 
 #include "app.h"
 #include "event_hub.h"
+#include "list_fields.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "project_panel.h"
 #include "var_text.h"
@@ -369,6 +370,19 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
       });
       return keys;
     }
+    case bridge::FieldKind::StringList:
+      return MakeStringList(
+          field, [this, key](const QString& json) { Commit(key, json); });
+    case bridge::FieldKind::NumberList:
+      return MakeNumberList(
+          field, [this, key](const QString& json) { Commit(key, json); });
+    case bridge::FieldKind::ColorList:
+      return MakeColorList(
+          field, [this, key](const QString& json) { Commit(key, json); });
+    case bridge::FieldKind::ObjectList:
+      return MakeObjectList(
+          field, [this, key](const QString& json) { Commit(key, json); },
+          &closed_items_, &bodies_);
     case bridge::FieldKind::Json: {
       auto* area = new TextArea();
       area->setPlainText(ToQ(field.value_json));
@@ -707,6 +721,7 @@ void InspectorPanel::AddTabs(QVBoxLayout* layout, const QList<QWidget*>& basic,
 void InspectorPanel::Rebuild() {
   App& app = App::Get();
   const bridge::InspectorView view = app.session().inspector();
+  if (ToQ(view.id) != node_) advanced_open_ = false;
   node_ = ToQ(view.id);
   auto* content = new QWidget();
   auto* layout = new QVBoxLayout(content);
@@ -729,6 +744,7 @@ void InspectorPanel::Rebuild() {
     layout->addWidget(MakeRule(content));
     QList<QWidget*> basic;
     QList<QWidget*> advanced;
+    bodies_.clear();
     for (const auto& field : view.fields) {
       QWidget* control = MakeControl(field);
       QWidget* row =
@@ -738,6 +754,14 @@ void InspectorPanel::Rebuild() {
                                 ToQ(field.help), content)
               : MakeField(ToQ(field.label), control, ToQ(field.help), content);
       if (!field.presets.empty()) row = WithPresets(field, row, content);
+      if (!field.group.empty()) {
+        if (QVBoxLayout* body = bodies_.value(ToQ(field.group))) {
+          body->addWidget(row);
+        } else {
+          row->deleteLater();
+        }
+        continue;
+      }
       (field.advanced ? advanced : basic).append(row);
     }
     if (advanced.isEmpty()) {

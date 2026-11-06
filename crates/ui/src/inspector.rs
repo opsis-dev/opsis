@@ -7,6 +7,7 @@ use serde_json::{Map, Value};
 
 const MILLIS_PER_SECOND: f64 = 1000.0;
 const ANY_VALUE: &str = "*";
+const COLOUR_RULE: &str = "colour";
 
 #[derive(Debug)]
 pub struct FormCtx<'a> {
@@ -16,17 +17,137 @@ pub struct FormCtx<'a> {
     pub fonts: &'a [String],
 }
 
+const NESTING: usize = 2;
+const SUMMARY_SKIPS: [&str; 5] = ["asset", "color", "code", "sound", "music"];
+const SUMMARY_CHARS: usize = 60;
+
 pub fn fields(def: &EditorNode, node: &WorkflowNode, ctx: &FormCtx<'_>) -> Vec<FieldView> {
     let Some(properties) = def.params.get("properties").and_then(Value::as_object) else {
         return Vec::new();
     };
     let values = current_values(def, node, properties);
+    let mut out = Vec::new();
+    form(properties, &values, "", "", ctx, 0, &mut out);
+    out
+}
+
+fn form(
+    properties: &Map<String, Value>,
+    values: &Map<String, Value>,
+    prefix: &str,
+    group: &str,
+    ctx: &FormCtx<'_>,
+    depth: usize,
+    out: &mut Vec<FieldView>,
+) {
+    for (key, schema) in properties {
+        if flag(schema, "x-hidden") || !shown(schema, values, ctx) {
+            continue;
+        }
+        let path = format!("{prefix}{key}");
+        let mut view = field(&path, schema, values.get(key), ctx);
+        group.clone_into(&mut view.group);
+        let nested = view.kind == FieldKind::ObjectList && depth < NESTING;
+        out.push(view);
+        if !nested {
+            continue;
+        }
+        let Some(item) = schema.get("items") else {
+            continue;
+        };
+        let item_props = item
+            .get("properties")
+            .and_then(Value::as_object)
+            .cloned()
+            .unwrap_or_default();
+        for (index, entry) in values
+            .get(key)
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .enumerate()
+        {
+            let item_group = format!("{path}/{index}");
+            let item_values = with_defaults(&item_props, entry);
+            form(
+                &item_props,
+                &item_values,
+                &format!("{item_group}/"),
+                &item_group,
+                ctx,
+                depth + 1,
+                out,
+            );
+        }
+    }
+}
+
+fn with_defaults(properties: &Map<String, Value>, entry: &Value) -> Map<String, Value> {
     properties
         .iter()
-        .filter(|(_, schema)| !flag(schema, "x-hidden"))
-        .filter(|(_, schema)| shown(schema, &values, ctx))
-        .map(|(key, schema)| field(key, schema, values.get(key), ctx))
+        .filter_map(|(key, schema)| {
+            entry
+                .get(key)
+                .or_else(|| schema.get("default"))
+                .map(|v| (key.clone(), v.clone()))
+        })
         .collect()
+}
+
+fn new_item(item: &Value) -> Value {
+    let props = item
+        .get("properties")
+        .and_then(Value::as_object)
+        .cloned()
+        .unwrap_or_default();
+    Value::Object(with_defaults(&props, &Value::Object(Map::new())))
+}
+
+pub fn row_summary(item: &Value, entry: &Value, index: usize, ctx: &FormCtx<'_>) -> String {
+    let props = item
+        .get("properties")
+        .and_then(Value::as_object)
+        .cloned()
+        .unwrap_or_default();
+    let ports = ctx.inspector.map_or_default(|i| i.ports.as_slice());
+    let text_of = |key: &str, schema: &Value| -> Option<String> {
+        let value = entry.get(key)?.as_str()?;
+        let widget = text(schema, "x-widget");
+        if widget == "cut" || widget == "port" {
+            return Some(
+                ports
+                    .iter()
+                    .find(|p| p.port == value)
+                    .map_or_else(|| "Not connected".to_owned(), |p| p.label.clone()),
+            );
+        }
+        value.lines().next().map(|line| line.trim().to_owned())
+    };
+    let string_field = |schema: &Value| {
+        types(schema).contains(&"string")
+            && schema.get("enum").is_none()
+            && !SUMMARY_SKIPS.contains(&text(schema, "x-widget").as_str())
+    };
+    let shown = props
+        .iter()
+        .filter(|(_, s)| string_field(s))
+        .find_map(|(k, s)| text_of(k, s).filter(|t| !t.is_empty()))
+        .or_else(|| {
+            props
+                .iter()
+                .filter(|(_, s)| text(s, "x-widget") == "asset")
+                .find_map(|(k, s)| text_of(k, s).filter(|t| !t.is_empty()))
+                .map(|file| file.rsplit('/').next().unwrap_or(&file).to_owned())
+        })
+        .or_else(|| {
+            props
+                .keys()
+                .find_map(|k| entry.get(k).filter(|v| v.is_number()).map(Value::to_string))
+        });
+    shown.map_or_else(
+        || format!("Item {}", index + 1),
+        |s| s.chars().take(SUMMARY_CHARS).collect(),
+    )
 }
 
 fn current_values(
@@ -154,6 +275,18 @@ fn blank(key: &str, schema: &Value, value: Option<&Value>, ctx: &FormCtx<'_>) ->
         raw_choices: false,
         presets: presets(schema),
         presets_label: text(schema, "x-presets-label"),
+        group: String::new(),
+        min_items: schema
+            .get("minItems")
+            .and_then(Value::as_u64)
+            .and_then(|n| u32::try_from(n).ok())
+            .unwrap_or(0),
+        max_items: schema
+            .get("maxItems")
+            .and_then(Value::as_u64)
+            .and_then(|n| u32::try_from(n).ok())
+            .unwrap_or(u32::MAX),
+        new_item_json: String::new(),
     }
 }
 
@@ -342,7 +475,10 @@ fn field(key: &str, schema: &Value, value: Option<&Value>, ctx: &FormCtx<'_>) ->
     if !widget.is_empty() && named_widget(&mut view, &widget, value, ctx) {
         return view;
     }
-    if let Some(choices) = schema.get("enum").and_then(Value::as_array) {
+    if !widget.is_empty() && widget != "color" {
+        view.kind = FieldKind::Other;
+        view.text = summary(&widget, value);
+    } else if let Some(choices) = schema.get("enum").and_then(Value::as_array) {
         view.kind = FieldKind::Choice;
         view.raw_choices = choices.iter().any(|c| !c.is_string());
         view.choices = choice_list(schema, choices);
@@ -358,9 +494,10 @@ fn field(key: &str, schema: &Value, value: Option<&Value>, ctx: &FormCtx<'_>) ->
     {
         view.kind = FieldKind::EnumList;
         view.choices = choice_list(schema.get("items").unwrap_or(schema), choices);
-    } else if !widget.is_empty() {
-        view.kind = FieldKind::Other;
-        view.text = summary(&widget, value);
+    } else if kinds.contains(&"array")
+        && let Some(item) = schema.get("items")
+    {
+        list_field(&mut view, item, value, ctx);
     } else if kinds.contains(&"boolean") {
         view.kind = FieldKind::Switch;
         view.checked = value.and_then(Value::as_bool).unwrap_or(false);
@@ -373,6 +510,49 @@ fn field(key: &str, schema: &Value, value: Option<&Value>, ctx: &FormCtx<'_>) ->
         view.kind = FieldKind::Json;
     }
     view
+}
+
+pub fn is_color(schema: &Value) -> bool {
+    text(schema, "x-widget") == "color"
+        || schema.pointer("/x-check/rule").and_then(Value::as_str) == Some(COLOUR_RULE)
+}
+
+fn list_field(view: &mut FieldView, item: &Value, value: Option<&Value>, ctx: &FormCtx<'_>) {
+    let item_types = types(item);
+    let color = is_color(item);
+    view.kind = if item_types.contains(&"object") {
+        FieldKind::ObjectList
+    } else if color {
+        FieldKind::ColorList
+    } else if item_types.contains(&"number") || item_types.contains(&"integer") {
+        FieldKind::NumberList
+    } else {
+        FieldKind::StringList
+    };
+    view.new_item_json = match view.kind {
+        FieldKind::ObjectList => new_item(item).to_string(),
+        FieldKind::NumberList => item
+            .get("default")
+            .map_or_else(|| "0".to_owned(), Value::to_string),
+        FieldKind::ColorList => item
+            .get("default")
+            .map_or_else(|| "\"#ffffff\"".to_owned(), Value::to_string),
+        _ => item
+            .get("default")
+            .map_or_else(|| "\"\"".to_owned(), Value::to_string),
+    };
+    if view.kind == FieldKind::ObjectList {
+        view.choices = value
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .enumerate()
+            .map(|(index, entry)| Choice {
+                value: index.to_string(),
+                label: row_summary(item, entry, index, ctx),
+            })
+            .collect();
+    }
 }
 
 fn number_field(view: &mut FieldView, schema: &Value, value: Option<&Value>, integer: bool) {
@@ -444,6 +624,66 @@ fn summary(widget: &str, value: Option<&Value>) -> String {
     }
 }
 
+pub fn set_at(mut root: Value, path: &str, value: Value) -> Value {
+    let mut slot = &mut root;
+    for part in path.split('/') {
+        slot = match slot {
+            Value::Array(items) => match part.parse::<usize>() {
+                Ok(index) if index < items.len() => &mut items[index],
+                _ => return root,
+            },
+            Value::Object(map) => map.entry(part.to_owned()).or_insert(Value::Null),
+            other => {
+                *other = Value::Object(Map::new());
+                match other {
+                    Value::Object(map) => map.entry(part.to_owned()).or_insert(Value::Null),
+                    _ => return root,
+                }
+            }
+        };
+    }
+    *slot = value;
+    root
+}
+
 pub fn parsed_value(json: &str) -> Value {
     serde_json::from_str(json).unwrap_or_else(|_| Value::String(json.to_owned()))
+}
+
+#[cfg(test)]
+mod tests {
+    use proptest::prelude::*;
+    use serde_json::json;
+
+    use super::*;
+
+    proptest! {
+        #[test]
+        fn setting_an_item_field_changes_only_that_field(
+            names in proptest::collection::vec("[a-z]{1,6}", 1..6),
+            pick in any::<proptest::sample::Index>(),
+            fresh in "[A-Z]{1,6}",
+        ) {
+            let items: Vec<Value> = names.iter().map(|n| json!({ "name": n, "keep": n })).collect();
+            let index = pick.index(items.len());
+            let changed = set_at(Value::Array(items.clone()), &format!("{index}/name"), json!(fresh));
+            prop_assert_eq!(changed.pointer(&format!("/{index}/name")), Some(&json!(fresh)));
+            for (i, item) in items.iter().enumerate() {
+                prop_assert_eq!(changed.pointer(&format!("/{i}/keep")), item.get("keep"));
+                if i != index {
+                    prop_assert_eq!(changed.pointer(&format!("/{i}/name")), item.get("name"));
+                }
+            }
+        }
+
+        #[test]
+        fn a_path_past_the_end_changes_nothing(
+            names in proptest::collection::vec("[a-z]{1,6}", 0..4),
+            extra in 0usize..4,
+        ) {
+            let items = Value::Array(names.iter().map(|n| json!({ "name": n })).collect());
+            let past = names.len() + extra;
+            prop_assert_eq!(set_at(items.clone(), &format!("{past}/name"), json!("x")), items);
+        }
+    }
 }

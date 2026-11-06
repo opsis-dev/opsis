@@ -4,6 +4,8 @@
 #include <QDir>
 #include <QDropEvent>
 #include <QImage>
+#include <QJsonArray>
+#include <QJsonDocument>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -20,6 +22,7 @@
 #include <QTreeWidgetItemIterator>
 #include <QUrl>
 #include <QtTest/QTest>
+#include <algorithm>
 #include <cmath>
 #include <memory>
 
@@ -112,6 +115,18 @@ QString FieldText(const QString& key) {
     }
   }
   return QStringLiteral("<missing>");
+}
+
+int ListLength(bridge::FieldKind kind) {
+  for (const auto& field : App::Get().session().inspector().fields) {
+    if (field.kind == kind && field.group.empty()) {
+      return static_cast<int>(
+          QJsonDocument::fromJson(ToQ(field.value_json).toUtf8())
+              .array()
+              .size());
+    }
+  }
+  return -1;
 }
 
 QWidget* VisibleText(QWidget* root, const QString& text) {
@@ -1023,6 +1038,117 @@ void Scenario::BuildTour() {
   Add(QStringLiteral("undo-quality"), [this, window] {
     Click(window, QStringLiteral("Undo"));
     Click(window, QStringLiteral("Undo"));
+  });
+  const auto select_titled = [this, canvas, view](const QString& title) {
+    const bridge::GraphView graph = Graph();
+    const auto* card = CardTitled(graph, title);
+    if (card == nullptr) {
+      Miss(QStringLiteral("no %1 card").arg(title));
+      return;
+    }
+    const QString id = ToQ(card->id);
+    Click(canvas, QStringLiteral("Fit to view"));
+    ClickAt(view, canvas->ViewPointOf(id));
+    QTest::qWait(kSettleMs);
+  };
+  Add(
+      QStringLiteral("object-list-add-env"),
+      [this, window, memo, add_from_list] {
+        add_from_list(QStringLiteral("Terminal"),
+                      QStringLiteral("Open terminal"));
+        QTest::qWait(kSettleMs);
+        memo->count = static_cast<std::size_t>(
+            std::max(0, ListLength(bridge::FieldKind::ObjectList)));
+        for (QAbstractButton* button : window->inspector_dock()
+                                           ->widget()
+                                           ->findChildren<QAbstractButton*>()) {
+          if (button->isVisible() &&
+              button->text().startsWith(QStringLiteral("Advanced"))) {
+            QTest::mouseClick(button, Qt::LeftButton);
+          }
+        }
+        Click(window->inspector_dock()->widget(), QStringLiteral("Add"));
+      },
+      700,
+      [memo] {
+        const int length = ListLength(bridge::FieldKind::ObjectList);
+        return Expect(length == static_cast<int>(memo->count) + 1,
+                      QStringLiteral("the variable list has %1 items, not %2")
+                          .arg(length)
+                          .arg(memo->count + 1));
+      });
+  Add(
+      QStringLiteral("object-list-remove-env"),
+      [this, window] {
+        QAbstractButton* last = nullptr;
+        for (QAbstractButton* button : window->inspector_dock()
+                                           ->widget()
+                                           ->findChildren<QAbstractButton*>()) {
+          if (button->isVisible() &&
+              button->toolTip().startsWith(QStringLiteral("Remove "))) {
+            last = button;
+          }
+        }
+        if (last == nullptr) {
+          Miss(QStringLiteral("no Remove button on a variable"));
+          return;
+        }
+        QTest::mouseClick(last, Qt::LeftButton);
+      },
+      700,
+      [memo] {
+        return Expect(
+            ListLength(bridge::FieldKind::ObjectList) ==
+                static_cast<int>(memo->count),
+            QStringLiteral("removing the cut didn't shorten the list"));
+      });
+  Add(
+      QStringLiteral("color-list-add"),
+      [this, window, memo, select_titled] {
+        select_titled(QStringLiteral("Shader mesh gradient"));
+        memo->count = static_cast<std::size_t>(
+            std::max(0, ListLength(bridge::FieldKind::ColorList)));
+        Click(window->inspector_dock()->widget(), QStringLiteral("Add colour"));
+      },
+      700,
+      [memo] {
+        return Expect(ListLength(bridge::FieldKind::ColorList) ==
+                          static_cast<int>(memo->count) + 1,
+                      QStringLiteral("no colour was added"));
+      });
+  Add(QStringLiteral("undo-color-list"), undo, 500);
+  Add(
+      QStringLiteral("string-list-add-and-type"),
+      [this, window, add_from_list] {
+        add_from_list(QStringLiteral("Effects"), QStringLiteral("Redact take"));
+        QTest::qWait(kSettleMs);
+        Click(window->inspector_dock()->widget(), QStringLiteral("Add"));
+        QTest::qWait(kSettleMs);
+        VarSurface* last = nullptr;
+        for (VarSurface* surface :
+             window->inspector_dock()->widget()->findChildren<VarSurface*>()) {
+          if (surface->isVisible()) last = surface;
+        }
+        if (last == nullptr) {
+          Miss(QStringLiteral("no new row to type in"));
+          return;
+        }
+        QTest::mouseClick(last->viewport(), Qt::LeftButton);
+        QTest::keyClicks(last, QStringLiteral("Cookie banner"));
+        QTest::keyClick(last, Qt::Key_Return);
+      },
+      800,
+      [] {
+        for (const auto& field : App::Get().session().inspector().fields) {
+          if (field.kind == bridge::FieldKind::StringList &&
+              ToQ(field.value_json).contains(QStringLiteral("Cookie banner"))) {
+            return QString();
+          }
+        }
+        return QStringLiteral("the typed row wasn't saved in the list");
+      });
+  Add(QStringLiteral("undo-string-list"), [this, window] {
+    for (int i = 0; i < 3; ++i) Click(window, QStringLiteral("Undo"));
   });
   Add(
       QStringLiteral("hide-node-list"),
