@@ -252,7 +252,7 @@ fn oklch_to_srgb(lightness: f64, chroma: f64, hue: f64) -> (f64, f64, f64) {
         (-0.089_484_177_5f64).mul_add(green_red, lightness),
     );
     let (long, medium, short) = (long.powi(3), medium.powi(3), short.powi(3));
-    let red = 0.230_759_605_4f64.mul_add(
+    let red = 0.230_969_929_2f64.mul_add(
         short,
         4.076_741_662_1f64.mul_add(long, -3.307_711_591_3 * medium),
     );
@@ -272,5 +272,69 @@ fn gamma(linear: f64) -> f64 {
         12.92 * linear
     } else {
         1.055f64.mul_add(linear.powf(1.0 / 2.4), -0.055)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+
+    use proptest::prelude::*;
+
+    use super::*;
+
+    fn web_tokens() -> HashMap<String, String> {
+        let css = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../apps/frontend/src/index.css");
+        let text = std::fs::read_to_string(css).expect("the web editor's tokens");
+        let root = text
+            .split_once(":root {")
+            .and_then(|(_, rest)| rest.split_once('}'))
+            .map(|(block, _)| block)
+            .expect("a :root block");
+        root.lines()
+            .filter_map(|line| line.trim().strip_prefix("--"))
+            .filter_map(|line| line.trim_end_matches(';').split_once(':'))
+            .map(|(name, value)| (name.trim().to_owned(), value.trim().to_owned()))
+            .collect()
+    }
+
+    fn channels(color: &str) -> (i64, i64, i64) {
+        let hex = color.strip_prefix('#').expect("an opaque colour");
+        let channel = |at: usize| i64::from_str_radix(&hex[at..at + 2], 16).expect("hex");
+        (channel(0), channel(2), channel(4))
+    }
+
+    #[test]
+    fn tokens_match_the_web_editor() {
+        let web = web_tokens();
+        for (name, value) in TOKENS {
+            if let Some(css) = web.get(name) {
+                assert_eq!(css, value, "--{name}");
+            }
+        }
+    }
+
+    #[test]
+    fn every_style_sheet_token_resolves() {
+        let sheet = style_sheet();
+        let unresolved: Vec<&str> = sheet
+            .match_indices('@')
+            .map(|(at, _)| &sheet[at..sheet.len().min(at + 24)])
+            .collect();
+        assert!(unresolved.is_empty(), "{unresolved:?}");
+    }
+
+    proptest! {
+        #[test]
+        fn greys_stay_grey_and_lighter_reads_lighter(
+            lightness in 0.0f64..1.0,
+            step in 0.01f64..0.2,
+        ) {
+            let darker = channels(&css_color(&format!("oklch({lightness} 0 0)")));
+            let lighter = channels(&css_color(&format!("oklch({} 0 0)", (lightness + step).min(1.0))));
+            prop_assert_eq!(darker.0, darker.1);
+            prop_assert_eq!(darker.1, darker.2);
+            prop_assert!(lighter.0 >= darker.0);
+        }
     }
 }
