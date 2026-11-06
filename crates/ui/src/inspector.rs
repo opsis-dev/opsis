@@ -1,8 +1,7 @@
 use opsis_compile::catalog::EditorNode;
+use opsis_qt::{Choice, FieldKind, FieldView};
 use opsis_types::workflow::WorkflowNode;
 use serde_json::{Map, Value};
-
-use crate::bridge::ffi::{Choice, FieldKind, FieldView};
 
 const MILLIS_PER_SECOND: f64 = 1000.0;
 

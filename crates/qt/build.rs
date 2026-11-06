@@ -103,31 +103,30 @@ fn main() {
         .flag_if_supported("-Wno-unused-parameter")
         .flag_if_supported("-Wno-deprecated-declarations");
     let kddw_lib = kddw.join("lib");
-    if static_qt(&qt_prefix) {
+    let link_args = if static_qt(&qt_prefix) {
         build.define("KDDOCKWIDGETS_STATICLIB", None);
-        build.compile("opsis_qt_spike");
+        build.compile("opsis_qt");
         let imports = cc::Build::new()
             .cpp(true)
             .std("c++17")
             .includes(&includes)
             .file(static_plugin_imports(&out))
             .compile_intermediates();
-        link_static(&qt_prefix, &kddw_lib, &imports);
+        static_link_args(&qt_prefix, &kddw_lib, &imports)
     } else {
         qt.cargo_link_libraries(&mut build);
-        build.compile("opsis_qt_spike");
+        build.compile("opsis_qt");
         println!("cargo:rustc-link-search=native={}", kddw_lib.display());
         println!("cargo:rustc-link-lib=dylib=kddockwidgets-qt6");
-        println!(
-            "cargo:rustc-link-arg-bins=-Wl,-rpath,{}",
-            kddw_lib.display()
-        );
-        println!(
-            "cargo:rustc-link-arg-bins=-Wl,-rpath,{}",
-            qt_prefix.join("lib").display()
-        );
-    }
-    for path in ["cpp", "resources", "src/bridge.rs", "glyphs.generated.json"] {
+        vec![
+            format!("-Wl,-rpath,{}", kddw_lib.display()),
+            format!("-Wl,-rpath,{}", qt_prefix.join("lib").display()),
+        ]
+    };
+    let args_file = out.join("link-args.txt");
+    std::fs::write(&args_file, link_args.join("\n")).expect("writing the link arguments");
+    println!("cargo::metadata=link_args={}", args_file.display());
+    for path in ["cpp", "resources", "src/bridge.rs"] {
         println!("cargo:rerun-if-changed={}", manifest.join(path).display());
     }
     println!("cargo:rerun-if-env-changed=OPSIS_QT");
@@ -250,7 +249,7 @@ const STATIC_PLUGINS: [(&str, &str, &str); 9] = [
     ("platforms", "qminimal", "QMinimalIntegrationPlugin"),
 ];
 
-fn link_static(qt_prefix: &Path, kddw_lib: &Path, imports: &[PathBuf]) {
+fn static_link_args(qt_prefix: &Path, kddw_lib: &Path, imports: &[PathBuf]) -> Vec<String> {
     let mut links = StaticLinks::default();
     for object in imports {
         StaticLinks::push(&mut links.group, object.to_string_lossy().into_owned());
@@ -274,12 +273,9 @@ fn link_static(qt_prefix: &Path, kddw_lib: &Path, imports: &[PathBuf]) {
             qt_prefix,
         );
     }
-    println!("cargo:rustc-link-arg-bins=-Wl,--start-group");
-    for item in &links.group {
-        println!("cargo:rustc-link-arg-bins={item}");
-    }
-    println!("cargo:rustc-link-arg-bins=-Wl,--end-group");
-    for item in &links.system {
-        println!("cargo:rustc-link-arg-bins={item}");
-    }
+    std::iter::once("-Wl,--start-group".to_owned())
+        .chain(links.group)
+        .chain(std::iter::once("-Wl,--end-group".to_owned()))
+        .chain(links.system)
+        .collect()
 }

@@ -1,5 +1,4 @@
-use crate::look::{icon_svg, style_sheet, token};
-use crate::session::{Session, fonts_dir, start_session};
+use crate::host::Session;
 
 #[cxx::bridge(namespace = "opsis::bridge")]
 pub mod ffi {
@@ -169,12 +168,11 @@ pub mod ffi {
     extern "Rust" {
         type Session;
 
-        fn start_session() -> Result<Box<Session>>;
         fn start_pump(self: &Session);
-        fn style_sheet() -> String;
-        fn token(name: &str) -> String;
-        fn icon_svg(name: &str, color: &str, stroke: f64) -> String;
-        fn fonts_dir() -> String;
+        fn style_sheet(self: &Session) -> String;
+        fn token(self: &Session, name: &str) -> String;
+        fn icon_svg(self: &Session, name: &str, color: &str, stroke: f64) -> String;
+        fn fonts_dir(self: &Session) -> String;
         fn log(self: &Session, line: &str);
 
         fn examples(self: &Session) -> Vec<ProjectEntry>;
@@ -223,9 +221,9 @@ pub mod ffi {
     }
 
     unsafe extern "C++" {
-        include!("opsis-qt-spike/cpp/bridge_ffi.h");
+        include!("opsis-qt/cpp/bridge_ffi.h");
 
-        fn run_app() -> i32;
+        fn run_app(session: Box<Session>) -> i32;
         fn post_event(kind: EventKind);
     }
 }

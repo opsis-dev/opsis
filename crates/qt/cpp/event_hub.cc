@@ -2,7 +2,7 @@
 
 #include <QCoreApplication>
 
-#include "opsis-qt-spike/src/bridge.rs.h"
+#include "opsis-qt/src/bridge.rs.h"
 
 namespace opsis {
 

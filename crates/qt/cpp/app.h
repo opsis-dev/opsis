@@ -24,7 +24,7 @@ class App {
  public:
   static App& Get();
 
-  int Run();
+  int Run(rust::Box<bridge::Session> host);
   bridge::Session& session();
   QColor Token(const QString& name);
   QPixmap Glyph(const QString& name, const QColor& color, int size,

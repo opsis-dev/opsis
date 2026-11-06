@@ -154,12 +154,14 @@ agent-docs/            the domain docs (§8)
 | `opsis-image`    | the image node executors                                                                                                                                                                                            |
 | `opsis-footage`  | the film's footage frames, served beside the prepared files                                                                                                                                                         |
 | `opsis-probe`    | reads a media file's length, container, picture and sound from its own bytes, for every probe the app makes                                                                                                         |
-| `opsis-vt`       | Ghostty's terminal engine behind one safe `Terminal`; the only crate allowed `unsafe`                                                                                                                               |
+| `opsis-vt`       | Ghostty's terminal engine behind one safe `Terminal`; one of the two crates allowed `unsafe`                                                                                                                        |
 | `opsis-terminal` | terminal takes: shells, sessions, the driver, takes, casts, tapes, the live feed, prepared frames                                                                                                                   |
 | `opsis-capture`  | the recording browser over CDP: sessions, selectors, actions, the screencast encoder, smooth takes, sign-in steps, stills, the film's `FrameDriver`, `TerminalPainter`                                              |
 | `opsis-stream`   | the streamed views (sign-in, element picker)                                                                                                                                                                        |
 | `opsis-api`      | the Local API                                                                                                                                                                                                       |
 | `opsis-desktop`  | the Tauri app that composes them: windows, menus, commands and events, the exit flow, the editor's file server                                                                                                      |
+| `opsis-qt`       | the native editor's view layer: Qt 6.12 Widgets and KDDockWidgets built from Cargo, the C++ views, the `cxx` bridge behind one safe `Host` trait; the other crate allowed `unsafe`                                  |
+| `opsis-ui`       | the native editor's state and logic behind the views, implementing `Host` over the document; the `opsis` binary                                                                                                     |
 | `opsis-golden`   | dev-only: the golden-file helper and the readers and builders more than one crate's tests use (`repo`, `home`, `typed`, `text`, `number`, `cases`, `node`, `edge`)                                                  |
 | `opsis-macros`   | procedural macros (`proc-macro2`, `syn`, `quote`; no `paste` or `pastey`, since `quote` and `format_ident!` build every name)                                                                                       |
 
@@ -181,7 +183,7 @@ agent-docs/            the domain docs (§8)
 - **Kinds that form a fixed set are enums** (`BrowserAction`, `Sign`), and node types the code names are constants next to their definitions (`OPEN_BROWSER_TYPE`, `RENDER_TYPE`).
 - **Each module has its own error enum (`thiserror`: `SettingsError`, `CompileError`, `StartupError`…)**, turned into text only where it reaches a person or a JSON field. A missing value falls back to a default only when the default is what it means.
 - **Every public Rust type implements `Debug`** (`missing_debug_implementations`): it derives it, private types it holds derive it too, and where a field has none (a closure, a trait object) it writes `Debug` by hand, listing the fields that have it and ending with `finish_non_exhaustive`.
-- **`unsafe_code` is denied in every crate but `opsis-vt`** (`[workspace.lints.rust]`), whose `lib.rs` allows it with a reason and keeps its `unsafe` in `src/ffi.rs` and `src/terminal.rs`.
+- **`unsafe_code` is denied in every crate but `opsis-vt` and `opsis-qt`** (`[workspace.lints.rust]`), whose `lib.rs` allow it with a reason. `opsis-vt` keeps its `unsafe` in `src/ffi.rs` and `src/terminal.rs`; `opsis-qt`'s is the code the `cxx` bridge expands to (`src/bridge.rs`).
 - **Cached JSON is read into typed structs (`read_json`, `crates/engine/src/files.rs`), never trusted as-is.**
 
 ### The film

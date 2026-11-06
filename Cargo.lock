@@ -5291,24 +5291,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "opsis-qt-spike"
+name = "opsis-qt"
 version = "0.1.0"
 dependencies = [
  "cc",
  "cmake",
  "cxx",
  "cxx-build",
- "indexmap 2.14.2",
- "opsis-compile",
- "opsis-document",
- "opsis-project",
- "opsis-store",
- "opsis-types",
  "qt-build-utils",
- "serde",
- "serde_json",
- "thiserror 2.0.21",
- "tokio",
 ]
 
 [[package]]
@@ -5463,6 +5453,23 @@ dependencies = [
  "specta",
  "specta-serde",
  "specta-typescript",
+]
+
+[[package]]
+name = "opsis-ui"
+version = "0.1.0"
+dependencies = [
+ "indexmap 2.14.2",
+ "opsis-compile",
+ "opsis-document",
+ "opsis-project",
+ "opsis-qt",
+ "opsis-store",
+ "opsis-types",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+ "tokio",
 ]
 
 [[package]]

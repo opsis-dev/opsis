@@ -16,7 +16,7 @@
 #include "dock_style.h"
 #include "event_hub.h"
 #include "main_window.h"
-#include "opsis-qt-spike/src/bridge.rs.h"
+#include "opsis-qt/src/bridge.rs.h"
 #include "scenario.h"
 
 static void InitResources() { Q_INIT_RESOURCE(resources_qrc); }
@@ -65,7 +65,7 @@ bridge::Session& App::session() { return **session_; }
 QColor App::Token(const QString& name) {
   auto found = tokens_.find(name);
   if (found != tokens_.end()) return *found;
-  const QString text = ToQ(bridge::token(ToRust(name)));
+  const QString text = ToQ(session().token(ToRust(name)));
   QColor color;
   if (text.startsWith(QStringLiteral("rgba("))) {
     const QStringList parts =
@@ -91,7 +91,7 @@ QPixmap App::Glyph(const QString& name, const QColor& color, int size,
                           .arg(ratio);
   auto found = glyphs_.find(key);
   if (found != glyphs_.end()) return *found;
-  const rust::String svg = bridge::icon_svg(
+  const rust::String svg = session().icon_svg(
       ToRust(name), ToRust(color.name(QColor::HexRgb)), stroke);
   QSvgRenderer renderer(QByteArray(svg.data(), static_cast<qsizetype>(svg.size())));
   QPixmap pixmap(QSize(size, size) * ratio);
@@ -135,7 +135,7 @@ void App::ShowError(const QString& message) {
 }
 
 void App::LoadFonts() {
-  const QDir dir(ToQ(bridge::fonts_dir()));
+  const QDir dir(ToQ(session().fonts_dir()));
   const QStringList files = {
       QStringLiteral("inter/inter-latin-wght-normal.woff2"),
       QStringLiteral("jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2"),
@@ -160,7 +160,7 @@ void App::ConfigureDocks() {
                   KDDockWidgets::Config::Flag_TitleBarHasMaximizeButton);
 }
 
-int App::Run() {
+int App::Run(rust::Box<bridge::Session> host) {
   static int argc = 1;
   static char name[] = "opsis-qt";
   static char* argv[] = {name, nullptr};
@@ -170,13 +170,7 @@ int App::Run() {
   QApplication::setApplicationName(QStringLiteral("Opsis"));
   QApplication::setOrganizationName(QStringLiteral("Opsis"));
   InitResources();
-  try {
-    session_.emplace(bridge::start_session());
-  } catch (const rust::Error& error) {
-    QMessageBox::critical(nullptr, QStringLiteral("Opsis"),
-                          QString::fromUtf8(error.what()));
-    return 1;
-  }
+  session_.emplace(std::move(host));
   Log(QStringLiteral("session ready, platform %1")
           .arg(QApplication::platformName()));
   LoadFonts();
@@ -185,7 +179,7 @@ int App::Run() {
   QFont font(QStringLiteral("Inter"));
   font.setPixelSize(13);
   QApplication::setFont(font);
-  qApp->setStyleSheet(ToQ(bridge::style_sheet()));
+  qApp->setStyleSheet(ToQ(session().style_sheet()));
   ConfigureDocks();
   EventHub::Instance();
   session().start_pump();
@@ -211,6 +205,8 @@ int App::Run() {
 
 namespace opsis::bridge {
 
-std::int32_t run_app() { return opsis::App::Get().Run(); }
+std::int32_t run_app(rust::Box<Session> session) {
+  return opsis::App::Get().Run(std::move(session));
+}
 
 }

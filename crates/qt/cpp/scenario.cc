@@ -11,7 +11,7 @@
 #include "graph_canvas.h"
 #include "inspector_panel.h"
 #include "main_window.h"
-#include "opsis-qt-spike/src/bridge.rs.h"
+#include "opsis-qt/src/bridge.rs.h"
 #include "settings_window.h"
 #include "widgets.h"
 

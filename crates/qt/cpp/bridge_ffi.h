@@ -3,11 +3,14 @@
 
 #include <cstdint>
 
+#include "rust/cxx.h"
+
 namespace opsis::bridge {
 
 enum class EventKind : std::uint8_t;
+struct Session;
 
-std::int32_t run_app();
+std::int32_t run_app(rust::Box<Session> session);
 void post_event(EventKind kind);
 
 }

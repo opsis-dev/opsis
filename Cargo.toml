@@ -71,6 +71,7 @@ opsis-media = { path = "crates/media" }
 opsis-prepare = { path = "crates/prepare" }
 opsis-probe = { path = "crates/probe" }
 opsis-project = { path = "crates/project" }
+opsis-qt = { path = "crates/qt" }
 opsis-render = { path = "crates/render" }
 opsis-runner = { path = "crates/runner" }
 opsis-store = { path = "crates/store" }

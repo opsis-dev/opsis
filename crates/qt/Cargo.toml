@@ -1,0 +1,20 @@
+[package]
+name = "opsis-qt"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+links = "opsis_qt"
+
+[lints]
+workspace = true
+
+[dependencies]
+cxx.workspace = true
+
+[build-dependencies]
+cc.workspace = true
+cmake.workspace = true
+cxx-build.workspace = true
+qt-build-utils.workspace = true

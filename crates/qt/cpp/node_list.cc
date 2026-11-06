@@ -7,7 +7,7 @@
 #include <QVBoxLayout>
 
 #include "app.h"
-#include "opsis-qt-spike/src/bridge.rs.h"
+#include "opsis-qt/src/bridge.rs.h"
 #include "widgets.h"
 
 namespace opsis {

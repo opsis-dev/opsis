@@ -7,7 +7,7 @@ type IconNode = ReadonlyArray<readonly [string, Record<string, string>]>;
 
 const GLYPHS_FILE = path.join(FRONTEND_DIR, "editor", "node-glyphs.generated.ts");
 const ICONS_FILE = path.join(FRONTEND_DIR, "editor", "icons.ts");
-const OUT = path.join(ROOT, "crates", "qt-spike", "glyphs.generated.json");
+const OUT = path.join(ROOT, "crates", "ui", "glyphs.generated.json");
 
 const UI_ICONS = [
   "box",

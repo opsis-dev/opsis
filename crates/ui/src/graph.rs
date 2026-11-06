@@ -5,11 +5,11 @@ use opsis_compile::cards::{CardSources, workflow_cards};
 use opsis_compile::catalog::{CatalogPort, EditorNode, node_inputs};
 use opsis_compile::compile::compile_workflow;
 use opsis_compile::edits::workflow::absolute_position;
+use opsis_qt::{CardKind, CardView, EdgeView, PortView, RowView};
 use opsis_types::cards::CardRow;
 use opsis_types::workflow::{Workflow, WorkflowNode};
 use serde_json::Value;
 
-use crate::bridge::ffi::{CardKind, CardView, EdgeView, PortView, RowView};
 use crate::look;
 
 pub const CARD_WIDTH: f64 = 256.0;

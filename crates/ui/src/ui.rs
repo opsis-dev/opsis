@@ -13,6 +13,10 @@ use opsis_compile::graph::connection_problem_now;
 use opsis_compile::node::Platform;
 use opsis_document::Document;
 use opsis_project::files::{ProjectError, ProjectFiles};
+use opsis_qt::{
+    Choice, EventKind, GraphView, Host, HostResult, InspectorView, NodeMove, PaletteEntry,
+    ProjectEntry, SettingsView,
+};
 use opsis_store::db::{Database, StoreError};
 use opsis_store::settings::merged_settings;
 use opsis_types::edits::{EdgeEnds, NodePatch, WorkflowEdit};
@@ -23,10 +27,6 @@ use serde_json::{Map, Value};
 use tokio::runtime::Runtime;
 use tokio::sync::broadcast;
 
-use crate::bridge::ffi::{
-    self, Choice, EventKind, GraphView, InspectorView, NodeMove, PaletteEntry, ProjectEntry,
-    SettingsView,
-};
 use crate::{graph, inspector, look};
 
 const AUTOSAVE_DELAY: Duration = Duration::from_millis(800);
@@ -40,7 +40,7 @@ const BENCH_KINDS: [&str; 4] = [
 const BENCH_COLUMNS: u32 = 10;
 
 #[derive(Debug, thiserror::Error)]
-pub enum SessionError {
+pub enum UiError {
     #[error("No project is open.")]
     NoProject,
     #[error("{0}")]
@@ -57,7 +57,7 @@ pub enum SessionError {
     Settings(#[from] serde_json::Error),
 }
 
-type SessionResult<T> = Result<T, SessionError>;
+type UiResult<T> = Result<T, UiError>;
 
 #[derive(Debug, Default)]
 struct Editor {
@@ -78,13 +78,13 @@ struct Inner {
     started: Instant,
 }
 
-pub struct Session {
+pub struct Ui {
     inner: Arc<Inner>,
 }
 
-impl fmt::Debug for Session {
+impl fmt::Debug for Ui {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Session")
+        f.debug_struct("Ui")
             .field("data", &self.inner.data)
             .finish_non_exhaustive()
     }
@@ -104,7 +104,7 @@ fn data_dir() -> PathBuf {
     )
 }
 
-pub fn fonts_dir() -> String {
+fn fonts_dir() -> String {
     repo_root()
         .join("public")
         .join("fonts")
@@ -113,7 +113,7 @@ pub fn fonts_dir() -> String {
         .into_owned()
 }
 
-pub fn start_session() -> SessionResult<Box<Session>> {
+pub fn start() -> UiResult<Ui> {
     let started = Instant::now();
     let data = data_dir();
     std::fs::create_dir_all(data.join("projects"))?;
@@ -128,7 +128,7 @@ pub fn start_session() -> SessionResult<Box<Session>> {
         .map(|node| (node.kind.clone(), node))
         .collect();
     let (events, _) = broadcast::channel(256);
-    Ok(Box::new(Session {
+    Ok(Ui {
         inner: Arc::new(Inner {
             runtime,
             db,
@@ -141,7 +141,7 @@ pub fn start_session() -> SessionResult<Box<Session>> {
             catalog,
             started,
         }),
-    }))
+    })
 }
 
 impl Inner {
@@ -153,7 +153,7 @@ impl Inner {
         let _ = self.events.send(kind);
     }
 
-    fn write(&self) -> SessionResult<()> {
+    fn write(&self) -> UiResult<()> {
         let (dir, workflow, revision, base) = {
             let editor = self.editor();
             let Some(doc) = editor.document.as_ref() else {
@@ -180,15 +180,15 @@ impl Inner {
     }
 }
 
-impl Session {
+impl Ui {
     pub fn start_pump(&self) {
         let mut receiver = self.inner.events.subscribe();
         std::thread::spawn(move || {
             loop {
                 match receiver.blocking_recv() {
-                    Ok(kind) => ffi::post_event(kind),
+                    Ok(kind) => opsis_qt::post_event(kind),
                     Err(broadcast::error::RecvError::Lagged(_)) => {
-                        ffi::post_event(EventKind::Document);
+                        opsis_qt::post_event(EventKind::Document);
                     }
                     Err(broadcast::error::RecvError::Closed) => break,
                 }
@@ -237,7 +237,7 @@ impl Session {
             .collect()
     }
 
-    pub fn open_project(&self, dir: &str) -> SessionResult<()> {
+    pub fn open_project(&self, dir: &str) -> UiResult<()> {
         self.inner.write()?;
         let dir = PathBuf::from(dir);
         let project = self.inner.projects.open(&dir)?;
@@ -267,7 +267,7 @@ impl Session {
         Ok(())
     }
 
-    pub fn open_example(&self, dir: &str) -> SessionResult<()> {
+    pub fn open_example(&self, dir: &str) -> UiResult<()> {
         let source = PathBuf::from(dir);
         let name = source.file_name().map_or_else(
             || "example".to_owned(),
@@ -280,7 +280,7 @@ impl Session {
         self.open_project(&copy.to_string_lossy())
     }
 
-    pub fn create_project(&self, name: &str) -> SessionResult<()> {
+    pub fn create_project(&self, name: &str) -> UiResult<()> {
         let created =
             self.inner
                 .projects
@@ -288,7 +288,7 @@ impl Session {
         self.open_project(&created.dir.to_string_lossy())
     }
 
-    pub fn generate_project(&self, count: u32) -> SessionResult<()> {
+    pub fn generate_project(&self, count: u32) -> UiResult<()> {
         let name = format!("Bench {count}");
         let dir = self
             .inner
@@ -403,10 +403,10 @@ impl Session {
         entries.into_iter().map(|(_, e)| e).collect()
     }
 
-    fn edit(&self, edit: WorkflowEdit) -> SessionResult<Vec<String>> {
+    fn edit(&self, edit: WorkflowEdit) -> UiResult<Vec<String>> {
         let edited = {
             let mut editor = self.inner.editor();
-            let doc = editor.document.as_mut().ok_or(SessionError::NoProject)?;
+            let doc = editor.document.as_mut().ok_or(UiError::NoProject)?;
             doc.apply(edit)?
         };
         self.changed();
@@ -443,13 +443,13 @@ impl Session {
         self.changed();
     }
 
-    pub fn move_nodes(&self, moves: Vec<NodeMove>) -> SessionResult<()> {
+    pub fn move_nodes(&self, moves: Vec<NodeMove>) -> UiResult<()> {
         let positions = {
             let editor = self.inner.editor();
             let wf = editor
                 .document
                 .as_ref()
-                .ok_or(SessionError::NoProject)?
+                .ok_or(UiError::NoProject)?
                 .workflow();
             moves
                 .into_iter()
@@ -498,10 +498,10 @@ impl Session {
         source_handle: &str,
         target: &str,
         target_handle: &str,
-    ) -> SessionResult<()> {
+    ) -> UiResult<()> {
         let problem = self.connection_problem(source, source_handle, target, target_handle);
         if !problem.is_empty() {
-            return Err(SessionError::Refused(problem));
+            return Err(UiError::Refused(problem));
         }
         self.edit(WorkflowEdit::AddEdge {
             ends: EdgeEnds {
@@ -514,7 +514,7 @@ impl Session {
         Ok(())
     }
 
-    pub fn remove(&self, nodes: Vec<String>, edges: Vec<String>) -> SessionResult<()> {
+    pub fn remove(&self, nodes: Vec<String>, edges: Vec<String>) -> UiResult<()> {
         if nodes.is_empty() && edges.is_empty() {
             return Ok(());
         }
@@ -532,9 +532,9 @@ impl Session {
         Ok(())
     }
 
-    fn add_node_quiet(&self, node_type: &str, x: f64, y: f64) -> SessionResult<String> {
+    fn add_node_quiet(&self, node_type: &str, x: f64, y: f64) -> UiResult<String> {
         let mut editor = self.inner.editor();
-        let doc = editor.document.as_mut().ok_or(SessionError::NoProject)?;
+        let doc = editor.document.as_mut().ok_or(UiError::NoProject)?;
         let edited = doc.apply(WorkflowEdit::AddNode {
             kind: node_type.to_owned(),
             id: None,
@@ -545,7 +545,7 @@ impl Session {
         Ok(edited.ids.into_iter().next().unwrap_or_default())
     }
 
-    pub fn add_node(&self, node_type: &str, x: f64, y: f64) -> SessionResult<String> {
+    pub fn add_node(&self, node_type: &str, x: f64, y: f64) -> UiResult<String> {
         let id = self.add_node_quiet(node_type, x, y)?;
         self.changed();
         self.select(&id);
@@ -626,7 +626,7 @@ impl Session {
         }
     }
 
-    pub fn set_param(&self, id: &str, key: &str, json: &str) -> SessionResult<()> {
+    pub fn set_param(&self, id: &str, key: &str, json: &str) -> UiResult<()> {
         let mut params = Map::new();
         params.insert(key.to_owned(), inspector::parsed_value(json));
         self.edit(WorkflowEdit::UpdateNode {
@@ -639,7 +639,7 @@ impl Session {
         Ok(())
     }
 
-    pub fn rename_node(&self, id: &str, label: &str) -> SessionResult<()> {
+    pub fn rename_node(&self, id: &str, label: &str) -> UiResult<()> {
         self.edit(WorkflowEdit::UpdateNode {
             id: id.to_owned(),
             patch: NodePatch {
@@ -650,7 +650,7 @@ impl Session {
         Ok(())
     }
 
-    pub fn save(&self) -> SessionResult<()> {
+    pub fn save(&self) -> UiResult<()> {
         self.inner.write()
     }
 
@@ -678,7 +678,7 @@ impl Session {
         }
     }
 
-    pub fn patch_settings(&self, json: &str) -> SessionResult<()> {
+    pub fn patch_settings(&self, json: &str) -> UiResult<()> {
         let patch: Map<String, Value> = serde_json::from_str(json)?;
         let next = {
             let current = self.inner.settings.lock().expect("settings").clone();
@@ -739,4 +739,168 @@ fn copy_dir(from: &Path, to: &Path) -> std::io::Result<()> {
         }
     }
     Ok(())
+}
+
+fn hosted<T>(result: UiResult<T>) -> HostResult<T> {
+    result.map_err(|error| error.to_string())
+}
+
+impl Host for Ui {
+    fn start_pump(&self) {
+        Self::start_pump(self);
+    }
+
+    fn style_sheet(&self) -> String {
+        look::style_sheet()
+    }
+
+    fn token(&self, name: &str) -> String {
+        look::token(name)
+    }
+
+    fn icon_svg(&self, name: &str, color: &str, stroke: f64) -> String {
+        look::icon_svg(name, color, stroke)
+    }
+
+    fn fonts_dir(&self) -> String {
+        fonts_dir()
+    }
+
+    fn log(&self, line: &str) {
+        Self::log(self, line);
+    }
+
+    fn examples(&self) -> Vec<ProjectEntry> {
+        Self::examples(self)
+    }
+
+    fn recent(&self) -> Vec<ProjectEntry> {
+        Self::recent(self)
+    }
+
+    fn open_project(&self, dir: &str) -> HostResult<()> {
+        hosted(Self::open_project(self, dir))
+    }
+
+    fn open_example(&self, dir: &str) -> HostResult<()> {
+        hosted(Self::open_example(self, dir))
+    }
+
+    fn create_project(&self, name: &str) -> HostResult<()> {
+        hosted(Self::create_project(self, name))
+    }
+
+    fn generate_project(&self, count: u32) -> HostResult<()> {
+        hosted(Self::generate_project(self, count))
+    }
+
+    fn close_project(&self) {
+        Self::close_project(self);
+    }
+
+    fn has_project(&self) -> bool {
+        Self::has_project(self)
+    }
+
+    fn graph(&self) -> GraphView {
+        Self::graph(self)
+    }
+
+    fn palette(&self) -> Vec<PaletteEntry> {
+        Self::palette(self)
+    }
+
+    fn begin_gesture(&self) {
+        Self::begin_gesture(self);
+    }
+
+    fn end_gesture(&self) {
+        Self::end_gesture(self);
+    }
+
+    fn move_nodes(&self, moves: Vec<NodeMove>) -> HostResult<()> {
+        hosted(Self::move_nodes(self, moves))
+    }
+
+    fn connection_problem(
+        &self,
+        source: &str,
+        source_handle: &str,
+        target: &str,
+        target_handle: &str,
+    ) -> String {
+        Self::connection_problem(self, source, source_handle, target, target_handle)
+    }
+
+    fn connect(
+        &self,
+        source: &str,
+        source_handle: &str,
+        target: &str,
+        target_handle: &str,
+    ) -> HostResult<()> {
+        hosted(Self::connect(
+            self,
+            source,
+            source_handle,
+            target,
+            target_handle,
+        ))
+    }
+
+    fn remove(&self, nodes: Vec<String>, edges: Vec<String>) -> HostResult<()> {
+        hosted(Self::remove(self, nodes, edges))
+    }
+
+    fn add_node(&self, node_type: &str, x: f64, y: f64) -> HostResult<String> {
+        hosted(Self::add_node(self, node_type, x, y))
+    }
+
+    fn undo(&self) -> bool {
+        Self::undo(self)
+    }
+
+    fn redo(&self) -> bool {
+        Self::redo(self)
+    }
+
+    fn select(&self, id: &str) {
+        Self::select(self, id);
+    }
+
+    fn selected(&self) -> String {
+        Self::selected(self)
+    }
+
+    fn inspector(&self) -> InspectorView {
+        Self::inspector(self)
+    }
+
+    fn set_param(&self, id: &str, key: &str, json: &str) -> HostResult<()> {
+        hosted(Self::set_param(self, id, key, json))
+    }
+
+    fn rename_node(&self, id: &str, label: &str) -> HostResult<()> {
+        hosted(Self::rename_node(self, id, label))
+    }
+
+    fn save(&self) -> HostResult<()> {
+        hosted(Self::save(self))
+    }
+
+    fn settings(&self) -> SettingsView {
+        Self::settings(self)
+    }
+
+    fn patch_settings(&self, json: &str) -> HostResult<()> {
+        hosted(Self::patch_settings(self, json))
+    }
+
+    fn load_layout(&self) -> String {
+        Self::load_layout(self)
+    }
+
+    fn save_layout(&self, layout: &str) {
+        Self::save_layout(self, layout);
+    }
 }
