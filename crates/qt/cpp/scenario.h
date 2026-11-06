@@ -39,6 +39,7 @@ class Scenario : public QObject {
   QDir shots_;
   std::vector<Step> steps_;
   std::size_t index_ = 0;
+  bool shooting_ = true;
   int checked_ = 0;
   int failed_ = 0;
 };

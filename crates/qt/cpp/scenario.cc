@@ -73,12 +73,13 @@ void Scenario::MaybeStart(MainWindow* window) {
     dir = QDir::homePath() + QStringLiteral("/.cache/opsis-qt-shots/") + name;
   }
   QDir shots(dir);
-  shots.mkpath(QStringLiteral("."));
+  if (dir != QStringLiteral("off")) shots.mkpath(QStringLiteral("."));
   new Scenario(window, name, shots);
 }
 
 Scenario::Scenario(MainWindow* window, const QString& name, const QDir& shots)
     : QObject(window), window_(window), name_(name), shots_(shots) {
+  shooting_ = qEnvironmentVariable("OPSIS_QT_SHOTS") != QStringLiteral("off");
   if (name == QStringLiteral("bench")) {
     const int count = qEnvironmentVariableIntValue("OPSIS_QT_BENCH_NODES");
     BuildBench(count > 0 ? count : 200);
@@ -129,6 +130,7 @@ void Scenario::Next() {
 }
 
 void Scenario::Shoot(const QString& name) {
+  if (!shooting_) return;
   int count = 0;
   QWidgetList windows = QApplication::topLevelWidgets();
   std::stable_partition(windows.begin(), windows.end(), [](QWidget* widget) {
