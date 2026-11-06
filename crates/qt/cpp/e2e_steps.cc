@@ -451,6 +451,87 @@ void Scenario::BuildTour() {
   Add(QStringLiteral("undo-typing"), undo, 500);
 
   Add(
+      QStringLiteral("rename-in-inspector"),
+      [this, window] {
+        QLineEdit* name = nullptr;
+        for (QLineEdit* line :
+             window->inspector_dock()->widget()->findChildren<QLineEdit*>()) {
+          if (line->isVisible() && !line->placeholderText().isEmpty() &&
+              line->placeholderText() ==
+                  ToQ(App::Get().session().inspector().title)) {
+            name = line;
+          }
+        }
+        if (name == nullptr) {
+          Miss(QStringLiteral("no Name field"));
+          return;
+        }
+        QTest::mouseClick(name, Qt::LeftButton);
+        QTest::keyClick(name, Qt::Key_A, Qt::ControlModifier);
+        QTest::keyClicks(name, QStringLiteral("Shop page"));
+        QTest::keyClick(name, Qt::Key_Return);
+      },
+      600,
+      [memo] {
+        const auto* card = CardWithId(Graph(), memo->id);
+        return Expect(
+            card != nullptr && ToQ(card->title) == QStringLiteral("Shop page"),
+            QStringLiteral("the card wasn't renamed"));
+      });
+  Add(QStringLiteral("undo-rename"), undo, 500);
+  Add(
+      QStringLiteral("skip-node-switch"),
+      [this, window] {
+        QWidget* inspector = window->inspector_dock()->widget();
+        QWidget* label =
+            VisibleText(inspector, QStringLiteral("Skip this node"));
+        auto* toggle = label != nullptr
+                           ? label->parentWidget()->findChild<ToggleSwitch*>()
+                           : nullptr;
+        if (toggle == nullptr) {
+          Miss(QStringLiteral("no Skip this node switch"));
+          return;
+        }
+        QTest::mouseClick(toggle, Qt::LeftButton);
+      },
+      600,
+      [memo] {
+        const auto* card = CardWithId(Graph(), memo->id);
+        return Expect(card != nullptr && card->disabled,
+                      QStringLiteral("the card isn't skipped"));
+      });
+  Add(QStringLiteral("undo-skip"), undo, 500, [memo] {
+    const auto* card = CardWithId(Graph(), memo->id);
+    return Expect(card != nullptr && !card->disabled,
+                  QStringLiteral("Undo didn't bring the card back"));
+  });
+  Add(
+      QStringLiteral("delete-from-inspector"),
+      [this, window, memo] {
+        memo->count = Graph().nodes.size();
+        Click(window->inspector_dock()->widget(), QStringLiteral("Delete"));
+      },
+      600,
+      [memo] {
+        return Expect(Graph().nodes.size() + 1 == memo->count &&
+                          App::Get().session().inspector().id.empty(),
+                      QStringLiteral("Delete didn't remove the card"));
+      });
+  Add(QStringLiteral("undo-delete"), undo, 600, [memo] {
+    return Expect(Graph().nodes.size() == memo->count,
+                  QStringLiteral("Undo didn't bring the card back"));
+  });
+  Add(
+      QStringLiteral("reselect-card"),
+      [this, view, canvas, memo] {
+        ClickAt(view, canvas->ViewPointOf(memo->id));
+      },
+      500,
+      [memo] {
+        return Expect(ToQ(App::Get().session().selected()) == memo->id,
+                      QStringLiteral("the card isn't selected again"));
+      });
+  Add(
       QStringLiteral("remove-edge-with-keys"),
       [this, canvas, view, memo] {
         const bridge::GraphView graph = Graph();

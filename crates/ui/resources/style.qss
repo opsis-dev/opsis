@@ -56,6 +56,46 @@ QFrame[role="vrule"] {
   border: none;
 }
 
+QLabel[role="heading2"] {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+QLabel[role="title-small"] {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+QLabel[role="error-title"] {
+  color: @destructive;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+QLabel[role="badge-secondary"] {
+  background: @secondary;
+  border-radius: 8px;
+  padding: 1px 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+QFrame[role="alert"][tone="destructive"] {
+  border: 1px solid @destructive;
+}
+
+QPushButton[variant="link"] {
+  background: transparent;
+  border: none;
+  padding: 0;
+  min-height: 20px;
+  text-align: left;
+}
+
+QPushButton[variant="link"]:hover {
+  text-decoration: underline;
+}
+
 QLabel[role="badge"] {
   border: 1px solid @border;
   border-radius: 8px;

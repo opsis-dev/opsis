@@ -5,10 +5,13 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include "rust/cxx.h"
+
 namespace opsis {
 
 namespace bridge {
 struct FieldView;
+struct InspectorView;
 }
 
 class InspectorPanel : public QWidget {
@@ -20,6 +23,12 @@ class InspectorPanel : public QWidget {
 
  private:
   QWidget* MakeControl(const bridge::FieldView& field);
+  void AddHeader(QVBoxLayout* layout, const bridge::InspectorView& view,
+                 QWidget* content);
+  void AddProblems(QVBoxLayout* layout, const rust::Vec<rust::String>& problems,
+                   bool errors, QWidget* content);
+  void AddActions(QVBoxLayout* layout, const bridge::InspectorView& view,
+                  QWidget* content);
   void Commit(const QString& key, const QString& json);
   bool Editing() const;
 

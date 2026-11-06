@@ -60,6 +60,11 @@ pub trait Host {
     fn inspector(&self) -> InspectorView;
     fn set_param(&self, id: &str, key: &str, json: &str) -> HostResult<()>;
     fn rename_node(&self, id: &str, label: &str) -> HostResult<()>;
+    fn set_skipped(&self, id: &str, skipped: bool) -> HostResult<()>;
+    fn run_node(&self, id: &str, onwards: bool) -> HostResult<()>;
+    fn ungroup(&self, id: &str) -> HostResult<()>;
+    fn delete_node(&self, id: &str) -> HostResult<()>;
+    fn reveal_file(&self, path: &str) -> HostResult<()>;
     fn project(&self) -> ProjectView;
     fn variables(&self) -> Vec<VariableView>;
     fn project_edit(&self, json: &str) -> HostResult<()>;
@@ -310,6 +315,26 @@ impl Session {
 
     pub(crate) fn rename_node(&self, id: &str, label: &str) -> HostResult<()> {
         self.0.rename_node(id, label)
+    }
+
+    pub(crate) fn set_skipped(&self, id: &str, skipped: bool) -> HostResult<()> {
+        self.0.set_skipped(id, skipped)
+    }
+
+    pub(crate) fn run_node(&self, id: &str, onwards: bool) -> HostResult<()> {
+        self.0.run_node(id, onwards)
+    }
+
+    pub(crate) fn ungroup(&self, id: &str) -> HostResult<()> {
+        self.0.ungroup(id)
+    }
+
+    pub(crate) fn delete_node(&self, id: &str) -> HostResult<()> {
+        self.0.delete_node(id)
+    }
+
+    pub(crate) fn reveal_file(&self, path: &str) -> HostResult<()> {
+        self.0.reveal_file(path)
     }
 
     pub(crate) fn project(&self) -> ProjectView {

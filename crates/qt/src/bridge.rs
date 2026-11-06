@@ -323,10 +323,25 @@ pub mod ffi {
         title: String,
         label: String,
         category: String,
+        category_id: String,
         color: String,
         glyph: String,
         description: String,
         fields: Vec<FieldView>,
+        renamed: bool,
+        disabled: bool,
+        runs: bool,
+        group: bool,
+        running: bool,
+        errors: Vec<String>,
+        warnings: Vec<String>,
+        files: Vec<FileView>,
+    }
+
+    #[derive(Debug, Clone)]
+    struct FileView {
+        path: String,
+        label: String,
     }
 
     #[derive(Debug, Clone)]
@@ -402,6 +417,11 @@ pub mod ffi {
         fn inspector(self: &Session) -> InspectorView;
         fn set_param(self: &Session, id: &str, key: &str, json: &str) -> Result<()>;
         fn rename_node(self: &Session, id: &str, label: &str) -> Result<()>;
+        fn set_skipped(self: &Session, id: &str, skipped: bool) -> Result<()>;
+        fn run_node(self: &Session, id: &str, onwards: bool) -> Result<()>;
+        fn ungroup(self: &Session, id: &str) -> Result<()>;
+        fn delete_node(self: &Session, id: &str) -> Result<()>;
+        fn reveal_file(self: &Session, path: &str) -> Result<()>;
         fn project(self: &Session) -> ProjectView;
         fn variables(self: &Session) -> Vec<VariableView>;
         fn project_edit(self: &Session, json: &str) -> Result<()>;

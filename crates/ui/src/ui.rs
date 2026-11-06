@@ -8,12 +8,12 @@ use indexmap::IndexMap;
 use opsis_compile::canvas::{snap_to_grid, staggered};
 use opsis_compile::catalog::{EditorNode, editor_catalog};
 use opsis_compile::compile::compile_workflow;
-use opsis_compile::graph::connection_problem_now;
+use opsis_compile::graph::{IssueLevel, connection_problem_now};
 use opsis_compile::layout::auto_layout;
 use opsis_compile::node::Platform as NodePlatform;
 use opsis_compile::nodes::media::IMPORT_TYPE;
 use opsis_qt::{
-    BarView, CategoryView, Choice, CloseView, EventKind, GraphView, Host, HostResult,
+    BarView, CategoryView, Choice, CloseView, EventKind, FileView, GraphView, Host, HostResult,
     InspectorView, MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView, ProjectEntry,
     ProjectView, ScreenArea, SettingsView, TemplateView, TextToken, VariableView, WindowPlacement,
 };
@@ -855,10 +855,19 @@ impl Host for Ui {
             title: String::new(),
             label: String::new(),
             category: String::new(),
+            category_id: String::new(),
             color: String::new(),
             glyph: String::new(),
             description: String::new(),
             fields: Vec::new(),
+            renamed: false,
+            disabled: false,
+            runs: false,
+            group: false,
+            running: false,
+            errors: Vec::new(),
+            warnings: Vec::new(),
+            files: Vec::new(),
         };
         let Some(wf) = self.workflow() else {
             return empty;
@@ -870,15 +879,54 @@ impl Host for Ui {
             return empty;
         };
         let category = plain(&def.category);
+        let (errors, warnings) = {
+            let compiled = self.compiled.lock().expect("latest compile");
+            let of = |level: IssueLevel| -> Vec<String> {
+                compiled
+                    .issues
+                    .iter()
+                    .filter(|i| i.level == level && i.node_id.as_deref() == Some(&node.id))
+                    .map(|i| i.message.clone())
+                    .collect()
+            };
+            (of(IssueLevel::Error), of(IssueLevel::Warning))
+        };
+        let files = self
+            .state()
+            .editor()
+            .results
+            .get(&node.id)
+            .map_or_default(|result| {
+                result
+                    .artifacts
+                    .iter()
+                    .map(|a| FileView {
+                        path: a.path.clone(),
+                        label: a.label.clone().unwrap_or_else(|| a.path.clone()),
+                    })
+                    .collect()
+            });
         InspectorView {
             id: node.id.clone(),
             title: def.title.clone(),
             label: node.label.clone().unwrap_or_else(|| def.title.clone()),
             category: def.category_label.clone(),
+            category_id: category.clone(),
             color: look::category_color(&category).to_owned(),
             glyph: def.look.as_ref().map_or_default(|l| l.glyph.clone()),
             description: def.description.clone().unwrap_or_default(),
             fields: inspector::fields(def, node),
+            renamed: node
+                .label
+                .as_deref()
+                .is_some_and(|l| !l.is_empty() && l != def.title),
+            disabled: node.disabled.unwrap_or(false),
+            runs: def.executes || def.is_virtual,
+            group: opsis_compile::graph::is_group_node(node),
+            running: self.session.state::<RunHost>().is_running(),
+            errors,
+            warnings,
+            files,
         }
     }
 
@@ -1006,6 +1054,59 @@ impl Host for Ui {
 
     fn join_tokens(&self, tokens: Vec<TextToken>) -> String {
         project::join_tokens(&tokens)
+    }
+
+    fn set_skipped(&self, id: &str, skipped: bool) -> HostResult<()> {
+        self.edit(WorkflowEdit::UpdateNode {
+            id: id.to_owned(),
+            patch: NodePatch {
+                disabled: Some(skipped),
+                ..NodePatch::default()
+            },
+        })
+        .map(|_| ())
+        .map_err(|e| e.0)
+    }
+
+    fn run_node(&self, id: &str, onwards: bool) -> HostResult<()> {
+        let targets = if onwards {
+            RunTargets {
+                target_node_ids: None,
+                from_node_id: Some(id.to_owned()),
+            }
+        } else {
+            RunTargets {
+                target_node_ids: Some(vec![id.to_owned()]),
+                from_node_id: None,
+            }
+        };
+        self.runtime
+            .block_on(run::run_workflow(self.session.clone(), targets))
+            .map(|_| ())
+            .map_err(|e| e.0)
+    }
+
+    fn ungroup(&self, id: &str) -> HostResult<()> {
+        self.edit(WorkflowEdit::Ungroup { id: id.to_owned() })
+            .map(|_| ())
+            .map_err(|e| e.0)
+    }
+
+    fn delete_node(&self, id: &str) -> HostResult<()> {
+        Host::select(self, Vec::new());
+        self.edit(WorkflowEdit::RemoveNodes {
+            ids: vec![id.to_owned()],
+        })
+        .map(|_| ())
+        .map_err(|e| e.0)
+    }
+
+    fn reveal_file(&self, path: &str) -> HostResult<()> {
+        let Some(dir) = self.state().editor().dir() else {
+            return Ok(());
+        };
+        settings::reveal_in_folder(&self.session, &dir.to_string_lossy(), Some(path.to_owned()))
+            .map_err(|e| e.0)
     }
 
     fn save(&self) -> HostResult<()> {

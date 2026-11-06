@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QComboBox>
 #include <QDoubleValidator>
+#include <QFrame>
 #include <QHBoxLayout>
 #include <QJsonDocument>
 #include <QJsonValue>
@@ -26,6 +27,9 @@
 namespace opsis {
 
 namespace {
+
+constexpr int kHeaderBadge = 40;
+constexpr int kAlertIcon = 16;
 
 constexpr int kSegmentLimit = 3;
 
@@ -219,6 +223,162 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
   }
 }
 
+void InspectorPanel::AddHeader(QVBoxLayout* layout,
+                               const bridge::InspectorView& view,
+                               QWidget* content) {
+  auto* header = new QHBoxLayout();
+  header->setSpacing(12);
+  header->addWidget(
+      MakeBadge(ToQ(view.glyph), QColor::fromString(ToQ(view.color)),
+                kHeaderBadge, content),
+      0, Qt::AlignTop);
+  auto* names = new QVBoxLayout();
+  names->setSpacing(4);
+  auto* name = MakeLabel(ToQ(view.label), "heading2", content);
+  names->addWidget(name);
+  auto* badges = new QHBoxLayout();
+  badges->setSpacing(4);
+  auto* category = MakeLabel(ToQ(view.category), "badge-secondary", content);
+  badges->addWidget(category);
+  if (view.renamed)
+    badges->addWidget(MakeLabel(ToQ(view.title), "badge", content));
+  badges->addStretch(1);
+  names->addLayout(badges);
+  header->addLayout(names, 1);
+  layout->addLayout(header);
+  if (!view.description.empty()) {
+    auto* about = MakeLabel(ToQ(view.description), "muted", content);
+    about->setWordWrap(true);
+    layout->addWidget(about);
+  }
+  AddProblems(layout, view.errors, true, content);
+  AddProblems(layout, view.warnings, false, content);
+  const QString node = node_;
+  auto* label =
+      new QLineEdit(view.renamed ? ToQ(view.label) : QString(), content);
+  label->setPlaceholderText(ToQ(view.title));
+  const QString initial = label->text();
+  connect(label, &QLineEdit::editingFinished, this, [node, label, initial] {
+    if (label->text() == initial) return;
+    try {
+      App::Get().session().rename_node(ToRust(node), ToRust(label->text()));
+    } catch (const rust::Error& error) {
+      App::Get().ShowError(QString::fromUtf8(error.what()));
+    }
+  });
+  layout->addWidget(MakeField(
+      QStringLiteral("Name"), label,
+      ToQ(view.category_id) == QStringLiteral("Browser")
+          ? QStringLiteral("Also used by the camera, chapters and captions.")
+          : QString(),
+      content));
+  auto* skip = new ToggleSwitch(content);
+  skip->SetCheckedQuietly(view.disabled);
+  connect(skip, &ToggleSwitch::toggled, this, [node](bool on) {
+    try {
+      App::Get().session().set_skipped(ToRust(node), on);
+    } catch (const rust::Error& error) {
+      App::Get().ShowError(QString::fromUtf8(error.what()));
+    }
+  });
+  layout->addWidget(MakeSwitchField(QStringLiteral("Skip this node"), skip,
+                                    QString(), content));
+}
+
+void InspectorPanel::AddProblems(QVBoxLayout* layout,
+                                 const rust::Vec<rust::String>& problems,
+                                 bool errors, QWidget* content) {
+  if (problems.empty()) return;
+  auto* alert = new QFrame(content);
+  alert->setProperty("role", "alert");
+  alert->setProperty("tone", errors ? "destructive" : "default");
+  auto* box = new QVBoxLayout(alert);
+  box->setContentsMargins(12, 10, 12, 10);
+  box->setSpacing(4);
+  const auto count = problems.size();
+  const QString title =
+      errors
+          ? (count == 1 ? QStringLiteral("Something needs attention")
+                        : QStringLiteral("%1 things need attention").arg(count))
+          : (count == 1 ? QStringLiteral("Something to check")
+                        : QStringLiteral("%1 things to check").arg(count));
+  auto* head = new QHBoxLayout();
+  head->setSpacing(8);
+  auto* icon = new QLabel(alert);
+  icon->setPixmap(App::Get().Glyph(
+      QStringLiteral("circle-alert"),
+      App::Get().Token(errors ? "destructive" : "foreground"), kAlertIcon));
+  head->addWidget(icon);
+  head->addWidget(
+      MakeLabel(title, errors ? "error-title" : "title-small", alert), 1);
+  box->addLayout(head);
+  for (const auto& problem : problems) {
+    auto* line = MakeLabel(ToQ(problem), errors ? "error" : "muted", alert);
+    line->setWordWrap(true);
+    line->setContentsMargins(kAlertIcon + 8, 0, 0, 0);
+    box->addWidget(line);
+  }
+  layout->addWidget(alert);
+}
+
+void InspectorPanel::AddActions(QVBoxLayout* layout,
+                                const bridge::InspectorView& view,
+                                QWidget* content) {
+  const QString node = node_;
+  auto* row = new QHBoxLayout();
+  row->setSpacing(8);
+  const auto guard = [](const std::function<void()>& action) {
+    try {
+      action();
+    } catch (const rust::Error& error) {
+      App::Get().ShowError(QString::fromUtf8(error.what()));
+    }
+  };
+  if (view.runs) {
+    auto* run = MakeButton(QStringLiteral("Run this"), "primary",
+                           QStringLiteral("play"), content);
+    run->setEnabled(!view.running);
+    connect(run, &QPushButton::clicked, this, [node, guard] {
+      guard([&] { App::Get().session().run_node(ToRust(node), false); });
+    });
+    row->addWidget(run);
+    auto* again = MakeButton(QStringLiteral("Re-run from here"), nullptr,
+                             QStringLiteral("rotate-ccw"), content);
+    again->setEnabled(!view.running);
+    connect(again, &QPushButton::clicked, this, [node, guard] {
+      guard([&] { App::Get().session().run_node(ToRust(node), true); });
+    });
+    row->addWidget(again);
+  }
+  if (view.group) {
+    auto* ungroup = MakeButton(QStringLiteral("Ungroup"), nullptr,
+                               QStringLiteral("ungroup"), content);
+    connect(ungroup, &QPushButton::clicked, this, [node, guard] {
+      guard([&] { App::Get().session().ungroup(ToRust(node)); });
+    });
+    row->addWidget(ungroup);
+  }
+  auto* remove = MakeButton(QStringLiteral("Delete"), "ghost",
+                            QStringLiteral("trash-2"), content);
+  connect(remove, &QPushButton::clicked, this, [node, guard] {
+    guard([&] { App::Get().session().delete_node(ToRust(node)); });
+  });
+  row->addWidget(remove);
+  row->addStretch(1);
+  layout->addLayout(row);
+  if (view.files.empty()) return;
+  layout->addWidget(MakeLabel(QStringLiteral("Files"), "title-small", content));
+  for (const auto& file : view.files) {
+    auto* link = MakeButton(ToQ(file.label), "link",
+                            QStringLiteral("external-link"), content);
+    const QString path = ToQ(file.path);
+    connect(link, &QPushButton::clicked, this, [path, guard] {
+      guard([&] { App::Get().session().reveal_file(ToRust(path)); });
+    });
+    layout->addWidget(link, 0, Qt::AlignLeft);
+  }
+}
+
 void InspectorPanel::Rebuild() {
   App& app = App::Get();
   const bridge::InspectorView view = app.session().inspector();
@@ -240,33 +400,7 @@ void InspectorPanel::Rebuild() {
     layout->addWidget(empty);
     layout->addStretch(2);
   } else {
-    auto* header = new QHBoxLayout();
-    header->setSpacing(10);
-    header->addWidget(MakeBadge(
-        ToQ(view.glyph), QColor::fromString(ToQ(view.color)), 28, content));
-    auto* name = new QLineEdit(ToQ(view.label), content);
-    name->setProperty("role", "flat");
-    const QString node = node_;
-    const QString initial = ToQ(view.label);
-    connect(name, &QLineEdit::editingFinished, this, [node, name, initial] {
-      if (name->text() == initial) return;
-      try {
-        App::Get().session().rename_node(ToRust(node), ToRust(name->text()));
-      } catch (const rust::Error& error) {
-        App::Get().ShowError(QString::fromUtf8(error.what()));
-      }
-    });
-    header->addWidget(name, 1);
-    layout->addLayout(header);
-    auto* category =
-        MakeLabel(ToQ(view.category) + QStringLiteral(" · ") + ToQ(view.title),
-                  "muted", content);
-    layout->addWidget(category);
-    if (!view.description.empty()) {
-      auto* about = MakeLabel(ToQ(view.description), "muted", content);
-      about->setWordWrap(true);
-      layout->addWidget(about);
-    }
+    AddHeader(layout, view, content);
     layout->addWidget(MakeRule(content));
     QList<QWidget*> advanced;
     for (const auto& field : view.fields) {
@@ -305,6 +439,8 @@ void InspectorPanel::Rebuild() {
         for (QWidget* row : advanced) row->setVisible(advanced_open_);
       });
     }
+    layout->addWidget(MakeRule(content));
+    AddActions(layout, view, content);
     layout->addStretch(1);
   }
   const int scroll = scroll_->verticalScrollBar() != nullptr
