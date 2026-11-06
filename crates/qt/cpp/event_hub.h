@@ -21,6 +21,8 @@ class EventHub : public QObject {
   void Saved();
   void CloseAsked();
   void FlushDrafts();
+  void CompiledChanged();
+  void RunChanged();
   void Notice(const QString& title, const QString& body);
 
  private:

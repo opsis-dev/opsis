@@ -36,6 +36,12 @@ void EventHub::Dispatch(std::uint8_t kind) {
     case bridge::EventKind::FlushDrafts:
       emit FlushDrafts();
       break;
+    case bridge::EventKind::Compiled:
+      emit CompiledChanged();
+      break;
+    case bridge::EventKind::Run:
+      emit RunChanged();
+      break;
     default:
       break;
   }

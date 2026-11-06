@@ -7,7 +7,7 @@ use opsis_types::settings::{SettingsBook, settings_book};
 use opsis_types::terminal::TerminalTheme;
 use opsis_types::timeline::Ease;
 use opsis_types::workflow::{PortType, Theme, Workflow};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::envelope::{EnvelopeTrack, envelope_tracks};
@@ -24,7 +24,9 @@ use crate::sounds::{builtin_songs, builtin_sounds};
 use crate::timeline::camera_path::{CAMERA_DIALS, CameraDial};
 use crate::vars::{PAUSE_MARK, VAR_PATTERN};
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, schemars::JsonSchema, specta::Type)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema, specta::Type,
+)]
 #[schemars(rename = "Port")]
 pub struct CatalogPort {
     #[serde(rename = "type")]

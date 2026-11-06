@@ -27,13 +27,14 @@ use opsis_types::events::RunTargets;
 use opsis_types::settings::settings_book;
 use opsis_types::shell::{CloseDecision, CloseRequest, MenuCommand, Selection};
 use opsis_types::workflow::{Position, WORKFLOW_FILE, Workflow};
+use serde::Deserialize;
 use serde_json::{Map, Value};
 use tokio::runtime::Runtime;
 use tokio::sync::broadcast::error::RecvError;
 
 use crate::platform::QtPlatform;
 use crate::project::Extras;
-use crate::{graph, inspector, look, project};
+use crate::{clipboard, graph, inspector, look, project};
 
 const LAYOUT_KEY: &str = "nativeDockLayout";
 const BENCH_KINDS: [&str; 4] = [
@@ -53,6 +54,7 @@ pub struct Ui {
     catalog: IndexMap<String, EditorNode>,
     showing: AtomicBool,
     closing: Arc<Mutex<Option<CloseRequest>>>,
+    compiled: Arc<Mutex<graph::Compiled>>,
     started: Instant,
 }
 
@@ -115,6 +117,7 @@ const fn event_kind(event: &SessionEvent) -> Option<EventKind> {
         }
         SessionEvent::SelectionShared(_) => Some(EventKind::Selection),
         SessionEvent::SettingsChanged(_) => Some(EventKind::Settings),
+        SessionEvent::RunViewChanged(_) | SessionEvent::RunStateReset(_) => Some(EventKind::Run),
         _ => None,
     }
 }
@@ -132,6 +135,7 @@ impl Ui {
             catalog,
             showing: AtomicBool::new(false),
             closing: Arc::new(Mutex::new(None)),
+            compiled: Arc::new(Mutex::new(graph::Compiled::default())),
             started: Instant::now(),
         }
     }
@@ -273,6 +277,30 @@ impl Ui {
         .map_err(|e| e.0)
     }
 
+    fn issues(
+        &self,
+        wf: &Workflow,
+        results: &IndexMap<String, opsis_types::values::NodeResult>,
+    ) -> Vec<opsis_qt::IssueView> {
+        let compiled = self.compiled.lock().expect("latest compile");
+        if compiled.seq == 0 {
+            return project::issues(wf, results);
+        }
+        project::issue_views(compiled.issues.iter().cloned())
+    }
+
+    fn paste(&self, subgraph: clipboard::Subgraph) -> HostResult<()> {
+        let ids = self
+            .edit(WorkflowEdit::Paste {
+                nodes: subgraph.nodes,
+                edges: subgraph.edges,
+                offset: clipboard::PASTE_OFFSET,
+            })
+            .map_err(|e| e.0)?;
+        Host::select(self, ids);
+        Ok(())
+    }
+
     fn font_families(&self, wf: &Workflow) -> Vec<String> {
         let choices = self.runtime.block_on(opsis_session::fonts::font_choices(
             &self.session,
@@ -314,12 +342,22 @@ impl Host for Ui {
     fn start_pump(&self) {
         let mut events = self.session.subscribe();
         let closing = Arc::clone(&self.closing);
+        let compiled = Arc::clone(&self.compiled);
         std::thread::spawn(move || {
             loop {
                 match events.blocking_recv() {
                     Ok(addressed) => {
                         if let SessionEvent::ConfirmClose(asked) = &addressed.event {
                             *closing.lock().expect("close question") = Some(asked.0.clone());
+                        }
+                        if let SessionEvent::Compiled(value) = &addressed.event {
+                            match graph::Compiled::deserialize(&value.0) {
+                                Ok(latest) => {
+                                    *compiled.lock().expect("latest compile") = latest;
+                                    opsis_qt::post_event(EventKind::Compiled);
+                                }
+                                Err(error) => log::warn!("reading the compile: {error}"),
+                            }
                         }
                         let mine = addressed.to.as_deref().is_none_or(|to| to == MAIN_WINDOW);
                         if let Some(kind) = event_kind(&addressed.event).filter(|_| mine) {
@@ -489,7 +527,11 @@ impl Host for Ui {
             };
         };
         let wf = &state.workflow;
-        let nodes = graph::cards(wf, &self.catalog);
+        let run = run::run_state(&self.session).view.progress;
+        let nodes = {
+            let compiled = self.compiled.lock().expect("latest compile");
+            graph::cards(wf, &self.catalog, &compiled, &run)
+        };
         let edges = graph::edges(wf, &nodes);
         GraphView {
             name: wf.name.clone(),
@@ -751,7 +793,7 @@ impl Host for Ui {
             &wf,
             Extras {
                 fonts: self.font_families(&wf),
-                issues: project::issues(&wf, &results),
+                issues: self.issues(&wf, &results),
                 running: self.session.state::<RunHost>().is_running(),
                 selected: u32::try_from(selected).unwrap_or(u32::MAX),
             },
@@ -772,6 +814,32 @@ impl Host for Ui {
             return Ok(());
         };
         projects::clear_cache(&self.session, &dir.to_string_lossy()).map_err(|e| e.0)
+    }
+
+    fn copy_selection(&self) -> String {
+        let ids = shared::shared_state(&self.session).selection.selected_ids;
+        self.workflow()
+            .and_then(|wf| clipboard::selected(&wf, &ids))
+            .map_or_default(|subgraph| clipboard::copy_text(&subgraph))
+    }
+
+    fn paste_text(&self, text: &str) -> HostResult<()> {
+        match clipboard::read(text) {
+            clipboard::Pasted::Foreign => Ok(()),
+            clipboard::Pasted::Unreadable => Err(clipboard::UNREADABLE.to_owned()),
+            clipboard::Pasted::Nodes(subgraph) => self.paste(subgraph),
+        }
+    }
+
+    fn duplicate_selection(&self) -> HostResult<()> {
+        let ids = shared::shared_state(&self.session).selection.selected_ids;
+        match self
+            .workflow()
+            .and_then(|wf| clipboard::selected(&wf, &ids))
+        {
+            Some(subgraph) => self.paste(subgraph),
+            None => Ok(()),
+        }
     }
 
     fn text_tokens(&self, value: &str, pauses: bool) -> Vec<TextToken> {

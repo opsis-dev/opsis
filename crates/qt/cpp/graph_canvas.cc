@@ -1,8 +1,12 @@
 #include "graph_canvas.h"
 
 #include <QApplication>
+#include <QClipboard>
+#include <QConicalGradient>
 #include <QElapsedTimer>
+#include <QFontMetricsF>
 #include <QGraphicsSceneMouseEvent>
+#include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QKeyEvent>
 #include <QMimeData>
@@ -12,6 +16,7 @@
 #include <QScrollBar>
 #include <QStyleOptionGraphicsItem>
 #include <QToolButton>
+#include <QVariantAnimation>
 #include <algorithm>
 #include <cmath>
 #include <vector>
@@ -35,6 +40,18 @@ constexpr double kCorner = 8.0;
 constexpr double kGridGap = 20.0;
 constexpr double kMinZoom = 0.1;
 constexpr double kMaxZoom = 2.5;
+constexpr int kRevealMs = 300;
+constexpr double kMinRevealZoom = 0.8;
+constexpr double kRevealPadding = 0.4;
+constexpr double kRingOut = 3.0;
+constexpr double kBadgeHeight = 20.0;
+constexpr double kBadgeIcon = 12.0;
+constexpr double kBadgePad = 6.0;
+constexpr int kBadgeFillAlpha = 40;
+constexpr double kProgressBar = 4.0;
+constexpr double kProgressHeight = 28.0;
+constexpr int kSpinFrameMs = 33;
+constexpr double kSpinStep = 6.0;
 constexpr double kDetailZoom = 0.12;
 constexpr int kToastMs = 3200;
 constexpr int kMinimapWidth = 200;
@@ -95,7 +112,8 @@ void CardItem::SetCard(const bridge::CardView& card) {
 }
 
 QRectF CardItem::boundingRect() const {
-  return {-kPortHit, -2, card_.width + 2 * kPortHit, card_.height + 4};
+  return {-kPortHit, -kRingOut, card_.width + 2 * kPortHit,
+          card_.height + 2 * kRingOut};
 }
 
 QPainterPath CardItem::shape() const {
@@ -199,6 +217,7 @@ void CardItem::PaintCard(QPainter* painter, bool detailed) {
   painter->setBrush(app.Token("card"));
   painter->drawRoundedRect(body.adjusted(0.5, 0.5, -0.5, -0.5), kRadius,
                            kRadius);
+  PaintRing(painter, body);
   if (!detailed) {
     painter->setPen(Qt::NoPen);
     painter->setBrush(accent);
@@ -222,11 +241,13 @@ void CardItem::PaintCard(QPainter* painter, bool detailed) {
   QFont title = QApplication::font();
   title.setPixelSize(14);
   title.setWeight(QFont::DemiBold);
+  const double badge_width = PaintBadge(painter);
+  const double title_width = card_.width - 56 - badge_width;
   painter->setFont(title);
   painter->setPen(app.Token("foreground"));
-  painter->drawText(QRectF(44, 0, card_.width - 56, kHeader),
+  painter->drawText(QRectF(44, 0, title_width, kHeader),
                     Qt::AlignVCenter | Qt::AlignLeft,
-                    Elided(title, ToQ(card_.title), card_.width - 56));
+                    Elided(title, ToQ(card_.title), title_width));
   QFont small = QApplication::font();
   small.setPixelSize(12);
   painter->setFont(small);
@@ -267,11 +288,36 @@ void CardItem::PaintCard(QPainter* painter, bool detailed) {
                       Elided(small, ToQ(row.text), card_.width - 44));
     y += kRowHeight;
   }
-  if (!card_.problem.empty()) {
-    painter->setPen(app.Token("destructive"));
+  if (card_.progress >= 0) {
+    const QRectF track(12, y + 6, card_.width - 24, kProgressBar);
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(app.Token("muted"));
+    painter->drawRoundedRect(track, kProgressBar / 2, kProgressBar / 2);
+    painter->setBrush(app.Token("primary"));
+    painter->drawRoundedRect(
+        QRectF(track.topLeft(),
+               QSizeF(track.width() * card_.progress, track.height())),
+        kProgressBar / 2, kProgressBar / 2);
+    if (!card_.progress_message.empty()) {
+      QFont tiny = small;
+      tiny.setPixelSize(11);
+      painter->setFont(tiny);
+      painter->setPen(app.Token("muted-foreground"));
+      painter->drawText(
+          QRectF(12, y + 10, card_.width - 24, 16),
+          Qt::AlignVCenter | Qt::AlignLeft,
+          Elided(tiny, ToQ(card_.progress_message), card_.width - 24));
+      painter->setFont(small);
+    }
+    y += kProgressHeight;
+  }
+  const bool error = !card_.problem.empty();
+  if (error || !card_.warning.empty()) {
+    painter->setPen(error ? app.Token("destructive")
+                          : app.Token("muted-foreground"));
     painter->drawText(QRectF(12, y, card_.width - 24, kRowHeight * 2),
                       Qt::AlignTop | Qt::AlignLeft | Qt::TextWordWrap,
-                      ToQ(card_.problem));
+                      ToQ(error ? card_.problem : card_.warning));
   }
   if (isSelected()) {
     painter->setOpacity(1.0);
@@ -280,6 +326,68 @@ void CardItem::PaintCard(QPainter* painter, bool detailed) {
     painter->drawRoundedRect(body.adjusted(-2, -2, 2, 2), kRadius + 2,
                              kRadius + 2);
   }
+}
+
+void CardItem::PaintRing(QPainter* painter, const QRectF& body) {
+  if (card_.ring.empty()) return;
+  App& app = App::Get();
+  const QRectF ring = body.adjusted(-kRingOut, -kRingOut, kRingOut, kRingOut);
+  QPen pen(Qt::NoPen);
+  if (card_.ring == "loading") {
+    QConicalGradient sweep(ring.center(), -canvas_->spin_angle());
+    const QColor bright = app.Token("primary");
+    QColor faint = bright;
+    faint.setAlpha(0);
+    sweep.setColorAt(0.0, bright);
+    sweep.setColorAt(0.35, faint);
+    sweep.setColorAt(0.65, faint);
+    sweep.setColorAt(1.0, bright);
+    pen = QPen(QBrush(sweep), 2);
+  } else {
+    pen = QPen(app.Token(card_.ring == "error" ? "destructive" : "success"), 2);
+  }
+  painter->save();
+  painter->setBrush(Qt::NoBrush);
+  painter->setPen(pen);
+  painter->drawRoundedRect(ring, kRadius + kRingOut, kRadius + kRingOut);
+  painter->restore();
+}
+
+double CardItem::PaintBadge(QPainter* painter) {
+  if (card_.badge.empty()) return 0;
+  App& app = App::Get();
+  QFont font = QApplication::font();
+  font.setPixelSize(11);
+  font.setWeight(QFont::Medium);
+  const QString label = ToQ(card_.badge);
+  const double text_width = QFontMetricsF(font).horizontalAdvance(label);
+  const double width = text_width + kBadgeIcon + 3 * kBadgePad;
+  const QRectF pill(card_.width - 12 - width, (kHeader - kBadgeHeight) / 2,
+                    width, kBadgeHeight);
+  const QString tone = ToQ(card_.badge_tone);
+  QColor ink = app.Token("foreground");
+  painter->setBrush(Qt::NoBrush);
+  painter->setPen(QPen(app.Token("border"), 1));
+  if (tone == QStringLiteral("secondary")) {
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(app.Token("secondary"));
+  } else if (tone == QStringLiteral("destructive")) {
+    ink = app.Token("destructive");
+    QColor fill = ink;
+    fill.setAlpha(kBadgeFillAlpha);
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(fill);
+  }
+  painter->drawRoundedRect(pill, kBadgeHeight / 2, kBadgeHeight / 2);
+  painter->drawPixmap(
+      QPointF(pill.x() + kBadgePad, pill.center().y() - kBadgeIcon / 2),
+      app.Glyph(ToQ(card_.badge_icon), ink, static_cast<int>(kBadgeIcon)));
+  painter->setFont(font);
+  painter->setPen(ink);
+  painter->drawText(QRectF(pill.x() + 2 * kBadgePad + kBadgeIcon, pill.y(),
+                           text_width + kBadgePad, pill.height()),
+                    Qt::AlignVCenter | Qt::AlignLeft, label);
+  return width + 8;
 }
 
 void CardItem::PaintGroup(QPainter* painter) {
@@ -432,6 +540,17 @@ GraphCanvas::GraphCanvas(QWidget* parent) : QGraphicsView(parent) {
   connect(&sync_timer_, &QTimer::timeout, this, &GraphCanvas::Sync);
   connect(EventHub::Instance(), &EventHub::DocumentChanged, &sync_timer_,
           qOverload<>(&QTimer::start));
+  connect(EventHub::Instance(), &EventHub::CompiledChanged, &sync_timer_,
+          qOverload<>(&QTimer::start));
+  connect(EventHub::Instance(), &EventHub::RunChanged, &sync_timer_,
+          qOverload<>(&QTimer::start));
+  spin_timer_.setInterval(kSpinFrameMs);
+  connect(&spin_timer_, &QTimer::timeout, this, [this] {
+    spin_angle_ = std::fmod(spin_angle_ + kSpinStep, 360.0);
+    for (CardItem* card : cards_) {
+      if (card->card().ring == "loading") card->update();
+    }
+  });
   connect(EventHub::Instance(), &EventHub::Notice, this,
           [this](const QString& title, const QString& body) {
             Toast(body.isEmpty() ? title : title + QStringLiteral(": ") + body,
@@ -467,13 +586,20 @@ void GraphCanvas::Sync() {
       (*found)->SetCard(card);
     }
   }
+  bool spinning = false;
   for (auto it = cards_.begin(); it != cards_.end();) {
     if (!seen.contains(it.key())) {
       delete it.value();
       it = cards_.erase(it);
     } else {
+      spinning = spinning || it.value()->card().ring == "loading";
       ++it;
     }
+  }
+  if (spinning && !ReducedMotion()) {
+    if (!spin_timer_.isActive()) spin_timer_.start();
+  } else {
+    spin_timer_.stop();
   }
   seen.clear();
   for (const auto& edge : graph.edges) {
@@ -674,6 +800,43 @@ void GraphCanvas::FitAll() {
   minimap_->viewport()->update();
 }
 
+void GraphCanvas::Reveal(const QString& id) {
+  CardItem* card = cards_.value(id);
+  if (card == nullptr) return;
+  const QRectF target = card->sceneBoundingRect();
+  const QRectF visible = mapToScene(viewport()->rect()).boundingRect();
+  if (visible.contains(target)) return;
+  const QSizeF view = viewport()->size();
+  const double fit =
+      std::min(view.width() / target.width(), view.height() / target.height()) /
+      (1.0 + kRevealPadding);
+  const double end_zoom = std::clamp(
+      std::min(fit, std::max(zoom(), kMinRevealZoom)), kMinZoom, kMaxZoom);
+  const double start_zoom = zoom();
+  const QPointF start = visible.center();
+  const QPointF end = target.center();
+  const auto apply = [this, start_zoom, end_zoom, start, end](double t) {
+    const double scale = start_zoom + (end_zoom - start_zoom) * t;
+    setTransform(QTransform::fromScale(scale, scale));
+    centerOn(start + (end - start) * t);
+    emit ZoomChanged(scale);
+    minimap_->viewport()->update();
+  };
+  const int ms = MotionMs(kRevealMs);
+  if (ms == 0) {
+    apply(1.0);
+    return;
+  }
+  auto* animation = new QVariantAnimation(this);
+  animation->setDuration(ms);
+  animation->setStartValue(0.0);
+  animation->setEndValue(1.0);
+  animation->setEasingCurve(EaseOut());
+  connect(animation, &QVariantAnimation::valueChanged, this,
+          [apply](const QVariant& value) { apply(value.toDouble()); });
+  animation->start(QAbstractAnimation::DeleteWhenStopped);
+}
+
 void GraphCanvas::SetMinimapVisible(bool visible) {
   minimap_->setVisible(visible);
 }
@@ -784,7 +947,44 @@ void GraphCanvas::keyPressEvent(QKeyEvent* event) {
     event->accept();
     return;
   }
+  if (event->matches(QKeySequence::Copy)) {
+    copy();
+    event->accept();
+    return;
+  }
+  if (event->matches(QKeySequence::Paste)) {
+    paste();
+    event->accept();
+    return;
+  }
+  if (event->key() == Qt::Key_D && event->modifiers() == Qt::ControlModifier) {
+    Duplicate();
+    event->accept();
+    return;
+  }
   QGraphicsView::keyPressEvent(event);
+}
+
+void GraphCanvas::copy() {
+  const QString text = ToQ(App::Get().session().copy_selection());
+  if (!text.isEmpty()) QGuiApplication::clipboard()->setText(text);
+}
+
+void GraphCanvas::paste() {
+  try {
+    App::Get().session().paste_text(
+        ToRust(QGuiApplication::clipboard()->text()));
+  } catch (const rust::Error& error) {
+    Toast(QString::fromUtf8(error.what()), true);
+  }
+}
+
+void GraphCanvas::Duplicate() {
+  try {
+    App::Get().session().duplicate_selection();
+  } catch (const rust::Error& error) {
+    Toast(QString::fromUtf8(error.what()), true);
+  }
 }
 
 void GraphCanvas::resizeEvent(QResizeEvent* event) {

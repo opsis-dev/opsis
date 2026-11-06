@@ -68,6 +68,12 @@ InspectorPanel::InspectorPanel(QWidget* parent) : QWidget(parent) {
   });
   connect(EventHub::Instance(), &EventHub::ProjectChanged, this,
           &InspectorPanel::Rebuild);
+  const auto refresh_project = [this] {
+    if (node_.isEmpty() && !Editing()) Rebuild();
+  };
+  connect(EventHub::Instance(), &EventHub::CompiledChanged, this,
+          refresh_project);
+  connect(EventHub::Instance(), &EventHub::RunChanged, this, refresh_project);
   connect(qApp, &QApplication::focusChanged, this, [this](QWidget*, QWidget*) {
     App::Get().session().report_drafts(Editing());
   });

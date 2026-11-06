@@ -49,6 +49,8 @@ class CardItem : public QGraphicsItem {
 
  private:
   void PaintCard(QPainter* painter, bool detailed);
+  void PaintRing(QPainter* painter, const QRectF& body);
+  double PaintBadge(QPainter* painter);
   void PaintGroup(QPainter* painter);
   void PaintNote(QPainter* painter);
 
@@ -89,7 +91,13 @@ class GraphCanvas : public QGraphicsView {
   void SelectAll();
   void ZoomBy(double factor, const QPointF& anchor);
   double zoom() const;
+  double spin_angle() const { return spin_angle_; }
   void SetMinimapVisible(bool visible);
+  void Reveal(const QString& id);
+  Q_INVOKABLE void copy();
+  Q_INVOKABLE void paste();
+  Q_INVOKABLE void selectAll() { SelectAll(); }
+  void Duplicate();
   bool minimap_visible() const;
   void CardMoved(const QString& id);
   void BeginConnect(const PortHit& from);
@@ -139,6 +147,8 @@ class GraphCanvas : public QGraphicsView {
   QLabel* toast_ = nullptr;
   QTimer toast_timer_;
   QTimer sync_timer_;
+  QTimer spin_timer_;
+  double spin_angle_ = 0;
   QPoint pan_from_;
   bool panning_ = false;
   bool syncing_ = false;

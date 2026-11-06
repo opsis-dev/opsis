@@ -11,6 +11,8 @@ pub mod ffi {
         Saved,
         CloseAsked,
         FlushDrafts,
+        Compiled,
+        Run,
     }
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -190,7 +192,15 @@ pub mod ffi {
         rows: Vec<RowView>,
         disabled: bool,
         problem: String,
+        warning: String,
         text: String,
+        badge: String,
+        badge_icon: String,
+        badge_tone: String,
+        badge_tip: String,
+        ring: String,
+        progress: f64,
+        progress_message: String,
     }
 
     #[derive(Debug, Clone)]
@@ -352,6 +362,9 @@ pub mod ffi {
         fn variables(self: &Session) -> Vec<VariableView>;
         fn project_edit(self: &Session, json: &str) -> Result<()>;
         fn clear_saved_results(self: &Session) -> Result<()>;
+        fn copy_selection(self: &Session) -> String;
+        fn paste_text(self: &Session, text: &str) -> Result<()>;
+        fn duplicate_selection(self: &Session) -> Result<()>;
         fn text_tokens(self: &Session, value: &str, pauses: bool) -> Vec<TextToken>;
         fn join_tokens(self: &Session, tokens: Vec<TextToken>) -> String;
         fn save(self: &Session) -> Result<()>;

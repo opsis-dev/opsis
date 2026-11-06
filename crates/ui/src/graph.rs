@@ -5,10 +5,13 @@ use opsis_compile::cards::{CardSources, workflow_cards};
 use opsis_compile::catalog::{CatalogPort, EditorNode, node_inputs};
 use opsis_compile::compile::compile_workflow;
 use opsis_compile::edits::workflow::absolute_position;
+use opsis_compile::graph::{GraphIssue, IssueLevel};
 use opsis_compile::lanes::{LaneBox, LaneEdge, step_positions};
 use opsis_qt::{CardKind, CardView, EdgeView, PortView, RowView};
 use opsis_types::cards::CardRow;
+use opsis_types::events::{NodeRunStatus, RunProgress};
 use opsis_types::workflow::{Workflow, WorkflowNode};
+use serde::Deserialize;
 use serde_json::Value;
 
 use crate::look;
@@ -20,38 +23,178 @@ const PORT_ROW: f64 = 20.0;
 const PORT_GAP: f64 = 4.0;
 const CARD_ROW: f64 = 22.0;
 const NOTE_HEIGHT: f64 = 120.0;
+const PROGRESS_HEIGHT: f64 = 28.0;
 const GROUP_WIDTH: f64 = 240.0;
 const GROUP_HEIGHT: f64 = 160.0;
 const GROUP_TYPE: &str = "core.group";
 const NOTE_TYPE: &str = "core.note";
 
-pub fn cards(wf: &Workflow, catalog: &IndexMap<String, EditorNode>) -> Vec<CardView> {
-    let compiled = compile_workflow(wf, None);
-    let gone = |_: &str| false;
-    let sources = CardSources {
-        compiled: &compiled,
-        results: None,
-        secrets: None,
-        gone: &gone,
+#[derive(Debug, Default, Deserialize)]
+pub struct CompiledErrors {
+    #[serde(default)]
+    pub errors: IndexMap<String, String>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Compiled {
+    #[serde(default)]
+    pub seq: u64,
+    #[serde(default)]
+    pub result: CompiledErrors,
+    #[serde(default)]
+    pub issues: Vec<GraphIssue>,
+    #[serde(default)]
+    pub cards: IndexMap<String, Vec<CardRow>>,
+    #[serde(default)]
+    pub inputs: IndexMap<String, IndexMap<String, CatalogPort>>,
+    #[serde(default)]
+    pub outdated: Vec<String>,
+}
+
+#[derive(Debug, Default)]
+struct Badge {
+    label: &'static str,
+    icon: &'static str,
+    tone: &'static str,
+    tip: &'static str,
+}
+
+const fn badge(status: Option<NodeRunStatus>, changed: bool) -> Option<Badge> {
+    if changed {
+        return Some(Badge {
+            label: "Changed",
+            icon: "refresh-cw",
+            tone: "outline",
+            tip: "Changed since the last run",
+        });
+    }
+    let (label, icon, tone, tip) = match status {
+        Some(NodeRunStatus::Queued) => ("Waiting", "clock", "outline", ""),
+        Some(NodeRunStatus::Done) => ("Done", "circle-check", "outline", ""),
+        Some(NodeRunStatus::Cached) => ("Up to date", "check-check", "secondary", ""),
+        Some(NodeRunStatus::Skipped) => (
+            "Skipped",
+            "circle-slash",
+            "outline",
+            "Something before it failed",
+        ),
+        Some(NodeRunStatus::Error) => ("Failed", "circle-x", "destructive", ""),
+        _ => return None,
     };
-    let rows = workflow_cards(wf, &sources);
-    let inputs = node_inputs(wf);
+    Some(Badge {
+        label,
+        icon,
+        tone,
+        tip,
+    })
+}
+
+const fn settled(status: Option<NodeRunStatus>) -> bool {
+    matches!(
+        status,
+        None | Some(NodeRunStatus::Idle | NodeRunStatus::Done | NodeRunStatus::Cached)
+    )
+}
+
+fn apply_run(view: &mut CardView, run: &RunProgress, outdated: bool) {
+    let status = run.statuses.get(&view.id).copied();
+    let changed = outdated && settled(status);
+    if let Some(found) = badge(status, changed) {
+        found.label.clone_into(&mut view.badge);
+        found.icon.clone_into(&mut view.badge_icon);
+        found.tone.clone_into(&mut view.badge_tone);
+        found.tip.clone_into(&mut view.badge_tip);
+    }
+    let ring = match status {
+        Some(NodeRunStatus::Running) => "loading",
+        Some(NodeRunStatus::Error) => "error",
+        Some(NodeRunStatus::Done | NodeRunStatus::Cached) if !changed => "done",
+        _ => "",
+    };
+    ring.clone_into(&mut view.ring);
+    if status == Some(NodeRunStatus::Running)
+        && let Some(progress) = run.progress.get(&view.id)
+    {
+        view.progress = progress.value.clamp(0.0, 1.0);
+        view.progress_message = progress.message.clone().unwrap_or_default();
+    }
+}
+
+fn first_issue(issues: &[GraphIssue], id: &str, level: IssueLevel) -> Option<String> {
+    issues
+        .iter()
+        .find(|issue| issue.level == level && issue.node_id.as_deref() == Some(id))
+        .map(|issue| issue.message.clone())
+}
+
+pub fn cards(
+    wf: &Workflow,
+    catalog: &IndexMap<String, EditorNode>,
+    compiled: &Compiled,
+    run: &RunProgress,
+) -> Vec<CardView> {
+    let local = (compiled.seq == 0).then(|| compile_workflow(wf, None));
+    let local_rows = local.as_ref().map(|result| {
+        let gone = |_: &str| false;
+        workflow_cards(
+            wf,
+            &CardSources {
+                compiled: result,
+                results: None,
+                secrets: None,
+                gone: &gone,
+            },
+        )
+    });
+    let rows = local_rows.as_ref().unwrap_or(&compiled.cards);
+    let errors = local
+        .as_ref()
+        .map_or(&compiled.result.errors, |r| &r.errors);
+    let fallback_inputs = node_inputs(wf);
     let mut cards: Vec<CardView> = wf
         .nodes
         .iter()
         .map(|node| {
-            card(
+            let inputs = compiled
+                .inputs
+                .get(&node.id)
+                .or_else(|| fallback_inputs.get(&node.id));
+            let error = errors
+                .get(&node.id)
+                .cloned()
+                .or_else(|| first_issue(&compiled.issues, &node.id, IssueLevel::Error));
+            let mut view = card(
                 wf,
                 node,
                 catalog.get(&node.kind),
-                inputs.get(&node.id),
+                inputs,
                 rows.get(&node.id),
-                compiled.errors.get(&node.id),
-            )
+                error,
+            );
+            if !node.disabled.unwrap_or(false) && view.problem.is_empty() {
+                view.warning = first_issue(&compiled.issues, &node.id, IssueLevel::Warning)
+                    .unwrap_or_default();
+            }
+            apply_run(&mut view, run, compiled.outdated.contains(&node.id));
+            finish_height(&mut view);
+            view
         })
         .collect();
     cards.sort_by_key(|c| c.kind != CardKind::Group);
     cards
+}
+
+fn finish_height(view: &mut CardView) {
+    if view.kind != CardKind::Card {
+        return;
+    }
+    if view.progress >= 0.0 {
+        view.height += PROGRESS_HEIGHT;
+    }
+    if !view.problem.is_empty() || !view.warning.is_empty() {
+        view.height = CARD_ROW.mul_add(2.0, view.height);
+    }
 }
 
 fn card(
@@ -60,7 +203,7 @@ fn card(
     def: Option<&EditorNode>,
     inputs: Option<&IndexMap<String, CatalogPort>>,
     rows: Option<&Vec<CardRow>>,
-    error: Option<&String>,
+    error: Option<String>,
 ) -> CardView {
     let at = absolute_position(wf, node);
     let category = def.map_or_default(category_name);
@@ -86,8 +229,16 @@ fn card(
         outputs: Vec::new(),
         rows: Vec::new(),
         disabled: node.disabled.unwrap_or(false),
-        problem: error.cloned().unwrap_or_default(),
+        problem: error.unwrap_or_default(),
+        warning: String::new(),
         text: String::new(),
+        badge: String::new(),
+        badge_icon: String::new(),
+        badge_tone: String::new(),
+        badge_tip: String::new(),
+        ring: String::new(),
+        progress: -1.0,
+        progress_message: String::new(),
     };
     match node.kind.as_str() {
         GROUP_TYPE => {
@@ -135,9 +286,6 @@ fn lay_out_card(
         })
         .collect();
     y += rows_height(view.rows.len(), CARD_ROW);
-    if !view.problem.is_empty() {
-        y = CARD_ROW.mul_add(2.0, y);
-    }
     view.height = y + BODY_PADDING;
 }
 

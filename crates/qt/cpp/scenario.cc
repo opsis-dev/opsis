@@ -79,7 +79,7 @@ void Scenario::Next() {
   if (index_ >= steps_.size()) {
     App::Get().Log(
         QStringLiteral("scenario %1 done, rss %2").arg(name_, Rss()));
-    QApplication::quit();
+    QCoreApplication::exit(0);
     return;
   }
   const Step& step = steps_.at(index_);
@@ -301,6 +301,40 @@ void Scenario::BuildTour() {
     if (QWidget* popup = QApplication::activePopupWidget()) popup->close();
     QTest::keyClick(window, Qt::Key_B, Qt::ControlModifier);
   });
+  Add(
+      QStringLiteral("copy-paste-node"),
+      [canvas] {
+        canvas->setFocus();
+        QTest::keyClick(canvas, Qt::Key_C, Qt::ControlModifier);
+        QTest::keyClick(canvas, Qt::Key_V, Qt::ControlModifier);
+        App::Get().Log(
+            QStringLiteral("cards after paste: %1").arg(canvas->card_count()));
+      },
+      700);
+  Add(QStringLiteral("undo-paste"), [window] {
+    for (QAction* action : window->findChildren<QAction*>()) {
+      if (action->text() == QStringLiteral("Undo")) action->trigger();
+    }
+  });
+  Add(
+      QStringLiteral("run-all"),
+      [window] {
+        for (QAction* action : window->findChildren<QAction*>()) {
+          if (action->text() == QStringLiteral("Run")) action->trigger();
+        }
+      },
+      2500);
+  Add(
+      QStringLiteral("reveal-failed-node"),
+      [canvas] { canvas->Reveal(QStringLiteral("render")); }, 800);
+  Add(
+      QStringLiteral("stop-run"),
+      [window] {
+        for (QAction* action : window->findChildren<QAction*>()) {
+          if (action->text() == QStringLiteral("Stop run")) action->trigger();
+        }
+      },
+      1200);
   Add(
       QStringLiteral("group-from-menu"),
       [window, canvas] {

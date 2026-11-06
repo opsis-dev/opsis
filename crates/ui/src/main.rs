@@ -1,3 +1,4 @@
+mod clipboard;
 mod folders;
 mod graph;
 mod inspector;

@@ -64,6 +64,9 @@ pub trait Host {
     fn variables(&self) -> Vec<VariableView>;
     fn project_edit(&self, json: &str) -> HostResult<()>;
     fn clear_saved_results(&self) -> HostResult<()>;
+    fn copy_selection(&self) -> String;
+    fn paste_text(&self, text: &str) -> HostResult<()>;
+    fn duplicate_selection(&self) -> HostResult<()>;
     fn text_tokens(&self, value: &str, pauses: bool) -> Vec<TextToken>;
     fn join_tokens(&self, tokens: Vec<TextToken>) -> String;
     fn save(&self) -> HostResult<()>;
@@ -317,6 +320,18 @@ impl Session {
 
     pub(crate) fn clear_saved_results(&self) -> HostResult<()> {
         self.0.clear_saved_results()
+    }
+
+    pub(crate) fn copy_selection(&self) -> String {
+        self.0.copy_selection()
+    }
+
+    pub(crate) fn paste_text(&self, text: &str) -> HostResult<()> {
+        self.0.paste_text(text)
+    }
+
+    pub(crate) fn duplicate_selection(&self) -> HostResult<()> {
+        self.0.duplicate_selection()
     }
 
     pub(crate) fn text_tokens(&self, value: &str, pauses: bool) -> Vec<TextToken> {

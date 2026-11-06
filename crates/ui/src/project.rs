@@ -1,6 +1,6 @@
 use indexmap::IndexMap;
 use opsis_compile::compile::compile_workflow;
-use opsis_compile::graph::{IssueLevel, validate_workflow};
+use opsis_compile::graph::{GraphIssue, IssueLevel, validate_workflow};
 use opsis_compile::nodes::output::{CANVAS_SHORT_SIDE, Variant, variant_canvas};
 use opsis_compile::vars::{PAUSE_MARK, Token, tokenize, var_token};
 use opsis_qt::{IssueView, ProjectView, ShapeView, TextToken, TokenKind, VariableView};
@@ -35,7 +35,11 @@ pub fn variables(wf: &Workflow) -> Vec<VariableView> {
 
 pub fn issues(wf: &Workflow, results: &IndexMap<String, NodeResult>) -> Vec<IssueView> {
     let compiled = compile_workflow(wf, Some(results));
-    validate_workflow(wf, Some(&compiled))
+    issue_views(validate_workflow(wf, Some(&compiled)))
+}
+
+pub fn issue_views(issues: impl IntoIterator<Item = GraphIssue>) -> Vec<IssueView> {
+    issues
         .into_iter()
         .take(MAX_PROBLEMS)
         .map(|issue| IssueView {
