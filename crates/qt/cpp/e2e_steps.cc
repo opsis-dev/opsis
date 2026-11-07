@@ -2493,6 +2493,7 @@ void Scenario::BuildTour() {
       });
   Add(QStringLiteral("undo-drop"), undo, 500);
 
+  BuildFontPicker(window);
   Add(
       QStringLiteral("open-settings-from-top-bar"),
       [this, window] { Click(window, QStringLiteral("Settings")); }, 700,

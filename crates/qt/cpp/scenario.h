@@ -44,6 +44,7 @@ class Scenario : public QObject {
   void BuildPlayer();
   void BuildEvents(MainWindow* window);
   void BuildSettings();
+  void BuildFontPicker(MainWindow* window);
   static QString Overflow();
   void Drag(QWidget* target, QPoint from, QPoint to, int steps = 12);
   void Miss(const QString& what) { misses_ << what; }

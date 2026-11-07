@@ -15,7 +15,6 @@ pub struct FormCtx<'a> {
     pub inspector: Option<&'a InspectorContext>,
     pub catalog: &'a EditorCatalog,
     pub workflow: &'a Workflow,
-    pub fonts: &'a [String],
     pub playhead: Option<f64>,
 }
 
@@ -409,10 +408,6 @@ fn select_choices(widget: &str, ctx: &FormCtx<'_>) -> Option<(Vec<Choice>, &'sta
             ),
             "",
         ),
-        "font" => (
-            pairs(ctx.fonts.iter().map(|f| (f.as_str(), f.clone()))),
-            "Project font",
-        ),
         "sound" => (
             pairs(
                 catalog
@@ -464,6 +459,12 @@ fn named_widget(
     value: Option<&Value>,
     ctx: &FormCtx<'_>,
 ) -> bool {
+    if widget == "font" {
+        view.kind = FieldKind::Font;
+        view.text = value.map_or_default(plain);
+        "Project font".clone_into(&mut view.none_label);
+        return true;
+    }
     if let Some((choices, none)) = select_choices(widget, ctx) {
         select(view, value, choices, none);
         return true;

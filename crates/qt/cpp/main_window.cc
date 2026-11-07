@@ -123,6 +123,12 @@ MainWindow::MainWindow()
   connect(EventHub::Instance(), &EventHub::CloseAsked, this,
           &MainWindow::ShowCloseDialog);
   live_pip_ = new LivePip(this, top_bar_->live_toggle());
+  connect(EventHub::Instance(), &EventHub::SettingsAsked, this,
+          [this](const QString& page) {
+            OpenSettings()->ShowPage(page == QStringLiteral("fonts")
+                                         ? SettingsWindow::kFonts
+                                         : SettingsWindow::kGeneral);
+          });
   connect(EventHub::Instance(), &EventHub::ReplayAsked, this,
           [this](const QString& node, const QString& tab) {
             ReplayDialog::Open(
@@ -498,10 +504,7 @@ void MainWindow::ToggleDock(kdw::QtWidgets::DockWidget* dock) {
 }
 
 SettingsWindow* MainWindow::OpenSettings() {
-  if (settings_ == nullptr) {
-    settings_ = new SettingsWindow();
-    settings_->setAttribute(Qt::WA_DeleteOnClose);
-  }
+  if (settings_ == nullptr) settings_ = new SettingsWindow(this);
   settings_->show();
   settings_->raise();
   settings_->activateWindow();

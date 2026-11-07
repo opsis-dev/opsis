@@ -14,6 +14,7 @@
 #include <memory>
 
 #include "app.h"
+#include "main_window.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "scenario.h"
 #include "widgets.h"
@@ -325,6 +326,95 @@ void Scenario::BuildSettings() {
                       now.trace_retention == started->trace_retention,
                   QStringLiteral("the settings didn't go back"));
   });
+}
+
+void Scenario::BuildFontPicker(MainWindow* window) {
+  const auto picker = [window]() -> QPushButton* {
+    for (auto* button :
+         window->inspector_dock()->widget()->findChildren<QPushButton*>(
+             QStringLiteral("FontPicker"))) {
+      if (button->isVisible() &&
+          button->accessibleName() == QStringLiteral("Same as text")) {
+        return button;
+      }
+    }
+    return nullptr;
+  };
+  const auto popover = []() -> QWidget* {
+    QWidget* open = QApplication::activePopupWidget();
+    return open != nullptr &&
+                   open->findChild<QListWidget*>(QStringLiteral("FontList")) != nullptr
+               ? open
+               : nullptr;
+  };
+  Add(
+      QStringLiteral("font-picker-opens"),
+      [picker] {
+        App::Get().session().select({});
+        QTimer::singleShot(300, [picker] {
+          if (QPushButton* button = picker()) {
+            QTest::mouseClick(button, Qt::LeftButton);
+          }
+        });
+      },
+      900,
+      [popover] {
+        QWidget* open = popover();
+        auto* list = open == nullptr
+                         ? nullptr
+                         : open->findChild<QListWidget*>(QStringLiteral("FontList"));
+        return Expect(list != nullptr && list->count() > 10,
+                      QStringLiteral("the font list didn't open"));
+      });
+  Add(
+      QStringLiteral("font-picker-search-and-pick"),
+      [popover] {
+        QWidget* open = popover();
+        auto* search = open == nullptr ? nullptr : open->findChild<QLineEdit*>();
+        if (search == nullptr) return;
+        QTest::keyClicks(search, QStringLiteral("Fraunces"));
+        QTest::keyClick(search, Qt::Key_Return);
+      },
+      700,
+      [popover] {
+        return Expect(App::Get().session().project().heading_font ==
+                              ToRust(QStringLiteral("Fraunces")) &&
+                          popover() == nullptr,
+                      QStringLiteral("the heading font is '%1'")
+                          .arg(ToQ(App::Get().session().project().heading_font)));
+      });
+  Add(
+      QStringLiteral("undo-font-pick"),
+      [this, window] { Click(window, QStringLiteral("Undo")); }, 600,
+      [] {
+        return Expect(App::Get().session().project().heading_font.empty(),
+                      QStringLiteral("undo didn't bring the heading font back"));
+      });
+  Add(
+      QStringLiteral("font-picker-manage-opens-settings"),
+      [picker, popover] {
+        if (QPushButton* button = picker()) {
+          QTest::mouseClick(button, Qt::LeftButton);
+        }
+        QWidget* open = popover();
+        auto* list = open == nullptr
+                         ? nullptr
+                         : open->findChild<QListWidget*>(QStringLiteral("FontList"));
+        if (list == nullptr) return;
+        QListWidgetItem* manage = list->item(list->count() - 1);
+        QTest::mouseClick(list->viewport(), Qt::LeftButton, {},
+                          list->visualItemRect(manage).center());
+      },
+      900,
+      [] {
+        QWidget* settings = Settings();
+        auto* pages = settings == nullptr ? nullptr : settings->findChild<QListWidget*>();
+        const bool fonts = pages != nullptr && pages->currentItem() != nullptr &&
+                           pages->currentItem()->text() == QStringLiteral("Fonts");
+        if (settings != nullptr) settings->close();
+        return Expect(fonts, QStringLiteral("Add or manage fonts didn't open the "
+                                            "Fonts settings"));
+      });
 }
 
 }

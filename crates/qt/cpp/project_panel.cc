@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "app.h"
+#include "font_picker.h"
 #include "event_hub.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "widgets.h"
@@ -262,28 +263,18 @@ void ProjectPanel::AddFonts(QVBoxLayout* layout,
       ToQ(view.main_font), ToQ(view.heading_font), ToQ(view.code_font)};
   std::size_t index = 0;
   for (const auto& role : kFontRoles) {
-    auto* combo = new Combo(box);
-    if (role.empty != nullptr) {
-      combo->addItem(QString::fromUtf8(role.empty), QString());
-    }
-    for (const auto& family : view.fonts) {
-      combo->addItem(ToQ(family), ToQ(family));
-    }
-    const QString value = values.at(index++);
-    int found = combo->findData(value);
-    if (found < 0 && !value.isEmpty()) {
-      combo->addItem(value, value);
-      found = combo->count() - 1;
-    }
-    combo->setCurrentIndex(std::max(found, 0));
     const QString name = QString::fromUtf8(role.role);
-    connect(combo, &QComboBox::activated, this, [combo, name](int at) {
-      Edit({{QStringLiteral("op"), QStringLiteral("setFontRole")},
-            {QStringLiteral("role"), name},
-            {QStringLiteral("family"), combo->itemData(at).toString()}});
-    });
+    auto* picker = new FontPicker(
+        values.at(index++),
+        role.empty != nullptr ? QString::fromUtf8(role.empty) : QString(),
+        [name](const QString& family) {
+          Edit({{QStringLiteral("op"), QStringLiteral("setFontRole")},
+                {QStringLiteral("role"), name},
+                {QStringLiteral("family"), family}});
+        },
+        box);
     column->addWidget(
-        MakeField(QString::fromUtf8(role.label), combo, QString(), box));
+        MakeField(QString::fromUtf8(role.label), picker, QString(), box));
   }
   layout->addWidget(box);
 }

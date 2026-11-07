@@ -2,12 +2,13 @@ use std::fmt;
 
 use crate::bridge::ffi::{
     self, AboutView, BarView, BoundsView, CategoryView, CloseView, ColorView, DialogKind,
-    EngineView, EventKind, FilmTiles, FontCatalogView, FontReviewView, FontRowView, GradientInfo,
-    GraphView, InspectorView, InstalledFontView, KeyLineView, LicenceView, LiveView, LoudnessView,
-    MarkDrawnView, MarkPointsView, MenuSectionView, MeterView, MixerView, MotionInfo, NodeMove,
-    PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView, ReplayView,
-    RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView, StreamViewState, TemplateView,
-    TextToken, TimelineView, TraceView, VariableView, WindowPlacement,
+    EngineView, EventKind, FilmTiles, FontCatalogView, FontChoicesView, FontReviewView,
+    FontRowView, GradientInfo, GraphView, InspectorView, InstalledFontView, KeyLineView,
+    LicenceView, LiveView, LoudnessView, MarkDrawnView, MarkPointsView, MenuSectionView, MeterView,
+    MixerView, MotionInfo, NodeMove, PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView,
+    RemovalView, ReplayView, RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView,
+    StreamViewState, TemplateView, TextToken, TimelineView, TraceView, VariableView,
+    WindowPlacement,
 };
 use crate::frame::FrameRef;
 
@@ -164,6 +165,8 @@ pub trait Host {
     fn load_font_catalog(&self);
     fn font_catalog(&self) -> FontCatalogView;
     fn download_font(&self, id: &str);
+    fn font_choices(&self, value: &str) -> FontChoicesView;
+    fn use_library_font(&self, id: &str) -> HostResult<String>;
     fn audio_play(&self, seconds: f64, rate: f64);
     fn audio_pause(&self);
     fn audio_seek(&self, seconds: f64);
@@ -840,6 +843,14 @@ impl Session {
 
     pub(crate) fn download_font(&self, id: &str) {
         self.0.download_font(id);
+    }
+
+    pub(crate) fn font_choices(&self, value: &str) -> FontChoicesView {
+        self.0.font_choices(value)
+    }
+
+    pub(crate) fn use_library_font(&self, id: &str) -> HostResult<String> {
+        self.0.use_library_font(id)
     }
 
     pub(crate) fn audio_play(&self, seconds: f64, rate: f64) {

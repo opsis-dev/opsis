@@ -42,6 +42,7 @@ class EventHub : public QObject {
   void FontsChanged();
   void ReplayAsked(const QString& node, const QString& tab);
   void Notice(const QString& title, const QString& body);
+  void SettingsAsked(const QString& page);
 
  private:
   static constexpr std::size_t kKinds = 16;

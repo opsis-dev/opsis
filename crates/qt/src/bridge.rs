@@ -391,6 +391,7 @@ pub mod ffi {
         Marks,
         Envelope,
         Camera,
+        Font,
     }
 
     #[derive(Debug, Clone, PartialEq)]
@@ -626,7 +627,6 @@ pub mod ffi {
         main_font: String,
         heading_font: String,
         code_font: String,
-        fonts: Vec<String>,
         variables: Vec<VariableView>,
         issues: Vec<IssueView>,
         running: bool,
@@ -893,6 +893,22 @@ pub mod ffi {
     }
 
     #[derive(Debug, Clone)]
+    struct FontPickView {
+        id: String,
+        family: String,
+        sample: String,
+        selected: bool,
+    }
+
+    #[derive(Debug, Clone)]
+    struct FontChoicesView {
+        project: Vec<FontPickView>,
+        built_in: Vec<FontPickView>,
+        library: Vec<FontPickView>,
+        current_sample: String,
+    }
+
+    #[derive(Debug, Clone)]
     struct FontReviewView {
         shown: bool,
         token: String,
@@ -1111,6 +1127,8 @@ pub mod ffi {
         fn load_font_catalog(self: &Session);
         fn font_catalog(self: &Session) -> FontCatalogView;
         fn download_font(self: &Session, id: &str);
+        fn font_choices(self: &Session, value: &str) -> FontChoicesView;
+        fn use_library_font(self: &Session, id: &str) -> Result<String>;
         fn audio_play(self: &Session, seconds: f64, rate: f64);
         fn audio_pause(self: &Session);
         fn audio_seek(self: &Session, seconds: f64);

@@ -17,12 +17,13 @@ use opsis_compile::timeline::flatten::BarThumbnail;
 use opsis_compile::timeline::view;
 use opsis_qt::{
     AboutView, BarView, BoundsView, CatalogRowView, CategoryView, Choice, CloseView, ColorView,
-    EngineView, EventKind, FilmTiles, FontCatalogView, FontReviewView, FontRowView, GradientInfo,
-    GraphView, Host, HostResult, InspectorView, InstalledFontView, KeyLineView, LicenceView,
-    LoudnessView, MarkDrawnView, MarkPointsView, MenuSectionView, MeterView, MixerView, MotionInfo,
-    NodeMove, PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView,
-    ReplayView, RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView, TemplateView,
-    TextToken, TimelineView, TraceView, VariableView, WindowPlacement,
+    EngineView, EventKind, FilmTiles, FontCatalogView, FontChoicesView, FontPickView,
+    FontReviewView, FontRowView, GradientInfo, GraphView, Host, HostResult, InspectorView,
+    InstalledFontView, KeyLineView, LicenceView, LoudnessView, MarkDrawnView, MarkPointsView,
+    MenuSectionView, MeterView, MixerView, MotionInfo, NodeMove, PaletteEntry, PlayerView,
+    PoseView, ProjectEntry, ProjectView, RemovalView, ReplayView, RulerStep, RunPanelView,
+    ScreenArea, SettingsView, SnapView, TemplateView, TextToken, TimelineView, TraceView,
+    VariableView, WindowPlacement,
 };
 use opsis_session::analysis::{self, AnalysisRequest, AnalysisResult};
 use opsis_session::error::CommandError;
@@ -417,35 +418,6 @@ impl Ui {
         Ok(())
     }
 
-    fn font_families(&self, wf: &Workflow) -> Vec<String> {
-        let choices = self.runtime.block_on(opsis_session::fonts::font_choices(
-            &self.session,
-            String::new(),
-            wf.settings.fonts.families.clone(),
-        ));
-        let mut families: Vec<String> = Vec::new();
-        let listed = choices.map_or_else(
-            |error| {
-                log::warn!("listing the fonts: {}", error.0);
-                Vec::new()
-            },
-            |choices| {
-                choices
-                    .project
-                    .into_iter()
-                    .chain(choices.built_in)
-                    .chain(choices.library)
-                    .collect()
-            },
-        );
-        for choice in listed {
-            if !families.contains(&choice.def.family) {
-                families.push(choice.def.family);
-            }
-        }
-        families
-    }
-
     fn watch_live(&self) {
         let live = self.live.clone();
         let session = self.session.clone();
@@ -463,13 +435,15 @@ impl Ui {
 
     fn font_file(&self, reference: &str) -> Option<PathBuf> {
         let paths = &self.state().paths;
+        let dir = self
+            .state()
+            .editor()
+            .dir()
+            .unwrap_or_else(|| paths.user_data.clone());
         reference
             .strip_prefix(opsis_compile::asset_ref::LIBRARY_SCHEME)
             .map(|rel| paths.fonts_dir().join(rel))
-            .or_else(|| {
-                opsis_project::paths::ref_to_path(&paths.user_data, &paths.public_dir, reference)
-                    .ok()
-            })
+            .or_else(|| opsis_project::paths::ref_to_path(&dir, &paths.public_dir, reference).ok())
     }
 
     fn licence_text(&self, reference: Option<&str>) -> String {
@@ -481,18 +455,24 @@ impl Ui {
             .unwrap_or_else(|| "This licence file couldn't be read.".to_owned())
     }
 
-    fn font_row(&self, def: &opsis_types::fonts::FontFamilyDef) -> FontRowView {
+    fn sample_file(&self, def: &opsis_types::fonts::FontFamilyDef) -> String {
         let italic = |face: &opsis_types::fonts::FontFaceDef| {
             matches!(face.style, opsis_types::fonts::FontStyle::Italic)
         };
-        let sample = def
-            .faces
+        def.faces
             .iter()
             .find(|f| !italic(f) && f.weight == "400")
             .or_else(|| def.faces.iter().find(|f| !italic(f)))
             .or_else(|| def.faces.first())
             .and_then(|f| self.font_file(&f.file))
-            .map_or_default(|p| p.to_string_lossy().into_owned());
+            .map_or_default(|p| p.to_string_lossy().into_owned())
+    }
+
+    fn font_row(&self, def: &opsis_types::fonts::FontFamilyDef) -> FontRowView {
+        let italic = |face: &opsis_types::fonts::FontFaceDef| {
+            matches!(face.style, opsis_types::fonts::FontStyle::Italic)
+        };
+        let sample = self.sample_file(def);
         FontRowView {
             id: def.id.clone(),
             family: def.family.clone(),
@@ -1244,7 +1224,6 @@ impl Host for Ui {
             glyph: def.look.as_ref().map_or_default(|l| l.glyph.clone()),
             description: def.description.clone().unwrap_or_default(),
             fields: {
-                let fonts = self.font_families(&wf);
                 let compiled = self.compiled.lock().expect("latest compile");
                 let context = compiled.inspector.as_ref().filter(|c| c.node_id == node.id);
                 inspector::fields(
@@ -1254,7 +1233,6 @@ impl Host for Ui {
                         inspector: context,
                         catalog: &self.bundle,
                         workflow: &wf,
-                        fonts: &fonts,
                         playhead: shared::shared_state(&self.session).playhead.and_then(|p| {
                             compiled
                                 .flat
@@ -1345,7 +1323,6 @@ impl Host for Ui {
         project::view(
             &wf,
             Extras {
-                fonts: self.font_families(&wf),
                 issues: self.issues(&wf, &results),
                 running: self.session.state::<RunHost>().is_running(),
                 selected: u32::try_from(selected).unwrap_or(u32::MAX),
@@ -2725,6 +2702,67 @@ impl Host for Ui {
             busy: work.downloading.clone(),
             entries,
         }
+    }
+
+    fn font_choices(&self, value: &str) -> FontChoicesView {
+        let project = self
+            .workflow()
+            .map_or_default(|wf| wf.settings.fonts.families);
+        let choices = self
+            .runtime
+            .block_on(opsis_session::fonts::font_choices(
+                &self.session,
+                value.to_owned(),
+                project,
+            ))
+            .ok();
+        let picks = |list: &[opsis_types::fonts::FontChoice]| -> Vec<FontPickView> {
+            list.iter()
+                .map(|c| FontPickView {
+                    id: c.def.id.clone(),
+                    family: c.def.family.clone(),
+                    sample: self.sample_file(&c.def),
+                    selected: c.selected,
+                })
+                .collect()
+        };
+        choices.map_or_else(
+            || FontChoicesView {
+                project: Vec::new(),
+                built_in: Vec::new(),
+                library: Vec::new(),
+                current_sample: String::new(),
+            },
+            |c| FontChoicesView {
+                project: picks(&c.project),
+                built_in: picks(&c.built_in),
+                library: picks(&c.library),
+                current_sample: c
+                    .current
+                    .as_ref()
+                    .map_or_default(|current| self.sample_file(&current.def)),
+            },
+        )
+    }
+
+    fn use_library_font(&self, id: &str) -> HostResult<String> {
+        let dir = self
+            .state()
+            .editor()
+            .dir()
+            .ok_or_else(|| "Open a project to use this font.".to_owned())?;
+        let copied = self
+            .runtime
+            .block_on(opsis_session::fonts::use_font_in_project(
+                &self.session,
+                dir.to_string_lossy().into_owned(),
+                id.to_owned(),
+            ))
+            .map_err(|e| e.0)?;
+        let family = copied.family.clone();
+        self.edit(WorkflowEdit::AddProjectFont { font: copied })
+            .map_err(|e| e.0)?;
+        Ok(family)
     }
 
     fn download_font(&self, id: &str) {

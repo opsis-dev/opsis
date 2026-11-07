@@ -31,6 +31,7 @@
 #include "color_picker.h"
 #include "event_hub.h"
 #include "file_player.h"
+#include "font_picker.h"
 #include "replay_dialog.h"
 #include "form_hold.h"
 #include "gradient_field.h"
@@ -327,6 +328,12 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
               });
       return combo;
     }
+    case bridge::FieldKind::Font:
+      return new FontPicker(
+          ToQ(field.text), ToQ(field.none_label), [this, key](const QString& family) {
+            Commit(key, family.isEmpty() ? QStringLiteral("null")
+                                         : Json(QJsonValue(family)));
+          });
     case bridge::FieldKind::Select: {
       auto* combo = new Combo();
       const QString none = ToQ(field.none_label);

@@ -50,7 +50,6 @@ pub fn issue_views(issues: impl IntoIterator<Item = GraphIssue>) -> Vec<IssueVie
 }
 
 pub struct Extras {
-    pub fonts: Vec<String>,
     pub issues: Vec<IssueView>,
     pub running: bool,
     pub selected: u32,
@@ -68,7 +67,6 @@ pub const fn empty() -> ProjectView {
         main_font: String::new(),
         heading_font: String::new(),
         code_font: String::new(),
-        fonts: Vec::new(),
         variables: Vec::new(),
         issues: Vec::new(),
         running: false,
@@ -89,7 +87,6 @@ pub fn view(wf: &Workflow, extras: Extras) -> ProjectView {
         main_font: settings.fonts.main.clone(),
         heading_font: settings.fonts.heading.clone(),
         code_font: settings.fonts.code.clone(),
-        fonts: extras.fonts,
         variables: variables(wf),
         issues: extras.issues,
         running: extras.running,
