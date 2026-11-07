@@ -25,6 +25,7 @@ class EventHub : public QObject {
   void RunChanged();
   void ApiChanged();
   void MediaChanged();
+  void ReplayAsked();
   void Notice(const QString& title, const QString& body);
 
  private:

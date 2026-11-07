@@ -48,6 +48,9 @@ void EventHub::Dispatch(std::uint8_t kind) {
     case bridge::EventKind::Media:
       emit MediaChanged();
       break;
+    case bridge::EventKind::Replay:
+      emit ReplayAsked();
+      break;
     default:
       break;
   }

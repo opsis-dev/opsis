@@ -15,6 +15,7 @@ pub mod ffi {
         Run,
         Api,
         Media,
+        Replay,
     }
 
     #[derive(Debug, Clone)]
@@ -60,6 +61,172 @@ pub mod ffi {
         integrated: f64,
         true_peak: f64,
         range: f64,
+    }
+
+    #[derive(Debug, Clone)]
+    struct RunRowView {
+        id: String,
+        name: String,
+        state: String,
+        progress: f64,
+        selected: bool,
+    }
+
+    #[derive(Debug, Clone)]
+    struct RunLogView {
+        id: u64,
+        at: i64,
+        level: String,
+        message: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct ArtifactView {
+        kind: String,
+        path: String,
+        file: String,
+        name: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct ReplayActionView {
+        at: f64,
+        time: String,
+        kind: String,
+        label: String,
+        selector: String,
+        node_id: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct ReplayView {
+        shown: bool,
+        node_id: String,
+        title: String,
+        description: String,
+        tab: String,
+        alert: String,
+        video_file: String,
+        image_file: String,
+        reveal: String,
+        trace_id: String,
+        can_replay: bool,
+        actions: Vec<ReplayActionView>,
+    }
+
+    #[derive(Debug, Clone)]
+    struct TraceActionView {
+        id: String,
+        depth: u32,
+        group: bool,
+        failed: bool,
+        title: String,
+        target: String,
+        node_id: String,
+        start: f64,
+        end: f64,
+        at: String,
+        length: String,
+        error: String,
+        logs: Vec<String>,
+        has_point: bool,
+        point_x: f64,
+        point_y: f64,
+        has_box: bool,
+        box_x: f64,
+        box_y: f64,
+        box_width: f64,
+        box_height: f64,
+        before: i32,
+        after: i32,
+    }
+
+    #[derive(Debug, Clone)]
+    struct TraceFrameView {
+        file: String,
+        width: u32,
+        height: u32,
+    }
+
+    #[derive(Debug, Clone)]
+    struct TraceConsoleView {
+        time: f64,
+        at: String,
+        level: String,
+        text: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct TraceRequestView {
+        start: f64,
+        at: String,
+        method: String,
+        status: String,
+        failed: bool,
+        url: String,
+        kind: String,
+        size: String,
+        length: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct TraceErrorView {
+        at: String,
+        text: String,
+        action: i32,
+    }
+
+    #[derive(Debug, Clone)]
+    struct TraceView {
+        error: String,
+        label: String,
+        width: u32,
+        height: u32,
+        picked: i32,
+        warnings: u32,
+        actions: Vec<TraceActionView>,
+        frames: Vec<TraceFrameView>,
+        console: Vec<TraceConsoleView>,
+        network: Vec<TraceRequestView>,
+        errors: Vec<TraceErrorView>,
+    }
+
+    #[derive(Debug, Clone)]
+    struct PlayerView {
+        ready: bool,
+        failed: bool,
+        has_video: bool,
+        has_audio: bool,
+        sound_ready: bool,
+        playing: bool,
+        duration: f64,
+        position: f64,
+        width: u32,
+        height: u32,
+        serial: u64,
+    }
+
+    #[derive(Debug, Clone)]
+    struct PlayerFrame {
+        serial: u64,
+        width: u32,
+        height: u32,
+        rgb: Vec<u8>,
+    }
+
+    #[derive(Debug, Clone)]
+    struct RunPanelView {
+        running: bool,
+        title: String,
+        failure: String,
+        failed: Vec<Choice>,
+        skipped: u32,
+        rows: Vec<RunRowView>,
+        logs: Vec<RunLogView>,
+        filtered: bool,
+        filter_id: String,
+        filter_type: String,
+        artifacts: Vec<ArtifactView>,
     }
 
     #[derive(Debug, Clone, Copy)]
@@ -607,14 +774,10 @@ pub mod ffi {
         running: bool,
         errors: Vec<String>,
         warnings: Vec<String>,
-        files: Vec<FileView>,
+        files: Vec<ArtifactView>,
         swatches: Vec<String>,
-    }
-
-    #[derive(Debug, Clone)]
-    struct FileView {
-        path: String,
-        label: String,
+        can_replay: bool,
+        has_trace: bool,
     }
 
     #[derive(Debug, Clone)]
@@ -728,6 +891,23 @@ pub mod ffi {
         fn box_kept(self: &Session, area: BoundsView) -> bool;
         fn edit_keyframes(self: &Session, edit_json: &str) -> Result<()>;
         fn timeline(self: &Session) -> TimelineView;
+        fn run_panel(self: &Session) -> RunPanelView;
+        fn clear_run_log(self: &Session);
+        fn player_open(self: &Session, file: &str) -> u64;
+        fn player_close(self: &Session, id: u64);
+        fn player_view(self: &Session, id: u64) -> PlayerView;
+        fn player_frame(self: &Session, id: u64) -> PlayerFrame;
+        fn player_play(self: &Session, id: u64);
+        fn player_pause(self: &Session, id: u64);
+        fn player_seek(self: &Session, id: u64, seconds: f64);
+        fn player_rate(self: &Session, id: u64, rate: f64);
+        fn player_volume(self: &Session, id: u64, volume: f64, muted: bool);
+        fn player_retry(self: &Session, id: u64);
+        fn player_time(self: &Session, seconds: f64, guide: f64) -> String;
+        fn show_replay(self: &Session, node_id: &str, tab: &str) -> Result<()>;
+        fn take_replay(self: &Session) -> ReplayView;
+        fn replay(self: &Session, node_id: &str, tab: &str) -> ReplayView;
+        fn trace(self: &Session, trace_id: &str) -> TraceView;
         fn audio_play(self: &Session, seconds: f64, rate: f64);
         fn audio_pause(self: &Session);
         fn audio_seek(self: &Session, seconds: f64);

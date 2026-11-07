@@ -19,6 +19,7 @@
 
 #include "app.h"
 #include "event_hub.h"
+#include "replay_dialog.h"
 #include "graph_canvas.h"
 #include "inspector_panel.h"
 #include "mixer_panel.h"
@@ -26,6 +27,7 @@
 #include "new_project_dialog.h"
 #include "node_list.h"
 #include "opsis-qt/src/bridge.rs.h"
+#include "run_panel.h"
 #include "settings_window.h"
 #include "start_screen.h"
 #include "timeline_panel.h"
@@ -118,6 +120,9 @@ MainWindow::MainWindow()
   connect(EventHub::Instance(), &EventHub::Saved, this, &MainWindow::SyncTitle);
   connect(EventHub::Instance(), &EventHub::CloseAsked, this,
           &MainWindow::ShowCloseDialog);
+  connect(EventHub::Instance(), &EventHub::ReplayAsked, this, [this] {
+    ReplayDialog::Open(this, App::Get().session().take_replay());
+  });
   ShowStart();
 }
 
@@ -350,9 +355,8 @@ void MainWindow::BuildDocks() {
                             QStringLiteral("Timeline"), new TimelinePanel());
   mixer_dock_ = MakeDock(QStringLiteral("mixer"), QStringLiteral("Mixer"),
                          new MixerPanel());
-  run_dock_ = MakeDock(
-      QStringLiteral("run"), QStringLiteral("Run"),
-      Placeholder(QStringLiteral("Runs aren't in the native editor yet.")));
+  run_dock_ =
+      MakeDock(QStringLiteral("run"), QStringLiteral("Run"), new RunPanel());
   const int bottom =
       static_cast<int>((height() - app_bar_->height()) * kBottomShare);
   addDockWidget(timeline_dock_, kdw::Location_OnBottom, nullptr,

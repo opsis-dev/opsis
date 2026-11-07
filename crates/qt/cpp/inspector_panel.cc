@@ -7,6 +7,7 @@
 #include <QDoubleValidator>
 #include <QFileDialog>
 #include <QFrame>
+#include <QFileInfo>
 #include <QHBoxLayout>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -29,6 +30,8 @@
 #include "app.h"
 #include "color_picker.h"
 #include "event_hub.h"
+#include "file_player.h"
+#include "replay_dialog.h"
 #include "form_hold.h"
 #include "gradient_field.h"
 #include "keyframe_fields.h"
@@ -770,6 +773,7 @@ void InspectorPanel::AddActions(QVBoxLayout* layout,
     });
     row->addWidget(again);
   }
+  AddReplayButtons(row, node, view.can_replay, view.has_trace, content);
   if (view.group) {
     auto* ungroup = MakeButton(QStringLiteral("Ungroup"), nullptr,
                                QStringLiteral("ungroup"), content);
@@ -788,13 +792,28 @@ void InspectorPanel::AddActions(QVBoxLayout* layout,
   if (view.files.empty()) return;
   layout->addWidget(MakeLabel(QStringLiteral("Files"), "title-small", content));
   for (const auto& file : view.files) {
-    auto* link = MakeButton(ToQ(file.label), "link",
+    auto* link = MakeButton(ToQ(file.name), "link",
                             QStringLiteral("external-link"), content);
     const QString path = ToQ(file.path);
     connect(link, &QPushButton::clicked, this, [path, guard] {
       guard([&] { App::Get().session().reveal_file(ToRust(path)); });
     });
     layout->addWidget(link, 0, Qt::AlignLeft);
+    if (ToQ(file.kind) == QStringLiteral("audio")) {
+      const QString source = ToQ(file.file);
+      const QString key =
+          source + QLatin1Char(' ') +
+          QString::number(
+              QFileInfo(source).lastModified().toMSecsSinceEpoch());
+      QPointer<FilePlayer> player = players_.value(key);
+      if (player.isNull()) {
+        player = new FilePlayer(source, ToQ(file.name), false, content);
+        players_.insert(key, player);
+      } else {
+        player->setParent(content);
+      }
+      layout->addWidget(player);
+    }
   }
 }
 
@@ -942,6 +961,7 @@ void InspectorPanel::Rebuild() {
   }
   scroll_->setWidget(content);
   content_ = content;
+  players_.removeIf([](const auto& entry) { return entry.value().isNull(); });
   scroll_->verticalScrollBar()->setValue(scroll);
 }
 

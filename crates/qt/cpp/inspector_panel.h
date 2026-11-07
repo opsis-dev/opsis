@@ -2,6 +2,7 @@
 #define OPSIS_QT_CPP_INSPECTOR_PANEL_H_
 
 #include <QHash>
+#include <QPointer>
 #include <QJsonObject>
 #include <QScrollArea>
 #include <QSet>
@@ -13,6 +14,8 @@
 #include "rust/cxx.h"
 
 namespace opsis {
+
+class FilePlayer;
 
 namespace bridge {
 struct FieldView;
@@ -52,6 +55,7 @@ class InspectorPanel : public QWidget {
   QStringList swatches_;
   QHash<QString, int> gradient_stops_;
   QHash<QString, MarksState> marks_state_;
+  QHash<QString, QPointer<FilePlayer>> players_;
 };
 
 }

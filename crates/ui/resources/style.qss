@@ -701,6 +701,23 @@ QLineEdit#MarkerName {
   font-size: 10px;
 }
 
+QPushButton#RunRow {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  text-align: left;
+}
+
+QPushButton#RunRow:hover,
+QPushButton#RunRow[selected="true"] {
+  background: @muted;
+}
+
+QPlainTextEdit#RunLog {
+  background: @background;
+  padding: 8px;
+}
+
 QWidget#CanvasToolbar {
   background: @popover;
   border: 1px solid @input;

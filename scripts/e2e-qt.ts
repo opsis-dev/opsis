@@ -14,6 +14,8 @@ const SCREEN = "1600x1000x24";
 const START_WAIT_MS = 10_000;
 const RUN_TIMEOUT_MS = 300_000;
 const CHECK_LINE = /check \S+: |scenario \S+ done|panicked/;
+const FIXTURES_DIR = path.join(DATA_DIR, "fixtures");
+const CLIP_SECONDS = "3";
 
 function freeDisplay(): number {
   for (let n = FIRST_DISPLAY; n <= LAST_DISPLAY; n += 1) {
@@ -38,6 +40,37 @@ function build(): void {
   if (built.status !== 0) throw new Error("building the native editor failed");
 }
 
+function makeClip(ffmpeg: string): void {
+  mkdirSync(FIXTURES_DIR, { recursive: true });
+  const made = spawnSync(
+    ffmpeg,
+    [
+      "-v",
+      "error",
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc2=size=320x180:rate=30",
+      "-f",
+      "lavfi",
+      "-i",
+      "sine=frequency=440:sample_rate=48000",
+      "-t",
+      CLIP_SECONDS,
+      "-c:v",
+      "libx264",
+      "-pix_fmt",
+      "yuv420p",
+      "-c:a",
+      "aac",
+      "-shortest",
+      path.join(FIXTURES_DIR, "clip.mp4"),
+    ],
+    { stdio: "inherit" },
+  );
+  if (made.status !== 0) throw new Error("making the test clip failed");
+}
+
 function runScenario(
   display: number,
   ffmpeg: string,
@@ -50,6 +83,7 @@ function runScenario(
     OPSIS_USER_DATA: DATA_DIR,
     OPSIS_QT_SCENARIO: SCENARIO,
     OPSIS_QT_SHOTS: "off",
+    OPSIS_QT_FIXTURES: FIXTURES_DIR,
   };
   delete env.WAYLAND_DISPLAY;
   return new Promise((resolve) => {
@@ -82,7 +116,9 @@ async function main(): Promise<number> {
   });
   try {
     await waitFor(`/tmp/.X11-unix/X${display}`, START_WAIT_MS);
-    const { code, output } = await runScenario(display, await ensureFfmpeg());
+    const ffmpeg = await ensureFfmpeg();
+    makeClip(ffmpeg);
+    const { code, output } = await runScenario(display, ffmpeg);
     const lines = output.split("\n").filter((line) => CHECK_LINE.test(line));
     for (const line of lines) console.log(line.replace(/^\[[^\]]*\] /, ""));
     const finished = lines.some((line) => /scenario \S+ done/.test(line));

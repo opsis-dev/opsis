@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use opsis_media::ffmpeg::{MediaTools, RunOptions, ToolError};
 
@@ -11,6 +12,8 @@ pub enum DecodeError {
     #[error("Couldn't read the decoded sound: {0}")]
     Read(#[from] std::io::Error),
 }
+
+static DECODES: AtomicU64 = AtomicU64::new(0);
 
 pub fn samples_from_bytes(bytes: &[u8]) -> Vec<f32> {
     bytes
@@ -27,7 +30,11 @@ pub async fn decode_stem(
     scratch: &Path,
 ) -> Result<Vec<f32>, DecodeError> {
     tokio::fs::create_dir_all(scratch).await?;
-    let raw = scratch.join(format!("stem.{}.raw", std::process::id()));
+    let raw = scratch.join(format!(
+        "stem.{}.{}.raw",
+        std::process::id(),
+        DECODES.fetch_add(1, Ordering::Relaxed)
+    ));
     let args: Vec<String> = [
         "-i",
         &file.to_string_lossy(),

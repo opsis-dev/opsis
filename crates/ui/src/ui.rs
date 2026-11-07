@@ -15,11 +15,12 @@ use opsis_compile::nodes::media::IMPORT_TYPE;
 use opsis_compile::timeline::flatten::BarThumbnail;
 use opsis_compile::timeline::view;
 use opsis_qt::{
-    BarView, BoundsView, CategoryView, Choice, CloseView, ColorView, EventKind, FileView,
-    FilmTiles, GradientInfo, GraphView, Host, HostResult, InspectorView, KeyLineView, LoudnessView,
+    BarView, BoundsView, CategoryView, Choice, CloseView, ColorView, EventKind, FilmTiles,
+    GradientInfo, GraphView, Host, HostResult, InspectorView, KeyLineView, LoudnessView,
     MarkDrawnView, MarkPointsView, MenuSectionView, MeterView, MixerView, MotionInfo, NodeMove,
-    PaletteEntry, PoseView, ProjectEntry, ProjectView, RemovalView, RulerStep, ScreenArea,
-    SettingsView, SnapView, TemplateView, TextToken, TimelineView, VariableView, WindowPlacement,
+    PaletteEntry, PlayerFrame, PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView,
+    ReplayView, RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView, TemplateView,
+    TextToken, TimelineView, TraceView, VariableView, WindowPlacement,
 };
 use opsis_session::analysis::{self, AnalysisRequest, AnalysisResult};
 use opsis_session::error::CommandError;
@@ -34,7 +35,7 @@ use opsis_types::edits::{EdgeEnds, NodePatch, WorkflowEdit};
 use opsis_types::events::RunTargets;
 use opsis_types::project::OUT_DIR;
 use opsis_types::settings::settings_book;
-use opsis_types::shell::{CloseDecision, CloseRequest, MenuCommand, Selection};
+use opsis_types::shell::{CloseDecision, CloseRequest, MenuCommand, ReplayTab, Selection};
 use opsis_types::workflow::{Position, WORKFLOW_FILE, Workflow};
 use serde::Deserialize;
 use serde_json::{Map, Value};
@@ -43,7 +44,10 @@ use tokio::sync::broadcast::error::RecvError;
 
 use crate::platform::QtPlatform;
 use crate::project::Extras;
-use crate::{clipboard, colors, graph, inspector, look, media, mixer, motion, project, timeline};
+use crate::{
+    clipboard, colors, graph, inspector, look, media, mixer, motion, player, project, replay,
+    run_panel, timeline,
+};
 
 const LAYOUT_KEY: &str = "nativeDockLayout";
 const BENCH_KINDS: [&str; 4] = [
@@ -69,6 +73,8 @@ pub struct Ui {
     mixes: mixer::Mixes,
     audio: Arc<Mutex<opsis_audio::output::Output>>,
     previews: mixer::Previews,
+    players: player::Players,
+    replay: Arc<Mutex<Option<(String, String)>>>,
     started: Instant,
 }
 
@@ -167,6 +173,8 @@ impl Ui {
             mixes: mixer::Mixes::default(),
             audio: Arc::new(Mutex::new(opsis_audio::output::Output::new())),
             previews: mixer::Previews::default(),
+            players: player::Players::default(),
+            replay: Arc::new(Mutex::new(None)),
             started: Instant::now(),
         }
     }
@@ -502,6 +510,7 @@ impl Host for Ui {
         let mixes = self.mixes.clone();
         let audio = Arc::clone(&self.audio);
         let previews = self.previews.clone();
+        let replay = Arc::clone(&self.replay);
         let handle = self.runtime.handle().clone();
         let session = self.session.clone();
         std::thread::spawn(move || {
@@ -527,6 +536,14 @@ impl Host for Ui {
                             }
                         }
                         let mine = addressed.to.as_deref().is_none_or(|to| to == MAIN_WINDOW);
+                        if let SessionEvent::ReplayRequested(asked) = &addressed.event
+                            && mine
+                            && let Some(node) = asked.node_id.clone()
+                        {
+                            *replay.lock().expect("replay request") =
+                                Some((node, plain(&asked.tab)));
+                            opsis_qt::post_event(EventKind::Replay);
+                        }
                         if let Some(kind) = event_kind(&addressed.event).filter(|_| mine) {
                             opsis_qt::post_event(kind);
                         }
@@ -677,6 +694,7 @@ impl Host for Ui {
             audio.pause();
             audio.set_samples(None);
         }
+        self.players.close_all();
         opsis_qt::post_event(EventKind::Project);
     }
 
@@ -1007,6 +1025,8 @@ impl Host for Ui {
             warnings: Vec::new(),
             files: Vec::new(),
             swatches: Vec::new(),
+            can_replay: false,
+            has_trace: false,
         };
         let Some(wf) = self.workflow() else {
             return empty;
@@ -1037,6 +1057,11 @@ impl Host for Ui {
             };
             (of(IssueLevel::Error), of(IssueLevel::Warning))
         };
+        let dir = self.state().editor().dir();
+        let resolve = |reference: &str| {
+            dir.as_ref()
+                .map_or_default(|dir| self.resolve(dir, reference))
+        };
         let files = self
             .state()
             .editor()
@@ -1046,12 +1071,10 @@ impl Host for Ui {
                 result
                     .artifacts
                     .iter()
-                    .map(|a| FileView {
-                        path: a.path.clone(),
-                        label: a.label.clone().unwrap_or_else(|| a.path.clone()),
-                    })
+                    .map(|a| run_panel::artifact(&resolve, a))
                     .collect()
             });
+        let replayable = self.replay(&node.id, "replay");
         InspectorView {
             id: node.id.clone(),
             title: def.title.clone(),
@@ -1101,6 +1124,8 @@ impl Host for Ui {
                 .as_ref()
                 .filter(|c| c.node_id == node.id)
                 .map_or_default(|c| c.swatches.clone()),
+            can_replay: replayable.can_replay,
+            has_trace: !replayable.trace_id.is_empty() && dir.is_some(),
         }
     }
 
@@ -1554,6 +1579,155 @@ impl Host for Ui {
             band,
         );
         self.audio.lock().expect("sound output").set_preview(total);
+    }
+
+    fn run_panel(&self) -> RunPanelView {
+        let Some(workflow) = self.workflow() else {
+            return run_panel::empty();
+        };
+        let selection = shared::shared_state(&self.session).selection.selected_ids;
+        let selected = (selection.len() == 1).then(|| selection[0].clone());
+        let dir = self.state().editor().dir();
+        let resolve = |reference: &str| {
+            dir.as_ref()
+                .map_or_default(|dir| self.resolve(dir, reference))
+        };
+        let outdated = self
+            .compiled
+            .lock()
+            .expect("latest compile")
+            .outdated
+            .clone();
+        run_panel::view(
+            &run::run_state(&self.session),
+            &run_panel::Sources {
+                workflow: &workflow,
+                catalog: &self.catalog,
+                outdated: &outdated,
+                selected: selected.as_deref(),
+                resolve: &resolve,
+            },
+        )
+    }
+
+    fn clear_run_log(&self) {
+        run::clear_run_log(&self.session);
+    }
+
+    fn player_open(&self, file: &str) -> u64 {
+        self.players
+            .open(&self.session, self.runtime.handle(), file)
+    }
+
+    fn player_close(&self, id: u64) {
+        self.players.close(id);
+    }
+
+    fn player_view(&self, id: u64) -> PlayerView {
+        self.players.view(id)
+    }
+
+    fn player_frame(&self, id: u64) -> PlayerFrame {
+        self.players.frame(id)
+    }
+
+    fn player_play(&self, id: u64) {
+        self.players.play(&self.session, id);
+    }
+
+    fn player_pause(&self, id: u64) {
+        self.players.pause(id);
+    }
+
+    fn player_seek(&self, id: u64, seconds: f64) {
+        self.players.seek(&self.session, id, seconds);
+    }
+
+    fn player_rate(&self, id: u64, rate: f64) {
+        self.players.set_rate(&self.session, id, rate);
+    }
+
+    fn player_volume(&self, id: u64, volume: f64, muted: bool) {
+        self.players.set_volume(id, volume, muted);
+    }
+
+    fn player_retry(&self, id: u64) {
+        self.players.retry(&self.session, self.runtime.handle(), id);
+    }
+
+    fn player_time(&self, seconds: f64, guide: f64) -> String {
+        player::clock_text(seconds, guide)
+    }
+
+    fn show_replay(&self, node_id: &str, tab: &str) -> HostResult<()> {
+        let tab = if tab == "trace" {
+            ReplayTab::Trace
+        } else {
+            ReplayTab::Replay
+        };
+        shared::show_replay(&self.session, Some(node_id.to_owned()), tab).map_err(|e| e.0)
+    }
+
+    fn take_replay(&self) -> ReplayView {
+        let asked = self.replay.lock().expect("replay request").take();
+        asked.map_or_else(replay::hidden, |(node, tab)| self.replay(&node, &tab))
+    }
+
+    fn replay(&self, node_id: &str, tab: &str) -> ReplayView {
+        let Some(wf) = self.workflow() else {
+            return replay::hidden();
+        };
+        let Some(node) = wf.node(node_id) else {
+            return replay::hidden();
+        };
+        let def = self.catalog.get(&node.kind);
+        let title = node
+            .label
+            .clone()
+            .filter(|l| !l.is_empty())
+            .or_else(|| def.map(|d| d.title.clone()))
+            .unwrap_or_else(|| node_id.to_owned());
+        let capture = def.is_some_and(|d| plain(&d.category) == "Capture");
+        let state = run::run_state(&self.session);
+        let progress = &state.view.progress;
+        let editor = self.state().editor();
+        let result = progress
+            .results
+            .get(node_id)
+            .or_else(|| editor.results.get(node_id));
+        let dir = editor.dir();
+        let resolve = |reference: &str| {
+            dir.as_ref()
+                .map_or_default(|dir| self.resolve(dir, reference))
+        };
+        let has_result = result.is_some();
+        let trace = progress.traces.get(node_id).map(String::as_str);
+        let mut view = replay::view(&replay::Sources {
+            node_id,
+            title,
+            capture,
+            result,
+            error: progress.errors.get(node_id).map(String::as_str),
+            trace,
+            tab,
+            resolve: &resolve,
+        });
+        view.can_replay = view.can_replay && (has_result || trace.is_some());
+        if dir.is_none() {
+            view.trace_id.clear();
+        }
+        view
+    }
+
+    fn trace(&self, trace_id: &str) -> TraceView {
+        let Some(dir) = self.state().editor().dir() else {
+            return replay::failed_trace("No project is open.".to_owned());
+        };
+        let resolve = |reference: &str| self.resolve(&dir, reference);
+        match settings::read_trace(&dir.to_string_lossy(), trace_id) {
+            Ok(trace) => replay::trace_view(&trace, &resolve),
+            Err(error) => replay::failed_trace(error.0),
+        }
     }
 
     fn timeline(&self) -> TimelineView {

@@ -895,6 +895,48 @@ void Scenario::BuildTour() {
       Click(window, QStringLiteral("Stop"));
     }
   });
+  Add(
+      QStringLiteral("run-panel-shows-the-run"),
+      [this] { ClickMenu(QStringLiteral("View"), QStringLiteral("Run")); },
+      1200,
+      [] {
+        const bridge::RunPanelView view = App::Get().session().run_panel();
+        QString problems;
+        if (view.rows.empty())
+          problems += QStringLiteral(" no nodes in the run");
+        if (view.running) problems += QStringLiteral(" still running");
+        return problems.trimmed();
+      });
+  Add(
+      QStringLiteral("run-panel-selects-a-row"),
+      [window] {
+        for (auto* row :
+             window->findChildren<QPushButton*>(QStringLiteral("RunRow"))) {
+          if (row->isVisible()) {
+            QTest::mouseClick(row, Qt::LeftButton);
+            return;
+          }
+        }
+      },
+      700,
+      [window] {
+        const bridge::RunPanelView view = App::Get().session().run_panel();
+        QString problems;
+        if (!view.filtered)
+          problems += QStringLiteral(" clicking a row didn't select it");
+        bool scoped = false;
+        for (auto* label :
+             window->findChildren<QLabel*>(QStringLiteral("LogScope"))) {
+          scoped = scoped || label->text() ==
+                                 QStringLiteral("Logs for the selected node");
+        }
+        if (!scoped)
+          problems += QStringLiteral(" the log isn't scoped to the node");
+        return problems.trimmed();
+      });
+  Add(QStringLiteral("back-to-the-timeline-tab"), [this] {
+    ClickMenu(QStringLiteral("View"), QStringLiteral("Timeline"));
+  });
 
   Add(
       QStringLiteral("quick-add"),
@@ -2539,6 +2581,7 @@ void Scenario::BuildTour() {
                       QStringLiteral("the start screen didn't come back"));
       });
   BuildMixer(window);
+  BuildPlayer();
 }
 
 void Scenario::BuildMixer(MainWindow* window) {

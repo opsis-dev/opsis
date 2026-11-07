@@ -4,8 +4,9 @@ use crate::bridge::ffi::{
     self, BarView, BoundsView, CategoryView, CloseView, ColorView, DialogKind, EventKind,
     FilmTiles, GradientInfo, GraphView, InspectorView, KeyLineView, LoudnessView, MarkDrawnView,
     MarkPointsView, MenuSectionView, MeterView, MixerView, MotionInfo, NodeMove, PaletteEntry,
-    PoseView, ProjectEntry, ProjectView, RemovalView, RulerStep, ScreenArea, SettingsView,
-    SnapView, TemplateView, TextToken, TimelineView, VariableView, WindowPlacement,
+    PlayerFrame, PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView, ReplayView,
+    RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView, TemplateView, TextToken,
+    TimelineView, TraceView, VariableView, WindowPlacement,
 };
 
 pub type HostResult<T> = Result<T, String>;
@@ -93,6 +94,23 @@ pub trait Host {
     fn box_kept(&self, area: BoundsView) -> bool;
     fn edit_keyframes(&self, edit_json: &str) -> HostResult<()>;
     fn timeline(&self) -> TimelineView;
+    fn run_panel(&self) -> RunPanelView;
+    fn clear_run_log(&self);
+    fn player_open(&self, file: &str) -> u64;
+    fn player_close(&self, id: u64);
+    fn player_view(&self, id: u64) -> PlayerView;
+    fn player_frame(&self, id: u64) -> PlayerFrame;
+    fn player_play(&self, id: u64);
+    fn player_pause(&self, id: u64);
+    fn player_seek(&self, id: u64, seconds: f64);
+    fn player_rate(&self, id: u64, rate: f64);
+    fn player_volume(&self, id: u64, volume: f64, muted: bool);
+    fn player_retry(&self, id: u64);
+    fn player_time(&self, seconds: f64, guide: f64) -> String;
+    fn show_replay(&self, node_id: &str, tab: &str) -> HostResult<()>;
+    fn take_replay(&self) -> ReplayView;
+    fn replay(&self, node_id: &str, tab: &str) -> ReplayView;
+    fn trace(&self, trace_id: &str) -> TraceView;
     fn audio_play(&self, seconds: f64, rate: f64);
     fn audio_pause(&self);
     fn audio_seek(&self, seconds: f64);
@@ -498,6 +516,74 @@ impl Session {
 
     pub(crate) fn timeline(&self) -> TimelineView {
         self.0.timeline()
+    }
+
+    pub(crate) fn run_panel(&self) -> RunPanelView {
+        self.0.run_panel()
+    }
+
+    pub(crate) fn clear_run_log(&self) {
+        self.0.clear_run_log();
+    }
+
+    pub(crate) fn player_open(&self, file: &str) -> u64 {
+        self.0.player_open(file)
+    }
+
+    pub(crate) fn player_close(&self, id: u64) {
+        self.0.player_close(id);
+    }
+
+    pub(crate) fn player_view(&self, id: u64) -> PlayerView {
+        self.0.player_view(id)
+    }
+
+    pub(crate) fn player_frame(&self, id: u64) -> PlayerFrame {
+        self.0.player_frame(id)
+    }
+
+    pub(crate) fn player_play(&self, id: u64) {
+        self.0.player_play(id);
+    }
+
+    pub(crate) fn player_pause(&self, id: u64) {
+        self.0.player_pause(id);
+    }
+
+    pub(crate) fn player_seek(&self, id: u64, seconds: f64) {
+        self.0.player_seek(id, seconds);
+    }
+
+    pub(crate) fn player_rate(&self, id: u64, rate: f64) {
+        self.0.player_rate(id, rate);
+    }
+
+    pub(crate) fn player_volume(&self, id: u64, volume: f64, muted: bool) {
+        self.0.player_volume(id, volume, muted);
+    }
+
+    pub(crate) fn player_retry(&self, id: u64) {
+        self.0.player_retry(id);
+    }
+
+    pub(crate) fn player_time(&self, seconds: f64, guide: f64) -> String {
+        self.0.player_time(seconds, guide)
+    }
+
+    pub(crate) fn show_replay(&self, node_id: &str, tab: &str) -> HostResult<()> {
+        self.0.show_replay(node_id, tab)
+    }
+
+    pub(crate) fn take_replay(&self) -> ReplayView {
+        self.0.take_replay()
+    }
+
+    pub(crate) fn replay(&self, node_id: &str, tab: &str) -> ReplayView {
+        self.0.replay(node_id, tab)
+    }
+
+    pub(crate) fn trace(&self, trace_id: &str) -> TraceView {
+        self.0.trace(trace_id)
     }
 
     pub(crate) fn audio_play(&self, seconds: f64, rate: f64) {
