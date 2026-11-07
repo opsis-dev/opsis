@@ -71,5 +71,5 @@ How node and element settings are declared in Rust, how their JSON Schema carrie
 - **Plain text fields render variables as chips (`VarText`); never show `{{…}}` to a user.**
 - **Fields write on every keystroke, so a focused text field is wrapped in a gesture** (`FormHold` around `VarSurface`'s live typing): typing until it loses focus is one undo step.
 - **Lists pick their input from the item schema**: text items a text list (Enter adds, pasting lines adds one per line), numbers a number list (pasting a spreadsheet column fills it), colours a palette, objects rows (each a nested form, so any widget works in a column).
-  - All honour the array's `minItems`/`maxItems`; rows reorder by dragging, one undo step per drop, and a list of four or more starts collapsed.
+  - All honour the array's `minItems`/`maxItems`; rows reorder by dragging, one undo step per drop, an object row duplicates below itself, and a list of four or more starts collapsed.
 - **The colour field (our own; formats in `color.rs`) keeps the format a value is written in** (`#hex`, `rgb()`, `hsl()`, `oklch()`, with alpha) and rewrites it only when the user picks; its popover is one gesture and offers the project's colours as swatches.

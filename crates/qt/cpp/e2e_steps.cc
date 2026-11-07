@@ -1245,6 +1245,40 @@ void Scenario::BuildTour() {
                           .arg(memo->count + 1));
       });
   Add(
+      QStringLiteral("object-list-duplicate-env"),
+      [this, window] {
+        QAbstractButton* copy = nullptr;
+        for (QAbstractButton* button : window->inspector_dock()
+                                           ->widget()
+                                           ->findChildren<QAbstractButton*>()) {
+          if (button->isVisible() &&
+              button->toolTip().startsWith(QStringLiteral("Duplicate "))) {
+            copy = button;
+          }
+        }
+        if (copy == nullptr) {
+          Miss(QStringLiteral("no Duplicate button on a variable"));
+          return;
+        }
+        QTest::mouseClick(copy, Qt::LeftButton);
+      },
+      700,
+      [memo] {
+        const int length = ListLength(bridge::FieldKind::ObjectList);
+        return Expect(length == static_cast<int>(memo->count) + 2,
+                      QStringLiteral("after duplicating, the variable list has "
+                                     "%1 items, not %2")
+                          .arg(length)
+                          .arg(memo->count + 2));
+      });
+  Add(QStringLiteral("undo-duplicate-env"), undo, 500, [memo] {
+    const int length = ListLength(bridge::FieldKind::ObjectList);
+    return Expect(length == static_cast<int>(memo->count) + 1,
+                  QStringLiteral("undo left %1 variables, not %2")
+                      .arg(length)
+                      .arg(memo->count + 1));
+  });
+  Add(
       QStringLiteral("object-list-remove-env"),
       [this, window] {
         QAbstractButton* last = nullptr;

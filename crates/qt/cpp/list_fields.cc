@@ -299,10 +299,20 @@ QWidget* MakeObjectList(const bridge::FieldView& field,
         open ? QStringLiteral("chevron-down") : QStringLiteral("chevron-right"),
         item);
     head->addWidget(title, 1);
+    const int i = index;
+    auto* copy = MakeIconButton(
+        QStringLiteral("copy"),
+        QStringLiteral("Duplicate %1").arg(ToQ(summary.label)), item);
+    copy->setEnabled(static_cast<std::uint32_t>(count) < field.max_items);
+    QObject::connect(copy, &QToolButton::clicked, item, [items, i, commit] {
+      QJsonArray next = items;
+      next.insert(i + 1, items.at(i));
+      commit(JsonText(next));
+    });
+    head->addWidget(copy);
     auto* remove =
         RemoveButton(ToQ(summary.label),
                      static_cast<std::uint32_t>(count) > field.min_items, item);
-    const int i = index;
     QObject::connect(remove, &QToolButton::clicked, item, [items, i, commit] {
       QJsonArray next = items;
       next.removeAt(i);

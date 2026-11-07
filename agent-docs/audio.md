@@ -56,7 +56,7 @@ Built-in sounds and music, the Mixer and its stems, ducking, how sounds are plac
 
 - **Ducking is a bus setting; rendered stems use `sidechaincompress`.**
 - **Channels shorter than the bus's `ignoreShorterMs` never key it** (`duck_keys_for`), and a `keepMusic` sound effect never does.
-- **Each ducked sound carries its merged spans (`duck_spans`, `Duck.spans`)**, which the mix applies.
+- **Each ducked sound carries its merged spans (`duck_spans`, `Duck.spans`)**: the mix applies them, and the Timeline draws the ducked level by scaling the waveform with `duck_gain` (`crates/compile/src/timeline/media.rs`).
 
 ### Hits on actions and transitions
 

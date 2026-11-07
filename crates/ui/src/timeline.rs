@@ -7,7 +7,7 @@ use opsis_compile::envelope::{envelope_track, sample_points};
 use opsis_compile::time::ms_to_exact_frames;
 use opsis_compile::timeline::flatten::{AudioBar, BarKind, FlatTimeline, VideoBar};
 use opsis_compile::timeline::media::{
-    WAVE_FILL, WaveSpan, pick_level, tile_index, tile_start, wave_column,
+    WAVE_FILL, WaveSpan, duck_gain, pick_level, tile_index, tile_start, wave_column,
 };
 use opsis_qt::{
     Choice, FilmTile, KeyLineView, KeyPointView, TimelineAudioView, TimelineBarView,
@@ -17,7 +17,7 @@ use opsis_qt::{
 use opsis_types::actions::ActionKind;
 use opsis_types::analysis::{Filmstrip, Waveform};
 use opsis_types::mix::ChannelKind;
-use opsis_types::timeline::{EnvelopeKey, Keyframe};
+use opsis_types::timeline::{Duck, EnvelopeKey, Keyframe};
 use opsis_types::workflow::Workflow;
 
 const WRAPPER_SEPARATOR: &str = " · ";
@@ -279,6 +279,7 @@ pub fn wave_columns(
     px_per_frame: f64,
     offset: f64,
     width: u32,
+    duck: Option<&Duck>,
 ) -> Vec<f32> {
     let fps = f64::from(fps.max(1));
     let Some(level) = pick_level(&wave.levels, px_per_frame * fps) else {
@@ -296,7 +297,8 @@ pub fn wave_columns(
     (0..width)
         .flat_map(|i| {
             let abs = (left + offset + f64::from(i)) / px_per_frame;
-            wave_column(level, span, abs, fps, 1.0).map_or([f32::NAN, f32::NAN], |(high, low)| {
+            let gain = duck.map_or(1.0, |d| duck_gain(abs, &d.spans, d.level, d.fade_frames));
+            wave_column(level, span, abs, fps, gain).map_or([f32::NAN, f32::NAN], |(high, low)| {
                 [
                     opsis_types::numbers::narrow(high * WAVE_FILL),
                     opsis_types::numbers::narrow(low * WAVE_FILL),
@@ -498,7 +500,7 @@ mod tests {
             width in 1u32..400,
         ) {
             let bar = sound(from, from + length);
-            let columns = wave_columns(&bar, 30, &loud(200.0, 20_000), px_per_frame, offset, width);
+            let columns = wave_columns(&bar, 30, &loud(200.0, 20_000), px_per_frame, offset, width, None);
             prop_assert_eq!(columns.len(), usize::try_from(width).unwrap_or(0) * 2);
             for (i, pair) in columns.chunks(2).enumerate() {
                 let abs = (from.mul_add(px_per_frame, offset) + f64::from(u32::try_from(i).unwrap_or(0))) / px_per_frame;
@@ -507,6 +509,33 @@ mod tests {
                 if inside {
                     prop_assert!((-1.0..=1.0).contains(&pair[0]) && (-1.0..=1.0).contains(&pair[1]));
                     prop_assert!(pair[0] >= pair[1]);
+                }
+            }
+        }
+
+        #[test]
+        fn ducking_never_draws_a_column_louder(
+            from in 0f64..300.0,
+            length in 1f64..300.0,
+            px_per_frame in 0.1f64..8.0,
+            width in 1u32..400,
+            level in 0f64..1.0,
+            fade_frames in 0u32..30,
+        ) {
+            let bar = sound(from, from + length);
+            let wave = loud(200.0, 20_000);
+            let duck = opsis_types::timeline::Duck {
+                level,
+                fade_frames,
+                keys: Vec::new(),
+                spans: vec![(from, from + length / 2.0)],
+            };
+            let plain = wave_columns(&bar, 30, &wave, px_per_frame, 0.0, width, None);
+            let ducked = wave_columns(&bar, 30, &wave, px_per_frame, 0.0, width, Some(&duck));
+            for (quiet, full) in ducked.iter().zip(&plain) {
+                prop_assert_eq!(quiet.is_nan(), full.is_nan());
+                if !full.is_nan() {
+                    prop_assert!(quiet.abs() <= full.abs() + 1e-6);
                 }
             }
         }

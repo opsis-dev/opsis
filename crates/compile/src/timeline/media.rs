@@ -69,3 +69,24 @@ pub fn tile_index(source_ms: f64, interval_ms: f64, count: u32) -> u32 {
     let index = (source_ms / interval_ms).floor().max(0.0);
     opsis_types::numbers::truncate::<u32>(index).min(count - 1)
 }
+
+fn span_gain(frame: f64, (start, end): (f64, f64), level: f64, fade_frames: f64) -> f64 {
+    if frame >= start && frame < end {
+        return level;
+    }
+    let away = if frame < start {
+        start - frame
+    } else {
+        frame - end
+    };
+    if fade_frames <= 0.0 || away >= fade_frames {
+        return 1.0;
+    }
+    (away / fade_frames).mul_add(1.0 - level, level)
+}
+
+pub fn duck_gain(frame: f64, spans: &[(f64, f64)], level: f64, fade_frames: u32) -> f64 {
+    spans.iter().fold(1.0, |gain: f64, span| {
+        gain.min(span_gain(frame, *span, level, f64::from(fade_frames)))
+    })
+}

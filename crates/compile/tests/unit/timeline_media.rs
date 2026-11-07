@@ -1,5 +1,5 @@
 use opsis_compile::timeline::media::{
-    WaveSpan, pick_level, shaped, tile_index, tile_start, wave_column,
+    WaveSpan, duck_gain, pick_level, shaped, tile_index, tile_start, wave_column,
 };
 use opsis_types::analysis::WaveformLevel;
 use proptest::prelude::*;
@@ -13,6 +13,48 @@ fn level(rate: f64, count: usize) -> WaveformLevel {
 }
 
 proptest! {
+    #[test]
+    fn a_ducked_gain_stays_between_the_level_and_full(
+        frame in -200f64..400.0,
+        start in 0f64..200.0,
+        length in 1f64..100.0,
+        level in 0f64..1.0,
+        fade in 0u32..60,
+    ) {
+        let gain = duck_gain(frame, &[(start, start + length)], level, fade);
+        prop_assert!(gain >= level - 1e-12 && gain <= 1.0 + 1e-12);
+        if frame >= start && frame < start + length {
+            prop_assert!((gain - level).abs() < 1e-12);
+        }
+        let away = if frame < start { start - frame } else { frame - (start + length) };
+        if (frame < start || frame >= start + length) && away >= f64::from(fade) {
+            prop_assert!((gain - 1.0).abs() < 1e-12);
+        }
+    }
+
+    #[test]
+    fn a_ducked_gain_never_rises_nearer_a_span(
+        start in 0f64..200.0,
+        length in 1f64..100.0,
+        level in 0f64..1.0,
+        fade in 1u32..60,
+        near in 0f64..80.0,
+        further in 0f64..80.0,
+    ) {
+        let end = start + length;
+        let (closer, farther) = if near <= further { (near, further) } else { (further, near) };
+        let spans = [(start, end)];
+        prop_assert!(duck_gain(end + closer, &spans, level, fade) <= duck_gain(end + farther, &spans, level, fade) + 1e-12);
+        prop_assert!(duck_gain(start - closer, &spans, level, fade) <= duck_gain(start - farther, &spans, level, fade) + 1e-12);
+    }
+
+    #[test]
+    fn overlapping_spans_duck_to_the_lowest(frame in 0f64..300.0, level in 0f64..1.0, fade in 0u32..40) {
+        let one = duck_gain(frame, &[(50.0, 90.0)], level, fade);
+        let other = duck_gain(frame, &[(120.0, 160.0)], level, fade);
+        prop_assert!((duck_gain(frame, &[(50.0, 90.0), (120.0, 160.0)], level, fade) - one.min(other)).abs() < 1e-12);
+    }
+
     #[test]
     fn shaped_amplitudes_keep_their_sign_and_stay_in_range(value in -4f64..4.0) {
         let shown = shaped(value);

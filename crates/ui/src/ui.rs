@@ -1608,7 +1608,16 @@ impl Host for Ui {
             );
             return Vec::new();
         };
-        timeline::wave_columns(audio, film.flat.fps, &wave, px_per_frame, offset, width)
+        let compiled = self.compiled.lock().expect("latest compile");
+        timeline::wave_columns(
+            audio,
+            film.flat.fps,
+            &wave,
+            px_per_frame,
+            offset,
+            width,
+            compiled.duck_of(&audio.id),
+        )
     }
 
     fn key_line(&self, bar: &str, track: &str) -> KeyLineView {

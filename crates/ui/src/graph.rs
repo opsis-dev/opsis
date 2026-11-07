@@ -63,6 +63,33 @@ pub struct Compiled {
     pub solo: bool,
     #[serde(default)]
     pub film: Option<FilmSpans>,
+    #[serde(default)]
+    pub levelled: Option<Levelled>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+pub struct Levelled {
+    #[serde(default)]
+    pub audio: Vec<LevelledAudio>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct LevelledAudio {
+    pub id: String,
+    #[serde(default)]
+    pub duck: Option<opsis_types::timeline::Duck>,
+}
+
+impl Compiled {
+    pub fn duck_of(&self, id: &str) -> Option<&opsis_types::timeline::Duck> {
+        self.levelled
+            .as_ref()?
+            .audio
+            .iter()
+            .find(|audio| audio.id == id)?
+            .duck
+            .as_ref()
+    }
 }
 
 #[derive(Debug, Default, Clone, Copy, Deserialize)]
@@ -473,6 +500,18 @@ mod tests {
     use proptest::prelude::*;
 
     use super::*;
+
+    #[test]
+    fn a_compile_keeps_each_sounds_ducking() {
+        let compiled: Compiled = serde_json::from_str(
+            r#"{"levelled":{"audio":[{"id":"music","duck":{"level":0.3,"fadeFrames":6,"keys":["fx"],"spans":[[10.0,40.0]]}},{"id":"fx"}]}}"#,
+        )
+        .expect("a compile");
+        let duck = compiled.duck_of("music").expect("the music's ducking");
+        assert_eq!(duck.fade_frames, 6);
+        assert_eq!(duck.spans, vec![(10.0, 40.0)]);
+        assert!(compiled.duck_of("fx").is_none());
+    }
 
     fn links(nodes: &[(String, f64, f64)]) -> FlatLinks {
         FlatLinks {
