@@ -18,6 +18,7 @@
 #include <functional>
 
 #include "app.h"
+#include "engine_card.h"
 #include "event_hub.h"
 #include "live_view.h"
 #include "replay_dialog.h"
@@ -86,8 +87,11 @@ MainWindow::MainWindow()
   stack_ = new QStackedWidget(this);
   start_ = new StartScreen(stack_);
   canvas_ = new GraphCanvas(stack_);
+  setup_ = new SetupScreen(stack_);
   stack_->addWidget(start_);
   stack_->addWidget(canvas_);
+  stack_->addWidget(setup_);
+  connect(setup_, &SetupScreen::Done, this, [this] { ShowStart(); });
   setPersistentCentralWidget(stack_);
   rail_ = new CategoryRail(this);
   rail_->hide();
@@ -137,6 +141,10 @@ MainWindow::MainWindow()
                 this, App::Get().session().replay(ToRust(node), ToRust(tab)));
           });
   ShowStart();
+  if (App::Get().session().engine_missing() &&
+      !App::Get().session().settings().setup_skipped) {
+    stack_->setCurrentWidget(setup_);
+  }
 }
 
 void MainWindow::Guard(const std::function<void()>& action) {

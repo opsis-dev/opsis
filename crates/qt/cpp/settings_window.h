@@ -47,7 +47,6 @@ class SettingsWindow : public QWidget {
   QWidget* Page(const QString& title, const QString& description,
                 const QList<QWidget*>& cards);
   void Load();
-  void LoadEngine();
   void Patch(const QString& section, const QString& key,
              const QJsonValue& value);
 
@@ -71,13 +70,6 @@ class SettingsWindow : public QWidget {
   QLabel* api_error_ = nullptr;
   QLabel* api_address_ = nullptr;
   QVBoxLayout* api_usage_ = nullptr;
-  QLabel* engine_state_ = nullptr;
-  QLabel* browser_line_ = nullptr;
-  QLabel* browser_warning_ = nullptr;
-  QPushButton* choose_browser_ = nullptr;
-  QPushButton* download_ = nullptr;
-  QProgressBar* progress_ = nullptr;
-  QLabel* progress_text_ = nullptr;
 };
 
 }

@@ -858,6 +858,7 @@ pub mod ffi {
         api_error: String,
         api_address: String,
         default_dir_fallback: String,
+        setup_skipped: bool,
     }
 
     #[derive(Debug, Clone)]

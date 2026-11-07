@@ -2565,6 +2565,7 @@ impl Host for Ui {
             api_listening: api.listening,
             api_error: api.error.unwrap_or_default(),
             api_address: api.address,
+            setup_skipped: settings.app.setup_skipped,
             default_dir_fallback: if settings.projects.default_dir.is_empty() {
                 projects::project_locations(&self.session).default_dir
             } else {

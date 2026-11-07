@@ -228,6 +228,25 @@ void Scenario::BuildTour() {
   const auto undo = [this, window] { Click(window, QStringLiteral("Undo")); };
 
   Add(
+      QStringLiteral("setup-shows-without-an-engine"), [] {}, 300,
+      [window] {
+        auto* setup = window->findChild<QWidget*>(QStringLiteral("SetupScreen"));
+        auto* state = setup == nullptr
+                          ? nullptr
+                          : setup->findChild<QLabel*>(QStringLiteral("EngineState"));
+        return Expect(setup != nullptr && setup->isVisible() && state != nullptr &&
+                          state->text() == QStringLiteral("Not set up"),
+                      QStringLiteral("the setup screen didn't show"));
+      });
+  Add(
+      QStringLiteral("skip-setup"),
+      [this, window] { Click(window, QStringLiteral("Skip for now")); }, 600,
+      [window] {
+        return Expect(window->start_screen()->isVisible() &&
+                          App::Get().session().settings().setup_skipped,
+                      QStringLiteral("skipping didn't reach the start screen"));
+      });
+  Add(
       QStringLiteral("start-screen"), [] {}, 300,
       [window] {
         QString problems =

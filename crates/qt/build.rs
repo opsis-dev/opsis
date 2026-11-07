@@ -17,7 +17,7 @@ const DEFINES: [&str; 6] = [
     "QT_TESTLIB_LIB",
 ];
 
-const MOC_HEADERS: [&str; 33] = [
+const MOC_HEADERS: [&str; 34] = [
     "event_hub.h",
     "widgets.h",
     "window_chrome.h",
@@ -51,9 +51,10 @@ const MOC_HEADERS: [&str; 33] = [
     "fonts_page.h",
     "font_picker.h",
     "terminal_window.h",
+    "engine_card.h",
 ];
 
-const SOURCES: [&str; 46] = [
+const SOURCES: [&str; 47] = [
     "app.cc",
     "event_hub.cc",
     "widgets.cc",
@@ -100,6 +101,7 @@ const SOURCES: [&str; 46] = [
     "font_picker.cc",
     "terminal_window.cc",
     "e2e_terminal.cc",
+    "engine_card.cc",
 ];
 
 fn main() {

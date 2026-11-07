@@ -18,6 +18,7 @@
 #include <QVBoxLayout>
 
 #include "app.h"
+#include "engine_card.h"
 #include "event_hub.h"
 #include "fonts_page.h"
 #include "opsis-qt/src/bridge.rs.h"
@@ -118,8 +119,6 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QWidget(parent, Qt::Window) {
           &SettingsWindow::Load);
   connect(EventHub::Instance(), &EventHub::ApiChanged, this,
           &SettingsWindow::Load);
-  connect(EventHub::Instance(), &EventHub::EngineChanged, this,
-          &SettingsWindow::LoadEngine);
   connect(EventHub::Instance(), &EventHub::FontsChanged, this, [this] {
     QWidget* old = pages_->widget(kLicences);
     QWidget* fresh = LicencesPage();
@@ -130,7 +129,6 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QWidget(parent, Qt::Window) {
     if (shown) pages_->setCurrentIndex(kLicences);
   });
   Load();
-  LoadEngine();
 }
 
 int SettingsWindow::page_count() const { return pages_->count(); }
@@ -273,55 +271,9 @@ QWidget* SettingsWindow::EditorPage() {
 }
 
 QWidget* SettingsWindow::EnginePage() {
-  auto* card = new Card(
-      QStringLiteral("Status"),
-      QStringLiteral("The recording browser Opsis uses to record takes and "
-                     "draw exports. Download it, or choose one already on "
-                     "this computer; Opsis checks it before using it. Editing "
-                     "and preview work without it."));
-  engine_state_ = MakeLabel(QString(), "badge");
-  engine_state_->setObjectName(QStringLiteral("EngineState"));
-  card->body()->addWidget(Holder(engine_state_));
-  auto* browser = new QWidget();
-  auto* row = new QHBoxLayout(browser);
-  row->setContentsMargins(0, 0, 0, 0);
-  row->setSpacing(12);
-  auto* words = new QVBoxLayout();
-  words->setSpacing(2);
-  words->addWidget(MakeLabel(QStringLiteral("Recording browser"), "title-small"));
-  browser_line_ = MakeLabel(QString(), "muted");
-  browser_line_->setWordWrap(true);
-  browser_line_->setTextInteractionFlags(Qt::TextSelectableByMouse);
-  words->addWidget(browser_line_);
-  browser_warning_ = MakeLabel(QString(), "muted");
-  browser_warning_->setWordWrap(true);
-  words->addWidget(browser_warning_);
-  row->addLayout(words, 1);
-  choose_browser_ = MakeButton(QStringLiteral("Choose file…"), "outline",
-                               QStringLiteral("file-search"));
-  connect(choose_browser_, &QPushButton::clicked, this,
-          [] { App::Get().session().choose_browser(); });
-  row->addWidget(choose_browser_, 0, Qt::AlignTop);
-  card->body()->addWidget(browser);
-  auto* progress = new QWidget();
-  auto* progress_row = new QVBoxLayout(progress);
-  progress_row->setContentsMargins(0, 0, 0, 0);
-  progress_row->setSpacing(4);
-  progress_ = new QProgressBar();
-  progress_->setRange(0, 100);
-  progress_->setTextVisible(true);
-  progress_row->addWidget(progress_);
-  progress_text_ = MakeLabel(QString(), "muted");
-  progress_text_->setWordWrap(true);
-  progress_row->addWidget(progress_text_);
-  card->body()->addWidget(progress);
-  download_ = MakeButton(QStringLiteral("Download engine"), "primary",
-                         QStringLiteral("download"));
-  connect(download_, &QPushButton::clicked, this,
-          [] { App::Get().session().install_engine(); });
-  card->body()->addWidget(Holder(download_));
   return Page(QStringLiteral("Engine"),
-              QStringLiteral("The recording browser."), {card});
+              QStringLiteral("The recording browser."),
+              {new EngineCard(QStringLiteral("Status"), {})});
 }
 
 QWidget* SettingsWindow::RecordingPage() {
@@ -654,47 +606,6 @@ void SettingsWindow::Load() {
 #endif
 }
 
-void SettingsWindow::LoadEngine() {
-  const bridge::EngineView view = App::Get().session().engine_view();
-  engine_state_->setText(view.complete ? QStringLiteral("Set up")
-                                       : QStringLiteral("Not set up"));
-  QString line;
-  if (view.checking) {
-    line = QStringLiteral("Checking…");
-  } else if (!view.problem.empty()) {
-    line = ToQ(view.problem);
-  } else if (view.path.empty()) {
-    line = QStringLiteral("Not set up");
-  } else {
-    line = (view.version.empty()
-                ? QString()
-                : QStringLiteral("Version %1 · ").arg(ToQ(view.version))) +
-           ToQ(view.path);
-  }
-  if (!view.browser_error.empty()) line += QStringLiteral("\n") + ToQ(view.browser_error);
-  browser_line_->setText(line);
-  browser_line_->setProperty(
-      "role", view.problem.empty() && view.browser_error.empty() ? "muted"
-                                                                 : "error");
-  browser_line_->style()->unpolish(browser_line_);
-  browser_line_->style()->polish(browser_line_);
-  browser_warning_->setVisible(!view.warning.empty());
-  browser_warning_->setText(ToQ(view.warning));
-  choose_browser_->setEnabled(!view.installing && !view.choosing &&
-                              !view.checking);
-  download_->setEnabled(!view.installing);
-  download_->setText(view.complete ? QStringLiteral("Download again")
-                                   : QStringLiteral("Download engine"));
-  const bool busy = view.installing || !view.error.empty();
-  progress_->setVisible(view.installing && view.error.empty() &&
-                        view.progress >= 0);
-  progress_->setValue(static_cast<int>(std::lround(view.progress * 100)));
-  progress_text_->setVisible(busy);
-  progress_text_->setText(!view.error.empty()
-                              ? ToQ(view.error)
-                              : (view.message.empty() ? QStringLiteral("Starting…")
-                                                      : ToQ(view.message)));
-}
 
 void SettingsWindow::Patch(const QString& section, const QString& key,
                            const QJsonValue& value) {

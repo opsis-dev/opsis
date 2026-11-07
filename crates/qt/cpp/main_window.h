@@ -21,6 +21,7 @@ class TopBar;
 class NodeList;
 class SettingsWindow;
 class StartScreen;
+class SetupScreen;
 
 class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   Q_OBJECT
@@ -90,6 +91,7 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   QStackedWidget* stack_;
   CategoryRail* rail_;
   TopBar* top_bar_;
+  SetupScreen* setup_ = nullptr;
   LivePip* live_pip_ = nullptr;
   KDDockWidgets::QtWidgets::DockWidget* bottom_current_ = nullptr;
   StartScreen* start_;
