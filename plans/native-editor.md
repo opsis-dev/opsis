@@ -31,33 +31,37 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### What it changes
 
-`bun run make` builds installers for the native app, with Qt and KDDockWidgets bundled and FFmpeg a program beside the app; today it stages and builds the release binary only.
+`bun run make` builds installers for the native app, with Qt and KDDockWidgets linked statically into the program and FFmpeg a program beside it; today it stages and builds the release binary only, against the developer's shared Qt.
 
 ### Fit with Opsis
 
-**In place.** `scripts/stage.ts`; the release binary (`target/release/opsis`) that finds FFmpeg and its resources beside itself, or in `Resources` on macOS (`crates/ui/src/folders.rs`); `THIRD_PARTY_NOTICES.md`; `deny.toml`.
+**In place.** `scripts/stage.ts`; the release binary (`target/release/opsis`) that finds FFmpeg and its resources beside itself, or in `Resources` on macOS (`crates/ui/src/folders.rs`); `crates/qt/build.rs`, which links a static Qt (one with `libQt6Core.a`) with its platform plugins when `OPSIS_QT` names one; `THIRD_PARTY_NOTICES.md`; `deny.toml`.
 
-**Missing.** A bundler for each format; Qt deployment; the CI builds on Windows and macOS, signing and notarization, which left with the Tauri bundler.
+**Missing.** The static Qt builds; a bundler for each format; the CI builds on Windows and macOS, signing and notarization, which left with the Tauri bundler.
 
 ### Work
 
-1. Resources: each format puts the licences and notices, and the film page and terminal page while they exist ([native-renderer.md](native-renderer.md) removes both at its cut-over), where the app looks: beside the program, or in the macOS bundle's `Resources`.
-2. Linux: `linuxdeploy` with its Qt plugin for the AppImage; `cargo-deb` and `cargo-generate-rpm` for deb and rpm, with Qt bundled or depended on (decided below). The deb no longer needs `gstreamer1.0-libav` or WebKitGTK.
-3. Windows: `windeployqt`, then NSIS (per-user install as today).
-4. macOS: `macdeployqt`, `codesign` on every Mach-O, notarization in CI as today.
-5. Licences: the Qt libraries ship as shared libraries so the LGPL relinking terms hold, with the third-party attributions of the Qt build they come from; Qt's LGPL-3.0 text and KDDockWidgets' notices are already in `THIRD_PARTY_NOTICES.md`.
-6. CI: build every format on its platform again, check the licences each ships and every Mach-O's signature, as the Tauri bundler's job did.
+1. Static Qt: build Qt Base and Qt Svg 6.12 for each platform without ICU, as the spike did on Linux (`configure -static -release -no-icu -no-opengl -no-feature-sql -qt-zlib -qt-libpng -qt-libjpeg -qt-harfbuzz -qt-pcre -system-freetype -fontconfig -xcb`, Linux in about 7 minutes with 8 jobs), and KDDockWidgets against it; CI caches each by Qt version and flags, and the release job points `OPSIS_QT` at it.
+2. Resources: each format puts the licences and notices, and the film page and terminal page while they exist ([native-renderer.md](native-renderer.md) removes both at its cut-over), where the app looks: beside the program, or in the macOS bundle's `Resources`.
+3. Linux: AppImage, deb and rpm (formats decided below). No Qt files ship: the program needs only what every desktop has (glibc, libstdc++, X11 and xcb, the Wayland client, xkbcommon, fontconfig, FreeType, D-Bus), which the deb and rpm name as dependencies.
+4. Windows: NSIS (per-user install as today).
+5. macOS: the app bundle, `codesign` on every Mach-O, notarization in CI as today.
+6. Licences: add the notices of the third-party code the static Qt compiles in (its copies of zlib, libpng, libjpeg, HarfBuzz and PCRE2, and Qt's other bundled code, listed in its `qt_attribution.json` files).
+7. CI: build every format on its platform again, check the licences each ships and every Mach-O's signature, as the Tauri bundler's job did.
 
 ### Decisions
 
 - **Which formats ship.** None is required: a tarball per platform (the program plus its resources folder) runs as it is. AppImage adds one file that runs on most distros; deb and rpm add a distro install with its dependencies, menu entry and updates; the macOS app and the Windows installer are what those systems expect from a signed program. Decided at the start of this part.
-- **deb and rpm: bundle Qt or depend on the distro's Qt.** Distro Qt versions vary and Opsis needs 6.12; recommended: bundle, like the AppImage.
+
+### Decided
+
+- **Release builds link Qt statically, built without ICU; development keeps the prebuilt shared Qt** (`bun run qt:install`). In the spike the static build without ICU was one 57.4 MB program with no Qt or ICU files beside it, passed the screenshot tour, and started at 112 MiB of memory against 192 MiB with shared Qt. Without ICU, Qt compiles in its own table of time-zone names (3,990,504 bytes, `-no-feature-timezone_locale` leaves it out).
+- **Qt is used under the GPL-3.0**, like KDDockWidgets: Qt Base and Qt Svg are offered under `LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only` (their SPDX headers in the 6.12 source), and Opsis is GPL-3.0, so static linking needs no relinking route.
 
 ### Sources
 
-- linuxdeploy Qt plugin: https://github.com/linuxdeploy/linuxdeploy-plugin-qt (checked 2026-11-05)
-- Qt deployment: https://doc.qt.io/qt-6/deployment.html (checked 2026-11-05)
-- Qt licensing (LGPL-3.0): https://doc.qt.io/qt-6/licensing.html (checked 2026-11-05)
+- Qt licensing: https://doc.qt.io/qt-6/licensing.html (checked 2026-11-05)
+- The spike's static Qt builds, script and report: `~/.cache/opsis-v4-research/native-editor-spike/` (`qt-static/build-qt.sh`, `report.md`)
 
 ## Alternatives
 
