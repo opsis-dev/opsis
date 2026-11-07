@@ -54,7 +54,7 @@ const MOC_HEADERS: [&str; 34] = [
     "engine_card.h",
 ];
 
-const SOURCES: [&str; 47] = [
+const SOURCES: [&str; 48] = [
     "app.cc",
     "event_hub.cc",
     "widgets.cc",
@@ -102,6 +102,7 @@ const SOURCES: [&str; 47] = [
     "terminal_window.cc",
     "e2e_terminal.cc",
     "engine_card.cc",
+    "e2e_ports.cc",
 ];
 
 fn main() {

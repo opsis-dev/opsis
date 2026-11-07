@@ -61,7 +61,8 @@ void StreamCanvas::SetFrame(QImage frame, QSize page) {
 }
 
 QRectF StreamCanvas::Target() const {
-  const QSizeF fitted = QSizeF(page_).scaled(QSizeF(size()), Qt::KeepAspectRatio);
+  const QSizeF fitted =
+      QSizeF(page_).scaled(QSizeF(size()), Qt::KeepAspectRatio);
   return {QPointF((width() - fitted.width()) / 2.0,
                   (height() - fitted.height()) / 2.0),
           fitted};
@@ -169,8 +170,8 @@ StreamWindow::StreamWindow(QString id, const QString& title)
       dialog_(new QWidget(this)),
       dialog_text_(MakeLabel(QString(), nullptr, dialog_)),
       dialog_prompt_(new QLineEdit(dialog_)),
-      dialog_cancel_(MakeButton(QStringLiteral("Cancel"), "ghost", QString(),
-                                dialog_)),
+      dialog_cancel_(
+          MakeButton(QStringLiteral("Cancel"), "ghost", QString(), dialog_)),
       canvas_(new StreamCanvas(id_, this)) {
   setObjectName(QStringLiteral("StreamWindow"));
   setAttribute(Qt::WA_DeleteOnClose);
@@ -187,8 +188,8 @@ StreamWindow::StreamWindow(QString id, const QString& title)
   row->setContentsMargins(8, 6, 8, 6);
   row->setSpacing(4);
   const QString view = id_;
-  auto* back = MakeIconButton(QStringLiteral("arrow-left"),
-                              QStringLiteral("Back"), bar);
+  auto* back =
+      MakeIconButton(QStringLiteral("arrow-left"), QStringLiteral("Back"), bar);
   connect(back, &QToolButton::clicked, this,
           [view] { App::Get().session().view_go(ToRust(view), -1); });
   auto* forward = MakeIconButton(QStringLiteral("arrow-right"),

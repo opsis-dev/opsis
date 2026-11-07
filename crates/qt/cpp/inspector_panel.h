@@ -2,8 +2,8 @@
 #define OPSIS_QT_CPP_INSPECTOR_PANEL_H_
 
 #include <QHash>
-#include <QPointer>
 #include <QJsonObject>
+#include <QPointer>
 #include <QScrollArea>
 #include <QSet>
 #include <QStringList>

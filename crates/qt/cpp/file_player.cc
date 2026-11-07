@@ -77,9 +77,9 @@ void PlayerSurface::paintEvent(QPaintEvent*) {
   painter.fillRect(rect(), Qt::black);
   if (frame_.isNull()) return;
   const QSize fitted = frame_.size().scaled(size(), Qt::KeepAspectRatio);
-  const QRect target(QPoint((width() - fitted.width()) / 2,
-                            (height() - fitted.height()) / 2),
-                     fitted);
+  const QRect target(
+      QPoint((width() - fitted.width()) / 2, (height() - fitted.height()) / 2),
+      fitted);
   painter.setRenderHint(QPainter::SmoothPixmapTransform);
   painter.drawImage(target, frame_);
 }
@@ -191,8 +191,8 @@ FilePlayer::FilePlayer(const QString& file, const QString& label, bool video,
       video_(video),
       label_(label),
       seek_(new SeekBar(this)),
-      play_(MakeIconButton(QStringLiteral("play"), QStringLiteral("Play"),
-                           this)),
+      play_(
+          MakeIconButton(QStringLiteral("play"), QStringLiteral("Play"), this)),
       mute_(MakeIconButton(QStringLiteral("volume-2"), QStringLiteral("Mute"),
                            this)),
       volume_(new QSlider(Qt::Horizontal, this)),
@@ -219,8 +219,8 @@ FilePlayer::FilePlayer(const QString& file, const QString& label, bool video,
   auto* failure = new QVBoxLayout(failure_);
   failure->setContentsMargins(12, 12, 12, 12);
   failure->setSpacing(4);
-  auto* title = MakeLabel(QStringLiteral("Couldn't play this file"), nullptr,
-                          failure_);
+  auto* title =
+      MakeLabel(QStringLiteral("Couldn't play this file"), nullptr, failure_);
   title->setWordWrap(true);
   failure->addWidget(title);
   auto* about = MakeLabel(
@@ -464,9 +464,9 @@ void FilePlayer::SetFullscreen(bool on) {
     setParent(nullptr, Qt::Window);
     setWindowTitle(label_);
     showFullScreen();
-    fullscreen_->setIcon(App::Get().Icon(
-        QStringLiteral("minimize"),
-        App::Get().Token(QStringLiteral("foreground"))));
+    fullscreen_->setIcon(
+        App::Get().Icon(QStringLiteral("minimize"),
+                        App::Get().Token(QStringLiteral("foreground"))));
     fullscreen_->setToolTip(QStringLiteral("Exit full screen"));
     fullscreen_->setAccessibleName(fullscreen_->toolTip());
     setFocus();
@@ -481,15 +481,15 @@ void FilePlayer::SetFullscreen(bool on) {
   parent->layout()->replaceWidget(placeholder, this);
   delete placeholder;
   show();
-  fullscreen_->setIcon(App::Get().Icon(
-      QStringLiteral("maximize"),
-      App::Get().Token(QStringLiteral("foreground"))));
+  fullscreen_->setIcon(
+      App::Get().Icon(QStringLiteral("maximize"),
+                      App::Get().Token(QStringLiteral("foreground"))));
   fullscreen_->setToolTip(QStringLiteral("Full screen"));
   fullscreen_->setAccessibleName(fullscreen_->toolTip());
 }
 
-ImagePreview::ImagePreview(const QString& file, const QString& label,
-                           int width, QWidget* parent)
+ImagePreview::ImagePreview(const QString& file, const QString& label, int width,
+                           QWidget* parent)
     : QLabel(parent), file_(file), label_(label) {
   setObjectName(QStringLiteral("ArtifactPicture"));
   setCursor(Qt::PointingHandCursor);
@@ -526,18 +526,17 @@ void ImagePreview::Enlarge() {
   layout->setContentsMargins(8, 8, 8, 8);
   auto* picture = new QLabel(dialog);
   picture->setAccessibleName(label_);
-  const QScreen* screen =
-      window()->screen() != nullptr ? window()->screen()
-                                    : QGuiApplication::primaryScreen();
+  const QScreen* screen = window()->screen() != nullptr
+                              ? window()->screen()
+                              : QGuiApplication::primaryScreen();
   const QRect area = screen->availableGeometry();
   const QSize largest(static_cast<int>(area.width() * kScreenShare),
                       static_cast<int>(area.height() * kScreenHeightShare));
-  picture->setPixmap(
-      pixmap.size().width() > largest.width() ||
-              pixmap.size().height() > largest.height()
-          ? pixmap.scaled(largest, Qt::KeepAspectRatio,
-                          Qt::SmoothTransformation)
-          : pixmap);
+  picture->setPixmap(pixmap.size().width() > largest.width() ||
+                             pixmap.size().height() > largest.height()
+                         ? pixmap.scaled(largest, Qt::KeepAspectRatio,
+                                         Qt::SmoothTransformation)
+                         : pixmap);
   layout->addWidget(picture);
   dialog->open();
 }

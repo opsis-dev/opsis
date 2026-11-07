@@ -3,8 +3,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QPointer>
-#include <QTimer>
 #include <QString>
+#include <QTimer>
 #include <memory>
 
 #include "app.h"
@@ -91,8 +91,7 @@ void Scenario::BuildEvents(MainWindow* window) {
         test->dispatched = EventHub::Instance()->dispatched(document);
         for (int n = 0; n < kBurst; ++n) {
           App::Get().session().rename_node(
-              ToRust(test->other),
-              ToRust(QStringLiteral("Burst %1").arg(n)));
+              ToRust(test->other), ToRust(QStringLiteral("Burst %1").arg(n)));
         }
       },
       1200,
@@ -117,13 +116,13 @@ void Scenario::BuildEvents(MainWindow* window) {
         const bridge::GraphView graph = App::Get().session().graph();
         for (const auto& card : graph.nodes) {
           if (ToQ(card.id) == test->other) {
-            return Expect(ToQ(card.title) != QStringLiteral("Elsewhere") &&
-                              !ToQ(card.title).startsWith(
-                                  QStringLiteral("Burst")),
-                          QStringLiteral("undo didn't bring the name back: "
-                                         "'%1' after %2 undos")
-                              .arg(ToQ(card.title))
-                              .arg(test->builds));
+            return Expect(
+                ToQ(card.title) != QStringLiteral("Elsewhere") &&
+                    !ToQ(card.title).startsWith(QStringLiteral("Burst")),
+                QStringLiteral("undo didn't bring the name back: "
+                               "'%1' after %2 undos")
+                    .arg(ToQ(card.title))
+                    .arg(test->builds));
           }
         }
         return QStringLiteral("the other node is gone");
@@ -167,7 +166,8 @@ void Scenario::BuildDisk() {
       QStringLiteral("disk-change-loads-a-saved-project"),
       [saved, rewrite] {
         *saved = ToQ(App::Get().session().graph().name);
-        QTimer::singleShot(kSaveMs, [rewrite] { rewrite(QStringLiteral("Edited outside")); });
+        QTimer::singleShot(
+            kSaveMs, [rewrite] { rewrite(QStringLiteral("Edited outside")); });
       },
       kDiskMs,
       [] {
@@ -189,8 +189,9 @@ void Scenario::BuildDisk() {
   Until(
       QStringLiteral("disk-change-asks-with-unsaved-edits"),
       [rewrite] {
-        const QJsonObject rename{{QStringLiteral("op"), QStringLiteral("rename")},
-                                 {QStringLiteral("name"), QStringLiteral("Mine")}};
+        const QJsonObject rename{
+            {QStringLiteral("op"), QStringLiteral("rename")},
+            {QStringLiteral("name"), QStringLiteral("Mine")}};
         App::Get().session().project_edit(ToRust(QString::fromUtf8(
             QJsonDocument(rename).toJson(QJsonDocument::Compact))));
         rewrite(QStringLiteral("Theirs"));
@@ -198,14 +199,16 @@ void Scenario::BuildDisk() {
       kDiskMs,
       [] {
         for (QWidget* top : QApplication::topLevelWidgets()) {
-          if (top->findChild<QWidget*>(QStringLiteral("DiskChangeDialog"))) return true;
+          if (top->findChild<QWidget*>(QStringLiteral("DiskChangeDialog")))
+            return true;
         }
         return false;
       },
       [this] {
         QWidget* dialog = nullptr;
         for (QWidget* top : QApplication::topLevelWidgets()) {
-          if (auto* found = top->findChild<QWidget*>(QStringLiteral("DiskChangeDialog"))) {
+          if (auto* found = top->findChild<QWidget*>(
+                  QStringLiteral("DiskChangeDialog"))) {
             dialog = found;
           }
         }
@@ -225,12 +228,11 @@ void Scenario::BuildDisk() {
       },
       [saved, file] {
         QFile project(file());
-        const bool mine =
-            project.open(QIODevice::ReadOnly) &&
-            QJsonDocument::fromJson(project.readAll())
-                    .object()
-                    .value(QStringLiteral("name"))
-                    .toString() == QStringLiteral("Mine");
+        const bool mine = project.open(QIODevice::ReadOnly) &&
+                          QJsonDocument::fromJson(project.readAll())
+                                  .object()
+                                  .value(QStringLiteral("name"))
+                                  .toString() == QStringLiteral("Mine");
         const QJsonObject back{{QStringLiteral("op"), QStringLiteral("rename")},
                                {QStringLiteral("name"), *saved}};
         App::Get().session().project_edit(ToRust(QString::fromUtf8(

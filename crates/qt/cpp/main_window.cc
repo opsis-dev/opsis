@@ -20,15 +20,15 @@
 #include "app.h"
 #include "engine_card.h"
 #include "event_hub.h"
-#include "live_view.h"
-#include "replay_dialog.h"
 #include "graph_canvas.h"
 #include "inspector_panel.h"
+#include "live_view.h"
 #include "mixer_panel.h"
 #include "motion.h"
 #include "new_project_dialog.h"
 #include "node_list.h"
 #include "opsis-qt/src/bridge.rs.h"
+#include "replay_dialog.h"
 #include "run_panel.h"
 #include "settings_window.h"
 #include "start_screen.h"
@@ -50,17 +50,6 @@ constexpr int kSideWidth = 260;
 constexpr int kInspectorWidth = 340;
 constexpr double kBottomShare = 0.4;
 constexpr int kSaveWindowAfterMs = 400;
-
-QWidget* Placeholder(const QString& text) {
-  auto* panel = new QWidget();
-  panel->setObjectName(QStringLiteral("Panel"));
-  panel->setAttribute(Qt::WA_StyledBackground);
-  auto* layout = new QVBoxLayout(panel);
-  auto* label = MakeLabel(text, "muted", panel);
-  label->setAlignment(Qt::AlignCenter);
-  layout->addWidget(label);
-  return panel;
-}
 
 }
 
@@ -235,6 +224,12 @@ void MainWindow::Dispatch(const QString& id) {
   } else if (id == QStringLiteral("edit:add-node")) {
     QuickAdd();
   } else {
+    QWidget* focus = QApplication::focusWidget();
+    if ((id == QStringLiteral("edit:undo") ||
+         id == QStringLiteral("edit:redo")) &&
+        focus != nullptr && inspector_dock_->isAncestorOf(focus)) {
+      focus->clearFocus();
+    }
     try {
       App::Get().session().menu_command(ToRust(id));
     } catch (const rust::Error& error) {
@@ -288,8 +283,8 @@ void MainWindow::AskAboutDisk(bool readable) {
   auto* layout = new QVBoxLayout(dialog);
   layout->setContentsMargins(24, 22, 24, 20);
   layout->setSpacing(10);
-  layout->addWidget(MakeLabel(QStringLiteral("The project file changed on disk"),
-                              "title", dialog));
+  layout->addWidget(MakeLabel(
+      QStringLiteral("The project file changed on disk"), "title", dialog));
   auto* about = MakeLabel(
       readable ? QStringLiteral("Something outside Opsis changed this project "
                                 "while you had unsaved edits. Load the file to "
@@ -314,13 +309,15 @@ void MainWindow::AskAboutDisk(bool readable) {
                            QString::fromUtf8(error.what()));
     }
   };
-  auto* other = MakeButton(readable ? QStringLiteral("Load the file")
-                                    : QStringLiteral("Wait"),
-                           "outline", QString(), dialog);
+  auto* other = MakeButton(
+      readable ? QStringLiteral("Load the file") : QStringLiteral("Wait"),
+      "outline", QString(), dialog);
   connect(other, &QPushButton::clicked, dialog,
           [choose, readable] { choose(readable ? "load" : "wait"); });
-  auto* keep = MakeButton(QStringLiteral("Keep mine"), "primary", QString(), dialog);
-  connect(keep, &QPushButton::clicked, dialog, [choose] { choose("keepMine"); });
+  auto* keep =
+      MakeButton(QStringLiteral("Keep mine"), "primary", QString(), dialog);
+  connect(keep, &QPushButton::clicked, dialog,
+          [choose] { choose("keepMine"); });
   buttons->addWidget(other);
   buttons->addWidget(keep);
   layout->addLayout(buttons);

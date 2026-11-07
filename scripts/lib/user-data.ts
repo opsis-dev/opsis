@@ -18,7 +18,7 @@ function foldersIn(dir: string): string[] {
     .map((entry) => path.join(dir, entry.name));
 }
 
-function browserIn(engine: string): string | null {
+export function browserIn(engine: string): string | null {
   const root = path.join(engine, "chrome-headless-shell");
   if (!existsSync(root)) return null;
   const shells = foldersIn(root)
@@ -45,9 +45,13 @@ function seedDatabase(userData: string, settings: Record<string, unknown>): void
   db.close();
 }
 
-export function seedUserData(userData: string, settings: Record<string, unknown> = {}): void {
+export function seedUserData(
+  userData: string,
+  settings: Record<string, unknown> = {},
+  { engine: linked = true }: { engine?: boolean } = {},
+): void {
   mkdirSync(userData, { recursive: true });
   const engine = path.join(userData, "engine");
-  if (existsSync(DEV_ENGINE)) symlinkSync(DEV_ENGINE, engine);
+  if (linked && existsSync(DEV_ENGINE)) symlinkSync(DEV_ENGINE, engine);
   seedDatabase(userData, { api: { enabled: true }, engine: engineSettings(engine), ...settings });
 }

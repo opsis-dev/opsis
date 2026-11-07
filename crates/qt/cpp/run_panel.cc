@@ -15,8 +15,8 @@
 #include "app.h"
 #include "event_hub.h"
 #include "file_player.h"
-#include "replay_dialog.h"
 #include "opsis-qt/src/bridge.rs.h"
+#include "replay_dialog.h"
 #include "top_bar.h"
 #include "widgets.h"
 
@@ -27,7 +27,7 @@ namespace {
 constexpr int kIcon = 16;
 constexpr int kPreviewWidth = 220;
 constexpr int kNodesWidth = 220;
-constexpr int kOutputsWidth = 240;
+constexpr int kOutputsWidth = 264;
 
 struct StatusLook {
   const char* state;
@@ -308,10 +308,10 @@ void RunPanel::Rebuild() {
   QString outputs_key = view.running ? QStringLiteral("running") : QString();
   for (const auto& artifact : view.artifacts) {
     const QString file = ToQ(artifact.file);
-    outputs_key += QLatin1Char('\n') + ToQ(artifact.kind) + QLatin1Char(' ') +
-                   file + QLatin1Char(' ') +
-                   QString::number(
-                       QFileInfo(file).lastModified().toMSecsSinceEpoch());
+    outputs_key +=
+        QLatin1Char('\n') + ToQ(artifact.kind) + QLatin1Char(' ') + file +
+        QLatin1Char(' ') +
+        QString::number(QFileInfo(file).lastModified().toMSecsSinceEpoch());
   }
   if (outputs_key != outputs_key_ || outputs_->widget() == nullptr) {
     outputs_key_ = outputs_key;

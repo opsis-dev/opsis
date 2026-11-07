@@ -176,12 +176,30 @@ pub struct Output {
     stop: Option<(mpsc::Sender<()>, std::thread::JoinHandle<()>)>,
 }
 
+#[cfg(debug_assertions)]
+const DEVICE_ENV: &str = "OPSIS_AUDIO_DEVICE";
+
+fn output_device(host: &cpal::Host) -> Option<cpal::Device> {
+    #[cfg(debug_assertions)]
+    if let Ok(given) = std::env::var(DEVICE_ENV) {
+        let device = given
+            .parse::<cpal::DeviceId>()
+            .ok()
+            .and_then(|id| host.device_by_id(&id));
+        if device.is_none() {
+            log::warn!("no sound output called {given}");
+        }
+        return device;
+    }
+    host.default_output_device()
+}
+
 fn open_stream(
     shared: &Arc<Mutex<Shared>>,
     device_rate: &Arc<Mutex<Option<u32>>>,
 ) -> Option<cpal::Stream> {
     let host = cpal::default_host();
-    let device = host.default_output_device()?;
+    let device = output_device(&host)?;
     let config = device.default_output_config().ok()?;
     let rate = config.sample_rate();
     let channels = usize::from(config.channels());

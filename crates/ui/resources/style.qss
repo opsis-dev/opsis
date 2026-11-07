@@ -655,18 +655,6 @@ QSlider::handle:horizontal {
   border-radius: 6px;
 }
 
-QToolButton#CanvasFloat,
-QToolButton#CanvasFloat:checked {
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 8px;
-}
-
-QToolButton#CanvasFloat:hover {
-  background: @popover;
-  border: 1px solid @input;
-}
-
 QFrame#MarkItem {
   background: @card;
   border: 1px solid @border;

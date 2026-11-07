@@ -33,8 +33,7 @@ struct PlayerTest {
   std::uint64_t id = 0;
 
   bridge::PlayerView View() const {
-    return App::Get().session().player_view(player.isNull() ? 0
-                                                             : player->id());
+    return App::Get().session().player_view(player.isNull() ? 0 : player->id());
   }
 
   void Show(const QString& file, bool video) {
@@ -159,10 +158,10 @@ void Scenario::BuildPlayer() {
       [this, test] { Click(test->host, QStringLiteral("Play")); }, 1500,
       [test] {
         const bridge::PlayerView view = test->View();
-        return Expect(!view.playing &&
-                          std::abs(view.position - view.duration) < 0.05,
-                      QStringLiteral("the clip didn't stop at its end (at %1)")
-                          .arg(view.position));
+        return Expect(
+            !view.playing && std::abs(view.position - view.duration) < 0.05,
+            QStringLiteral("the clip didn't stop at its end (at %1)")
+                .arg(view.position));
       });
   Add(
       QStringLiteral("player-mute"),
@@ -230,9 +229,9 @@ void Scenario::BuildPlayer() {
             test->host->findChild<QWidget*>(QStringLiteral("PlayerError"));
         bool said = false;
         for (const QLabel* label : test->host->findChildren<QLabel*>()) {
-          said = said || (label->isVisible() &&
-                          label->text() ==
-                              QStringLiteral("Couldn't play this file"));
+          said = said ||
+                 (label->isVisible() &&
+                  label->text() == QStringLiteral("Couldn't play this file"));
         }
         return Expect(error != nullptr && error->isVisible() && said,
                       QStringLiteral("a missing file didn't say so"));
@@ -245,8 +244,8 @@ void Scenario::BuildPlayer() {
         window->resize(kHostWidth, kHostHeight);
         auto* layout = new QVBoxLayout(window);
         auto* preview = new ImagePreview(
-            ToQ(App::Get().session().file_path(ToRust(
-                QStringLiteral("app:placeholders/launch-earth.jpg")))),
+            ToQ(App::Get().session().file_path(
+                ToRust(QStringLiteral("app:placeholders/launch-earth.jpg")))),
             QStringLiteral("Earth"), kNarrowWidth, window);
         layout->addWidget(preview);
         window->show();

@@ -118,7 +118,8 @@ void LiveSurface::Show(const bridge::LiveCaptureView* capture) {
     if (!picture.isNull()) frame_ = std::move(picture);
   }
   if (resized) updateGeometry();
-  const bool moving = frame_.isNull() || (overlays_ && !capture->clicks.empty());
+  const bool moving =
+      frame_.isNull() || (overlays_ && !capture->clicks.empty());
   if (moving && !ripples_.isActive()) ripples_.start();
   if (!moving) ripples_.stop();
   update();
@@ -138,8 +139,8 @@ void LiveSurface::paintEvent(QPaintEvent*) {
                       height() / 2.0 - kSpinnerSize / 2.0, kSpinnerSize,
                       kSpinnerSize);
     painter.setPen(QPen(muted, 2, Qt::SolidLine, Qt::RoundCap));
-    const int turn =
-        static_cast<int>(QDateTime::currentMSecsSinceEpoch() % 1000 * 360 / 1000);
+    const int turn = static_cast<int>(QDateTime::currentMSecsSinceEpoch() %
+                                      1000 * 360 / 1000);
     painter.drawArc(spin, -turn * 16, 270 * 16);
     return;
   }
@@ -163,11 +164,10 @@ void LiveSurface::paintEvent(QPaintEvent*) {
       fill.setAlpha(kBoxFillAlpha);
       painter.setBrush(fill);
       painter.setPen(QPen(primary, std::max(1.0, wide * kBoxStroke * scale)));
-      painter.drawRoundedRect(
-          QRectF(at(shown_->target_x, shown_->target_y),
-                 QSizeF(shown_->target_width * scale,
-                        shown_->target_height * scale)),
-          kBoxRadius * scale, kBoxRadius * scale);
+      painter.drawRoundedRect(QRectF(at(shown_->target_x, shown_->target_y),
+                                     QSizeF(shown_->target_width * scale,
+                                            shown_->target_height * scale)),
+                              kBoxRadius * scale, kBoxRadius * scale);
     }
     const double design = wide / kDesignWidth;
     painter.setBrush(Qt::NoBrush);
@@ -182,7 +182,8 @@ void LiveSurface::paintEvent(QPaintEvent*) {
     }
     if (shown_->has_cursor) {
       painter.setBrush(primary);
-      painter.setPen(QPen(background, std::max(1.0, wide * kPointStroke * scale)));
+      painter.setPen(
+          QPen(background, std::max(1.0, wide * kPointStroke * scale)));
       const double radius = wide * kLivePoint * scale;
       painter.drawEllipse(at(shown_->cursor_x, shown_->cursor_y), radius,
                           radius);
@@ -194,8 +195,8 @@ void LiveSurface::paintEvent(QPaintEvent*) {
   painter.setFont(small);
   const QString status = ToQ(shown_->status);
   if (status == QStringLiteral("live")) {
-    Badge(painter, QPointF(kBadgeInset, kBadgeInset),
-          QStringLiteral("● LIVE"), App::Get().Token(QStringLiteral("live")),
+    Badge(painter, QPointF(kBadgeInset, kBadgeInset), QStringLiteral("● LIVE"),
+          App::Get().Token(QStringLiteral("live")),
           App::Get().Token(QStringLiteral("live-foreground")), false);
   }
   if (!overlays_) return;
@@ -295,8 +296,9 @@ LivePip::LivePip(QWidget* host, QPushButton* toggle)
   title_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
   header->addWidget(title_, 1);
   header->addWidget(count_);
-  auto* enlarge = MakeIconButton(QStringLiteral("maximize-2"),
-                                 QStringLiteral("Open in its own window"), this);
+  auto* enlarge =
+      MakeIconButton(QStringLiteral("maximize-2"),
+                     QStringLiteral("Open in its own window"), this);
   connect(enlarge, &QToolButton::clicked, this, [] { LiveWindow::Open(); });
   header->addWidget(enlarge);
   auto* close = MakeIconButton(QStringLiteral("x"),
@@ -349,14 +351,13 @@ void LivePip::Sync() {
     }
     for (int i = 0; i < count; ++i) {
       const auto& each = view.captures.at(static_cast<std::size_t>(i));
-      auto* button = MakeButton(ToQ(each.title), "toggle-outline", QString(),
-                                switcher_);
+      auto* button =
+          MakeButton(ToQ(each.title), "toggle-outline", QString(), switcher_);
       button->setCheckable(true);
       button->setChecked(i == view.focus);
       const QString id = ToQ(each.capture_id);
-      connect(button, &QPushButton::clicked, this, [id] {
-        App::Get().session().live_focus(ToRust(id));
-      });
+      connect(button, &QPushButton::clicked, this,
+              [id] { App::Get().session().live_focus(ToRust(id)); });
       switcher_row_->addWidget(button);
     }
     switcher_row_->addStretch(1);
@@ -364,7 +365,7 @@ void LivePip::Sync() {
   switcher_->setVisible(count > 1);
   surface_->Show(capture);
   show();
-  adjustSize();
+  FitHeightToWidth(this);
   Place();
   raise();
 }

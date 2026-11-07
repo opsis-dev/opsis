@@ -38,6 +38,7 @@ class Scenario : public QObject {
   void BuildTour();
   void BuildRuns();
   void BuildTerminalRuns();
+  void BuildPorts();
   void BuildDisk();
   void BuildBench(int count);
   void Next();

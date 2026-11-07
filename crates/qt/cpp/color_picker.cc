@@ -273,7 +273,7 @@ ColorPicker* ColorPicker::Open(QWidget* anchor, const QString& value,
                                  std::move(on_change));
   open_ = picker;
   FormHold::Instance()->Begin();
-  picker->adjustSize();
+  FitHeightToWidth(picker);
   QPoint at = anchor->mapToGlobal(QPoint(0, anchor->height() + 4));
   if (const QScreen* screen = anchor->screen()) {
     const QRect room = screen->availableGeometry();

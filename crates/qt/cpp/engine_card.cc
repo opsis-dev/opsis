@@ -60,7 +60,8 @@ EngineCard::EngineCard(const QString& title, std::function<void()> on_done,
   row->setSpacing(12);
   auto* words = new QVBoxLayout();
   words->setSpacing(2);
-  words->addWidget(MakeLabel(QStringLiteral("Recording browser"), "title-small"));
+  words->addWidget(
+      MakeLabel(QStringLiteral("Recording browser"), "title-small"));
   browser_line_->setWordWrap(true);
   browser_line_->setTextInteractionFlags(Qt::TextSelectableByMouse);
   words->addWidget(browser_line_);
@@ -87,7 +88,8 @@ EngineCard::EngineCard(const QString& title, std::function<void()> on_done,
   }
   buttons->addStretch(1);
   card->body()->addLayout(buttons);
-  connect(EventHub::Instance(), &EventHub::EngineChanged, this, &EngineCard::Load);
+  connect(EventHub::Instance(), &EventHub::EngineChanged, this,
+          &EngineCard::Load);
   Load();
 }
 
@@ -113,8 +115,8 @@ void EngineCard::Load() {
   }
   browser_line_->setText(line);
   browser_line_->setProperty(
-      "role", view.problem.empty() && view.browser_error.empty() ? "muted"
-                                                                 : "error");
+      "role",
+      view.problem.empty() && view.browser_error.empty() ? "muted" : "error");
   browser_line_->style()->unpolish(browser_line_);
   browser_line_->style()->polish(browser_line_);
   browser_warning_->setVisible(!view.warning.empty());
@@ -123,9 +125,8 @@ void EngineCard::Load() {
   download_->setEnabled(!view.installing);
   download_->setText(view.complete ? QStringLiteral("Download again")
                                    : QStringLiteral("Download engine"));
-  download_->setProperty("variant", view.complete ? "outline" : "primary");
-  download_->style()->unpolish(download_);
-  download_->style()->polish(download_);
+  SetButtonVariant(download_, view.complete ? "outline" : "primary",
+                   QStringLiteral("download"));
   if (done_ != nullptr) {
     done_->setText(view.complete ? QStringLiteral("Continue")
                                  : QStringLiteral("Skip for now"));
@@ -135,10 +136,10 @@ void EngineCard::Load() {
                         view.progress >= 0);
   progress_->setValue(static_cast<int>(std::lround(view.progress * 100)));
   progress_text_->setVisible(busy);
-  progress_text_->setText(!view.error.empty()
-                              ? ToQ(view.error)
-                              : (view.message.empty() ? QStringLiteral("Starting…")
-                                                      : ToQ(view.message)));
+  progress_text_->setText(
+      !view.error.empty() ? ToQ(view.error)
+                          : (view.message.empty() ? QStringLiteral("Starting…")
+                                                  : ToQ(view.message)));
 }
 
 SetupScreen::SetupScreen(QWidget* parent) : QWidget(parent) {
@@ -159,7 +160,8 @@ SetupScreen::SetupScreen(QWidget* parent) : QWidget(parent) {
   column->addStretch(1);
   auto* heading = new QVBoxLayout();
   heading->setSpacing(4);
-  heading->addWidget(MakeLabel(QStringLiteral("Welcome to Opsis"), "heading", page));
+  heading->addWidget(
+      MakeLabel(QStringLiteral("Welcome to Opsis"), "heading", page));
   auto* about = MakeLabel(
       QStringLiteral("Recording and exporting need a recording browser. "
                      "Download it once, or choose your own."),
@@ -167,18 +169,21 @@ SetupScreen::SetupScreen(QWidget* parent) : QWidget(parent) {
   about->setWordWrap(true);
   heading->addWidget(about);
   column->addLayout(heading);
-  column->addWidget(new EngineCard(QStringLiteral("Engine"), [this] {
-    QJsonObject app{{QStringLiteral("setupSkipped"), true}};
-    try {
-      App::Get().session().patch_settings(ToRust(QString::fromUtf8(
-          QJsonDocument(QJsonObject{{QStringLiteral("app"), app}})
-              .toJson(QJsonDocument::Compact))));
-    } catch (const rust::Error& error) {
-      App::Get().ShowError(QStringLiteral("Couldn't save that choice. ") +
-                           QString::fromUtf8(error.what()));
-    }
-    emit Done();
-  }, page));
+  column->addWidget(new EngineCard(
+      QStringLiteral("Engine"),
+      [this] {
+        QJsonObject app{{QStringLiteral("setupSkipped"), true}};
+        try {
+          App::Get().session().patch_settings(ToRust(QString::fromUtf8(
+              QJsonDocument(QJsonObject{{QStringLiteral("app"), app}})
+                  .toJson(QJsonDocument::Compact))));
+        } catch (const rust::Error& error) {
+          App::Get().ShowError(QStringLiteral("Couldn't save that choice. ") +
+                               QString::fromUtf8(error.what()));
+        }
+        emit Done();
+      },
+      page));
   column->addStretch(1);
   auto* holder = new QWidget(page);
   holder->setMaximumWidth(kSetupWidth);

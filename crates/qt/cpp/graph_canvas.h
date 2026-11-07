@@ -10,6 +10,7 @@
 #include <QLabel>
 #include <QPointer>
 #include <QPushButton>
+#include <QSet>
 #include <QTimer>
 #include <QToolButton>
 #include <optional>
@@ -43,6 +44,8 @@ class CardItem : public QGraphicsItem {
   void SetCard(const bridge::CardView& card);
   const bridge::CardView& card() const { return card_; }
   QString id() const { return id_; }
+  void SetActive(bool active);
+  bool active() const { return active_; }
   std::optional<PortHit> PortAt(const QPointF& local) const;
   QPointF PortPoint(const QString& port, bool output) const;
 
@@ -74,6 +77,7 @@ class CardItem : public QGraphicsItem {
   bridge::CardView card_;
   QString id_;
   bool connecting_ = false;
+  bool active_ = false;
   unsigned resizing_ = 0;
   QRectF resize_from_;
   QPointF press_at_;
@@ -87,6 +91,9 @@ class EdgeItem : public QGraphicsPathItem {
   QString id() const { return id_; }
   QString source() const { return source_; }
   QString target() const { return target_; }
+  void SetAnimated(bool animated);
+  bool animated() const { return animated_; }
+  void SetDashOffset(double offset);
   void Route(const QPointF& from, const QPointF& to);
   QPainterPath shape() const override;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
@@ -97,6 +104,8 @@ class EdgeItem : public QGraphicsPathItem {
   QString id_;
   QString source_;
   QString target_;
+  bool animated_ = false;
+  double dash_offset_ = 0;
 };
 
 class GraphCanvas : public QGraphicsView {
@@ -106,6 +115,7 @@ class GraphCanvas : public QGraphicsView {
   explicit GraphCanvas(QWidget* parent = nullptr);
 
   void Sync();
+  void SyncActive();
   void FitAll();
   void SelectAll();
   void ZoomBy(double factor, const QPointF& anchor);
@@ -163,6 +173,7 @@ class GraphCanvas : public QGraphicsView {
  private:
   static bool Droppable(const QMimeData* data);
   void SyncSelection();
+  void MirrorSelection();
   void RemoveSelected();
   void RouteEdge(EdgeItem* edge);
   std::optional<PortHit> PortAtScene(const QPointF& point) const;
@@ -186,6 +197,9 @@ class GraphCanvas : public QGraphicsView {
   QTimer sync_timer_;
   QTimer spin_timer_;
   QTimer motion_timer_;
+  QTimer dash_timer_;
+  QSet<QString> active_;
+  double dash_offset_ = 0;
   QElapsedTimer motion_clock_;
   QHash<QString, qint64> motion_started_;
   QHash<QString, bridge::MotionInfo> motion_infos_;

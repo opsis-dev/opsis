@@ -63,6 +63,7 @@ pub trait Host {
     fn redo(&self) -> bool;
     fn select(&self, ids: Vec<String>);
     fn selected(&self) -> String;
+    fn selected_ids(&self) -> Vec<String>;
     fn inspector(&self) -> InspectorView;
     fn set_param(&self, id: &str, key: &str, json: &str) -> HostResult<()>;
     fn rename_node(&self, id: &str, label: &str) -> HostResult<()>;
@@ -191,6 +192,8 @@ pub trait Host {
     fn terminal_finish(&self, id: &str, save: bool) -> HostResult<()>;
     fn terminal_closed(&self, id: &str);
     fn resolve_disk_change(&self, choice: &str) -> HostResult<()>;
+    fn active_nodes(&self, frame: f64) -> Vec<String>;
+    fn selection_start(&self) -> f64;
     fn audio_play(&self, seconds: f64, rate: f64);
     fn audio_pause(&self);
     fn audio_seek(&self, seconds: f64);
@@ -493,6 +496,10 @@ impl Session {
 
     pub(crate) fn selected(&self) -> String {
         self.0.selected()
+    }
+
+    pub(crate) fn selected_ids(&self) -> Vec<String> {
+        self.0.selected_ids()
     }
 
     pub(crate) fn inspector(&self) -> InspectorView {
@@ -957,6 +964,14 @@ impl Session {
 
     pub(crate) fn resolve_disk_change(&self, choice: &str) -> HostResult<()> {
         self.0.resolve_disk_change(choice)
+    }
+
+    pub(crate) fn active_nodes(&self, frame: f64) -> Vec<String> {
+        self.0.active_nodes(frame)
+    }
+
+    pub(crate) fn selection_start(&self) -> f64 {
+        self.0.selection_start()
     }
 
     pub(crate) fn audio_play(&self, seconds: f64, rate: f64) {

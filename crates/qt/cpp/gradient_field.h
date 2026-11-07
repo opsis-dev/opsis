@@ -27,7 +27,7 @@ class StopBar : public QWidget {
  public:
   explicit StopBar(QWidget* parent = nullptr);
   void SetStops(std::vector<GradientStop> stops, bool can_add, int selected);
-  QSize sizeHint() const override { return {240, 44}; }
+  QSize sizeHint() const override { return {240, 28}; }
   QRectF Track() const;
   QPointF HandleOf(int index) const;
 

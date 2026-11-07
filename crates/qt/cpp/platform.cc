@@ -126,7 +126,8 @@ void close_view_window(rust::Str id) {
 void open_terminal_window(rust::Str id, rust::Str title) {
   const QString window = FromStr(id);
   const QString heading = FromStr(title);
-  OnGuiThread([window, heading] { opsis::TerminalWindow::Open(window, heading); });
+  OnGuiThread(
+      [window, heading] { opsis::TerminalWindow::Open(window, heading); });
 }
 
 void close_terminal_window(rust::Str id) {
@@ -135,8 +136,9 @@ void close_terminal_window(rust::Str id) {
 }
 
 void post_disk_change(bool readable) {
-  OnGuiThread(
-      [readable] { emit opsis::EventHub::Instance()->DiskChangeAsked(readable); });
+  OnGuiThread([readable] {
+    emit opsis::EventHub::Instance() -> DiskChangeAsked(readable);
+  });
 }
 
 void quit_app(std::int32_t code) {

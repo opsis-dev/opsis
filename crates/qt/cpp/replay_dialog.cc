@@ -73,7 +73,8 @@ QWidget* EmptyState(const QString& title, const QString& about,
   return box;
 }
 
-QWidget* Tabs(QWidget* parent, const std::vector<std::pair<QString, QWidget*>>& pages,
+QWidget* Tabs(QWidget* parent,
+              const std::vector<std::pair<QString, QWidget*>>& pages,
               int current, QStackedWidget** stack_out = nullptr) {
   auto* box = new QWidget(parent);
   auto* column = new QVBoxLayout(box);
@@ -98,7 +99,8 @@ QWidget* Tabs(QWidget* parent, const std::vector<std::pair<QString, QWidget*>>& 
   row->addStretch(1);
   QObject::connect(group, &QButtonGroup::idClicked, stack,
                    &QStackedWidget::setCurrentIndex);
-  if (QAbstractButton* chosen = group->button(current)) chosen->setChecked(true);
+  if (QAbstractButton* chosen = group->button(current))
+    chosen->setChecked(true);
   stack->setCurrentIndex(current);
   bar->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
   column->addWidget(bar, 0, Qt::AlignLeft);
@@ -231,8 +233,8 @@ void TracePanel::Build() {
     auto* item = new QListWidgetItem(list_);
     auto* row = new QWidget(list_);
     auto* line = new QHBoxLayout(row);
-    line->setContentsMargins(8 + static_cast<int>(action.depth) * kIndent, 4,
-                             8, 4);
+    line->setContentsMargins(8 + static_cast<int>(action.depth) * kIndent, 4, 8,
+                             4);
     line->setSpacing(6);
     auto* icon = new QLabel(row);
     icon->setFixedSize(kIcon, kIcon);
@@ -245,10 +247,10 @@ void TracePanel::Build() {
                           .Icon(QStringLiteral("folder"), muted, kIcon)
                           .pixmap(kIcon, kIcon));
     } else if (action.has_point) {
-      icon->setPixmap(App::Get()
-                          .Icon(QStringLiteral("mouse-pointer-click"), muted,
-                                kIcon)
-                          .pixmap(kIcon, kIcon));
+      icon->setPixmap(
+          App::Get()
+              .Icon(QStringLiteral("mouse-pointer-click"), muted, kIcon)
+              .pixmap(kIcon, kIcon));
     }
     line->addWidget(icon, 0, Qt::AlignTop);
     auto* words = new QVBoxLayout();
@@ -302,9 +304,9 @@ void TracePanel::Build() {
   column->addLayout(header);
   shot_ = new TraceShot(right);
   column->addWidget(shot_, 1);
-  auto* empty = EmptyState(QStringLiteral("No screenshots"),
-                           QStringLiteral("This take has no screenshots."),
-                           right);
+  auto* empty =
+      EmptyState(QStringLiteral("No screenshots"),
+                 QStringLiteral("This take has no screenshots."), right);
   empty->setObjectName(QStringLiteral("NoScreenshots"));
   column->addWidget(empty, 1);
   empty->setVisible(false);
@@ -322,13 +324,13 @@ void TracePanel::Build() {
   error_rows->setContentsMargins(4, 4, 4, 4);
   error_rows->setSpacing(2);
   if (view_->errors.empty()) {
-    error_rows->addWidget(MakeLabel(QStringLiteral("No errors."), "muted",
-                                    errors));
+    error_rows->addWidget(
+        MakeLabel(QStringLiteral("No errors."), "muted", errors));
   }
   for (const auto& error : view_->errors) {
-    auto* button = MakeButton(ToQ(error.at) + QStringLiteral("  ") +
-                                  ToQ(error.text),
-                              "ghost", QStringLiteral("circle-alert"), errors);
+    auto* button =
+        MakeButton(ToQ(error.at) + QStringLiteral("  ") + ToQ(error.text),
+                   "ghost", QStringLiteral("circle-alert"), errors);
     button->setObjectName(QStringLiteral("TraceError"));
     button->setFont(Mono());
     button->setStyleSheet(QStringLiteral("text-align: left;"));
@@ -373,8 +375,8 @@ void TracePanel::ShowSelected() {
   const auto& action = view_->actions.at(static_cast<std::size_t>(selected_));
   title_->setText(ToQ(action.title));
   badge_->setText(ToQ(action.at) + QStringLiteral(" · ") + ToQ(action.length));
-  const int frame = moment_ == QStringLiteral("before") ? action.before
-                                                        : action.after;
+  const int frame =
+      moment_ == QStringLiteral("before") ? action.before : action.after;
   auto* empty = findChild<QWidget*>(QStringLiteral("NoScreenshots"));
   if (frame < 0 || frame >= static_cast<int>(view_->frames.size())) {
     shot_->Clear();
@@ -382,13 +384,12 @@ void TracePanel::ShowSelected() {
     if (empty != nullptr) empty->setVisible(true);
   } else {
     const auto& picture = view_->frames.at(static_cast<std::size_t>(frame));
-    shot_->Show(ToQ(picture.file),
-                QSize(static_cast<int>(view_->width),
-                      static_cast<int>(view_->height)),
-                QRectF(action.box_x, action.box_y, action.box_width,
-                       action.box_height),
-                QPointF(action.point_x, action.point_y), action.has_box,
-                action.has_point);
+    shot_->Show(
+        ToQ(picture.file),
+        QSize(static_cast<int>(view_->width), static_cast<int>(view_->height)),
+        QRectF(action.box_x, action.box_y, action.box_width, action.box_height),
+        QPointF(action.point_x, action.point_y), action.has_box,
+        action.has_point);
     shot_->setVisible(true);
     if (empty != nullptr) empty->setVisible(false);
   }
@@ -397,20 +398,22 @@ void TracePanel::ShowSelected() {
 
 void TracePanel::FillTabs() {
   const auto& action = view_->actions.at(static_cast<std::size_t>(selected_));
-  const QString danger =
-      App::Get().Token(QStringLiteral("destructive")).name();
+  const QString danger = App::Get().Token(QStringLiteral("destructive")).name();
   const QString muted =
       App::Get().Token(QStringLiteral("muted-foreground")).name();
   QStringList call;
   if (!action.error.empty()) {
-    call << QStringLiteral("<div style=\"color:%1;white-space:pre-wrap\">%2</div>")
+    call << QStringLiteral(
+                "<div style=\"color:%1;white-space:pre-wrap\">%2</div>")
                 .arg(danger, ToQ(action.error).toHtmlEscaped());
   }
   if (!action.target.empty()) {
-    call << QStringLiteral("<div>%1</div>").arg(ToQ(action.target).toHtmlEscaped());
+    call << QStringLiteral("<div>%1</div>")
+                .arg(ToQ(action.target).toHtmlEscaped());
   }
   for (const auto& log : action.logs) {
-    call << QStringLiteral("<div style=\"color:%1;white-space:pre-wrap\">%2</div>")
+    call << QStringLiteral(
+                "<div style=\"color:%1;white-space:pre-wrap\">%2</div>")
                 .arg(muted, ToQ(log).toHtmlEscaped());
   }
   call_->setText(call.join(QString()));
@@ -464,8 +467,8 @@ void TracePanel::FillTabs() {
   }
   auto* holder = new QVBoxLayout(network_);
   holder->setContentsMargins(0, 0, 0, 0);
-  auto* table = new QTableWidget(static_cast<int>(view_->network.size()), 7,
-                                 network_);
+  auto* table =
+      new QTableWidget(static_cast<int>(view_->network.size()), 7, network_);
   table->setObjectName(QStringLiteral("TraceNetwork"));
   table->setHorizontalHeaderLabels(
       {QStringLiteral("Time"), QStringLiteral("Method"),
@@ -479,13 +482,15 @@ void TracePanel::FillTabs() {
   int row = 0;
   for (const auto& request : view_->network) {
     const std::array<QString, 7> cells = {
-        ToQ(request.at),   ToQ(request.method), ToQ(request.status),
-        ToQ(request.url),  ToQ(request.kind),   ToQ(request.size),
+        ToQ(request.at),    ToQ(request.method), ToQ(request.status),
+        ToQ(request.url),   ToQ(request.kind),   ToQ(request.size),
         ToQ(request.length)};
     for (int column = 0; column < 7; ++column) {
-      auto* cell = new QTableWidgetItem(cells.at(static_cast<std::size_t>(column)));
+      auto* cell =
+          new QTableWidgetItem(cells.at(static_cast<std::size_t>(column)));
       if (column == 3) cell->setToolTip(cells.at(3));
-      if (column >= 5) cell->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+      if (column >= 5)
+        cell->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
       if (column == 2 && request.failed) {
         cell->setForeground(App::Get().Token(QStringLiteral("destructive")));
       }
@@ -519,12 +524,11 @@ ReplayDialog::ReplayDialog(QWidget* parent, const bridge::ReplayView& view)
     layout->addWidget(footage, 1);
   } else {
     auto* trace_page = new TracePanel(trace, this);
-    layout->addWidget(
-        Tabs(this,
-             {{QStringLiteral("Replay"), footage},
-              {QStringLiteral("Trace"), trace_page}},
-             ToQ(view.tab) == QStringLiteral("trace") ? 1 : 0),
-        1);
+    layout->addWidget(Tabs(this,
+                           {{QStringLiteral("Replay"), footage},
+                            {QStringLiteral("Trace"), trace_page}},
+                           ToQ(view.tab) == QStringLiteral("trace") ? 1 : 0),
+                      1);
   }
   follow_.setInterval(kFollowMs);
   connect(&follow_, &QTimer::timeout, this, &ReplayDialog::Follow);

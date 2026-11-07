@@ -2,20 +2,20 @@
 
 #include <QFileDialog>
 #include <QGridLayout>
-#include <QLocale>
-#include <QPlainTextEdit>
-#include <QStyle>
-#include <QTimer>
-#include <QToolButton>
-#include <algorithm>
-#include <cmath>
 #include <QHBoxLayout>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QLabel>
+#include <QLocale>
+#include <QPlainTextEdit>
 #include <QScrollArea>
+#include <QStyle>
+#include <QTimer>
+#include <QToolButton>
 #include <QVBoxLayout>
+#include <algorithm>
+#include <cmath>
 
 #include "app.h"
 #include "engine_card.h"
@@ -300,15 +300,16 @@ QWidget* SettingsWindow::RecordingPage() {
     if (!keep_last_->isModified()) return;
     keep_last_->setModified(false);
     bool ok = false;
-    const double typed = QLocale::c().toDouble(keep_last_->text().trimmed(), &ok);
+    const double typed =
+        QLocale::c().toDouble(keep_last_->text().trimmed(), &ok);
     if (!ok) {
       Load();
       return;
     }
     const bridge::SettingsView now = App::Get().session().settings();
-    const int whole = static_cast<int>(std::lround(std::clamp(
-        typed, static_cast<double>(now.keep_last_min),
-        static_cast<double>(now.keep_last_max))));
+    const int whole = static_cast<int>(
+        std::lround(std::clamp(typed, static_cast<double>(now.keep_last_min),
+                               static_cast<double>(now.keep_last_max))));
     Patch(QStringLiteral("traces"), QStringLiteral("keepLast"), whole);
   });
   keep_last_row_ =
@@ -351,9 +352,9 @@ QWidget* SettingsWindow::RecordingPage() {
   connect(live_auto_open_, &ToggleSwitch::toggled, this, [this](bool on) {
     Patch(QStringLiteral("live"), QStringLiteral("autoOpen"), on);
   });
-  live->body()->addWidget(MakeSwitchField(
-      QStringLiteral("Open the live view when a take starts"),
-      live_auto_open_));
+  live->body()->addWidget(
+      MakeSwitchField(QStringLiteral("Open the live view when a take starts"),
+                      live_auto_open_));
   return Page(QStringLiteral("Recording"),
               QStringLiteral("Traces of each take and the live view while a "
                              "run is going."),
@@ -509,8 +510,8 @@ QWidget* SettingsWindow::AboutPage() {
        about.development ? ToQ(about.app) + QStringLiteral(" (development)")
                          : ToQ(about.app)},
       {QStringLiteral("Interface"), ToQ(about.shell)},
-      {QStringLiteral("Docking"), QStringLiteral("KDDockWidgets ") +
-                                      FromVersion(bridge::kddw_version())},
+      {QStringLiteral("Docking"),
+       QStringLiteral("KDDockWidgets ") + FromVersion(bridge::kddw_version())},
       {QStringLiteral("Platform"), ToQ(about.platform)},
       {QStringLiteral("Recording browser"), ToQ(about.browser)},
       {QStringLiteral("Engine downloads"), ToQ(about.downloads)},
@@ -572,7 +573,7 @@ void SettingsWindow::Load() {
   }
   live_fps_value_->setText(QStringLiteral("%1 fps").arg(view.live_fps));
   live_auto_open_->SetCheckedQuietly(view.live_auto_open);
-  api_state_->setText(!view.api_enabled ? QStringLiteral("Off")
+  api_state_->setText(!view.api_enabled    ? QStringLiteral("Off")
                       : view.api_listening ? QStringLiteral("On")
                                            : QStringLiteral("Not running"));
   api_error_->setVisible(view.api_enabled && !view.api_error.empty());
@@ -592,20 +593,19 @@ void SettingsWindow::Load() {
   pipe->setWordWrap(true);
   api_usage_->addWidget(pipe);
 #else
-  for (const QString route :
+  for (const QString& route :
        {QStringLiteral("/openapi.json"), QStringLiteral("/status"),
         QStringLiteral("/project")}) {
-    auto* line = MakeLabel(
-        QStringLiteral("curl --unix-socket '%1' http://localhost%2")
-            .arg(ToQ(view.api_address), route),
-        "kbd");
+    auto* line =
+        MakeLabel(QStringLiteral("curl --unix-socket '%1' http://localhost%2")
+                      .arg(ToQ(view.api_address), route),
+                  "kbd");
     line->setWordWrap(true);
     line->setTextInteractionFlags(Qt::TextSelectableByMouse);
     api_usage_->addWidget(line);
   }
 #endif
 }
-
 
 void SettingsWindow::Patch(const QString& section, const QString& key,
                            const QJsonValue& value) {

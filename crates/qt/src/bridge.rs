@@ -1021,6 +1021,7 @@ pub mod ffi {
         fn redo(self: &Session) -> bool;
         fn select(self: &Session, ids: Vec<String>);
         fn selected(self: &Session) -> String;
+        fn selected_ids(self: &Session) -> Vec<String>;
         fn inspector(self: &Session) -> InspectorView;
         fn set_param(self: &Session, id: &str, key: &str, json: &str) -> Result<()>;
         fn rename_node(self: &Session, id: &str, label: &str) -> Result<()>;
@@ -1164,6 +1165,8 @@ pub mod ffi {
         fn terminal_finish(self: &Session, id: &str, save: bool) -> Result<()>;
         fn terminal_closed(self: &Session, id: &str);
         fn resolve_disk_change(self: &Session, choice: &str) -> Result<()>;
+        fn active_nodes(self: &Session, frame: f64) -> Vec<String>;
+        fn selection_start(self: &Session) -> f64;
         fn audio_play(self: &Session, seconds: f64, rate: f64);
         fn audio_pause(self: &Session);
         fn audio_seek(self: &Session, seconds: f64);

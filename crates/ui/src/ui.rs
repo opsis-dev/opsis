@@ -1198,6 +1198,10 @@ impl Host for Ui {
             .unwrap_or_default()
     }
 
+    fn selected_ids(&self) -> Vec<String> {
+        shared::shared_state(&self.session).selection.selected_ids
+    }
+
     fn inspector(&self) -> InspectorView {
         let empty = InspectorView {
             id: String::new(),
@@ -2260,6 +2264,32 @@ impl Host for Ui {
             .remove(id);
         self.terminal_windows.forget(id);
         self.platform.terminal_window_closed(id);
+    }
+
+    fn active_nodes(&self, frame: f64) -> Vec<String> {
+        self.compiled
+            .lock()
+            .expect("latest compile")
+            .film
+            .as_ref()
+            .map_or_default(|film| film.active_at(frame))
+    }
+
+    fn selection_start(&self) -> f64 {
+        let selection = shared::shared_state(&self.session).selection;
+        let [only] = selection.selected_ids.as_slice() else {
+            return -1.0;
+        };
+        if selection.pinned_source.is_some() {
+            return -1.0;
+        }
+        self.compiled
+            .lock()
+            .expect("latest compile")
+            .film
+            .as_ref()
+            .and_then(|film| film.spans.get(only))
+            .map_or(-1.0, |span| span.from)
     }
 
     fn resolve_disk_change(&self, choice: &str) -> HostResult<()> {

@@ -29,11 +29,16 @@
 #include "app.h"
 #include "event_hub.h"
 #include "motion.h"
+#include "playback_clock.h"
 #include "widgets.h"
 
 namespace opsis {
 
 namespace {
+
+constexpr double kDash = 5;
+constexpr double kDashStep = 0.5;
+constexpr int kDashFrameMs = 33;
 
 constexpr double kRadius = 8.0;
 constexpr double kHeader = 44.0;
@@ -77,7 +82,6 @@ constexpr int kMotionFrameMs = 16;
 constexpr std::array<std::pair<double, double>, 3> kSmear = {
     {{-3.0, 0.45}, {-6.0, 0.25}, {-9.0, 0.12}}};
 constexpr int kZoomButtonWidth = 56;
-constexpr int kFloatSize = 36;
 constexpr int kOverlayMargin = 12;
 constexpr double kRingOut = 3.0;
 constexpr double kBadgeHeight = 20.0;
@@ -435,6 +439,12 @@ void CardItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
   PaintCard(painter, lod >= kDetailZoom);
 }
 
+void CardItem::SetActive(bool active) {
+  if (active == active_) return;
+  active_ = active;
+  update();
+}
+
 void CardItem::PaintCard(QPainter* painter, bool detailed) {
   App& app = App::Get();
   const QRectF body(0, 0, card_.width, card_.height);
@@ -445,6 +455,14 @@ void CardItem::PaintCard(QPainter* painter, bool detailed) {
   painter->drawRoundedRect(body.adjusted(0.5, 0.5, -0.5, -0.5), kRadius,
                            kRadius);
   PaintRing(painter, body);
+  if (active_) {
+    QColor ring = app.Token("primary");
+    ring.setAlphaF(0.7F);
+    painter->setBrush(Qt::NoBrush);
+    painter->setPen(QPen(ring, 2));
+    painter->drawRoundedRect(body.adjusted(-2, -2, 2, 2), kRadius + 2,
+                             kRadius + 2);
+  }
   if (!detailed) {
     painter->setPen(Qt::NoPen);
     painter->setBrush(accent);
@@ -737,6 +755,17 @@ QPainterPath EdgeItem::shape() const {
   return stroker.createStroke(path());
 }
 
+void EdgeItem::SetAnimated(bool animated) {
+  if (animated == animated_) return;
+  animated_ = animated;
+  update();
+}
+
+void EdgeItem::SetDashOffset(double offset) {
+  dash_offset_ = offset;
+  if (animated_) update();
+}
+
 void EdgeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*,
                      QWidget*) {
   painter->setRenderHint(QPainter::Antialiasing);
@@ -744,6 +773,10 @@ void EdgeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*,
   if (!isSelected()) color.setAlphaF(0.75);
   QPen pen(color, isSelected() ? 3 : 2);
   pen.setCosmetic(true);
+  if (animated_) {
+    pen.setDashPattern({kDash, kDash});
+    pen.setDashOffset(-dash_offset_);
+  }
   painter->setPen(pen);
   painter->setBrush(Qt::NoBrush);
   painter->drawPath(path());
@@ -841,22 +874,17 @@ GraphCanvas::GraphCanvas(QWidget* parent) : QGraphicsView(parent) {
   touchpad_->setParent(mode_card);
   mode_row->addWidget(mouse_);
   mode_row->addWidget(touchpad_);
-  for (const auto& [floating, glyph] :
-       {std::pair{grid, QStringLiteral("grid-3x3")},
-        std::pair{map, QStringLiteral("map")}}) {
-    floating->setObjectName(QStringLiteral("CanvasFloat"));
-    floating->setFixedSize(kFloatSize, kFloatSize);
-    connect(floating, &QToolButton::toggled, floating,
-            [floating, glyph](bool on) {
-              App& app = App::Get();
-              floating->setIcon(app.Icon(
-                  glyph, app.Token(on ? "foreground" : "muted-foreground")));
-            });
-  }
+  const auto alone = [&card](QToolButton* button) {
+    QHBoxLayout* row = nullptr;
+    QWidget* box = card(&row);
+    button->setParent(box);
+    row->addWidget(button);
+    return box;
+  };
   controls->addWidget(zoom_card);
-  controls->addWidget(grid);
+  controls->addWidget(alone(grid));
   controls->addWidget(mode_card);
-  controls->addWidget(map);
+  controls->addWidget(alone(map));
   const auto choose = [](const QString& mode) {
     try {
       App::Get().session().patch_settings(ToRust(
@@ -896,6 +924,24 @@ GraphCanvas::GraphCanvas(QWidget* parent) : QGraphicsView(parent) {
           qOverload<>(&QTimer::start));
   connect(EventHub::Instance(), &EventHub::RunChanged, &sync_timer_,
           qOverload<>(&QTimer::start));
+  connect(PlaybackClock::Instance(), &PlaybackClock::Changed, this,
+          &GraphCanvas::SyncActive);
+  connect(EventHub::Instance(), &EventHub::CompiledChanged, this,
+          &GraphCanvas::SyncActive);
+  connect(EventHub::Instance(), &EventHub::SelectionChanged, this, [this] {
+    const bool was = syncing_;
+    syncing_ = true;
+    MirrorSelection();
+    syncing_ = was;
+    const double start = App::Get().session().selection_start();
+    if (start >= 0) PlaybackClock::Instance()->Seek(start);
+  });
+  dash_timer_.setInterval(kDashFrameMs);
+  connect(&dash_timer_, &QTimer::timeout, this, [this] {
+    dash_offset_ = std::fmod(dash_offset_ + kDashStep, kDash * 2);
+    for (EdgeItem* edge : std::as_const(edges_))
+      edge->SetDashOffset(dash_offset_);
+  });
   motion_timer_.setInterval(kMotionFrameMs);
   connect(&motion_timer_, &QTimer::timeout, this, [this] {
     const qint64 now = motion_clock_.elapsed();
@@ -937,6 +983,31 @@ bool GraphCanvas::TouchpadMode() const {
   return canvas_mode_ == QStringLiteral("touchpad");
 }
 
+void GraphCanvas::SyncActive() {
+  QSet<QString> active;
+  for (const auto& id :
+       App::Get().session().active_nodes(PlaybackClock::Instance()->frame())) {
+    active.insert(ToQ(id));
+  }
+  if (active == active_) return;
+  active_ = active;
+  bool moving = false;
+  for (auto it = cards_.cbegin(); it != cards_.cend(); ++it) {
+    it.value()->SetActive(active_.contains(it.key()));
+  }
+  for (EdgeItem* edge : std::as_const(edges_)) {
+    const bool animated =
+        active_.contains(edge->source()) || active_.contains(edge->target());
+    edge->SetAnimated(animated);
+    moving = moving || animated;
+  }
+  if (moving && !ReducedMotion()) {
+    if (!dash_timer_.isActive()) dash_timer_.start();
+  } else {
+    dash_timer_.stop();
+  }
+}
+
 void GraphCanvas::Sync() {
   sync_timer_.stop();
   QElapsedTimer timer;
@@ -951,6 +1022,7 @@ void GraphCanvas::Sync() {
     auto found = cards_.find(id);
     if (found == cards_.end()) {
       auto* item = new CardItem(this, card);
+      item->SetActive(active_.contains(id));
       scene_.addItem(item);
       cards_.insert(id, item);
     } else {
@@ -980,6 +1052,9 @@ void GraphCanvas::Sync() {
     EdgeItem* item = nullptr;
     if (found == edges_.end()) {
       item = new EdgeItem(edge);
+      item->SetAnimated(active_.contains(item->source()) ||
+                        active_.contains(item->target()));
+      item->SetDashOffset(dash_offset_);
       scene_.addItem(item);
       edges_.insert(id, item);
     } else {
@@ -996,10 +1071,7 @@ void GraphCanvas::Sync() {
       ++it;
     }
   }
-  const QString selected = ToQ(App::Get().session().selected());
-  for (CardItem* card : std::as_const(cards_)) {
-    if (card->id() == selected && !card->isSelected()) card->setSelected(true);
-  }
+  MirrorSelection();
   syncing_ = false;
   minimap_->Refit();
   App::Get().Log(
@@ -1076,6 +1148,17 @@ void GraphCanvas::SyncSelection() {
       ids.push_back(ToRust(card->id()));
   }
   App::Get().session().select(std::move(ids));
+}
+
+void GraphCanvas::MirrorSelection() {
+  QSet<QString> chosen;
+  for (const auto& id : App::Get().session().selected_ids()) {
+    chosen.insert(ToQ(id));
+  }
+  for (CardItem* card : std::as_const(cards_)) {
+    const bool selected = chosen.contains(card->id());
+    if (card->isSelected() != selected) card->setSelected(selected);
+  }
 }
 
 void GraphCanvas::SelectAll() {

@@ -7,12 +7,14 @@ import path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import { ensureFfmpeg } from "./lib/ffmpeg";
 import { ROOT } from "./lib/tool-config";
-import { DEV_ENGINE, seedUserData } from "./lib/user-data";
+import { DEV_ENGINE, browserIn, seedUserData } from "./lib/user-data";
 
 const SCENARIOS = ["tour", "runs"] as const;
 type ScenarioName = (typeof SCENARIOS)[number];
 const DATA_DIR = path.join(homedir(), ".cache", "opsis-qt-e2e");
 const RUNS_DIR = path.join(homedir(), ".cache", "opsis-qt-e2e-runs");
+const SHOTS_DIR = path.join(homedir(), ".cache", "opsis-qt-shots");
+const SHOTS_FLAG = "--shots";
 const BUNDLES = [
   ["film-bundle", "film:bundle"],
   ["terminal-bundle", "terminal:bundle"],
@@ -97,12 +99,16 @@ function makeClip(ffmpeg: string): void {
   if (made.status !== 0) throw new Error("making the test clip failed");
 }
 
+function devBrowser(): string {
+  const browser = existsSync(DEV_ENGINE) ? browserIn(DEV_ENGINE) : null;
+  if (browser === null) throw new Error(`the scenarios need the dev engine in ${DEV_ENGINE}`);
+  return browser;
+}
+
 function seedRuns(): string {
-  if (!existsSync(DEV_ENGINE))
-    throw new Error(`the runs scenario needs the dev engine in ${DEV_ENGINE}`);
   rmSync(RUNS_DIR, { recursive: true, force: true });
   const userData = path.join(RUNS_DIR, "user-data");
-  seedUserData(userData);
+  seedUserData(userData, {}, { engine: false });
   cpSync(path.join(ROOT, "examples"), path.join(RUNS_DIR, "projects"), { recursive: true });
   return userData;
 }
@@ -135,11 +141,12 @@ function runScenario(
   const env: Record<string, string | undefined> = {
     ...process.env,
     OPSIS_FFMPEG: ffmpeg,
+    OPSIS_AUDIO_DEVICE: "alsa:null",
     DISPLAY: `:${display}`,
     QT_QPA_PLATFORM: "xcb",
     OPSIS_USER_DATA: userData,
     OPSIS_QT_SCENARIO: scenario,
-    OPSIS_QT_SHOTS: "off",
+    OPSIS_QT_SHOTS: shotsFor(scenario),
     ...extra,
   };
   delete env.WAYLAND_DISPLAY;
@@ -163,8 +170,16 @@ function stop(server: ChildProcess): void {
   if (server.exitCode === null) server.kill("SIGTERM");
 }
 
+function shotsFor(scenario: ScenarioName): string {
+  if (!process.argv.includes(SHOTS_FLAG)) return "off";
+  const dir = path.join(SHOTS_DIR, scenario);
+  rmSync(dir, { recursive: true, force: true });
+  mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
 function chosen(): ScenarioName[] {
-  const named = process.argv.slice(2);
+  const named = process.argv.slice(2).filter((arg) => arg !== SHOTS_FLAG);
   if (named.length === 0) return [...SCENARIOS];
   for (const name of named) {
     if (!SCENARIOS.includes(name as ScenarioName)) throw new Error(`no scenario ${name}`);
@@ -174,19 +189,22 @@ function chosen(): ScenarioName[] {
 
 async function runOne(display: number, ffmpeg: string, scenario: ScenarioName): Promise<boolean> {
   let userData = DATA_DIR;
+  const browser = devBrowser();
   const extra: Record<string, string> = {};
-  const page = scenario === "runs" ? await servePage() : null;
+  const page = await servePage();
   if (scenario === "tour") {
     rmSync(DATA_DIR, { recursive: true, force: true });
-    mkdirSync(DATA_DIR, { recursive: true });
+    seedUserData(DATA_DIR, { api: { enabled: false } });
     makeClip(ffmpeg);
     copySampleFont();
     extra.OPSIS_QT_FIXTURES = FIXTURES_DIR;
+    extra.OPSIS_QT_PAGE = page.url;
   } else {
     ensureBundles();
     userData = seedRuns();
     extra.OPSIS_QT_PROJECTS = path.join(RUNS_DIR, "projects");
-    extra.OPSIS_QT_PAGE = page?.url ?? "";
+    extra.OPSIS_QT_PAGE = page.url;
+    extra.OPSIS_QT_BROWSER = browser;
   }
   try {
     const { code, output } = await runScenario(display, ffmpeg, scenario, userData, extra);
@@ -201,7 +219,7 @@ async function runOne(display: number, ffmpeg: string, scenario: ScenarioName): 
     }
     return true;
   } finally {
-    page?.close();
+    page.close();
   }
 }
 

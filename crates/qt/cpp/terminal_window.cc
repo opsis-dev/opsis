@@ -81,9 +81,9 @@ void TerminalCanvas::Pointer(std::uint8_t action, QMouseEvent* event) {
   const QPointF at = event->position();
   App::Get().session().terminal_pointer(
       ToRust(id_), action,
-      static_cast<std::uint32_t>(action == static_cast<std::uint8_t>(Action::kMove)
-                                     ? Qt::NoButton
-                                     : event->button()),
+      static_cast<std::uint32_t>(
+          action == static_cast<std::uint8_t>(Action::kMove) ? Qt::NoButton
+                                                             : event->button()),
       at.x(), at.y(), width(), height());
 }
 
@@ -104,8 +104,8 @@ void TerminalCanvas::mouseMoveEvent(QMouseEvent* event) {
 void TerminalCanvas::wheelEvent(QWheelEvent* event) {
   const double delta = -event->angleDelta().y();
   if (delta == 0) return;
-  const int notches =
-      static_cast<int>(std::copysign(std::max(1.0, std::round(std::abs(delta) / kWheelStep)), delta));
+  const int notches = static_cast<int>(std::copysign(
+      std::max(1.0, std::round(std::abs(delta) / kWheelStep)), delta));
   const QPointF at = event->position();
   App::Get().session().terminal_wheel(ToRust(id_), at.x(), at.y(), width(),
                                       height(), notches);
@@ -165,7 +165,8 @@ TerminalWindow::TerminalWindow(QString id, const QString& title)
   auto* cancel = MakeButton(QStringLiteral("Cancel"), "ghost", QString(), bar);
   connect(cancel, &QPushButton::clicked, this, [this] { Finish(false); });
   row->addWidget(cancel);
-  auto* save = MakeButton(QStringLiteral("Save tape"), "primary", QString(), bar);
+  auto* save =
+      MakeButton(QStringLiteral("Save tape"), "primary", QString(), bar);
   connect(save, &QPushButton::clicked, this, [this] { Finish(true); });
   row->addWidget(save);
   layout->addWidget(bar);
@@ -184,7 +185,8 @@ void TerminalWindow::Sync() {
   frame_ = frame->serial();
   const auto bytes = frame->bytes();
   QImage picture = QImage::fromData(
-      QByteArrayView(bytes.data(), static_cast<qsizetype>(bytes.size())), "JPEG");
+      QByteArrayView(bytes.data(), static_cast<qsizetype>(bytes.size())),
+      "JPEG");
   if (!picture.isNull()) canvas_->SetFrame(std::move(picture));
 }
 

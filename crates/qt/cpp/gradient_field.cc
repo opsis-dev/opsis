@@ -26,7 +26,7 @@ namespace {
 constexpr qreal kInset = 8.0;
 constexpr qreal kTrackHeight = 24.0;
 constexpr qreal kHandle = 16.0;
-constexpr qreal kHandleTop = 18.0;
+constexpr qreal kHandleTop = 0.5 + (kTrackHeight - kHandle) / 2;
 constexpr double kFullPercent = 100.0;
 constexpr int kNumberWidth = 64;
 constexpr int kBigStep = 10;
@@ -88,7 +88,7 @@ int StopBar::HandleAt(const QPointF& point) const {
   for (int i = static_cast<int>(stops_.size()) - 1; i >= 0; --i) {
     const QPointF center = HandleOf(i);
     if (std::abs(point.x() - center.x()) <= kHandle / 2 + 2 &&
-        point.y() >= kHandleTop - 2) {
+        std::abs(point.y() - center.y()) <= kHandle / 2 + 2) {
       return i;
     }
   }
@@ -331,7 +331,10 @@ void GradientField::Select(int index) {
 void GradientField::Show() {
   editor_->setVisible(valid_ && !stops_.empty());
   note_->setVisible(!valid_ && !css_.isEmpty());
-  if (!raw_->hasFocus()) raw_->setText(css_);
+  if (!raw_->hasFocus()) {
+    raw_->setText(css_);
+    raw_->setCursorPosition(0);
+  }
   if (stops_.empty()) return;
   selected_ = std::clamp(selected_, 0, static_cast<int>(stops_.size()) - 1);
   bar_->SetStops(stops_, can_add_, selected_);

@@ -57,8 +57,8 @@ void Patch(const QString& node, const QJsonObject& params) {
 }
 
 void Scenario::BuildTerminalRuns() {
-  const QString dir = qEnvironmentVariable("OPSIS_QT_PROJECTS") +
-                      QStringLiteral("/terminal");
+  const QString dir =
+      qEnvironmentVariable("OPSIS_QT_PROJECTS") + QStringLiteral("/terminal");
   Until(
       QStringLiteral("terminal-example-records-and-exports"),
       [dir] {
@@ -70,10 +70,11 @@ void Scenario::BuildTerminalRuns() {
         const bridge::RunPanelView view = App::Get().session().run_panel();
         const QString cast = FindFile(dir, QStringLiteral("take.cast"));
         const QString preview = FindFile(dir, QStringLiteral("preview.mp4"));
-        const QString film = FindFile(dir, QStringLiteral("sample-terminal.mp4"));
+        const QString film =
+            FindFile(dir, QStringLiteral("sample-terminal.mp4"));
         return Expect(view.failure.empty() && !cast.isEmpty() &&
-                          Read(cast).contains(QStringLiteral(
-                              "Opsis records real terminals")) &&
+                          Read(cast).contains(
+                              QStringLiteral("Opsis records real terminals")) &&
                           !preview.isEmpty() && QFile(preview).size() > 0 &&
                           !film.isEmpty() && QFile(film).size() > 0,
                       QStringLiteral("the terminal example didn't record and "
@@ -89,8 +90,10 @@ void Scenario::BuildTerminalRuns() {
       kDialogMs,
       [] {
         for (QWidget* top : QApplication::topLevelWidgets()) {
-          auto* dialog = top->findChild<QWidget*>(QStringLiteral("ReplayDialog"));
-          auto* player = dialog == nullptr ? nullptr : dialog->findChild<FilePlayer*>();
+          auto* dialog =
+              top->findChild<QWidget*>(QStringLiteral("ReplayDialog"));
+          auto* player =
+              dialog == nullptr ? nullptr : dialog->findChild<FilePlayer*>();
           if (player != nullptr &&
               App::Get().session().player_view(player->id()).serial > 0) {
             return true;
@@ -102,14 +105,16 @@ void Scenario::BuildTerminalRuns() {
         const bridge::ReplayView replay = App::Get().session().replay(
             ToRust(QStringLiteral("rec")), ToRust(QStringLiteral("replay")));
         for (QWidget* top : QApplication::topLevelWidgets()) {
-          if (auto* dialog = top->findChild<QWidget*>(QStringLiteral("ReplayDialog"))) {
+          if (auto* dialog =
+                  top->findChild<QWidget*>(QStringLiteral("ReplayDialog"))) {
             dialog->close();
           }
         }
-        return Expect(ToQ(replay.video_file).endsWith(QStringLiteral("preview.mp4")),
-                      QStringLiteral("the Replay plays '%1', not the take's "
-                                     "preview")
-                          .arg(ToQ(replay.video_file)));
+        return Expect(
+            ToQ(replay.video_file).endsWith(QStringLiteral("preview.mp4")),
+            QStringLiteral("the Replay plays '%1', not the take's "
+                           "preview")
+                .arg(ToQ(replay.video_file)));
       });
   auto nodes = std::make_shared<QStringList>();
   Until(
@@ -117,18 +122,23 @@ void Scenario::BuildTerminalRuns() {
       [dir, nodes] {
         QFile::remove(dir + QStringLiteral("/live.tape"));
         auto& session = App::Get().session();
-        const QString tape = ToQ(session.add_node(ToRust(QStringLiteral("terminal.playTape")), 2400, 0));
-        const QString take = ToQ(session.add_node(ToRust(QStringLiteral("camera.take")), 2700, 0));
-        const QString film = ToQ(session.add_node(ToRust(QStringLiteral("output.render")), 3000, 0));
+        const QString tape = ToQ(session.add_node(
+            ToRust(QStringLiteral("terminal.playTape")), 2400, 0));
+        const QString take = ToQ(
+            session.add_node(ToRust(QStringLiteral("camera.take")), 2700, 0));
+        const QString film = ToQ(
+            session.add_node(ToRust(QStringLiteral("output.render")), 3000, 0));
         *nodes = {tape, take, film};
-        Patch(tape, {{QStringLiteral("file"), QStringLiteral("project:live.tape")}});
-        Patch(film, {{QStringLiteral("fileName"), QStringLiteral("tape film")}});
-        session.connect(ToRust(tape), ToRust(QStringLiteral("recording")), ToRust(take),
-                        ToRust(QStringLiteral("recording")));
-        session.connect(ToRust(tape), ToRust(QStringLiteral("style")), ToRust(take),
-                        ToRust(QStringLiteral("style")));
-        session.connect(ToRust(take), ToRust(QStringLiteral("clip")), ToRust(film),
-                        ToRust(QStringLiteral("clip")));
+        Patch(tape,
+              {{QStringLiteral("file"), QStringLiteral("project:live.tape")}});
+        Patch(film,
+              {{QStringLiteral("fileName"), QStringLiteral("tape film")}});
+        session.connect(ToRust(tape), ToRust(QStringLiteral("recording")),
+                        ToRust(take), ToRust(QStringLiteral("recording")));
+        session.connect(ToRust(tape), ToRust(QStringLiteral("style")),
+                        ToRust(take), ToRust(QStringLiteral("style")));
+        session.connect(ToRust(take), ToRust(QStringLiteral("clip")),
+                        ToRust(film), ToRust(QStringLiteral("clip")));
         session.run_node(ToRust(tape), false);
       },
       kWindowMs,
@@ -158,9 +168,10 @@ void Scenario::BuildTerminalRuns() {
       },
       [before] {
         TerminalWindow* window = OpenTerminal();
-        return Expect(window != nullptr && window->canvas()->pictures() > *before,
-                      QStringLiteral("the terminal never showed what was "
-                                     "typed"));
+        return Expect(
+            window != nullptr && window->canvas()->pictures() > *before,
+            QStringLiteral("the terminal never showed what was "
+                           "typed"));
       });
   Until(
       QStringLiteral("save-the-tape"),
@@ -188,9 +199,11 @@ void Scenario::BuildTerminalRuns() {
         const QString film = FindFile(dir, QStringLiteral("tape-film.mp4"));
         bool cast = false;
         QDirIterator casts(dir, {QStringLiteral("take.cast")},
-                           QDir::Files | QDir::Hidden, QDirIterator::Subdirectories);
+                           QDir::Files | QDir::Hidden,
+                           QDirIterator::Subdirectories);
         while (casts.hasNext()) {
-          cast = cast || Read(casts.next()).contains(QStringLiteral("live-tape"));
+          cast =
+              cast || Read(casts.next()).contains(QStringLiteral("live-tape"));
         }
         rust::Vec<rust::String> remove;
         for (const QString& node : *nodes) remove.push_back(ToRust(node));

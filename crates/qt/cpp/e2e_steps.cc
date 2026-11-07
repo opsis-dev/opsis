@@ -62,6 +62,7 @@ constexpr double kNear = 1.0;
 constexpr int kSettleMs = 300;
 constexpr double kMaxQuality = 12;
 constexpr int kEventuallyMs = 2000;
+constexpr int kStopMs = 10000;
 constexpr int kControlsWidth = 220;
 constexpr double kBottomShareLow = 0.3;
 constexpr double kBottomShareHigh = 0.5;
@@ -151,6 +152,17 @@ QWidget* VisibleText(QWidget* root, const QString& text) {
   return nullptr;
 }
 
+QLineEdit* SiteAddress(const MainWindow* window) {
+  for (QLineEdit* line :
+       window->inspector_dock()->widget()->findChildren<QLineEdit*>()) {
+    if (line->isVisible() &&
+        line->toolTip() == QStringLiteral("Variable value")) {
+      return line;
+    }
+  }
+  return nullptr;
+}
+
 }
 
 QAbstractButton* Scenario::Find(QWidget* root, const QString& name) {
@@ -227,25 +239,6 @@ void Scenario::BuildTour() {
   auto memo = std::make_shared<Memo>();
   const auto undo = [this, window] { Click(window, QStringLiteral("Undo")); };
 
-  Add(
-      QStringLiteral("setup-shows-without-an-engine"), [] {}, 300,
-      [window] {
-        auto* setup = window->findChild<QWidget*>(QStringLiteral("SetupScreen"));
-        auto* state = setup == nullptr
-                          ? nullptr
-                          : setup->findChild<QLabel*>(QStringLiteral("EngineState"));
-        return Expect(setup != nullptr && setup->isVisible() && state != nullptr &&
-                          state->text() == QStringLiteral("Not set up"),
-                      QStringLiteral("the setup screen didn't show"));
-      });
-  Add(
-      QStringLiteral("skip-setup"),
-      [this, window] { Click(window, QStringLiteral("Skip for now")); }, 600,
-      [window] {
-        return Expect(window->start_screen()->isVisible() &&
-                          App::Get().session().settings().setup_skipped,
-                      QStringLiteral("skipping didn't reach the start screen"));
-      });
   Add(
       QStringLiteral("start-screen"), [] {}, 300,
       [window] {
@@ -536,9 +529,12 @@ void Scenario::BuildTour() {
       });
   Add(
       QStringLiteral("undo-drag-with-keys"),
-      [window, canvas] {
+      [this, window, canvas] {
         window->activateWindow();
-        QTest::qWaitForWindowActive(window);
+        if (!QTest::qWaitForWindowActive(window)) {
+          Miss(QStringLiteral("the main window didn't become active"));
+          return;
+        }
         canvas->setFocus();
         QTest::keyClick(canvas, Qt::Key_Z, Qt::ControlModifier);
       },
@@ -615,14 +611,16 @@ void Scenario::BuildTour() {
       },
       600,
       [memo] {
-        QTest::qWaitFor(
-            [memo] {
-              const bridge::GraphView graph_4 = Graph();
-              const auto* card = CardWithId(graph_4, memo->id);
-              return card != nullptr &&
-                     ToQ(card->title) == QStringLiteral("Shop page");
-            },
-            kEventuallyMs);
+        if (QTest::qWaitFor(
+                [memo] {
+                  const bridge::GraphView graph_4 = Graph();
+                  const auto* card = CardWithId(graph_4, memo->id);
+                  return card != nullptr &&
+                         ToQ(card->title) == QStringLiteral("Shop page");
+                },
+                kEventuallyMs)) {
+          return QString();
+        }
         const bridge::GraphView graph_5 = Graph();
         const auto* card = CardWithId(graph_5, memo->id);
         return Expect(
@@ -901,6 +899,29 @@ void Scenario::BuildTour() {
       });
 
   Add(
+      QStringLiteral("point-the-site-at-the-test-page"),
+      [this, window] {
+        App::Get().session().select(rust::Vec<rust::String>());
+        QTest::qWait(kSettleMs);
+        QLineEdit* value = SiteAddress(window);
+        if (value == nullptr) {
+          Miss(QStringLiteral("no Site address variable"));
+          return;
+        }
+        value->setFocus();
+        value->selectAll();
+        QTest::keyClicks(value, qEnvironmentVariable("OPSIS_QT_PAGE"));
+        QTest::keyClick(value, Qt::Key_Return);
+      },
+      600,
+      [window] {
+        const QLineEdit* value = SiteAddress(window);
+        const QString page = qEnvironmentVariable("OPSIS_QT_PAGE");
+        return Expect(
+            !page.isEmpty() && value != nullptr && value->text() == page,
+            QStringLiteral("the site address isn't the test page"));
+      });
+  Add(
       QStringLiteral("run-from-top-bar"),
       [this, window] { Click(window, QStringLiteral("Run")); }, 2500,
       [] {
@@ -909,11 +930,17 @@ void Scenario::BuildTour() {
         }
         return QStringLiteral("no card shows a run status");
       });
-  Add(QStringLiteral("stop-run"), [this, window] {
-    if (Find(window, QStringLiteral("Stop")) != nullptr) {
-      Click(window, QStringLiteral("Stop"));
-    }
-  });
+  Until(
+      QStringLiteral("stop-run"),
+      [this, window] { Click(window, QStringLiteral("Stop")); }, kStopMs,
+      [] { return !App::Get().session().run_panel().running; },
+      [this, window] {
+        if (Find(window, QStringLiteral("Close live view")) != nullptr) {
+          Click(window, QStringLiteral("Close live view"));
+        }
+        return Expect(!App::Get().session().run_panel().running,
+                      QStringLiteral("Stop didn't end the run"));
+      });
   Add(
       QStringLiteral("run-panel-shows-the-run"),
       [this] { ClickMenu(QStringLiteral("View"), QStringLiteral("Run")); },
@@ -1352,8 +1379,24 @@ void Scenario::BuildTour() {
       [] {
         auto* picker =
             qobject_cast<ColorPicker*>(QApplication::activePopupWidget());
-        return Expect(picker != nullptr && picker->isVisible(),
-                      QStringLiteral("no colour picker opened"));
+        if (picker == nullptr || !picker->isVisible()) {
+          return QStringLiteral("no colour picker opened");
+        }
+        QList<QWidget*> parts;
+        for (QObject* child : picker->children()) {
+          auto* part = qobject_cast<QWidget*>(child);
+          if (part != nullptr && part->isVisible()) parts << part;
+        }
+        for (int i = 0; i < parts.size(); ++i) {
+          for (int j = i + 1; j < parts.size(); ++j) {
+            if (parts.at(i)->geometry().intersects(parts.at(j)->geometry())) {
+              return QStringLiteral("the picker's %1 covers its %2")
+                  .arg(parts.at(j)->accessibleName(),
+                       parts.at(i)->accessibleName());
+            }
+          }
+        }
+        return QString();
       });
   Add(
       QStringLiteral("color-picker-hue-and-oklch"),
@@ -1448,8 +1491,15 @@ void Scenario::BuildTour() {
       700,
       [gradient_field] {
         GradientField* field = gradient_field();
+        const auto* raw =
+            field == nullptr
+                ? nullptr
+                : field->findChild<QLineEdit*>(QStringLiteral("Mono"));
         return Expect(field != nullptr && field->StopCount() == 2,
-                      QStringLiteral("no gradient with two stops"));
+                      QStringLiteral("no gradient with two stops")) +
+               Expect(raw != nullptr && raw->cursorPosition() == 0,
+                      QStringLiteral(" the gradient's text doesn't show "
+                                     "from its start"));
       });
   Add(
       QStringLiteral("gradient-add-stop"),
@@ -1931,7 +1981,7 @@ void Scenario::BuildTour() {
                           .arg(opacity_keys().size()));
       });
   Add(
-      QStringLiteral("camera-field-needs-the-film"),
+      QStringLiteral("camera-key-at-the-picked-node"),
       [add_from_list, pick_kind] {
         add_from_list(QStringLiteral("Text & overlays"),
                       QStringLiteral("3D text"));
@@ -1945,10 +1995,10 @@ void Scenario::BuildTour() {
       [this, window] {
         QAbstractButton* add = Find(window->inspector_dock()->widget(),
                                     QStringLiteral("Add key at playhead"));
-        return Expect(
-            add != nullptr && !add->isEnabled() &&
-                add->toolTip().startsWith(QStringLiteral("Put this node")),
-            QStringLiteral("no disabled Add key at playhead"));
+        return Expect(add != nullptr && add->isEnabled(),
+                      QStringLiteral("Add key at playhead is off though "
+                                     "picking the node moved the playhead "
+                                     "into it"));
       });
   Add(
       QStringLiteral("undo-camera"),
@@ -2439,9 +2489,17 @@ void Scenario::BuildTour() {
   Add(
       QStringLiteral("show-the-grid"),
       [this, canvas] { Click(canvas, QStringLiteral("Show the grid")); }, 400,
-      [canvas] {
+      [this, canvas] {
+        QAbstractButton* grid = Find(canvas, QStringLiteral("Hide the grid"));
+        QAbstractButton* map = Find(canvas, QStringLiteral("Hide the minimap"));
+        if (map == nullptr)
+          map = Find(canvas, QStringLiteral("Show the minimap"));
         return Expect(canvas->GridShown(),
-                      QStringLiteral("the grid stayed off"));
+                      QStringLiteral("the grid stayed off")) +
+               Expect(grid != nullptr && grid->isChecked() && map != nullptr &&
+                          map->isChecked() == canvas->minimap_visible(),
+                      QStringLiteral(" the grid or minimap button doesn't "
+                                     "show as on"));
       });
 
   Add(

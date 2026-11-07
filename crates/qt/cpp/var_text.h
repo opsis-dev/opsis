@@ -33,14 +33,18 @@ class VarSurface : public QTextEdit {
   void InsertVariable(const QString& name);
   void InsertPause();
   bool HasDraft() const { return Value() != committed_; }
+  void SetLive(bool live) { live_ = live; }
   int MissingChips() const;
 
  signals:
   void Committed(const QString& value);
+  void Started();
+  void Finished();
 
  protected:
   bool event(QEvent* event) override;
   void keyPressEvent(QKeyEvent* event) override;
+  void focusInEvent(QFocusEvent* event) override;
   void focusOutEvent(QFocusEvent* event) override;
   void insertFromMimeData(const QMimeData* source) override;
   bool canInsertFromMimeData(const QMimeData* source) const override;
@@ -52,6 +56,7 @@ class VarSurface : public QTextEdit {
 
   bool multiline_;
   bool pauses_;
+  bool live_ = false;
   QString committed_;
 };
 
@@ -66,6 +71,8 @@ class VarText : public QWidget {
 
  signals:
   void Committed(const QString& value);
+  void Started();
+  void Finished();
 
  private:
   void ShowVariables(QWidget* anchor);

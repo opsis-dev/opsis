@@ -116,8 +116,9 @@ void Scenario::Next() {
   const std::function<bool()> ready = step.ready;
   const std::size_t number = ++index_;
   if (!ready) {
-    QTimer::singleShot(wait, this,
-                       [this, name, number, check] { Finish(name, number, check); });
+    QTimer::singleShot(wait, this, [this, name, number, check] {
+      Finish(name, number, check);
+    });
     return;
   }
   auto* poll = new QTimer(this);

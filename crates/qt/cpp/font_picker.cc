@@ -46,7 +46,8 @@ void AddGroup(QListWidget* list, const QString& heading,
     item->setData(kFamilyRole, family);
     item->setData(kIdRole, ToQ(font.id));
     item->setFont(SampleFont(ToQ(font.sample), family));
-    if (font.selected) item->setIcon(App::Get().Icon(QStringLiteral("check"), ink, 14));
+    if (font.selected)
+      item->setIcon(App::Get().Icon(QStringLiteral("check"), ink, 14));
   }
 }
 
@@ -83,13 +84,16 @@ FontPopover::FontPopover(QWidget* anchor, const QString& value,
   if (!empty_label.isEmpty()) {
     auto* empty = new QListWidgetItem(empty_label, list_);
     empty->setData(kKindRole, static_cast<int>(Row::kEmpty));
-    if (value.isEmpty()) empty->setIcon(App::Get().Icon(QStringLiteral("check"), ink, 14));
+    if (value.isEmpty())
+      empty->setIcon(App::Get().Icon(QStringLiteral("check"), ink, 14));
   }
   const bridge::FontChoicesView choices =
       App::Get().session().font_choices(ToRust(value));
-  AddGroup(list_, QStringLiteral("In this project"), choices.project, Row::kFont);
+  AddGroup(list_, QStringLiteral("In this project"), choices.project,
+           Row::kFont);
   AddGroup(list_, QStringLiteral("Built in"), choices.built_in, Row::kFont);
-  AddGroup(list_, QStringLiteral("Your library"), choices.library, Row::kLibrary);
+  AddGroup(list_, QStringLiteral("Your library"), choices.library,
+           Row::kLibrary);
   auto* manage = new QListWidgetItem(
       App::Get().Icon(QStringLiteral("settings-2"), ink, 14),
       QStringLiteral("Add or manage fonts…"), list_);
@@ -154,7 +158,7 @@ void FontPopover::Choose(int row) {
   close();
   switch (kind) {
     case Row::kManage:
-      emit EventHub::Instance()->SettingsAsked(QStringLiteral("fonts"));
+      emit EventHub::Instance() -> SettingsAsked(QStringLiteral("fonts"));
       return;
     case Row::kEmpty:
       pick(QString());
@@ -163,9 +167,9 @@ void FontPopover::Choose(int row) {
       try {
         pick(ToQ(App::Get().session().use_library_font(ToRust(id))));
       } catch (const rust::Error& error) {
-        emit EventHub::Instance()->Notice(
-            QStringLiteral("Couldn't use %1").arg(family),
-            QString::fromUtf8(error.what()));
+        emit EventHub::Instance()
+            -> Notice(QStringLiteral("Couldn't use %1").arg(family),
+                      QString::fromUtf8(error.what()));
       }
       return;
     default:
@@ -205,18 +209,17 @@ FontPicker::FontPicker(QString value, QString empty_label, OnFontPick on_pick,
   }
   row->addWidget(name, 1);
   auto* chevrons = new QLabel(this);
-  chevrons->setPixmap(App::Get()
-                          .Icon(QStringLiteral("chevrons-up-down"),
-                                App::Get().Token(QStringLiteral("muted-foreground")),
-                                14)
-                          .pixmap(14, 14));
+  chevrons->setPixmap(
+      App::Get()
+          .Icon(QStringLiteral("chevrons-up-down"),
+                App::Get().Token(QStringLiteral("muted-foreground")), 14)
+          .pixmap(14, 14));
   chevrons->setAttribute(Qt::WA_TransparentForMouseEvents);
   row->addWidget(chevrons);
   setMinimumHeight(32);
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-  connect(this, &QPushButton::clicked, this, [this] {
-    new FontPopover(this, value_, empty_label_, on_pick_);
-  });
+  connect(this, &QPushButton::clicked, this,
+          [this] { new FontPopover(this, value_, empty_label_, on_pick_); });
 }
 
 }

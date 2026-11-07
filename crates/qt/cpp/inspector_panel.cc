@@ -6,8 +6,8 @@
 #include <QDateTimeEdit>
 #include <QDoubleValidator>
 #include <QFileDialog>
-#include <QFrame>
 #include <QFileInfo>
+#include <QFrame>
 #include <QHBoxLayout>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -32,7 +32,6 @@
 #include "event_hub.h"
 #include "file_player.h"
 #include "font_picker.h"
-#include "replay_dialog.h"
 #include "form_hold.h"
 #include "gradient_field.h"
 #include "keyframe_fields.h"
@@ -40,6 +39,7 @@
 #include "marks_field.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "project_panel.h"
+#include "replay_dialog.h"
 #include "var_text.h"
 #include "visual_fields.h"
 #include "widgets.h"
@@ -242,6 +242,7 @@ bool InspectorPanel::Editing() const {
 
 void InspectorPanel::Commit(const QString& key, const QString& json) {
   if (node_.isEmpty()) return;
+  last_.reset();
   try {
     App::Get().session().set_param(ToRust(node_), ToRust(key), ToRust(json));
   } catch (const rust::Error& error) {
@@ -329,11 +330,12 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
       return combo;
     }
     case bridge::FieldKind::Font:
-      return new FontPicker(
-          ToQ(field.text), ToQ(field.none_label), [this, key](const QString& family) {
-            Commit(key, family.isEmpty() ? QStringLiteral("null")
-                                         : Json(QJsonValue(family)));
-          });
+      return new FontPicker(ToQ(field.text), ToQ(field.none_label),
+                            [this, key](const QString& family) {
+                              Commit(key, family.isEmpty()
+                                              ? QStringLiteral("null")
+                                              : Json(QJsonValue(family)));
+                            });
     case bridge::FieldKind::Select: {
       auto* combo = new Combo();
       const QString none = ToQ(field.none_label);
@@ -650,10 +652,24 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
       auto* text = new VarText(ToQ(field.text),
                                field.kind == bridge::FieldKind::Textarea,
                                field.pauses, ToQ(field.zero_label));
+      text->surface()->SetLive(true);
       connect(text, &VarText::Committed, this,
               [this, key](const QString& value) {
                 Commit(key, Json(QJsonValue(value)));
               });
+      auto typing = std::make_shared<bool>(false);
+      const auto stop = [typing] {
+        if (!*typing) return;
+        *typing = false;
+        FormHold::Instance()->End();
+      };
+      connect(text, &VarText::Started, this, [typing] {
+        if (*typing) return;
+        *typing = true;
+        FormHold::Instance()->Begin();
+      });
+      connect(text, &VarText::Finished, this, stop);
+      connect(text, &QObject::destroyed, this, stop);
       return text;
     }
     case bridge::FieldKind::Code: {
@@ -831,8 +847,7 @@ void InspectorPanel::AddActions(QVBoxLayout* layout,
       const QString source = ToQ(file.file);
       const QString key =
           source + QLatin1Char(' ') +
-          QString::number(
-              QFileInfo(source).lastModified().toMSecsSinceEpoch());
+          QString::number(QFileInfo(source).lastModified().toMSecsSinceEpoch());
       QPointer<FilePlayer> player = players_.value(key);
       if (player.isNull()) {
         player = new FilePlayer(source, ToQ(file.name), false, content);

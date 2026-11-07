@@ -61,6 +61,31 @@ pub struct Compiled {
     pub mix: opsis_types::mix::Mix,
     #[serde(default)]
     pub solo: bool,
+    #[serde(default)]
+    pub film: Option<FilmSpans>,
+}
+
+#[derive(Debug, Default, Clone, Copy, Deserialize)]
+pub struct FrameSpan {
+    pub from: f64,
+    pub to: f64,
+}
+
+#[derive(Debug, Default, Deserialize)]
+pub struct FilmSpans {
+    #[serde(default)]
+    pub spans: std::collections::BTreeMap<String, FrameSpan>,
+}
+
+impl FilmSpans {
+    pub fn active_at(&self, frame: f64) -> Vec<String> {
+        let spans = self
+            .spans
+            .iter()
+            .map(|(id, span)| (id.clone(), (span.from, span.to)))
+            .collect();
+        opsis_compile::timeline::view::active_at(&spans, frame)
+    }
 }
 
 #[derive(Debug, Default, Deserialize)]

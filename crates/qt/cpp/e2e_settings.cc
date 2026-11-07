@@ -1,14 +1,16 @@
 #include <QApplication>
 #include <QCheckBox>
+#include <QColor>
 #include <QDialog>
 #include <QDir>
 #include <QFileDialog>
-#include <QTimer>
+#include <QImage>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QTimer>
 #include <QToolButton>
 #include <QtTest/QTest>
 #include <memory>
@@ -25,6 +27,20 @@ namespace {
 
 QString Expect(bool ok, const QString& what) { return ok ? QString() : what; }
 
+QColor IconInk(const QAbstractButton* button) {
+  const QImage icon = button->icon()
+                          .pixmap(button->iconSize())
+                          .toImage()
+                          .convertToFormat(QImage::Format_ARGB32);
+  for (int y = 0; y < icon.height(); ++y) {
+    for (int x = 0; x < icon.width(); ++x) {
+      const QColor pixel = icon.pixelColor(x, y);
+      if (pixel.alpha() == 255) return pixel;
+    }
+  }
+  return {};
+}
+
 QWidget* Settings() {
   for (QWidget* top : QApplication::topLevelWidgets()) {
     if (top->isVisible() &&
@@ -38,7 +54,8 @@ QWidget* Settings() {
 QStringList Pages() {
   QStringList labels;
   QWidget* settings = Settings();
-  auto* list = settings == nullptr ? nullptr : settings->findChild<QListWidget*>();
+  auto* list =
+      settings == nullptr ? nullptr : settings->findChild<QListWidget*>();
   for (int i = 0; list != nullptr && i < list->count(); ++i) {
     labels << list->item(i)->text();
   }
@@ -47,7 +64,8 @@ QStringList Pages() {
 
 void OpenPage(const QString& label) {
   QWidget* settings = Settings();
-  auto* list = settings == nullptr ? nullptr : settings->findChild<QListWidget*>();
+  auto* list =
+      settings == nullptr ? nullptr : settings->findChild<QListWidget*>();
   for (int i = 0; list != nullptr && i < list->count(); ++i) {
     if (list->item(i)->text() == label) {
       QTest::mouseClick(list->viewport(), Qt::LeftButton, {},
@@ -97,8 +115,8 @@ QString LastRunsLabel() {
 }
 
 void Scenario::BuildSettings() {
-  auto started = std::make_shared<bridge::SettingsView>(
-      App::Get().session().settings());
+  auto started =
+      std::make_shared<bridge::SettingsView>(App::Get().session().settings());
   Add(
       QStringLiteral("settings-lists-every-page"),
       [started] { *started = App::Get().session().settings(); }, 200,
@@ -107,16 +125,18 @@ void Scenario::BuildSettings() {
             QStringLiteral("General"),   QStringLiteral("Projects"),
             QStringLiteral("Editor"),    QStringLiteral("Engine"),
             QStringLiteral("Recording"), QStringLiteral("Fonts"),
-            QStringLiteral("API"),
-            QStringLiteral("Licences"),  QStringLiteral("About")};
-        return Expect(Pages() == want, QStringLiteral("the pages are %1")
-                                           .arg(Pages().join(", ")));
+            QStringLiteral("API"),       QStringLiteral("Licences"),
+            QStringLiteral("About")};
+        return Expect(
+            Pages() == want,
+            QStringLiteral("the pages are %1").arg(Pages().join(", ")));
       });
   Add(
       QStringLiteral("settings-live-view-switch"),
       [] {
         OpenPage(QStringLiteral("Recording"));
-        if (auto* toggle = Named<ToggleSwitch>(QStringLiteral("LiveAutoOpen"))) {
+        if (auto* toggle =
+                Named<ToggleSwitch>(QStringLiteral("LiveAutoOpen"))) {
           QTest::mouseClick(toggle, Qt::LeftButton);
         }
       },
@@ -163,12 +183,18 @@ void Scenario::BuildSettings() {
       [] { OpenPage(QStringLiteral("Engine")); }, 400,
       [this] {
         auto* state = Named<QLabel>(QStringLiteral("EngineState"));
+        QAbstractButton* again =
+            Find(Settings(), QStringLiteral("Download again"));
         return Expect(state != nullptr && state->isVisible() &&
-                          state->text() == QStringLiteral("Not set up") &&
-                          Find(Settings(), QStringLiteral("Download engine")) !=
-                              nullptr,
-                      QStringLiteral("the Engine page doesn't offer the "
-                                     "download"));
+                          state->text() == QStringLiteral("Set up") &&
+                          again != nullptr,
+                      QStringLiteral("the Engine page doesn't show the engine "
+                                     "as set up")) +
+               Expect(again != nullptr &&
+                          IconInk(again) ==
+                              App::Get().Token(QStringLiteral("foreground")),
+                      QStringLiteral(" the Download again icon isn't drawn "
+                                     "in the button's ink"));
       });
   Add(
       QStringLiteral("settings-licences-page"),
@@ -184,8 +210,8 @@ void Scenario::BuildSettings() {
         bool text = false;
         for (const QPlainTextEdit* shown :
              settings->findChildren<QPlainTextEdit*>()) {
-          text = text ||
-                 (shown->isVisible() && shown->toPlainText().size() > 200);
+          text =
+              text || (shown->isVisible() && shown->toPlainText().size() > 200);
         }
         return Expect(ShowsText(QStringLiteral("Built-in fonts")) &&
                           ShowsText(QStringLiteral("Inter")) && text,
@@ -223,9 +249,10 @@ void Scenario::BuildSettings() {
             qobject_cast<QFileDialog*>(QApplication::activeModalWidget());
         if (dialog == nullptr) return;
         QDir fixtures(qEnvironmentVariable("OPSIS_QT_FIXTURES"));
-        const QStringList fonts = fixtures.entryList(
-            {QStringLiteral("sample-font.*")}, QDir::Files);
-        auto* name = dialog->findChild<QLineEdit*>(QStringLiteral("fileNameEdit"));
+        const QStringList fonts =
+            fixtures.entryList({QStringLiteral("sample-font.*")}, QDir::Files);
+        auto* name =
+            dialog->findChild<QLineEdit*>(QStringLiteral("fileNameEdit"));
         if (fonts.isEmpty() || name == nullptr) {
           dialog->reject();
           return;
@@ -234,21 +261,36 @@ void Scenario::BuildSettings() {
         QTest::keyClicks(name, fixtures.filePath(fonts.first()));
         QTest::keyClick(name, Qt::Key_Return);
       },
-      kDialogMs, [] { return Dialog(QStringLiteral("FontReviewDialog")) != nullptr; },
+      kDialogMs,
+      [] { return Dialog(QStringLiteral("FontReviewDialog")) != nullptr; },
       [] {
         QWidget* review = Dialog(QStringLiteral("FontReviewDialog"));
-        return Expect(review != nullptr &&
-                          !review->findChildren<QCheckBox*>().isEmpty(),
-                      QStringLiteral("the font file wasn't offered to add"));
+        return Expect(
+            review != nullptr && !review->findChildren<QCheckBox*>().isEmpty(),
+            QStringLiteral("the font file wasn't offered to add"));
       });
   Until(
       QStringLiteral("settings-add-the-reviewed-font"),
-      [this] { Click(Dialog(QStringLiteral("FontReviewDialog")), QStringLiteral("Add 1 font")); },
+      [this] {
+        Click(Dialog(QStringLiteral("FontReviewDialog")),
+              QStringLiteral("Add 1 font"));
+      },
       kDialogMs, [] { return Library() == 1; },
       [] {
-        return Expect(Library() == 1 &&
-                          Dialog(QStringLiteral("FontReviewDialog")) == nullptr,
-                      QStringLiteral("the library has %1 fonts").arg(Library()));
+        const QWidget* settings = Settings();
+        const auto* toast =
+            settings == nullptr
+                ? nullptr
+                : settings->findChild<QLabel*>(QStringLiteral("Toast"),
+                                               Qt::FindDirectChildrenOnly);
+        return Expect(
+                   Library() == 1 &&
+                       Dialog(QStringLiteral("FontReviewDialog")) == nullptr,
+                   QStringLiteral("the library has %1 fonts").arg(Library())) +
+               Expect(toast != nullptr && toast->isVisible() &&
+                          toast->text().startsWith(QStringLiteral("Added ")),
+                      QStringLiteral(" the Settings window didn't say the "
+                                     "font was added"));
       });
   Add(
       QStringLiteral("settings-licences-list-your-font"),
@@ -257,75 +299,93 @@ void Scenario::BuildSettings() {
         return Expect(ShowsText(QStringLiteral("Your fonts")),
                       QStringLiteral("the licences don't list your fonts"));
       });
-  Add(QStringLiteral("settings-remove-asks-first"), [this] {
-    OpenPage(QStringLiteral("Fonts"));
-    QWidget* settings = Settings();
-    for (QToolButton* button : settings->findChildren<QToolButton*>()) {
-      if (button->isVisible() &&
-          button->toolTip().startsWith(QStringLiteral("Remove "))) {
-        QTimer::singleShot(0, button, [button] {
-          QTest::mouseClick(button, Qt::LeftButton);
-        });
-        return;
-      }
-    }
-    Miss(QStringLiteral("no remove button"));
-  }, 700, [] {
-    return Expect(Dialog(QStringLiteral("ConfirmDialog")) != nullptr,
-                  QStringLiteral("removing didn't ask first"));
-  });
   Add(
-      QStringLiteral("settings-remove-the-font"),
-      [this] { Click(Dialog(QStringLiteral("ConfirmDialog")), QStringLiteral("Remove")); },
+      QStringLiteral("settings-remove-asks-first"),
+      [this] {
+        OpenPage(QStringLiteral("Fonts"));
+        QWidget* settings = Settings();
+        for (QToolButton* button : settings->findChildren<QToolButton*>()) {
+          if (button->isVisible() &&
+              button->toolTip().startsWith(QStringLiteral("Remove "))) {
+            QTimer::singleShot(0, button, [button] {
+              QTest::mouseClick(button, Qt::LeftButton);
+            });
+            return;
+          }
+        }
+        Miss(QStringLiteral("no remove button"));
+      },
       700,
       [] {
-        return Expect(Library() == 0 &&
-                          ShowsText(QStringLiteral("No fonts added yet.")),
-                      QStringLiteral("the font is still in the library"));
+        return Expect(Dialog(QStringLiteral("ConfirmDialog")) != nullptr,
+                      QStringLiteral("removing didn't ask first"));
+      });
+  Add(
+      QStringLiteral("settings-remove-the-font"),
+      [this] {
+        Click(Dialog(QStringLiteral("ConfirmDialog")),
+              QStringLiteral("Remove"));
+      },
+      700,
+      [] {
+        return Expect(
+            Library() == 0 && ShowsText(QStringLiteral("No fonts added yet.")),
+            QStringLiteral("the font is still in the library"));
       });
   Until(
       QStringLiteral("settings-installed-fonts-list"),
       [this] { Click(Settings(), QStringLiteral("Add installed fonts…")); },
-      kDialogMs, [] { return Dialog(QStringLiteral("InstalledFonts")) != nullptr; },
+      kDialogMs,
+      [] { return Dialog(QStringLiteral("InstalledFonts")) != nullptr; },
       [] {
         QWidget* dialog = Dialog(QStringLiteral("InstalledFonts"));
-        auto* list = dialog == nullptr
-                         ? nullptr
-                         : dialog->findChild<QListWidget*>(QStringLiteral("SearchList"));
+        auto* list =
+            dialog == nullptr
+                ? nullptr
+                : dialog->findChild<QListWidget*>(QStringLiteral("SearchList"));
         const int count = list == nullptr ? 0 : list->count();
         if (dialog != nullptr) dialog->close();
         return Expect(count > 0, QStringLiteral("no installed fonts listed"));
       });
-  Add(QStringLiteral("settings-online-asks-before-connecting"), [this] {
-    if (QAbstractButton* online =
-            Find(Settings(), QStringLiteral("Get fonts online…"))) {
-      QTimer::singleShot(0, online, [online] {
-        QTest::mouseClick(online, Qt::LeftButton);
+  Add(
+      QStringLiteral("settings-online-asks-before-connecting"),
+      [this] {
+        if (QAbstractButton* online =
+                Find(Settings(), QStringLiteral("Get fonts online…"))) {
+          QTimer::singleShot(0, online, [online] {
+            QTest::mouseClick(online, Qt::LeftButton);
+          });
+        }
+      },
+      700,
+      [] {
+        QWidget* ask = Dialog(QStringLiteral("ConfirmDialog"));
+        const bool asked = ask != nullptr;
+        if (ask != nullptr) qobject_cast<QDialog*>(ask)->reject();
+        return Expect(asked && Dialog(QStringLiteral("OnlineFonts")) == nullptr,
+                      QStringLiteral("going online didn't ask first"));
       });
-    }
-  }, 700, [] {
-    QWidget* ask = Dialog(QStringLiteral("ConfirmDialog"));
-    const bool asked = ask != nullptr;
-    if (ask != nullptr) qobject_cast<QDialog*>(ask)->reject();
-    return Expect(asked && Dialog(QStringLiteral("OnlineFonts")) == nullptr,
-                  QStringLiteral("going online didn't ask first"));
-  });
-  Add(QStringLiteral("settings-put-back"), [this, started] {
-    OpenPage(QStringLiteral("Recording"));
-    if (auto* toggle = Named<ToggleSwitch>(QStringLiteral("LiveAutoOpen"))) {
-      QTest::mouseClick(toggle, Qt::LeftButton);
-    }
-    for (const auto& choice : started->trace_retentions) {
-      if (choice.value == started->trace_retention) {
-        Click(Settings(), ToQ(choice.label));
-      }
-    }
-  }, 600, [started] {
-    const bridge::SettingsView now = App::Get().session().settings();
-    return Expect(now.live_auto_open == started->live_auto_open &&
-                      now.trace_retention == started->trace_retention,
-                  QStringLiteral("the settings didn't go back"));
-  });
+  Add(
+      QStringLiteral("settings-put-back"),
+      [this, started] {
+        OpenPage(QStringLiteral("Recording"));
+        if (auto* toggle =
+                Named<ToggleSwitch>(QStringLiteral("LiveAutoOpen"))) {
+          QTest::mouseClick(toggle, Qt::LeftButton);
+        }
+        for (const auto& choice : started->trace_retentions) {
+          if (choice.value == started->trace_retention) {
+            Click(Settings(), ToQ(choice.label));
+          }
+        }
+      },
+      600,
+      [started] {
+        const bridge::SettingsView now = App::Get().session().settings();
+        return Expect(now.live_auto_open == started->live_auto_open &&
+                          now.trace_retention == started->trace_retention,
+                      QStringLiteral("the settings didn't go back"));
+      });
 }
 
 void Scenario::BuildFontPicker(MainWindow* window) {
@@ -342,8 +402,8 @@ void Scenario::BuildFontPicker(MainWindow* window) {
   };
   const auto popover = []() -> QWidget* {
     QWidget* open = QApplication::activePopupWidget();
-    return open != nullptr &&
-                   open->findChild<QListWidget*>(QStringLiteral("FontList")) != nullptr
+    return open != nullptr && open->findChild<QListWidget*>(
+                                  QStringLiteral("FontList")) != nullptr
                ? open
                : nullptr;
   };
@@ -360,9 +420,10 @@ void Scenario::BuildFontPicker(MainWindow* window) {
       900,
       [popover] {
         QWidget* open = popover();
-        auto* list = open == nullptr
-                         ? nullptr
-                         : open->findChild<QListWidget*>(QStringLiteral("FontList"));
+        auto* list =
+            open == nullptr
+                ? nullptr
+                : open->findChild<QListWidget*>(QStringLiteral("FontList"));
         return Expect(list != nullptr && list->count() > 10,
                       QStringLiteral("the font list didn't open"));
       });
@@ -370,25 +431,28 @@ void Scenario::BuildFontPicker(MainWindow* window) {
       QStringLiteral("font-picker-search-and-pick"),
       [popover] {
         QWidget* open = popover();
-        auto* search = open == nullptr ? nullptr : open->findChild<QLineEdit*>();
+        auto* search =
+            open == nullptr ? nullptr : open->findChild<QLineEdit*>();
         if (search == nullptr) return;
         QTest::keyClicks(search, QStringLiteral("Fraunces"));
         QTest::keyClick(search, Qt::Key_Return);
       },
       700,
       [popover] {
-        return Expect(App::Get().session().project().heading_font ==
-                              ToRust(QStringLiteral("Fraunces")) &&
-                          popover() == nullptr,
-                      QStringLiteral("the heading font is '%1'")
-                          .arg(ToQ(App::Get().session().project().heading_font)));
+        return Expect(
+            App::Get().session().project().heading_font ==
+                    ToRust(QStringLiteral("Fraunces")) &&
+                popover() == nullptr,
+            QStringLiteral("the heading font is '%1'")
+                .arg(ToQ(App::Get().session().project().heading_font)));
       });
   Add(
       QStringLiteral("undo-font-pick"),
       [this, window] { Click(window, QStringLiteral("Undo")); }, 600,
       [] {
-        return Expect(App::Get().session().project().heading_font.empty(),
-                      QStringLiteral("undo didn't bring the heading font back"));
+        return Expect(
+            App::Get().session().project().heading_font.empty(),
+            QStringLiteral("undo didn't bring the heading font back"));
       });
   Add(
       QStringLiteral("font-picker-manage-opens-settings"),
@@ -397,9 +461,10 @@ void Scenario::BuildFontPicker(MainWindow* window) {
           QTest::mouseClick(button, Qt::LeftButton);
         }
         QWidget* open = popover();
-        auto* list = open == nullptr
-                         ? nullptr
-                         : open->findChild<QListWidget*>(QStringLiteral("FontList"));
+        auto* list =
+            open == nullptr
+                ? nullptr
+                : open->findChild<QListWidget*>(QStringLiteral("FontList"));
         if (list == nullptr) return;
         QListWidgetItem* manage = list->item(list->count() - 1);
         QTest::mouseClick(list->viewport(), Qt::LeftButton, {},
@@ -408,12 +473,15 @@ void Scenario::BuildFontPicker(MainWindow* window) {
       900,
       [] {
         QWidget* settings = Settings();
-        auto* pages = settings == nullptr ? nullptr : settings->findChild<QListWidget*>();
-        const bool fonts = pages != nullptr && pages->currentItem() != nullptr &&
-                           pages->currentItem()->text() == QStringLiteral("Fonts");
+        auto* pages =
+            settings == nullptr ? nullptr : settings->findChild<QListWidget*>();
+        const bool fonts =
+            pages != nullptr && pages->currentItem() != nullptr &&
+            pages->currentItem()->text() == QStringLiteral("Fonts");
         if (settings != nullptr) settings->close();
-        return Expect(fonts, QStringLiteral("Add or manage fonts didn't open the "
-                                            "Fonts settings"));
+        return Expect(fonts,
+                      QStringLiteral("Add or manage fonts didn't open the "
+                                     "Fonts settings"));
       });
 }
 

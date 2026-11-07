@@ -32,7 +32,9 @@ bool& OnlineAllowed() {
   return allowed;
 }
 
-void Notice(const QString& text) { emit EventHub::Instance()->Notice(text, {}); }
+void Notice(QWidget* from, const QString& text) {
+  ShowToast(from->window(), text, false);
+}
 
 bool Confirm(QWidget* parent, const QString& title, const QString& body,
              const QString& yes, const char* variant) {
@@ -49,7 +51,8 @@ bool Confirm(QWidget* parent, const QString& title, const QString& body,
   layout->addWidget(text);
   auto* buttons = new QHBoxLayout();
   buttons->addStretch(1);
-  auto* cancel = MakeButton(QStringLiteral("Cancel"), "outline", QString(), &dialog);
+  auto* cancel =
+      MakeButton(QStringLiteral("Cancel"), "outline", QString(), &dialog);
   auto* accept = MakeButton(yes, variant, QString(), &dialog);
   QObject::connect(cancel, &QPushButton::clicked, &dialog, &QDialog::reject);
   QObject::connect(accept, &QPushButton::clicked, &dialog, &QDialog::accept);
@@ -128,8 +131,9 @@ void SearchListDialog::SetStatus(QWidget* status) {
 
 QString SearchListDialog::query() const { return search_->text().trimmed(); }
 
-void SearchListDialog::Fill(int count, const std::function<bool(int)>& matches,
-                            const std::function<QWidget*(int, QWidget*)>& make) {
+void SearchListDialog::Fill(
+    int count, const std::function<bool(int)>& matches,
+    const std::function<QWidget*(int, QWidget*)>& make) {
   list_->clear();
   int shown = 0;
   int found = 0;
@@ -177,13 +181,15 @@ FontsCard::FontsCard(QWidget* parent) : QWidget(parent) {
                            QStringLiteral("file-archive"), actions);
   connect(files, &QPushButton::clicked, this,
           [] { App::Get().session().add_font_files(); });
-  auto* installed = MakeButton(QStringLiteral("Add installed fonts…"), "outline",
-                               QStringLiteral("hard-drive"), actions);
+  auto* installed =
+      MakeButton(QStringLiteral("Add installed fonts…"), "outline",
+                 QStringLiteral("hard-drive"), actions);
   connect(installed, &QPushButton::clicked, this, &FontsCard::ShowInstalled);
   auto* online = MakeButton(QStringLiteral("Get fonts online…"), "outline",
                             QStringLiteral("globe"), actions);
   connect(online, &QPushButton::clicked, this, &FontsCard::AskOnline);
-  for (QPushButton* button : {files, installed, online}) flow->addWidget(button);
+  for (QPushButton* button : {files, installed, online})
+    flow->addWidget(button);
   card->body()->addWidget(actions);
   connect(EventHub::Instance(), &EventHub::FontsChanged, this, [this] {
     Reload();
@@ -221,7 +227,8 @@ void FontsCard::Reload() {
     line->addLayout(words, 1);
     line->addWidget(MakeLabel(ToQ(font.source), "badge-secondary", row));
     if (font.licensed) {
-      line->addWidget(MakeLabel(QStringLiteral("Licence included"), "badge", row));
+      line->addWidget(
+          MakeLabel(QStringLiteral("Licence included"), "badge", row));
     }
     const QString id = ToQ(font.id);
     const QString family = ToQ(font.family);
@@ -237,8 +244,8 @@ void FontsCard::Reload() {
       try {
         App::Get().session().remove_font(ToRust(id));
       } catch (const rust::Error& error) {
-        Notice(QStringLiteral("Couldn't remove %1. %2")
-                   .arg(family, QString::fromUtf8(error.what())));
+        Notice(this, QStringLiteral("Couldn't remove %1. %2")
+                         .arg(family, QString::fromUtf8(error.what())));
       }
       Reload();
     });
@@ -309,7 +316,8 @@ void FontsCard::Review() {
   layout->addWidget(note);
   auto* buttons = new QHBoxLayout();
   buttons->addStretch(1);
-  auto* cancel = MakeButton(QStringLiteral("Cancel"), "outline", QString(), dialog);
+  auto* cancel =
+      MakeButton(QStringLiteral("Cancel"), "outline", QString(), dialog);
   buttons->addWidget(cancel);
   buttons->addWidget(add);
   layout->addLayout(buttons);
@@ -317,29 +325,34 @@ void FontsCard::Review() {
   QObject::connect(cancel, &QPushButton::clicked, dialog, &QDialog::reject);
   QObject::connect(dialog, &QDialog::rejected, dialog,
                    [] { App::Get().session().drop_review(); });
-  QObject::connect(add, &QPushButton::clicked, dialog, [dialog, checks] {
-    rust::Vec<rust::String> chosen;
-    for (QCheckBox* check : *checks) {
-      if (check->isChecked()) {
-        chosen.push_back(ToRust(check->property("family").toString()));
-      }
-    }
-    try {
-      Notice(ToQ(App::Get().session().add_reviewed(std::move(chosen))));
-    } catch (const rust::Error& error) {
-      Notice(QString::fromUtf8(error.what()));
-    }
-    dialog->accept();
-  });
+  QWidget* origin =
+      dialog->parentWidget() != nullptr ? dialog->parentWidget() : dialog;
+  QObject::connect(
+      add, &QPushButton::clicked, dialog, [dialog, checks, origin] {
+        rust::Vec<rust::String> chosen;
+        for (QCheckBox* check : *checks) {
+          if (check->isChecked()) {
+            chosen.push_back(ToRust(check->property("family").toString()));
+          }
+        }
+        try {
+          Notice(origin,
+                 ToQ(App::Get().session().add_reviewed(std::move(chosen))));
+        } catch (const rust::Error& error) {
+          Notice(origin, QString::fromUtf8(error.what()));
+        }
+        dialog->accept();
+      });
   dialog->open();
 }
 
 void FontsCard::ShowInstalled() {
   auto families = std::make_shared<rust::Vec<bridge::InstalledFontView>>(
       App::Get().session().installed_fonts());
-  auto* dialog = new SearchListDialog(window(), QStringLiteral("InstalledFonts"),
-                                      QStringLiteral("Add an installed font"),
-                                      QStringLiteral("Search installed fonts…"));
+  auto* dialog =
+      new SearchListDialog(window(), QStringLiteral("InstalledFonts"),
+                           QStringLiteral("Add an installed font"),
+                           QStringLiteral("Search installed fonts…"));
   dialog->SetDescription(
       QStringLiteral("%1 font families are installed on this computer. Pick "
                      "one to copy into your library.")
@@ -365,10 +378,11 @@ void FontsCard::ShowInstalled() {
           line->addWidget(name, 1);
           line->addWidget(MakeLabel(ToQ(font.styles), "muted", row));
           row->setMinimumHeight(row->sizeHint().height());
-          QObject::connect(row, &QPushButton::clicked, dialog, [dialog, family] {
-            App::Get().session().inspect_installed(ToRust(family));
-            dialog->accept();
-          });
+          QObject::connect(
+              row, &QPushButton::clicked, dialog, [dialog, family] {
+                App::Get().session().inspect_installed(ToRust(family));
+                dialog->accept();
+              });
           return row;
         });
   };
@@ -397,15 +411,16 @@ void FontsCard::ShowOnline() {
     return;
   }
   auto* dialog = new SearchListDialog(
-      window(), QStringLiteral("OnlineFonts"), QStringLiteral("Get fonts online"),
+      window(), QStringLiteral("OnlineFonts"),
+      QStringLiteral("Get fonts online"),
       QStringLiteral("Search by name or style (serif, monospace…)"));
   online_ = dialog;
   auto* done = MakeButton(QStringLiteral("Done"), "outline", QString(), dialog);
   connect(done, &QPushButton::clicked, dialog, &QDialog::accept);
   dialog->footer()->addWidget(done, 0, Qt::AlignRight);
   const auto fill = [dialog] {
-    const auto catalog =
-        std::make_shared<bridge::FontCatalogView>(App::Get().session().font_catalog());
+    const auto catalog = std::make_shared<bridge::FontCatalogView>(
+        App::Get().session().font_catalog());
     const QString status = ToQ(catalog->status);
     dialog->SetDescription(
         status == QStringLiteral("ready")
@@ -421,7 +436,8 @@ void FontsCard::ShowOnline() {
       auto* error = MakeLabel(ToQ(catalog->error), "error", box);
       error->setWordWrap(true);
       column->addWidget(error);
-      auto* retry = MakeButton(QStringLiteral("Try again"), "outline", QString(), box);
+      auto* retry =
+          MakeButton(QStringLiteral("Try again"), "outline", QString(), box);
       QObject::connect(retry, &QPushButton::clicked, box,
                        [] { App::Get().session().load_font_catalog(); });
       column->addWidget(retry, 0, Qt::AlignLeft);
@@ -454,11 +470,13 @@ void FontsCard::ShowOnline() {
           words->addWidget(detail);
           line->addLayout(words, 1);
           const QString id = ToQ(entry.id);
-          auto* download = MakeButton(
-              entry.added ? QStringLiteral("Added") : QStringLiteral("Download"),
-              entry.added ? "ghost" : "outline",
-              entry.added || busy == id ? QString() : QStringLiteral("download"),
-              row);
+          auto* download =
+              MakeButton(entry.added ? QStringLiteral("Added")
+                                     : QStringLiteral("Download"),
+                         entry.added ? "ghost" : "outline",
+                         entry.added || busy == id ? QString()
+                                                   : QStringLiteral("download"),
+                         row);
           download->setEnabled(!entry.added && busy.isEmpty());
           QObject::connect(download, &QPushButton::clicked, row, [id] {
             App::Get().session().download_font(ToRust(id));

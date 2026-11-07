@@ -139,6 +139,9 @@ VarSurface::VarSurface(bool multiline, bool pauses, QWidget* parent)
   connect(document()->documentLayout(),
           &QAbstractTextDocumentLayout::documentSizeChanged, this,
           &VarSurface::FitHeight);
+  connect(this, &QTextEdit::textChanged, this, [this] {
+    if (live_) Commit();
+  });
   FitHeight();
 }
 
@@ -273,9 +276,15 @@ void VarSurface::keyPressEvent(QKeyEvent* event) {
   QTextEdit::keyPressEvent(event);
 }
 
+void VarSurface::focusInEvent(QFocusEvent* event) {
+  QTextEdit::focusInEvent(event);
+  emit Started();
+}
+
 void VarSurface::focusOutEvent(QFocusEvent* event) {
   QTextEdit::focusOutEvent(event);
   Commit();
+  emit Finished();
 }
 
 bool VarSurface::canInsertFromMimeData(const QMimeData* source) const {
@@ -307,6 +316,8 @@ VarText::VarText(const QString& value, bool multiline, bool pauses,
   surface_->setPlaceholderText(placeholder);
   surface_->SetValue(value);
   connect(surface_, &VarSurface::Committed, this, &VarText::Committed);
+  connect(surface_, &VarSurface::Started, this, &VarText::Started);
+  connect(surface_, &VarSurface::Finished, this, &VarText::Finished);
   if (!multiline) {
     auto* row = new QHBoxLayout(this);
     row->setContentsMargins(0, 0, 0, 0);

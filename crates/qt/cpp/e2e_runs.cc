@@ -1,8 +1,10 @@
 #include <QApplication>
 #include <QElapsedTimer>
+#include <QFileDialog>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QPointer>
 #include <QTimer>
@@ -15,9 +17,10 @@
 #include "live_view.h"
 #include "main_window.h"
 #include "opsis-qt/src/bridge.rs.h"
-#include "scenario.h"
 #include "replay_dialog.h"
+#include "scenario.h"
 #include "settings_window.h"
+#include "start_screen.h"
 #include "stream_window.h"
 
 namespace opsis {
@@ -70,7 +73,8 @@ bool ReplayPlays() {
   QWidget* dialog = Dialog(QStringLiteral("ReplayDialog"));
   auto* player = dialog == nullptr ? nullptr : dialog->findChild<FilePlayer*>();
   if (player == nullptr) return false;
-  const bridge::PlayerView view = App::Get().session().player_view(player->id());
+  const bridge::PlayerView view =
+      App::Get().session().player_view(player->id());
   return view.ready && view.has_video && view.serial > 0;
 }
 
@@ -85,17 +89,86 @@ void CloseDialog(const QString& name) {
   if (QWidget* dialog = Dialog(name)) dialog->close();
 }
 
+SettingsWindow* OpenSettingsWindow() {
+  for (QWidget* top : QApplication::topLevelWidgets()) {
+    if (auto* found = qobject_cast<SettingsWindow*>(top);
+        found != nullptr && found->isVisible()) {
+      return found;
+    }
+  }
+  return nullptr;
+}
+
+QString EngineState(const QWidget* root) {
+  auto* state = root == nullptr
+                    ? nullptr
+                    : root->findChild<QLabel*>(QStringLiteral("EngineState"));
+  return state != nullptr && state->isVisible() ? state->text() : QString();
+}
+
 }
 
 void Scenario::BuildRuns() {
   const QString projects = qEnvironmentVariable("OPSIS_QT_PROJECTS");
   const QString page = qEnvironmentVariable("OPSIS_QT_PAGE");
+  const QString browser = qEnvironmentVariable("OPSIS_QT_BROWSER");
+  Add(
+      QStringLiteral("setup-shows-without-an-engine"), [] {}, 300,
+      [this] {
+        auto* setup =
+            window_->findChild<QWidget*>(QStringLiteral("SetupScreen"));
+        return Expect(setup != nullptr && setup->isVisible() &&
+                          EngineState(setup) == QStringLiteral("Not set up"),
+                      QStringLiteral("the setup screen didn't show"));
+      });
+  Add(
+      QStringLiteral("skip-setup"),
+      [this] { Click(window_, QStringLiteral("Skip for now")); }, 600,
+      [this] {
+        return Expect(window_->start_screen()->isVisible() &&
+                          App::Get().session().settings().setup_skipped,
+                      QStringLiteral("skipping didn't reach the start screen"));
+      });
+  Add(
+      QStringLiteral("settings-offers-the-download"),
+      [this] { window_->OpenSettings()->ShowPage(SettingsWindow::kEngine); },
+      800,
+      [this] {
+        SettingsWindow* settings = OpenSettingsWindow();
+        return Expect(
+            EngineState(settings) == QStringLiteral("Not set up") &&
+                Find(settings, QStringLiteral("Download engine")) != nullptr,
+            QStringLiteral("the Engine page doesn't offer the download"));
+      });
+  Add(
+      QStringLiteral("settings-choose-the-browser-asks-for-a-file"),
+      [this] { Click(OpenSettingsWindow(), QStringLiteral("Choose file…")); },
+      900,
+      [] {
+        return Expect(qobject_cast<QFileDialog*>(
+                          QApplication::activeModalWidget()) != nullptr,
+                      QStringLiteral("no file dialog opened"));
+      });
   Until(
-      QStringLiteral("engine-ready"), [] {}, kEngineMs,
-      [] { return !App::Get().session().engine_missing(); },
+      QStringLiteral("settings-pick-the-browser"),
+      [browser] {
+        auto* dialog =
+            qobject_cast<QFileDialog*>(QApplication::activeModalWidget());
+        if (dialog == nullptr) return;
+        auto* name =
+            dialog->findChild<QLineEdit*>(QStringLiteral("fileNameEdit"));
+        if (browser.isEmpty() || name == nullptr) {
+          dialog->reject();
+          return;
+        }
+        name->setFocus();
+        QTest::keyClicks(name, browser);
+        QTest::keyClick(name, Qt::Key_Return);
+      },
+      kEngineMs, [] { return !App::Get().session().engine_missing(); },
       [] {
         return Expect(!App::Get().session().engine_missing(),
-                      QStringLiteral("the seeded recording browser isn't "
+                      QStringLiteral("the chosen recording browser isn't "
                                      "usable"));
       });
   Add(
@@ -105,12 +178,13 @@ void Scenario::BuildRuns() {
       [] {
         SettingsWindow* settings = nullptr;
         for (QWidget* top : QApplication::topLevelWidgets()) {
-          if (auto* found = qobject_cast<SettingsWindow*>(top)) settings = found;
+          if (auto* found = qobject_cast<SettingsWindow*>(top))
+            settings = found;
         }
-        auto* state = settings == nullptr
-                          ? nullptr
-                          : settings->findChild<QLabel*>(
-                                QStringLiteral("EngineState"));
+        auto* state =
+            settings == nullptr
+                ? nullptr
+                : settings->findChild<QLabel*>(QStringLiteral("EngineState"));
         const bridge::EngineView engine = App::Get().session().engine_view();
         const bool shown = state != nullptr && state->isVisible() &&
                            state->text() == QStringLiteral("Set up") &&
@@ -119,16 +193,16 @@ void Scenario::BuildRuns() {
         return Expect(shown, QStringLiteral("the Engine page doesn't show the "
                                             "engine as set up"));
       });
+  BuildPorts();
   Until(
       QStringLiteral("open-todomvc-on-the-test-page"),
       [projects, page] {
         auto& session = App::Get().session();
         session.open_project(ToRust(projects + QStringLiteral("/todomvc")));
         const QJsonObject patch{{QStringLiteral("url"), page}};
-        session.set_params(
-            ToRust(QStringLiteral("open")),
-            ToRust(QString::fromUtf8(
-                QJsonDocument(patch).toJson(QJsonDocument::Compact))));
+        session.set_params(ToRust(QStringLiteral("open")),
+                           ToRust(QString::fromUtf8(QJsonDocument(patch).toJson(
+                               QJsonDocument::Compact))));
         rust::Vec<rust::String> ids;
         ids.push_back(ToRust(QStringLiteral("complete")));
         session.select(std::move(ids));
@@ -136,9 +210,9 @@ void Scenario::BuildRuns() {
       kInspectorMs,
       [this] { return Find(window_, QStringLiteral("Pick")) != nullptr; },
       [this, page] {
-        return Expect(!page.isEmpty() &&
-                          Find(window_, QStringLiteral("Pick")) != nullptr,
-                      QStringLiteral("the click action shows no Pick button"));
+        return Expect(
+            !page.isEmpty() && Find(window_, QStringLiteral("Pick")) != nullptr,
+            QStringLiteral("the click action shows no Pick button"));
       });
   Until(
       QStringLiteral("pick-opens-a-streamed-view"),
@@ -197,14 +271,26 @@ void Scenario::BuildRuns() {
       kLiveMs,
       [this] {
         LivePip* pip = window_->live_pip();
-        return pip != nullptr && pip->isVisible() && pip->surface()->HasPicture();
+        return pip != nullptr && pip->isVisible() &&
+               pip->surface()->HasPicture();
       },
       [this] {
         LivePip* pip = window_->live_pip();
+        const QWidget* surface = pip == nullptr ? nullptr : pip->surface();
         return Expect(pip != nullptr && pip->isVisible() &&
                           pip->surface()->HasPicture(),
                       QStringLiteral("the live view never showed the "
-                                     "recording"));
+                                     "recording")) +
+               Expect(
+                   surface != nullptr &&
+                       std::abs(surface->height() -
+                                surface->heightForWidth(surface->width())) <= 2,
+                   QStringLiteral(" the picture is %1 px tall, not its "
+                                  "shape's %2")
+                       .arg(surface == nullptr ? 0 : surface->height())
+                       .arg(surface == nullptr
+                                ? 0
+                                : surface->heightForWidth(surface->width())));
       });
   Until(
       QStringLiteral("live-window-opens-from-the-picture"),
@@ -230,10 +316,10 @@ void Scenario::BuildRuns() {
         const bridge::RunPanelView view = App::Get().session().run_panel();
         const bridge::ReplayView replay = App::Get().session().replay(
             ToRust(QStringLiteral("record")), ToRust(QStringLiteral("replay")));
-        return Expect(!view.running && view.failure.empty() &&
-                          replay.can_replay && !replay.video_file.empty(),
-                      QStringLiteral("the take failed: %1")
-                          .arg(ToQ(view.failure)));
+        return Expect(
+            !view.running && view.failure.empty() && replay.can_replay &&
+                !replay.video_file.empty(),
+            QStringLiteral("the take failed: %1").arg(ToQ(view.failure)));
       });
   Until(
       QStringLiteral("replay-plays-the-take"),
@@ -266,9 +352,10 @@ void Scenario::BuildRuns() {
         const int actions = ListCount(QStringLiteral("ReplayDialog"),
                                       QStringLiteral("TraceActions"));
         QWidget* dialog = Dialog(QStringLiteral("ReplayDialog"));
-        auto* shot = dialog == nullptr
-                         ? nullptr
-                         : dialog->findChild<TraceShot*>(QStringLiteral("TraceShot"));
+        auto* shot =
+            dialog == nullptr
+                ? nullptr
+                : dialog->findChild<TraceShot*>(QStringLiteral("TraceShot"));
         CloseDialog(QStringLiteral("ReplayDialog"));
         return Expect(actions > 0 && shot != nullptr && shot->HasPicture(),
                       QStringLiteral("the trace shows %1 actions and %2")

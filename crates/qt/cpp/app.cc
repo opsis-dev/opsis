@@ -9,9 +9,9 @@
 #include <QFontDatabase>
 #include <QMessageBox>
 #include <QPainter>
+#include <QPointer>
 #include <QStyleFactory>
 #include <QSvgRenderer>
-#include <QPointer>
 #include <QTimer>
 #include <QtCore/QtResource>
 #include <array>

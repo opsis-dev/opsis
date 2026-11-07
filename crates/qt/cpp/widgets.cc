@@ -3,10 +3,14 @@
 #include <QAbstractItemView>
 #include <QEasingCurve>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QLayout>
 #include <QPainter>
 #include <QPainterPath>
+#include <QStyle>
 #include <QTextLayout>
+#include <QTimer>
+#include <algorithm>
 
 #include "app.h"
 #include "motion.h"
@@ -24,6 +28,8 @@ constexpr int kSwitchMs = 120;
 constexpr int kOutlineGap = 6;
 constexpr double kChevronHalf = 3.5;
 constexpr double kChevronPen = 1.5;
+constexpr int kToastMs = 3200;
+constexpr int kToastGap = 24;
 constexpr double kChevronInset = 14.0;
 
 }
@@ -334,14 +340,26 @@ QPushButton* MakeButton(const QString& text, const char* variant,
                         const QString& icon, QWidget* parent) {
   auto* button = new QPushButton(text, parent);
   if (variant != nullptr) button->setProperty("variant", variant);
-  if (!icon.isEmpty()) {
-    const bool primary = variant != nullptr && QByteArray(variant) == "primary";
-    button->setIcon(App::Get().Icon(
-        icon, App::Get().Token(primary ? "primary-foreground" : "foreground"),
-        16));
-  }
+  TintButtonIcon(button, variant, icon);
   button->setCursor(Qt::PointingHandCursor);
   return button;
+}
+
+void TintButtonIcon(QPushButton* button, const char* variant,
+                    const QString& icon) {
+  if (icon.isEmpty()) return;
+  const bool primary = variant != nullptr && QByteArray(variant) == "primary";
+  button->setIcon(App::Get().Icon(
+      icon, App::Get().Token(primary ? "primary-foreground" : "foreground"),
+      16));
+}
+
+void SetButtonVariant(QPushButton* button, const char* variant,
+                      const QString& icon) {
+  button->setProperty("variant", variant);
+  TintButtonIcon(button, variant, icon);
+  button->style()->unpolish(button);
+  button->style()->polish(button);
 }
 
 QWidget* MakeField(const QString& label, QWidget* control,
@@ -410,6 +428,42 @@ QLabel* MakeBadge(const QString& glyph, const QColor& color, int size,
   label->setPixmap(pixmap);
   label->setFixedSize(size, size);
   return label;
+}
+
+void FitHeightToWidth(QWidget* popup) {
+  popup->adjustSize();
+  const QLayout* layout = popup->layout();
+  if (layout == nullptr || !layout->hasHeightForWidth()) return;
+  popup->resize(
+      popup->width(),
+      std::max(popup->height(), layout->totalHeightForWidth(popup->width())));
+}
+
+void ShowToast(QWidget* window, const QString& message, bool error) {
+  auto* toast = window->findChild<QLabel*>(QStringLiteral("Toast"),
+                                           Qt::FindDirectChildrenOnly);
+  auto* timer = window->findChild<QTimer*>(QStringLiteral("ToastTimer"),
+                                           Qt::FindDirectChildrenOnly);
+  if (toast == nullptr || timer == nullptr) {
+    toast = new QLabel(window);
+    toast->setObjectName(QStringLiteral("Toast"));
+    toast->hide();
+    timer = new QTimer(window);
+    timer->setObjectName(QStringLiteral("ToastTimer"));
+    timer->setSingleShot(true);
+    QObject::connect(timer, &QTimer::timeout, toast,
+                     [toast] { FadeOut(toast); });
+  }
+  toast->setText(message);
+  toast->setProperty("tone", error ? "error" : "info");
+  toast->style()->unpolish(toast);
+  toast->style()->polish(toast);
+  toast->adjustSize();
+  toast->move((window->width() - toast->width()) / 2,
+              window->height() - toast->height() - kToastGap);
+  toast->raise();
+  if (!toast->isVisible()) FadeIn(toast);
+  timer->start(kToastMs);
 }
 
 }

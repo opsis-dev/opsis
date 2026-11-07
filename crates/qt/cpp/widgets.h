@@ -122,11 +122,17 @@ class Card : public QFrame {
 QLabel* MakeLabel(const QString& text, const char* role = nullptr,
                   QWidget* parent = nullptr);
 QFrame* MakeRule(QWidget* parent = nullptr);
+void FitHeightToWidth(QWidget* popup);
+void ShowToast(QWidget* window, const QString& message, bool error);
 QToolButton* MakeIconButton(const QString& icon, const QString& tip,
                             QWidget* parent = nullptr, int size = 16);
 QPushButton* MakeButton(const QString& text, const char* variant = nullptr,
                         const QString& icon = QString(),
                         QWidget* parent = nullptr);
+void TintButtonIcon(QPushButton* button, const char* variant,
+                    const QString& icon);
+void SetButtonVariant(QPushButton* button, const char* variant,
+                      const QString& icon);
 QWidget* MakeField(const QString& label, QWidget* control,
                    const QString& description = QString(),
                    QWidget* parent = nullptr);

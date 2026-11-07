@@ -204,9 +204,8 @@ QWidget* StartScreen::EngineAlert() {
   auto* open =
       MakeButton(QStringLiteral("Open Settings"), nullptr, QString(), card);
   connect(open, &QPushButton::clicked, this, &StartScreen::EngineRequested);
-  connect(EventHub::Instance(), &EventHub::EngineChanged, card, [card] {
-    card->setVisible(App::Get().session().engine_missing());
-  });
+  connect(EventHub::Instance(), &EventHub::EngineChanged, card,
+          [card] { card->setVisible(App::Get().session().engine_missing()); });
   auto* buttons = new QHBoxLayout();
   buttons->addWidget(open);
   buttons->addStretch(1);

@@ -16,8 +16,8 @@
 #include <vector>
 
 #include "app.h"
-#include "font_picker.h"
 #include "event_hub.h"
+#include "font_picker.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "widgets.h"
 
