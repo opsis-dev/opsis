@@ -16,12 +16,12 @@ use opsis_compile::nodes::media::IMPORT_TYPE;
 use opsis_compile::timeline::flatten::BarThumbnail;
 use opsis_compile::timeline::view;
 use opsis_qt::{
-    BarView, BoundsView, CategoryView, Choice, CloseView, ColorView, EventKind, FilmTiles,
-    GradientInfo, GraphView, Host, HostResult, InspectorView, KeyLineView, LoudnessView,
-    MarkDrawnView, MarkPointsView, MenuSectionView, MeterView, MixerView, MotionInfo, NodeMove,
-    PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView, ReplayView,
-    RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView, TemplateView, TextToken,
-    TimelineView, TraceView, VariableView, WindowPlacement,
+    AboutView, BarView, BoundsView, CategoryView, Choice, CloseView, ColorView, EngineView,
+    EventKind, FilmTiles, GradientInfo, GraphView, Host, HostResult, InspectorView, KeyLineView,
+    LicenceView, LoudnessView, MarkDrawnView, MarkPointsView, MenuSectionView, MeterView,
+    MixerView, MotionInfo, NodeMove, PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView,
+    RemovalView, ReplayView, RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView,
+    TemplateView, TextToken, TimelineView, TraceView, VariableView, WindowPlacement,
 };
 use opsis_session::analysis::{self, AnalysisRequest, AnalysisResult};
 use opsis_session::error::CommandError;
@@ -79,7 +79,18 @@ pub struct Ui {
     players: player::Players,
     view_windows: streams::ViewWindows,
     live: live::Live,
+    engine_install: Arc<Mutex<EngineInstall>>,
     started: Instant,
+}
+
+#[derive(Debug, Default)]
+struct EngineInstall {
+    installing: bool,
+    progress: Option<f64>,
+    message: String,
+    error: String,
+    choosing: bool,
+    browser_error: String,
 }
 
 impl Drop for Ui {
@@ -159,6 +170,7 @@ const fn event_kind(event: &SessionEvent) -> Option<EventKind> {
         SessionEvent::SettingsChanged(_) => Some(EventKind::Settings),
         SessionEvent::RunViewChanged(_) | SessionEvent::RunStateReset(_) => Some(EventKind::Run),
         SessionEvent::ApiStatusChanged(_) => Some(EventKind::Api),
+        SessionEvent::EngineChanged(_) => Some(EventKind::Engine),
         _ => None,
     }
 }
@@ -185,6 +197,7 @@ impl Ui {
             players: player::Players::default(),
             view_windows: streams::ViewWindows::default(),
             live: live::Live::default(),
+            engine_install: Arc::default(),
             started: Instant::now(),
         }
     }
@@ -438,6 +451,22 @@ impl Ui {
         }
     }
 
+    fn licence_text(&self, reference: Option<&str>) -> String {
+        let Some(reference) = reference else {
+            return "No licence file came with this font.".to_owned();
+        };
+        let paths = &self.state().paths;
+        let file = reference
+            .strip_prefix(opsis_compile::asset_ref::LIBRARY_SCHEME)
+            .map(|rel| paths.fonts_dir().join(rel))
+            .or_else(|| {
+                opsis_project::paths::ref_to_path(&paths.user_data, &paths.public_dir, reference)
+                    .ok()
+            });
+        file.and_then(|file| std::fs::read_to_string(file).ok())
+            .unwrap_or_else(|| "This licence file couldn't be read.".to_owned())
+    }
+
     fn send_view(&self, id: &str, input: ViewInput) {
         let (session, id) = (self.session.clone(), id.to_owned());
         self.runtime.spawn(async move {
@@ -550,6 +579,7 @@ impl Host for Ui {
         let previews = self.previews.clone();
         let view_windows = self.view_windows.clone();
         let live = self.live.clone();
+        let engine_install = Arc::clone(&self.engine_install);
         let handle = self.runtime.handle().clone();
         let session = self.session.clone();
         std::thread::spawn(move || {
@@ -580,6 +610,17 @@ impl Host for Ui {
                             && let Some(node) = asked.node_id.as_deref()
                         {
                             opsis_qt::post_replay(node, &plain(&asked.tab));
+                        }
+                        if let SessionEvent::EngineInstallProgress(progress) = &addressed.event {
+                            let event = &progress.0;
+                            let mut install = engine_install.lock().expect("engine install");
+                            install.progress = event.update.progress;
+                            install.message.clone_from(&event.update.message);
+                            if let Some(error) = &event.error {
+                                install.error.clone_from(error);
+                            }
+                            drop(install);
+                            opsis_qt::post_event(EventKind::Engine);
                         }
                         if let SessionEvent::LiveNoted(noted) = &addressed.event
                             && mine
@@ -2301,6 +2342,7 @@ impl Host for Ui {
     fn settings(&self) -> SettingsView {
         let settings = settings::get_settings(&self.session);
         let book = settings_book();
+        let api = opsis_session::api::api_status(&self.session);
         SettingsView {
             on_start: plain(&settings.app.on_start),
             start_options: choices(&book.start_options),
@@ -2319,7 +2361,152 @@ impl Host for Ui {
                 .collect(),
             api_enabled: settings.api.enabled,
             data_dir: self.state().paths.user_data.to_string_lossy().into_owned(),
+            trace_retention: plain(&settings.traces.retention),
+            trace_retentions: choices(&book.trace_retention),
+            keep_last: settings.traces.keep_last,
+            keep_last_min: book.keep_last_traces.min,
+            keep_last_max: book.keep_last_traces.max,
+            live_fps: settings.live.fps,
+            live_fps_min: book.live_fps.min,
+            live_fps_max: book.live_fps.max,
+            live_auto_open: settings.live.auto_open,
+            api_listening: api.listening,
+            api_error: api.error.unwrap_or_default(),
+            api_address: api.address,
+            default_dir_fallback: if settings.projects.default_dir.is_empty() {
+                projects::project_locations(&self.session).default_dir
+            } else {
+                String::new()
+            },
         }
+    }
+
+    fn engine_view(&self) -> EngineView {
+        let status = opsis_session::engine::get_engine_status(&self.session);
+        let install = self.engine_install.lock().expect("engine install");
+        EngineView {
+            complete: status.complete,
+            checking: status.browser.checking,
+            path: status.browser.path.unwrap_or_default(),
+            version: status.browser.version.unwrap_or_default(),
+            problem: status.browser.problem.unwrap_or_default(),
+            warning: status.browser.warning.unwrap_or_default(),
+            download_dir: status.download_dir,
+            installing: install.installing,
+            progress: install.progress.unwrap_or(-1.0),
+            message: install.message.clone(),
+            error: install.error.clone(),
+            choosing: install.choosing,
+            browser_error: install.browser_error.clone(),
+        }
+    }
+
+    fn install_engine(&self) {
+        {
+            let mut install = self.engine_install.lock().expect("engine install");
+            if install.installing {
+                return;
+            }
+            *install = EngineInstall {
+                installing: true,
+                ..EngineInstall::default()
+            };
+        }
+        opsis_qt::post_event(EventKind::Engine);
+        let (session, install) = (self.session.clone(), Arc::clone(&self.engine_install));
+        self.runtime.spawn(async move {
+            let outcome = opsis_session::engine::install_engine(session).await;
+            let mut state = install.lock().expect("engine install");
+            state.installing = false;
+            if let Err(error) = outcome {
+                state.error = error.0;
+            }
+            drop(state);
+            opsis_qt::post_event(EventKind::Engine);
+        });
+    }
+
+    fn choose_browser(&self) {
+        {
+            let mut install = self.engine_install.lock().expect("engine install");
+            install.choosing = true;
+            install.browser_error.clear();
+        }
+        opsis_qt::post_event(EventKind::Engine);
+        let (session, install) = (self.session.clone(), Arc::clone(&self.engine_install));
+        self.runtime.spawn(async move {
+            let outcome = opsis_session::engine::choose_browser(session).await;
+            let mut state = install.lock().expect("engine install");
+            state.choosing = false;
+            if let Err(error) = outcome {
+                state.browser_error = error.0;
+            }
+            drop(state);
+            opsis_qt::post_event(EventKind::Engine);
+        });
+    }
+
+    fn about(&self) -> AboutView {
+        let env = settings::get_environment(&self.session);
+        AboutView {
+            app: env.versions.app,
+            development: !env.is_packaged,
+            shell: env.versions.tauri,
+            platform: format!("{} / {}", env.platform, env.arch),
+            browser: env
+                .engine
+                .browser
+                .path
+                .unwrap_or_else(|| "Not set up".to_owned()),
+            downloads: env.engine.download_dir,
+            user_data: env.user_data,
+        }
+    }
+
+    fn licences(&self) -> Vec<LicenceView> {
+        settings::list_licences(&self.session).map_or_default(|entries| {
+            entries
+                .into_iter()
+                .map(|entry| LicenceView {
+                    title: entry.title,
+                    summary: entry.summary,
+                    badge: String::new(),
+                    text: entry.text.unwrap_or_default(),
+                    file: entry.file.unwrap_or_default(),
+                })
+                .collect()
+        })
+    }
+
+    fn font_licences(&self, library: bool) -> Vec<LicenceView> {
+        let defs: Vec<opsis_types::fonts::FontFamilyDef> = if library {
+            self.runtime
+                .block_on(opsis_session::fonts::list_fonts(&self.session))
+                .map_or_default(|choices| choices.into_iter().map(|c| c.def).collect())
+        } else {
+            opsis_compile::fonts::bundled_fonts().to_vec()
+        };
+        defs.into_iter()
+            .filter(|def| !def.hidden)
+            .map(|def| LicenceView {
+                title: def.family.clone(),
+                summary: def
+                    .license
+                    .clone()
+                    .unwrap_or_else(|| "Licence not listed".to_owned()),
+                badge: if matches!(def.source, opsis_types::fonts::FontSource::Online) {
+                    "Downloaded".to_owned()
+                } else {
+                    String::new()
+                },
+                text: self.licence_text(def.license_file.as_deref()),
+                file: String::new(),
+            })
+            .collect()
+    }
+
+    fn open_licence_file(&self, file: &str) -> HostResult<()> {
+        settings::open_licence_file(&self.session, file).map_err(|e| e.0)
     }
 
     fn patch_settings(&self, json: &str) -> HostResult<()> {

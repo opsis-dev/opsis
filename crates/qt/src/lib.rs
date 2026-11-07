@@ -16,18 +16,18 @@ mod frame;
 mod host;
 
 pub use bridge::ffi::{
-    ArtifactView, BarView, BoundsView, CardKind, CardView, CategoryView, Choice, CloseView,
-    ColorView, DialogKind, EdgeView, EventKind, FieldKind, FieldView, FilmTile, FilmTiles,
-    GradientInfo, GradientStopView, GraphView, InspectorView, IssueView, KeyLineView, KeyPointView,
-    LiveCaptureView, LiveClickView, LiveView, LoudnessView, MarkDrawnView, MarkPointsView,
-    MenuItemKind, MenuItemView, MenuSectionView, MeterView, MixerStripView, MixerView, MotionInfo,
-    NodeMove, PaletteEntry, PlayerView, PortView, PoseView, PresetView, ProjectEntry, ProjectView,
-    RemovalView, ReplayActionView, ReplayView, RowView, RulerStep, RunLogView, RunPanelView,
-    RunRowView, ScreenArea, SettingsView, ShapeView, SnapView, StreamViewState, TemplateView,
-    TextToken, TimelineAudioView, TimelineBarView, TimelineCameraKeyView, TimelineMarkView,
-    TimelineMarkerView, TimelineTransitionView, TimelineView, TokenKind, TraceActionView,
-    TraceConsoleView, TraceErrorView, TraceFrameView, TraceRequestView, TraceView, VariableView,
-    WindowPlacement,
+    AboutView, ArtifactView, BarView, BoundsView, CardKind, CardView, CategoryView, Choice,
+    CloseView, ColorView, DialogKind, EdgeView, EngineView, EventKind, FieldKind, FieldView,
+    FilmTile, FilmTiles, GradientInfo, GradientStopView, GraphView, InspectorView, IssueView,
+    KeyLineView, KeyPointView, LicenceView, LiveCaptureView, LiveClickView, LiveView, LoudnessView,
+    MarkDrawnView, MarkPointsView, MenuItemKind, MenuItemView, MenuSectionView, MeterView,
+    MixerStripView, MixerView, MotionInfo, NodeMove, PaletteEntry, PlayerView, PortView, PoseView,
+    PresetView, ProjectEntry, ProjectView, RemovalView, ReplayActionView, ReplayView, RowView,
+    RulerStep, RunLogView, RunPanelView, RunRowView, ScreenArea, SettingsView, ShapeView, SnapView,
+    StreamViewState, TemplateView, TextToken, TimelineAudioView, TimelineBarView,
+    TimelineCameraKeyView, TimelineMarkView, TimelineMarkerView, TimelineTransitionView,
+    TimelineView, TokenKind, TraceActionView, TraceConsoleView, TraceErrorView, TraceFrameView,
+    TraceRequestView, TraceView, VariableView, WindowPlacement,
 };
 pub use frame::FrameRef;
 pub use host::{

@@ -1,12 +1,13 @@
 use std::fmt;
 
 use crate::bridge::ffi::{
-    self, BarView, BoundsView, CategoryView, CloseView, ColorView, DialogKind, EventKind,
-    FilmTiles, GradientInfo, GraphView, InspectorView, KeyLineView, LiveView, LoudnessView,
-    MarkDrawnView, MarkPointsView, MenuSectionView, MeterView, MixerView, MotionInfo, NodeMove,
-    PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView, ReplayView,
-    RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView, StreamViewState, TemplateView,
-    TextToken, TimelineView, TraceView, VariableView, WindowPlacement,
+    self, AboutView, BarView, BoundsView, CategoryView, CloseView, ColorView, DialogKind,
+    EngineView, EventKind, FilmTiles, GradientInfo, GraphView, InspectorView, KeyLineView,
+    LicenceView, LiveView, LoudnessView, MarkDrawnView, MarkPointsView, MenuSectionView, MeterView,
+    MixerView, MotionInfo, NodeMove, PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView,
+    RemovalView, ReplayView, RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView,
+    StreamViewState, TemplateView, TextToken, TimelineView, TraceView, VariableView,
+    WindowPlacement,
 };
 use crate::frame::FrameRef;
 
@@ -145,6 +146,13 @@ pub trait Host {
     fn live_frame(&self, capture_id: &str) -> FrameRef;
     fn live_focus(&self, capture_id: &str);
     fn live_pip(&self, open: bool);
+    fn engine_view(&self) -> EngineView;
+    fn install_engine(&self);
+    fn choose_browser(&self);
+    fn about(&self) -> AboutView;
+    fn licences(&self) -> Vec<LicenceView>;
+    fn font_licences(&self, library: bool) -> Vec<LicenceView>;
+    fn open_licence_file(&self, file: &str) -> HostResult<()>;
     fn audio_play(&self, seconds: f64, rate: f64);
     fn audio_pause(&self);
     fn audio_seek(&self, seconds: f64);
@@ -749,6 +757,34 @@ impl Session {
 
     pub(crate) fn live_pip(&self, open: bool) {
         self.0.live_pip(open);
+    }
+
+    pub(crate) fn engine_view(&self) -> EngineView {
+        self.0.engine_view()
+    }
+
+    pub(crate) fn install_engine(&self) {
+        self.0.install_engine();
+    }
+
+    pub(crate) fn choose_browser(&self) {
+        self.0.choose_browser();
+    }
+
+    pub(crate) fn about(&self) -> AboutView {
+        self.0.about()
+    }
+
+    pub(crate) fn licences(&self) -> Vec<LicenceView> {
+        self.0.licences()
+    }
+
+    pub(crate) fn font_licences(&self, library: bool) -> Vec<LicenceView> {
+        self.0.font_licences(library)
+    }
+
+    pub(crate) fn open_licence_file(&self, file: &str) -> HostResult<()> {
+        self.0.open_licence_file(file)
     }
 
     pub(crate) fn audio_play(&self, seconds: f64, rate: f64) {

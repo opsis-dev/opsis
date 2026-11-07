@@ -40,7 +40,6 @@ namespace opsis {
 
 namespace {
 
-constexpr int kApiPage = 3;
 constexpr int kQuickAddWidth = 520;
 constexpr int kQuickAddHeight = 480;
 
@@ -81,7 +80,7 @@ MainWindow::MainWindow()
   setMenuWidget(app_bar_);
   connect(top_bar_, &TopBar::Command, this, &MainWindow::Dispatch);
   connect(app_bar_, &AppBar::ApiBadgeClicked, this,
-          [this] { OpenSettings()->ShowPage(kApiPage); });
+          [this] { OpenSettings()->ShowPage(SettingsWindow::kApi); });
   connect(EventHub::Instance(), &EventHub::RunChanged, top_bar_, &TopBar::Sync);
   setCenterWidgetMargins(QMargins());
   stack_ = new QStackedWidget(this);
@@ -104,6 +103,8 @@ MainWindow::MainWindow()
           &MainWindow::NewProject);
   connect(start_, &StartScreen::SettingsRequested, this,
           [this] { OpenSettings(); });
+  connect(start_, &StartScreen::EngineRequested, this,
+          [this] { OpenSettings()->ShowPage(SettingsWindow::kEngine); });
   connect(start_, &StartScreen::BrowseRequested, this, [this] {
     const QString dir =
         QFileDialog::getExistingDirectory(this, QStringLiteral("Open project"));

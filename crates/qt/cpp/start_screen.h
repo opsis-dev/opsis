@@ -32,6 +32,7 @@ class StartScreen : public QWidget {
   void NewProjectRequested(const QString& template_id, bool fixed);
   void BrowseRequested();
   void SettingsRequested();
+  void EngineRequested();
 
  private:
   QWidget* ActionList();

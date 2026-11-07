@@ -2,6 +2,7 @@
 #include <QElapsedTimer>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QLabel>
 #include <QListWidget>
 #include <QPointer>
 #include <QTimer>
@@ -16,6 +17,7 @@
 #include "opsis-qt/src/bridge.rs.h"
 #include "scenario.h"
 #include "replay_dialog.h"
+#include "settings_window.h"
 #include "stream_window.h"
 
 namespace opsis {
@@ -95,6 +97,27 @@ void Scenario::BuildRuns() {
         return Expect(!App::Get().session().engine_missing(),
                       QStringLiteral("the seeded recording browser isn't "
                                      "usable"));
+      });
+  Add(
+      QStringLiteral("settings-shows-the-engine"),
+      [this] { window_->OpenSettings()->ShowPage(SettingsWindow::kEngine); },
+      800,
+      [] {
+        SettingsWindow* settings = nullptr;
+        for (QWidget* top : QApplication::topLevelWidgets()) {
+          if (auto* found = qobject_cast<SettingsWindow*>(top)) settings = found;
+        }
+        auto* state = settings == nullptr
+                          ? nullptr
+                          : settings->findChild<QLabel*>(
+                                QStringLiteral("EngineState"));
+        const bridge::EngineView engine = App::Get().session().engine_view();
+        const bool shown = state != nullptr && state->isVisible() &&
+                           state->text() == QStringLiteral("Set up") &&
+                           !engine.path.empty();
+        if (settings != nullptr) settings->close();
+        return Expect(shown, QStringLiteral("the Engine page doesn't show the "
+                                            "engine as set up"));
       });
   Until(
       QStringLiteral("open-todomvc-on-the-test-page"),

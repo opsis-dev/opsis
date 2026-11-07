@@ -50,7 +50,7 @@ const MOC_HEADERS: [&str; 30] = [
     "live_view.h",
 ];
 
-const SOURCES: [&str; 41] = [
+const SOURCES: [&str; 42] = [
     "app.cc",
     "event_hub.cc",
     "widgets.cc",
@@ -92,9 +92,11 @@ const SOURCES: [&str; 41] = [
     "stream_window.cc",
     "e2e_runs.cc",
     "live_view.cc",
+    "e2e_settings.cc",
 ];
 
 fn main() {
+    println!("cargo::rustc-env=OPSIS_KDDW_VERSION={KDDW_VERSION}");
     let manifest =
         PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("Cargo sets CARGO_MANIFEST_DIR"));
     let home = PathBuf::from(env::var("HOME").expect("HOME is set"));

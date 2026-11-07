@@ -1,6 +1,10 @@
 use crate::frame::FrameRef;
 use crate::host::Session;
 
+const fn kddw_version() -> &'static str {
+    env!("OPSIS_KDDW_VERSION")
+}
+
 #[cxx::bridge(namespace = "opsis::bridge")]
 pub mod ffi {
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -16,6 +20,7 @@ pub mod ffi {
         Run,
         Api,
         Media,
+        Engine,
     }
 
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -833,9 +838,61 @@ pub mod ffi {
         canvas_modes: Vec<Choice>,
         api_enabled: bool,
         data_dir: String,
+        trace_retention: String,
+        trace_retentions: Vec<Choice>,
+        keep_last: u32,
+        keep_last_min: u32,
+        keep_last_max: u32,
+        live_fps: u32,
+        live_fps_min: u32,
+        live_fps_max: u32,
+        live_auto_open: bool,
+        api_listening: bool,
+        api_error: String,
+        api_address: String,
+        default_dir_fallback: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct EngineView {
+        complete: bool,
+        checking: bool,
+        path: String,
+        version: String,
+        problem: String,
+        warning: String,
+        download_dir: String,
+        installing: bool,
+        progress: f64,
+        message: String,
+        error: String,
+        choosing: bool,
+        browser_error: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct AboutView {
+        app: String,
+        development: bool,
+        shell: String,
+        platform: String,
+        browser: String,
+        downloads: String,
+        user_data: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct LicenceView {
+        title: String,
+        summary: String,
+        badge: String,
+        text: String,
+        file: String,
     }
 
     extern "Rust" {
+        fn kddw_version() -> &'static str;
+
         type FrameRef;
         fn bytes(self: &FrameRef) -> &[u8];
         fn width(self: &FrameRef) -> u32;
@@ -994,6 +1051,13 @@ pub mod ffi {
         fn live_frame(self: &Session, capture_id: &str) -> Box<FrameRef>;
         fn live_focus(self: &Session, capture_id: &str);
         fn live_pip(self: &Session, open: bool);
+        fn engine_view(self: &Session) -> EngineView;
+        fn install_engine(self: &Session);
+        fn choose_browser(self: &Session);
+        fn about(self: &Session) -> AboutView;
+        fn licences(self: &Session) -> Vec<LicenceView>;
+        fn font_licences(self: &Session, library: bool) -> Vec<LicenceView>;
+        fn open_licence_file(self: &Session, file: &str) -> Result<()>;
         fn audio_play(self: &Session, seconds: f64, rate: f64);
         fn audio_pause(self: &Session);
         fn audio_seek(self: &Session, seconds: f64);

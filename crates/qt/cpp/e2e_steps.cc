@@ -2519,16 +2519,14 @@ void Scenario::BuildTour() {
         }
         auto* pages = settings->findChild<QListWidget*>();
         for (int i = 0; i < pages->count(); ++i) {
-          if (pages->item(i)->text() == QStringLiteral("Local API")) {
+          if (pages->item(i)->text() == QStringLiteral("API")) {
             QTest::mouseClick(pages->viewport(), Qt::LeftButton, {},
                               pages->visualItemRect(pages->item(i)).center());
           }
         }
-        for (ToggleSwitch* toggle : settings->findChildren<ToggleSwitch*>()) {
-          if (toggle->isVisible()) {
-            QTest::mouseClick(toggle, Qt::LeftButton);
-            break;
-          }
+        if (auto* toggle = settings->findChild<ToggleSwitch*>(
+                QStringLiteral("ApiEnabled"))) {
+          QTest::mouseClick(toggle, Qt::LeftButton);
         }
       },
       1500,
@@ -2543,6 +2541,7 @@ void Scenario::BuildTour() {
         }
         return problems;
       });
+  BuildSettings();
   Add(QStringLiteral("close-settings"), [this] {
     for (QWidget* top : QApplication::topLevelWidgets()) {
       if (top->isVisible() &&
