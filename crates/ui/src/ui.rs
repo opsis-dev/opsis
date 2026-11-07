@@ -74,7 +74,6 @@ pub struct Ui {
     audio: Arc<Mutex<opsis_audio::output::Output>>,
     previews: mixer::Previews,
     players: player::Players,
-    replay: Arc<Mutex<Option<(String, String)>>>,
     started: Instant,
 }
 
@@ -143,9 +142,7 @@ const fn event_kind(event: &SessionEvent) -> Option<EventKind> {
     match event {
         SessionEvent::ConfirmClose(_) => Some(EventKind::CloseAsked),
         SessionEvent::FlushSave(_) => Some(EventKind::FlushDrafts),
-        SessionEvent::DocumentChanged(_) | SessionEvent::ProjectReloaded(_) => {
-            Some(EventKind::Document)
-        }
+        SessionEvent::ProjectReloaded(_) => Some(EventKind::Document),
         SessionEvent::SelectionShared(_) => Some(EventKind::Selection),
         SessionEvent::SettingsChanged(_) => Some(EventKind::Settings),
         SessionEvent::RunViewChanged(_) | SessionEvent::RunStateReset(_) => Some(EventKind::Run),
@@ -174,7 +171,6 @@ impl Ui {
             audio: Arc::new(Mutex::new(opsis_audio::output::Output::new())),
             previews: mixer::Previews::default(),
             players: player::Players::default(),
-            replay: Arc::new(Mutex::new(None)),
             started: Instant::now(),
         }
     }
@@ -510,7 +506,6 @@ impl Host for Ui {
         let mixes = self.mixes.clone();
         let audio = Arc::clone(&self.audio);
         let previews = self.previews.clone();
-        let replay = Arc::clone(&self.replay);
         let handle = self.runtime.handle().clone();
         let session = self.session.clone();
         std::thread::spawn(move || {
@@ -538,11 +533,14 @@ impl Host for Ui {
                         let mine = addressed.to.as_deref().is_none_or(|to| to == MAIN_WINDOW);
                         if let SessionEvent::ReplayRequested(asked) = &addressed.event
                             && mine
-                            && let Some(node) = asked.node_id.clone()
+                            && let Some(node) = asked.node_id.as_deref()
                         {
-                            *replay.lock().expect("replay request") =
-                                Some((node, plain(&asked.tab)));
-                            opsis_qt::post_event(EventKind::Replay);
+                            opsis_qt::post_replay(node, &plain(&asked.tab));
+                        }
+                        if let SessionEvent::DocumentChanged(changed) = &addressed.event
+                            && mine
+                        {
+                            opsis_qt::post_edited(changed.edited.clone());
                         }
                         if let Some(kind) = event_kind(&addressed.event).filter(|_| mine) {
                             opsis_qt::post_event(kind);
@@ -1666,11 +1664,6 @@ impl Host for Ui {
             ReplayTab::Replay
         };
         shared::show_replay(&self.session, Some(node_id.to_owned()), tab).map_err(|e| e.0)
-    }
-
-    fn take_replay(&self) -> ReplayView {
-        let asked = self.replay.lock().expect("replay request").take();
-        asked.map_or_else(replay::hidden, |(node, tab)| self.replay(&node, &tab))
     }
 
     fn replay(&self, node_id: &str, tab: &str) -> ReplayView {

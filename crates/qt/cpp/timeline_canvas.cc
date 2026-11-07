@@ -93,8 +93,10 @@ TimelineCanvas::TimelineCanvas(QWidget* parent) : QAbstractScrollArea(parent) {
 }
 
 void TimelineCanvas::Reload() {
-  view_ =
+  auto next =
       std::make_unique<bridge::TimelineView>(App::Get().session().timeline());
+  if (view_ != nullptr && *view_ == *next) return;
+  view_ = std::move(next);
   PlaybackClock::Instance()->SetFilm(static_cast<int>(view_->fps),
                                      view_->duration);
   if (fit_) {

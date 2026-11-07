@@ -102,6 +102,7 @@ pub fn clear_cache(dir: &Path) -> std::io::Result<()> {
 #[derive(Debug, Clone, Default)]
 pub struct ProjectFiles {
     written: Arc<Mutex<HashMap<PathBuf, String>>>,
+    writing: Arc<Mutex<()>>,
 }
 
 impl ProjectFiles {
@@ -113,7 +114,18 @@ impl ProjectFiles {
             .cloned()
     }
 
-    fn remember(&self, dir: &Path, version: &str) {
+    pub(crate) fn turn(&self) -> std::sync::MutexGuard<'_, ()> {
+        self.writing.lock().expect("project writes")
+    }
+
+    pub(crate) fn outside_version(&self, dir: &Path) -> std::io::Result<Option<ProjectFile>> {
+        let _turn = self.turn();
+        let current = read_project_file(dir)?;
+        let written = self.written_version(dir);
+        Ok(current.filter(|c| Some(&c.version) != written.as_ref()))
+    }
+
+    pub(crate) fn remember(&self, dir: &Path, version: &str) {
         self.written
             .lock()
             .expect("written versions")
@@ -139,6 +151,7 @@ impl ProjectFiles {
     fn write(&self, dir: &Path, workflow: &Workflow) -> std::io::Result<String> {
         let text = workflow_text(workflow);
         let version = version_of(&text);
+        let _turn = self.turn();
         self.remember(dir, &version);
         atomic_write(&dir.join(WORKFLOW_FILE), text.as_bytes())?;
         Ok(version)

@@ -7,6 +7,7 @@
 #include <QStackedWidget>
 #include <QString>
 #include <QWidget>
+#include <memory>
 #include <optional>
 
 namespace opsis {
@@ -21,9 +22,17 @@ class MixerPanel : public QWidget {
 
  public:
   explicit MixerPanel(QWidget* parent = nullptr);
+  ~MixerPanel() override;
+  MixerPanel(const MixerPanel&) = delete;
+  MixerPanel& operator=(const MixerPanel&) = delete;
+  MixerPanel(MixerPanel&&) = delete;
+  MixerPanel& operator=(MixerPanel&&) = delete;
   void Rebuild();
+  void Refresh();
+  int builds() const { return builds_; }
 
  private:
+  void Build(const bridge::MixerView& view);
   QWidget* ChannelStrip(const bridge::MixerStripView& strip,
                         const bridge::MixerView& view, QWidget* parent);
   QWidget* BusStrip(const bridge::MixerStripView& strip,
@@ -40,6 +49,8 @@ class MixerPanel : public QWidget {
   QSet<QString> folded_;
   std::optional<QJsonObject> clipboard_;
   QString anchor_;
+  std::unique_ptr<bridge::MixerView> last_;
+  int builds_ = 0;
 };
 
 }

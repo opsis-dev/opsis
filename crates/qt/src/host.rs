@@ -109,7 +109,6 @@ pub trait Host {
     fn player_retry(&self, id: u64);
     fn player_time(&self, seconds: f64, guide: f64) -> String;
     fn show_replay(&self, node_id: &str, tab: &str) -> HostResult<()>;
-    fn take_replay(&self) -> ReplayView;
     fn replay(&self, node_id: &str, tab: &str) -> ReplayView;
     fn trace(&self, trace_id: &str) -> TraceView;
     fn audio_play(&self, seconds: f64, rate: f64);
@@ -196,6 +195,14 @@ pub fn post_event(kind: EventKind) {
 
 pub fn wake(target: u64) {
     ffi::wake(target);
+}
+
+pub fn post_edited(ids: Vec<String>) {
+    ffi::post_edited(ids);
+}
+
+pub fn post_replay(node_id: &str, tab: &str) {
+    ffi::post_replay(node_id, tab);
 }
 
 pub fn request_dialog(
@@ -581,10 +588,6 @@ impl Session {
 
     pub(crate) fn show_replay(&self, node_id: &str, tab: &str) -> HostResult<()> {
         self.0.show_replay(node_id, tab)
-    }
-
-    pub(crate) fn take_replay(&self) -> ReplayView {
-        self.0.take_replay()
     }
 
     pub(crate) fn replay(&self, node_id: &str, tab: &str) -> ReplayView {

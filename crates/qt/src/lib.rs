@@ -26,6 +26,6 @@ pub use bridge::ffi::{
 };
 pub use frame::FrameRef;
 pub use host::{
-    Host, HostResult, notify, open_path, post_event, qt_version, quit, raise_editor,
-    request_dialog, reveal_path, run, wake,
+    Host, HostResult, notify, open_path, post_edited, post_event, post_replay, qt_version, quit,
+    raise_editor, request_dialog, reveal_path, run, wake,
 };

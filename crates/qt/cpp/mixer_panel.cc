@@ -317,15 +317,19 @@ MixerPanel::MixerPanel(QWidget* parent)
   layout->addWidget(stack_);
   stack_->addWidget(EmptyState(stack_));
   const auto refresh = [this] {
-    if (!FormHold::Instance()->Held()) Rebuild();
+    if (!FormHold::Instance()->Held()) Refresh();
   };
   for (auto signal : {&EventHub::CompiledChanged, &EventHub::DocumentChanged,
                       &EventHub::SelectionChanged, &EventHub::ProjectChanged,
                       &EventHub::MediaChanged}) {
     connect(EventHub::Instance(), signal, this, refresh);
   }
-  connect(FormHold::Instance(), &FormHold::Released, this, &MixerPanel::Rebuild,
+  connect(FormHold::Instance(), &FormHold::Released, this, &MixerPanel::Refresh,
           Qt::QueuedConnection);
+  connect(EventHub::Instance(), &EventHub::MediaChanged, this, [this] {
+    if (body_ == nullptr) return;
+    for (Meter* meter : body_->findChildren<Meter*>()) meter->update();
+  });
   connect(PlaybackClock::Instance(), &PlaybackClock::Changed, this, [this] {
     if (body_ == nullptr) return;
     for (Meter* meter : body_->findChildren<Meter*>()) meter->update();
@@ -778,8 +782,19 @@ QWidget* MixerPanel::Toolbar(const bridge::MixerView& view, QWidget* parent) {
   return bar;
 }
 
-void MixerPanel::Rebuild() {
+MixerPanel::~MixerPanel() = default;
+
+void MixerPanel::Rebuild() { Build(App::Get().session().mixer()); }
+
+void MixerPanel::Refresh() {
   const bridge::MixerView view = App::Get().session().mixer();
+  if (last_ != nullptr && *last_ == view) return;
+  Build(view);
+}
+
+void MixerPanel::Build(const bridge::MixerView& view) {
+  last_ = std::make_unique<bridge::MixerView>(view);
+  builds_ += 1;
   book_ = ObjectOf(view.book_json);
   if (!view.shown) {
     stack_->setCurrentIndex(0);

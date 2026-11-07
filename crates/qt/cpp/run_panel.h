@@ -4,14 +4,25 @@
 #include <QPlainTextEdit>
 #include <QScrollArea>
 #include <QWidget>
+#include <cstdint>
+#include <memory>
 
 namespace opsis {
+
+namespace bridge {
+struct RunPanelView;
+}
 
 class RunPanel : public QWidget {
   Q_OBJECT
 
  public:
   explicit RunPanel(QWidget* parent = nullptr);
+  ~RunPanel() override;
+  RunPanel(const RunPanel&) = delete;
+  RunPanel& operator=(const RunPanel&) = delete;
+  RunPanel(RunPanel&&) = delete;
+  RunPanel& operator=(RunPanel&&) = delete;
   void Rebuild();
 
  private:
@@ -22,6 +33,7 @@ class RunPanel : public QWidget {
   std::uint64_t last_log_ = 0;
   QString log_scope_;
   QString outputs_key_;
+  std::unique_ptr<bridge::RunPanelView> last_;
 };
 
 }

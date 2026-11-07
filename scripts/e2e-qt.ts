@@ -1,5 +1,5 @@
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
-import { existsSync, mkdirSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
@@ -119,6 +119,7 @@ async function main(): Promise<number> {
     const ffmpeg = await ensureFfmpeg();
     makeClip(ffmpeg);
     const { code, output } = await runScenario(display, ffmpeg);
+    writeFileSync(path.join(path.dirname(DATA_DIR), "opsis-qt-e2e.log"), output);
     const lines = output.split("\n").filter((line) => CHECK_LINE.test(line));
     for (const line of lines) console.log(line.replace(/^\[[^\]]*\] /, ""));
     const finished = lines.some((line) => /scenario \S+ done/.test(line));

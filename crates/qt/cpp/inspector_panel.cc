@@ -190,20 +190,29 @@ InspectorPanel::InspectorPanel(QWidget* parent) : QWidget(parent) {
   scroll_->setFrameShape(QFrame::NoFrame);
   layout->addWidget(scroll_);
   connect(EventHub::Instance(), &EventHub::SelectionChanged, this,
-          &InspectorPanel::Rebuild);
+          &InspectorPanel::Refresh);
   connect(EventHub::Instance(), &EventHub::DocumentChanged, this, [this] {
-    if (!Editing()) Rebuild();
+    if (Editing()) return;
+    if (node_.isEmpty()) {
+      Rebuild();
+    } else if (EventHub::Instance()->Edited(node_)) {
+      Refresh();
+    }
   });
   connect(EventHub::Instance(), &EventHub::ProjectChanged, this,
           &InspectorPanel::Rebuild);
   connect(FormHold::Instance(), &FormHold::Released, this,
-          &InspectorPanel::Rebuild, Qt::QueuedConnection);
-  const auto refresh_project = [this] {
-    if (node_.isEmpty() && !Editing()) Rebuild();
+          &InspectorPanel::Refresh, Qt::QueuedConnection);
+  const auto follow = [this] {
+    if (Editing()) return;
+    if (node_.isEmpty()) {
+      Rebuild();
+    } else {
+      Refresh();
+    }
   };
-  connect(EventHub::Instance(), &EventHub::CompiledChanged, this,
-          refresh_project);
-  connect(EventHub::Instance(), &EventHub::RunChanged, this, refresh_project);
+  connect(EventHub::Instance(), &EventHub::CompiledChanged, this, follow);
+  connect(EventHub::Instance(), &EventHub::RunChanged, this, follow);
   connect(qApp, &QApplication::focusChanged, this, [this](QWidget*, QWidget*) {
     App::Get().session().report_drafts(Editing());
   });
@@ -895,9 +904,24 @@ void InspectorPanel::AddTabs(QVBoxLayout* layout, const QList<QWidget*>& basic,
   connect(advanced_tab, &QPushButton::clicked, this, [show] { show(true); });
 }
 
-void InspectorPanel::Rebuild() {
+InspectorPanel::~InspectorPanel() = default;
+
+void InspectorPanel::Rebuild() { Build(App::Get().session().inspector()); }
+
+void InspectorPanel::Refresh() {
+  if (Editing()) return;
+  const bridge::InspectorView view = App::Get().session().inspector();
+  if (last_ != nullptr && !node_.isEmpty() && content_ != nullptr &&
+      *last_ == view) {
+    return;
+  }
+  Build(view);
+}
+
+void InspectorPanel::Build(const bridge::InspectorView& view) {
   App& app = App::Get();
-  const bridge::InspectorView view = app.session().inspector();
+  last_ = std::make_unique<bridge::InspectorView>(view);
+  builds_ += 1;
   if (ToQ(view.id) != node_) advanced_open_ = false;
   node_ = ToQ(view.id);
   swatches_.clear();

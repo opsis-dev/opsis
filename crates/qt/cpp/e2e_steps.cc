@@ -2581,6 +2581,7 @@ void Scenario::BuildTour() {
                       QStringLiteral("the start screen didn't come back"));
       });
   BuildMixer(window);
+  BuildEvents(window);
   BuildPlayer();
 }
 

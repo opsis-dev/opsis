@@ -36,6 +36,7 @@ class Scenario : public QObject {
   void Shoot(const QString& name);
   void BuildMixer(MainWindow* window);
   void BuildPlayer();
+  void BuildEvents(MainWindow* window);
   static QString Overflow();
   void Drag(QWidget* target, QPoint from, QPoint to, int steps = 12);
   void Miss(const QString& what) { misses_ << what; }

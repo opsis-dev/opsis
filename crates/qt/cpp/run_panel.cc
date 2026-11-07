@@ -296,8 +296,12 @@ RunPanel::RunPanel(QWidget* parent)
   Rebuild();
 }
 
+RunPanel::~RunPanel() = default;
+
 void RunPanel::Rebuild() {
   const bridge::RunPanelView view = App::Get().session().run_panel();
+  if (last_ != nullptr && *last_ == view) return;
+  last_ = std::make_unique<bridge::RunPanelView>(view);
   const int node_scroll = nodes_->verticalScrollBar()->value();
   nodes_->setWidget(NodeColumn(view, nodes_));
   nodes_->verticalScrollBar()->setValue(node_scroll);

@@ -16,10 +16,9 @@ pub mod ffi {
         Run,
         Api,
         Media,
-        Replay,
     }
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
     struct MixerStripView {
         id: String,
         name: String,
@@ -32,7 +31,7 @@ pub mod ffi {
         settings_json: String,
     }
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
     struct MixerView {
         shown: bool,
         stale: bool,
@@ -64,7 +63,7 @@ pub mod ffi {
         range: f64,
     }
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq)]
     struct RunRowView {
         id: String,
         name: String,
@@ -73,7 +72,7 @@ pub mod ffi {
         selected: bool,
     }
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
     struct RunLogView {
         id: u64,
         at: i64,
@@ -81,7 +80,7 @@ pub mod ffi {
         message: String,
     }
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
     struct ArtifactView {
         kind: String,
         path: String,
@@ -207,7 +206,7 @@ pub mod ffi {
         serial: u64,
     }
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq)]
     struct RunPanelView {
         running: bool,
         title: String,
@@ -339,7 +338,7 @@ pub mod ffi {
         Camera,
     }
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq)]
     struct TimelineBarView {
         key: String,
         node_id: String,
@@ -354,7 +353,7 @@ pub mod ffi {
         recording: bool,
     }
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq)]
     struct TimelineAudioView {
         key: String,
         node_id: String,
@@ -369,7 +368,7 @@ pub mod ffi {
         bar_key: String,
     }
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq)]
     struct TimelineMarkView {
         key: String,
         frame: f64,
@@ -378,14 +377,14 @@ pub mod ffi {
         bar_key: String,
     }
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq)]
     struct TimelineMarkerView {
         id: String,
         frame: f64,
         label: String,
     }
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq)]
     struct TimelineTransitionView {
         key: String,
         from: f64,
@@ -394,7 +393,7 @@ pub mod ffi {
         label: String,
     }
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq)]
     struct TimelineCameraKeyView {
         key: String,
         node_id: String,
@@ -402,7 +401,7 @@ pub mod ffi {
         frame: f64,
     }
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq)]
     struct TimelineView {
         has_film: bool,
         fps: u32,
@@ -490,7 +489,7 @@ pub mod ffi {
         format: String,
     }
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
     struct PresetView {
         label: String,
         values_json: String,
@@ -579,7 +578,7 @@ pub mod ffi {
         selected: u32,
     }
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
     struct Choice {
         value: String,
         label: String,
@@ -717,7 +716,7 @@ pub mod ffi {
         y: f64,
     }
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq)]
     struct FieldView {
         key: String,
         label: String,
@@ -749,7 +748,7 @@ pub mod ffi {
         extra_json: String,
     }
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq)]
     struct InspectorView {
         id: String,
         title: String,
@@ -906,7 +905,6 @@ pub mod ffi {
         fn player_retry(self: &Session, id: u64);
         fn player_time(self: &Session, seconds: f64, guide: f64) -> String;
         fn show_replay(self: &Session, node_id: &str, tab: &str) -> Result<()>;
-        fn take_replay(self: &Session) -> ReplayView;
         fn replay(self: &Session, node_id: &str, tab: &str) -> ReplayView;
         fn trace(self: &Session, trace_id: &str) -> TraceView;
         fn audio_play(self: &Session, seconds: f64, rate: f64);
@@ -1027,6 +1025,8 @@ pub mod ffi {
         fn run_app(session: Box<Session>) -> i32;
         fn post_event(kind: EventKind);
         fn wake(target: u64);
+        fn post_edited(ids: Vec<String>);
+        fn post_replay(node_id: &str, tab: &str);
         fn request_dialog(
             kind: DialogKind,
             id: u64,

@@ -120,9 +120,11 @@ MainWindow::MainWindow()
   connect(EventHub::Instance(), &EventHub::Saved, this, &MainWindow::SyncTitle);
   connect(EventHub::Instance(), &EventHub::CloseAsked, this,
           &MainWindow::ShowCloseDialog);
-  connect(EventHub::Instance(), &EventHub::ReplayAsked, this, [this] {
-    ReplayDialog::Open(this, App::Get().session().take_replay());
-  });
+  connect(EventHub::Instance(), &EventHub::ReplayAsked, this,
+          [this](const QString& node, const QString& tab) {
+            ReplayDialog::Open(
+                this, App::Get().session().replay(ToRust(node), ToRust(tab)));
+          });
   ShowStart();
 }
 

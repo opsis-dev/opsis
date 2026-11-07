@@ -1,7 +1,9 @@
 #include "event_hub.h"
 
 #include <QCoreApplication>
+#include <algorithm>
 
+#include "app.h"
 #include "opsis-qt/src/bridge.rs.h"
 
 namespace opsis {
@@ -13,7 +15,48 @@ EventHub* EventHub::Instance() {
 
 EventHub::EventHub(QObject* parent) : QObject(parent) {}
 
+void EventHub::Post(std::uint8_t kind, const std::vector<QString>& edited,
+                    bool all) {
+  if (kind >= kKinds) return;
+  const std::scoped_lock lock(mutex_);
+  if (std::find(order_.begin(), order_.end(), kind) == order_.end()) {
+    order_.push_back(kind);
+  }
+  all_.at(kind) = all_.at(kind) || all || edited.empty();
+  for (const QString& id : edited) ids_.at(kind).insert(id);
+  if (scheduled_) return;
+  scheduled_ = true;
+  QMetaObject::invokeMethod(this, [this] { Flush(); }, Qt::QueuedConnection);
+}
+
+void EventHub::PostReplay(const QString& node, const QString& tab) {
+  QMetaObject::invokeMethod(
+      this, [this, node, tab] { emit ReplayAsked(node, tab); },
+      Qt::QueuedConnection);
+}
+
+void EventHub::Flush() {
+  std::vector<std::uint8_t> order;
+  std::array<bool, kKinds> all{};
+  std::array<QSet<QString>, kKinds> ids;
+  {
+    const std::scoped_lock lock(mutex_);
+    order.swap(order_);
+    all.swap(all_);
+    ids.swap(ids_);
+    scheduled_ = false;
+  }
+  for (std::uint8_t kind : order) {
+    edited_all_ = all.at(kind);
+    edited_ = ids.at(kind);
+    Dispatch(kind);
+  }
+  edited_all_ = true;
+  edited_.clear();
+}
+
 void EventHub::Dispatch(std::uint8_t kind) {
+  if (kind < kKinds) counts_.at(kind) += 1;
   switch (static_cast<bridge::EventKind>(kind)) {
     case bridge::EventKind::Document:
       emit DocumentChanged();
@@ -48,9 +91,6 @@ void EventHub::Dispatch(std::uint8_t kind) {
     case bridge::EventKind::Media:
       emit MediaChanged();
       break;
-    case bridge::EventKind::Replay:
-      emit ReplayAsked();
-      break;
     default:
       break;
   }
@@ -61,10 +101,21 @@ void EventHub::Dispatch(std::uint8_t kind) {
 namespace opsis::bridge {
 
 void post_event(EventKind kind) {
-  EventHub* hub = EventHub::Instance();
-  const auto raw = static_cast<std::uint8_t>(kind);
-  QMetaObject::invokeMethod(
-      hub, [hub, raw] { hub->Dispatch(raw); }, Qt::QueuedConnection);
+  EventHub::Instance()->Post(static_cast<std::uint8_t>(kind), {}, true);
+}
+
+void post_edited(rust::Vec<rust::String> ids) {
+  std::vector<QString> edited;
+  edited.reserve(ids.size());
+  for (const auto& id : ids) edited.push_back(opsis::ToQ(id));
+  EventHub::Instance()->Post(static_cast<std::uint8_t>(EventKind::Document),
+                             edited, false);
+}
+
+void post_replay(rust::Str node_id, rust::Str tab) {
+  EventHub::Instance()->PostReplay(
+      QString::fromUtf8(node_id.data(), static_cast<qsizetype>(node_id.size())),
+      QString::fromUtf8(tab.data(), static_cast<qsizetype>(tab.size())));
 }
 
 }

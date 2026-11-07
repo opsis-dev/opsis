@@ -12,7 +12,7 @@ use opsis_types::project::{
 };
 use opsis_types::workflow::WORKFLOW_FILE;
 
-use crate::files::{ProjectFiles, parse_workflow_text, read_project_file};
+use crate::files::{ProjectFiles, parse_workflow_text};
 use crate::paths::to_posix_rel;
 use crate::stamps::file_stamp;
 
@@ -49,14 +49,12 @@ pub fn watch_project(
         let touched = changed_paths(&folder, result)
             .iter()
             .any(|p| p.file_name().is_some_and(|n| n == WORKFLOW_FILE));
-        let current = match touched.then(|| read_project_file(&folder)) {
+        let current = match touched.then(|| files.outside_version(&folder)) {
             Some(Ok(Some(current))) => current,
             Some(Err(error)) => return log::warn!("watching {}: {error}", folder.display()),
             _ => return,
         };
-        if Some(&current.version) == files.written_version(&folder).as_ref()
-            || Some(&current.version) == announced.as_ref()
-        {
+        if Some(&current.version) == announced.as_ref() {
             return;
         }
         announced = Some(current.version.clone());
@@ -197,6 +195,29 @@ mod tests {
         let (send, changes) = channel();
         let watch = LoadedFilesWatch::start(dir.path(), move |c| send.send(c).unwrap()).unwrap();
         (dir, watch, changes)
+    }
+
+    #[test]
+    fn a_save_in_progress_is_read_as_its_own_once_it_lands() {
+        let parent = tempfile::tempdir().unwrap();
+        let files = ProjectFiles::default();
+        let made = files.create(parent.path(), "Saves", "blank").unwrap();
+        let mut workflow = made.workflow;
+        workflow.name = "Saved later".to_owned();
+        let text = crate::files::workflow_text(&workflow);
+        let turn = files.turn();
+        files.remember(&made.dir, &crate::files::version_of(&text));
+        let (send, read) = channel();
+        let reader = files.clone();
+        let dir = made.dir.clone();
+        let watcher = std::thread::spawn(move || {
+            send.send(reader.outside_version(&dir).unwrap()).unwrap();
+        });
+        assert!(read.recv_timeout(SETTLE).is_err());
+        std::fs::write(made.dir.join(WORKFLOW_FILE), &text).unwrap();
+        drop(turn);
+        assert!(read.recv_timeout(WAIT).unwrap().is_none());
+        watcher.join().unwrap();
     }
 
     #[test]

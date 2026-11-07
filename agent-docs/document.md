@@ -67,5 +67,6 @@ The open project lives in Rust: every window edits it through typed commands and
 ### Changes on disk
 
 - **Rust watches the open project's file from the open**, watching the folder because saves replace the file, and ignores its own writes.
+  - Its own writes are recognised by the version each save records (`ProjectFiles::remember`). Recording a version and writing the file take one turn, and so does the watcher's read and compare (`ProjectFiles::outside_version`); otherwise a debounced read landing in a save's write could see the previous save's file under the new record, take it for an outside change and load the older project over the newer one.
 - **With nothing unsaved it loads an outside change as one undo step and tells the editor (`ProjectReloaded`).**
 - **With unsaved edits, an unreadable file or a refused save it asks (`DiskChangeAsked`)**; `DiskChangeDialog` answers with `resolve_disk_change`: Load the file (undoable), Keep mine (saves over it) or, for an unreadable file, Wait. Nothing saves while that question is open.

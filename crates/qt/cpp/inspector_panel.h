@@ -9,6 +9,7 @@
 #include <QStringList>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <memory>
 
 #include "marks_field.h"
 #include "rust/cxx.h"
@@ -27,9 +28,18 @@ class InspectorPanel : public QWidget {
 
  public:
   explicit InspectorPanel(QWidget* parent = nullptr);
+  ~InspectorPanel() override;
+  InspectorPanel(const InspectorPanel&) = delete;
+  InspectorPanel& operator=(const InspectorPanel&) = delete;
+  InspectorPanel(InspectorPanel&&) = delete;
+  InspectorPanel& operator=(InspectorPanel&&) = delete;
   void Rebuild();
+  void Refresh();
+  int builds() const { return builds_; }
+  QWidget* content() const { return content_; }
 
  private:
+  void Build(const bridge::InspectorView& view);
   QWidget* MakeControl(const bridge::FieldView& field);
   void AddHeader(QVBoxLayout* layout, const bridge::InspectorView& view,
                  QWidget* content);
@@ -56,6 +66,8 @@ class InspectorPanel : public QWidget {
   QHash<QString, int> gradient_stops_;
   QHash<QString, MarksState> marks_state_;
   QHash<QString, QPointer<FilePlayer>> players_;
+  std::unique_ptr<bridge::InspectorView> last_;
+  int builds_ = 0;
 };
 
 }
