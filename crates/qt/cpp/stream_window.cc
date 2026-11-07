@@ -298,7 +298,7 @@ void StreamWindow::Sync() {
 }
 
 void StreamWindow::closeEvent(QCloseEvent* event) {
-  WakeHub::Get().Forget(target_);
+  WakeHub::Get().Forget(target_, this);
   Windows().remove(id_);
   App::Get().session().view_closed(ToRust(id_));
   QWidget::closeEvent(event);

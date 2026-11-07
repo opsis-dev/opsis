@@ -4,6 +4,7 @@ mod folders;
 mod graph;
 mod inspector;
 mod keys;
+mod live;
 mod look;
 mod media;
 mod menu;

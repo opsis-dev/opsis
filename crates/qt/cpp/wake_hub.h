@@ -8,6 +8,7 @@
 #include <mutex>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 namespace opsis {
 
@@ -16,7 +17,7 @@ class WakeHub {
   static WakeHub& Get();
   void Listen(std::uint64_t target, QObject* owner,
               std::function<void()> on_wake);
-  void Forget(std::uint64_t target);
+  void Forget(std::uint64_t target, QObject* owner);
   void Wake(std::uint64_t target);
   int delivered() const { return delivered_; }
 
@@ -31,7 +32,7 @@ class WakeHub {
   std::mutex mutex_;
   std::unordered_set<std::uint64_t> pending_;
   bool scheduled_ = false;
-  std::unordered_map<std::uint64_t, Listener> listeners_;
+  std::unordered_map<std::uint64_t, std::vector<Listener>> listeners_;
   int delivered_ = 0;
 };
 

@@ -2,11 +2,11 @@ use std::fmt;
 
 use crate::bridge::ffi::{
     self, BarView, BoundsView, CategoryView, CloseView, ColorView, DialogKind, EventKind,
-    FilmTiles, GradientInfo, GraphView, InspectorView, KeyLineView, LoudnessView, MarkDrawnView,
-    MarkPointsView, MenuSectionView, MeterView, MixerView, MotionInfo, NodeMove, PaletteEntry,
-    PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView, ReplayView, RulerStep,
-    RunPanelView, ScreenArea, SettingsView, SnapView, StreamViewState, TemplateView, TextToken,
-    TimelineView, TraceView, VariableView, WindowPlacement,
+    FilmTiles, GradientInfo, GraphView, InspectorView, KeyLineView, LiveView, LoudnessView,
+    MarkDrawnView, MarkPointsView, MenuSectionView, MeterView, MixerView, MotionInfo, NodeMove,
+    PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView, ReplayView,
+    RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView, StreamViewState, TemplateView,
+    TextToken, TimelineView, TraceView, VariableView, WindowPlacement,
 };
 use crate::frame::FrameRef;
 
@@ -140,6 +140,11 @@ pub trait Host {
     fn view_resize(&self, id: &str, width: u32, height: u32, dpr: f64);
     fn view_closed(&self, id: &str);
     fn pick_target(&self, node_id: &str, key: &str);
+    fn live_target(&self) -> u64;
+    fn live_view(&self) -> LiveView;
+    fn live_frame(&self, capture_id: &str) -> FrameRef;
+    fn live_focus(&self, capture_id: &str);
+    fn live_pip(&self, open: bool);
     fn audio_play(&self, seconds: f64, rate: f64);
     fn audio_pause(&self);
     fn audio_seek(&self, seconds: f64);
@@ -720,6 +725,30 @@ impl Session {
 
     pub(crate) fn pick_target(&self, node_id: &str, key: &str) {
         self.0.pick_target(node_id, key);
+    }
+
+    pub(crate) fn live_target(&self) -> u64 {
+        self.0.live_target()
+    }
+
+    pub(crate) fn live_view(&self) -> LiveView {
+        self.0.live_view()
+    }
+
+    #[expect(
+        clippy::unnecessary_box_returns,
+        reason = "cxx hands an opaque Rust type to C++ only inside a Box"
+    )]
+    pub(crate) fn live_frame(&self, capture_id: &str) -> Box<FrameRef> {
+        Box::new(self.0.live_frame(capture_id))
+    }
+
+    pub(crate) fn live_focus(&self, capture_id: &str) {
+        self.0.live_focus(capture_id);
+    }
+
+    pub(crate) fn live_pip(&self, open: bool) {
+        self.0.live_pip(open);
     }
 
     pub(crate) fn audio_play(&self, seconds: f64, rate: f64) {

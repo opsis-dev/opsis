@@ -17,12 +17,21 @@ const BUNDLES = [
   ["film-bundle", "film:bundle"],
   ["terminal-bundle", "terminal:bundle"],
 ] as const;
-const PAGE = `<!doctype html><html><body style="margin:0;background:#fff"><button style="position:absolute;left:100px;top:100px;width:200px;height:60px;font-size:20px">Save draft</button></body></html>`;
+const PAGE = [
+  "<!doctype html><html><head><title>Test page</title></head>",
+  '<body style="margin:0;background:#fff;font:16px sans-serif">',
+  '<button style="position:absolute;left:100px;top:100px;width:200px;height:60px;font-size:20px">Save draft</button>',
+  '<div style="position:absolute;left:100px;top:220px;width:480px">',
+  '<input class="new-todo" placeholder="What needs to be done?" style="width:100%;font-size:20px">',
+  '<label><input type="checkbox" aria-label="Toggle Todo"> First</label>',
+  '<a href="#/completed">Completed</a>',
+  "</div></body></html>",
+].join("");
 const FIRST_DISPLAY = 90;
 const LAST_DISPLAY = 140;
 const SCREEN = "1600x1000x24";
 const START_WAIT_MS = 10_000;
-const RUN_TIMEOUT_MS = 300_000;
+const RUN_TIMEOUT_MS = 900_000;
 const CHECK_LINE = /check \S+: |scenario \S+ done|panicked/;
 const FIXTURES_DIR = path.join(DATA_DIR, "fixtures");
 const CLIP_SECONDS = "3";

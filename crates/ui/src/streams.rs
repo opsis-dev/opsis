@@ -19,6 +19,10 @@ pub fn next_target() -> u64 {
 pub struct FrameHeader {
     pub width: f64,
     pub height: f64,
+    #[serde(default)]
+    pub capture_id: Option<String>,
+    #[serde(default)]
+    pub node_id: Option<String>,
 }
 
 pub fn unpacked(frame: &[u8]) -> Option<(FrameHeader, &[u8])> {
@@ -254,11 +258,12 @@ mod tests {
             capture in "[a-z0-9]{0,12}",
             jpeg in proptest::collection::vec(any::<u8>(), 0..256),
         ) {
-            let header = Header { width: f64::from(width), height: f64::from(height), capture_id: capture };
+            let header = Header { width: f64::from(width), height: f64::from(height), capture_id: capture.clone() };
             let frame = opsis_session::frames::packed(&header, &jpeg).unwrap();
             let (read, picture) = unpacked(&frame).unwrap();
             prop_assert!(exact_eq(read.width, f64::from(width)));
             prop_assert!(exact_eq(read.height, f64::from(height)));
+            prop_assert_eq!(read.capture_id.as_deref(), Some(capture.as_str()));
             prop_assert_eq!(picture, jpeg.as_slice());
         }
     }

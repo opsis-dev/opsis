@@ -31,6 +31,7 @@ class TopBar : public QWidget {
   void Sync();
   void SetPanels(bool left, bool bottom, bool right);
   QString Problems() const;
+  QPushButton* live_toggle() const { return live_; }
 
  signals:
   void Command(const QString& id);
@@ -49,6 +50,7 @@ class TopBar : public QWidget {
   QToolButton* bottom_;
   QToolButton* right_;
   QPushButton* run_;
+  QPushButton* live_;
   QWidget* running_;
 };
 

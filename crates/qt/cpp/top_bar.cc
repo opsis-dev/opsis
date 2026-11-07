@@ -129,6 +129,11 @@ TopBar::TopBar(QWidget* parent) : QWidget(parent) {
   layout->addWidget(right_);
   layout->addSpacing(4);
   layout->addWidget(VerticalRule(this));
+  live_ = MakeButton(QStringLiteral("Live view"), "ghost",
+                     QStringLiteral("radio"), this);
+  live_->setFocusPolicy(Qt::NoFocus);
+  live_->hide();
+  layout->addWidget(live_);
   layout->addSpacing(4);
   auto* outputs = MakeButton(QStringLiteral("Outputs"), "ghost",
                              QStringLiteral("folder-open"), this);

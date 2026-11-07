@@ -48,8 +48,8 @@ use tokio::sync::broadcast::error::RecvError;
 use crate::platform::QtPlatform;
 use crate::project::Extras;
 use crate::{
-    clipboard, colors, graph, inspector, keys, look, media, mixer, motion, player, project, replay,
-    run_panel, streams, timeline,
+    clipboard, colors, graph, inspector, keys, live, look, media, mixer, motion, player, project,
+    replay, run_panel, streams, timeline,
 };
 
 const LAYOUT_KEY: &str = "nativeDockLayout";
@@ -78,6 +78,7 @@ pub struct Ui {
     previews: mixer::Previews,
     players: player::Players,
     view_windows: streams::ViewWindows,
+    live: live::Live,
     started: Instant,
 }
 
@@ -183,6 +184,7 @@ impl Ui {
             previews: mixer::Previews::default(),
             players: player::Players::default(),
             view_windows: streams::ViewWindows::default(),
+            live: live::Live::default(),
             started: Instant::now(),
         }
     }
@@ -421,6 +423,21 @@ impl Ui {
         families
     }
 
+    fn watch_live(&self) {
+        let live = self.live.clone();
+        let session = self.session.clone();
+        let slot = streams::FrameSlot::new(Box::new(move |header, jpeg| {
+            let auto_open = || live_opens(&session);
+            live.framed(header, jpeg, &auto_open);
+        }));
+        let earlier = run::watch_live(&self.session, MAIN_WINDOW, Arc::new(slot));
+        let auto_open = || live_opens(&self.session);
+        for noted in earlier {
+            self.live
+                .noted(&noted.capture_id, &noted.node_id, &noted.event, &auto_open);
+        }
+    }
+
     fn send_view(&self, id: &str, input: ViewInput) {
         let (session, id) = (self.session.clone(), id.to_owned());
         self.runtime.spawn(async move {
@@ -509,6 +526,10 @@ async fn load_stem(
     }
 }
 
+fn live_opens(session: &Session) -> bool {
+    settings::get_settings(session).live.auto_open
+}
+
 fn snap_targets(frames: &[f64]) -> Vec<view::SnapTarget> {
     frames
         .iter()
@@ -528,6 +549,7 @@ impl Host for Ui {
         let audio = Arc::clone(&self.audio);
         let previews = self.previews.clone();
         let view_windows = self.view_windows.clone();
+        let live = self.live.clone();
         let handle = self.runtime.handle().clone();
         let session = self.session.clone();
         std::thread::spawn(move || {
@@ -559,6 +581,12 @@ impl Host for Ui {
                         {
                             opsis_qt::post_replay(node, &plain(&asked.tab));
                         }
+                        if let SessionEvent::LiveNoted(noted) = &addressed.event
+                            && mine
+                        {
+                            let auto_open = || live_opens(&session);
+                            live.noted(&noted.capture_id, &noted.node_id, &noted.event, &auto_open);
+                        }
                         if let SessionEvent::ViewEventFired(fired) = &addressed.event
                             && view_windows.noted(&fired.id, &fired.event)
                         {
@@ -588,6 +616,7 @@ impl Host for Ui {
         });
         let _entered = self.runtime.enter();
         self.session.begin();
+        self.watch_live();
     }
 
     fn style_sheet(&self) -> String {
@@ -728,6 +757,7 @@ impl Host for Ui {
             audio.set_samples(None);
         }
         self.players.close_all();
+        self.live.reset();
         opsis_qt::post_event(EventKind::Project);
     }
 
@@ -1977,6 +2007,39 @@ impl Host for Ui {
                 Err(error) => opsis_qt::notify("Couldn't pick the element", &error.0),
             }
         });
+    }
+
+    fn live_target(&self) -> u64 {
+        self.live.target()
+    }
+
+    fn live_view(&self) -> opsis_qt::LiveView {
+        let workflow = self.workflow();
+        let name_of = |node: &str| {
+            workflow
+                .as_ref()
+                .and_then(|wf| wf.node(node))
+                .and_then(|n| {
+                    n.label
+                        .clone()
+                        .filter(|l| !l.is_empty())
+                        .or_else(|| self.catalog.get(&n.kind).map(|d| d.title.clone()))
+                })
+                .unwrap_or_else(|| "Live recording".to_owned())
+        };
+        self.live.view(&name_of)
+    }
+
+    fn live_frame(&self, capture_id: &str) -> opsis_qt::FrameRef {
+        self.live.frame(capture_id)
+    }
+
+    fn live_focus(&self, capture_id: &str) {
+        self.live.focus(capture_id);
+    }
+
+    fn live_pip(&self, open: bool) {
+        self.live.set_pip(open);
     }
 
     fn view_closed(&self, id: &str) {

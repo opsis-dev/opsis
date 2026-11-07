@@ -19,6 +19,7 @@
 
 #include "app.h"
 #include "event_hub.h"
+#include "live_view.h"
 #include "replay_dialog.h"
 #include "graph_canvas.h"
 #include "inspector_panel.h"
@@ -120,6 +121,7 @@ MainWindow::MainWindow()
   connect(EventHub::Instance(), &EventHub::Saved, this, &MainWindow::SyncTitle);
   connect(EventHub::Instance(), &EventHub::CloseAsked, this,
           &MainWindow::ShowCloseDialog);
+  live_pip_ = new LivePip(this, top_bar_->live_toggle());
   connect(EventHub::Instance(), &EventHub::ReplayAsked, this,
           [this](const QString& node, const QString& tab) {
             ReplayDialog::Open(

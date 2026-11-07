@@ -192,6 +192,42 @@ pub mod ffi {
     }
 
     #[derive(Debug, Clone)]
+    struct LiveClickView {
+        x: f64,
+        y: f64,
+        age: f64,
+    }
+
+    #[derive(Debug, Clone)]
+    struct LiveCaptureView {
+        capture_id: String,
+        title: String,
+        status: String,
+        message: String,
+        width: u32,
+        height: u32,
+        frame: u64,
+        has_cursor: bool,
+        cursor_x: f64,
+        cursor_y: f64,
+        has_target: bool,
+        target_x: f64,
+        target_y: f64,
+        target_width: f64,
+        target_height: f64,
+        target_label: String,
+        step: String,
+        clicks: Vec<LiveClickView>,
+    }
+
+    #[derive(Debug, Clone)]
+    struct LiveView {
+        captures: Vec<LiveCaptureView>,
+        focus: i32,
+        pip_open: bool,
+    }
+
+    #[derive(Debug, Clone)]
     struct StreamViewState {
         serial: u64,
         frame: u64,
@@ -953,6 +989,11 @@ pub mod ffi {
         fn view_resize(self: &Session, id: &str, width: u32, height: u32, dpr: f64);
         fn view_closed(self: &Session, id: &str);
         fn pick_target(self: &Session, node_id: &str, key: &str);
+        fn live_target(self: &Session) -> u64;
+        fn live_view(self: &Session) -> LiveView;
+        fn live_frame(self: &Session, capture_id: &str) -> Box<FrameRef>;
+        fn live_focus(self: &Session, capture_id: &str);
+        fn live_pip(self: &Session, open: bool);
         fn audio_play(self: &Session, seconds: f64, rate: f64);
         fn audio_pause(self: &Session);
         fn audio_seek(self: &Session, seconds: f64);

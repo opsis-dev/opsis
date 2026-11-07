@@ -15,6 +15,7 @@ namespace opsis {
 class AppBar;
 class GraphCanvas;
 class InspectorPanel;
+class LivePip;
 class CategoryRail;
 class TopBar;
 class NodeList;
@@ -32,6 +33,7 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   CategoryRail* rail() const { return rail_; }
   TopBar* top_bar() const { return top_bar_; }
   SettingsWindow* OpenSettings();
+  LivePip* live_pip() const { return live_pip_; }
   KDDockWidgets::QtWidgets::DockWidget* inspector_dock() const {
     return inspector_dock_;
   }
@@ -87,6 +89,7 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   QStackedWidget* stack_;
   CategoryRail* rail_;
   TopBar* top_bar_;
+  LivePip* live_pip_ = nullptr;
   KDDockWidgets::QtWidgets::DockWidget* bottom_current_ = nullptr;
   StartScreen* start_;
   GraphCanvas* canvas_;

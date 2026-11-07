@@ -1,6 +1,7 @@
 #include "wake_hub.h"
 
 #include <QCoreApplication>
+#include <algorithm>
 #include <utility>
 #include <vector>
 
@@ -15,10 +16,21 @@ WakeHub& WakeHub::Get() {
 
 void WakeHub::Listen(std::uint64_t target, QObject* owner,
                      std::function<void()> on_wake) {
-  listeners_[target] = Listener{owner, std::move(on_wake)};
+  listeners_[target].push_back(Listener{owner, std::move(on_wake)});
 }
 
-void WakeHub::Forget(std::uint64_t target) { listeners_.erase(target); }
+void WakeHub::Forget(std::uint64_t target, QObject* owner) {
+  const auto found = listeners_.find(target);
+  if (found == listeners_.end()) return;
+  auto& listeners = found->second;
+  listeners.erase(std::remove_if(listeners.begin(), listeners.end(),
+                                 [owner](const Listener& listener) {
+                                   return listener.owner.isNull() ||
+                                          listener.owner.data() == owner;
+                                 }),
+                  listeners.end());
+  if (found->second.empty()) listeners_.erase(found);
+}
 
 void WakeHub::Wake(std::uint64_t target) {
   QCoreApplication* app = QCoreApplication::instance();
@@ -41,11 +53,15 @@ void WakeHub::Deliver() {
   for (std::uint64_t target : woken) {
     const auto found = listeners_.find(target);
     if (found == listeners_.end()) continue;
-    if (found->second.owner.isNull()) {
-      listeners_.erase(found);
-      continue;
+    auto& listeners = found->second;
+    listeners.erase(std::remove_if(listeners.begin(), listeners.end(),
+                                   [](const Listener& listener) {
+                                     return listener.owner.isNull();
+                                   }),
+                    listeners.end());
+    for (const Listener& listener : found->second) {
+      calls.push_back(listener.on_wake);
     }
-    calls.push_back(found->second.on_wake);
   }
   for (const auto& call : calls) {
     delivered_ += 1;

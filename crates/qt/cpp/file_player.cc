@@ -297,7 +297,7 @@ FilePlayer::FilePlayer(const QString& file, const QString& label, bool video,
 }
 
 FilePlayer::~FilePlayer() {
-  WakeHub::Get().Forget(id_);
+  WakeHub::Get().Forget(id_, this);
   if (placeholder_) delete placeholder_;
   App::Get().session().player_close(id_);
 }

@@ -26,6 +26,8 @@ class FilePlayer;
 class Segmented;
 
 class TraceShot : public QWidget {
+  Q_OBJECT
+
  public:
   explicit TraceShot(QWidget* parent = nullptr);
   void Show(const QString& file, QSize viewport, const QRectF& box,
