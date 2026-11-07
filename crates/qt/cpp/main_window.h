@@ -34,6 +34,7 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   CategoryRail* rail() const { return rail_; }
   TopBar* top_bar() const { return top_bar_; }
   SettingsWindow* OpenSettings();
+  void StartAsChosen();
   LivePip* live_pip() const { return live_pip_; }
   KDDockWidgets::QtWidgets::DockWidget* inspector_dock() const {
     return inspector_dock_;

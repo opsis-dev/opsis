@@ -16,7 +16,7 @@ How a node's key is made, how results follow keys as the workflow changes, how M
 | Media file check              | `media/src/executors.rs` → `check_media_file`, `FileCheckError`                                                                      |
 | Run view                      | `session/src/run.rs` → `RunHost`, `seeded_view`, `exported_artifacts`, `notify_finished`                                             |
 | Run event reducer             | `runner/src/progress.rs` → `apply_to_view`, `apply_run_event`                                                                        |
-| Editor mirror                 | `apps/frontend/src/app/run-mirror.ts` → `useRunMirror`                                                                               |
+| Run view in the editor        | `crates/ui/src/run_panel.rs`; `crates/qt/cpp/run_panel.cc` → `RunPanel`                                                              |
 
 ## Rules
 
@@ -57,7 +57,7 @@ How a node's key is made, how results follow keys as the workflow changes, how M
 ### Run state
 
 - **Rust keeps the whole run view (`RunView` and the capped log, `RunHost`) and applies every run event with one reducer** (`apply_to_view` over `apply_run_event`).
-- **Windows mirror it (`useRunMirror`)** from `run_state` when they mount and `RunViewChanged`, `RunLogged` and `RunStateReset` after, dropping a view older than the one they show (`seq`).
+- **The editor reads it (`run_state`) whenever `RunViewChanged`, `RunLogged` or `RunStateReset` arrives**, so every panel shows the one view Rust keeps.
 - **Opening a project seeds the view from its last run (`seeded_view`)**: each node's newest trace, failed or not, and failures newer than the node's last result, unless that project is the one running. Clearing the cache seeds it empty, and an edit forgets the errors of the nodes it touched.
 - **A run clears status, progress, errors and traces only for the nodes it includes (`run:start` `nodeIds`)**, so a Run this never hides an earlier failure; `run:done` names `failedNodeIds` and `skippedNodeIds` apart, and the panel shows each failed node as a link.
 - **A node whose executor panics fails with "This node stopped unexpectedly." (`run_node`, which logs the panic)**, so the other nodes go on and the run still ends with `run:done`; only `run:done` frees the app for the next run.

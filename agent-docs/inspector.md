@@ -1,25 +1,25 @@
 # Settings and the Inspector
 
-How node and element settings are declared in Rust, how their JSON Schema carries the Inspector's UI, what Rust sends the forms beyond the schema, and how the forms behave. Rust paths are relative to `crates/compile/src/`, editor paths to `apps/frontend/src/`. What an element does with its settings is in [elements.md](elements.md); see also [nodes.md](nodes.md) and [AGENTS.md](../AGENTS.md).
+How node and element settings are declared in Rust, how their JSON Schema carries the Inspector's UI, what Rust sends the forms beyond the schema, and how the forms behave. Rust paths are relative to `crates/compile/src/` unless they name another crate; C++ paths to `crates/qt/cpp/`.
 
 ## Code map
 
-| Concern                              | Where                                                                                         |
-| ------------------------------------ | --------------------------------------------------------------------------------------------- |
-| Settings and choice macros           | `crates/macros` → `opsis_macros::settings`, `opsis_macros::choice`                            |
-| Schema building, row defaults        | `ParamSchema::new`, `with_row_defaults`                                                       |
-| Widget names                         | `elements/introspect.rs` → `FieldWidget` (exported to `packages/video/src/generated/spec.ts`) |
-| Form context sent with every compile | `inspector.rs` → `InspectorContext`                                                           |
-| `x-show-if` value check              | `crates/compile/tests/unit/nodes_c.rs`                                                        |
-| Forms from the schema                | `editor/form/schema.ts`, `editor/schema-form.tsx` → `SchemaForm`                              |
-| Typing as one undo step              | `useTypingAsOneUndoStep`                                                                      |
-| Variable chips                       | `VarText` (pattern from the catalogue's `text`, `VAR_PATTERN`)                                |
-| Colour field                         | `editor/form/color-picker.tsx`                                                                |
-| Marks field                          | `editor/form/marks-field.tsx`, geometry in `editor/form/marks.ts`                             |
-| Gradient field                       | `gradient.rs`, `gradient_view`, `edit_gradient`                                               |
-| Empty values dropped from props      | `nodes/elements.rs` → `element_props`; `elements/introspect.rs` → `map_leaves`                |
-| Spot and target keys                 | `spotYKey(name)`, `targetRoleKey(name)`                                                       |
-| Frames-at-30 conversion              | `frames_from_seconds`                                                                         |
+| Concern                              | Where                                                                                                                                        |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Settings and choice macros           | `crates/macros` → `opsis_macros::settings`, `opsis_macros::choice`                                                                           |
+| Schema building, row defaults        | `ParamSchema::new`, `with_row_defaults`                                                                                                      |
+| Widget names                         | `elements/introspect.rs` → `FieldWidget` (exported to `packages/video/src/generated/spec.ts`)                                                |
+| Form context sent with every compile | `inspector.rs` → `InspectorContext`                                                                                                          |
+| `x-show-if` value check              | `crates/compile/tests/unit/nodes_c.rs`                                                                                                       |
+| Fields from the schema               | `crates/ui/src/inspector.rs` → `fields`; `inspector_panel.cc` → `InspectorPanel`, `list_fields.cc`, `visual_fields.cc`, `keyframe_fields.cc` |
+| Typing as one undo step              | `var_text.cc` → `VarSurface::SetLive`; `inspector_panel.cc` with `FormHold`                                                                  |
+| Variable chips                       | `var_text.cc` → `VarText`, `VarSurface` (tokens from the session's `text_tokens`)                                                            |
+| Colour field                         | `color_picker.cc` → `ColorPicker`; `color.rs` (formats)                                                                                      |
+| Marks field                          | `marks_field.cc`; geometry in `marks.rs`                                                                                                     |
+| Gradient field                       | `gradient.rs`, `gradient_view`, `edit_gradient`                                                                                              |
+| Empty values dropped from props      | `nodes/elements.rs` → `element_props`; `elements/introspect.rs` → `map_leaves`                                                               |
+| Spot and target keys                 | `crates/ui/src/inspector.rs` → `spot_y_key`; the target's role in `<key>Role`                                                                |
+| Frames-at-30 conversion              | `frames_from_seconds`                                                                                                                        |
 
 ## Rules
 
@@ -55,9 +55,9 @@ How node and element settings are declared in Rust, how their JSON Schema carrie
 
 ### Widgets with a contract
 
-- **`spot` keeps its y in `spotYKey(name)` and shows the frame at the time in its `x-time-key` setting**; `target` keeps the picked element's role in `targetRoleKey(name)`.
+- **`spot` keeps its y in `spot_y_key(name)` and shows the frame at the time in its `x-time-key` setting**; `target` keeps the picked element's role in `<name>Role`.
 - **`boxes` are areas drawn over a frame of the upstream recording, stored as fractions of the frame.**
-- **`marks` draws on the inspected picture with Konva, and each drag is written once when it ends**; the selected mark's other settings are its nested form.
+- **`marks` draws on the inspected picture, and each drag is written once when it ends**; the selected mark's other settings are its nested form.
 - **`gradient` only draws what Rust sends**: Rust parses the CSS gradient and applies each edit (`gradient_view`, `edit_gradient`).
 - **`theme` is `{ mode, colors }` over the preset in `x-themes`, storing only changed tokens**; `terminal-theme` names a theme from the catalogue's `terminalThemes`, and empty keeps the take's own.
 - **`cut` and `port` pick one of the node's connected numbered inputs over `InspectorContext.ports`**; `cut` leaves out the first ([film.md](film.md), Transitions).
@@ -69,7 +69,7 @@ How node and element settings are declared in Rust, how their JSON Schema carrie
 
 - **Rust sends what a form needs beyond the schema with every compile** (`InspectorContext`: variables, layers, actions, the spot's frame, the picker's page, the project's colours, connected inputs, file kinds, ports, take kind).
 - **Plain text fields render variables as chips (`VarText`); never show `{{…}}` to a user.**
-- **Fields write on every keystroke, so a focused text field is wrapped in a gesture (`useTypingAsOneUndoStep`)**: typing until it loses focus is one undo step.
-- **Lists pick their input from the item schema**: text items a text list (Enter adds, pasting lines adds one per line), numbers a number list (pasting a spreadsheet column fills it), colours a palette, objects rows (each a nested form, so any widget works in a column; rows reorder, duplicate and collapse).
-  - All honour the array's `minItems`/`maxItems` and drag through Dice UI's `Sortable`, one undo step per drop.
-- **The colour field (our own, on culori) keeps the format a value is written in** (`#hex`, `rgb()`, `hsl()`, `oklch()`, with alpha) and rewrites it only when the user picks; its popover is one gesture and offers the project's colours as swatches.
+- **Fields write on every keystroke, so a focused text field is wrapped in a gesture** (`FormHold` around `VarSurface`'s live typing): typing until it loses focus is one undo step.
+- **Lists pick their input from the item schema**: text items a text list (Enter adds, pasting lines adds one per line), numbers a number list (pasting a spreadsheet column fills it), colours a palette, objects rows (each a nested form, so any widget works in a column).
+  - All honour the array's `minItems`/`maxItems`; rows reorder by dragging, one undo step per drop, and a list of four or more starts collapsed.
+- **The colour field (our own; formats in `color.rs`) keeps the format a value is written in** (`#hex`, `rgb()`, `hsl()`, `oklch()`, with alpha) and rewrites it only when the user picks; its popover is one gesture and offers the project's colours as swatches.

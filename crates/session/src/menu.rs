@@ -92,17 +92,6 @@ pub fn app_menu(mac: bool) -> Vec<MenuSection> {
                 command("Mixer", MenuCommand::ViewFocusMixer, "CmdOrCtrl+2"),
                 command("Run", MenuCommand::ViewFocusRun, "CmdOrCtrl+3"),
                 MenuEntry::Separator,
-                role("Reload", WindowRole::Reload, "CmdOrCtrl+R"),
-                role(
-                    "Developer tools",
-                    WindowRole::ToggleDevTools,
-                    if mac { "Alt+Cmd+I" } else { "Ctrl+Shift+I" },
-                ),
-                MenuEntry::Separator,
-                role("Actual size", WindowRole::ResetZoom, "CmdOrCtrl+0"),
-                role("Zoom in", WindowRole::ZoomIn, "CmdOrCtrl+="),
-                role("Zoom out", WindowRole::ZoomOut, "CmdOrCtrl+-"),
-                MenuEntry::Separator,
                 role(
                     "Full screen",
                     WindowRole::ToggleFullscreen,

@@ -79,8 +79,8 @@ pub fn get_environment(app: &Session) -> EnvStatus {
         user_data: state.paths.user_data.to_string_lossy().into_owned(),
         versions: AppVersions {
             app: crate::APP_VERSION.to_owned(),
-            tauri: versions.shell,
-            webview: versions.view,
+            shell: versions.shell,
+            view: versions.view,
         },
         engine: engine_status(state),
     }

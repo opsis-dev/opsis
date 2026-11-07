@@ -2,6 +2,8 @@
 
 Everything still missing between today's app and a public release, and what comes after it: size work, builds and checks on Windows and macOS, signing, updates, the release test pass, and node packs. Each section says first what is already in place, then what is left.
 
+Status: written for the Tauri app. The native editor ([native-editor.md](native-editor.md)) took its place; this plan's builds, signing, updater and test pass are redone after that plan's packaging step, and the facts below that name Tauri, the webview or WebdriverIO describe what was removed.
+
 ## How to read this plan
 
 - Sections 1–6 come before a first public release. Section 7 runs before every release. Section 8 is later work.

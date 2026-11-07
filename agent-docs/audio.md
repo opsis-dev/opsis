@@ -4,30 +4,29 @@ Built-in sounds and music, the Mixer and its stems, ducking, how sounds are plac
 
 ## Code map
 
-| Concern                      | Where                                                                                                                          |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Built-in sounds              | `public/sfx`, listed in `compile/src/data/sounds.json` (catalogue `sounds`)                                                    |
-| Built-in music               | `public/music` (128 kbps AAC), listed in `compile/src/data/music.json` (catalogue `music`)                                     |
-| Credits                      | `THIRD_PARTY_NOTICES.md`                                                                                                       |
-| Mix settings and the book    | `types/src/mix.rs` → `mixer_book` (catalogue `mixer`, editor `mixerBook()`)                                                    |
-| Mix plan                     | `compile/src/mix/plan.rs` → `build_mix_plan`, `lookup_key`; `compile/src/mix/levels.rs` → `duck_keys_for`, `duck_spans`        |
-| Filter graphs                | `media/src/mix/graph.rs` → `pack_lanes`                                                                                        |
-| Stems                        | `media/src/mix/render.rs` → `MIX_VERSION`; `.opsis/cache/mix/`                                                                 |
-| Channel pruning              | `compile/src/edits/workflow.rs` → `remove_nodes`; `Workflow::normalized`                                                       |
-| Export sound                 | `with_master_stem`; `media/src/codecs.rs` → `mux_args`                                                                         |
-| Ducked level drawn           | `apps/frontend/src/timeline/duck.ts`                                                                                           |
-| Stem player                  | `apps/frontend/src/editor/stem-player.ts` → `StemPlayer`, `applyMixerDrags`                                                    |
-| Placing sounds on marks      | `anchor_sounds` (via `flatten_spec`), `Anchor`                                                                                 |
-| Sound file filters           | `media/src/executors.rs` → `filter_sound`; builders in `media/src/filters.rs`; real-FFmpeg checks `media/tests/sound_fixes.rs` |
-| Clean speech                 | `noise_level_listen_filter`, `noise_level`, `spectral_floor`, `speech_filter`; `media/src/denoise.rs` → `denoised`             |
-| Remove hum                   | `hum_listen_filter`, `rms_level`                                                                                               |
-| Shorten pauses               | `silence_listen_filter`, `silences`, `kept_parts`, `joined_parts_graph`                                                        |
-| Change pitch, voice effects  | `pitch_filter`, `voice_filter`; rooms `media/src/generate.rs` → `room_response`                                                |
-| Fit music to the film        | `fit_plan`, `fit_graph`, `fit_inputs`                                                                                          |
-| Sound picture                | `sound_picture_graph`                                                                                                          |
-| Generated sounds             | `compile/src/nodes/audio.rs` → `sound_shape`; `media/src/sound_maker.rs` (`fundsp`)                                            |
-| Room tone, tones             | `media/src/generate.rs`                                                                                                        |
-| Transition and action sounds | `transition_cues`, `transition_sound_file`, `FlatTimeline.cuts`, `hits`, `AudioValue.hits`, `AudioItem.hit`, `AudioBar.hits`   |
+| Concern                            | Where                                                                                                                          |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Built-in sounds                    | `public/sfx`, listed in `compile/src/data/sounds.json` (catalogue `sounds`)                                                    |
+| Built-in music                     | `public/music` (128 kbps AAC), listed in `compile/src/data/music.json` (catalogue `music`)                                     |
+| Credits                            | `THIRD_PARTY_NOTICES.md`                                                                                                       |
+| Mix settings and the book          | `types/src/mix.rs` → `mixer_book` (catalogue `mixer`, editor `mixerBook()`)                                                    |
+| Mix plan                           | `compile/src/mix/plan.rs` → `build_mix_plan`, `lookup_key`; `compile/src/mix/levels.rs` → `duck_keys_for`, `duck_spans`        |
+| Filter graphs                      | `media/src/mix/graph.rs` → `pack_lanes`                                                                                        |
+| Stems                              | `media/src/mix/render.rs` → `MIX_VERSION`; `.opsis/cache/mix/`                                                                 |
+| Channel pruning                    | `compile/src/edits/workflow.rs` → `remove_nodes`; `Workflow::normalized`                                                       |
+| Export sound                       | `with_master_stem`; `media/src/codecs.rs` → `mux_args`                                                                         |
+| Stem player and live Mixer changes | `crates/audio/src/output.rs` → `Output`, `Preview`; `crates/ui/src/mixer.rs`                                                   |
+| Placing sounds on marks            | `anchor_sounds` (via `flatten_spec`), `Anchor`                                                                                 |
+| Sound file filters                 | `media/src/executors.rs` → `filter_sound`; builders in `media/src/filters.rs`; real-FFmpeg checks `media/tests/sound_fixes.rs` |
+| Clean speech                       | `noise_level_listen_filter`, `noise_level`, `spectral_floor`, `speech_filter`; `media/src/denoise.rs` → `denoised`             |
+| Remove hum                         | `hum_listen_filter`, `rms_level`                                                                                               |
+| Shorten pauses                     | `silence_listen_filter`, `silences`, `kept_parts`, `joined_parts_graph`                                                        |
+| Change pitch, voice effects        | `pitch_filter`, `voice_filter`; rooms `media/src/generate.rs` → `room_response`                                                |
+| Fit music to the film              | `fit_plan`, `fit_graph`, `fit_inputs`                                                                                          |
+| Sound picture                      | `sound_picture_graph`                                                                                                          |
+| Generated sounds                   | `compile/src/nodes/audio.rs` → `sound_shape`; `media/src/sound_maker.rs` (`fundsp`)                                            |
+| Room tone, tones                   | `media/src/generate.rs`                                                                                                        |
+| Transition and action sounds       | `transition_cues`, `transition_sound_file`, `FlatTimeline.cuts`, `hits`, `AudioValue.hits`, `AudioItem.hit`, `AudioBar.hits`   |
 
 ## Rules
 
@@ -57,7 +56,7 @@ Built-in sounds and music, the Mixer and its stems, ducking, how sounds are plac
 
 - **Ducking is a bus setting; rendered stems use `sidechaincompress`.**
 - **Channels shorter than the bus's `ignoreShorterMs` never key it** (`duck_keys_for`), and a `keepMusic` sound effect never does.
-- **Each ducked sound carries its merged spans (`duck_spans`, `Duck.spans`)**, and the Timeline draws the ducked level from them; `duck.ts` only draws the curve.
+- **Each ducked sound carries its merged spans (`duck_spans`, `Duck.spans`)**, which the mix applies.
 
 ### Hits on actions and transitions
 

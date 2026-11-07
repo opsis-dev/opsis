@@ -1,6 +1,6 @@
 # Timeline
 
-How the compiled spec becomes bars, how Timeline drags write back into the nodes, keyframes and camera keys, the Timeline's clock and sound, and chapters in exports. Rust paths are relative to `crates/compile/src/`, editor paths to `apps/frontend/src/`. Gestures and edits in general are in [document.md](document.md), the Mixer in [audio.md](audio.md); see also [AGENTS.md](../AGENTS.md).
+How the compiled spec becomes bars, how Timeline drags write back into the nodes, keyframes and camera keys, the Timeline's clock and sound, and chapters in exports. Rust paths are relative to `crates/compile/src/`, C++ paths to `crates/qt/cpp/`. Gestures and edits in general are in [document.md](document.md), the Mixer in [audio.md](audio.md); see also [AGENTS.md](../AGENTS.md).
 
 ## Code map
 
@@ -13,9 +13,9 @@ How the compiled spec becomes bars, how Timeline drags write back into the nodes
 | Keyframe and camera key edits | `edits/keyframes.rs` → `KeyframeEdit`, `apply_keyframe_edit`                                                            |
 | Tracks, easings, camera dials | catalogue `timeline` (`TimelineBook`)                                                                                   |
 | Chapters                      | `timeline/chapters.rs` → `film_chapters`; `finish_args` (`crates/media/src/codecs.rs`)                                  |
-| Clock                         | `editor/timeline/timeline-clock.ts` → `TimelineClock`, `usePlayback`                                                    |
-| Loops                         | `timeline/playhead.ts` → `loopOf`, `wrapInLoop`                                                                         |
-| Stem player                   | `editor/stem-player.ts` → `StemPlayer`                                                                                  |
+| Clock                         | `playback_clock.cc` → `PlaybackClock`; `crates/ui/src/ui.rs` → `share_playhead`, `wrap_playhead`                        |
+| Loops                         | `timeline/view.rs` → `loop_of`, `wrap_in_loop`                                                                          |
+| Stem player                   | `crates/audio/src/output.rs` → `Output`                                                                                 |
 | Active nodes and bars         | `activeAt` over the compiled `spans`, `setActive`; `BarFrame`                                                           |
 
 ## Rules
@@ -42,8 +42,8 @@ How the compiled spec becomes bars, how Timeline drags write back into the nodes
 
 ### The Timeline clock
 
-- **The Timeline has its own clock and nothing else: `TimelineClock`, mounted in the editor window, owns `usePlayback`.** It moves the playhead on animation frames at the shuttle rate, loops the film or the in and out points (`loopOf`/`wrapInLoop`), and plays only the film's master stem (`StemPlayer`: an `<audio>` through a Web Audio chain, kept within two frames of the playhead).
-- **Play and Space in the Timeline, the Mixer's meters, the camera field and the node rings all follow that playhead**: the canvas rings the nodes whose span holds it (`activeAt`, `setActive`) and the Timeline brightens the bars under it (`BarFrame`).
+- **The Timeline has its own clock and nothing else: `PlaybackClock`, one for the editor.** It moves the playhead at the shuttle rate, following the sound output's clock while the film plays, loops the film or the in and out points (`loop_of`/`wrap_in_loop`), and plays only the film's master stem (`Output`).
+- **Play and Space in the Timeline, the Mixer's meters, the camera field and the node rings all follow that playhead**: the canvas rings the nodes whose span holds it (`active_at`).
 - **Selecting a node moves the playhead to its start.**
 - **The Timeline plays the latest stem for its film** ([audio.md](audio.md)).
 

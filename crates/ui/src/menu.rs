@@ -1,20 +1,9 @@
 use opsis_qt::{MenuItemKind, MenuItemView, MenuSectionView};
 use opsis_session::menu::app_menu;
-use opsis_types::shell::{MenuEntry, WindowRole};
+use opsis_types::shell::MenuEntry;
 use serde_json::Value;
 
 const ROLE_PREFIX: &str = "role:";
-
-const fn shown_role(role: WindowRole) -> bool {
-    !matches!(
-        role,
-        WindowRole::Reload
-            | WindowRole::ToggleDevTools
-            | WindowRole::ResetZoom
-            | WindowRole::ZoomIn
-            | WindowRole::ZoomOut
-    )
-}
 
 pub fn qt_shortcut(accelerator: &str, mac: bool) -> String {
     accelerator
@@ -35,7 +24,7 @@ fn id_of(value: &impl serde::Serialize) -> String {
     }
 }
 
-fn item(entry: &MenuEntry, mac: bool) -> Option<MenuItemView> {
+fn item(entry: &MenuEntry, mac: bool) -> MenuItemView {
     let shortcut = |accelerator: &Option<String>| {
         accelerator
             .as_deref()
@@ -46,28 +35,28 @@ fn item(entry: &MenuEntry, mac: bool) -> Option<MenuItemView> {
             label,
             command,
             accelerator,
-        } => Some(MenuItemView {
+        } => MenuItemView {
             kind: MenuItemKind::Command,
             id: id_of(command),
             label: label.clone(),
             shortcut: shortcut(accelerator),
-        }),
+        },
         MenuEntry::Role {
             label,
             role,
             accelerator,
-        } => shown_role(*role).then(|| MenuItemView {
+        } => MenuItemView {
             kind: MenuItemKind::Role,
             id: format!("{ROLE_PREFIX}{}", id_of(role)),
             label: label.clone(),
             shortcut: shortcut(accelerator),
-        }),
-        MenuEntry::Separator => Some(MenuItemView {
+        },
+        MenuEntry::Separator => MenuItemView {
             kind: MenuItemKind::Separator,
             id: String::new(),
             label: String::new(),
             shortcut: String::new(),
-        }),
+        },
     }
 }
 
@@ -96,13 +85,7 @@ pub fn menu(mac: bool) -> Vec<MenuSectionView> {
         .into_iter()
         .map(|section| MenuSectionView {
             label: section.label,
-            items: tidy(
-                section
-                    .items
-                    .iter()
-                    .filter_map(|entry| item(entry, mac))
-                    .collect(),
-            ),
+            items: tidy(section.items.iter().map(|entry| item(entry, mac)).collect()),
         })
         .filter(|section| !section.items.is_empty())
         .collect()
@@ -120,17 +103,6 @@ mod tests {
         assert_eq!(qt_shortcut("CmdOrCtrl+Alt+B", true), "Ctrl+Alt+B");
         assert_eq!(qt_shortcut("Ctrl+Cmd+F", true), "Meta+Ctrl+F");
         assert_eq!(qt_shortcut("F11", false), "F11");
-    }
-
-    #[test]
-    fn webview_roles_stay_out_of_the_native_menu() {
-        let ids: Vec<String> = menu(false)
-            .into_iter()
-            .flat_map(|section| section.items.into_iter().map(|item| item.id))
-            .collect();
-        assert!(!ids.iter().any(|id| id == "role:reload"));
-        assert!(!ids.iter().any(|id| id == "role:toggleDevTools"));
-        assert!(ids.iter().any(|id| id == "project:save"));
     }
 
     fn separator() -> MenuItemView {

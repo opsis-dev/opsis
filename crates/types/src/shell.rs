@@ -113,11 +113,6 @@ pub enum WindowRole {
     Copy,
     Paste,
     SelectAll,
-    Reload,
-    ToggleDevTools,
-    ResetZoom,
-    ZoomIn,
-    ZoomOut,
     #[serde(rename = "togglefullscreen")]
     ToggleFullscreen,
     Minimize,
@@ -178,8 +173,8 @@ pub struct ApiServerStatus {
 #[serde(rename_all = "camelCase")]
 pub struct AppVersions {
     pub app: String,
-    pub tauri: String,
-    pub webview: String,
+    pub shell: String,
+    pub view: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]

@@ -1,10 +1,12 @@
 #include <QApplication>
+#include <QDialog>
 #include <QGraphicsItem>
 #include <QGraphicsView>
 #include <QImage>
 #include <QKeyEvent>
 #include <QPushButton>
 #include <QSet>
+#include <QTimer>
 #include <QtTest/QTest>
 #include <cmath>
 #include <memory>
@@ -55,6 +57,11 @@ void Select(const QStringList& ids) {
   rust::Vec<rust::String> chosen;
   for (const QString& id : ids) chosen.push_back(ToRust(id));
   App::Get().session().select(std::move(chosen));
+}
+
+void ChooseStart(const QString& choice) {
+  App::Get().session().patch_settings(
+      ToRust(QStringLiteral(R"({"app":{"onStart":"%1"}})").arg(choice)));
 }
 
 QString Overlaps(const QWidget* parent) {
@@ -198,6 +205,47 @@ void Scenario::BuildViews() {
                 outline == app.Token(QStringLiteral("foreground")),
             QStringLiteral("the icon is %1 then %2")
                 .arg(primary.name(), outline.name()));
+      });
+  Until(
+      QStringLiteral("views-start-reopens-the-last-project"),
+      [this] {
+        ChooseStart(QStringLiteral("last-project"));
+        App::Get().session().close_project();
+        QTimer::singleShot(0, window_, [this] { window_->StartAsChosen(); });
+      },
+      kProjectMs,
+      [] {
+        return App::Get().session().has_project() &&
+               !App::Get().session().graph().nodes.empty();
+      },
+      [] {
+        return Expect(App::Get().session().has_project(),
+                      QStringLiteral("starting with the last project opened "
+                                     "nothing"));
+      });
+  Until(
+      QStringLiteral("views-start-asks-for-a-new-project"),
+      [this] {
+        ChooseStart(QStringLiteral("new-project"));
+        App::Get().session().close_project();
+        QTimer::singleShot(0, window_, [this] { window_->StartAsChosen(); });
+      },
+      kProjectMs,
+      [] {
+        const QWidget* dialog = QApplication::activeModalWidget();
+        return dialog != nullptr &&
+               dialog->objectName() == QStringLiteral("NewProjectDialog");
+      },
+      [] {
+        auto* dialog =
+            qobject_cast<QDialog*>(QApplication::activeModalWidget());
+        const bool asked =
+            dialog != nullptr &&
+            dialog->objectName() == QStringLiteral("NewProjectDialog");
+        if (dialog != nullptr) dialog->reject();
+        ChooseStart(QStringLiteral("start-screen"));
+        return Expect(asked, QStringLiteral("starting with a new project "
+                                            "didn't open New project"));
       });
 }
 

@@ -332,13 +332,9 @@ Opsis doesn't include the recording browser: Settings → Engine downloads Chrom
 
 The Mac cursor style draws the macOS cursor set of apple_cursor by ful1e5 (https://github.com/ful1e5/apple_cursor), commit fe044a4, licensed under the GNU General Public License version 3, the licence of Opsis itself (`LICENSE`). `bun run cursors:bundle <checkout>` copies the SVGs the CSS cursor keywords use, recoloured as its `macOS` theme does, with their hotspots.
 
-## React Flow UI — apps/frontend/src/components/{base-node,labeled-handle,…}.tsx
+## Lucide icons — crates/ui/glyphs.generated.json
 
-MIT, https://github.com/xyflow/xyflow
-
-## Lucide icons — apps/frontend/src/editor/node-glyphs.generated.ts, and the lucide-react package
-
-Node icons copied from the `lucide` package by `bun run glyphs:bundle`, and the editor's other icons from `lucide-react`. Lucide is under the ISC licence; the icons it derives from Feather are also under Feather's MIT licence, both below. https://lucide.dev
+Node icons and the editor's other icons copied from the `lucide` package by `bun run glyphs:bundle`. Lucide is under the ISC licence; the icons it derives from Feather are also under Feather's MIT licence, both below. https://lucide.dev
 
 ```
 ISC License
@@ -386,7 +382,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## Tabler Icons — apps/frontend/src/editor/node-glyphs.generated.ts
+## Tabler Icons — crates/ui/glyphs.generated.json
 
 Node icons copied from the `@tabler/icons` package by `bun run glyphs:bundle`. https://tabler.io/icons
 
@@ -414,7 +410,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## Lucide Lab — apps/frontend/src/editor/node-glyphs.generated.ts
+## Lucide Lab — crates/ui/glyphs.generated.json
 
 Node icons copied from the `@lucide/lab` package by `bun run glyphs:bundle`. https://github.com/lucide-icons/lucide-lab
 
@@ -464,7 +460,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## Hugeicons — apps/frontend/src/editor/node-glyphs.generated.ts
+## Hugeicons — crates/ui/glyphs.generated.json
 
 Node icons copied from the `@hugeicons/core-free-icons` package by `bun run glyphs:bundle`. Only the free icons (Stroke Rounded), which are under the MIT licence. https://hugeicons.com
 
@@ -492,7 +488,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## Iconoir — apps/frontend/src/editor/node-glyphs.generated.ts
+## Iconoir — crates/ui/glyphs.generated.json
 
 Node icons copied from the `iconoir` package by `bun run glyphs:bundle`. https://iconoir.com
 
@@ -520,7 +516,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## MynaUI — apps/frontend/src/editor/node-glyphs.generated.ts
+## MynaUI — crates/ui/glyphs.generated.json
 
 Node icons copied from the `@mynaui/icons` package by `bun run glyphs:bundle`. https://mynaui.com/icons
 
@@ -528,173 +524,6 @@ Node icons copied from the `@mynaui/icons` package by `bun run glyphs:bundle`. h
 MIT License
 
 Copyright (c) Praveen Juge
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-## morphicons — the morphicons package
-
-Draws node icons that change shape on hover. Installed from npm and bundled into the editor. https://www.morphicons.com
-
-```
-MIT License
-
-Copyright (c) 2026 Guillermo
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-## Dice UI Sortable and Media Player — apps/frontend/src/components/ui/sortable.tsx, apps/frontend/src/components/ui/media-player.tsx
-
-The drag-to-reorder lists in the Inspector, and the player for videos and sounds in the Run panel and Replay. Installed from the Dice UI registry with the shadcn CLI. https://www.diceui.com
-
-```
-MIT License
-
-Copyright (c) 2024 Sadman Sakib
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-## dnd-kit — the @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/modifiers and @dnd-kit/utilities packages
-
-Drag and drop for the sortable lists. Installed from npm and bundled into the editor. https://dndkit.com
-
-```
-MIT License
-
-Copyright (c) 2021, Claudéric Demers
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-## Konva — the konva and react-konva packages
-
-Draws the marks you place on a picture in Annotate's settings. Installed from npm and bundled into the editor. https://konvajs.org
-
-```
-MIT License
-
-Original work Copyright (C) 2011 - 2013 by Eric Rowell (KineticJS)
-Modified work Copyright (C) 2014 - present by Anton Lavrenov (Konva)
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-react-konva:
-
-```
-MIT License
-
-Copyright (c) 2017 Anton Lavrenov
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-## Media Chrome — the media-chrome package
-
-Keeps the state of the player for videos and sounds in the Run panel and Replay. Installed from npm and bundled into the editor. https://www.media-chrome.org
-
-```
-MIT License
-
-Copyright (c) 2020 Mux, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

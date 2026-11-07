@@ -29,7 +29,7 @@ The one recording browser every capture, view and render launches, the bundled F
 - **The check app's and the end-to-end seeds save the browser with its full stamp (`browser-stamp.ts`)**, so they start with no check.
 - **A browser of another version than the pinned one is allowed with a warning.** Engine status is complete when the browser is ready.
 - **Runs and views take the browser that passed (`engine_files`).**
-- **Never fall back to Playwright's browsers, the system Chrome or the webview for capture or render.**
+- **Never fall back to Playwright's browsers or the system Chrome for capture or render.**
 
 ### FFmpeg
 
@@ -49,10 +49,10 @@ The one recording browser every capture, view and render launches, the bundled F
 - **Every child program gets a temp folder under `<data folder>/tmp`, named `<app pid>-<kind>-<id>`, passed as `TMPDIR`, `TEMP` and `TMP`**, so whatever the browser or FFmpeg puts in the system temp folder lands there.
   - Each run gets its own (`run`, which film renders use too); the streamed views and their browsers share one per app launch (`shell-views`, `AppPaths::views_temp`).
   - They are made when the app starts or the run begins and deleted when it ends; at start `clear_stale_child_temps` deletes folders whose app process is gone.
-- **A child started in a folder nobody made fails**, so `e2e/src/specs/views.spec.ts` opens the picker on a fresh data folder.
+- **A child started in a folder nobody made fails**, so the `runs` e2e scenario opens the picker on a fresh data folder.
 - **Browsers don't end with the app on their own, so every browser `launch` starts is remembered by pid (`remember_child`) until it closes**, and the app ends every one still open when it exits (`RunEvent::Exit`).
 - **At start `end_children_of_gone_apps` ends any process whose command line names a profile in a temp folder of an app that is gone**, before those folders are cleared. Chrome rewrites its process title into one string, so the search reads the whole command line, never one argument.
 
 ## Deliberate limits
 
-- **The browser hash takes about 0.13 s in a release build and about 2.4 s in a debug build** (`tauri dev`, tests), where `sha2` isn't optimized; that is left as it is.
+- **The browser hash takes about 0.13 s in a release build and about 2.4 s in a debug build** (`bun start`, tests), where `sha2` isn't optimized; that is left as it is.

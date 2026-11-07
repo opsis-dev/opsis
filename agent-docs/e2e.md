@@ -1,49 +1,42 @@
 # End-to-end tests
 
-The suite that drives the real app through WebdriverIO: how the app is built for it, the virtual display it requires, the data folder each run gets, and how specs share one project. Paths are relative to the repository root. See also [AGENTS.md](../AGENTS.md) §4 and §6.
+The scenarios that drive the real editor: what each covers, the virtual display or headless Wayland it runs in, the data folder it gets, the offscreen view tests, and how a step acts and checks. Paths are relative to the repository root. See also [AGENTS.md](../AGENTS.md) §4 and [ui.md](ui.md).
 
 ## Code map
 
-| Concern                    | Where                                                                                                        |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Suite                      | `e2e/` (own `package.json`, `bun.lock`, `node_modules`; `bun install` inside it once)                        |
-| Config                     | `e2e/wdio.conf.ts`                                                                                           |
-| Specs and support          | `e2e/src/specs/`, `e2e/src/support/`                                                                         |
-| Data folder seed           | `e2e/src/support/user-data.ts`                                                                               |
-| Close check                | `e2e/src/close-check.ts`                                                                                     |
-| e2e feature and capability | `crates/desktop/src/lib.rs` (`compile_error!`), `crates/desktop/capabilities/e2e`, `crates/desktop/build.rs` |
-| Shared configs by path     | `tsconfig.base.json`, `scripts/lib/oxlint-base.ts`, `scripts/lib/oxfmt-base.ts`                              |
+| Concern                 | Where                                                                                                                                                |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Runner                  | `scripts/e2e-qt.ts` (`bun run e2e:qt`)                                                                                                               |
+| Scenario engine         | `crates/qt/cpp/scenario.cc` → `Scenario` (`Add`, `Until`, `Miss`, `Overflow`, `ClickLater`)                                                          |
+| Steps                   | `crates/qt/cpp/e2e_*.cc`: `e2e_steps.cc` (tour), `e2e_runs.cc`, `e2e_ports.cc`, `e2e_api.cc`, `e2e_views.cc`, `e2e_wayland.cc`, and the tour's parts |
+| API checks from outside | `scripts/lib/e2e-api.ts` → `runApiChecks`                                                                                                            |
+| Real Wayland input      | `crates/e2e-input` (`opsis-e2e-input`)                                                                                                               |
+| Offscreen view tests    | `crates/ui/tests/views.rs`                                                                                                                           |
+| Data folder seed        | `scripts/lib/user-data.ts` → `seedUserData`                                                                                                          |
 
 ## Rules
 
-- **`bun run test:e2e` runs `e2e:app`, which builds the app with the `e2e` feature, then the suite.**
-- **The app is driven through `@wdio/tauri-service` with its embedded driver, `tauri-plugin-wdio-webdriver`**, compiled in only with the `e2e` Cargo feature. The feature refuses to build without debug assertions and adds the `wdio-webdriver` capability.
-- **`build.rs` picks the e2e capabilities and tells cargo to watch the `capabilities` folder**, because with its own pattern `tauri_build` watches only `tauri.conf.json` and an edited capability isn't compiled in.
-- **The build goes to `target/e2e`, so `cargo test` never overwrites it.**
-- **The tests run in a virtual display only**: `xvfb-run` with `WAYLAND_DISPLAY` unset and `GDK_BACKEND=x11` (otherwise GTK opens the window on the desktop's Wayland display); `wdio.conf.ts` and `close-check.ts` refuse to start without it.
-- **`bun run e2e:qt` drives the native editor like a person** (`scripts/e2e-qt.ts`, steps in `crates/qt/cpp/e2e_*.cc`): its own Xvfb on a free display (headless sway for `wayland`), the staged FFmpeg (`OPSIS_FFMPEG`), sound sent to the system's null output (`OPSIS_AUDIO_DEVICE=alsa:null`, so nothing plays on the speakers while playback still keeps time), no screenshots unless `--shots` is given (`bun run e2e:qt tour --shots` empties `~/.cache/opsis-qt-shots/<scenario>` and writes one picture per step there), and a failure on any failed check, crash, non-zero exit or timeout. Each scenario's full log is written to `target/e2e-qt/<scenario>.log`.
-  - Four scenarios, all by default or the ones named (`bun run e2e:qt tour`): `tour` (a fresh data folder in `~/.cache/opsis-qt-e2e` with the dev engine linked by `seedUserData`, `scripts/lib/user-data.ts`, and a generated test clip) starts with the engine set up; `runs` (`crates/qt/cpp/e2e_runs.cc`) starts `~/.cache/opsis-qt-e2e-runs` without one, so it checks the setup screen, skips it, and chooses the dev engine's recording browser on the Engine settings page through the file dialog (`OPSIS_QT_BROWSER`), then opens the examples, builds the film and terminal pages when missing, and serves a test page on localhost (`OPSIS_QT_PAGE`). `api` (`scripts/lib/e2e-api.ts`, `crates/qt/cpp/e2e_api.cc`) starts `~/.cache/opsis-qt-e2e-api` with the API on and drives the app from outside over its socket, through every route a client uses (open, edits, undo and redo, settings, variables, save, problems, validate, a run followed through its events and a stopped run). `wayland` (`crates/qt/cpp/e2e_wayland.cc`) needs no engine and runs on headless sway with real input. The other three need the dev engine in `~/.config/Opsis/engine`.
-  - **The `api` scenario hands over to the app through a file** (`OPSIS_QT_HANDOFF`): once the script's checks are done it writes the file, and the in-app half checks the canvas shows what the API changed, then closes through the exit dialog with Don't ask again ticked. The script then requires exit code 0 and `confirmExit: false` in the database, which is the close check.
-  - CI runs `wayland` in the Checks job (with `sway` installed) and `tour`, `runs` and `api` in the E2E job, which has the engine.
+- **`bun run e2e:qt` drives the editor like a person**: its own Xvfb on a free display (headless sway for `wayland`), the staged FFmpeg (`OPSIS_FFMPEG`), sound sent to the system's null output (`OPSIS_AUDIO_DEVICE=alsa:null`, so nothing plays on the speakers while playback still keeps time), no screenshots unless `--shots` is given (`bun run e2e:qt tour --shots` empties `~/.cache/opsis-qt-shots/<scenario>` and writes one picture per step there), and a failure on any failed check, crash, non-zero exit or timeout. Each scenario's full log is written to `target/e2e-qt/<scenario>.log`.
+- **Four scenarios, all by default or the ones named** (`bun run e2e:qt tour`):
+  - `tour` (`e2e_steps.cc` and the parts it builds) starts a fresh `~/.cache/opsis-qt-e2e` with the dev engine linked and a generated test clip, and walks every panel, field and window.
+  - `runs` (`e2e_runs.cc`, `e2e_ports.cc`) starts `~/.cache/opsis-qt-e2e-runs` without an engine, so it checks the setup screen, skips it and chooses the dev engine's browser on the Engine settings page through the file dialog (`OPSIS_QT_BROWSER`), then records, exports, replays and records terminal takes against a test page on localhost (`OPSIS_QT_PAGE`).
+  - `api` (`e2e-api.ts`, `e2e_api.cc`) starts `~/.cache/opsis-qt-e2e-api` with the API on and drives the app from outside over its socket, through every route a client uses (open, edits, undo and redo, settings, variables, save, problems, validate, a run followed through its events and a stopped run).
+  - `wayland` (`e2e_wayland.cc`) needs no engine and runs on headless sway with real input.
+- **`tour`, `runs` and `api` need the dev engine in `~/.config/Opsis/engine`**; CI runs `wayland` in the Checks job (with `sway` installed) and the other three in the E2E job, which installs the engine.
+- **The `api` scenario ends with the close check**: once the script's checks are done it writes the file named by `OPSIS_QT_HANDOFF`, and the in-app half checks the canvas shows what the API changed, then closes through the exit dialog with Don't ask again ticked. The script then requires exit code 0 and `confirmExit: false` in the database.
 - **`wayland` sends real input through the compositor, not `QTest`**, because on Wayland a popup (a menu, a combo's list, the colour picker) opens only for input the compositor delivered, and focus, the clipboard and hover need a seat with devices.
-  - The script starts headless sway (`WLR_BACKENDS=headless`, no libinput devices) in a private runtime folder, `$XDG_RUNTIME_DIR/opsis-e2e-<pid>`, then `opsis-e2e-input` (`crates/e2e-input`), which holds one virtual pointer and one virtual keyboard for the whole run and carries out the requests a step appends to `OPSIS_QT_INPUT` (`click`, `move`, `press`, `release`, `key ctrl+z`, `type …`).
+  - The script starts headless sway (`WLR_BACKENDS=headless`, no libinput devices) in a private runtime folder, `$XDG_RUNTIME_DIR/opsis-e2e-<pid>`, then `opsis-e2e-input`, which holds one virtual pointer and one virtual keyboard for the whole run and carries out the requests a step appends to `OPSIS_QT_INPUT` (`click`, `move`, `press`, `release`, `key ctrl+z`, `type …`).
   - The devices must stay attached: a client gets pointer and key events only after binding them, so a pointer made and dropped per click, as `wlrctl` does, never reaches the app.
   - A step reports the last press and key the app received when it fails, so a lost event shows apart from a broken control.
-- **`cargo test -p opsis-ui` runs the `views` scenario on Qt's offscreen platform** (`crates/ui/tests/views.rs`, steps in `crates/qt/cpp/e2e_views.cc`): widget checks that need no display, engine or network, so `bun run test` covers them.
-  - **`OPSIS_QT_E2E_HANG_MS` runs the app under gdb**: when the app is still going after that many milliseconds, the script interrupts it and gdb writes every thread's backtrace into the scenario's log, which is how a freeze is caught.
-  - A step waits a fixed time (`Scenario::Add`) or polls a condition until a timeout (`Scenario::Until`) for anything that takes as long as the machine makes it: an engine check, a streamed page, a run.
-  - A scenario run uses Qt's own file dialogs (`Qt::AA_DontUseNativeDialogs`, `App::Run` in `crates/qt/cpp/app.cc`), since a desktop's native dialog can't be driven; every other run keeps the native ones.
-  - Every step fails when a panel is wider than its dock (`Scenario::Overflow`, `crates/qt/cpp/scenario.cc`): text that should wrap and controls sized to their longest choice show up there.
-  - A step finds what it acts on as a person would (a button's text or tooltip, a menu's label, the card or port under the pointer) and acts with real mouse and key events (`QTest`), never by calling the code behind the control. The one exception is a drop from the file manager, sent as a drop event.
-  - A step's check reads the result from the session (the graph, the Inspector, the settings, the run), not from the widget it touched; a step that can't find its control fails by name (`Scenario::Miss`).
-  - A click that opens a modal dialog goes through `ClickLater`, or the step blocks in the dialog's own loop; a shortcut step activates the window first, since Xvfb has no window manager to hand focus back after a dialog.
-- **A Qt program in the virtual display needs `env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=xcb` besides `DISPLAY`**: Qt picks its Wayland plugin whenever `WAYLAND_DISPLAY` is set and ignores `DISPLAY`, so the window opens on the desktop. The Qt editor's scenario mode (`OPSIS_QT_SCENARIO`, `crates/qt/cpp/scenario.cc`) refuses to run on any plugin but `xcb`, `offscreen`, or `wayland` inside a private `opsis-e2e-` runtime folder, so it never runs on the desktop.
-- **Each run gets a fresh data folder in `~/.cache/opsis-e2e`** (`OPSIS_USER_DATA`): the database seeded with the API on and the dev engine's recording browser as the `settings.engine` path, `examples/` copied, and `OPSIS_FFMPEG` set to the staged FFmpeg. Failure screenshots go to `~/.cache/opsis-e2e/failures`.
-- **The app checks the engine at start, so specs that record or export wait for it (`engineReady`).**
-- **The virtual display hides the window but not the sound, so a spec mutes any player it presses Play on.**
-- **The specs share one project folder and the app's selection, so a spec deletes the nodes it adds** (the Run panel lists the selected node's files, not the exports).
-- **The close check runs on its own after the suite**, because closing the app ends the driver.
-- **The suite is checked only by its own `typecheck`, `lint` and `format` scripts**, which CI runs after the root checks; the root checks skip it.
+- **`cargo test -p opsis-ui` runs the `views` scenario on Qt's offscreen platform**: widget checks that need no display, engine or network, so `bun run test` covers them.
+- **`OPSIS_QT_E2E_HANG_MS` runs the app under gdb**: when the app is still going after that many milliseconds, the script interrupts it and gdb writes every thread's backtrace into the scenario's log, which is how a freeze is caught.
+- **A scenario never runs on the desktop.** Qt picks its Wayland plugin whenever `WAYLAND_DISPLAY` is set and ignores `DISPLAY`, so a Qt program in the virtual display needs `env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=xcb` besides `DISPLAY`; the scenario mode (`OPSIS_QT_SCENARIO`) refuses any plugin but `xcb`, `offscreen`, or `wayland` inside a private `opsis-e2e-` runtime folder.
+- **A step finds what it acts on as a person would** (a button's text or tooltip, a menu's label, the card or port under the pointer) and acts with real mouse and key events (`QTest`), never by calling the code behind the control. The one exception is a drop from the file manager, sent as a drop event.
+- **A step's check reads the result from the session** (the graph, the Inspector, the settings, the run), not from the widget it touched; a step that can't find its control fails by name (`Scenario::Miss`).
+- **A step waits a fixed time (`Scenario::Add`) or polls a condition until a timeout (`Scenario::Until`)** for anything that takes as long as the machine makes it: an engine check, a streamed page, a run, a menu opening.
+- **A click that opens a modal dialog goes through `ClickLater`**, or the step blocks in the dialog's own loop; a shortcut step activates the window first, since Xvfb has no window manager to hand focus back after a dialog.
+- **A scenario run uses Qt's own file dialogs** (`Qt::AA_DontUseNativeDialogs`, `App::Run`), since a desktop's native dialog can't be driven; every other run keeps the native ones.
+- **Every step fails when a panel is wider than its dock** (`Scenario::Overflow`): text that should wrap and controls sized to their longest choice show up there.
 
 ## Deliberate limits
 

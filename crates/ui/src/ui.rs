@@ -2679,7 +2679,7 @@ impl Host for Ui {
         AboutView {
             app: env.versions.app,
             development: !env.is_packaged,
-            shell: env.versions.tauri,
+            shell: env.versions.shell,
             platform: format!("{} / {}", env.platform, env.arch),
             browser: env
                 .engine

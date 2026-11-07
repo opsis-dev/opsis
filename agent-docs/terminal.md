@@ -71,7 +71,7 @@ Ghostty behind `opsis-vt`, terminal sessions and takes, tapes and cast files, th
 
 ### Every terminal picture comes from the recording browser
 
-- **The editor never draws a terminal itself**: the system webview isn't the recording browser and draws text differently (WebKitGTK rounds glyph advances to whole pixels and scales `foreignObject` wrongly).
+- **The editor never draws a terminal itself**: the terminal page in the recording browser paints every picture it shows, so the editor shows exactly what the film draws.
 - **Record terminal take, Play tape and Cast file each end by rendering the take's preview** (`TakePreview`): `preview_spec` (pure) shoots the take with no zoom, window, corners, shadow, motion blur or edits, at 30 fps and its screen's size in the default look made even (`preview_size`), encoded as the node's `preview.mp4` (`TerminalSource.preview`, carried onto `ScreenProps::Terminal.preview`).
   - Replay plays it like a browser take's video, with the action list seeking it; the Timeline's terminal bars are filmstrips of it; spot and area pictures show it at the terminal's own proportions (`SpotBackground.aspect`), so areas are fractions of its screen.
 - **Live pictures come from the terminal page (`apps/terminal`, built into `terminal-bundle/` without `public/`)**: `TerminalPainter` serves the app's public files at the root and the bundle at `/.opsis/terminal/`, opens it in the recording browser with the film's switches, registers the terminal families and paints one-frame frames files with `window.opsisTerminal.paint`, taking each as a JPEG screenshot at the screen's size.

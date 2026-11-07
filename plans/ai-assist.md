@@ -26,7 +26,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 - `crates/assist` (`opsis-assist`): the only code that talks to a model, with `reqwest`; consent tokens, the request log and keys go through it.
 - `opsis-compile`: the task schemas, prompt builders and the pure functions that turn a model's answer into nodes (`draft_to_workflow`, `chapter_spans`, `insert_chapters`), next to the node definitions they create and checked with `check_workflow`.
 - `opsis-capture`: the page outline from the hidden browser.
-- `opsis-desktop`: the commands and events; the editor (`apps/frontend`) has the dialogs and the suggestion UI only.
+- `opsis-ui` and `opsis-qt`: the session calls and views; the dialogs and the suggestion UI are C++ views ([ui.md](../agent-docs/ui.md)).
 
 **Model output is never trusted.** Each task's answer is a flat Rust struct deriving `schemars::JsonSchema`; the answer is checked with `jsonschema`, parsed with `serde`, and its limits enforced. Every workflow change then goes through `check_workflow` / `workflow_problems` (`crates/compile/src/check.rs`), the same checks the editor and the Local API use. A model never writes settings or edges directly: it fills a small draft that Opsis's code turns into nodes.
 
@@ -65,10 +65,10 @@ A Settings page, **Assistant**, with three choices: Off (default), "A model on t
 In place:
 
 - Settings: `AppSettings` (`crates/types/src/settings.rs`), one section per area, checked with `garde`, written one section at a time with `patch_settings` and followed in every window through `useAppSettings`; `SettingsChanged` reaches every window.
-- Settings pages: `SettingsPage` (`crates/types/src/shell.rs`) and `apps/frontend/src/app/settings/`; the API page is the model for an off-by-default switch with a status badge.
+- Settings pages: `SettingsPage` (`crates/types/src/shell.rs`) and `crates/qt/cpp/settings_window.cc`; the API page is the model for an off-by-default switch with a status badge.
 - Keys: `Keyring::set_key` / `key` (`crates/store/src/keys.rs`) keep named secrets in the OS keyring and refuse when the platform has no secure store, with a plain message.
-- Asking before going online: the "Go online to get fonts?" dialog (`apps/frontend/src/fonts/fonts-panel.tsx`) in front of `opsis-fonts`'s online fetch.
-- Commands are limited to the app's own windows by capabilities (`crates/desktop/capabilities`); long work is listed in the exit dialog through `AppState.tasks`.
+- Asking before going online: the "Go online to get fonts?" question (`crates/qt/cpp/fonts_page.cc`) in front of `opsis-fonts`'s online fetch.
+- Long work is listed in the exit dialog through `AppState.tasks`.
 
 Missing: an `assistant` settings section, the page, the client, consent, the request log, a key removal call.
 

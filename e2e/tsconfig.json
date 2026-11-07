@@ -1,5 +1,0 @@
-{
-  "extends": "../tsconfig.base.json",
-  "compilerOptions": { "types": ["node", "mocha", "@wdio/globals/types", "@wdio/tauri-service"] },
-  "include": ["src", "*.ts"]
-}

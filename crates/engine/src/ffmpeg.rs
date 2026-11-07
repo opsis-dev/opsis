@@ -48,7 +48,7 @@ mod tests {
     #[test]
     fn finds_the_program_beside_the_app_and_nowhere_else() {
         let dir = tempfile::tempdir().unwrap();
-        let app = dir.path().join("opsis-desktop");
+        let app = dir.path().join("opsis");
         assert!(ffmpeg_beside(&app).is_err());
         let program = dir
             .path()

@@ -16,7 +16,7 @@ Browser sessions and their actions, the take value every recording shares, recor
 | Drag curves                 | `drag_path.rs`                                                                                                                                                                                       |
 | Address log                 | `page.rs` → `Lifecycle` (`ActionLog.addresses`)                                                                                                                                                      |
 | Camera events from the log  | `camera/action-log.ts` → `toClickLog`; `camera/lib/cursor.ts` → `cursorAt`                                                                                                                           |
-| Streamed views              | `crates/stream` (`pick`, `sign_in`); `apps/frontend/src/app/stream-view.tsx` → `StreamView`                                                                                                          |
+| Streamed views              | `crates/stream` (`pick`, `sign_in`); `crates/qt/cpp/stream_window.cc` → `StreamWindow`                                                                                                               |
 | Sign-in stamp               | `executors.rs` → `sign_in_stamp`                                                                                                                                                                     |
 | Traces                      | `crates/traces`; `TracePanel`, `read_trace`                                                                                                                                                          |
 | Screenshot scale and layout | `still_layout.rs` → `capture_scale`; page `StillElement`, `windowLayout`, `cutoutLayout`, `bleedLayout`, `stillLayout`                                                                               |
@@ -88,8 +88,8 @@ Browser sessions and their actions, the take value every recording shares, recor
 ### Traces
 
 - **Traces are recorded per capture unless retention is `off`, in our own format** (`crates/traces`): per take a zstd JSON manifest (header, viewport, actions with node ids, console, page errors, requests) and its frames as content-addressed JPEG blobs in `.opsis/traces`, shared across runs and pruned by the retention setting.
-- **Blob files keep their extension (`<sha>.jpeg`)** so screenshots load straight through the file server.
-- **The Trace tab in Replay is our own shadcn UI over `read_trace`; never embed Playwright's Trace Viewer.**
+- **Blob files keep their extension (`<sha>.jpeg`)**, so a screenshot's file says its format.
+- **The Trace tab in Replay is our own view over `read_trace` (`crates/qt/cpp/replay_dialog.cc` → `TracePanel`); never embed Playwright's Trace Viewer.**
 
 ### Screenshots
 

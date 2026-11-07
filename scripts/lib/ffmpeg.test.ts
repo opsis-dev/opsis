@@ -15,7 +15,7 @@ import { generatedJson } from "./pins";
 import { ROOT } from "./tool-config";
 
 describe("the pinned FFmpeg", () => {
-  it("names the sidecar the way Tauri looks for it", () => {
+  it("names the staged program after its target", () => {
     expect(sidecarFileName("x86_64-unknown-linux-gnu")).toBe(
       "opsis-ffmpeg-x86_64-unknown-linux-gnu",
     );

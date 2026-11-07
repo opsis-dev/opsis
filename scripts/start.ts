@@ -1,10 +1,9 @@
 import { execFileSync } from "node:child_process";
-import path from "node:path";
 import { withFfmpeg } from "./lib/ffmpeg";
 import { ROOT } from "./lib/tool-config";
 
-execFileSync("tauri", ["dev", ...process.argv.slice(2)], {
-  cwd: path.join(ROOT, "crates", "desktop"),
+execFileSync("cargo", ["run", "-p", "opsis-ui", "--bin", "opsis", "--", ...process.argv.slice(2)], {
+  cwd: ROOT,
   stdio: "inherit",
   env: await withFfmpeg(),
 });

@@ -4,7 +4,6 @@
 *.pdb
 
 # Tauri
-crates/desktop/gen/
 
 # Bun workspace
 node_modules/
@@ -31,7 +30,6 @@ examples/**/secrets/
 *.log
 
 # Bundled programs
-crates/desktop/binaries/
 
 # Zig
 crates/vt/zig/zig-pkg/

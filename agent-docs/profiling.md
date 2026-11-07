@@ -21,12 +21,7 @@ How Opsis is measured for size, CPU and memory with development tools only: the 
 ## Rules
 
 - **Profiling is development tooling: build settings, scripts and containers, never code in the app.**
-- **The profiling build is the deb with its symbols kept**, from the shipped profile:
-
-  ```sh
-  CARGO_BUILD_JOBS=8 CARGO_TARGET_DIR=$HOME/.cache/opsis-build CARGO_PROFILE_RELEASE_STRIP=false \
-  CARGO_PROFILE_RELEASE_DEBUG=line-tables-only bun run make -- --bundles deb
-  ```
+- **The profiling run installs the app's deb in the container, so it waits for the packaging step to build one** ([packaging.md](packaging.md)); until then `bun run profile` has no package to install. The build it takes is the shipped release profile with its symbols kept (`CARGO_PROFILE_RELEASE_STRIP=false`, `CARGO_PROFILE_RELEASE_DEBUG=line-tables-only`).
 
   - `line-tables-only` keeps function names and lines for samply, perf and heaptrack. Full debug info runs the full-LTO link out of memory on a 14 GiB machine.
   - `bun run profile` takes the one deb in `~/.cache/opsis-build/release/bundle/deb`, or `--deb <file>`.
@@ -54,10 +49,10 @@ How Opsis is measured for size, CPU and memory with development tools only: the 
   - `programs.json` lists the programs behind each tag.
 - **Each run writes `runs.json`, `events.jsonl` (every run event), `samples.jsonl`, `nodes.csv`, `samples.csv`, `report.html`, `problems.json`, `app.log` and `cgroup.json` to `~/.cache/opsis-profile/runs/<time>-<profiler>/out/`.**
 - **Size has its own tools, none of them in the app**:
-  - the binary by crate: `cargo bloat --release -p opsis-desktop --features tauri/custom-protocol --crates -n 40`, then `--filter <crate>`, with the same `CARGO_TARGET_DIR` and profile variables as the deb (it links `opsis-desktop` once more, because the Tauri CLI passes its config through `TAURI_CONFIG`);
+  - the binary by crate: `cargo bloat --release -p opsis-ui --bin opsis --crates -n 40`, then `--filter <crate>`, with the same profile variables as the profiling build;
   - generic code: `cargo llvm-lines -p <crate>` on the dev profile;
   - duplicates and unused crates: `cargo tree -d --workspace -e normal --depth 0` and `cargo machete` (it misses crates used only through a macro's expansion, like `smart-default` behind `#[settings]`);
-  - the pages by package: `vite build --sourcemap --outDir <folder in ~/.cache>` in `apps/film` or `apps/frontend`, then `bunx source-map-explorer '<folder>/assets/*.js' --json`. Building into a cache folder keeps source maps out of `film-bundle/` and `apps/frontend/dist`, which the deb packs;
+  - the pages by package: `vite build --sourcemap --outDir <folder in ~/.cache>` in `apps/film` or `apps/terminal`, then `bunx source-map-explorer '<folder>/assets/*.js' --json`. Building into a cache folder keeps source maps out of `film-bundle/` and `terminal-bundle/`, which the app ships;
   - unused TS files, exports and dependencies: `bun run knip`.
 
 ## How it works
@@ -71,7 +66,7 @@ How Opsis is measured for size, CPU and memory with development tools only: the 
 
 - **In the container a Render's default "Graphics card" WebGL draws in software, with or without `--gpu`**: ANGLE's default backend goes through the X display, and Xvfb has no DRI3. It is SwiftShader without Mesa in the image and Mesa's llvmpipe with it. Shader, 3D and particle elements then take several times longer than on a desktop, where the same setting reaches the GPU; `--gpu --render-gl vulkan` measures them on the GPU.
 - **Play tape runs from the tape file (`recordLive: false`)**: with Record it live on and the node run on its own, it waits for a person to type a new tape.
-- **The editor's own work (canvas, Inspector, Timeline) isn't sampled per node**; it is read on the e2e build (`bun run e2e:app`, debug Rust with the production editor embedded) in the same image, with `WEBKIT_INSPECTOR_HTTP_SERVER=127.0.0.1:9222` and the build's WebDriver on 127.0.0.1:4445 (`TAURI_WEBDRIVER_PORT`).
+- **The editor's own work (canvas, Inspector, Timeline) isn't sampled per node**; the e2e scenarios log each canvas sync's time and the app's resident memory at the end ([e2e.md](e2e.md)).
   - The inspector's index page lists the target; its socket is `ws://127.0.0.1:9222/socket/1/1/WebPage`, speaking the WebKit Inspector Protocol through `Target.sendMessageToTarget`. `Runtime.evaluate` doesn't wait for promises; `Runtime.awaitPromise` does.
   - The inspector sends every Timeline and ScriptProfiler timestamp as 0, so each step gets a ScriptProfiler session of its own (`startTracking`/`stopTracking`, samples in `trackingComplete`), and a busy loop of known length gives the sample interval (1.08 ms).
   - The Timeline instrument slows the page (it doubles pan and select), so time steps without it.

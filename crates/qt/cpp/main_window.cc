@@ -133,6 +133,19 @@ MainWindow::MainWindow()
   if (App::Get().session().engine_missing() &&
       !App::Get().session().settings().setup_skipped) {
     stack_->setCurrentWidget(setup_);
+  } else {
+    QTimer::singleShot(0, this, &MainWindow::StartAsChosen);
+  }
+}
+
+void MainWindow::StartAsChosen() {
+  const QString choice = ToQ(App::Get().session().settings().on_start);
+  if (choice == QStringLiteral("last-project")) {
+    const rust::Vec<bridge::ProjectEntry> recent =
+        App::Get().session().recent();
+    if (!recent.empty()) OpenFolder(ToQ(recent.front().dir));
+  } else if (choice == QStringLiteral("new-project")) {
+    Dispatch(QStringLiteral("project:new"));
   }
 }
 

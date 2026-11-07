@@ -1,21 +1,20 @@
 # Assets and files
 
-How specs name files, how a page gets their addresses, the two file servers, prepared files, model import and the project files the app follows. Paths are relative to `crates/` unless they name another folder. Footage addresses are in [footage.md](footage.md), the project file itself in [document.md](document.md), fonts in [fonts.md](fonts.md); see also [AGENTS.md](../AGENTS.md).
+How specs name files, how a page gets their addresses, the render file server, prepared files, model import and the project files the app follows. Paths are relative to `crates/` unless they name another folder. Footage addresses are in [footage.md](footage.md), the project file itself in [document.md](document.md), fonts in [fonts.md](fonts.md); see also [AGENTS.md](../AGENTS.md).
 
 ## Code map
 
-| Concern                  | Where                                                                                                                                       |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Refs                     | `compile/src/asset_ref.rs` → `PreparedRef`; `prepare_props`                                                                                 |
-| Host addresses           | `compile/src/hosted.rs` → `hosted`                                                                                                          |
-| `app:` files on the page | `packages/video/src/assets.tsx` → `assetUrl`, `withAppFiles`; `publicFile` (`@opsis/runtime`)                                               |
-| Render file server       | `engine` (`ServeDir`); `prepared_routes`, `folder_routes`                                                                                   |
-| Editor file server       | `desktop/src/file_server.rs`; `apps/frontend/src/editor/file-url.ts` → `fileUrl`; `apps/frontend/src/store/project-files.ts` → `useFileUrl` |
-| Preparers                | `prepare` (`opsis-prepare`); typefaces checked against `fixtures/prepare/typefaces.json`                                                    |
-| Prepared version         | `engine/src/versions.rs` → `PREPARED_VERSION`                                                                                               |
-| Model import             | `project/src/model.rs`                                                                                                                      |
-| Followed files           | `project_refs_in`, `follow_loaded_files`; `project/src/watch.rs` → `LoadedFilesWatch`; editor `useProjectFiles`                             |
-| Atomic writes            | `engine/src/files.rs` → `partial_file`                                                                                                      |
+| Concern                  | Where                                                                                                           |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| Refs                     | `compile/src/asset_ref.rs` → `PreparedRef`; `prepare_props`                                                     |
+| Host addresses           | `compile/src/hosted.rs` → `hosted`                                                                              |
+| `app:` files on the page | `packages/video/src/assets.tsx` → `assetUrl`, `withAppFiles`; `publicFile` (`@opsis/runtime`)                   |
+| Render file server       | `engine` (`ServeDir`); `prepared_routes`, `folder_routes`                                                       |
+| Preparers                | `prepare` (`opsis-prepare`); typefaces checked against `fixtures/prepare/typefaces.json`                        |
+| Prepared version         | `engine/src/versions.rs` → `PREPARED_VERSION`                                                                   |
+| Model import             | `project/src/model.rs`                                                                                          |
+| Followed files           | `project_refs_in`, `follow_loaded_files`; `project/src/watch.rs` → `LoadedFilesWatch`; editor `useProjectFiles` |
+| Atomic writes            | `engine/src/files.rs` → `partial_file`                                                                          |
 
 ## Rules
 
@@ -24,8 +23,8 @@ How specs name files, how a page gets their addresses, the two file servers, pre
 - **Specs hold host-independent refs: `project:<relative path>`, `prepared:…` or `app:<public path>`, and only Rust reads them.**
 - **Before a spec goes to a page, `hosted` gives every `project:` and `prepared:` ref, and every font face, its address on that host** from `assets.projectBase` (the render asset server).
 - **The page only turns `app:` into a public file address** (`assetUrl`, `withAppFiles`, through the runtime's `publicFile`).
-- **The editor loads every file through the desktop file server, which takes the ref itself**; `fileUrl` only encodes it. `reveal_in_folder` takes a ref too.
-- **The editor's file server is plain HTTP on 127.0.0.1 under a token made at each launch, with ranges, never a custom URL scheme**, because WebKitGTK can't play video or audio from one (tauri-apps/tauri#3725).
+- **The editor reads project files from disk itself, resolving each ref in Rust** (`crates/project/src/paths.rs` → `ref_to_path`); `reveal_in_folder` takes a ref too.
+
 - **Exports stay readable like any file the user makes**: atomic writes keep the umask's mode (`partial_file`).
 
 ### Prepared files

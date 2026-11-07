@@ -4,10 +4,6 @@ export const ROOT = path.resolve(import.meta.dirname, "..", "..");
 
 const PACKAGES_DIR = path.join(ROOT, "packages");
 
-const APPS_DIR = path.join(ROOT, "apps");
-
-export const FRONTEND_DIR = path.join(APPS_DIR, "frontend", "src");
-
 const VIDEO_PACKAGE_DIR = path.join(PACKAGES_DIR, "video");
 
 export const VIDEO_DIR = path.join(VIDEO_PACKAGE_DIR, "src");
@@ -24,16 +20,10 @@ export const IGNORED_PATHS = [
   "crates/ui/glyphs.generated.json",
   "scripts/lib/ffmpeg.generated.json",
   "crates/capture/src/playwright/*.generated.*",
-  "apps/frontend/src/generated/bindings.ts",
   "film-bundle/**",
   "terminal-bundle/**",
   "resources/**",
   "packages/*/dist/**",
-  "apps/frontend/src/routeTree.gen.ts",
-  "apps/frontend/src/components/ui/**",
-  "apps/frontend/src/components/*.tsx",
-  "apps/frontend/src/hooks/**",
-  "apps/frontend/src/editor/node-glyphs.generated.ts",
   "packages/video/src/camera/lib/mac-cursors.generated.ts",
   "packages/video/src/generated/**",
   "packages/video/src/registry/length-cases.generated.json",

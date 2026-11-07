@@ -5,12 +5,8 @@ import { parseSync } from "oxc-parser";
 import { ROOT } from "./lib/tool-config";
 
 const CHECKED =
-  /^(apps|packages|crates|scripts|e2e)\/.*\.(ts|tsx|mts|css|rs|zig|zon|cc|h|qss)$|^[^/]+\.config\.ts$/;
-const SKIPPED = [
-  /^apps\/frontend\/src\/components\//,
-  /^apps\/frontend\/src\/routeTree\.gen\.ts$/,
-  /\/generated\//,
-];
+  /^(apps|packages|crates|scripts)\/.*\.(ts|tsx|mts|css|rs|zig|zon|cc|h|qss)$|^[^/]+\.config\.ts$/;
+const SKIPPED = [/\/generated\//];
 const DIRECTIVE = /^\/\/\/ <reference|^\/[/*]\s*(oxlint-|@ts-)/;
 const LINE_COMMENT = /^\s*\/\/|\/\*|\*\//;
 const QUOTED_MARK = /"[^"]*(\/\*|\*\/)[^"]*"/;

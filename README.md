@@ -4,9 +4,9 @@ Record a real website and turn it into a polished product demo.
 
 Opsis is a desktop app with a node editor. Browser nodes drive a real website (clicks, typing, scrolling) and record it in one take; camera, cursor, text, motion-graphics, transition, audio and media nodes turn the recording into a finished video, exported in several shapes at once. Everything runs on your computer.
 
-> **Early preview.** Built and tested on Linux (dev and `.deb`). CI is set up to build the rpm, AppImage, Windows and macOS packages, but they haven't been built or run yet, and there are no signed installers or auto-updates. Expect rough edges.
+> **Early preview.** Built and tested on Linux in development. There are no installers yet: packaging the native editor comes next, and there are no signed installers or auto-updates. Expect rough edges.
 
-Built with [Tauri](https://tauri.app) and Rust, [xyflow](https://reactflow.dev), React and FFmpeg. See [`plans/`](./plans) for work that's planned but not built.
+Built with Rust, [Qt](https://www.qt.io) Widgets and [KDDockWidgets](https://github.com/KDAB/KDDockWidgets) for the editor, React for the film page, and FFmpeg. See [`plans/`](./plans) for work that's planned but not built.
 
 ## What it does
 
@@ -22,62 +22,62 @@ Built with [Tauri](https://tauri.app) and Rust, [xyflow](https://reactflow.dev),
 - **Export:** 16:9, 9:16, 1:1 and 4:5 in one go. Other shapes keep the whole window and zoom in closer on the action, with captions and lower thirds kept clear of the edges. Video files carry the film's chapters (from Chapter actions) for players that list them, with an optional chapter list to paste into a YouTube description. Also still images in social sizes.
 - **Timeline:** the film as bars with filmstrips, waveforms, action marks, chapters, markers and music beats; move, trim, split, ripple, roll, slip, speed and keyframes, each written back to the nodes (or added as a named node) as one undo step; snapping, J/K/L, in and out points.
 - **Mixer:** a strip per sound with trim, low cut, 4-band EQ, compressor, pan, fader, mute and solo, grouped under its bus; buses with low cut, EQ, compressor, presets for the bus or every sound on it, and sidechain ducking that can ignore short sounds; a master with EQ, compressor, limiter and loudness targets (−14, −16, −23 LUFS); meters and loudness readouts; type exact values on any knob; Ctrl-click or Shift-click strip names to apply a preset, paste or reset to several sounds at once. Exports play exactly the rendered mix, and a mix change only adds the new sound to the already rendered picture.
-- **Editor:** 252 node types, 7 templates, undo/redo, groups, auto layout. Timeline, Mixer and Run are tabs, and each can open in its own window; the Timeline plays the film's sound on its own clock and marks the nodes and clips under its playhead. The canvas has a mouse mode and a touchpad mode (two fingers move, pinch zooms) and a minimap you can hide; the node list keeps its group titles in view.
+- **Editor:** 252 node types, 7 templates, undo/redo, groups, auto layout. Timeline, Mixer and Run are tabs, and each can open in its own window; the Timeline plays the film's sound on its own clock and marks the nodes under its playhead. The canvas has a mouse mode and a touchpad mode (two fingers move, pinch zooms) and a minimap you can hide.
 - **Projects:** new projects go to `~/OpsisProjects` (changeable in Settings), and the New project dialog shows the folder it will create. If the project file changes on disk while it's open (a text editor, a script, version control), the editor loads it, or asks first when you have unsaved edits; it never saves over a change it hasn't seen.
-- **Settings:** its own window with pages for General, Projects, Engine, Recording, Fonts, Export licence, API, Licences (every licence Opsis and its fonts come with) and About.
+- **Settings:** its own window with pages for General, Projects, Editor, Engine, Recording, Fonts, API, Licences (every licence Opsis and its fonts come with) and About.
 - **Local API (off by default):** scripts and AI agents on your computer can read, change and run the open project over plain HTTP on a local socket (a named pipe on Windows) that only your user account can open. The socket is `api.sock` in the app's data folder; set `OPSIS_API_SOCKET` to another full path (at most 100 bytes) if that path is too long. `GET /openapi.json` describes it; `GET /nodes/{type}` gives each node's ports and settings. Every request is one undo step in the editor.
 
 ## Getting started
 
-Requirements: [Bun](https://bun.sh), Node.js 22 or later, a Rust toolchain, and on Linux the WebKitGTK and GTK development packages (on Ubuntu 22.04 or later: `libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev`, plus `gstreamer1.0-libav` to play videos in the editor).
+Requirements: [Bun](https://bun.sh), Node.js 22 or later, a Rust toolchain, Zig 0.17, and [uv](https://docs.astral.sh/uv/) for `bun run qt:install`, which puts Qt 6.12 and KDDockWidgets in `~/.cache/opsis-qt`. On Linux, also the sound library and Qt's X11 libraries (on Ubuntu: `libasound2-dev libxcb-cursor0 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-randr0 libxcb-shape0 libxcb-xkb1`).
 
 ```sh
 bun install
+bun run qt:install
 bun run film:bundle
 bun run terminal:bundle
 bun start
 ```
 
-`bun run film:bundle` builds the film page that exports draw, and `bun run terminal:bundle` the page that draws live terminal pictures; run them again after changing `packages/video` or `packages/runtime`. `bun start` downloads the pinned FFmpeg into `crates/desktop/binaries/` the first time and points the app at it (`OPSIS_FFMPEG`); the packaged app carries the same program beside its own. The first time, open **Settings → Engine** and either **Download engine**, which puts the recording browser (Chrome Headless Shell) in the app's data folder, or **Choose file…** for a browser you already have. Opsis checks it before using it, and again at start if the file changed. Editing and mixing work without it; recording and exporting need it. Then **New project → Sample: to-do app → Run**.
+`bun run film:bundle` builds the film page that exports draw, and `bun run terminal:bundle` the page that draws live terminal pictures; run them again after changing `packages/video` or `packages/runtime`. `bun start` downloads the pinned FFmpeg into `target/ffmpeg/` the first time and points the app at it (`OPSIS_FFMPEG`); a release build looks for the same program beside its own. The first time, open **Settings → Engine** and either **Download engine**, which puts the recording browser (Chrome Headless Shell) in the app's data folder, or **Choose file…** for a browser you already have. Opsis checks it before using it, and again at start if the file changed. Editing and mixing work without it; recording and exporting need it. Then **New project → Sample: to-do app → Run**.
 
 Ready-made copies of every template are in [`examples/`](./examples) (**Open project…**).
 
 ## Building
 
-| Command                                 | What it does                                              |
-| --------------------------------------- | --------------------------------------------------------- |
-| `bun run make -- --bundles deb`         | Stage everything the app ships and build the Linux `.deb` |
-| `CARGO_TARGET_DIR=~/.cache/opsis-build` | Put build output outside the repo                         |
-| `CARGO_BUILD_JOBS=8`                    | Limit how many cores the Rust build uses                  |
+| Command              | What it does                                                                         |
+| -------------------- | ------------------------------------------------------------------------------------ |
+| `bun run make`       | Stage everything the app ships and build the release binary (`target/release/opsis`) |
+| `CARGO_BUILD_JOBS=8` | Limit how many cores the Rust build uses                                             |
 
-The app ships FFmpeg (the pinned ffmpeg-static build, as the `opsis-ffmpeg` program beside the app's own) but never the recording browser; users download it or choose their own from Settings. CI ([`.github/workflows/build.yml`](./.github/workflows/build.yml)) runs the checks and the end-to-end tests, then builds deb, rpm and AppImage on Linux (x64), NSIS and MSI on Windows (x64) and the app and a DMG on macOS (Apple Silicon and Intel), and uploads them as artifacts.
+The app ships FFmpeg (the pinned ffmpeg-static build, as the `opsis-ffmpeg` program beside the app's own) but never the recording browser; users download it or choose their own from Settings. CI ([`.github/workflows/build.yml`](./.github/workflows/build.yml)) runs the checks and the end-to-end tests on Linux; installers for Linux, Windows and macOS come with the packaging step.
 
 ## Scripts
 
-| Script                    | What it does                                                                 |
-| ------------------------- | ---------------------------------------------------------------------------- |
-| `bun start`               | Run the app in development                                                   |
-| `bun run typecheck`       | `tsc --noEmit` everywhere                                                    |
-| `bun run lint:fix`        | oxlint and `cargo clippy`                                                    |
-| `bun run format:fix`      | oxfmt and `cargo fmt`                                                        |
-| `bun run test`            | vitest and `cargo test` (with the staged FFmpeg)                             |
-| `bun run test:e2e`        | The app driven by WebdriverIO in a virtual display (needs `xvfb`)            |
-| `bun run types:export`    | Write the TypeScript types and bindings from the Rust code                   |
-| `bun run film:bundle`     | Build the film page that exports draw                                        |
-| `bun run terminal:bundle` | Build the page that draws live terminal pictures                             |
-| `bun run fonts:bundle`    | Copy the bundled fonts from their Fontsource packages                        |
-| `bun run brand:icons`     | Render `brand/logo.svg` to PNGs; `bun run app:icons` makes the app's icons   |
-| `bun run routes`          | Regenerate the TanStack Router route tree                                    |
-| `bun run examples`        | Rewrite `examples/*/project.opsis.json` from the templates                   |
-| `bun run ffmpeg:stage`    | Download the pinned FFmpeg for this computer, if missing, and print its path |
+| Script                    | What it does                                                                                      |
+| ------------------------- | ------------------------------------------------------------------------------------------------- |
+| `bun start`               | Run the app in development                                                                        |
+| `bun run typecheck`       | `tsc --noEmit` everywhere                                                                         |
+| `bun run lint:fix`        | oxlint, `cargo clippy`, clang-tidy and the comment check                                          |
+| `bun run format:fix`      | oxfmt, `cargo fmt`, `zig fmt` and clang-format                                                    |
+| `bun run test`            | vitest and `cargo test` (with the staged FFmpeg)                                                  |
+| `bun run e2e:qt`          | The editor driven through its scenarios in a virtual display (needs `xvfb`; `sway` for `wayland`) |
+| `bun run types:export`    | Write the film's TypeScript types from the Rust code                                              |
+| `bun run film:bundle`     | Build the film page that exports draw                                                             |
+| `bun run terminal:bundle` | Build the page that draws live terminal pictures                                                  |
+| `bun run fonts:bundle`    | Copy the bundled fonts from their Fontsource packages                                             |
+| `bun run brand:icons`     | Render `brand/logo.svg` to PNGs                                                                   |
+| `bun run qt:install`      | Fetch Qt 6.12 and KDDockWidgets into `~/.cache/opsis-qt`                                          |
+| `bun run examples`        | Rewrite `examples/*/project.opsis.json` from the templates                                        |
+| `bun run ffmpeg:stage`    | Download the pinned FFmpeg for this computer, if missing, and print its path                      |
 
 ## Architecture
 
 ```
-Editor (React 19 + shadcn/Base UI + xyflow, in the system webview)
-   canvas · node list · inspector · timeline · mixer        ── commands and events (bindings.ts) ──
-                                                                                  │
-Tauri app (Rust): windows · menus · projects · app database · fonts · Local API
+Editor (Qt 6 Widgets + KDDockWidgets, C++ views over a cxx bridge)
+   canvas · node list · inspector · timeline · mixer        ── views and calls (cxx) ──
+                                                                         │
+Rust: session · projects · app database · fonts · Local API
    compile (graph → TimelineSpec) · runner (topo-sort → sha256 cache → phases → events)
    capture over CDP · media (FFmpeg) · prepared 3D files · image nodes · streamed views
         │ CDP
@@ -90,10 +90,10 @@ Tauri app (Rust): windows · menus · projects · app database · fonts · Local
 
 ```
 crates/      Rust: types, compile, store, project, fonts, engine, traces, runner, media, render,
-             capture, stream, prepare, image, api, desktop (the Tauri app)
-apps/frontend the editor
+             capture, stream, prepare, image, api, session, qt (the editor's views), ui (the app)
+
 apps/film    the film page the renderer draws
-e2e/         end-to-end tests (outside the workspace, own install)
+
 packages/video  the film: DemoTimeline, elements, parts, lib, fonts, camera, 3D
 packages/runtime the film's page runtime: clock, sequences, holds, maths
 scripts/     fonts, icons, engine downloads, packaging stage
@@ -103,20 +103,20 @@ Contributor rules (no code comments, kebab-case files, pinned versions, what mus
 
 ## Why it's built this way
 
-| Decision          | Choice                                                                                                      | Why                                                                                                                                 |
-| ----------------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| App shape         | One Tauri 2 app: Rust for everything that touches the system, the editor in the system webview              | A small install, a typed boundary, and one place (Rust) that owns the project, runs, settings and state that windows share.         |
-| Types and logic   | Rust is the source; TypeScript types are generated (specta, tauri-specta)                                   | Commands, events and the timeline spec can't drift apart, and the editor keeps no copy of logic Rust already has.                   |
-| Canvas            | [xyflow](https://reactflow.dev) with React Flow UI's shadcn components                                      | A mature node editor whose components install like the rest of the UI.                                                              |
-| Workflow format   | A versioned JSON graph, compiled in Rust to one `TimelineSpec`                                              | The graph is for people; the spec is the single input the video renders from.                                                       |
-| Video engine      | React with Opsis's own small runtime, drawn frame by frame by Rust                                          | One page, `DemoTimeline`, renders every spec; Rust seeks it, captures each frame and encodes with FFmpeg, with no Node at run time. |
-| Browser           | One Chrome Headless Shell for recording, renders, sign-in and the element picker, driven over CDP from Rust | The same engine everywhere; Playwright's page scripts and keyboard are reused without its Node runtime.                             |
-| Animations        | Frame-driven only: every element and transition                                                             | Every frame has to be a pure function of the frame number; CSS transitions and tween libraries don't survive a render.              |
-| GSAP              | Not used                                                                                                    | The runtime's `interpolate`, `spring` and easing cover it, without GSAP's licence clause on visual builders.                        |
-| FFmpeg            | The ffmpeg-static build, pinned by sha256 and shipped beside the app as a separate program                  | Exports work without setting anything up, and every run starts the same known build.                                                |
-| Camera and cursor | Built on [programatic-demo](https://github.com/ashrafchowdury/programatic-demo) (MIT)                       | It already solved the click log, auto-zoom camera, vector cursor and motion blur; its notice is kept.                               |
-| Offline           | Nothing uses the internet unless you ask                                                                    | Engine and font downloads sit behind a button, and a film never loads anything remote.                                              |
-| Licensing         | GPLv3 or later                                                                                              | Free software, with no other licence needed to export.                                                                              |
+| Decision          | Choice                                                                                                      | Why                                                                                                                                   |
+| ----------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| App shape         | One native app: Rust for everything that touches the system and owns the state, the editor in Qt Widgets    | A typed boundary, native widgets and docking, and one place (Rust) that owns the project, runs, settings and the state windows share. |
+| Types and logic   | Rust is the source; the editor's views are the bridge's structs, the film's types are generated (specta)    | Views, calls and the timeline spec can't drift apart, and the editor keeps no copy of logic Rust already has.                         |
+| Canvas            | Our own canvas on `QGraphicsView`, with layout and edge lanes worked out in Rust                            | Cards, ports, edges and the minimap drawn natively, and the same maths the Local API and tests use.                                   |
+| Workflow format   | A versioned JSON graph, compiled in Rust to one `TimelineSpec`                                              | The graph is for people; the spec is the single input the video renders from.                                                         |
+| Video engine      | React with Opsis's own small runtime, drawn frame by frame by Rust                                          | One page, `DemoTimeline`, renders every spec; Rust seeks it, captures each frame and encodes with FFmpeg, with no Node at run time.   |
+| Browser           | One Chrome Headless Shell for recording, renders, sign-in and the element picker, driven over CDP from Rust | The same engine everywhere; Playwright's page scripts and keyboard are reused without its Node runtime.                               |
+| Animations        | Frame-driven only: every element and transition                                                             | Every frame has to be a pure function of the frame number; CSS transitions and tween libraries don't survive a render.                |
+| GSAP              | Not used                                                                                                    | The runtime's `interpolate`, `spring` and easing cover it, without GSAP's licence clause on visual builders.                          |
+| FFmpeg            | The ffmpeg-static build, pinned by sha256 and shipped beside the app as a separate program                  | Exports work without setting anything up, and every run starts the same known build.                                                  |
+| Camera and cursor | Built on [programatic-demo](https://github.com/ashrafchowdury/programatic-demo) (MIT)                       | It already solved the click log, auto-zoom camera, vector cursor and motion blur; its notice is kept.                                 |
+| Offline           | Nothing uses the internet unless you ask                                                                    | Engine and font downloads sit behind a button, and a film never loads anything remote.                                                |
+| Licensing         | GPLv3 or later                                                                                              | Free software, with no other licence needed to export.                                                                                |
 
 ## Licences
 

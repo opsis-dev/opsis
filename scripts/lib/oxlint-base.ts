@@ -28,7 +28,7 @@ export function lintConfig(dir: string, overrides: Override[] = []): OxlintConfi
     },
     ignorePatterns: own
       ? IGNORED_PATHS.filter((p) => p.startsWith(`${own}/`)).map((p) => p.slice(own.length + 1))
-      : [...IGNORED_PATHS, "packages/**", "apps/**", "e2e/**"],
+      : [...IGNORED_PATHS, "packages/**", "apps/**"],
     rules: {
       "react/react-in-jsx-scope": "off",
       "react/exhaustive-deps": "warn",
@@ -38,7 +38,7 @@ export function lintConfig(dir: string, overrides: Override[] = []): OxlintConfi
       "unicorn/no-array-sort": "off",
       "unicorn/consistent-function-scoping": "off",
       "unicorn/require-post-message-target-origin": "off",
-      "no-underscore-dangle": ["warn", { allow: ["_zod", "__TAURI_INTERNALS__"] }],
+      "no-underscore-dangle": ["warn", { allow: ["_zod"] }],
       "import/no-unassigned-import": ["warn", { allow: ["**/*.css"] }],
       "react/hooks": "off",
       "import/no-cycle": "off",

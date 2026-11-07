@@ -291,26 +291,9 @@ fn gamma(linear: f64) -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use std::path::Path;
-
     use proptest::prelude::*;
 
     use super::*;
-
-    fn web_tokens() -> HashMap<String, String> {
-        let css = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../apps/frontend/src/index.css");
-        let text = std::fs::read_to_string(css).expect("the web editor's tokens");
-        let root = text
-            .split_once(":root {")
-            .and_then(|(_, rest)| rest.split_once('}'))
-            .map(|(block, _)| block)
-            .expect("a :root block");
-        root.lines()
-            .filter_map(|line| line.trim().strip_prefix("--"))
-            .filter_map(|line| line.trim_end_matches(';').split_once(':'))
-            .map(|(name, value)| (name.trim().to_owned(), value.trim().to_owned()))
-            .collect()
-    }
 
     fn channels(color: &str) -> (i64, i64, i64) {
         let hex = color.strip_prefix('#').expect("an opaque colour");
@@ -318,14 +301,45 @@ mod tests {
         (channel(0), channel(2), channel(4))
     }
 
-    #[test]
-    fn tokens_match_the_web_editor() {
-        let web = web_tokens();
-        for (name, value) in TOKENS {
-            if let Some(css) = web.get(name) {
-                assert_eq!(css, value, "--{name}");
+    fn enum_names(schema: &serde_json::Value, names: &mut Vec<String>) {
+        match schema {
+            serde_json::Value::Object(map) => {
+                for (key, value) in map {
+                    match (key.as_str(), value) {
+                        ("enum", serde_json::Value::Array(items)) => names.extend(
+                            items
+                                .iter()
+                                .filter_map(|item| item.as_str().map(str::to_owned)),
+                        ),
+                        ("const", serde_json::Value::String(name)) => names.push(name.clone()),
+                        _ => enum_names(value, names),
+                    }
+                }
             }
+            serde_json::Value::Array(items) => {
+                for item in items {
+                    enum_names(item, names);
+                }
+            }
+            _ => {}
         }
+    }
+
+    #[test]
+    fn every_card_icon_is_bundled() {
+        let schema = serde_json::to_value(schemars::schema_for!(opsis_types::cards::Icon))
+            .expect("the icon schema");
+        let mut names = Vec::new();
+        enum_names(&schema, &mut names);
+        assert!(!names.is_empty(), "no icon names in {schema}");
+        let missing: Vec<&String> = names
+            .iter()
+            .filter(|name| !GLYPHS.icons.contains_key(name.as_str()))
+            .collect();
+        assert!(
+            missing.is_empty(),
+            "not bundled: {missing:?} (run bun run glyphs:bundle)"
+        );
     }
 
     #[test]

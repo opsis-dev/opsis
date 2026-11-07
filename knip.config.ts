@@ -7,7 +7,6 @@ const FILE_READ_PACKAGES = [
   "@mynaui/icons",
   "@tabler/icons",
   "iconoir",
-  "lucide",
   "source-map-explorer",
 ];
 
@@ -16,19 +15,23 @@ function cssImports(text: string): string {
 }
 
 export default {
-  ignore: ["e2e/**", "**/*.generated.*", "**/generated/**", "apps/frontend/src/routeTree.gen.ts"],
-  ignoreBinaries: ["zig", "rustc", "dbus-daemon", "gnome-keyring-daemon"],
+  ignore: ["**/*.generated.*"],
+  ignoreBinaries: [
+    "zig",
+    "rustc",
+    "dbus-daemon",
+    "gnome-keyring-daemon",
+    "sway",
+    "Xvfb",
+    "fc-match",
+    "uvx",
+  ],
   compilers: { css: cssImports },
   workspaces: {
     ".": {
       entry: ["scripts/*.ts", ".claude/skills/*/*.ts"],
       project: ["scripts/**/*.ts", ".claude/skills/**/*.ts"],
       ignoreDependencies: FILE_READ_PACKAGES,
-    },
-    "apps/frontend": {
-      entry: ["src/routes/**/*.tsx"],
-      project: ["src/**/*.{ts,tsx,css}"],
-      ignore: ["src/components/ui/**", "src/components/*.tsx", "src/hooks/**"],
     },
     "apps/film": {
       project: ["src/**/*.{ts,tsx,css}"],

@@ -7,8 +7,7 @@ type StaticMember = ESTree.StaticMemberExpression;
 function commonModule(filename: string, module: string): string | null {
   const file = filename.replaceAll("\\", "/");
   if (file.includes("/packages/video/src/")) return `#video/common/${module}.ts`;
-  if (file.includes("/apps/frontend/src/") || file.includes("/scripts/"))
-    return `@opsis/video/common/${module}`;
+  if (file.includes("/scripts/")) return `@opsis/video/common/${module}`;
   return null;
 }
 

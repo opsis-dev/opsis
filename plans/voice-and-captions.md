@@ -68,8 +68,8 @@ A Settings page, **Voice and captions**, that lists everything speech needs and 
 In place:
 
 - The engine installer (`crates/engine/src/install.rs`): `fetch_verified` streams a pinned download into a temporary file next to its destination, checks size and SHA-256, and honours cancellation; `CalmProgress` throttles progress; downloads are pinned as `Pinned { url, sha256, size }` (`crates/engine/src/downloads.rs`). Settings → Engine shows the install with progress events.
-- Ask-first downloads: the font library's "Go online to get fonts?" dialog (`apps/frontend/src/fonts/fonts-panel.tsx`).
-- Settings pages: `SettingsPage` (`crates/types/src/shell.rs`) and `apps/frontend/src/app/settings/`; app settings in `AppSettings` (`crates/types/src/settings.rs`), written one section at a time with `patch_settings`.
+- Ask-first downloads: the font library's "Go online to get fonts?" question (`crates/qt/cpp/fonts_page.cc`).
+- Settings pages: `SettingsPage` (`crates/types/src/shell.rs`) and `crates/qt/cpp/settings_window.cc`; app settings in `AppSettings` (`crates/types/src/settings.rs`), written one section at a time with `patch_settings`.
 - Keys: `Keyring::set_key` / `key` keep named secrets in the OS keyring and refuse when the platform has no secure store.
 - Long work is listed on exit through `AppState.tasks`.
 - Licence entries that appear once a file exists: `LicenceSource` and `list_licences` (`crates/engine/src/licences.rs`).

@@ -13,7 +13,7 @@ version = 2
 yanked = "deny"
 ignore = [
   { id = "RUSTSEC-2024-0370", reason = "Unmaintained, not vulnerable, and no safe upgrade: only glib-macros 0.18 needs it, and the Linux webview's GTK 3 stack can't leave 0.18" },
-  { id = "RUSTSEC-2024-0436", reason = "Unmaintained, not vulnerable, and no safe upgrade: specta needs it at the 2.0.0-rc.26 that tauri-specta pins, and so do pulp and rav1e under image" },
+  { id = "RUSTSEC-2024-0436", reason = "Unmaintained, not vulnerable, and no safe upgrade: specta needs it at the 2.0.0-rc.26 pinned in the root table, and so do pulp and rav1e under image" },
   { id = "RUSTSEC-2026-0192", reason = "Unmaintained, not vulnerable, and no safe upgrade: ab_glyph, which opsis-image and imageproc draw text with, has no release without it" },
   { id = "RUSTSEC-2026-0370", reason = "Unmaintained, not vulnerable, and no safe upgrade: zbus 5 needs it, and the notification and opener plugins and the Secret Service keyring store have no release past zbus 5" },
   { id = "RUSTSEC-2026-0371", reason = "Unmaintained, not vulnerable, and no safe upgrade: zbus 5 needs it, and the notification and opener plugins and the Secret Service keyring store have no release past zbus 5" },

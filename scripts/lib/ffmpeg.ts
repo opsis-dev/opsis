@@ -33,7 +33,7 @@ export const FFMPEG_CACHE = path.join(os.homedir(), ".cache", "opsis-ffmpeg");
 
 export const FFMPEG_LICENCE = path.join(ROOT, "resources", "LICENSE.ffmpeg.txt");
 
-const BINARIES = path.join(ROOT, "crates", "desktop", "binaries");
+const BINARIES = path.join(ROOT, "target", "ffmpeg");
 
 const ffmpegPinsSchema = z.object({
   release: z.string(),

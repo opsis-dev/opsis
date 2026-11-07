@@ -1,12 +1,17 @@
 # TODO
 
-What's left that no plan covers: the places in the codebase that don't read as if Opsis had been written for Tauri and Rust from the start, in the order to fix them; bugs; ideas left for later; and behaviour never checked. Each item is removed when it is done.
+What's left that no plan covers: the places in the codebase that don't read as if Opsis had been written for Rust and Qt from the start, in the order to fix them; bugs; ideas left for later; and behaviour never checked. Each item is removed when it is done.
 
-## Written for Tauri and Rust
+## Written for Rust and Qt
 
 ## Bugs
 
 Wrong behaviour found in the session transcripts and confirmed in the current code.
+
+- [ ] The native editor doesn't play a look's morph: a card plays its look's `motion` on hover (`crates/qt/cpp/graph_canvas.cc` → `PlayMotion`), but a look with a `morph` into another glyph stays still, and node list rows play nothing. The web editor morphed with `morphicons` on cards and list rows.
+- [ ] Rows of an object list in the native Inspector can't be duplicated (`crates/qt/cpp/list_fields.cc`); they reorder and collapse. The web editor's rows also duplicated.
+- [ ] The native Timeline doesn't draw a ducked sound's level from `duck_spans`; the web Timeline drew it on the sound bar. The mix applies the ducking either way.
+- [ ] The native Timeline doesn't mark the bars under the playhead; the web Timeline brightened them (`underPlayhead`). The canvas rings the nodes under it.
 
 - [ ] HEVC (H.265) files don't play in exports: the headless shell has no HEVC decoder (Chromium decodes HEVC only through platform hardware, so `canPlayType` is empty and loading fails with `DEMUXER_ERROR_NO_SUPPORTED_STREAMS`). The Run panel plays them (WebKitGTK through GStreamer's `avdec_h265`).
 
@@ -67,6 +72,6 @@ Ideas that were discussed but never finalized or planned.
 
 Behaviour that was never checked.
 
-- [ ] Restoring saved window positions (`visible_bounds`, `crates/desktop/src/windows.rs`) on Windows and macOS. X11 was checked in a virtual display without a window manager; under Wayland the compositor places windows, so positions are never restored there.
+- [ ] Restoring saved window positions (`visible_bounds`, `crates/session/src/windows.rs`) on Windows and macOS. X11 was checked in a virtual display without a window manager; under Wayland the compositor places windows, so positions are never restored there.
 - [ ] Audio scrubbing on the Timeline.
 - [ ] Whether long exports leak memory with `angle` drawing. Remotion documents a Chrome memory leak with `angle` on long renders (fixed once on macOS in Chrome 133, remotion #4918); it was never tried in Opsis. If it shows, the documented workaround is exporting in chunks, each in a fresh browser, and joining them.
