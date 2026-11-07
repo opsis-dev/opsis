@@ -44,29 +44,52 @@ fn run(args: &[&str]) -> Vec<u8> {
 
 static MAKING: Mutex<()> = Mutex::new(());
 
+const H264: [&str; 4] = ["-c:v", "libx264", "-pix_fmt", "yuv420p"];
+const MP4_CODECS: [(&str, &[&str]); 4] = [
+    (
+        "hevc.mp4",
+        &[
+            "-c:v",
+            "libx265",
+            "-pix_fmt",
+            "yuv420p",
+            "-x265-params",
+            "log-level=error",
+        ],
+    ),
+    (
+        "av1.mp4",
+        &[
+            "-c:v",
+            "libaom-av1",
+            "-pix_fmt",
+            "yuv420p",
+            "-cpu-used",
+            "8",
+            "-row-mt",
+            "1",
+        ],
+    ),
+    ("vp9.mp4", &["-c:v", "libvpx-vp9", "-pix_fmt", "yuv420p"]),
+    ("mpeg4.mp4", &["-c:v", "mpeg4", "-q:v", "3"]),
+];
+
 fn sample(name: &str, size: &str) -> PathBuf {
+    sample_in(name, size, &H264)
+}
+
+fn sample_in(name: &str, size: &str, codec: &[&str]) -> PathBuf {
     let _making = MAKING.lock().unwrap();
     let path = samples().join(name);
     if !path.exists() {
         let partial = samples().join(format!("partial-{name}"));
         let source = format!("testsrc2=size={size}:rate={RATE}");
         let length = SECONDS.to_string();
-        run(&[
-            "-y",
-            "-f",
-            "lavfi",
-            "-i",
-            &source,
-            "-t",
-            &length,
-            "-c:v",
-            "libx264",
-            "-pix_fmt",
-            "yuv420p",
-            "-g",
-            "30",
-            &partial.to_string_lossy(),
-        ]);
+        let target = partial.to_string_lossy();
+        let mut args = vec!["-y", "-f", "lavfi", "-i", &source, "-t", &length];
+        args.extend_from_slice(codec);
+        args.extend_from_slice(&["-g", "30", &target]);
+        run(&args);
         std::fs::rename(&partial, &path).unwrap();
     }
     path
@@ -150,6 +173,21 @@ fn shows_the_frame_ffmpeg_decodes_at_each_time() {
             frame == 119 || next > own,
             "frame {frame} looks like the next one"
         );
+    }
+}
+
+#[test]
+#[ignore = "needs the staged FFmpeg"]
+fn every_picture_codec_an_mp4_holds_shows_the_frames_ffmpeg_decodes() {
+    for (name, codec) in MP4_CODECS {
+        let video = sample_in(name, "320x240", codec);
+        let film = footage(vec![("clip", plain(&video))]);
+        for frame in [0, 31, 7, 119] {
+            let shown = film.shown("clip", at(frame)).unwrap();
+            assert_eq!(shown.pts_us, at(frame), "{name} frame {frame}");
+            let own = difference(&shown.image, &reference(&video, frame, ""));
+            assert!(own < 0.5, "{name} frame {frame} differs by {own}");
+        }
     }
 }
 

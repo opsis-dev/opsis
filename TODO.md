@@ -8,8 +8,6 @@ What's left that no plan covers: the places in the codebase that don't read as i
 
 Wrong behaviour found in the session transcripts and confirmed in the current code.
 
-- [ ] HEVC (H.265) files don't play in exports: the headless shell has no HEVC decoder (Chromium decodes HEVC only through platform hardware, so `canPlayType` is empty and loading fails with `DEMUXER_ERROR_NO_SUPPORTED_STREAMS`). The Run panel plays them (WebKitGTK through GStreamer's `avdec_h265`).
-
 ## Unconfirmed bugs
 
 Seen once during a session and never reproduced or explained.
