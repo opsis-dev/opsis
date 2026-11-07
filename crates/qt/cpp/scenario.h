@@ -37,6 +37,7 @@ class Scenario : public QObject {
               const std::function<QString()>& check);
   void BuildTour();
   void BuildRuns();
+  void BuildApi();
   void BuildTerminalRuns();
   void BuildPorts();
   void BuildDisk();

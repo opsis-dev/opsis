@@ -74,7 +74,7 @@ pub struct Ui {
     platform: Arc<QtPlatform>,
     catalog: IndexMap<String, EditorNode>,
     bundle: EditorCatalog,
-    showing: AtomicBool,
+    showing: Arc<AtomicBool>,
     closing: Arc<Mutex<Option<CloseRequest>>>,
     compiled: Arc<Mutex<graph::Compiled>>,
     media: media::MediaCache,
@@ -202,7 +202,7 @@ impl Ui {
             runtime,
             platform,
             catalog,
-            showing: AtomicBool::new(false),
+            showing: Arc::new(AtomicBool::new(false)),
             closing: Arc::new(Mutex::new(None)),
             bundle: editor_bundle(NodePlatform::current()),
             compiled: Arc::new(Mutex::new(graph::Compiled::default())),
@@ -660,6 +660,7 @@ impl Host for Ui {
         let engine_install = Arc::clone(&self.engine_install);
         let handle = self.runtime.handle().clone();
         let session = self.session.clone();
+        let showing = Arc::clone(&self.showing);
         std::thread::spawn(move || {
             loop {
                 match events.blocking_recv() {
@@ -688,6 +689,10 @@ impl Host for Ui {
                             && let Some(node) = asked.node_id.as_deref()
                         {
                             opsis_qt::post_replay(node, &plain(&asked.tab));
+                        }
+                        if matches!(addressed.event, SessionEvent::OpenRequested(_)) && mine {
+                            showing.store(true, Ordering::Relaxed);
+                            opsis_qt::post_event(EventKind::Project);
                         }
                         if let SessionEvent::DiskChangeAsked(asked) = &addressed.event
                             && mine

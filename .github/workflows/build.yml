@@ -206,5 +206,5 @@ jobs:
       - name: Fetch KDDockWidgets
         run: bun run qt:install
       - name: Drive the native editor through real runs
-        run: bun run e2e:qt runs
+        run: bun run e2e:qt runs api
       - run: bun run test:e2e

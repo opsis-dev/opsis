@@ -78,6 +78,8 @@ Scenario::Scenario(MainWindow* window, const QString& name, const QDir& shots)
     BuildBench(count > 0 ? count : 200);
   } else if (name == QStringLiteral("runs")) {
     BuildRuns();
+  } else if (name == QStringLiteral("api")) {
+    BuildApi();
   } else {
     BuildTour();
   }

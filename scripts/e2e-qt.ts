@@ -4,15 +4,19 @@ import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { homedir } from "node:os";
 import path from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import { setTimeout as sleep } from "node:timers/promises";
+import { runApiChecks } from "./lib/e2e-api";
 import { ensureFfmpeg } from "./lib/ffmpeg";
 import { ROOT } from "./lib/tool-config";
 import { DEV_ENGINE, browserIn, seedUserData } from "./lib/user-data";
 
-const SCENARIOS = ["tour", "runs"] as const;
+const SCENARIOS = ["tour", "runs", "api"] as const;
 type ScenarioName = (typeof SCENARIOS)[number];
 const DATA_DIR = path.join(homedir(), ".cache", "opsis-qt-e2e");
 const RUNS_DIR = path.join(homedir(), ".cache", "opsis-qt-e2e-runs");
+const API_DIR = path.join(homedir(), ".cache", "opsis-qt-e2e-api");
+const LOG_DIR = path.join(ROOT, "target", "e2e-qt");
 const SHOTS_DIR = path.join(homedir(), ".cache", "opsis-qt-shots");
 const SHOTS_FLAG = "--shots";
 const BUNDLES = [
@@ -105,6 +109,60 @@ function devBrowser(): string {
   return browser;
 }
 
+function seedApi(): string {
+  rmSync(API_DIR, { recursive: true, force: true });
+  const userData = path.join(API_DIR, "user-data");
+  seedUserData(userData);
+  cpSync(path.join(ROOT, "examples"), path.join(API_DIR, "projects"), { recursive: true });
+  return userData;
+}
+
+function exitConfirmed(userData: string): boolean | undefined {
+  const db = new DatabaseSync(path.join(userData, "opsis.db"));
+  const row = db.prepare("SELECT value FROM settings WHERE section = 'app'").get() as
+    | { value: string }
+    | undefined;
+  db.close();
+  return row === undefined
+    ? undefined
+    : (JSON.parse(row.value) as { confirmExit?: boolean }).confirmExit;
+}
+
+async function runApi(display: number, ffmpeg: string, page: string): Promise<boolean> {
+  ensureBundles();
+  const userData = seedApi();
+  const handoff = path.join(API_DIR, "api-done");
+  const app = runScenario(display, ffmpeg, "api", userData, {
+    OPSIS_QT_PAGE: page,
+    OPSIS_QT_HANDOFF: handoff,
+  });
+  const outside = await runApiChecks(
+    { socket: path.join(userData, "api.sock"), projects: path.join(API_DIR, "projects"), page },
+    (line) => console.log(line),
+  );
+  writeFileSync(handoff, "");
+  const { code, output } = await app;
+  writeLog("api", output);
+  const lines = output.split("\n").filter((line) => CHECK_LINE.test(line));
+  for (const line of lines) console.log(line.replace(/^\[[^\]]*\] /, ""));
+  const inside =
+    lines.some((line) => /check dont-ask-again: ok/.test(line)) &&
+    !lines.some((line) => / FAILED |panicked/.test(line));
+  const remembered = exitConfirmed(userData) === false;
+  if (!remembered)
+    console.log("check close-remembers-dont-ask-again: FAILED the choice wasn't saved");
+  if (code !== 0 || !outside || !inside || !remembered) {
+    console.error(`the api scenario failed (exit ${code ?? "killed"})`);
+    return false;
+  }
+  return true;
+}
+
+function writeLog(scenario: ScenarioName, output: string): void {
+  mkdirSync(LOG_DIR, { recursive: true });
+  writeFileSync(path.join(LOG_DIR, `${scenario}.log`), output);
+}
+
 function seedRuns(): string {
   rmSync(RUNS_DIR, { recursive: true, force: true });
   const userData = path.join(RUNS_DIR, "user-data");
@@ -192,6 +250,13 @@ async function runOne(display: number, ffmpeg: string, scenario: ScenarioName): 
   const browser = devBrowser();
   const extra: Record<string, string> = {};
   const page = await servePage();
+  if (scenario === "api") {
+    try {
+      return await runApi(display, ffmpeg, page.url);
+    } finally {
+      page.close();
+    }
+  }
   if (scenario === "tour") {
     rmSync(DATA_DIR, { recursive: true, force: true });
     seedUserData(DATA_DIR, { api: { enabled: false } });
@@ -208,7 +273,7 @@ async function runOne(display: number, ffmpeg: string, scenario: ScenarioName): 
   }
   try {
     const { code, output } = await runScenario(display, ffmpeg, scenario, userData, extra);
-    writeFileSync(path.join(path.dirname(DATA_DIR), `opsis-qt-e2e-${scenario}.log`), output);
+    writeLog(scenario, output);
     const lines = output.split("\n").filter((line) => CHECK_LINE.test(line));
     for (const line of lines) console.log(line.replace(/^\[[^\]]*\] /, ""));
     const finished = lines.some((line) => /scenario \S+ done/.test(line));
