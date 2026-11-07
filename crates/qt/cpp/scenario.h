@@ -25,12 +25,18 @@ class Scenario : public QObject {
     std::function<void()> action;
     int wait_ms;
     std::function<QString()> check;
+    std::function<bool()> ready;
   };
 
   Scenario(MainWindow* window, const QString& name, const QDir& shots);
   void Add(const QString& name, std::function<void()> action, int wait_ms = 450,
            std::function<QString()> check = {});
+  void Until(const QString& name, std::function<void()> action, int timeout_ms,
+             std::function<bool()> ready, std::function<QString()> check);
+  void Finish(const QString& name, std::size_t number,
+              const std::function<QString()>& check);
   void BuildTour();
+  void BuildRuns();
   void BuildBench(int count);
   void Next();
   void Shoot(const QString& name);

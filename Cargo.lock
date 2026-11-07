@@ -5640,6 +5640,7 @@ dependencies = [
  "opsis-runner",
  "opsis-session",
  "opsis-store",
+ "opsis-stream",
  "opsis-types",
  "proptest",
  "serde",

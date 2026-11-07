@@ -14,11 +14,22 @@ enum Reply {
     Many(PickedFiles),
 }
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct QtPlatform {
     next: AtomicU64,
     waiting: Mutex<HashMap<u64, Reply>>,
     active: AtomicBool,
+    views: Mutex<HashMap<String, Closed>>,
+}
+
+impl std::fmt::Debug for QtPlatform {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("QtPlatform")
+            .field("next", &self.next)
+            .field("waiting", &self.waiting)
+            .field("active", &self.active)
+            .finish_non_exhaustive()
+    }
 }
 
 impl QtPlatform {
@@ -49,6 +60,13 @@ impl QtPlatform {
         };
         if !delivered {
             log::debug!("a dialog answered after its caller left");
+        }
+    }
+
+    pub fn view_window_closed(&self, id: &str) {
+        let closed = self.views.lock().expect("view windows").remove(id);
+        if let Some(closed) = closed {
+            closed();
         }
     }
 
@@ -109,12 +127,19 @@ impl Platform for QtPlatform {
         }
     }
 
-    fn open_view_window(&self, _id: &str, _title: &str, closed: Closed) -> Result<(), String> {
-        closed();
-        Err(NOT_YET.to_owned())
+    fn open_view_window(&self, id: &str, title: &str, closed: Closed) -> Result<(), String> {
+        self.views
+            .lock()
+            .expect("view windows")
+            .insert(id.to_owned(), closed);
+        opsis_qt::open_view_window(id, title);
+        Ok(())
     }
 
-    fn close_view_window(&self, _id: &str) {}
+    fn close_view_window(&self, id: &str) {
+        self.views.lock().expect("view windows").remove(id);
+        opsis_qt::close_view_window(id);
+    }
 
     fn open_terminal_window(&self, _id: &str, _title: &str, closed: Closed) -> Result<(), String> {
         closed();

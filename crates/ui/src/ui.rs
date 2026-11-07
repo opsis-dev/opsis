@@ -9,6 +9,7 @@ use opsis_compile::canvas::{snap_to_grid, staggered};
 use opsis_compile::catalog::{EditorCatalog, EditorNode, editor_bundle, editor_catalog};
 use opsis_compile::compile::compile_workflow;
 use opsis_compile::graph::{IssueLevel, connection_problem_now};
+use opsis_compile::inspector::PickerTarget;
 use opsis_compile::layout::auto_layout;
 use opsis_compile::node::Platform as NodePlatform;
 use opsis_compile::nodes::media::IMPORT_TYPE;
@@ -30,7 +31,9 @@ use opsis_session::run::RunHost;
 use opsis_session::state::AppState;
 use opsis_session::windows::{self, SavedWindow, WorkArea};
 use opsis_session::{Session, compile, document, projects, run, settings, shared};
-use opsis_types::actions::Viewport;
+use opsis_stream::picker::PickRequest;
+use opsis_stream::view::ViewInput;
+use opsis_types::actions::{MouseButton, Viewport};
 use opsis_types::edits::{EdgeEnds, NodePatch, WorkflowEdit};
 use opsis_types::events::RunTargets;
 use opsis_types::project::OUT_DIR;
@@ -45,8 +48,8 @@ use tokio::sync::broadcast::error::RecvError;
 use crate::platform::QtPlatform;
 use crate::project::Extras;
 use crate::{
-    clipboard, colors, graph, inspector, look, media, mixer, motion, player, project, replay,
-    run_panel, timeline,
+    clipboard, colors, graph, inspector, keys, look, media, mixer, motion, player, project, replay,
+    run_panel, streams, timeline,
 };
 
 const LAYOUT_KEY: &str = "nativeDockLayout";
@@ -74,7 +77,15 @@ pub struct Ui {
     audio: Arc<Mutex<opsis_audio::output::Output>>,
     previews: mixer::Previews,
     players: player::Players,
+    view_windows: streams::ViewWindows,
     started: Instant,
+}
+
+impl Drop for Ui {
+    fn drop(&mut self) {
+        self.players.close_all();
+        self.audio.lock().expect("sound output").close();
+    }
 }
 
 impl fmt::Debug for Ui {
@@ -171,6 +182,7 @@ impl Ui {
             audio: Arc::new(Mutex::new(opsis_audio::output::Output::new())),
             previews: mixer::Previews::default(),
             players: player::Players::default(),
+            view_windows: streams::ViewWindows::default(),
             started: Instant::now(),
         }
     }
@@ -409,6 +421,15 @@ impl Ui {
         families
     }
 
+    fn send_view(&self, id: &str, input: ViewInput) {
+        let (session, id) = (self.session.clone(), id.to_owned());
+        self.runtime.spawn(async move {
+            if let Err(error) = opsis_session::views::view_input(&session, id, input).await {
+                log::debug!("sending input to a view: {}", error.0);
+            }
+        });
+    }
+
     fn view_key(&self) -> Option<String> {
         self.state()
             .editor()
@@ -506,6 +527,7 @@ impl Host for Ui {
         let mixes = self.mixes.clone();
         let audio = Arc::clone(&self.audio);
         let previews = self.previews.clone();
+        let view_windows = self.view_windows.clone();
         let handle = self.runtime.handle().clone();
         let session = self.session.clone();
         std::thread::spawn(move || {
@@ -536,6 +558,19 @@ impl Host for Ui {
                             && let Some(node) = asked.node_id.as_deref()
                         {
                             opsis_qt::post_replay(node, &plain(&asked.tab));
+                        }
+                        if let SessionEvent::ViewEventFired(fired) = &addressed.event
+                            && view_windows.noted(&fired.id, &fired.event)
+                        {
+                            let session = session.clone();
+                            let id = fired.id.clone();
+                            handle.spawn(async move {
+                                if let Err(error) =
+                                    opsis_session::views::view_choose_files(session, id).await
+                                {
+                                    log::warn!("choosing files for a view: {}", error.0);
+                                }
+                            });
                         }
                         if let SessionEvent::DocumentChanged(changed) = &addressed.event
                             && mine
@@ -1710,6 +1745,244 @@ impl Host for Ui {
             view.trace_id.clear();
         }
         view
+    }
+
+    fn view_attach(&self, id: &str) -> u64 {
+        let (target, slot) = self.view_windows.slot(id);
+        if let Err(error) =
+            opsis_session::views::attach_view(self.session.clone(), id.to_owned(), Arc::new(slot))
+        {
+            log::warn!("showing a view: {}", error.0);
+        }
+        target
+    }
+
+    fn view_state(&self, id: &str) -> opsis_qt::StreamViewState {
+        self.view_windows.state(id)
+    }
+
+    fn view_frame(&self, id: &str) -> opsis_qt::FrameRef {
+        self.view_windows.frame(id)
+    }
+
+    fn view_mouse(
+        &self,
+        id: &str,
+        kind: u8,
+        x: f64,
+        y: f64,
+        button: u32,
+        buttons: u32,
+        clicks: i32,
+        modifiers: u32,
+    ) {
+        let modifiers = keys::dom_modifiers(modifiers, cfg!(target_os = "macos"));
+        let buttons = i64::from(buttons & 0x1f);
+        let click_count = i64::from(clicks.max(1));
+        let button = match button {
+            1 => MouseButton::Left,
+            2 => MouseButton::Right,
+            4 => MouseButton::Middle,
+            8 => MouseButton::Back,
+            16 => MouseButton::Forward,
+            _ => MouseButton::None,
+        };
+        let input = match kind {
+            0 => ViewInput::MouseDown {
+                x,
+                y,
+                button,
+                buttons,
+                click_count,
+                modifiers,
+            },
+            1 => ViewInput::MouseUp {
+                x,
+                y,
+                button,
+                buttons,
+                click_count,
+                modifiers,
+            },
+            _ => ViewInput::MouseMove {
+                x,
+                y,
+                buttons,
+                modifiers,
+            },
+        };
+        self.send_view(id, input);
+    }
+
+    fn view_wheel(&self, id: &str, x: f64, y: f64, dx: f64, dy: f64, modifiers: u32) {
+        self.send_view(
+            id,
+            ViewInput::Wheel {
+                x,
+                y,
+                delta_x: dx,
+                delta_y: dy,
+                modifiers: keys::dom_modifiers(modifiers, cfg!(target_os = "macos")),
+            },
+        );
+    }
+
+    fn view_key(&self, id: &str, down: bool, key: u32, text: &str, modifiers: u32, repeat: bool) {
+        let keypad = modifiers & 0x2000_0000 != 0;
+        let modifiers = keys::dom_modifiers(modifiers, cfg!(target_os = "macos"));
+        let dom = keys::dom_key(key, text, keypad);
+        let input = if down {
+            ViewInput::KeyDown {
+                text: keys::typed_text(&dom, text, modifiers),
+                key: dom.key,
+                code: dom.code,
+                key_code: dom.key_code,
+                location: dom.location,
+                modifiers,
+                repeat,
+            }
+        } else {
+            ViewInput::KeyUp {
+                key: dom.key,
+                code: dom.code,
+                key_code: dom.key_code,
+                location: dom.location,
+                modifiers,
+            }
+        };
+        self.send_view(id, input);
+    }
+
+    fn view_text(&self, id: &str, text: &str) {
+        self.send_view(
+            id,
+            ViewInput::Text {
+                text: text.to_owned(),
+            },
+        );
+    }
+
+    fn view_navigate(&self, id: &str, url: &str) {
+        let (session, id, url) = (self.session.clone(), id.to_owned(), url.to_owned());
+        self.runtime.spawn(async move {
+            if let Err(error) = opsis_session::views::view_navigate(&session, id, url).await {
+                log::warn!("going to an address in a view: {}", error.0);
+            }
+        });
+    }
+
+    fn view_go(&self, id: &str, steps: i64) {
+        let (session, id) = (self.session.clone(), id.to_owned());
+        self.runtime.spawn(async move {
+            if let Err(error) = opsis_session::views::view_go(&session, id, steps).await {
+                log::warn!("going back or forward in a view: {}", error.0);
+            }
+        });
+    }
+
+    fn view_reload(&self, id: &str) {
+        let (session, id) = (self.session.clone(), id.to_owned());
+        self.runtime.spawn(async move {
+            if let Err(error) = opsis_session::views::view_reload(&session, id).await {
+                log::warn!("reloading a view: {}", error.0);
+            }
+        });
+    }
+
+    fn view_switch_tab(&self, id: &str, tab: &str) {
+        let (session, id, tab) = (self.session.clone(), id.to_owned(), tab.to_owned());
+        self.runtime.spawn(async move {
+            if let Err(error) = opsis_session::views::view_switch_tab(&session, id, tab).await {
+                log::warn!("switching a view's tab: {}", error.0);
+            }
+        });
+    }
+
+    fn view_answer(&self, id: &str, accept: bool, prompt: &str) {
+        self.view_windows.answered(id);
+        let (session, id, prompt) = (self.session.clone(), id.to_owned(), prompt.to_owned());
+        self.runtime.spawn(async move {
+            if let Err(error) =
+                opsis_session::views::view_answer_dialog(&session, id, accept, prompt).await
+            {
+                log::warn!("answering a page's dialog: {}", error.0);
+            }
+        });
+    }
+
+    fn view_resize(&self, id: &str, width: u32, height: u32, dpr: f64) {
+        let (session, id) = (self.session.clone(), id.to_owned());
+        self.runtime.spawn(async move {
+            let size = opsis_stream::view::ViewSize { width, height, dpr };
+            if let Err(error) = opsis_session::views::view_resize(&session, id, size).await {
+                log::warn!("resizing a view: {}", error.0);
+            }
+        });
+    }
+
+    fn pick_target(&self, node_id: &str, key: &str) {
+        let picker = self
+            .compiled
+            .lock()
+            .expect("latest compile")
+            .inspector
+            .as_ref()
+            .filter(|c| c.node_id == node_id)
+            .map(|c| c.picker.clone());
+        let page = match picker {
+            Some(PickerTarget::Page(page)) => page,
+            Some(PickerTarget::Problem { message }) => {
+                opsis_qt::notify(&message, "");
+                return;
+            }
+            None => {
+                opsis_qt::notify("The page to pick from isn't ready yet.", "");
+                return;
+            }
+        };
+        opsis_qt::notify(
+            "A browser window opened. Click the element, or Shift-click a spot.",
+            "",
+        );
+        let (session, node, key) = (self.session.clone(), node_id.to_owned(), key.to_owned());
+        self.runtime.spawn(async move {
+            let request = PickRequest {
+                url: page.url,
+                viewport: page.viewport,
+            };
+            match opsis_session::views::pick_element(session.clone(), request).await {
+                Ok(Some(chosen)) => {
+                    let mut params = Map::new();
+                    params.insert(key.clone(), Value::String(chosen.target.clone()));
+                    params.insert(
+                        format!("{key}Role"),
+                        chosen
+                            .role
+                            .filter(|r| !r.is_empty())
+                            .map_or(Value::Null, Value::String),
+                    );
+                    let edit = WorkflowEdit::UpdateNode {
+                        id: node,
+                        patch: NodePatch {
+                            params: Some(params),
+                            ..NodePatch::default()
+                        },
+                    };
+                    match document::edit_workflow(&session, edit) {
+                        Ok(_) => opsis_qt::notify(&format!("Picked “{}”", chosen.target), ""),
+                        Err(error) => opsis_qt::notify("Couldn't pick the element", &error.0),
+                    }
+                }
+                Ok(None) => {}
+                Err(error) => opsis_qt::notify("Couldn't pick the element", &error.0),
+            }
+        });
+    }
+
+    fn view_closed(&self, id: &str) {
+        self.view_windows.forget(id);
+        self.platform.view_window_closed(id);
+        opsis_session::views::view_close(&self.session, id);
     }
 
     fn trace(&self, trace_id: &str) -> TraceView {

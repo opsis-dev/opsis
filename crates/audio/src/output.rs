@@ -173,7 +173,7 @@ pub struct Output {
     last_scrub: Option<Instant>,
     shared: Arc<Mutex<Shared>>,
     device_rate: Arc<Mutex<Option<u32>>>,
-    stop: Option<mpsc::Sender<()>>,
+    stop: Option<(mpsc::Sender<()>, std::thread::JoinHandle<()>)>,
 }
 
 fn open_stream(
@@ -246,8 +246,17 @@ impl Output {
                 drop(stream);
             });
         match started {
-            Ok(_) => self.stop = Some(sender),
+            Ok(thread) => self.stop = Some((sender, thread)),
             Err(error) => log::warn!("starting the sound output: {error}"),
+        }
+    }
+
+    pub fn close(&mut self) {
+        if let Some((sender, thread)) = self.stop.take() {
+            let _ = sender.send(());
+            if thread.join().is_err() {
+                log::warn!("the sound output thread panicked");
+            }
         }
     }
 
@@ -313,8 +322,6 @@ impl Output {
 
 impl Drop for Output {
     fn drop(&mut self) {
-        if let Some(sender) = self.stop.take() {
-            let _ = sender.send(());
-        }
+        self.close();
     }
 }

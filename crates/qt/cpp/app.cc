@@ -11,6 +11,7 @@
 #include <QPainter>
 #include <QStyleFactory>
 #include <QSvgRenderer>
+#include <QPointer>
 #include <QTimer>
 #include <QtCore/QtResource>
 #include <array>
@@ -221,6 +222,10 @@ int App::Run(rust::Box<bridge::Session> host) {
   Scenario::MaybeStart(window);
   const int code = QApplication::exec();
   delete window;
+  QList<QPointer<QWidget>> left;
+  for (QWidget* top : QApplication::topLevelWidgets()) left.append(top);
+  for (const QPointer<QWidget>& top : left) delete top.data();
+  session_.reset();
   return code;
 }
 

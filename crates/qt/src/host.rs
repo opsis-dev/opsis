@@ -5,8 +5,8 @@ use crate::bridge::ffi::{
     FilmTiles, GradientInfo, GraphView, InspectorView, KeyLineView, LoudnessView, MarkDrawnView,
     MarkPointsView, MenuSectionView, MeterView, MixerView, MotionInfo, NodeMove, PaletteEntry,
     PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView, ReplayView, RulerStep,
-    RunPanelView, ScreenArea, SettingsView, SnapView, TemplateView, TextToken, TimelineView,
-    TraceView, VariableView, WindowPlacement,
+    RunPanelView, ScreenArea, SettingsView, SnapView, StreamViewState, TemplateView, TextToken,
+    TimelineView, TraceView, VariableView, WindowPlacement,
 };
 use crate::frame::FrameRef;
 
@@ -111,6 +111,35 @@ pub trait Host {
     fn show_replay(&self, node_id: &str, tab: &str) -> HostResult<()>;
     fn replay(&self, node_id: &str, tab: &str) -> ReplayView;
     fn trace(&self, trace_id: &str) -> TraceView;
+    fn view_attach(&self, id: &str) -> u64;
+    fn view_state(&self, id: &str) -> StreamViewState;
+    fn view_frame(&self, id: &str) -> FrameRef;
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "one pointer event crosses as its parts"
+    )]
+    fn view_mouse(
+        &self,
+        id: &str,
+        kind: u8,
+        x: f64,
+        y: f64,
+        button: u32,
+        buttons: u32,
+        clicks: i32,
+        modifiers: u32,
+    );
+    fn view_wheel(&self, id: &str, x: f64, y: f64, dx: f64, dy: f64, modifiers: u32);
+    fn view_key(&self, id: &str, down: bool, key: u32, text: &str, modifiers: u32, repeat: bool);
+    fn view_text(&self, id: &str, text: &str);
+    fn view_navigate(&self, id: &str, url: &str);
+    fn view_go(&self, id: &str, steps: i64);
+    fn view_reload(&self, id: &str);
+    fn view_switch_tab(&self, id: &str, tab: &str);
+    fn view_answer(&self, id: &str, accept: bool, prompt: &str);
+    fn view_resize(&self, id: &str, width: u32, height: u32, dpr: f64);
+    fn view_closed(&self, id: &str);
+    fn pick_target(&self, node_id: &str, key: &str);
     fn audio_play(&self, seconds: f64, rate: f64);
     fn audio_pause(&self);
     fn audio_seek(&self, seconds: f64);
@@ -203,6 +232,14 @@ pub fn post_edited(ids: Vec<String>) {
 
 pub fn post_replay(node_id: &str, tab: &str) {
     ffi::post_replay(node_id, tab);
+}
+
+pub fn open_view_window(id: &str, title: &str) {
+    ffi::open_view_window(id, title);
+}
+
+pub fn close_view_window(id: &str) {
+    ffi::close_view_window(id);
 }
 
 pub fn request_dialog(
@@ -596,6 +633,93 @@ impl Session {
 
     pub(crate) fn trace(&self, trace_id: &str) -> TraceView {
         self.0.trace(trace_id)
+    }
+
+    pub(crate) fn view_attach(&self, id: &str) -> u64 {
+        self.0.view_attach(id)
+    }
+
+    pub(crate) fn view_state(&self, id: &str) -> StreamViewState {
+        self.0.view_state(id)
+    }
+
+    #[expect(
+        clippy::unnecessary_box_returns,
+        reason = "cxx hands an opaque Rust type to C++ only inside a Box"
+    )]
+    pub(crate) fn view_frame(&self, id: &str) -> Box<FrameRef> {
+        Box::new(self.0.view_frame(id))
+    }
+
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "one pointer event crosses as its parts"
+    )]
+    pub(crate) fn view_mouse(
+        &self,
+        id: &str,
+        kind: u8,
+        x: f64,
+        y: f64,
+        button: u32,
+        buttons: u32,
+        clicks: i32,
+        modifiers: u32,
+    ) {
+        self.0
+            .view_mouse(id, kind, x, y, button, buttons, clicks, modifiers);
+    }
+
+    pub(crate) fn view_wheel(&self, id: &str, x: f64, y: f64, dx: f64, dy: f64, modifiers: u32) {
+        self.0.view_wheel(id, x, y, dx, dy, modifiers);
+    }
+
+    pub(crate) fn view_key(
+        &self,
+        id: &str,
+        down: bool,
+        key: u32,
+        text: &str,
+        modifiers: u32,
+        repeat: bool,
+    ) {
+        self.0.view_key(id, down, key, text, modifiers, repeat);
+    }
+
+    pub(crate) fn view_text(&self, id: &str, text: &str) {
+        self.0.view_text(id, text);
+    }
+
+    pub(crate) fn view_navigate(&self, id: &str, url: &str) {
+        self.0.view_navigate(id, url);
+    }
+
+    pub(crate) fn view_go(&self, id: &str, steps: i64) {
+        self.0.view_go(id, steps);
+    }
+
+    pub(crate) fn view_reload(&self, id: &str) {
+        self.0.view_reload(id);
+    }
+
+    pub(crate) fn view_switch_tab(&self, id: &str, tab: &str) {
+        self.0.view_switch_tab(id, tab);
+    }
+
+    pub(crate) fn view_answer(&self, id: &str, accept: bool, prompt: &str) {
+        self.0.view_answer(id, accept, prompt);
+    }
+
+    pub(crate) fn view_resize(&self, id: &str, width: u32, height: u32, dpr: f64) {
+        self.0.view_resize(id, width, height, dpr);
+    }
+
+    pub(crate) fn view_closed(&self, id: &str) {
+        self.0.view_closed(id);
+    }
+
+    pub(crate) fn pick_target(&self, node_id: &str, key: &str) {
+        self.0.pick_target(node_id, key);
     }
 
     pub(crate) fn audio_play(&self, seconds: f64, rate: f64) {

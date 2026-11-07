@@ -34,6 +34,8 @@ namespace opsis {
 
 namespace {
 
+constexpr int kPollMs = 250;
+
 QString Rss() {
   QFile status(QStringLiteral("/proc/self/status"));
   if (!status.open(QIODevice::ReadOnly)) return QStringLiteral("unknown");
@@ -74,6 +76,8 @@ Scenario::Scenario(MainWindow* window, const QString& name, const QDir& shots)
   if (name == QStringLiteral("bench")) {
     const int count = qEnvironmentVariableIntValue("OPSIS_QT_BENCH_NODES");
     BuildBench(count > 0 ? count : 200);
+  } else if (name == QStringLiteral("runs")) {
+    BuildRuns();
   } else {
     BuildTour();
   }
@@ -82,7 +86,15 @@ Scenario::Scenario(MainWindow* window, const QString& name, const QDir& shots)
 
 void Scenario::Add(const QString& name, std::function<void()> action,
                    int wait_ms, std::function<QString()> check) {
-  steps_.push_back(Step{name, std::move(action), wait_ms, std::move(check)});
+  steps_.push_back(
+      Step{name, std::move(action), wait_ms, std::move(check), nullptr});
+}
+
+void Scenario::Until(const QString& name, std::function<void()> action,
+                     int timeout_ms, std::function<bool()> ready,
+                     std::function<QString()> check) {
+  steps_.push_back(Step{name, std::move(action), timeout_ms, std::move(check),
+                        std::move(ready)});
 }
 
 void Scenario::Next() {
@@ -101,31 +113,49 @@ void Scenario::Next() {
   const int wait = step.wait_ms;
   const QString name = step.name;
   const std::function<QString()> check = step.check;
+  const std::function<bool()> ready = step.ready;
   const std::size_t number = ++index_;
-  QTimer::singleShot(wait, this, [this, name, number, check] {
-    if (check || !misses_.isEmpty() || !Overflow().isEmpty()) {
-      QStringList found = misses_;
-      misses_.clear();
-      const QString overflow = Overflow();
-      if (!overflow.isEmpty()) found << overflow;
-      if (check) {
-        const QString own = check();
-        if (!own.isEmpty()) found << own;
-      }
-      const QString problem = found.join(QStringLiteral("; "));
-      ++checked_;
-      if (problem.isEmpty()) {
-        App::Get().Log(QStringLiteral("check %1: ok").arg(name));
-      } else {
-        ++failed_;
-        App::Get().Log(
-            QStringLiteral("check %1: FAILED %2").arg(name, problem));
-      }
+  if (!ready) {
+    QTimer::singleShot(wait, this,
+                       [this, name, number, check] { Finish(name, number, check); });
+    return;
+  }
+  auto* poll = new QTimer(this);
+  auto started = std::make_shared<QElapsedTimer>();
+  started->start();
+  poll->setInterval(kPollMs);
+  connect(poll, &QTimer::timeout, this,
+          [this, poll, started, wait, ready, name, number, check] {
+            if (!ready() && started->elapsed() < wait) return;
+            poll->stop();
+            poll->deleteLater();
+            Finish(name, number, check);
+          });
+  poll->start();
+}
+
+void Scenario::Finish(const QString& name, std::size_t number,
+                      const std::function<QString()>& check) {
+  if (check || !misses_.isEmpty() || !Overflow().isEmpty()) {
+    QStringList found = misses_;
+    misses_.clear();
+    const QString overflow = Overflow();
+    if (!overflow.isEmpty()) found << overflow;
+    if (check) {
+      const QString own = check();
+      if (!own.isEmpty()) found << own;
     }
-    Shoot(
-        QStringLiteral("%1-%2").arg(number, 2, 10, QLatin1Char('0')).arg(name));
-    Next();
-  });
+    const QString problem = found.join(QStringLiteral("; "));
+    ++checked_;
+    if (problem.isEmpty()) {
+      App::Get().Log(QStringLiteral("check %1: ok").arg(name));
+    } else {
+      ++failed_;
+      App::Get().Log(QStringLiteral("check %1: FAILED %2").arg(name, problem));
+    }
+  }
+  Shoot(QStringLiteral("%1-%2").arg(number, 2, 10, QLatin1Char('0')).arg(name));
+  Next();
 }
 
 QString Scenario::Overflow() {

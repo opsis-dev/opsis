@@ -319,6 +319,7 @@ impl Players {
             return;
         };
         player.pause();
+        player.audio.lock().expect("player sound").close();
         opsis_engine::temp::remove_child_temp(&player.temp);
     }
 

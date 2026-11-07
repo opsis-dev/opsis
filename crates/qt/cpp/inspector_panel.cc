@@ -519,7 +519,19 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
           App::Get().ShowError(QString::fromUtf8(error.what()));
         }
       });
-      return line;
+      auto* holder = new QWidget();
+      auto* row = new QHBoxLayout(holder);
+      row->setContentsMargins(0, 0, 0, 0);
+      row->setSpacing(6);
+      row->addWidget(line, 1);
+      auto* pick = MakeButton(QStringLiteral("Pick"), "outline",
+                              QStringLiteral("crosshair"), holder);
+      connect(pick, &QPushButton::clicked, this, [this, key] {
+        if (node_.isEmpty()) return;
+        App::Get().session().pick_target(ToRust(node_), ToRust(key));
+      });
+      row->addWidget(pick);
+      return holder;
     }
     case bridge::FieldKind::Theme: {
       const QString open_key = QStringLiteral("theme:") + key;

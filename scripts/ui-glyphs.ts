@@ -12,6 +12,7 @@ const OUT = path.join(ROOT, "crates", "ui", "glyphs.generated.json");
 const UI_ICONS = [
   "arrow-left",
   "arrow-left-right",
+  "arrow-right",
   "arrow-right-from-line",
   "arrow-up-right",
   "audio-lines",
@@ -31,6 +32,7 @@ const UI_ICONS = [
   "clapperboard",
   "clock",
   "copy",
+  "crosshair",
   "download",
   "ellipsis",
   "external-link",
@@ -74,6 +76,7 @@ const UI_ICONS = [
   "redo-2",
   "refresh-cw",
   "rotate-ccw",
+  "rotate-cw",
   "save",
   "scan-search",
   "scissors",

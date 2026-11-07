@@ -192,6 +192,19 @@ pub mod ffi {
     }
 
     #[derive(Debug, Clone)]
+    struct StreamViewState {
+        serial: u64,
+        frame: u64,
+        url: String,
+        tab_ids: Vec<String>,
+        tab_urls: Vec<String>,
+        active: u32,
+        dialog: String,
+        message: String,
+        prompt: String,
+    }
+
+    #[derive(Debug, Clone)]
     struct PlayerView {
         ready: bool,
         failed: bool,
@@ -907,6 +920,39 @@ pub mod ffi {
         fn show_replay(self: &Session, node_id: &str, tab: &str) -> Result<()>;
         fn replay(self: &Session, node_id: &str, tab: &str) -> ReplayView;
         fn trace(self: &Session, trace_id: &str) -> TraceView;
+        fn view_attach(self: &Session, id: &str) -> u64;
+        fn view_state(self: &Session, id: &str) -> StreamViewState;
+        fn view_frame(self: &Session, id: &str) -> Box<FrameRef>;
+        fn view_mouse(
+            self: &Session,
+            id: &str,
+            kind: u8,
+            x: f64,
+            y: f64,
+            button: u32,
+            buttons: u32,
+            clicks: i32,
+            modifiers: u32,
+        );
+        fn view_wheel(self: &Session, id: &str, x: f64, y: f64, dx: f64, dy: f64, modifiers: u32);
+        fn view_key(
+            self: &Session,
+            id: &str,
+            down: bool,
+            key: u32,
+            text: &str,
+            modifiers: u32,
+            repeat: bool,
+        );
+        fn view_text(self: &Session, id: &str, text: &str);
+        fn view_navigate(self: &Session, id: &str, url: &str);
+        fn view_go(self: &Session, id: &str, steps: i64);
+        fn view_reload(self: &Session, id: &str);
+        fn view_switch_tab(self: &Session, id: &str, tab: &str);
+        fn view_answer(self: &Session, id: &str, accept: bool, prompt: &str);
+        fn view_resize(self: &Session, id: &str, width: u32, height: u32, dpr: f64);
+        fn view_closed(self: &Session, id: &str);
+        fn pick_target(self: &Session, node_id: &str, key: &str);
         fn audio_play(self: &Session, seconds: f64, rate: f64);
         fn audio_pause(self: &Session);
         fn audio_seek(self: &Session, seconds: f64);
@@ -1027,6 +1073,8 @@ pub mod ffi {
         fn wake(target: u64);
         fn post_edited(ids: Vec<String>);
         fn post_replay(node_id: &str, tab: &str);
+        fn open_view_window(id: &str, title: &str);
+        fn close_view_window(id: &str);
         fn request_dialog(
             kind: DialogKind,
             id: u64,

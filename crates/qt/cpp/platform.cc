@@ -9,6 +9,7 @@
 #include "app.h"
 #include "event_hub.h"
 #include "opsis-qt/src/bridge.rs.h"
+#include "stream_window.h"
 
 namespace opsis::bridge {
 
@@ -108,6 +109,17 @@ void raise_editor() {
     window->raise();
     window->activateWindow();
   });
+}
+
+void open_view_window(rust::Str id, rust::Str title) {
+  const QString view = FromStr(id);
+  const QString heading = FromStr(title);
+  OnGuiThread([view, heading] { opsis::StreamWindow::Open(view, heading); });
+}
+
+void close_view_window(rust::Str id) {
+  const QString view = FromStr(id);
+  OnGuiThread([view] { opsis::StreamWindow::Close(view); });
 }
 
 void quit_app(std::int32_t code) {
