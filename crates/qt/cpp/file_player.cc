@@ -20,6 +20,7 @@
 
 #include "app.h"
 #include "opsis-qt/src/bridge.rs.h"
+#include "wake_hub.h"
 #include "widgets.h"
 
 namespace opsis {
@@ -291,17 +292,19 @@ FilePlayer::FilePlayer(const QString& file, const QString& label, bool video,
   });
   connect(&timer_, &QTimer::timeout, this, &FilePlayer::Tick);
   timer_.setInterval(kTickMs);
+  WakeHub::Get().Listen(id_, this, [this] { Tick(); });
   Tick();
 }
 
 FilePlayer::~FilePlayer() {
+  WakeHub::Get().Forget(id_);
   if (placeholder_) delete placeholder_;
   App::Get().session().player_close(id_);
 }
 
 void FilePlayer::showEvent(QShowEvent* event) {
   QFrame::showEvent(event);
-  timer_.start();
+  Tick();
 }
 
 void FilePlayer::hideEvent(QHideEvent* event) {
@@ -381,22 +384,33 @@ void FilePlayer::Tick() {
                                : QStringLiteral("Play"));
     play_->setAccessibleName(play_->toolTip());
   }
-  if (surface_ != nullptr && view.serial != serial_) {
-    const bridge::PlayerFrame frame = session.player_frame(id_);
-    serial_ = frame.serial;
-    const int width = static_cast<int>(frame.width);
-    const int height = static_cast<int>(frame.height);
-    if (width > 0 && height > 0 &&
-        frame.rgb.size() == static_cast<std::size_t>(width) *
-                                static_cast<std::size_t>(height) * 3) {
-      QImage image(frame.rgb.data(), width, height,
-                   static_cast<qsizetype>(width) * 3,
-                   QImage::Format_RGB888);
-      surface_->SetFrame(image.copy());
-    }
-  }
-  const bool wide = width() >= kWideEnough;
-  volume_->setVisible(wide);
+  if (surface_ != nullptr && view.serial != serial_) ShowFrame();
+  const bool tick = view.playing && (isVisible() || !placeholder_.isNull());
+  if (tick && !timer_.isActive()) timer_.start();
+  if (!tick && timer_.isActive()) timer_.stop();
+}
+
+void FilePlayer::resizeEvent(QResizeEvent* event) {
+  QFrame::resizeEvent(event);
+  volume_->setVisible(width() >= kWideEnough);
+}
+
+void FilePlayer::ShowFrame() {
+  rust::Box<bridge::FrameRef> frame = App::Get().session().player_frame(id_);
+  serial_ = frame->serial();
+  const int width = static_cast<int>(frame->width());
+  const int height = static_cast<int>(frame->height());
+  if (width <= 0 || height <= 0) return;
+  bridge::FrameRef* shared = frame.into_raw();
+  const QImage image(
+      shared->bytes().data(), width, height,
+      static_cast<qsizetype>(shared->stride()), QImage::Format_RGB888,
+      [](void* info) {
+        rust::Box<bridge::FrameRef>::from_raw(
+            static_cast<bridge::FrameRef*>(info));
+      },
+      shared);
+  surface_->SetFrame(image);
 }
 
 void FilePlayer::TogglePlay() {

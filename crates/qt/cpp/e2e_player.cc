@@ -94,6 +94,18 @@ void Scenario::BuildPlayer() {
                                      "new pictures"));
       });
   Add(
+      QStringLiteral("player-paused-shares-its-frame"), [] {}, 200,
+      [test] {
+        const auto* surface = test->host->findChild<PlayerSurface*>();
+        const rust::Box<bridge::FrameRef> frame =
+            App::Get().session().player_frame(test->id);
+        const bool shared = surface != nullptr && frame->width() > 0 &&
+                            surface->FrameBits() == frame->bytes().data();
+        return Expect(shared && !test->player->Ticking(),
+                      QStringLiteral("the paused player copied its picture "
+                                     "or kept ticking"));
+      });
+  Add(
       QStringLiteral("player-seek"),
       [this, test] {
         auto* seek = test->host->findChild<SeekBar*>();

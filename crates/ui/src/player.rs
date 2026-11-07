@@ -8,7 +8,7 @@ use opsis_audio::output::{Output, Preview};
 use opsis_footage::chain::FootageSource;
 use opsis_footage::decoder::{Decoder, FootageTools};
 use opsis_media::grade::GradeChain;
-use opsis_qt::{PlayerFrame, PlayerView};
+use opsis_qt::{FrameRef, PlayerView};
 use opsis_session::Session;
 use opsis_session::state::AppState;
 
@@ -40,7 +40,7 @@ struct Shown {
     serial: u64,
     width: u32,
     height: u32,
-    rgb: Vec<u8>,
+    rgb: Arc<Vec<u8>>,
 }
 
 #[derive(Debug, Default)]
@@ -57,6 +57,7 @@ struct Opened {
 
 #[derive(Debug)]
 struct Player {
+    id: u64,
     file: PathBuf,
     temp: PathBuf,
     opened: Mutex<Opened>,
@@ -172,7 +173,14 @@ impl Player {
         shown.serial += 1;
         shown.width = width;
         shown.height = height;
-        shown.rgb = rgb;
+        shown.rgb = Arc::new(rgb);
+        drop(shown);
+        opsis_qt::wake(self.id);
+    }
+
+    fn changed(&self, change: impl FnOnce(&mut Opened)) {
+        change(&mut self.opened.lock().expect("player"));
+        opsis_qt::wake(self.id);
     }
 
     fn tools(&self, ffmpeg: &Path) -> FootageTools {
@@ -284,6 +292,7 @@ impl Players {
     pub fn open(&self, session: &Session, handle: &tokio::runtime::Handle, file: &str) -> u64 {
         let id = self.next.fetch_add(1, Ordering::SeqCst);
         let player = Arc::new(Player {
+            id,
             file: PathBuf::from(file),
             temp: temp_of(session, id),
             opened: Mutex::default(),
@@ -352,23 +361,17 @@ impl Players {
         }
     }
 
-    pub fn frame(&self, id: u64) -> PlayerFrame {
-        let empty = PlayerFrame {
-            serial: 0,
-            width: 0,
-            height: 0,
-            rgb: Vec::new(),
-        };
+    pub fn frame(&self, id: u64) -> FrameRef {
         let Some(player) = self.get(id) else {
-            return empty;
+            return FrameRef::empty();
         };
         let shown = player.shown.lock().expect("player frame");
-        PlayerFrame {
-            serial: shown.serial,
-            width: shown.width,
-            height: shown.height,
-            rgb: shown.rgb.clone(),
-        }
+        FrameRef::rgb(
+            Arc::clone(&shown.rgb),
+            shown.width,
+            shown.height,
+            shown.serial,
+        )
     }
 
     pub fn play(&self, session: &Session, id: u64) {
@@ -491,17 +494,16 @@ async fn load(session: &Session, player: &Arc<Player>) {
                 "the player couldn't read {}: {error}",
                 player.file.display()
             );
-            player.opened.lock().expect("player").failed = true;
+            player.changed(|opened| opened.failed = true);
             return;
         }
         Err(error) => {
             log::warn!("reading the player's file: {error}");
-            player.opened.lock().expect("player").failed = true;
+            player.changed(|opened| opened.failed = true);
             return;
         }
     };
-    {
-        let mut opened = player.opened.lock().expect("player");
+    player.changed(|opened| {
         opened.has_video = probe.video.is_some();
         opened.has_audio = probe.audio.is_some();
         opened.duration = probe.duration_ms.map_or(0.0, |ms| f64::from(ms) / 1000.0);
@@ -510,7 +512,7 @@ async fn load(session: &Session, player: &Arc<Player>) {
             opened.height = video.height;
         }
         opened.ready = true;
-    }
+    });
     if let Some(ffmpeg) = ffmpeg_of(session) {
         player.decode(ffmpeg, 0.0, false);
     }
@@ -533,9 +535,12 @@ async fn load(session: &Session, player: &Arc<Player>) {
                 let at = player.clock.lock().expect("player clock").at();
                 player.audio.lock().expect("player sound").play(at, rate);
             }
-            player.opened.lock().expect("player").sound_ready = true;
+            player.changed(|opened| opened.sound_ready = true);
         }
-        Err(error) => log::warn!("decoding the player's sound: {error}"),
+        Err(error) => {
+            log::warn!("decoding the player's sound: {error}");
+            opsis_qt::wake(player.id);
+        }
     }
 }
 

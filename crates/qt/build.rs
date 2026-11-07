@@ -48,7 +48,7 @@ const MOC_HEADERS: [&str; 28] = [
     "replay_dialog.h",
 ];
 
-const SOURCES: [&str; 36] = [
+const SOURCES: [&str; 37] = [
     "app.cc",
     "event_hub.cc",
     "widgets.cc",
@@ -85,6 +85,7 @@ const SOURCES: [&str; 36] = [
     "file_player.cc",
     "e2e_player.cc",
     "replay_dialog.cc",
+    "wake_hub.cc",
 ];
 
 fn main() {

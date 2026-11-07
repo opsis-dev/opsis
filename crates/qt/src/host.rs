@@ -4,10 +4,11 @@ use crate::bridge::ffi::{
     self, BarView, BoundsView, CategoryView, CloseView, ColorView, DialogKind, EventKind,
     FilmTiles, GradientInfo, GraphView, InspectorView, KeyLineView, LoudnessView, MarkDrawnView,
     MarkPointsView, MenuSectionView, MeterView, MixerView, MotionInfo, NodeMove, PaletteEntry,
-    PlayerFrame, PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView, ReplayView,
-    RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView, TemplateView, TextToken,
-    TimelineView, TraceView, VariableView, WindowPlacement,
+    PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView, ReplayView, RulerStep,
+    RunPanelView, ScreenArea, SettingsView, SnapView, TemplateView, TextToken, TimelineView,
+    TraceView, VariableView, WindowPlacement,
 };
+use crate::frame::FrameRef;
 
 pub type HostResult<T> = Result<T, String>;
 
@@ -99,7 +100,7 @@ pub trait Host {
     fn player_open(&self, file: &str) -> u64;
     fn player_close(&self, id: u64);
     fn player_view(&self, id: u64) -> PlayerView;
-    fn player_frame(&self, id: u64) -> PlayerFrame;
+    fn player_frame(&self, id: u64) -> FrameRef;
     fn player_play(&self, id: u64);
     fn player_pause(&self, id: u64);
     fn player_seek(&self, id: u64, seconds: f64);
@@ -191,6 +192,10 @@ pub fn run(host: Box<dyn Host>) -> i32 {
 
 pub fn post_event(kind: EventKind) {
     ffi::post_event(kind);
+}
+
+pub fn wake(target: u64) {
+    ffi::wake(target);
 }
 
 pub fn request_dialog(
@@ -538,8 +543,12 @@ impl Session {
         self.0.player_view(id)
     }
 
-    pub(crate) fn player_frame(&self, id: u64) -> PlayerFrame {
-        self.0.player_frame(id)
+    #[expect(
+        clippy::unnecessary_box_returns,
+        reason = "cxx hands an opaque Rust type to C++ only inside a Box"
+    )]
+    pub(crate) fn player_frame(&self, id: u64) -> Box<FrameRef> {
+        Box::new(self.0.player_frame(id))
     }
 
     pub(crate) fn player_play(&self, id: u64) {

@@ -23,6 +23,7 @@ class PlayerSurface : public QWidget {
  public:
   explicit PlayerSurface(QWidget* parent = nullptr);
   void SetFrame(QImage frame);
+  const uchar* FrameBits() const { return frame_.constBits(); }
   void SetAspect(int width, int height);
   bool hasHeightForWidth() const override { return true; }
   int heightForWidth(int width) const override;
@@ -84,14 +85,17 @@ class FilePlayer : public QFrame {
   FilePlayer(FilePlayer&&) = delete;
   FilePlayer& operator=(FilePlayer&&) = delete;
   std::uint64_t id() const { return id_; }
+  bool Ticking() const { return timer_.isActive(); }
 
  protected:
   void showEvent(QShowEvent* event) override;
   void hideEvent(QHideEvent* event) override;
   void keyPressEvent(QKeyEvent* event) override;
+  void resizeEvent(QResizeEvent* event) override;
 
  private:
   void Tick();
+  void ShowFrame();
   void TogglePlay();
   void SetFullscreen(bool on);
   void ShowSpeedMenu();

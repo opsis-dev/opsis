@@ -13,6 +13,7 @@ struct Session;
 
 std::int32_t run_app(rust::Box<Session> session);
 void post_event(EventKind kind);
+void wake(std::uint64_t target);
 void request_dialog(DialogKind kind, std::uint64_t id, rust::Str title,
                     rust::Str start, rust::Str filter_name,
                     rust::Str filter_extensions);

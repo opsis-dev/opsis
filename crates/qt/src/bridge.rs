@@ -1,3 +1,4 @@
+use crate::frame::FrameRef;
 use crate::host::Session;
 
 #[cxx::bridge(namespace = "opsis::bridge")]
@@ -204,14 +205,6 @@ pub mod ffi {
         width: u32,
         height: u32,
         serial: u64,
-    }
-
-    #[derive(Debug, Clone)]
-    struct PlayerFrame {
-        serial: u64,
-        width: u32,
-        height: u32,
-        rgb: Vec<u8>,
     }
 
     #[derive(Debug, Clone)]
@@ -795,6 +788,14 @@ pub mod ffi {
     }
 
     extern "Rust" {
+        type FrameRef;
+        fn bytes(self: &FrameRef) -> &[u8];
+        fn width(self: &FrameRef) -> u32;
+        fn height(self: &FrameRef) -> u32;
+        fn stride(self: &FrameRef) -> u32;
+        fn serial(self: &FrameRef) -> u64;
+        fn is_jpeg(self: &FrameRef) -> bool;
+
         type Session;
 
         fn start_pump(self: &Session);
@@ -896,7 +897,7 @@ pub mod ffi {
         fn player_open(self: &Session, file: &str) -> u64;
         fn player_close(self: &Session, id: u64);
         fn player_view(self: &Session, id: u64) -> PlayerView;
-        fn player_frame(self: &Session, id: u64) -> PlayerFrame;
+        fn player_frame(self: &Session, id: u64) -> Box<FrameRef>;
         fn player_play(self: &Session, id: u64);
         fn player_pause(self: &Session, id: u64);
         fn player_seek(self: &Session, id: u64, seconds: f64);
@@ -1025,6 +1026,7 @@ pub mod ffi {
 
         fn run_app(session: Box<Session>) -> i32;
         fn post_event(kind: EventKind);
+        fn wake(target: u64);
         fn request_dialog(
             kind: DialogKind,
             id: u64,

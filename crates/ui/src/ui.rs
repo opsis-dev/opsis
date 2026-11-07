@@ -18,9 +18,9 @@ use opsis_qt::{
     BarView, BoundsView, CategoryView, Choice, CloseView, ColorView, EventKind, FilmTiles,
     GradientInfo, GraphView, Host, HostResult, InspectorView, KeyLineView, LoudnessView,
     MarkDrawnView, MarkPointsView, MenuSectionView, MeterView, MixerView, MotionInfo, NodeMove,
-    PaletteEntry, PlayerFrame, PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView,
-    ReplayView, RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView, TemplateView,
-    TextToken, TimelineView, TraceView, VariableView, WindowPlacement,
+    PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView, ReplayView,
+    RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView, TemplateView, TextToken,
+    TimelineView, TraceView, VariableView, WindowPlacement,
 };
 use opsis_session::analysis::{self, AnalysisRequest, AnalysisResult};
 use opsis_session::error::CommandError;
@@ -1627,7 +1627,7 @@ impl Host for Ui {
         self.players.view(id)
     }
 
-    fn player_frame(&self, id: u64) -> PlayerFrame {
+    fn player_frame(&self, id: u64) -> opsis_qt::FrameRef {
         self.players.frame(id)
     }
 
