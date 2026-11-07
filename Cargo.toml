@@ -15,6 +15,9 @@ aes-gcm = "0.11"
 apple-native-keyring-store = { version = "1", features = ["keychain"] }
 axum = "0.8"
 base64 = "0.23"
+cargo-packager = { git = "https://github.com/crabnebula-dev/cargo-packager", rev = "d5704a39a63e0c522c320de3cdc5a71044a568e0", default-features = false, features = [
+  "rustls-tls",
+] }
 cc = "1"
 cpal = "0.18"
 chromiumoxide = "0.9"
@@ -33,6 +36,7 @@ futures = "0.3"
 futures-util = "0.3"
 garde = "0.23"
 gltf = { version = "1", default-features = false }
+goblin = "0.10"
 heck = "0.5"
 hex = "0.4"
 hound = "3"
@@ -94,6 +98,7 @@ qt-build-utils = "0.10"
 quote = "1"
 regex = "1"
 reqwest = { version = "0.13", default-features = false, features = ["rustls"] }
+rpm = { version = "0.30", default-features = false, features = ["payload", "zstd-compression"] }
 sanitize-filename = "0.6"
 schemars = { version = "1", features = ["indexmap2"] }
 serde = "1"

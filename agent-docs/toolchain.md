@@ -15,6 +15,7 @@ The Rust nightly and how to move it, the Zig build of `opsis-vt`'s wrapper, the 
 | Shared oxlint, oxfmt, Vitest configs   | `scripts/lib/oxlint-base.ts`, `scripts/lib/oxfmt-base.ts`, `scripts/lib/vitest-base.ts`, `scripts/lib/tool-config.ts` |
 | Comment check                          | `scripts/comments.ts`                                                                                                 |
 | Qt and KDDockWidgets for `opsis-qt`    | `scripts/qt-install.ts` (`bun run qt:install`); `crates/qt/build.rs` → `QT_VERSION`, `KDDW_VERSION`, `qt_folder`      |
+| The release build's static Qt          | `scripts/lib/static-qt.ts` (`bun run qt:static`), `scripts/lib/trixie.ts`                                             |
 | C++ format and lint                    | `scripts/cpp.ts` → `STYLE`, `CHECKS`; `compile_commands.json` written by `crates/qt/build.rs`                         |
 | Rust test runner (stages FFmpeg first) | `scripts/test-rust.ts`                                                                                                |
 
@@ -39,6 +40,8 @@ The Rust nightly and how to move it, the Zig build of `opsis-vt`'s wrapper, the 
 - **`opsis-qt` builds against Qt 6.12.0 and KDDockWidgets 2.5.1 from `~/.cache/opsis-qt`**, which `bun run qt:install` fills: Qt through aqtinstall (`uvx`), KDDockWidgets from its release tarball, pinned by URL, sha256 and size. `build.rs` never downloads; it refuses a Qt older than 6.12 and names `qt:install` when either is missing.
   - `OPSIS_QT` names another Qt (CI points it at `jurplel/install-qt-action`'s install) and `OPSIS_KDDW_SOURCE` another KDDockWidgets source.
   - A static Qt (one with `libQt6Core.a`) is linked statically, with its platform plugins imported by name (`STATIC_PLUGINS`) and linked as one group; the shared Qt is linked with an rpath.
+- **Release builds link the static Qt `bun run qt:static` builds (`scripts/lib/static-qt.ts`)**: Qt Base and Qt Svg from the pinned source tarballs, without ICU or OpenGL, into `~/.cache/opsis-qt-static/<version>/<folder>`, marked done by an `.opsis-complete` file.
+  - On Linux it builds in a plain `debian:trixie` container (`scripts/lib/trixie.ts`, which installs the X11, xcb, Wayland, fontconfig, FreeType, D-Bus and ALSA development packages, then runs as your user), because a static link needs development files a desktop doesn't have; with `CI=true` it builds on the machine itself. macOS and Windows build it in CI.
   - KDDockWidgets builds against Qt's private Widgets headers, so moving Qt means rebuilding and re-checking it.
 - **Docked panels show no title, and a lone panel no tab** (`crates/qt/cpp/dock_style.cc` → `DockTitleBar::setVisible`, without `Flag_AlwaysShowTabs`): the docked title bar is zero pixels tall, never hidden, because KDDockWidgets refuses to float a panel through a hidden title bar (`TitleBar::makeWindow`). A floating panel keeps its window's title bar to drag and close it by.
   - The style sheet styles `QTabWidget::pane`, or Fusion draws a second sunken frame inside every dock.

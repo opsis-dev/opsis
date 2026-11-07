@@ -1,26 +1,25 @@
 import { copyFileSync, cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { stagedFfmpeg } from "./ffmpeg";
+import { releaseBinary } from "./release";
 import { ROOT } from "./tool-config";
 
-const RELEASE_BINARY = path.join(ROOT, "target", "release", "opsis");
 const FFMPEG_PROGRAM = "opsis-ffmpeg";
 const FOLDERS = ["film-bundle", "terminal-bundle", "resources"];
 const FILES = ["LICENSE", "THIRD_PARTY_NOTICES.md"];
 
 export function assembleAppFolder(folder: string): string {
-  const missing = [
-    RELEASE_BINARY,
-    stagedFfmpeg(),
-    ...FOLDERS.map((name) => path.join(ROOT, name)),
-  ].filter((needed) => !existsSync(needed));
+  const program = releaseBinary();
+  const missing = [program, stagedFfmpeg(), ...FOLDERS.map((name) => path.join(ROOT, name))].filter(
+    (needed) => !existsSync(needed),
+  );
   if (missing.length > 0)
     throw new Error(
       `Run bun run make first; missing ${missing.map((file) => path.relative(ROOT, file)).join(", ")}.`,
     );
   rmSync(folder, { recursive: true, force: true });
   mkdirSync(folder, { recursive: true });
-  copyFileSync(RELEASE_BINARY, path.join(folder, "opsis"));
+  copyFileSync(program, path.join(folder, "opsis"));
   copyFileSync(stagedFfmpeg(), path.join(folder, FFMPEG_PROGRAM));
   for (const name of FOLDERS)
     cpSync(path.join(ROOT, name), path.join(folder, name), { recursive: true });

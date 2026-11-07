@@ -58,7 +58,7 @@
 - **Every tool config is a `*.config.ts`, except the Rust ones**, which are TOML at the root (`rust-toolchain.toml`, `rustfmt.toml`, `deny.toml`). Shared TS tool configs are in `scripts/lib/` (`oxlint-base.ts`, `oxfmt-base.ts`, `vitest-base.ts`, `tool-config.ts`).
 - **Rust builds on one pinned nightly, `rust-toolchain.toml`**, with `rust-version` in `[workspace.package]` refusing an older compiler. Moving it touches several files and another repository ([toolchain.md](agent-docs/toolchain.md)).
 - **Zig 0.17 builds `opsis-vt`'s wrapper**, and `crates/vt/build.rs` refuses any other version ([toolchain.md](agent-docs/toolchain.md)).
-- **Qt 6.12 and KDDockWidgets 2.5.1 build `opsis-qt`**, from `~/.cache/opsis-qt` after `bun run qt:install`; its C++ follows Google style ([toolchain.md](agent-docs/toolchain.md)).
+- **Qt 6.12 and KDDockWidgets 2.5.1 build `opsis-qt`**, from `~/.cache/opsis-qt` after `bun run qt:install`; release builds link a static Qt without ICU from `~/.cache/opsis-qt-static` (`bun run qt:static`). Its C++ follows Google style ([toolchain.md](agent-docs/toolchain.md)).
 - **Rust imports are grouped std, external crates, then the workspace's own, one `use` per module, and struct fields use the shorthand.** `rustfmt.toml` keeps the imports so (`group_imports = "StdExternalCrate"`, `imports_granularity = "Module"`, applied only by the nightly).
 - **`bun start` (`scripts/start.ts`) stages FFmpeg when missing and runs the editor (`cargo run -p opsis-ui`).** Exports and terminal previews also need `bun run film:bundle`, live terminal pictures `bun run terminal:bundle`; make each again whenever `packages/video` or `packages/runtime` changes.
 - **To see a change in the running app, use the `check-app` skill** (`.claude/skills/check-app`): it seeds `~/.cache/opsis-check` (short, so the API socket fits), starts `bun start` in a virtual display and drives it through the Local API.
@@ -92,6 +92,7 @@
   - A root entry carries only the features every crate that uses it needs, since crates can add features but never remove them, and `default-features = false` wherever any crate turns them off; a crate that wants them says `default-features = true` (`image`).
 - **`Cargo.lock` holds exact versions, and adding or updating a dependency takes the latest release**, except these pins:
   - `specta` `=2.0.0-rc.26` and `specta-typescript` and `specta-serde` `=0.0.13` in the root table: prereleases whose API changes between releases and whose output is `packages/video/src/generated/spec.ts`, so they move together and only with `bun run types:export`.
+  - `cargo-packager` is a git dependency in the root table, pinned to commit `d5704a3` of its main branch (2026-11-04): its last release, 0.11.8, uses `zip` 0.6.6, which has four advisories. Move it to the first release after that commit.
   - Ghostty's terminal engine is pinned in `crates/vt/zig/build.zig.zon` to the lib-vt source tarball of v1.4.0 (commit `83fb956`) by URL and hash, written with `zig fetch --save=ghostty <url>` in `crates/vt/zig`, never by hand. Ghostty builds only with the Zig version it names, so moving it may move Zig too.
 - **Every dependency must be GPLv3-compatible** ([packaging.md](agent-docs/packaging.md) has the allowed licences and the notices).
 
@@ -154,6 +155,7 @@ agent-docs/            the domain docs (§8)
 | `opsis-e2e-input` | dev-only: holds a virtual pointer and keyboard on a headless Wayland compositor and carries out the e2e's real input requests                                                                                       |
 | `opsis-golden`    | dev-only: the golden-file helper and the readers and builders more than one crate's tests use (`repo`, `home`, `typed`, `text`, `number`, `cases`, `node`, `edge`)                                                  |
 | `opsis-macros`    | procedural macros (`proc-macro2`, `syn`, `quote`; no `paste` or `pastey`, since `quote` and `format_ident!` build every name)                                                                                       |
+| `opsis-packager`  | dev-only: the installers `bun run make` builds, through cargo-packager (deb, AppImage, pacman, NSIS, MSI, the macOS app and dmg) and the `rpm` crate, after checking the program loads no Qt, ICU or KDDockWidgets  |
 
 - **Test helpers only one crate's tests share live in its `tests/support/mod.rs`**; those several crates share go in `opsis-golden`.
 
@@ -231,7 +233,7 @@ agent-docs/            the domain docs (§8)
 | [runs.md](agent-docs/runs.md)           | run state, results following keys, media file checks, cache keys and version constants                                                        |
 | [engine.md](agent-docs/engine.md)       | the recording browser, the bundled FFmpeg, probing, child temp folders and processes                                                          |
 | [fonts.md](agent-docs/fonts.md)         | bundled and terminal fonts, the library, project fonts and roles, `family_for`                                                                |
-| [packaging.md](agent-docs/packaging.md) | `bun run make`, staging, the staged FFmpeg, icons, licences and notices; installers wait for the packaging step                               |
+| [packaging.md](agent-docs/packaging.md) | `bun run make`, staging, the static Qt, `opsis-packager` and the installers, icons, licences and notices                                      |
 | [e2e.md](agent-docs/e2e.md)             | the e2e scenarios, their virtual display and headless Wayland, data folders, the offscreen view tests                                         |
 | [profiling.md](agent-docs/profiling.md) | the profiling build, `bun run profile` in Docker, per-node CPU and memory, the size tools                                                     |
 

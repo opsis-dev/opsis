@@ -15,7 +15,6 @@ import { DEV_ENGINE, seedUserData } from "./lib/user-data";
 
 const PROFILE_DIR = path.join(os.homedir(), ".cache", "opsis-profile");
 const APP_DIR = path.join(PROFILE_DIR, "app");
-const QT_DIR = path.join(os.homedir(), ".cache", "opsis-qt", "6.12.0", "gcc_64");
 const IMAGE = "opsis-profile";
 const SAMPLY_VERSION = "0.13.1";
 const SAMPLY_SHA256 = "61875daad67888798690dea3cb2748279df6ac299c5c6a857d67eed7642473d9";
@@ -94,7 +93,6 @@ function runContainer(runDir: string): void {
     [ROOT, ROOT, "ro"],
     [DEV_ENGINE, DEV_ENGINE, "ro"],
     [APP_DIR, APP_DIR, "ro"],
-    [QT_DIR, QT_DIR, "ro"],
     [runDir, runDir, "rw"],
     [bunProgram(), "/usr/local/bin/bun", "ro"],
   ];

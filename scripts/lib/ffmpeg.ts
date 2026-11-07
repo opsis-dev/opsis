@@ -75,7 +75,7 @@ export function sidecarFileName(target: string): string {
   return `opsis-ffmpeg-${target}${exe}`;
 }
 
-function hostTarget(): string {
+export function hostTarget(): string {
   const info = execFileSync("rustc", ["-vV"], { encoding: "utf8" });
   const host = info
     .split("\n")

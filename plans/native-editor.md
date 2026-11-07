@@ -31,36 +31,41 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### What it changes
 
-`bun run make` builds installers for the native app, with Qt and KDDockWidgets linked statically into the program and FFmpeg a program beside it; today it stages and builds the release binary only, against the developer's shared Qt.
+`bun run make` builds every installer on its own system, with Qt and KDDockWidgets linked statically into the program and FFmpeg a program beside it.
 
 ### Fit with Opsis
 
-**In place.** `scripts/stage.ts`; the release binary (`target/release/opsis`) that finds FFmpeg and its resources beside itself, or in `Resources` on macOS (`crates/ui/src/folders.rs`); `crates/qt/build.rs`, which links a static Qt (one with `libQt6Core.a`) with its platform plugins when `OPSIS_QT` names one; `THIRD_PARTY_NOTICES.md`; `deny.toml`.
+**In place.**
 
-**Missing.** The static Qt builds; a bundler for each format; the CI builds on Windows and macOS, signing and notarization, which left with the Tauri bundler.
+- The static Qt without ICU (`bun run qt:static`), built in a `debian:trixie` container on Linux, natively with `CI=true`.
+- The release build against it (`scripts/lib/release.ts`).
+- `opsis-packager`, which builds all eight formats (deb, rpm, AppImage, pacman, NSIS, MSI, the macOS app and dmg) and refuses a program that loads Qt, ICU or KDDockWidgets.
+- The app's resource lookup for Linux packages (`/usr/lib/opsis`).
+- The deb was checked 2026-11-08 in a plain `debian:trixie` container: apt installed it with its dependencies and the installed program passed the `views` scenario, with and without CA certificates. The rpm was checked the same way with `rpm` (digests, metadata, an install into a separate root, `views`). The AppImage, pacman and other formats are checked on small test packages (`crates/packager/tests/packages.rs`).
+- [packaging.md](../agent-docs/packaging.md) has the rules.
+
+**Missing.** The static Qt and the packages on macOS and Windows; the notices of the code the static Qt compiles in; signing and notarization; the CI jobs.
 
 ### Work
 
-1. Static Qt: build Qt Base and Qt Svg 6.12 for each platform without ICU, as the spike did on Linux (`configure -static -release -no-icu -no-opengl -no-feature-sql -qt-zlib -qt-libpng -qt-libjpeg -qt-harfbuzz -qt-pcre -system-freetype -fontconfig -xcb`, Linux in about 7 minutes with 8 jobs), and KDDockWidgets against it; CI caches each by Qt version and flags, and the release job points `OPSIS_QT` at it.
-2. Resources: each format puts the licences and notices, and the film page and terminal page while they exist ([native-renderer.md](native-renderer.md) removes both at its cut-over), where the app looks: beside the program, or in the macOS bundle's `Resources`.
-3. Linux: AppImage, deb and rpm (formats decided below). No Qt files ship: the program needs only what every desktop has (glibc, libstdc++, X11 and xcb, the Wayland client, xkbcommon, fontconfig, FreeType, D-Bus), which the deb and rpm name as dependencies.
-4. Windows: NSIS (per-user install as today).
-5. macOS: the app bundle, `codesign` on every Mach-O, notarization in CI as today.
-6. Licences: add the notices of the third-party code the static Qt compiles in (its copies of zlib, libpng, libjpeg, HarfBuzz and PCRE2, and Qt's other bundled code, listed in its `qt_attribution.json` files).
-7. CI: build every format on its platform again, check the licences each ships and every Mach-O's signature, as the Tauri bundler's job did.
-
-### Decisions
-
-- **Which formats ship.** None is required: a tarball per platform (the program plus its resources folder) runs as it is. AppImage adds one file that runs on most distros; deb and rpm add a distro install with its dependencies, menu entry and updates; the macOS app and the Windows installer are what those systems expect from a signed program. Decided at the start of this part.
+1. Static Qt on macOS and Windows: `static-qt.ts` builds only on Linux. Add each platform's configure flags (no `-xcb`, `-fontconfig` or `-system-freetype`) and build them in CI, cached by Qt version and flags.
+2. CI: on each platform, build the static Qt, run `bun run make -- --formats` with that platform's formats, install each package on a clean runner and run the `views` scenario, and check every Mach-O's signature. The AppImage is built in CI only, since linuxdeploy copies libraries from the machine that builds it.
+3. Licences: add the notices of the third-party code the static Qt compiles in (its copies of zlib, libpng, libjpeg, HarfBuzz and PCRE2, and Qt's other bundled code, listed in its `qt_attribution.json` files).
+4. Signing: the macOS identity, entitlements and notarization, and the Windows certificate, through cargo-packager's `macos` and `windows` settings ([release.md](release.md), code signing).
 
 ### Decided
 
 - **Release builds link Qt statically, built without ICU; development keeps the prebuilt shared Qt** (`bun run qt:install`). In the spike the static build without ICU was one 57.4 MB program with no Qt or ICU files beside it, passed the screenshot tour, and started at 112 MiB of memory against 192 MiB with shared Qt. Without ICU, Qt compiles in its own table of time-zone names (3,990,504 bytes, `-no-feature-timezone_locale` leaves it out).
+- **Eight formats ship**: deb, rpm, AppImage and pacman on Linux, NSIS (per-user) and MSI on Windows, the macOS app and dmg (2026-11-08).
+- **`opsis-packager` builds them with cargo-packager as a library and the `rpm` crate** (cargo-packager has no rpm format), so there is no packaging config file.
+- **Locally the Linux release builds in a plain `debian:trixie` container**, because the static link needs development files a desktop doesn't have; CI builds on the runner.
 - **Qt is used under the GPL-3.0**, like KDDockWidgets: Qt Base and Qt Svg are offered under `LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only` (their SPDX headers in the 6.12 source), and Opsis is GPL-3.0, so static linking needs no relinking route.
 
 ### Sources
 
 - Qt licensing: https://doc.qt.io/qt-6/licensing.html (checked 2026-11-05)
+- cargo-packager: https://github.com/crabnebula-dev/cargo-packager (main at `d5704a3`, checked 2026-11-08)
+- rpm crate: https://github.com/rpm-rs/rpm (0.30.2, checked 2026-11-08)
 - The spike's static Qt builds, script and report: `~/.cache/opsis-v4-research/native-editor-spike/` (`qt-static/build-qt.sh`, `report.md`)
 
 ## Alternatives
