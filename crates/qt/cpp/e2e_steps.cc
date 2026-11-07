@@ -2582,6 +2582,7 @@ void Scenario::BuildTour() {
       });
   BuildMixer(window);
   BuildEvents(window);
+  BuildDisk();
   BuildPlayer();
 }
 

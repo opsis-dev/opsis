@@ -6,8 +6,6 @@ use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use opsis_qt::DialogKind;
 use opsis_session::platform::{Closed, FileFilter, PickedFiles, PickedFolder, Platform, Versions};
 
-const NOT_YET: &str = "This window isn't in the native editor yet.";
-
 #[derive(Debug)]
 enum Reply {
     One(PickedFolder),
@@ -20,6 +18,7 @@ pub struct QtPlatform {
     waiting: Mutex<HashMap<u64, Reply>>,
     active: AtomicBool,
     views: Mutex<HashMap<String, Closed>>,
+    terminals: Mutex<HashMap<String, Closed>>,
 }
 
 impl std::fmt::Debug for QtPlatform {
@@ -65,6 +64,13 @@ impl QtPlatform {
 
     pub fn view_window_closed(&self, id: &str) {
         let closed = self.views.lock().expect("view windows").remove(id);
+        if let Some(closed) = closed {
+            closed();
+        }
+    }
+
+    pub fn terminal_window_closed(&self, id: &str) {
+        let closed = self.terminals.lock().expect("terminal windows").remove(id);
         if let Some(closed) = closed {
             closed();
         }
@@ -141,10 +147,17 @@ impl Platform for QtPlatform {
         opsis_qt::close_view_window(id);
     }
 
-    fn open_terminal_window(&self, _id: &str, _title: &str, closed: Closed) -> Result<(), String> {
-        closed();
-        Err(NOT_YET.to_owned())
+    fn open_terminal_window(&self, id: &str, title: &str, closed: Closed) -> Result<(), String> {
+        self.terminals
+            .lock()
+            .expect("terminal windows")
+            .insert(id.to_owned(), closed);
+        opsis_qt::open_terminal_window(id, title);
+        Ok(())
     }
 
-    fn close_terminal_window(&self, _id: &str) {}
+    fn close_terminal_window(&self, id: &str) {
+        self.terminals.lock().expect("terminal windows").remove(id);
+        opsis_qt::close_terminal_window(id);
+    }
 }

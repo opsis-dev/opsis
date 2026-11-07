@@ -18,6 +18,9 @@ void post_edited(rust::Vec<rust::String> ids);
 void post_replay(rust::Str node_id, rust::Str tab);
 void open_view_window(rust::Str id, rust::Str title);
 void close_view_window(rust::Str id);
+void open_terminal_window(rust::Str id, rust::Str title);
+void close_terminal_window(rust::Str id);
+void post_disk_change(bool readable);
 void request_dialog(DialogKind kind, std::uint64_t id, rust::Str title,
                     rust::Str start, rust::Str filter_name,
                     rust::Str filter_extensions);

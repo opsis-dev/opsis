@@ -59,6 +59,7 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   void resizeEvent(QResizeEvent* event) override;
 
  private:
+  void AskAboutDisk(bool readable);
   void BuildMenus();
   void BuildDocks();
   void ShowEditor();

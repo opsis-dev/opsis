@@ -123,6 +123,8 @@ MainWindow::MainWindow()
   connect(EventHub::Instance(), &EventHub::CloseAsked, this,
           &MainWindow::ShowCloseDialog);
   live_pip_ = new LivePip(this, top_bar_->live_toggle());
+  connect(EventHub::Instance(), &EventHub::DiskChangeAsked, this,
+          &MainWindow::AskAboutDisk);
   connect(EventHub::Instance(), &EventHub::SettingsAsked, this,
           [this](const QString& page) {
             OpenSettings()->ShowPage(page == QStringLiteral("fonts")
@@ -267,6 +269,54 @@ void MainWindow::FocusDock(kdw::QtWidgets::DockWidget* dock) {
   dock->setAsCurrentTab();
   dock->raise();
   dock->widget()->setFocus();
+}
+
+void MainWindow::AskAboutDisk(bool readable) {
+  auto* dialog = new QDialog(this);
+  dialog->setObjectName(QStringLiteral("DiskChangeDialog"));
+  dialog->setWindowTitle(QStringLiteral("Opsis"));
+  dialog->setAttribute(Qt::WA_DeleteOnClose);
+  dialog->setMinimumWidth(440);
+  auto* layout = new QVBoxLayout(dialog);
+  layout->setContentsMargins(24, 22, 24, 20);
+  layout->setSpacing(10);
+  layout->addWidget(MakeLabel(QStringLiteral("The project file changed on disk"),
+                              "title", dialog));
+  auto* about = MakeLabel(
+      readable ? QStringLiteral("Something outside Opsis changed this project "
+                                "while you had unsaved edits. Load the file to "
+                                "use its version (Undo brings yours back), or "
+                                "keep yours to save over it.")
+               : QStringLiteral("Something outside Opsis changed this project, "
+                                "and the file isn't a valid project right now. "
+                                "Keep yours to save over it, or wait and fix "
+                                "the file first."),
+      "muted", dialog);
+  about->setWordWrap(true);
+  layout->addWidget(about);
+  auto* buttons = new QHBoxLayout();
+  buttons->addStretch(1);
+  const auto choose = [dialog](const char* choice) {
+    dialog->accept();
+    try {
+      App::Get().session().resolve_disk_change(
+          ToRust(QString::fromLatin1(choice)));
+    } catch (const rust::Error& error) {
+      App::Get().ShowError(QStringLiteral("Couldn't save the project. ") +
+                           QString::fromUtf8(error.what()));
+    }
+  };
+  auto* other = MakeButton(readable ? QStringLiteral("Load the file")
+                                    : QStringLiteral("Wait"),
+                           "outline", QString(), dialog);
+  connect(other, &QPushButton::clicked, dialog,
+          [choose, readable] { choose(readable ? "load" : "wait"); });
+  auto* keep = MakeButton(QStringLiteral("Keep mine"), "primary", QString(), dialog);
+  connect(keep, &QPushButton::clicked, dialog, [choose] { choose("keepMine"); });
+  buttons->addWidget(other);
+  buttons->addWidget(keep);
+  layout->addLayout(buttons);
+  dialog->open();
 }
 
 void MainWindow::ShowCloseDialog() {

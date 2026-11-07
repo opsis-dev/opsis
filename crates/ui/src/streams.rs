@@ -25,7 +25,7 @@ pub struct FrameHeader {
     pub node_id: Option<String>,
 }
 
-pub fn unpacked(frame: &[u8]) -> Option<(FrameHeader, &[u8])> {
+pub fn unpacked<H: serde::de::DeserializeOwned>(frame: &[u8]) -> Option<(H, &[u8])> {
     let (length, rest) = frame.split_first_chunk::<4>()?;
     let length = usize::try_from(u32::from_le_bytes(*length)).ok()?;
     let header = rest.get(..length)?;
@@ -57,10 +57,11 @@ impl Shown {
 }
 
 pub type OnFrame = Box<dyn Fn(&FrameHeader, &[u8]) + Send + Sync>;
+pub type OnRaw = Box<dyn Fn(&[u8]) + Send + Sync>;
 
 pub struct FrameSlot {
     id: u32,
-    on_frame: OnFrame,
+    on_frame: OnRaw,
 }
 
 impl std::fmt::Debug for FrameSlot {
@@ -73,6 +74,16 @@ impl std::fmt::Debug for FrameSlot {
 
 impl FrameSlot {
     pub fn new(on_frame: OnFrame) -> Self {
+        Self::raw(Box::new(move |frame| {
+            if let Some((header, jpeg)) = unpacked::<FrameHeader>(frame) {
+                on_frame(&header, jpeg);
+            } else {
+                log::warn!("a frame came without its header");
+            }
+        }))
+    }
+
+    pub fn raw(on_frame: OnRaw) -> Self {
         Self {
             id: CHANNELS.fetch_add(1, Ordering::Relaxed),
             on_frame,
@@ -86,11 +97,7 @@ impl FrameSender for FrameSlot {
     }
 
     fn send(&self, frame: Vec<u8>) -> bool {
-        if let Some((header, jpeg)) = unpacked(&frame) {
-            (self.on_frame)(&header, jpeg);
-        } else {
-            log::warn!("a frame came without its header");
-        }
+        (self.on_frame)(&frame);
         true
     }
 }
@@ -260,7 +267,7 @@ mod tests {
         ) {
             let header = Header { width: f64::from(width), height: f64::from(height), capture_id: capture.clone() };
             let frame = opsis_session::frames::packed(&header, &jpeg).unwrap();
-            let (read, picture) = unpacked(&frame).unwrap();
+            let (read, picture) = unpacked::<super::FrameHeader>(&frame).unwrap();
             prop_assert!(exact_eq(read.width, f64::from(width)));
             prop_assert!(exact_eq(read.height, f64::from(height)));
             prop_assert_eq!(read.capture_id.as_deref(), Some(capture.as_str()));

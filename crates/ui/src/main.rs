@@ -17,6 +17,7 @@ mod project;
 mod replay;
 mod run_panel;
 mod streams;
+mod terminal_window;
 mod text;
 mod timeline;
 mod ui;

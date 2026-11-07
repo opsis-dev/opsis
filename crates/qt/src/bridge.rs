@@ -234,6 +234,12 @@ pub mod ffi {
     }
 
     #[derive(Debug, Clone)]
+    struct TerminalWindowView {
+        frame: u64,
+        status: String,
+    }
+
+    #[derive(Debug, Clone)]
     struct StreamViewState {
         serial: u64,
         frame: u64,
@@ -1129,6 +1135,34 @@ pub mod ffi {
         fn download_font(self: &Session, id: &str);
         fn font_choices(self: &Session, value: &str) -> FontChoicesView;
         fn use_library_font(self: &Session, id: &str) -> Result<String>;
+        fn terminal_attach(self: &Session, id: &str) -> u64;
+        fn terminal_view(self: &Session, id: &str) -> TerminalWindowView;
+        fn terminal_frame(self: &Session, id: &str) -> Box<FrameRef>;
+        fn terminal_key(self: &Session, id: &str, key: u32, text: &str, modifiers: u32);
+        fn terminal_paste(self: &Session, id: &str, text: &str);
+        fn terminal_pointer(
+            self: &Session,
+            id: &str,
+            action: u8,
+            button: u32,
+            x: f64,
+            y: f64,
+            width: f64,
+            height: f64,
+        );
+        fn terminal_wheel(
+            self: &Session,
+            id: &str,
+            x: f64,
+            y: f64,
+            width: f64,
+            height: f64,
+            notches: i32,
+        );
+        fn terminal_focus(self: &Session, id: &str, gained: bool);
+        fn terminal_finish(self: &Session, id: &str, save: bool) -> Result<()>;
+        fn terminal_closed(self: &Session, id: &str);
+        fn resolve_disk_change(self: &Session, choice: &str) -> Result<()>;
         fn audio_play(self: &Session, seconds: f64, rate: f64);
         fn audio_pause(self: &Session);
         fn audio_seek(self: &Session, seconds: f64);
@@ -1251,6 +1285,9 @@ pub mod ffi {
         fn post_replay(node_id: &str, tab: &str);
         fn open_view_window(id: &str, title: &str);
         fn close_view_window(id: &str);
+        fn open_terminal_window(id: &str, title: &str);
+        fn close_terminal_window(id: &str);
+        fn post_disk_change(readable: bool);
         fn request_dialog(
             kind: DialogKind,
             id: u64,

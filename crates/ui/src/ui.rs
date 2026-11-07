@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -26,6 +27,7 @@ use opsis_qt::{
     VariableView, WindowPlacement,
 };
 use opsis_session::analysis::{self, AnalysisRequest, AnalysisResult};
+use opsis_session::document::DiskChoice;
 use opsis_session::error::CommandError;
 use opsis_session::events::{MAIN_WINDOW, SessionEvent};
 use opsis_session::exit::{self, Exit};
@@ -41,6 +43,7 @@ use opsis_types::events::RunTargets;
 use opsis_types::project::OUT_DIR;
 use opsis_types::settings::settings_book;
 use opsis_types::shell::{CloseDecision, CloseRequest, MenuCommand, ReplayTab, Selection};
+use opsis_types::terminal::{PointerButton, PointerMove, TerminalInput};
 use opsis_types::workflow::{Position, WORKFLOW_FILE, Workflow};
 use serde::Deserialize;
 use serde_json::{Map, Value};
@@ -51,7 +54,7 @@ use crate::platform::QtPlatform;
 use crate::project::Extras;
 use crate::{
     clipboard, colors, font_views, graph, inspector, keys, live, look, media, mixer, motion,
-    player, project, replay, run_panel, streams, timeline,
+    player, project, replay, run_panel, streams, terminal_window, timeline,
 };
 
 const LAYOUT_KEY: &str = "nativeDockLayout";
@@ -83,6 +86,9 @@ pub struct Ui {
     live: live::Live,
     engine_install: Arc<Mutex<EngineInstall>>,
     font_work: Arc<Mutex<FontWork>>,
+    terminal_windows: terminal_window::TerminalWindows,
+    terminal_inputs: Mutex<HashMap<String, tokio::sync::mpsc::UnboundedSender<TerminalInput>>>,
+    view_inputs: Mutex<HashMap<String, tokio::sync::mpsc::UnboundedSender<ViewInput>>>,
     started: Instant,
 }
 
@@ -209,6 +215,9 @@ impl Ui {
             live: live::Live::default(),
             engine_install: Arc::default(),
             font_work: Arc::default(),
+            terminal_windows: terminal_window::TerminalWindows::default(),
+            terminal_inputs: Mutex::default(),
+            view_inputs: Mutex::default(),
             started: Instant::now(),
         }
     }
@@ -502,13 +511,47 @@ impl Ui {
         });
     }
 
-    fn send_view(&self, id: &str, input: ViewInput) {
-        let (session, id) = (self.session.clone(), id.to_owned());
-        self.runtime.spawn(async move {
-            if let Err(error) = opsis_session::views::view_input(&session, id, input).await {
-                log::debug!("sending input to a view: {}", error.0);
-            }
+    fn send_terminal(&self, id: &str, input: TerminalInput) {
+        let mut inputs = self.terminal_inputs.lock().expect("terminal inputs");
+        let sender = inputs.entry(id.to_owned()).or_insert_with(|| {
+            let (sender, mut queue) = tokio::sync::mpsc::unbounded_channel();
+            let (session, id) = (self.session.clone(), id.to_owned());
+            self.runtime.spawn(async move {
+                while let Some(input) = queue.recv().await {
+                    if let Err(error) =
+                        opsis_session::terminal_live::terminal_input(&session, id.clone(), input)
+                            .await
+                    {
+                        log::warn!("sending input to a terminal: {}", error.0);
+                    }
+                }
+            });
+            sender
         });
+        if sender.send(input).is_err() {
+            log::warn!("a terminal's input queue ended");
+        }
+    }
+
+    fn send_view(&self, id: &str, input: ViewInput) {
+        let mut inputs = self.view_inputs.lock().expect("view inputs");
+        let sender = inputs.entry(id.to_owned()).or_insert_with(|| {
+            let (sender, mut queue) = tokio::sync::mpsc::unbounded_channel();
+            let (session, id) = (self.session.clone(), id.to_owned());
+            self.runtime.spawn(async move {
+                while let Some(input) = queue.recv().await {
+                    if let Err(error) =
+                        opsis_session::views::view_input(&session, id.clone(), input).await
+                    {
+                        log::warn!("sending input to a view: {}", error.0);
+                    }
+                }
+            });
+            sender
+        });
+        if sender.send(input).is_err() {
+            log::warn!("a view's input queue ended");
+        }
     }
 
     fn view_key(&self) -> Option<String> {
@@ -645,6 +688,17 @@ impl Host for Ui {
                             && let Some(node) = asked.node_id.as_deref()
                         {
                             opsis_qt::post_replay(node, &plain(&asked.tab));
+                        }
+                        if let SessionEvent::DiskChangeAsked(asked) = &addressed.event
+                            && mine
+                        {
+                            opsis_qt::post_disk_change(asked.readable);
+                        }
+                        if matches!(addressed.event, SessionEvent::ProjectReloaded(_)) && mine {
+                            opsis_qt::notify(
+                                "The project file changed on disk, so the editor loaded it.",
+                                "Undo brings back the previous version.",
+                            );
                         }
                         if let SessionEvent::EngineInstallProgress(progress) = &addressed.event {
                             let event = &progress.0;
@@ -2115,7 +2169,113 @@ impl Host for Ui {
         self.live.set_pip(open);
     }
 
+    fn terminal_attach(&self, id: &str) -> u64 {
+        let (target, slot) = self.terminal_windows.slot(id);
+        if let Err(error) =
+            opsis_session::terminal_live::attach_terminal(&self.session, id, Arc::new(slot))
+        {
+            log::warn!("showing a terminal: {}", error.0);
+        }
+        target
+    }
+
+    fn terminal_view(&self, id: &str) -> opsis_qt::TerminalWindowView {
+        self.terminal_windows.view(id)
+    }
+
+    fn terminal_frame(&self, id: &str) -> opsis_qt::FrameRef {
+        self.terminal_windows.frame(id)
+    }
+
+    fn terminal_key(&self, id: &str, key: u32, text: &str, modifiers: u32) {
+        let dom = keys::dom_key(key, text, modifiers & 0x2000_0000 != 0);
+        let bits = keys::dom_modifiers(modifiers, cfg!(target_os = "macos"));
+        let input = terminal_window::key_input(&dom, text, bits);
+        if let Some(input) = input {
+            self.send_terminal(id, input);
+        }
+    }
+
+    fn terminal_paste(&self, id: &str, text: &str) {
+        self.send_terminal(
+            id,
+            TerminalInput::Paste {
+                text: text.to_owned(),
+            },
+        );
+    }
+
+    fn terminal_pointer(
+        &self,
+        id: &str,
+        action: u8,
+        button: u32,
+        x: f64,
+        y: f64,
+        width: f64,
+        height: f64,
+    ) {
+        let grid = self.terminal_windows.grid(id);
+        let (col, row) = terminal_window::cell_at(x, y, width, height, &grid);
+        let button = match button {
+            1 => Some(PointerButton::Left),
+            2 => Some(PointerButton::Right),
+            4 => Some(PointerButton::Middle),
+            _ => None,
+        };
+        let action = match action {
+            0 => PointerMove::Press,
+            1 => PointerMove::Release,
+            _ => PointerMove::Move,
+        };
+        self.send_terminal(
+            id,
+            TerminalInput::Pointer {
+                action,
+                button,
+                col,
+                row,
+            },
+        );
+    }
+
+    fn terminal_wheel(&self, id: &str, x: f64, y: f64, width: f64, height: f64, notches: i32) {
+        let grid = self.terminal_windows.grid(id);
+        let (col, row) = terminal_window::cell_at(x, y, width, height, &grid);
+        self.send_terminal(id, TerminalInput::Wheel { col, row, notches });
+    }
+
+    fn terminal_focus(&self, id: &str, gained: bool) {
+        self.send_terminal(id, TerminalInput::Focus { gained });
+    }
+
+    fn terminal_finish(&self, id: &str, save: bool) -> HostResult<()> {
+        opsis_session::terminal_live::finish_terminal(&self.session, id, save).map_err(|e| e.0)
+    }
+
+    fn terminal_closed(&self, id: &str) {
+        self.terminal_inputs
+            .lock()
+            .expect("terminal inputs")
+            .remove(id);
+        self.terminal_windows.forget(id);
+        self.platform.terminal_window_closed(id);
+    }
+
+    fn resolve_disk_change(&self, choice: &str) -> HostResult<()> {
+        let choice = match choice {
+            "load" => DiskChoice::Load,
+            "keepMine" => DiskChoice::KeepMine,
+            _ => DiskChoice::Wait,
+        };
+        self.runtime
+            .block_on(document::resolve_disk_change(self.session.clone(), choice))
+            .map(|_| ())
+            .map_err(|e| e.0)
+    }
+
     fn view_closed(&self, id: &str) {
+        self.view_inputs.lock().expect("view inputs").remove(id);
         self.view_windows.forget(id);
         self.platform.view_window_closed(id);
         opsis_session::views::view_close(&self.session, id);

@@ -277,6 +277,7 @@ void Scenario::BuildRuns() {
                                    ? QStringLiteral("a screenshot")
                                    : QStringLiteral("no screenshot")));
       });
+  BuildTerminalRuns();
 }
 
 }

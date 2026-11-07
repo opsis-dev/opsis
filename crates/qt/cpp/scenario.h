@@ -37,6 +37,8 @@ class Scenario : public QObject {
               const std::function<QString()>& check);
   void BuildTour();
   void BuildRuns();
+  void BuildTerminalRuns();
+  void BuildDisk();
   void BuildBench(int count);
   void Next();
   void Shoot(const QString& name);

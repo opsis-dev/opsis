@@ -7,8 +7,8 @@ use crate::bridge::ffi::{
     LicenceView, LiveView, LoudnessView, MarkDrawnView, MarkPointsView, MenuSectionView, MeterView,
     MixerView, MotionInfo, NodeMove, PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView,
     RemovalView, ReplayView, RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView,
-    StreamViewState, TemplateView, TextToken, TimelineView, TraceView, VariableView,
-    WindowPlacement,
+    StreamViewState, TemplateView, TerminalWindowView, TextToken, TimelineView, TraceView,
+    VariableView, WindowPlacement,
 };
 use crate::frame::FrameRef;
 
@@ -167,6 +167,30 @@ pub trait Host {
     fn download_font(&self, id: &str);
     fn font_choices(&self, value: &str) -> FontChoicesView;
     fn use_library_font(&self, id: &str) -> HostResult<String>;
+    fn terminal_attach(&self, id: &str) -> u64;
+    fn terminal_view(&self, id: &str) -> TerminalWindowView;
+    fn terminal_frame(&self, id: &str) -> FrameRef;
+    fn terminal_key(&self, id: &str, key: u32, text: &str, modifiers: u32);
+    fn terminal_paste(&self, id: &str, text: &str);
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "one pointer event crosses as its parts"
+    )]
+    fn terminal_pointer(
+        &self,
+        id: &str,
+        action: u8,
+        button: u32,
+        x: f64,
+        y: f64,
+        width: f64,
+        height: f64,
+    );
+    fn terminal_wheel(&self, id: &str, x: f64, y: f64, width: f64, height: f64, notches: i32);
+    fn terminal_focus(&self, id: &str, gained: bool);
+    fn terminal_finish(&self, id: &str, save: bool) -> HostResult<()>;
+    fn terminal_closed(&self, id: &str);
+    fn resolve_disk_change(&self, choice: &str) -> HostResult<()>;
     fn audio_play(&self, seconds: f64, rate: f64);
     fn audio_pause(&self);
     fn audio_seek(&self, seconds: f64);
@@ -267,6 +291,18 @@ pub fn open_view_window(id: &str, title: &str) {
 
 pub fn close_view_window(id: &str) {
     ffi::close_view_window(id);
+}
+
+pub fn open_terminal_window(id: &str, title: &str) {
+    ffi::open_terminal_window(id, title);
+}
+
+pub fn close_terminal_window(id: &str) {
+    ffi::close_terminal_window(id);
+}
+
+pub fn post_disk_change(readable: bool) {
+    ffi::post_disk_change(readable);
 }
 
 pub fn request_dialog(
@@ -851,6 +887,76 @@ impl Session {
 
     pub(crate) fn use_library_font(&self, id: &str) -> HostResult<String> {
         self.0.use_library_font(id)
+    }
+
+    pub(crate) fn terminal_attach(&self, id: &str) -> u64 {
+        self.0.terminal_attach(id)
+    }
+
+    pub(crate) fn terminal_view(&self, id: &str) -> TerminalWindowView {
+        self.0.terminal_view(id)
+    }
+
+    #[expect(
+        clippy::unnecessary_box_returns,
+        reason = "cxx hands an opaque Rust type to C++ only inside a Box"
+    )]
+    pub(crate) fn terminal_frame(&self, id: &str) -> Box<FrameRef> {
+        Box::new(self.0.terminal_frame(id))
+    }
+
+    pub(crate) fn terminal_key(&self, id: &str, key: u32, text: &str, modifiers: u32) {
+        self.0.terminal_key(id, key, text, modifiers);
+    }
+
+    pub(crate) fn terminal_paste(&self, id: &str, text: &str) {
+        self.0.terminal_paste(id, text);
+    }
+
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "one pointer event crosses as its parts"
+    )]
+    pub(crate) fn terminal_pointer(
+        &self,
+        id: &str,
+        action: u8,
+        button: u32,
+        x: f64,
+        y: f64,
+        width: f64,
+        height: f64,
+    ) {
+        self.0
+            .terminal_pointer(id, action, button, x, y, width, height);
+    }
+
+    pub(crate) fn terminal_wheel(
+        &self,
+        id: &str,
+        x: f64,
+        y: f64,
+        width: f64,
+        height: f64,
+        notches: i32,
+    ) {
+        self.0.terminal_wheel(id, x, y, width, height, notches);
+    }
+
+    pub(crate) fn terminal_focus(&self, id: &str, gained: bool) {
+        self.0.terminal_focus(id, gained);
+    }
+
+    pub(crate) fn terminal_finish(&self, id: &str, save: bool) -> HostResult<()> {
+        self.0.terminal_finish(id, save)
+    }
+
+    pub(crate) fn terminal_closed(&self, id: &str) {
+        self.0.terminal_closed(id);
+    }
+
+    pub(crate) fn resolve_disk_change(&self, choice: &str) -> HostResult<()> {
+        self.0.resolve_disk_change(choice)
     }
 
     pub(crate) fn audio_play(&self, seconds: f64, rate: f64) {

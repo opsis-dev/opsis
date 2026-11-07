@@ -10,6 +10,7 @@
 #include "event_hub.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "stream_window.h"
+#include "terminal_window.h"
 
 namespace opsis::bridge {
 
@@ -120,6 +121,22 @@ void open_view_window(rust::Str id, rust::Str title) {
 void close_view_window(rust::Str id) {
   const QString view = FromStr(id);
   OnGuiThread([view] { opsis::StreamWindow::Close(view); });
+}
+
+void open_terminal_window(rust::Str id, rust::Str title) {
+  const QString window = FromStr(id);
+  const QString heading = FromStr(title);
+  OnGuiThread([window, heading] { opsis::TerminalWindow::Open(window, heading); });
+}
+
+void close_terminal_window(rust::Str id) {
+  const QString window = FromStr(id);
+  OnGuiThread([window] { opsis::TerminalWindow::Close(window); });
+}
+
+void post_disk_change(bool readable) {
+  OnGuiThread(
+      [readable] { emit opsis::EventHub::Instance()->DiskChangeAsked(readable); });
 }
 
 void quit_app(std::int32_t code) {

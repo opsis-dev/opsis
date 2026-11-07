@@ -1,4 +1,9 @@
+#include <QApplication>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QPointer>
+#include <QTimer>
 #include <QString>
 #include <memory>
 
@@ -15,6 +20,8 @@ namespace opsis {
 namespace {
 
 constexpr int kBurst = 10;
+constexpr int kSaveMs = 1500;
+constexpr int kDiskMs = 10'000;
 
 QString Expect(bool ok, const QString& what) { return ok ? QString() : what; }
 
@@ -134,6 +141,102 @@ void Scenario::BuildEvents(MainWindow* window) {
         MixerPanel* mixer = Mixer(window);
         return Expect(mixer != nullptr && mixer->builds() == test->builds,
                       QStringLiteral("the Mixer rebuilt with nothing new"));
+      });
+}
+
+void Scenario::BuildDisk() {
+  const auto file = [] {
+    return ToQ(App::Get().session().graph().dir) +
+           QStringLiteral("/project.opsis.json");
+  };
+  const auto rewrite = [file](const QString& name) {
+    QFile project(file());
+    if (!project.open(QIODevice::ReadOnly)) return;
+    QJsonObject json = QJsonDocument::fromJson(project.readAll()).object();
+    project.close();
+    json.insert(QStringLiteral("name"), name);
+    QFile written(file() + QStringLiteral(".outside"));
+    if (!written.open(QIODevice::WriteOnly)) return;
+    written.write(QJsonDocument(json).toJson());
+    written.close();
+    QFile::remove(file());
+    QFile::rename(file() + QStringLiteral(".outside"), file());
+  };
+  auto saved = std::make_shared<QString>();
+  Until(
+      QStringLiteral("disk-change-loads-a-saved-project"),
+      [saved, rewrite] {
+        *saved = ToQ(App::Get().session().graph().name);
+        QTimer::singleShot(kSaveMs, [rewrite] { rewrite(QStringLiteral("Edited outside")); });
+      },
+      kDiskMs,
+      [] {
+        return App::Get().session().graph().name ==
+               ToRust(QStringLiteral("Edited outside"));
+      },
+      [] {
+        return Expect(App::Get().session().graph().name ==
+                          ToRust(QStringLiteral("Edited outside")),
+                      QStringLiteral("the outside change wasn't loaded"));
+      });
+  Add(
+      QStringLiteral("undo-the-outside-change"),
+      [] { App::Get().session().undo(); }, 400,
+      [saved] {
+        return Expect(ToQ(App::Get().session().graph().name) == *saved,
+                      QStringLiteral("undo didn't bring the project back"));
+      });
+  Until(
+      QStringLiteral("disk-change-asks-with-unsaved-edits"),
+      [rewrite] {
+        const QJsonObject rename{{QStringLiteral("op"), QStringLiteral("rename")},
+                                 {QStringLiteral("name"), QStringLiteral("Mine")}};
+        App::Get().session().project_edit(ToRust(QString::fromUtf8(
+            QJsonDocument(rename).toJson(QJsonDocument::Compact))));
+        rewrite(QStringLiteral("Theirs"));
+      },
+      kDiskMs,
+      [] {
+        for (QWidget* top : QApplication::topLevelWidgets()) {
+          if (top->findChild<QWidget*>(QStringLiteral("DiskChangeDialog"))) return true;
+        }
+        return false;
+      },
+      [this] {
+        QWidget* dialog = nullptr;
+        for (QWidget* top : QApplication::topLevelWidgets()) {
+          if (auto* found = top->findChild<QWidget*>(QStringLiteral("DiskChangeDialog"))) {
+            dialog = found;
+          }
+        }
+        if (dialog != nullptr) Click(dialog, QStringLiteral("Keep mine"));
+        return Expect(dialog != nullptr, QStringLiteral("the outside change "
+                                                        "didn't ask"));
+      });
+  Until(
+      QStringLiteral("keep-mine-saves-over-the-file"), [] {}, kDiskMs,
+      [file] {
+        QFile project(file());
+        return project.open(QIODevice::ReadOnly) &&
+               QJsonDocument::fromJson(project.readAll())
+                       .object()
+                       .value(QStringLiteral("name"))
+                       .toString() == QStringLiteral("Mine");
+      },
+      [saved, file] {
+        QFile project(file());
+        const bool mine =
+            project.open(QIODevice::ReadOnly) &&
+            QJsonDocument::fromJson(project.readAll())
+                    .object()
+                    .value(QStringLiteral("name"))
+                    .toString() == QStringLiteral("Mine");
+        const QJsonObject back{{QStringLiteral("op"), QStringLiteral("rename")},
+                               {QStringLiteral("name"), *saved}};
+        App::Get().session().project_edit(ToRust(QString::fromUtf8(
+            QJsonDocument(back).toJson(QJsonDocument::Compact))));
+        return Expect(mine, QStringLiteral("keeping mine didn't save over the "
+                                           "file"));
       });
 }
 
