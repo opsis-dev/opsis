@@ -47,7 +47,6 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 4. macOS: `macdeployqt`, `codesign` on every Mach-O, notarization in CI as today.
 5. Licences: the Qt libraries ship as shared libraries so the LGPL relinking terms hold, with the third-party attributions of the Qt build they come from; Qt's LGPL-3.0 text and KDDockWidgets' notices are already in `THIRD_PARTY_NOTICES.md`.
 6. CI: build every format on its platform again, check the licences each ships and every Mach-O's signature, as the Tauri bundler's job did.
-7. Profiling: `scripts/profile.ts` and `scripts/profile-inside.ts` install the new deb and start its program; they still name the Tauri app's `/usr/bin/opsis-desktop` and its session.
 
 ### Decisions
 

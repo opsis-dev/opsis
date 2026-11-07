@@ -21,15 +21,15 @@ How Opsis is measured for size, CPU and memory with development tools only: the 
 ## Rules
 
 - **Profiling is development tooling: build settings, scripts and containers, never code in the app.**
-- **The profiling run installs the app's deb in the container, so it waits for the packaging step to build one** ([packaging.md](packaging.md)); until then `bun run profile` has no package to install. The build it takes is the shipped release profile with its symbols kept (`CARGO_PROFILE_RELEASE_STRIP=false`, `CARGO_PROFILE_RELEASE_DEBUG=line-tables-only`).
+- **The profiling build is the release binary with its symbols kept**, built with `CARGO_PROFILE_RELEASE_STRIP=false CARGO_PROFILE_RELEASE_DEBUG=line-tables-only bun run make`.
 
   - `line-tables-only` keeps function names and lines for samply, perf and heaptrack. Full debug info runs the full-LTO link out of memory on a 14 GiB machine.
-  - `bun run profile` takes the one deb in `~/.cache/opsis-build/release/bundle/deb`, or `--deb <file>`.
+  - `bun run profile` copies it, the staged `opsis-ffmpeg`, both pages, the staged `resources` and the licences into `~/.cache/opsis-profile/app` (`assembleAppFolder`, `scripts/lib/app-folder.ts`), the layout the release build reads beside itself.
 
-- **`bun run profile` runs the app in Docker, never on the host**: Ubuntu 26.04 with the deb installed (`apt` resolves its libraries), fixed cores and memory (`--cpus`, default `0-3`; `--memory`, default `6g`, swap equal to it), `--network none`, and the user's uid.
+- **`bun run profile` runs the app in Docker, never on the host**: Ubuntu 26.04 with Qt's X11 runtime libraries (`scripts/lib/profile/Dockerfile`), fixed cores and memory (`--cpus`, default `0-3`; `--memory`, default `6g`, swap equal to it), `--network none`, and the user's uid.
   - samply and perf carry `cap_perfmon,cap_ipc_lock` as file capabilities and the container gets `--cap-add PERFMON --cap-add IPC_LOCK`, so they record whatever the host's `kernel.perf_event_paranoid` is. Without the added capabilities the kernel refuses to start them.
   - perf ships as `linux-perf` in Ubuntu 26.04; samply comes from its release, pinned by version and sha256 in `scripts/profile.ts`.
-  - The repository, the dev engine (`~/.config/Opsis/engine`, read-only) and the run folder are mounted at their host paths, and the host's `bun` runs the container side.
+  - The repository, the dev engine (`~/.config/Opsis/engine`), the app folder and the Qt folder (`~/.cache/opsis-qt/6.12.0/gcc_64`) are mounted read-only at their host paths, so the binary finds Qt and KDDockWidgets through the absolute search path it was linked with; the run folder is mounted writable, and the host's `bun` runs the container side.
 - **`--profiler samply|perf|heaptrack` starts the app under that tool**, writing `samply.json.gz` (with `.syms.json` beside it), `perf.data` (DWARF stacks; Rust keeps no frame pointers) or `heaptrack.raw.gz` to the run's `out/`. heaptrack follows only the app's own process.
   - heaptrack records with `--raw`: interpreting as it records makes the app wait on heaptrack's pipe for minutes at startup while it reads the line tables.
   - Interpreting a whole pass afterwards (`heaptrack_interpret`) doesn't finish on a 14 GiB machine: against the line-tables build it reads about 90 KB a minute, against a symbols-only copy (`objcopy --strip-debug`, mounted over `/usr/bin/opsis-desktop`) it runs out of memory. Record short passes, or use the app's `/proc` files below.
@@ -67,7 +67,3 @@ How Opsis is measured for size, CPU and memory with development tools only: the 
 - **In the container a Render's default "Graphics card" WebGL draws in software, with or without `--gpu`**: ANGLE's default backend goes through the X display, and Xvfb has no DRI3. It is SwiftShader without Mesa in the image and Mesa's llvmpipe with it. Shader, 3D and particle elements then take several times longer than on a desktop, where the same setting reaches the GPU; `--gpu --render-gl vulkan` measures them on the GPU.
 - **Play tape runs from the tape file (`recordLive: false`)**: with Record it live on and the node run on its own, it waits for a person to type a new tape.
 - **The editor's own work (canvas, Inspector, Timeline) isn't sampled per node**; the e2e scenarios log each canvas sync's time and the app's resident memory at the end ([e2e.md](e2e.md)).
-  - The inspector's index page lists the target; its socket is `ws://127.0.0.1:9222/socket/1/1/WebPage`, speaking the WebKit Inspector Protocol through `Target.sendMessageToTarget`. `Runtime.evaluate` doesn't wait for promises; `Runtime.awaitPromise` does.
-  - The inspector sends every Timeline and ScriptProfiler timestamp as 0, so each step gets a ScriptProfiler session of its own (`startTracking`/`stopTracking`, samples in `trackingComplete`), and a busy loop of known length gives the sample interval (1.08 ms).
-  - The Timeline instrument slows the page (it doubles pan and select), so time steps without it.
-  - Input goes through the WebDriver (clicks, pointer drags; it has no wheel), which dispatches its events from script like the e2e specs do.

@@ -60,11 +60,8 @@ function chromeTag(args: string[]): string {
 
 function tagOf(args: string[]): string {
   const program = path.basename(args[0] ?? "");
-  if (program === "opsis-desktop") return "app";
+  if (program === "opsis") return "app";
   if (program.startsWith("opsis-ffmpeg") || program === "ffmpeg") return "ffmpeg";
-  if (program === "WebKitWebProcess") return "webkit web";
-  if (program === "WebKitNetworkProcess") return "webkit network";
-  if (program.startsWith("WebKit")) return "webkit other";
   if (program === "chrome-headless-shell") return chromeTag(args);
   if (program === "exe" && args.some((arg) => arg.startsWith("--type="))) return chromeTag(args);
   if (["bash", "sh", "zsh", "dash"].includes(program)) return "shell";

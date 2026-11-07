@@ -1,4 +1,4 @@
-FROM ubuntu:26.04 AS tools
+FROM ubuntu:26.04
 
 ARG SAMPLY_VERSION
 ARG SAMPLY_SHA256
@@ -12,6 +12,10 @@ RUN apt-get update \
     libnss3 libnspr4 libgbm1 libasound2t64 libxkbcommon0 libxcomposite1 libxdamage1 \
     libxrandr2 libatk-bridge2.0-0t64 libcups2t64 libpango-1.0-0 libcairo2 \
     libgl1-mesa-dri libegl1 libegl-mesa0 libgles2 libvulkan1 mesa-vulkan-drivers \
+    libdbus-1-3 libfontconfig1 libfreetype6 libglib2.0-0t64 libgl1 libglx0 libopengl0 libpng16-16t64 \
+    libbrotli1 libpcre2-8-0 libx11-xcb1 libxcb-cursor0 libxcb-glx0 libxcb-icccm4 libxcb-image0 \
+    libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-shm0 libxcb-sync1 \
+    libxcb-util1 libxcb-xfixes0 libxcb-xkb1 libxkbcommon-x11-0 \
  && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSLo /tmp/samply.tar.xz \
@@ -22,11 +26,3 @@ RUN curl -fsSLo /tmp/samply.tar.xz \
  && rm -rf /tmp/samply /tmp/samply.tar.xz \
  && setcap cap_perfmon,cap_ipc_lock+ep /usr/local/bin/samply \
  && setcap cap_perfmon,cap_ipc_lock+ep /usr/bin/perf
-
-FROM tools
-
-COPY opsis.deb /tmp/opsis.deb
-
-RUN apt-get update \
- && apt-get install -y --no-install-recommends /tmp/opsis.deb \
- && rm -rf /var/lib/apt/lists/* /tmp/opsis.deb

@@ -185,7 +185,7 @@ async function main(): Promise<void> {
   const appEnv = {
     ...env,
     OPSIS_USER_DATA: config.userData,
-    GDK_BACKEND: "x11",
+    QT_QPA_PLATFORM: "xcb",
     RUST_BACKTRACE: "1",
     ...config.appEnv,
   };

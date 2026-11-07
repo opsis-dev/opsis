@@ -3,6 +3,7 @@ import { copyFileSync, existsSync, mkdirSync, readdirSync, statSync, writeFileSy
 import os from "node:os";
 import path from "node:path";
 import { parseArgs } from "node:util";
+import { assembleAppFolder } from "./lib/app-folder";
 import { buildEditorData, editorCatalog } from "./lib/editor-data";
 import { stagedFfmpeg } from "./lib/ffmpeg";
 import { CONFIG_FILE, type InsideConfig, PROFILERS, type Profiler } from "./lib/profile/config";
@@ -13,12 +14,12 @@ import { ROOT } from "./lib/tool-config";
 import { DEV_ENGINE, seedUserData } from "./lib/user-data";
 
 const PROFILE_DIR = path.join(os.homedir(), ".cache", "opsis-profile");
-const DEB_DIR = path.join(os.homedir(), ".cache", "opsis-build", "release", "bundle", "deb");
+const APP_DIR = path.join(PROFILE_DIR, "app");
+const QT_DIR = path.join(os.homedir(), ".cache", "opsis-qt", "6.12.0", "gcc_64");
 const IMAGE = "opsis-profile";
 const SAMPLY_VERSION = "0.13.1";
 const SAMPLY_SHA256 = "61875daad67888798690dea3cb2748279df6ac299c5c6a857d67eed7642473d9";
 const SITE_PORT = 4321;
-const APP = "/usr/bin/opsis-desktop";
 
 const { values } = parseArgs({
   options: {
@@ -28,7 +29,6 @@ const { values } = parseArgs({
     memory: { type: "string", default: "6g" },
     "sample-ms": { type: "string", default: "250" },
     "timeout-s": { type: "string", default: "900" },
-    deb: { type: "string" },
     gpu: { type: "boolean", default: false },
     "render-gl": { type: "string" },
     "app-env": { type: "string", multiple: true, default: [] },
@@ -60,26 +60,13 @@ function catalog(): Catalog {
   return editorCatalog() as Catalog;
 }
 
-function debFile(): string {
-  if (values.deb) return path.resolve(values.deb);
-  const debs = existsSync(DEB_DIR)
-    ? readdirSync(DEB_DIR).filter((name) => name.endsWith(".deb"))
-    : [];
-  if (debs.length !== 1)
-    throw new Error(
-      `Expected one deb in ${DEB_DIR}, found ${debs.length}. Build it with bun run make, or pass --deb.`,
-    );
-  return path.join(DEB_DIR, debs[0]);
-}
-
-function buildImage(deb: string): void {
+function buildImage(): void {
   const context = path.join(PROFILE_DIR, "image");
   mkdirSync(context, { recursive: true });
   copyFileSync(
     path.join(ROOT, "scripts", "lib", "profile", "Dockerfile"),
     path.join(context, "Dockerfile"),
   );
-  copyFileSync(deb, path.join(context, "opsis.deb"));
   run("docker", [
     "build",
     "-t",
@@ -106,6 +93,8 @@ function runContainer(runDir: string): void {
   const mounts = [
     [ROOT, ROOT, "ro"],
     [DEV_ENGINE, DEV_ENGINE, "ro"],
+    [APP_DIR, APP_DIR, "ro"],
+    [QT_DIR, QT_DIR, "ro"],
     [runDir, runDir, "rw"],
     [bunProgram(), "/usr/local/bin/bun", "ro"],
   ];
@@ -178,7 +167,7 @@ function main(): void {
     sampleMs: Number(values["sample-ms"]),
     nodeTimeoutMs: Number(values["timeout-s"]) * 1000,
     profiler,
-    app: APP,
+    app: assembleAppFolder(APP_DIR),
     appEnv: Object.fromEntries(
       values["app-env"].map((pair) => {
         const [name, ...value] = pair.split("=");
@@ -188,7 +177,7 @@ function main(): void {
     targets,
   };
   writeFileSync(path.join(runDir, CONFIG_FILE), JSON.stringify(config, null, 2));
-  buildImage(debFile());
+  buildImage();
   console.log(`Profiling ${targets.length} runs in ${runDir}`);
   try {
     runContainer(runDir);
