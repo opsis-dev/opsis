@@ -14,26 +14,26 @@ Status: the builds, signing and updates (sections 2, 5 and 6) were written for t
 
 | Topic                       | What users get                                                       | Left to do                                             | Status                           |
 | --------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------ | -------------------------------- |
-| 1. Size work                | A smaller download and install                                       | act on the findings, record CI sizes                   | measured 2026-10-31              |
+| 1. Size work                | A smaller download and install                                       | act on the findings, record CI sizes                   | measured 2026-11-08              |
 | 2. Windows and macOS builds | Installers that have actually run on each system                     | push, make the repo public, first CI run, fixes        | configured and linted, never run |
 | 3. Platform checks          | The editor working the same on Windows and macOS                     | runner checks, the macOS shell, sign-in end to end     | not started                      |
 | 4. Local API on Windows     | A named pipe only the user's account can open                        | the access list and its test                           | not started                      |
 | 5. Code signing             | No "unknown publisher" or "can't be opened" warnings                 | identities, entitlements, CI signing                   | only the hardened runtime set    |
 | 6. Updates                  | Check for updates, ask first, install signed updates                 | the updater plugin, the About button, the release feed | signing key and secrets in place |
-| 7. Release test pass        | Fewer surprises: long takes, odd paths, every template, every system | the manual pass before each release                    | e2e in place (9 spec files)      |
+| 7. Release test pass        | Fewer surprises: long takes, odd paths, every template, every system | the manual pass before each release                    | e2e in place (4 scenarios)       |
 | 8. Node packs (long term)   | Nodes that install and update apart from the app                     | all of it, after sections 1–7                          | not started                      |
 
 ## 1. Size work
 
 **In place.**
 
-- **Package size.** Measured 2026-11-01 on the Tauri app's deb with `bun run make -- --bundles deb` on Linux x64: the deb was 78,800,484 bytes and installed 179,051,765 bytes: the app binary 75,173,360, the FFmpeg program 79,826,272 and its licence 35,147, the film page 18,567,917 and the browser's licences 5,345,493. Measure again with the native app's first package.
-- **What ships.** One build, with FFmpeg inside and no recording browser: the app binary (`opt-level = 3`, full LTO, one codegen unit, stripped), FFmpeg as the `opsis-ffmpeg` sidecar beside it with `LICENSE.ffmpeg.txt` (`plans/ffmpeg.md`), the film page (`film-bundle/`, one JavaScript file with no source maps and the repository's `public/`, the app's only copy of the `app:` files, which the app reads through `AppPaths::public_dir`) and the recording browser's licences.
-- **The film page.** 4,388,329 bytes of JavaScript in one file (2,042,714 gzipped) and 14,200,626 bytes of `public/` files: fonts 1,078,938, backdrops 4,810,439, music 7,923,531, sounds 381,916. These film page figures, and the deb's above, were measured before Launch anything's four sample photos moved out of the script into `app:` placeholders (`0278ae9b`, 2026-11-05), which took 1.7 MB off it; measure again with the next deb.
+- **Size.** Measured 2026-11-08 on the native app's release build (`bun run make` on Linux x64), as the release build reads it beside its program (`scripts/lib/app-folder.ts`); no package exists yet. The folder is 197,635,160 bytes, 74,907,208 as one xz archive: the app binary 74,732,040 (21,384,040 compressed), the FFmpeg program 79,826,272 (21,214,256) and its licence 35,147, the film page 37,352,329 (32,236,720), the terminal page 253,517, the browser's licences 5,345,493, `LICENSE` and `THIRD_PARTY_NOTICES.md`. The Qt and KDDockWidgets libraries the binary loads add 71,802,192 bytes (19,125,196 compressed), before Qt's plugins: Qt Core, Gui, Widgets, Svg, DBus and Test 29,494,488, KDDockWidgets 3,222,944, and ICU 39,084,760, of which its data file is 32,035,888.
+- **What ships.** One build, with FFmpeg inside and no recording browser: the app binary (`opt-level = 3`, full LTO, one codegen unit, stripped), FFmpeg as the `opsis-ffmpeg` program beside it with `LICENSE.ffmpeg.txt` (`plans/ffmpeg.md`), the film page (`film-bundle/`, one JavaScript file with no source maps and the repository's `public/`, the app's only copy of the `app:` files, which the app reads through `AppPaths::public_dir`), the terminal page (`terminal-bundle/`), the recording browser's licences, and Qt with KDDockWidgets as shared libraries.
+- **The film page.** 2,722,599 bytes of JavaScript in one file (760,496 gzipped) and 34,627,964 bytes of `public/` files: fonts 20,249,083 (the 16 families 1,078,938, the terminal stack 19,170,145, of which Noto Color Emoji is 10,730,124), music 7,923,531, backdrops 4,810,439, placeholders 1,292,763, sounds 352,148.
 
 **Work.**
 
-1. **Act on the findings.** Each is its own decision: shrink the 1.7 MB `assets.ts`, and turn off the `image` formats Opsis never reads.
+1. **Act on the findings.** Each is its own decision: turn off the `image` formats Opsis never reads; build Qt without ICU (39 MB of the libraries), after checking what Opsis loses without it; keep Qt Test out of the release binary, which links it for the scenario mode (478,720 bytes); and whether every terminal take needs the 10.7 MB colour emoji font shipped rather than downloaded on first use.
 2. **Record** each installer's size per platform from the CI artifacts.
 
 **Decided.** The notices of the crates and npm packages compiled into the app are not shipped: not worth the size. Code copied into the repo and a few bundled components keep theirs (`THIRD_PARTY_NOTICES.md`).
