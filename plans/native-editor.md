@@ -30,7 +30,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
   - **Drawing on the CPU everywhere.** Widgets paint with QPainter's raster engine into the platform's backing store (shared memory on Wayland, `qwaylandshmbackingstore.cpp`), so no GPU, driver, virtual machine or Xvfb question.
   - **Native Wayland.** qtbase's Wayland client has text-input-v3 input methods (`qwaylandtextinputv3.cpp`), drag and drop including files from the file manager (`qwaylanddnd.cpp`, `qwaylanddatadevice.cpp`) and fractional scaling (`qwaylandfractionalscale.cpp`).
   - **Accessibility** through UIA, NSAccessibility and AT-SPI (`src/gui/accessible/linux`).
-- **`QGraphicsView` for the graph editor and the timeline**, the scene that Natron's `NodeGraph` and Olive's `NodeView` are built on.
+- **`QGraphicsView` for the graph editor**, the scene that Natron's `NodeGraph` and Olive's `NodeView` are built on; **the timeline paints itself** on a `QAbstractScrollArea`, because it zooms on time only (a scene transform would stretch its labels), its ruler and track labels stay put, and painting from the Rust view keeps no items in step.
 - **KDDockWidgets 2.5.1 (KDAB) for docking**: nesting, tabs, and floating native windows that dock back, built for Widgets first.
 - **`cxx` 1.0 for the bridge** (1.0.205, 85 million downloads), with `cxx-build` compiling the C++ side from `build.rs`, and `qt-build-utils` (KDAB) finding Qt and running `moc` and `rcc`.
 - **Why not the alternatives** is under [Alternatives](#alternatives).

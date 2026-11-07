@@ -36,6 +36,7 @@
 #include "graph_canvas.h"
 #include "main_window.h"
 #include "marks_field.h"
+#include "mixer_controls.h"
 #include "node_list.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "playback_clock.h"
@@ -2536,6 +2537,210 @@ void Scenario::BuildTour() {
         return Expect(!App::Get().session().has_project() &&
                           window->start_screen()->isVisible(),
                       QStringLiteral("the start screen didn't come back"));
+      });
+  BuildMixer(window);
+}
+
+void Scenario::BuildMixer(MainWindow* window) {
+  const auto undo = [this, window] { Click(window, QStringLiteral("Undo")); };
+  const auto channel = [](const char* field) {
+    const bridge::MixerView view = App::Get().session().mixer();
+    if (view.channels.empty()) return QJsonValue();
+    return QJsonDocument::fromJson(
+               ToQ(view.channels.at(0).settings_json).toUtf8())
+        .object()
+        .value(QLatin1String(field));
+  };
+  const auto strip = [window]() -> QFrame* {
+    for (auto* frame : window->mixer_dock()->widget()->findChildren<QFrame*>(
+             QStringLiteral("MixerStrip"))) {
+      if (frame->isVisible() && frame->property("bus").isNull()) return frame;
+    }
+    return nullptr;
+  };
+  auto memo = std::make_shared<Memo>();
+  Add(QStringLiteral("pick-social-teaser"), [this, window] {
+    ClickLater(window, QStringLiteral("Social teaser (9:16)"));
+  });
+  Add(
+      QStringLiteral("create-social-teaser"),
+      [this] {
+        QWidget* dialog = QApplication::activeModalWidget();
+        if (dialog == nullptr) {
+          Miss(QStringLiteral("no dialog"));
+          return;
+        }
+        const QList<QLineEdit*> lines = dialog->findChildren<QLineEdit*>();
+        if (lines.size() < 2) {
+          Miss(QStringLiteral("the dialog has no name and location fields"));
+          return;
+        }
+        for (int i = 0; i < 2; ++i) {
+          QLineEdit* line = lines.at(i);
+          line->setFocus();
+          QTest::keyClick(line, Qt::Key_A, Qt::ControlModifier);
+          QTest::keyClicks(
+              line, i == 0 ? QStringLiteral("Teaser")
+                           : QDir(qEnvironmentVariable("OPSIS_USER_DATA"))
+                                 .filePath(QStringLiteral("projects")));
+        }
+        Click(dialog, QStringLiteral("Create"));
+      },
+      2500,
+      [] {
+        return Expect(ToQ(Graph().name) == QStringLiteral("Teaser"),
+                      QStringLiteral("the teaser didn't open"));
+      });
+  Add(
+      QStringLiteral("pick-music-track"),
+      [this, window] {
+        GraphCanvas* canvas = window->canvas();
+        const bridge::GraphView graph = Graph();
+        const auto* card = CardTitled(graph, QStringLiteral("Music"));
+        if (card == nullptr) {
+          Miss(QStringLiteral("no Music card"));
+          return;
+        }
+        Click(canvas, QStringLiteral("Fit to view"));
+        ClickAt(canvas->viewport(), canvas->ViewPointOf(ToQ(card->id)));
+        QTest::qWait(kSettleMs);
+        for (QComboBox* combo :
+             window->inspector_dock()->widget()->findChildren<QComboBox*>()) {
+          if (combo->isVisible() && combo->count() > 1) {
+            combo->setFocus();
+            QTest::keyClick(combo, Qt::Key_Down);
+            return;
+          }
+        }
+        Miss(QStringLiteral("no music list"));
+      },
+      1500,
+      [] {
+        return Expect(!App::Get().session().mixer().channels.empty(),
+                      QStringLiteral("picking music made no channel"));
+      });
+  Add(
+      QStringLiteral("mixer-shows-strips"),
+      [this] { ClickMenu(QStringLiteral("View"), QStringLiteral("Mixer")); },
+      1500,
+      [window, strip] {
+        const int strips = static_cast<int>(
+            window->mixer_dock()
+                ->widget()
+                ->findChildren<QFrame*>(QStringLiteral("MixerStrip"))
+                .size());
+        return Expect(strip() != nullptr && strips >= 2,
+                      QStringLiteral("%1 mixer strips").arg(strips));
+      });
+  Add(
+      QStringLiteral("mixer-fader-drag"),
+      [this, strip, channel, memo] {
+        QFrame* shell = strip();
+        Fader* fader = shell != nullptr ? shell->findChild<Fader*>() : nullptr;
+        if (fader == nullptr) {
+          Miss(QStringLiteral("no channel fader"));
+          return;
+        }
+        memo->x = channel("fader").toDouble();
+        const QPoint thumb(fader->width() / 2,
+                           static_cast<int>(fader->ThumbY()));
+        Drag(fader, thumb, thumb + QPoint(0, -20), 6);
+      },
+      800,
+      [channel, memo] {
+        const double fader = channel("fader").toDouble();
+        return Expect(fader > memo->x,
+                      QStringLiteral("the fader stayed at %1").arg(fader));
+      });
+  Add(QStringLiteral("undo-mixer-fader"), undo, 700, [channel, memo] {
+    const double fader = channel("fader").toDouble();
+    return Expect(std::abs(fader - memo->x) < 1e-9,
+                  QStringLiteral("one undo left the fader at %1").arg(fader));
+  });
+  Add(
+      QStringLiteral("mixer-mute"),
+      [this, strip] {
+        if (QFrame* shell = strip()) Click(shell, QStringLiteral("M"));
+      },
+      700,
+      [channel] {
+        return Expect(channel("mute").toBool(),
+                      QStringLiteral("the channel isn't muted"));
+      });
+  Add(QStringLiteral("undo-mixer-mute"), undo, 700, [channel] {
+    return Expect(!channel("mute").toBool(),
+                  QStringLiteral("the channel is still muted"));
+  });
+  Add(
+      QStringLiteral("mixer-eq-popover"),
+      [this, strip] {
+        if (QFrame* shell = strip()) Click(shell, QStringLiteral("Equaliser"));
+      },
+      700,
+      [] {
+        QWidget* popup = QApplication::activePopupWidget();
+        return Expect(popup != nullptr && popup->accessibleName() ==
+                                              QStringLiteral("Equaliser"),
+                      QStringLiteral("no equaliser opened"));
+      });
+  Add(
+      QStringLiteral("mixer-eq-switch"),
+      [] {
+        QWidget* popup = QApplication::activePopupWidget();
+        if (popup == nullptr) return;
+        for (auto* toggle : popup->findChildren<ToggleSwitch*>()) {
+          if (toggle->accessibleName() == QStringLiteral("Equaliser on")) {
+            QTest::mouseClick(toggle, Qt::LeftButton);
+          }
+        }
+        QTest::keyClick(popup, Qt::Key_Escape);
+      },
+      800,
+      [channel] {
+        return Expect(
+            channel("eq").toObject().value(QStringLiteral("on")).toBool(),
+            QStringLiteral("the equaliser didn't turn on"));
+      });
+  Add(QStringLiteral("undo-mixer-eq"), undo, 700, [channel] {
+    return Expect(
+        !channel("eq").toObject().value(QStringLiteral("on")).toBool(),
+        QStringLiteral("the equaliser is still on"));
+  });
+  Add(
+      QStringLiteral("mixer-levels"), [] {}, 6000,
+      [] {
+        const bridge::MixerView view = App::Get().session().mixer();
+        if (view.channels.empty()) return QStringLiteral("no channels");
+        const bridge::MeterView level = App::Get().session().meter(
+            ToRust(QStringLiteral("ch:") + ToQ(view.channels.at(0).id)), 30);
+        return Expect(level.has && !view.stale,
+                      QStringLiteral("no levels after the mix rendered"));
+      });
+  Add(
+      QStringLiteral("timeline-waveform"),
+      [this, window] {
+        ClickMenu(QStringLiteral("View"), QStringLiteral("Timeline"));
+        auto* panel =
+            qobject_cast<TimelinePanel*>(window->timeline_dock()->widget());
+        if (panel != nullptr && panel->canvas()->view() != nullptr &&
+            !panel->canvas()->view()->audio.empty()) {
+          const auto& sound = panel->canvas()->view()->audio.at(0);
+          App::Get().session().wave_columns(sound.key, 1, 0, 8);
+        }
+      },
+      4000,
+      [window] {
+        auto* panel =
+            qobject_cast<TimelinePanel*>(window->timeline_dock()->widget());
+        if (panel == nullptr || panel->canvas()->view() == nullptr ||
+            panel->canvas()->view()->audio.empty()) {
+          return QStringLiteral("no sound bar on the timeline");
+        }
+        const auto& sound = panel->canvas()->view()->audio.at(0);
+        const rust::Vec<float> columns =
+            App::Get().session().wave_columns(sound.key, 1, 0, 8);
+        return Expect(columns.size() == 16,
+                      QStringLiteral("the music has no waveform yet"));
       });
 }
 

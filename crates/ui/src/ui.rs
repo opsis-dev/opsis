@@ -16,10 +16,10 @@ use opsis_compile::timeline::flatten::BarThumbnail;
 use opsis_compile::timeline::view;
 use opsis_qt::{
     BarView, BoundsView, CategoryView, Choice, CloseView, ColorView, EventKind, FileView,
-    FilmTiles, GradientInfo, GraphView, Host, HostResult, InspectorView, KeyLineView,
-    MarkDrawnView, MarkPointsView, MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView,
-    ProjectEntry, ProjectView, RemovalView, RulerStep, ScreenArea, SettingsView, SnapView,
-    TemplateView, TextToken, TimelineView, VariableView, WindowPlacement,
+    FilmTiles, GradientInfo, GraphView, Host, HostResult, InspectorView, KeyLineView, LoudnessView,
+    MarkDrawnView, MarkPointsView, MenuSectionView, MeterView, MixerView, MotionInfo, NodeMove,
+    PaletteEntry, PoseView, ProjectEntry, ProjectView, RemovalView, RulerStep, ScreenArea,
+    SettingsView, SnapView, TemplateView, TextToken, TimelineView, VariableView, WindowPlacement,
 };
 use opsis_session::analysis::{self, AnalysisRequest, AnalysisResult};
 use opsis_session::error::CommandError;
@@ -43,7 +43,7 @@ use tokio::sync::broadcast::error::RecvError;
 
 use crate::platform::QtPlatform;
 use crate::project::Extras;
-use crate::{clipboard, colors, graph, inspector, look, media, motion, project, timeline};
+use crate::{clipboard, colors, graph, inspector, look, media, mixer, motion, project, timeline};
 
 const LAYOUT_KEY: &str = "nativeDockLayout";
 const BENCH_KINDS: [&str; 4] = [
@@ -66,6 +66,7 @@ pub struct Ui {
     closing: Arc<Mutex<Option<CloseRequest>>>,
     compiled: Arc<Mutex<graph::Compiled>>,
     media: media::MediaCache,
+    mixes: mixer::Mixes,
     started: Instant,
 }
 
@@ -161,6 +162,7 @@ impl Ui {
             bundle: editor_bundle(NodePlatform::current()),
             compiled: Arc::new(Mutex::new(graph::Compiled::default())),
             media: media::MediaCache::default(),
+            mixes: mixer::Mixes::default(),
             started: Instant::now(),
         }
     }
@@ -407,6 +409,38 @@ impl Ui {
     }
 }
 
+fn render_mix(
+    session: &Session,
+    handle: &tokio::runtime::Handle,
+    mixes: &mixer::Mixes,
+    plan: opsis_compile::mix::plan::MixPlan,
+) {
+    if plan.channels.is_empty() || !mixes.want(&plan.key) {
+        return;
+    }
+    let Some(dir) = session.state::<AppState>().editor().dir() else {
+        return;
+    };
+    let session = session.clone();
+    let mixes = mixes.clone();
+    handle.spawn(async move {
+        let key = plan.key.clone();
+        let request = AnalysisRequest::Mix {
+            project_dir: dir.to_string_lossy().into_owned(),
+            plan: Box::new(plan),
+        };
+        let outcome = match analysis::analyze(&session, request).await {
+            Ok(AnalysisResult::Mix { mix }) => Ok(*mix),
+            Ok(AnalysisResult::Skipped) => return,
+            Ok(AnalysisResult::Error { error }) => Err(error),
+            Ok(_) => Err("The mix came back as something else.".to_owned()),
+            Err(error) => Err(error.0),
+        };
+        mixes.finish(&key, outcome);
+        opsis_qt::post_event(EventKind::Media);
+    });
+}
+
 fn snap_targets(frames: &[f64]) -> Vec<view::SnapTarget> {
     frames
         .iter()
@@ -422,6 +456,9 @@ impl Host for Ui {
         let mut events = self.session.subscribe();
         let closing = Arc::clone(&self.closing);
         let compiled = Arc::clone(&self.compiled);
+        let mixes = self.mixes.clone();
+        let handle = self.runtime.handle().clone();
+        let session = self.session.clone();
         std::thread::spawn(move || {
             loop {
                 match events.blocking_recv() {
@@ -432,8 +469,12 @@ impl Host for Ui {
                         if let SessionEvent::Compiled(value) = &addressed.event {
                             match graph::Compiled::deserialize(&value.0) {
                                 Ok(latest) => {
+                                    let plan = latest.plan.clone();
                                     *compiled.lock().expect("latest compile") = latest;
                                     opsis_qt::post_event(EventKind::Compiled);
+                                    if let Some(plan) = plan {
+                                        render_mix(&session, &handle, &mixes, plan);
+                                    }
                                 }
                                 Err(error) => log::warn!("reading the compile: {error}"),
                             }
@@ -1322,6 +1363,100 @@ impl Host for Ui {
             .film
             .as_ref()
             .map_or(abs, |film| timeline::bar_local(&film.flat, bar, abs))
+    }
+
+    fn mixer(&self) -> MixerView {
+        let Some(workflow) = self.workflow() else {
+            return mixer::hidden();
+        };
+        let selected: std::collections::HashSet<String> = shared::shared_state(&self.session)
+            .selection
+            .selected_ids
+            .into_iter()
+            .collect();
+        let source_id = self
+            .state()
+            .editor()
+            .film
+            .as_ref()
+            .and_then(|film| film.source.clone())
+            .unwrap_or_default();
+        let compiled = self.compiled.lock().expect("latest compile");
+        mixer::view(
+            compiled.plan.as_ref(),
+            &compiled.mix,
+            compiled.solo,
+            &mixer::Sources {
+                workflow: &workflow,
+                catalog: &self.catalog,
+                selected: &selected,
+                source_id,
+            },
+            &self.mixes,
+        )
+    }
+
+    fn meter(&self, target: &str, frame: f64) -> MeterView {
+        mixer::meter(self.mixes.latest().as_deref(), target, frame)
+    }
+
+    fn loudness_at(&self, frame: f64) -> LoudnessView {
+        mixer::loudness(self.mixes.latest().as_deref(), frame)
+    }
+
+    fn edit_mix(&self, edit_json: &str) -> HostResult<()> {
+        let edit: opsis_types::edits::MixEdit =
+            serde_json::from_str(edit_json).map_err(|e| e.to_string())?;
+        self.edit(WorkflowEdit::Mix { edit })
+            .map(|_| ())
+            .map_err(|e| e.0)
+    }
+
+    fn eq_curve(&self, eq_json: &str, highpass: f64, steps: u32) -> Vec<f64> {
+        let eq: opsis_types::mix::Eq = serde_json::from_str(eq_json).unwrap_or_default();
+        opsis_compile::mix::eq::curve(
+            &eq.bands,
+            eq.on,
+            (highpass > 0.0).then_some(highpass),
+            steps,
+        )
+    }
+
+    fn mix_text(&self, kind: &str, value: f64) -> String {
+        use opsis_compile::mix::controls as c;
+        match kind {
+            "db" => c::format_db(value),
+            "level" => c::format_level_db(value),
+            "signed" => c::format_signed_db(value),
+            "hz" => c::format_hz(value),
+            "ms" => c::format_ms(value),
+            "pan" => c::format_pan(value),
+            _ => c::format_reading(value, -70.0, false),
+        }
+    }
+
+    fn knob_value(&self, min: f64, max: f64, step: f64, log: bool, fraction: f64) -> f64 {
+        opsis_compile::mix::controls::fraction_to_value(
+            opsis_compile::mix::controls::KnobRange {
+                min,
+                max,
+                step,
+                log,
+            },
+            fraction,
+        )
+    }
+
+    fn knob_fraction(&self, min: f64, max: f64, log: bool, value: f64) -> f64 {
+        opsis_compile::mix::controls::value_to_fraction(
+            opsis_compile::mix::controls::KnobRange {
+                min,
+                max,
+                step: 0.0,
+                log,
+            },
+            value,
+        )
     }
 
     fn timeline(&self) -> TimelineView {

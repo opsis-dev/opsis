@@ -55,6 +55,12 @@ pub struct Compiled {
     pub inspector: Option<opsis_compile::inspector::InspectorContext>,
     #[serde(default)]
     pub flat: Option<FlatLinks>,
+    #[serde(default)]
+    pub plan: Option<opsis_compile::mix::plan::MixPlan>,
+    #[serde(default)]
+    pub mix: opsis_types::mix::Mix,
+    #[serde(default)]
+    pub solo: bool,
 }
 
 #[derive(Debug, Default, Deserialize)]

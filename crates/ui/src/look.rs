@@ -7,7 +7,7 @@ use serde::Deserialize;
 
 const STYLE_TEMPLATE: &str = include_str!("../resources/style.qss");
 
-const TOKENS: [(&str, &str); 40] = [
+const TOKENS: [(&str, &str); 43] = [
     ("background", "oklch(0.175 0.007 286)"),
     ("track-video", "oklch(0.38 0.05 250)"),
     ("track-graphics", "oklch(0.38 0.06 300)"),
@@ -19,6 +19,9 @@ const TOKENS: [(&str, &str); 40] = [
     ("playhead", "oklch(0.7 0.18 38)"),
     ("keyframe", "oklch(0.9 0.1 90)"),
     ("waveform", "oklch(0.97 0.004 286 / 55%)"),
+    ("meter-low", "oklch(0.72 0.16 150)"),
+    ("meter-mid", "oklch(0.84 0.15 90)"),
+    ("meter-high", "oklch(0.66 0.2 27)"),
     ("foreground", "oklch(0.93 0.004 286)"),
     ("card", "oklch(0.225 0.008 286)"),
     ("popover", "oklch(0.235 0.008 286)"),

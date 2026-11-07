@@ -17,7 +17,7 @@ const DEFINES: [&str; 6] = [
     "QT_TESTLIB_LIB",
 ];
 
-const MOC_HEADERS: [&str; 23] = [
+const MOC_HEADERS: [&str; 25] = [
     "event_hub.h",
     "widgets.h",
     "window_chrome.h",
@@ -38,12 +38,14 @@ const MOC_HEADERS: [&str; 23] = [
     "playback_clock.h",
     "timeline_canvas.h",
     "timeline_panel.h",
+    "mixer_controls.h",
+    "mixer_panel.h",
     "gradient_field.h",
     "visual_fields.h",
     "marks_field.h",
 ];
 
-const SOURCES: [&str; 30] = [
+const SOURCES: [&str; 32] = [
     "app.cc",
     "event_hub.cc",
     "widgets.cc",
@@ -74,6 +76,8 @@ const SOURCES: [&str; 30] = [
     "playback_clock.cc",
     "timeline_canvas.cc",
     "timeline_panel.cc",
+    "mixer_controls.cc",
+    "mixer_panel.cc",
 ];
 
 fn main() {

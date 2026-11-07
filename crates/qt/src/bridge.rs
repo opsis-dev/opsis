@@ -17,6 +17,51 @@ pub mod ffi {
         Media,
     }
 
+    #[derive(Debug, Clone)]
+    struct MixerStripView {
+        id: String,
+        name: String,
+        kind: String,
+        bus: String,
+        audible: bool,
+        selected: bool,
+        built_in: bool,
+        members: u32,
+        settings_json: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct MixerView {
+        shown: bool,
+        stale: bool,
+        failed: bool,
+        error: String,
+        solo: bool,
+        source_id: String,
+        channels: Vec<MixerStripView>,
+        buses: Vec<MixerStripView>,
+        master: MixerStripView,
+        book_json: String,
+    }
+
+    #[derive(Debug, Clone, Copy)]
+    struct MeterView {
+        has: bool,
+        peak: f64,
+        rms: f64,
+        hold: f64,
+        reduction: f64,
+    }
+
+    #[derive(Debug, Clone, Copy)]
+    struct LoudnessView {
+        momentary: f64,
+        short_term: f64,
+        integrated: f64,
+        true_peak: f64,
+        range: f64,
+    }
+
     #[derive(Debug, Clone, Copy)]
     struct KeyPointView {
         frame: f64,
@@ -683,6 +728,21 @@ pub mod ffi {
         fn box_kept(self: &Session, area: BoundsView) -> bool;
         fn edit_keyframes(self: &Session, edit_json: &str) -> Result<()>;
         fn timeline(self: &Session) -> TimelineView;
+        fn mixer(self: &Session) -> MixerView;
+        fn meter(self: &Session, target: &str, frame: f64) -> MeterView;
+        fn loudness_at(self: &Session, frame: f64) -> LoudnessView;
+        fn edit_mix(self: &Session, edit_json: &str) -> Result<()>;
+        fn eq_curve(self: &Session, eq_json: &str, highpass: f64, steps: u32) -> Vec<f64>;
+        fn mix_text(self: &Session, kind: &str, value: f64) -> String;
+        fn knob_value(
+            self: &Session,
+            min: f64,
+            max: f64,
+            step: f64,
+            log: bool,
+            fraction: f64,
+        ) -> f64;
+        fn knob_fraction(self: &Session, min: f64, max: f64, log: bool, value: f64) -> f64;
         fn key_line(self: &Session, bar: &str, track: &str) -> KeyLineView;
         fn bar_local(self: &Session, bar: &str, abs: f64) -> f64;
         fn film_tiles(

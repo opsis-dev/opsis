@@ -34,6 +34,7 @@ class Scenario : public QObject {
   void BuildBench(int count);
   void Next();
   void Shoot(const QString& name);
+  void BuildMixer(MainWindow* window);
   static QString Overflow();
   void Drag(QWidget* target, QPoint from, QPoint to, int steps = 12);
   void Miss(const QString& what) { misses_ << what; }

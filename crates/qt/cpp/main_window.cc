@@ -21,6 +21,7 @@
 #include "event_hub.h"
 #include "graph_canvas.h"
 #include "inspector_panel.h"
+#include "mixer_panel.h"
 #include "motion.h"
 #include "new_project_dialog.h"
 #include "node_list.h"
@@ -347,9 +348,8 @@ void MainWindow::BuildDocks() {
                              QStringLiteral("Inspector"), new InspectorPanel());
   timeline_dock_ = MakeDock(QStringLiteral("timeline"),
                             QStringLiteral("Timeline"), new TimelinePanel());
-  mixer_dock_ = MakeDock(
-      QStringLiteral("mixer"), QStringLiteral("Mixer"),
-      Placeholder(QStringLiteral("The mixer isn't in the native editor yet.")));
+  mixer_dock_ = MakeDock(QStringLiteral("mixer"), QStringLiteral("Mixer"),
+                         new MixerPanel());
   run_dock_ = MakeDock(
       QStringLiteral("run"), QStringLiteral("Run"),
       Placeholder(QStringLiteral("Runs aren't in the native editor yet.")));

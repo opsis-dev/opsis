@@ -6,6 +6,7 @@ mod inspector;
 mod look;
 mod media;
 mod menu;
+mod mixer;
 mod motion;
 mod platform;
 mod project;

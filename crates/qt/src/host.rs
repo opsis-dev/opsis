@@ -2,10 +2,10 @@ use std::fmt;
 
 use crate::bridge::ffi::{
     self, BarView, BoundsView, CategoryView, CloseView, ColorView, DialogKind, EventKind,
-    FilmTiles, GradientInfo, GraphView, InspectorView, KeyLineView, MarkDrawnView, MarkPointsView,
-    MenuSectionView, MotionInfo, NodeMove, PaletteEntry, PoseView, ProjectEntry, ProjectView,
-    RemovalView, RulerStep, ScreenArea, SettingsView, SnapView, TemplateView, TextToken,
-    TimelineView, VariableView, WindowPlacement,
+    FilmTiles, GradientInfo, GraphView, InspectorView, KeyLineView, LoudnessView, MarkDrawnView,
+    MarkPointsView, MenuSectionView, MeterView, MixerView, MotionInfo, NodeMove, PaletteEntry,
+    PoseView, ProjectEntry, ProjectView, RemovalView, RulerStep, ScreenArea, SettingsView,
+    SnapView, TemplateView, TextToken, TimelineView, VariableView, WindowPlacement,
 };
 
 pub type HostResult<T> = Result<T, String>;
@@ -93,6 +93,14 @@ pub trait Host {
     fn box_kept(&self, area: BoundsView) -> bool;
     fn edit_keyframes(&self, edit_json: &str) -> HostResult<()>;
     fn timeline(&self) -> TimelineView;
+    fn mixer(&self) -> MixerView;
+    fn meter(&self, target: &str, frame: f64) -> MeterView;
+    fn loudness_at(&self, frame: f64) -> LoudnessView;
+    fn edit_mix(&self, edit_json: &str) -> HostResult<()>;
+    fn eq_curve(&self, eq_json: &str, highpass: f64, steps: u32) -> Vec<f64>;
+    fn mix_text(&self, kind: &str, value: f64) -> String;
+    fn knob_value(&self, min: f64, max: f64, step: f64, log: bool, fraction: f64) -> f64;
+    fn knob_fraction(&self, min: f64, max: f64, log: bool, value: f64) -> f64;
     fn key_line(&self, bar: &str, track: &str) -> KeyLineView;
     fn bar_local(&self, bar: &str, abs: f64) -> f64;
     fn film_tiles(
@@ -483,6 +491,45 @@ impl Session {
 
     pub(crate) fn timeline(&self) -> TimelineView {
         self.0.timeline()
+    }
+
+    pub(crate) fn mixer(&self) -> MixerView {
+        self.0.mixer()
+    }
+
+    pub(crate) fn meter(&self, target: &str, frame: f64) -> MeterView {
+        self.0.meter(target, frame)
+    }
+
+    pub(crate) fn loudness_at(&self, frame: f64) -> LoudnessView {
+        self.0.loudness_at(frame)
+    }
+
+    pub(crate) fn edit_mix(&self, edit_json: &str) -> HostResult<()> {
+        self.0.edit_mix(edit_json)
+    }
+
+    pub(crate) fn eq_curve(&self, eq_json: &str, highpass: f64, steps: u32) -> Vec<f64> {
+        self.0.eq_curve(eq_json, highpass, steps)
+    }
+
+    pub(crate) fn mix_text(&self, kind: &str, value: f64) -> String {
+        self.0.mix_text(kind, value)
+    }
+
+    pub(crate) fn knob_value(
+        &self,
+        min: f64,
+        max: f64,
+        step: f64,
+        log: bool,
+        fraction: f64,
+    ) -> f64 {
+        self.0.knob_value(min, max, step, log, fraction)
+    }
+
+    pub(crate) fn knob_fraction(&self, min: f64, max: f64, log: bool, value: f64) -> f64 {
+        self.0.knob_fraction(min, max, log, value)
     }
 
     pub(crate) fn key_line(&self, bar: &str, track: &str) -> KeyLineView {

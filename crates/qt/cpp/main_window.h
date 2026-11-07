@@ -38,6 +38,9 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   KDDockWidgets::QtWidgets::DockWidget* nodes_dock() const {
     return nodes_dock_;
   }
+  KDDockWidgets::QtWidgets::DockWidget* mixer_dock() const {
+    return mixer_dock_;
+  }
   KDDockWidgets::QtWidgets::DockWidget* timeline_dock() const {
     return timeline_dock_;
   }
