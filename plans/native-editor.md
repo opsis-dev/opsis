@@ -460,23 +460,14 @@ Settings (its pages in `app/settings/`), the start screen, setup, the fonts dial
 
 ### What it changes
 
-The editor's Vitest tests (1,672 lines) and the WebdriverIO end-to-end suite (`e2e/`, 9 spec files, `tauri-plugin-wdio-webdriver`) are replaced.
+The editor's Vitest tests and the WebdriverIO end-to-end suite (`e2e/`, 9 spec files, `tauri-plugin-wdio-webdriver`) are replaced. Built; the details live in [e2e.md](../agent-docs/e2e.md).
 
 ### Work
 
-1. Rust: every function ported from TypeScript keeps its property tests (`proptest`), in the crate it moves to.
-2. Views: QTest (`QTest::mouseClick`, `keyClicks`, `mouseMove`) on the `offscreen` platform plugin, no display. The tests are C++ functions in `opsis-ui` exposed through the bridge and run by `cargo test` (`QT_QPA_PLATFORM=offscreen`), so `bun run test` covers them.
-3. End to end: the real app under Xvfb only, driven through the Local API. An `e2e` Cargo feature adds routes that list windows, read the widget tree (`QAccessible`), send input (QTest functions from inside the app) and grab windows (`QWidget::grab`). The runner keeps today's data folder seeding (`e2e/src/support/user-data.ts`) and close check.
-4. Wayland checks: a headless Wayland compositor (weston or sway headless) runs the input-method, drag-and-drop and pop-out specs, since Xvfb covers only X11.
-
-### Decisions
-
-- **Runner language.** Keep the e2e runner in TypeScript on bun (it only talks to the Local API), or move it to Rust; recommended: keep it in TypeScript.
-
-### Sources
-
-- QTest: https://doc.qt.io/qt-6/qtest.html (checked 2026-11-05)
-- Offscreen platform: https://github.com/qt/qtbase/tree/dev/src/plugins/platforms/offscreen (checked 2026-11-05)
+1. Rust: every function ported from TypeScript keeps its property tests (`proptest`), in the crate it moved to.
+2. Views: the `views` scenario runs the real app on Qt's `offscreen` plugin from `cargo test -p opsis-ui` (`crates/ui/tests/views.rs`), so `bun run test` covers it without a display.
+3. End to end: `bun run e2e:qt` runs scenarios inside the real app under Xvfb, each step acting with `QTest` and checking the session: `tour` (with the engine), `runs` (setup, real recordings, Replay, terminal takes), and `api`, which drives every Local API route from outside over the socket and ends with the close check. The 9 WebdriverIO specs are ported into them. Steps run in the app rather than through Local API e2e routes, because a step needs the widgets it acts on.
+4. Wayland: the `wayland` scenario runs on headless sway with real input from `opsis-e2e-input`, which holds a virtual pointer and keyboard (popups, focus, the clipboard and hover need input the compositor delivered).
 
 ## Cut-over
 

@@ -38,6 +38,8 @@ class Scenario : public QObject {
   void BuildTour();
   void BuildRuns();
   void BuildApi();
+  void BuildViews();
+  void BuildWayland();
   void BuildTerminalRuns();
   void BuildPorts();
   void BuildDisk();

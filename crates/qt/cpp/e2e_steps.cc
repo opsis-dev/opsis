@@ -63,6 +63,7 @@ constexpr int kSettleMs = 300;
 constexpr double kMaxQuality = 12;
 constexpr int kEventuallyMs = 2000;
 constexpr int kStopMs = 10000;
+constexpr int kMenuOpenMs = 1000;
 constexpr int kControlsWidth = 220;
 constexpr double kBottomShareLow = 0.3;
 constexpr double kBottomShareHigh = 0.5;
@@ -218,11 +219,15 @@ void Scenario::ClickMenu(const QString& section, const QString& item) {
   }
   QTest::mouseClick(bar, Qt::LeftButton, {}, bar->actionGeometry(top).center());
   QMenu* menu = top->menu();
+  if (!QTest::qWaitFor([menu] { return menu->isVisible(); }, kMenuOpenMs)) {
+    Miss(QStringLiteral("the %1 menu didn't open").arg(section));
+    return;
+  }
   QAction* chosen = nullptr;
   for (QAction* action : menu->actions()) {
     if (action->text() == item) chosen = action;
   }
-  if (chosen == nullptr || !menu->isVisible()) {
+  if (chosen == nullptr) {
     menu->close();
     Miss(QStringLiteral("no '%1' in the %2 menu").arg(item, section));
     return;

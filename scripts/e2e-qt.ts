@@ -1,5 +1,14 @@
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
-import { copyFileSync, cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import {
+  copyFileSync,
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { homedir } from "node:os";
@@ -11,11 +20,20 @@ import { ensureFfmpeg } from "./lib/ffmpeg";
 import { ROOT } from "./lib/tool-config";
 import { DEV_ENGINE, browserIn, seedUserData } from "./lib/user-data";
 
-const SCENARIOS = ["tour", "runs", "api"] as const;
+const SCENARIOS = ["tour", "runs", "api", "wayland"] as const;
 type ScenarioName = (typeof SCENARIOS)[number];
 const DATA_DIR = path.join(homedir(), ".cache", "opsis-qt-e2e");
 const RUNS_DIR = path.join(homedir(), ".cache", "opsis-qt-e2e-runs");
 const API_DIR = path.join(homedir(), ".cache", "opsis-qt-e2e-api");
+const WAYLAND_DIR = path.join(homedir(), ".cache", "opsis-qt-e2e-wayland");
+const SWAY_CONFIG = [
+  "output HEADLESS-1 resolution {size}",
+  "default_border none",
+  "default_floating_border none",
+  "focus_follows_mouse no",
+  "",
+].join("\n");
+const WAYLAND_SOCKET = /^wayland-\d+$/;
 const LOG_DIR = path.join(ROOT, "target", "e2e-qt");
 const SHOTS_DIR = path.join(homedir(), ".cache", "opsis-qt-shots");
 const SHOTS_FLAG = "--shots";
@@ -42,6 +60,8 @@ const CHECK_LINE = /check \S+: |scenario \S+ done|panicked/;
 const FIXTURES_DIR = path.join(DATA_DIR, "fixtures");
 const CLIP_SECONDS = "3";
 
+type Screen = { stop: () => void; env: Record<string, string>; unset: string };
+
 function freeDisplay(): number {
   for (let n = FIRST_DISPLAY; n <= LAST_DISPLAY; n += 1) {
     if (!existsSync(`/tmp/.X11-unix/X${n}`) && !existsSync(`/tmp/.X${n}-lock`)) return n;
@@ -58,7 +78,7 @@ async function waitFor(file: string, ms: number): Promise<void> {
 }
 
 function build(): void {
-  const built = spawnSync("cargo", ["build", "-q", "-p", "opsis-ui"], {
+  const built = spawnSync("cargo", ["build", "-q", "-p", "opsis-ui", "-p", "opsis-e2e-input"], {
     cwd: ROOT,
     stdio: "inherit",
   });
@@ -128,11 +148,11 @@ function exitConfirmed(userData: string): boolean | undefined {
     : (JSON.parse(row.value) as { confirmExit?: boolean }).confirmExit;
 }
 
-async function runApi(display: number, ffmpeg: string, page: string): Promise<boolean> {
+async function runApi(screen: Screen, ffmpeg: string, page: string): Promise<boolean> {
   ensureBundles();
   const userData = seedApi();
   const handoff = path.join(API_DIR, "api-done");
-  const app = runScenario(display, ffmpeg, "api", userData, {
+  const app = runScenario(screen, ffmpeg, "api", userData, {
     OPSIS_QT_PAGE: page,
     OPSIS_QT_HANDOFF: handoff,
   });
@@ -190,7 +210,7 @@ function ensureBundles(): void {
 }
 
 function runScenario(
-  display: number,
+  screen: Screen,
   ffmpeg: string,
   scenario: ScenarioName,
   userData: string,
@@ -200,16 +220,22 @@ function runScenario(
     ...process.env,
     OPSIS_FFMPEG: ffmpeg,
     OPSIS_AUDIO_DEVICE: "alsa:null",
-    DISPLAY: `:${display}`,
-    QT_QPA_PLATFORM: "xcb",
+    ...screen.env,
     OPSIS_USER_DATA: userData,
     OPSIS_QT_SCENARIO: scenario,
     OPSIS_QT_SHOTS: shotsFor(scenario),
     ...extra,
   };
-  delete env.WAYLAND_DISPLAY;
+  delete env[screen.unset];
+  const binary = path.join(ROOT, "target", "debug", "opsis");
+  const hang = Number(process.env.OPSIS_QT_E2E_HANG_MS ?? 0);
+  const [program, args] =
+    hang > 0
+      ? ["gdb", ["-q", "-batch", "-ex", "run", "-ex", "thread apply all bt", "--args", binary]]
+      : [binary, []];
   return new Promise((resolve) => {
-    const app = spawn(path.join(ROOT, "target", "debug", "opsis"), [], { cwd: ROOT, env });
+    const app = spawn(program, args, { cwd: ROOT, env });
+    const interrupt = hang > 0 ? setTimeout(() => interruptChild(app), hang) : undefined;
     let output = "";
     function collect(chunk: Buffer): void {
       output += chunk.toString();
@@ -219,9 +245,17 @@ function runScenario(
     const timer = setTimeout(() => app.kill("SIGTERM"), RUN_TIMEOUT_MS);
     app.on("exit", (code) => {
       clearTimeout(timer);
+      clearTimeout(interrupt);
       resolve({ code, output });
     });
   });
+}
+
+function interruptChild(debugger_: ChildProcess): void {
+  const pid = debugger_.pid;
+  if (pid === undefined) return;
+  const children = readFileSync(`/proc/${pid}/task/${pid}/children`, "utf8").trim().split(" ");
+  for (const child of children) if (child !== "") process.kill(Number(child), "SIGINT");
 }
 
 function stop(server: ChildProcess): void {
@@ -245,19 +279,24 @@ function chosen(): ScenarioName[] {
   return named as ScenarioName[];
 }
 
-async function runOne(display: number, ffmpeg: string, scenario: ScenarioName): Promise<boolean> {
+async function runOne(screen: Screen, ffmpeg: string, scenario: ScenarioName): Promise<boolean> {
   let userData = DATA_DIR;
-  const browser = devBrowser();
   const extra: Record<string, string> = {};
   const page = await servePage();
   if (scenario === "api") {
     try {
-      return await runApi(display, ffmpeg, page.url);
+      return await runApi(screen, ffmpeg, page.url);
     } finally {
       page.close();
     }
   }
-  if (scenario === "tour") {
+  if (scenario === "wayland") {
+    rmSync(WAYLAND_DIR, { recursive: true, force: true });
+    userData = path.join(WAYLAND_DIR, "user-data");
+    seedUserData(userData, { api: { enabled: false } }, { engine: false });
+    mkdirSync(path.join(WAYLAND_DIR, "projects"), { recursive: true });
+    extra.OPSIS_QT_PROJECTS = path.join(WAYLAND_DIR, "projects");
+  } else if (scenario === "tour") {
     rmSync(DATA_DIR, { recursive: true, force: true });
     seedUserData(DATA_DIR, { api: { enabled: false } });
     makeClip(ffmpeg);
@@ -269,10 +308,10 @@ async function runOne(display: number, ffmpeg: string, scenario: ScenarioName): 
     userData = seedRuns();
     extra.OPSIS_QT_PROJECTS = path.join(RUNS_DIR, "projects");
     extra.OPSIS_QT_PAGE = page.url;
-    extra.OPSIS_QT_BROWSER = browser;
+    extra.OPSIS_QT_BROWSER = devBrowser();
   }
   try {
-    const { code, output } = await runScenario(display, ffmpeg, scenario, userData, extra);
+    const { code, output } = await runScenario(screen, ffmpeg, scenario, userData, extra);
     writeLog(scenario, output);
     const lines = output.split("\n").filter((line) => CHECK_LINE.test(line));
     for (const line of lines) console.log(line.replace(/^\[[^\]]*\] /, ""));
@@ -288,21 +327,120 @@ async function runOne(display: number, ffmpeg: string, scenario: ScenarioName): 
   }
 }
 
-async function main(): Promise<number> {
-  const scenarios = chosen();
-  build();
+async function startXvfb(): Promise<Screen> {
   const display = freeDisplay();
   const server = spawn("Xvfb", [`:${display}`, "-screen", "0", SCREEN, "-nolisten", "tcp"], {
     stdio: "ignore",
   });
+  await waitFor(`/tmp/.X11-unix/X${display}`, START_WAIT_MS);
+  return {
+    stop: () => stop(server),
+    env: { DISPLAY: `:${display}`, QT_QPA_PLATFORM: "xcb" },
+    unset: "WAYLAND_DISPLAY",
+  };
+}
+
+async function waylandSocket(runtime: string): Promise<string> {
+  const until = Date.now() + START_WAIT_MS;
+  while (Date.now() < until) {
+    const found = readdirSync(runtime).find((name) => WAYLAND_SOCKET.test(name));
+    if (found !== undefined) return found;
+    await sleep(100);
+  }
+  throw new Error("headless sway didn't open its socket");
+}
+
+function untilReady(helper: ChildProcess): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error("the input helper didn't start")),
+      START_WAIT_MS,
+    );
+    let said = "";
+    helper.stdout?.on("data", (chunk: Buffer) => {
+      said += chunk.toString();
+      if (said.split("\n").includes("ready")) {
+        clearTimeout(timer);
+        resolve();
+      }
+    });
+    helper.on("exit", (code) => {
+      clearTimeout(timer);
+      reject(new Error(`the input helper stopped (exit ${code})`));
+    });
+  });
+}
+
+async function startSway(): Promise<Screen> {
+  const parent = process.env.XDG_RUNTIME_DIR;
+  if (parent === undefined) throw new Error("the Wayland scenario needs XDG_RUNTIME_DIR");
+  const runtime = path.join(parent, `opsis-e2e-${process.pid}`);
+  rmSync(runtime, { recursive: true, force: true });
+  mkdirSync(runtime, { mode: 0o700 });
+  const [width = "", height = ""] = SCREEN.split("x");
+  const config = path.join(runtime, "sway.conf");
+  writeFileSync(config, SWAY_CONFIG.replace("{size}", `${width}x${height}`));
+  const env: Record<string, string | undefined> = {
+    ...process.env,
+    XDG_RUNTIME_DIR: runtime,
+    WLR_BACKENDS: "headless",
+    WLR_LIBINPUT_NO_DEVICES: "1",
+    WLR_RENDERER: "pixman",
+  };
+  delete env.WAYLAND_DISPLAY;
+  delete env.DISPLAY;
+  delete env.SWAYSOCK;
+  const sway = spawn("sway", ["-c", config], { stdio: "ignore", env });
+  const socket = await waylandSocket(runtime);
+  const requests = path.join(runtime, "input.txt");
+  writeFileSync(requests, "");
+  const helper = spawn(
+    path.join(ROOT, "target", "debug", "opsis-e2e-input"),
+    [requests, width, height],
+    {
+      env: { ...process.env, XDG_RUNTIME_DIR: runtime, WAYLAND_DISPLAY: socket },
+      stdio: ["ignore", "pipe", "inherit"],
+    },
+  );
+  await untilReady(helper);
+  return {
+    stop: () => {
+      stop(helper);
+      stop(sway);
+      rmSync(runtime, { recursive: true, force: true });
+    },
+    env: {
+      XDG_RUNTIME_DIR: runtime,
+      WAYLAND_DISPLAY: socket,
+      QT_QPA_PLATFORM: "wayland",
+      OPSIS_QT_INPUT: requests,
+    },
+    unset: "DISPLAY",
+  };
+}
+
+async function main(): Promise<number> {
+  const scenarios = chosen();
+  build();
+  const xvfb = scenarios.some((scenario) => scenario !== "wayland") ? await startXvfb() : null;
   try {
-    await waitFor(`/tmp/.X11-unix/X${display}`, START_WAIT_MS);
     const ffmpeg = await ensureFfmpeg();
     let passed = true;
-    for (const scenario of scenarios) passed = (await runOne(display, ffmpeg, scenario)) && passed;
+    for (const scenario of scenarios) {
+      if (scenario === "wayland") {
+        const sway = await startSway();
+        try {
+          passed = (await runOne(sway, ffmpeg, scenario)) && passed;
+        } finally {
+          sway.stop();
+        }
+      } else if (xvfb !== null) {
+        passed = (await runOne(xvfb, ffmpeg, scenario)) && passed;
+      }
+    }
     return passed ? 0 : 1;
   } finally {
-    stop(server);
+    xvfb?.stop();
   }
 }
 

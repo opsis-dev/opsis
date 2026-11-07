@@ -53,8 +53,11 @@ void Scenario::MaybeStart(MainWindow* window) {
   const QString name = qEnvironmentVariable("OPSIS_QT_SCENARIO");
   if (name.isEmpty()) return;
   const QString platform = QApplication::platformName();
+  const bool test_wayland = platform == QStringLiteral("wayland") &&
+                            qEnvironmentVariable("XDG_RUNTIME_DIR")
+                                .contains(QStringLiteral("/opsis-e2e-"));
   if (platform != QStringLiteral("xcb") &&
-      platform != QStringLiteral("offscreen")) {
+      platform != QStringLiteral("offscreen") && !test_wayland) {
     App::Get().Log(QStringLiteral("scenarios run only in a virtual display; "
                                   "this is %1, so quitting")
                        .arg(platform));
@@ -80,6 +83,10 @@ Scenario::Scenario(MainWindow* window, const QString& name, const QDir& shots)
     BuildRuns();
   } else if (name == QStringLiteral("api")) {
     BuildApi();
+  } else if (name == QStringLiteral("views")) {
+    BuildViews();
+  } else if (name == QStringLiteral("wayland")) {
+    BuildWayland();
   } else {
     BuildTour();
   }
