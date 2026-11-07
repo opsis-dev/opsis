@@ -728,6 +728,11 @@ pub mod ffi {
         fn box_kept(self: &Session, area: BoundsView) -> bool;
         fn edit_keyframes(self: &Session, edit_json: &str) -> Result<()>;
         fn timeline(self: &Session) -> TimelineView;
+        fn audio_play(self: &Session, seconds: f64, rate: f64);
+        fn audio_pause(self: &Session);
+        fn audio_seek(self: &Session, seconds: f64);
+        fn audio_clock(self: &Session) -> f64;
+        fn audio_ready(self: &Session) -> bool;
         fn mixer(self: &Session) -> MixerView;
         fn meter(self: &Session, target: &str, frame: f64) -> MeterView;
         fn loudness_at(self: &Session, frame: f64) -> LoudnessView;

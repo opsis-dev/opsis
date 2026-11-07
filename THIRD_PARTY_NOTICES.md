@@ -794,6 +794,10 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
+## Sound output — the cpal crate
+
+Plays the film's sound while the editor's timeline plays, in `crates/audio`. https://github.com/RustAudio/cpal, licensed under the Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0).
+
 ## Ghostty's terminal engine — crates/vt, packages/video/src/terminal/sprites.ts, crates/render/tests/sprites
 
 The terminal engine that keeps a terminal take's screen, libghostty-vt from Ghostty v1.4.0 (https://github.com/ghostty-org/ghostty), built from source by `crates/vt/zig` and linked into the app. The terminal's sprites (`packages/video/src/terminal/sprites.ts`) are ported from Ghostty's `src/font/sprite/draw`, and the reference atlases their test compares with (`crates/render/tests/sprites`) are Ghostty's `src/font/sprite/testdata` at commit ae0dc1b7136c2baddc3e067663aa041cd555cfda. Licensed under the MIT License:

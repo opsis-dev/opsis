@@ -67,6 +67,7 @@ pub struct Ui {
     compiled: Arc<Mutex<graph::Compiled>>,
     media: media::MediaCache,
     mixes: mixer::Mixes,
+    audio: Arc<Mutex<opsis_audio::output::Output>>,
     started: Instant,
 }
 
@@ -163,6 +164,7 @@ impl Ui {
             compiled: Arc::new(Mutex::new(graph::Compiled::default())),
             media: media::MediaCache::default(),
             mixes: mixer::Mixes::default(),
+            audio: Arc::new(Mutex::new(opsis_audio::output::Output::new())),
             started: Instant::now(),
         }
     }
@@ -413,6 +415,7 @@ fn render_mix(
     session: &Session,
     handle: &tokio::runtime::Handle,
     mixes: &mixer::Mixes,
+    audio: &Arc<Mutex<opsis_audio::output::Output>>,
     plan: opsis_compile::mix::plan::MixPlan,
 ) {
     if plan.channels.is_empty() || !mixes.want(&plan.key) {
@@ -423,6 +426,7 @@ fn render_mix(
     };
     let session = session.clone();
     let mixes = mixes.clone();
+    let audio = Arc::clone(audio);
     handle.spawn(async move {
         let key = plan.key.clone();
         let request = AnalysisRequest::Mix {
@@ -436,9 +440,39 @@ fn render_mix(
             Ok(_) => Err("The mix came back as something else.".to_owned()),
             Err(error) => Err(error.0),
         };
+        let stem = outcome
+            .as_ref()
+            .ok()
+            .and_then(|mix| mix.master.as_ref())
+            .map(|master| master.src.clone());
         mixes.finish(&key, outcome);
         opsis_qt::post_event(EventKind::Media);
+        if let Some(src) = stem {
+            load_stem(&session, &dir, &src, &audio).await;
+        }
     });
+}
+
+async fn load_stem(
+    session: &Session,
+    dir: &Path,
+    src: &str,
+    audio: &Arc<Mutex<opsis_audio::output::Output>>,
+) {
+    let state = session.state::<AppState>();
+    let public = state.paths.public_dir.clone();
+    let Ok(file) = opsis_project::paths::ref_to_path(dir, &public, src) else {
+        return;
+    };
+    let tools = opsis_session::engine::engine_tools(state);
+    let scratch = opsis_project::paths::project_paths(dir).analysis;
+    match opsis_audio::decode::decode_stem(tools.as_ref(), &file, &scratch).await {
+        Ok(samples) => audio
+            .lock()
+            .expect("sound output")
+            .set_samples(Some(Arc::new(samples))),
+        Err(error) => log::warn!("decoding the mix for playback: {error}"),
+    }
 }
 
 fn snap_targets(frames: &[f64]) -> Vec<view::SnapTarget> {
@@ -457,6 +491,7 @@ impl Host for Ui {
         let closing = Arc::clone(&self.closing);
         let compiled = Arc::clone(&self.compiled);
         let mixes = self.mixes.clone();
+        let audio = Arc::clone(&self.audio);
         let handle = self.runtime.handle().clone();
         let session = self.session.clone();
         std::thread::spawn(move || {
@@ -473,7 +508,7 @@ impl Host for Ui {
                                     *compiled.lock().expect("latest compile") = latest;
                                     opsis_qt::post_event(EventKind::Compiled);
                                     if let Some(plan) = plan {
-                                        render_mix(&session, &handle, &mixes, plan);
+                                        render_mix(&session, &handle, &mixes, &audio, plan);
                                     }
                                 }
                                 Err(error) => log::warn!("reading the compile: {error}"),
@@ -625,6 +660,11 @@ impl Host for Ui {
             log::warn!("saving before closing the project: {}", error.0);
         }
         self.showing.store(false, Ordering::Relaxed);
+        {
+            let mut audio = self.audio.lock().expect("sound output");
+            audio.pause();
+            audio.set_samples(None);
+        }
         opsis_qt::post_event(EventKind::Project);
     }
 
@@ -1457,6 +1497,30 @@ impl Host for Ui {
             },
             value,
         )
+    }
+
+    fn audio_play(&self, seconds: f64, rate: f64) {
+        self.audio.lock().expect("sound output").play(seconds, rate);
+    }
+
+    fn audio_pause(&self) {
+        self.audio.lock().expect("sound output").pause();
+    }
+
+    fn audio_seek(&self, seconds: f64) {
+        self.audio.lock().expect("sound output").seek(seconds);
+    }
+
+    fn audio_clock(&self) -> f64 {
+        self.audio
+            .lock()
+            .expect("sound output")
+            .clock()
+            .unwrap_or(-1.0)
+    }
+
+    fn audio_ready(&self) -> bool {
+        self.audio.lock().expect("sound output").has_samples()
     }
 
     fn timeline(&self) -> TimelineView {

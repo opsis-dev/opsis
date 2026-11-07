@@ -43,6 +43,7 @@ void PlaybackClock::SetFilm(int fps, double duration) {
 void PlaybackClock::Seek(double frame) {
   frame_ = Clamped(frame, duration_);
   position_ = frame_;
+  App::Get().session().audio_seek(frame_ / fps_);
   Share();
   emit Changed();
 }
@@ -54,6 +55,7 @@ void PlaybackClock::Play() {
   playing_ = true;
   elapsed_.start();
   timer_.start();
+  App::Get().session().audio_play(frame_ / fps_, rate_);
   Share();
   emit Changed();
 }
@@ -62,6 +64,7 @@ void PlaybackClock::Pause() {
   if (!playing_) return;
   timer_.stop();
   playing_ = false;
+  App::Get().session().audio_pause();
   Share();
   emit Changed();
 }
@@ -98,6 +101,7 @@ void PlaybackClock::Shuttle(int direction) {
     timer_.start();
   }
   rate_ = next;
+  App::Get().session().audio_play(position_ / fps_, rate_);
   Share();
   emit Changed();
 }
@@ -129,9 +133,12 @@ void PlaybackClock::ClearRange() {
 
 void PlaybackClock::Tick() {
   const double seconds = static_cast<double>(elapsed_.restart()) / kMsPerSecond;
-  const double moved = position_ + seconds * fps_ * rate_;
-  position_ = App::Get().session().wrap_playhead(moved, in_point_, out_point_,
-                                                 duration_);
+  auto& session = App::Get().session();
+  const double heard = session.audio_clock();
+  const double moved =
+      heard >= 0 ? heard * fps_ : position_ + seconds * fps_ * rate_;
+  position_ = session.wrap_playhead(moved, in_point_, out_point_, duration_);
+  if (std::abs(position_ - moved) > 1) session.audio_seek(position_ / fps_);
   const double frame = std::floor(position_);
   if (frame == frame_) return;
   frame_ = frame;

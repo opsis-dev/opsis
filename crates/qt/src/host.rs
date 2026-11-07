@@ -93,6 +93,11 @@ pub trait Host {
     fn box_kept(&self, area: BoundsView) -> bool;
     fn edit_keyframes(&self, edit_json: &str) -> HostResult<()>;
     fn timeline(&self) -> TimelineView;
+    fn audio_play(&self, seconds: f64, rate: f64);
+    fn audio_pause(&self);
+    fn audio_seek(&self, seconds: f64);
+    fn audio_clock(&self) -> f64;
+    fn audio_ready(&self) -> bool;
     fn mixer(&self) -> MixerView;
     fn meter(&self, target: &str, frame: f64) -> MeterView;
     fn loudness_at(&self, frame: f64) -> LoudnessView;
@@ -491,6 +496,26 @@ impl Session {
 
     pub(crate) fn timeline(&self) -> TimelineView {
         self.0.timeline()
+    }
+
+    pub(crate) fn audio_play(&self, seconds: f64, rate: f64) {
+        self.0.audio_play(seconds, rate);
+    }
+
+    pub(crate) fn audio_pause(&self) {
+        self.0.audio_pause();
+    }
+
+    pub(crate) fn audio_seek(&self, seconds: f64) {
+        self.0.audio_seek(seconds);
+    }
+
+    pub(crate) fn audio_clock(&self) -> f64 {
+        self.0.audio_clock()
+    }
+
+    pub(crate) fn audio_ready(&self) -> bool {
+        self.0.audio_ready()
     }
 
     pub(crate) fn mixer(&self) -> MixerView {
