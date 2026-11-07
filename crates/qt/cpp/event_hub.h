@@ -39,6 +39,7 @@ class EventHub : public QObject {
   void ApiChanged();
   void MediaChanged();
   void EngineChanged();
+  void FontsChanged();
   void ReplayAsked(const QString& node, const QString& tab);
   void Notice(const QString& title, const QString& body);
 

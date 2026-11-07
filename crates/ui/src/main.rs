@@ -1,6 +1,7 @@
 mod clipboard;
 mod colors;
 mod folders;
+mod font_views;
 mod graph;
 mod inspector;
 mod keys;

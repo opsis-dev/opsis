@@ -16,12 +16,13 @@ use opsis_compile::nodes::media::IMPORT_TYPE;
 use opsis_compile::timeline::flatten::BarThumbnail;
 use opsis_compile::timeline::view;
 use opsis_qt::{
-    AboutView, BarView, BoundsView, CategoryView, Choice, CloseView, ColorView, EngineView,
-    EventKind, FilmTiles, GradientInfo, GraphView, Host, HostResult, InspectorView, KeyLineView,
-    LicenceView, LoudnessView, MarkDrawnView, MarkPointsView, MenuSectionView, MeterView,
-    MixerView, MotionInfo, NodeMove, PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView,
-    RemovalView, ReplayView, RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView,
-    TemplateView, TextToken, TimelineView, TraceView, VariableView, WindowPlacement,
+    AboutView, BarView, BoundsView, CatalogRowView, CategoryView, Choice, CloseView, ColorView,
+    EngineView, EventKind, FilmTiles, FontCatalogView, FontReviewView, FontRowView, GradientInfo,
+    GraphView, Host, HostResult, InspectorView, InstalledFontView, KeyLineView, LicenceView,
+    LoudnessView, MarkDrawnView, MarkPointsView, MenuSectionView, MeterView, MixerView, MotionInfo,
+    NodeMove, PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView,
+    ReplayView, RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView, TemplateView,
+    TextToken, TimelineView, TraceView, VariableView, WindowPlacement,
 };
 use opsis_session::analysis::{self, AnalysisRequest, AnalysisResult};
 use opsis_session::error::CommandError;
@@ -48,8 +49,8 @@ use tokio::sync::broadcast::error::RecvError;
 use crate::platform::QtPlatform;
 use crate::project::Extras;
 use crate::{
-    clipboard, colors, graph, inspector, keys, live, look, media, mixer, motion, player, project,
-    replay, run_panel, streams, timeline,
+    clipboard, colors, font_views, graph, inspector, keys, live, look, media, mixer, motion,
+    player, project, replay, run_panel, streams, timeline,
 };
 
 const LAYOUT_KEY: &str = "nativeDockLayout";
@@ -80,7 +81,15 @@ pub struct Ui {
     view_windows: streams::ViewWindows,
     live: live::Live,
     engine_install: Arc<Mutex<EngineInstall>>,
+    font_work: Arc<Mutex<FontWork>>,
     started: Instant,
+}
+
+#[derive(Debug, Default)]
+struct FontWork {
+    review: Option<(opsis_fonts::library::InspectedFonts, bool)>,
+    catalog: Option<Result<Vec<opsis_fonts::online::FontCatalogEntry>, String>>,
+    downloading: String,
 }
 
 #[derive(Debug, Default)]
@@ -198,6 +207,7 @@ impl Ui {
             view_windows: streams::ViewWindows::default(),
             live: live::Live::default(),
             engine_install: Arc::default(),
+            font_work: Arc::default(),
             started: Instant::now(),
         }
     }
@@ -451,20 +461,65 @@ impl Ui {
         }
     }
 
-    fn licence_text(&self, reference: Option<&str>) -> String {
-        let Some(reference) = reference else {
-            return "No licence file came with this font.".to_owned();
-        };
+    fn font_file(&self, reference: &str) -> Option<PathBuf> {
         let paths = &self.state().paths;
-        let file = reference
+        reference
             .strip_prefix(opsis_compile::asset_ref::LIBRARY_SCHEME)
             .map(|rel| paths.fonts_dir().join(rel))
             .or_else(|| {
                 opsis_project::paths::ref_to_path(&paths.user_data, &paths.public_dir, reference)
                     .ok()
-            });
-        file.and_then(|file| std::fs::read_to_string(file).ok())
+            })
+    }
+
+    fn licence_text(&self, reference: Option<&str>) -> String {
+        let Some(reference) = reference else {
+            return "No licence file came with this font.".to_owned();
+        };
+        self.font_file(reference)
+            .and_then(|file| std::fs::read_to_string(file).ok())
             .unwrap_or_else(|| "This licence file couldn't be read.".to_owned())
+    }
+
+    fn font_row(&self, def: &opsis_types::fonts::FontFamilyDef) -> FontRowView {
+        let italic = |face: &opsis_types::fonts::FontFaceDef| {
+            matches!(face.style, opsis_types::fonts::FontStyle::Italic)
+        };
+        let sample = def
+            .faces
+            .iter()
+            .find(|f| !italic(f) && f.weight == "400")
+            .or_else(|| def.faces.iter().find(|f| !italic(f)))
+            .or_else(|| def.faces.first())
+            .and_then(|f| self.font_file(&f.file))
+            .map_or_default(|p| p.to_string_lossy().into_owned());
+        FontRowView {
+            id: def.id.clone(),
+            family: def.family.clone(),
+            faces: font_views::describe_faces(
+                def.faces.iter().map(|f| (f.weight.as_str(), italic(f))),
+            ),
+            source: match def.source {
+                opsis_types::fonts::FontSource::Bundled => "Built in",
+                opsis_types::fonts::FontSource::Online => "Downloaded",
+                opsis_types::fonts::FontSource::File => "From files",
+                opsis_types::fonts::FontSource::Installed => "From this computer",
+            }
+            .to_owned(),
+            licensed: def.license_file.is_some(),
+            sample,
+        }
+    }
+
+    fn fetch_catalog(&self) {
+        let (session, work) = (self.session.clone(), Arc::clone(&self.font_work));
+        self.runtime.spawn(async move {
+            let outcome = opsis_session::fonts::font_catalog(&session)
+                .await
+                .map_err(|e| e.0);
+            work.lock().expect("font work").catalog = Some(outcome);
+            opsis_qt::post_event(EventKind::Fonts);
+        });
     }
 
     fn send_view(&self, id: &str, input: ViewInput) {
@@ -2507,6 +2562,205 @@ impl Host for Ui {
 
     fn open_licence_file(&self, file: &str) -> HostResult<()> {
         settings::open_licence_file(&self.session, file).map_err(|e| e.0)
+    }
+
+    fn font_library(&self) -> Vec<FontRowView> {
+        self.runtime
+            .block_on(opsis_session::fonts::list_fonts(&self.session))
+            .map_or_default(|choices| choices.iter().map(|c| self.font_row(&c.def)).collect())
+    }
+
+    fn remove_font(&self, id: &str) -> HostResult<()> {
+        self.runtime
+            .block_on(opsis_session::fonts::remove_font(
+                &self.session,
+                id.to_owned(),
+            ))
+            .map_err(|e| e.0)
+    }
+
+    fn add_font_files(&self) {
+        let (session, work) = (self.session.clone(), Arc::clone(&self.font_work));
+        self.runtime.spawn(async move {
+            match opsis_session::fonts::inspect_font_files(session, None).await {
+                Ok(Some(fonts)) if fonts.families.is_empty() => {
+                    opsis_qt::notify("No fonts found in those files.", "");
+                }
+                Ok(Some(fonts)) => {
+                    work.lock().expect("font work").review = Some((fonts, false));
+                    opsis_qt::post_event(EventKind::Fonts);
+                }
+                Ok(None) => {}
+                Err(error) => opsis_qt::notify(&error.0, ""),
+            }
+        });
+    }
+
+    fn installed_fonts(&self) -> Vec<InstalledFontView> {
+        let mut families = self
+            .runtime
+            .block_on(opsis_session::fonts::installed_font_families())
+            .unwrap_or_default();
+        families.sort_by_key(|f| f.family.to_lowercase());
+        families
+            .into_iter()
+            .map(|f| InstalledFontView {
+                styles: opsis_compile::text::plural(f64::from(f.faces), "style"),
+                family: f.family,
+            })
+            .collect()
+    }
+
+    fn inspect_installed(&self, family: &str) {
+        let (session, work, family) = (
+            self.session.clone(),
+            Arc::clone(&self.font_work),
+            family.to_owned(),
+        );
+        self.runtime.spawn(async move {
+            match opsis_session::fonts::inspect_installed_fonts(&session, vec![family]).await {
+                Ok(fonts) => {
+                    work.lock().expect("font work").review = Some((fonts, true));
+                    opsis_qt::post_event(EventKind::Fonts);
+                }
+                Err(error) => opsis_qt::notify(&error.0, ""),
+            }
+        });
+    }
+
+    fn font_review(&self) -> FontReviewView {
+        let work = self.font_work.lock().expect("font work");
+        let Some((fonts, installed)) = work.review.as_ref() else {
+            return FontReviewView {
+                shown: false,
+                token: String::new(),
+                summary: String::new(),
+                note: String::new(),
+                families: Vec::new(),
+            };
+        };
+        FontReviewView {
+            shown: true,
+            token: fonts.token.clone(),
+            summary: font_views::found_text(fonts.families.len(), fonts.skipped, fonts.unreadable),
+            note: font_views::licence_note(fonts.license.as_deref(), *installed),
+            families: fonts
+                .families
+                .iter()
+                .map(|f| FontRowView {
+                    id: f.family.clone(),
+                    family: f.family.clone(),
+                    faces: font_views::describe_faces(f.faces.iter().map(|c| {
+                        (
+                            c.weight.as_str(),
+                            matches!(c.style, opsis_types::fonts::FontStyle::Italic),
+                        )
+                    })),
+                    source: String::new(),
+                    licensed: fonts.license.is_some(),
+                    sample: String::new(),
+                })
+                .collect(),
+        }
+    }
+
+    fn add_reviewed(&self, families: Vec<String>) -> HostResult<String> {
+        let token = self
+            .font_work
+            .lock()
+            .expect("font work")
+            .review
+            .as_ref()
+            .map(|(fonts, _)| fonts.token.clone())
+            .ok_or_else(|| "There are no fonts to add.".to_owned())?;
+        let added = self
+            .runtime
+            .block_on(opsis_session::fonts::add_inspected_fonts(
+                &self.session,
+                token,
+                families,
+            ))
+            .map_err(|e| e.0)?;
+        self.drop_review();
+        let names: Vec<String> = added.into_iter().map(|d| d.family).collect();
+        Ok(font_views::added_text(&names))
+    }
+
+    fn drop_review(&self) {
+        let review = self.font_work.lock().expect("font work").review.take();
+        if let Some((fonts, _)) = review {
+            opsis_session::fonts::release_inspected_fonts(&self.session, &fonts.token);
+        }
+        opsis_qt::post_event(EventKind::Fonts);
+    }
+
+    fn load_font_catalog(&self) {
+        self.font_work.lock().expect("font work").catalog = None;
+        opsis_qt::post_event(EventKind::Fonts);
+        self.fetch_catalog();
+    }
+
+    fn font_catalog(&self) -> FontCatalogView {
+        let work = self.font_work.lock().expect("font work");
+        let (status, error, entries) = match &work.catalog {
+            None => ("loading", String::new(), Vec::new()),
+            Some(Err(error)) => ("error", error.clone(), Vec::new()),
+            Some(Ok(entries)) => (
+                "ready",
+                String::new(),
+                entries
+                    .iter()
+                    .map(|e| CatalogRowView {
+                        id: e.id.clone(),
+                        family: e.family.clone(),
+                        detail: font_views::catalog_detail(e),
+                        added: e.added,
+                    })
+                    .collect(),
+            ),
+        };
+        FontCatalogView {
+            status: status.to_owned(),
+            error,
+            busy: work.downloading.clone(),
+            entries,
+        }
+    }
+
+    fn download_font(&self, id: &str) {
+        {
+            let mut work = self.font_work.lock().expect("font work");
+            if !work.downloading.is_empty() {
+                return;
+            }
+            id.clone_into(&mut work.downloading);
+        }
+        opsis_qt::post_event(EventKind::Fonts);
+        let (session, work, id) = (
+            self.session.clone(),
+            Arc::clone(&self.font_work),
+            id.to_owned(),
+        );
+        self.runtime.spawn(async move {
+            match opsis_session::fonts::download_font(&session, id).await {
+                Ok(def) if def.license_file.is_some() => {
+                    opsis_qt::notify(&format!("Added {}", def.family), "");
+                }
+                Ok(def) => opsis_qt::notify(
+                    &format!("Added {}, but its licence file didn't download", def.family),
+                    "Check that you're allowed to use this font in videos.",
+                ),
+                Err(error) => opsis_qt::notify(&error.0, ""),
+            }
+            let outcome = opsis_session::fonts::font_catalog(&session)
+                .await
+                .map_err(|e| e.0);
+            let mut state = work.lock().expect("font work");
+            state.downloading.clear();
+            state.catalog = Some(outcome);
+            drop(state);
+            opsis_qt::post_event(EventKind::Fonts);
+        });
     }
 
     fn patch_settings(&self, json: &str) -> HostResult<()> {

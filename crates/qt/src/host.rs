@@ -2,12 +2,12 @@ use std::fmt;
 
 use crate::bridge::ffi::{
     self, AboutView, BarView, BoundsView, CategoryView, CloseView, ColorView, DialogKind,
-    EngineView, EventKind, FilmTiles, GradientInfo, GraphView, InspectorView, KeyLineView,
-    LicenceView, LiveView, LoudnessView, MarkDrawnView, MarkPointsView, MenuSectionView, MeterView,
-    MixerView, MotionInfo, NodeMove, PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView,
-    RemovalView, ReplayView, RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView,
-    StreamViewState, TemplateView, TextToken, TimelineView, TraceView, VariableView,
-    WindowPlacement,
+    EngineView, EventKind, FilmTiles, FontCatalogView, FontReviewView, FontRowView, GradientInfo,
+    GraphView, InspectorView, InstalledFontView, KeyLineView, LicenceView, LiveView, LoudnessView,
+    MarkDrawnView, MarkPointsView, MenuSectionView, MeterView, MixerView, MotionInfo, NodeMove,
+    PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView, ReplayView,
+    RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView, StreamViewState, TemplateView,
+    TextToken, TimelineView, TraceView, VariableView, WindowPlacement,
 };
 use crate::frame::FrameRef;
 
@@ -153,6 +153,17 @@ pub trait Host {
     fn licences(&self) -> Vec<LicenceView>;
     fn font_licences(&self, library: bool) -> Vec<LicenceView>;
     fn open_licence_file(&self, file: &str) -> HostResult<()>;
+    fn font_library(&self) -> Vec<FontRowView>;
+    fn remove_font(&self, id: &str) -> HostResult<()>;
+    fn add_font_files(&self);
+    fn installed_fonts(&self) -> Vec<InstalledFontView>;
+    fn inspect_installed(&self, family: &str);
+    fn font_review(&self) -> FontReviewView;
+    fn add_reviewed(&self, families: Vec<String>) -> HostResult<String>;
+    fn drop_review(&self);
+    fn load_font_catalog(&self);
+    fn font_catalog(&self) -> FontCatalogView;
+    fn download_font(&self, id: &str);
     fn audio_play(&self, seconds: f64, rate: f64);
     fn audio_pause(&self);
     fn audio_seek(&self, seconds: f64);
@@ -785,6 +796,50 @@ impl Session {
 
     pub(crate) fn open_licence_file(&self, file: &str) -> HostResult<()> {
         self.0.open_licence_file(file)
+    }
+
+    pub(crate) fn font_library(&self) -> Vec<FontRowView> {
+        self.0.font_library()
+    }
+
+    pub(crate) fn remove_font(&self, id: &str) -> HostResult<()> {
+        self.0.remove_font(id)
+    }
+
+    pub(crate) fn add_font_files(&self) {
+        self.0.add_font_files();
+    }
+
+    pub(crate) fn installed_fonts(&self) -> Vec<InstalledFontView> {
+        self.0.installed_fonts()
+    }
+
+    pub(crate) fn inspect_installed(&self, family: &str) {
+        self.0.inspect_installed(family);
+    }
+
+    pub(crate) fn font_review(&self) -> FontReviewView {
+        self.0.font_review()
+    }
+
+    pub(crate) fn add_reviewed(&self, families: Vec<String>) -> HostResult<String> {
+        self.0.add_reviewed(families)
+    }
+
+    pub(crate) fn drop_review(&self) {
+        self.0.drop_review();
+    }
+
+    pub(crate) fn load_font_catalog(&self) {
+        self.0.load_font_catalog();
+    }
+
+    pub(crate) fn font_catalog(&self) -> FontCatalogView {
+        self.0.font_catalog()
+    }
+
+    pub(crate) fn download_font(&self, id: &str) {
+        self.0.download_font(id);
     }
 
     pub(crate) fn audio_play(&self, seconds: f64, rate: f64) {

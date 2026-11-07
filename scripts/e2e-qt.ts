@@ -1,5 +1,5 @@
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { homedir } from "node:os";
@@ -57,6 +57,13 @@ function build(): void {
     stdio: "inherit",
   });
   if (built.status !== 0) throw new Error("building the native editor failed");
+}
+
+function copySampleFont(): void {
+  const found = spawnSync("fc-match", ["-f", "%{file}", "sans"], { encoding: "utf8" });
+  const file = found.stdout.trim();
+  if (found.status !== 0 || !existsSync(file)) throw new Error("fc-match found no sans font");
+  copyFileSync(file, path.join(FIXTURES_DIR, `sample-font${path.extname(file)}`));
 }
 
 function makeClip(ffmpeg: string): void {
@@ -173,6 +180,7 @@ async function runOne(display: number, ffmpeg: string, scenario: ScenarioName): 
     rmSync(DATA_DIR, { recursive: true, force: true });
     mkdirSync(DATA_DIR, { recursive: true });
     makeClip(ffmpeg);
+    copySampleFont();
     extra.OPSIS_QT_FIXTURES = FIXTURES_DIR;
   } else {
     ensureBundles();

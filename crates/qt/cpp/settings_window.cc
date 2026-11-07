@@ -19,6 +19,7 @@
 
 #include "app.h"
 #include "event_hub.h"
+#include "fonts_page.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "widgets.h"
 #include "window_chrome.h"
@@ -93,6 +94,7 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QWidget(parent, Qt::Window) {
       {QStringLiteral("Editor"), QStringLiteral("layout-grid")},
       {QStringLiteral("Engine"), QStringLiteral("cpu")},
       {QStringLiteral("Recording"), QStringLiteral("video")},
+      {QStringLiteral("Fonts"), QStringLiteral("type")},
       {QStringLiteral("API"), QStringLiteral("plug")},
       {QStringLiteral("Licences"), QStringLiteral("scale")},
       {QStringLiteral("About"), QStringLiteral("info")},
@@ -105,6 +107,7 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QWidget(parent, Qt::Window) {
   pages_->addWidget(EditorPage());
   pages_->addWidget(EnginePage());
   pages_->addWidget(RecordingPage());
+  pages_->addWidget(FontsPage());
   pages_->addWidget(ApiPage());
   pages_->addWidget(LicencesPage());
   pages_->addWidget(AboutPage());
@@ -117,6 +120,15 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QWidget(parent, Qt::Window) {
           &SettingsWindow::Load);
   connect(EventHub::Instance(), &EventHub::EngineChanged, this,
           &SettingsWindow::LoadEngine);
+  connect(EventHub::Instance(), &EventHub::FontsChanged, this, [this] {
+    QWidget* old = pages_->widget(kLicences);
+    QWidget* fresh = LicencesPage();
+    const bool shown = pages_->currentIndex() == kLicences;
+    pages_->insertWidget(kLicences, fresh);
+    pages_->removeWidget(old);
+    old->deleteLater();
+    if (shown) pages_->setCurrentIndex(kLicences);
+  });
   Load();
   LoadEngine();
 }
@@ -394,6 +406,13 @@ QWidget* SettingsWindow::RecordingPage() {
               QStringLiteral("Traces of each take and the live view while a "
                              "run is going."),
               {traces, live});
+}
+
+QWidget* SettingsWindow::FontsPage() {
+  return Page(QStringLiteral("Fonts"),
+              QStringLiteral("Your font library. Projects copy the fonts they "
+                             "use."),
+              {new FontsCard()});
 }
 
 QWidget* SettingsWindow::ApiPage() {

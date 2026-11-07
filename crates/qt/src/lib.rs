@@ -16,10 +16,11 @@ mod frame;
 mod host;
 
 pub use bridge::ffi::{
-    AboutView, ArtifactView, BarView, BoundsView, CardKind, CardView, CategoryView, Choice,
-    CloseView, ColorView, DialogKind, EdgeView, EngineView, EventKind, FieldKind, FieldView,
-    FilmTile, FilmTiles, GradientInfo, GradientStopView, GraphView, InspectorView, IssueView,
-    KeyLineView, KeyPointView, LicenceView, LiveCaptureView, LiveClickView, LiveView, LoudnessView,
+    AboutView, ArtifactView, BarView, BoundsView, CardKind, CardView, CatalogRowView, CategoryView,
+    Choice, CloseView, ColorView, DialogKind, EdgeView, EngineView, EventKind, FieldKind,
+    FieldView, FilmTile, FilmTiles, FontCatalogView, FontReviewView, FontRowView, GradientInfo,
+    GradientStopView, GraphView, InspectorView, InstalledFontView, IssueView, KeyLineView,
+    KeyPointView, LicenceView, LiveCaptureView, LiveClickView, LiveView, LoudnessView,
     MarkDrawnView, MarkPointsView, MenuItemKind, MenuItemView, MenuSectionView, MeterView,
     MixerStripView, MixerView, MotionInfo, NodeMove, PaletteEntry, PlayerView, PortView, PoseView,
     PresetView, ProjectEntry, ProjectView, RemovalView, ReplayActionView, ReplayView, RowView,

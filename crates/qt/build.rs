@@ -17,7 +17,7 @@ const DEFINES: [&str; 6] = [
     "QT_TESTLIB_LIB",
 ];
 
-const MOC_HEADERS: [&str; 30] = [
+const MOC_HEADERS: [&str; 31] = [
     "event_hub.h",
     "widgets.h",
     "window_chrome.h",
@@ -48,9 +48,10 @@ const MOC_HEADERS: [&str; 30] = [
     "replay_dialog.h",
     "stream_window.h",
     "live_view.h",
+    "fonts_page.h",
 ];
 
-const SOURCES: [&str; 42] = [
+const SOURCES: [&str; 43] = [
     "app.cc",
     "event_hub.cc",
     "widgets.cc",
@@ -93,6 +94,7 @@ const SOURCES: [&str; 42] = [
     "e2e_runs.cc",
     "live_view.cc",
     "e2e_settings.cc",
+    "fonts_page.cc",
 ];
 
 fn main() {

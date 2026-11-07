@@ -25,9 +25,10 @@ class SettingsWindow : public QWidget {
   static constexpr int kEditor = 2;
   static constexpr int kEngine = 3;
   static constexpr int kRecording = 4;
-  static constexpr int kApi = 5;
-  static constexpr int kLicences = 6;
-  static constexpr int kAbout = 7;
+  static constexpr int kFonts = 5;
+  static constexpr int kApi = 6;
+  static constexpr int kLicences = 7;
+  static constexpr int kAbout = 8;
 
   explicit SettingsWindow(QWidget* parent = nullptr);
   void ShowPage(int index);
@@ -39,6 +40,7 @@ class SettingsWindow : public QWidget {
   QWidget* EditorPage();
   QWidget* EnginePage();
   QWidget* RecordingPage();
+  QWidget* FontsPage();
   QWidget* ApiPage();
   QWidget* LicencesPage();
   QWidget* AboutPage();

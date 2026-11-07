@@ -21,6 +21,7 @@ pub mod ffi {
         Api,
         Media,
         Engine,
+        Fonts,
     }
 
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -882,6 +883,47 @@ pub mod ffi {
     }
 
     #[derive(Debug, Clone)]
+    struct FontRowView {
+        id: String,
+        family: String,
+        faces: String,
+        source: String,
+        licensed: bool,
+        sample: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct FontReviewView {
+        shown: bool,
+        token: String,
+        summary: String,
+        note: String,
+        families: Vec<FontRowView>,
+    }
+
+    #[derive(Debug, Clone)]
+    struct CatalogRowView {
+        id: String,
+        family: String,
+        detail: String,
+        added: bool,
+    }
+
+    #[derive(Debug, Clone)]
+    struct FontCatalogView {
+        status: String,
+        error: String,
+        busy: String,
+        entries: Vec<CatalogRowView>,
+    }
+
+    #[derive(Debug, Clone)]
+    struct InstalledFontView {
+        family: String,
+        styles: String,
+    }
+
+    #[derive(Debug, Clone)]
     struct LicenceView {
         title: String,
         summary: String,
@@ -1058,6 +1100,17 @@ pub mod ffi {
         fn licences(self: &Session) -> Vec<LicenceView>;
         fn font_licences(self: &Session, library: bool) -> Vec<LicenceView>;
         fn open_licence_file(self: &Session, file: &str) -> Result<()>;
+        fn font_library(self: &Session) -> Vec<FontRowView>;
+        fn remove_font(self: &Session, id: &str) -> Result<()>;
+        fn add_font_files(self: &Session);
+        fn installed_fonts(self: &Session) -> Vec<InstalledFontView>;
+        fn inspect_installed(self: &Session, family: &str);
+        fn font_review(self: &Session) -> FontReviewView;
+        fn add_reviewed(self: &Session, families: Vec<String>) -> Result<String>;
+        fn drop_review(self: &Session);
+        fn load_font_catalog(self: &Session);
+        fn font_catalog(self: &Session) -> FontCatalogView;
+        fn download_font(self: &Session, id: &str);
         fn audio_play(self: &Session, seconds: f64, rate: f64);
         fn audio_pause(self: &Session);
         fn audio_seek(self: &Session, seconds: f64);

@@ -5632,6 +5632,7 @@ dependencies = [
  "opsis-compile",
  "opsis-document",
  "opsis-engine",
+ "opsis-fonts",
  "opsis-footage",
  "opsis-media",
  "opsis-probe",
