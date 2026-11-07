@@ -2,7 +2,7 @@
 
 Everything still missing between today's app and a public release, and what comes after it: size work, builds and checks on Windows and macOS, signing, updates, the release test pass, and node packs. Each section says first what is already in place, then what is left.
 
-Status: written for the Tauri app. The native editor ([native-editor.md](native-editor.md)) took its place; this plan's builds, signing, updater and test pass are redone after that plan's packaging step, and the facts below that name Tauri, the webview or WebdriverIO describe what was removed.
+Status: the builds, signing and updates (sections 2, 5 and 6) were written for the Tauri app and are redone after the packaging step of [native-editor.md](native-editor.md); the rest is current for the native editor.
 
 ## How to read this plan
 
@@ -16,7 +16,7 @@ Status: written for the Tauri app. The native editor ([native-editor.md](native-
 | --------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------ | -------------------------------- |
 | 1. Size work                | A smaller download and install                                       | act on the findings, record CI sizes                   | measured 2026-10-31              |
 | 2. Windows and macOS builds | Installers that have actually run on each system                     | push, make the repo public, first CI run, fixes        | configured and linted, never run |
-| 3. Platform checks          | The editor working the same on WKWebView and WebView2                | runner checks, the macOS shell, sign-in end to end     | not started                      |
+| 3. Platform checks          | The editor working the same on Windows and macOS                     | runner checks, the macOS shell, sign-in end to end     | not started                      |
 | 4. Local API on Windows     | A named pipe only the user's account can open                        | the access list and its test                           | not started                      |
 | 5. Code signing             | No "unknown publisher" or "can't be opened" warnings                 | identities, entitlements, CI signing                   | only the hardened runtime set    |
 | 6. Updates                  | Check for updates, ask first, install signed updates                 | the updater plugin, the About button, the release feed | signing key and secrets in place |
@@ -27,13 +27,13 @@ Status: written for the Tauri app. The native editor ([native-editor.md](native-
 
 **In place.**
 
-- **Package size.** Measured 2026-11-01 with `bun run make -- --bundles deb` on Linux x64: the deb is 78,800,484 bytes and installs 179,051,765 bytes: the app binary 75,173,360, the FFmpeg sidecar 79,826,272 and its licence 35,147, the film page 18,567,917 and the browser's licences 5,345,493. Shipping FFmpeg added 30,175,284 bytes to the deb (48,625,200 on 2026-10-31).
-- **What ships.** One build, with FFmpeg inside and no recording browser: the app binary (`opt-level = 3`, full LTO, one codegen unit, stripped), FFmpeg as the `opsis-ffmpeg` sidecar beside it with `LICENSE.ffmpeg.txt` (`plans/ffmpeg.md`), the film page (`film-bundle/`, one JavaScript file with no source maps and the repository's `public/`, the app's only copy of the `app:` files, which a packaged app reads through `AppPaths::public_dir`; the editor's build carries only `page-errors.js`) and the recording browser's licences.
+- **Package size.** Measured 2026-11-01 on the Tauri app's deb with `bun run make -- --bundles deb` on Linux x64: the deb was 78,800,484 bytes and installed 179,051,765 bytes: the app binary 75,173,360, the FFmpeg program 79,826,272 and its licence 35,147, the film page 18,567,917 and the browser's licences 5,345,493. Measure again with the native app's first package.
+- **What ships.** One build, with FFmpeg inside and no recording browser: the app binary (`opt-level = 3`, full LTO, one codegen unit, stripped), FFmpeg as the `opsis-ffmpeg` sidecar beside it with `LICENSE.ffmpeg.txt` (`plans/ffmpeg.md`), the film page (`film-bundle/`, one JavaScript file with no source maps and the repository's `public/`, the app's only copy of the `app:` files, which the app reads through `AppPaths::public_dir`) and the recording browser's licences.
 - **The film page.** 4,388,329 bytes of JavaScript in one file (2,042,714 gzipped) and 14,200,626 bytes of `public/` files: fonts 1,078,938, backdrops 4,810,439, music 7,923,531, sounds 381,916. These film page figures, and the deb's above, were measured before Launch anything's four sample photos moved out of the script into `app:` placeholders (`0278ae9b`, 2026-11-05), which took 1.7 MB off it; measure again with the next deb.
 
 **Work.**
 
-1. **Act on the findings.** Each is its own decision: load elkjs only when Tidy up layout runs, shrink the 1.7 MB `assets.ts`, and turn off the `image` formats Opsis never reads.
+1. **Act on the findings.** Each is its own decision: shrink the 1.7 MB `assets.ts`, and turn off the `image` formats Opsis never reads.
 2. **Record** each installer's size per platform from the CI artifacts.
 
 **Decided.** The notices of the crates and npm packages compiled into the app are not shipped: not worth the size. Code copied into the repo and a few bundled components keep theirs (`THIRD_PARTY_NOTICES.md`).
@@ -42,7 +42,7 @@ Status: written for the Tauri app. The native editor ([native-editor.md](native-
 
 **In place.**
 
-- `.github/workflows/build.yml`: checks on Ubuntu 22.04; `bun run make` on Ubuntu 22.04 (deb, rpm, AppImage), `windows-latest` (NSIS, per-user install, and MSI) and `macos-latest` and `macos-26-intel` (the app, zipped, and a DMG); the browser that the Chromium credits are read from, cached; the source notice's links checked on `v*` tags (`bun run notice:links`); artifacts uploaded; an end-to-end job; `workflow_dispatch`. The release config (`tauri.release.conf.json`) has the same targets.
+- `.github/workflows/build.yml`: checks, the offscreen view tests and the `wayland` scenario on Ubuntu 22.04, the other e2e scenarios with the engine, the source notice's links on `v*` tags (`bun run notice:links`), and `workflow_dispatch`. The Windows and macOS build jobs went with the Tauri bundler and return with the packaging step.
 - `actionlint` passes on the workflow (2026-10-26).
 - The repository is `github.com/bismitpanda/opsis`. It is private and empty: nothing has been pushed, so it has no branches, workflows, runs or releases. The updater's signing secrets are already set on it (section 6).
 
@@ -59,17 +59,17 @@ Status: written for the Tauri app. The native editor ([native-editor.md](native-
 
 ## 3. Platform checks
 
-The editor has only run on WebKitGTK.
+The native editor has run only on Linux: X11 in a virtual display, and Wayland on headless sway.
 
 **In place.** The document, undo, gestures and autosave live in Rust (`opsis-document`, `schedule_autosave`), and Local API edits apply whether or not an editor window is open, so a minimized or throttled editor can't hold up an API edit or a save.
 
 **Work.**
 
-1. **WKWebView and WebView2.** In the CI build jobs, start the packaged app with a test data folder (`OPSIS_USER_DATA`, the API on) and drive it through the Local API: open each example, run the changelog, read the export back with `opsis-probe`. The e2e suite (WebdriverIO, embedded driver) also covers macOS through `@wdio/tauri-service`; run it on the macOS runners. List what a runner can't judge (how the window controls look, first-open prompts) as not covered in the release notes.
-2. **macOS shell.** The native menu (`crates/desktop/src/native_menu.rs`) is built and its ids are tested, but it has never run: check the app menu, Edit roles, Cmd+, opens Settings, Cmd+Q goes through the exit dialog, and the traffic lights sit inside the app bar.
-3. **Timeline sound drift.** The Timeline's sound plays in the webview, kept within two frames of its playhead; measure drift over a long film on each system.
+1. **Windows and macOS.** On their CI runners, run `cargo test -p opsis-ui` (the `views` scenario on the offscreen platform), and start the packaged app with a test data folder (`OPSIS_USER_DATA`, the API on) and drive it through the Local API as the `api` scenario does: open each example, run the changelog, read the export back with `opsis-probe`. List what a runner can't judge (how the window controls look, first-open prompts) as not covered in the release notes.
+2. **macOS shell.** The menu bar is the app's own, inside the window (`AppBar`), and the window has no system title bar, but neither has run on macOS: check the Cmd shortcuts, that Cmd+, opens Settings, that Cmd+Q goes through the exit dialog, moving and maximizing the window, and full screen.
+3. **Timeline sound drift.** The Timeline's sound plays through the sound output (`opsis-audio`), and the playhead follows its clock while the film plays; measure drift over a long film on each system.
 4. **Engine checks.** On each runner, download the recording browser through Settings' installer and run `check_browser` on it: Chrome for Testing must open a page. The bundled FFmpeg is already checked on every build runner (`check_ffmpeg` on the staged program, the CI step after the build).
-5. **Sign-in end to end.** Not in the e2e suite, because saving a sign-in writes to the real keyring. `keyring-core`'s mock store is used only by the store's unit tests (`crates/store/src/keys.rs`); add a test-only store behind the `e2e` feature and a spec that signs in and records a take with it.
+5. **Sign-in end to end.** Not in the e2e scenarios, because saving a sign-in writes to the real keyring. `keyring-core`'s mock store is used only by the store's unit tests (`crates/store/src/keys.rs`); add a test-only store for scenario runs and a step in `runs` that signs in and records a take with it.
 
 ## 4. Local API on Windows
 
@@ -82,7 +82,7 @@ The named pipe is created with the default security descriptor, which grants rea
 
 ## 5. Code signing
 
-**In place.** `hardenedRuntime` is set for macOS in `tauri.release.conf.json`. The workflow passes the Apple secrets when they exist and checks every Mach-O with `codesign -dv`.
+**In place.** Nothing in the build: the Tauri bundler's hardened runtime and the workflow's Apple secrets and `codesign -dv` check went with it, and return with the packaging step.
 
 **Work.**
 
@@ -120,11 +120,11 @@ The named pipe is created with the default security descriptor, which grants rea
 
 ## 7. Release test pass
 
-**In place.** `bun run test:e2e` (WebdriverIO, embedded driver, in a virtual display) has nine spec files: the start screen (`start`), every example opening (`examples`), the element picker (`views`), the Timeline (`timeline`), Tidy up layout (`layout`), a run and export of the changelog with the export played back (`export`), drawing a mark in Annotate's marks editor (`annotate`), the Inspector's tabs (`inspector`) and terminal takes recorded in a real shell, played in Replay, recorded live as a tape and imported from a cast file, each exported (`terminal`), then the close check. The eight specs before `terminal` passed together on 2026-10-30. The packaged deb was checked off-screen through the Local API on 2026-10-31: from empty caches it recorded and exported a film with footage, a grade and Redact, and exported the Changelog template in both shapes.
+**In place.** `bun run e2e:qt` runs four scenarios in the real app: `tour` (every panel, field and window), `runs` (setup, recording, export, Replay, the element picker, terminal takes recorded, played, taped live and imported from a cast), `api` (every Local API route from outside, ending with the close check) and `wayland` (real input on headless sway); `cargo test -p opsis-ui` runs the `views` scenario offscreen. They carry the nine WebdriverIO spec files the Tauri app had. The Tauri app's deb was checked off-screen through the Local API on 2026-10-31: from empty caches it recorded and exported a film with footage, a grade and Redact, and exported the Changelog template in both shapes.
 
 **Work, before each release** (Linux by hand, Windows and macOS through the runner checks in section 3):
 
-1. **The whole e2e suite**, all nine spec files together.
+1. **Every e2e scenario** (`bun run e2e:qt`) and the offscreen view tests.
 2. **Long takes:** 10 and 20 minute recordings; memory of the app and the headless shell, the take's size, Timeline responsiveness, export time, trace size.
 3. **Paths:** project folders with spaces and non-English letters, another drive on Windows, assets imported from such folders, fonts copied into projects.
 4. **Moving and renaming** a project folder while closed and while open.

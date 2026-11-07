@@ -45,7 +45,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 2. Linux: `linuxdeploy` with its Qt plugin for the AppImage; `cargo-deb` and `cargo-generate-rpm` for deb and rpm, with Qt bundled or depended on (decided below). The deb no longer needs `gstreamer1.0-libav` or WebKitGTK.
 3. Windows: `windeployqt`, then NSIS (per-user install as today).
 4. macOS: `macdeployqt`, `codesign` on every Mach-O, notarization in CI as today.
-5. Licences: Qt's LGPL-3.0 text and KDDockWidgets' GPL-3.0 notice in `THIRD_PARTY_NOTICES.md` and Settings → Licences; Qt libraries shipped as shared libraries so the LGPL relinking terms hold.
+5. Licences: the Qt libraries ship as shared libraries so the LGPL relinking terms hold, with the third-party attributions of the Qt build they come from; Qt's LGPL-3.0 text and KDDockWidgets' notices are already in `THIRD_PARTY_NOTICES.md`.
 6. CI: build every format on its platform again, check the licences each ships and every Mach-O's signature, as the Tauri bundler's job did.
 7. Profiling: `scripts/profile.ts` and `scripts/profile-inside.ts` install the new deb and start its program; they still name the Tauri app's `/usr/bin/opsis-desktop` and its session.
 

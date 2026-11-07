@@ -39,6 +39,7 @@ How a release build is made, what it ships, where the app reads its resources, t
 
 - **Opsis is GPL-3.0-or-later.** `LICENSE` is the official GPLv3 text from gnu.org, unchanged; the "or later" is declared in `package.json` and `Cargo.toml`.
 - **Every dependency must be GPLv3-compatible**: MIT, MIT-0, BSD, 0BSD, ISC, Zlib, Apache-2.0 with or without the LLVM exception, BSL-1.0, bzip2-1.0.6, CC0-1.0, IJG, Unicode-3.0, Unlicense, MPL-2.0 without the "Incompatible With Secondary Licenses" notice, GPLv3, LGPLv3.
+- **Qt is used under the LGPL-3.0, as shared libraries, and KDDockWidgets under the GPL-3.0**; their notices, and the MIT ones of the libraries KDDockWidgets compiles in, are in `THIRD_PARTY_NOTICES.md`.
 - **`deny.toml` holds the crate allow-list, worked out for the five shipped platforms** (Linux x64 and arm64, Windows x64, macOS arm64 and Intel), so a licence only another platform pulls in never counts. It also denies yanked crates.
 - **An advisory with no safe upgrade is an `ignore` entry with a `reason` saying where the crate comes from**, reviewed whenever dependencies move.
 - **Vendored code and the icon data copied from the six glyph sets keep their notices**; `glyphs:bundle` refuses a set whose notice is missing.
