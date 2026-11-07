@@ -1,8 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { homedir } from "node:os";
 import path from "node:path";
-import { hostTarget, stagedFfmpeg } from "./lib/ffmpeg";
-import { buildRelease } from "./lib/release";
+import { buildAndPackage } from "./lib/release";
 import { ROOT } from "./lib/tool-config";
 
 const OUT = path.join(homedir(), ".cache", "opsis-build");
@@ -22,28 +21,4 @@ const { formats, cargo } = splitArgs(process.argv.slice(2));
 const chosen = formats ?? LOCAL_FORMATS[process.platform];
 if (!chosen) throw new Error(`No package formats are known for ${process.platform}.`);
 execFileSync("bun", ["run", "stage"], { cwd: ROOT, stdio: "inherit" });
-const program = await buildRelease(cargo);
-const target = hostTarget();
-execFileSync(
-  "cargo",
-  [
-    "run",
-    "-q",
-    "-p",
-    "opsis-packager",
-    "--",
-    "--program",
-    program,
-    "--ffmpeg",
-    stagedFfmpeg(target),
-    "--target-triple",
-    target,
-    "--root",
-    ROOT,
-    "--out",
-    OUT,
-    "--formats",
-    chosen,
-  ],
-  { cwd: ROOT, stdio: "inherit" },
-);
+await buildAndPackage({ cargoArgs: cargo, formats: chosen, out: OUT });

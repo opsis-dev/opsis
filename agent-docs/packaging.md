@@ -4,31 +4,33 @@ How a release build and its installers are made, what they ship, where the app r
 
 ## Code map
 
-| Concern                  | Where                                                                                                                                 |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Build                    | `bun run make` → `scripts/make.ts`; `scripts/lib/release.ts` → `buildRelease`, `releaseBinary`                                        |
-| Static Qt                | `scripts/lib/static-qt.ts` (`bun run qt:static`); `scripts/lib/trixie.ts` → `runInTrixie`                                             |
-| Installers               | `crates/packager` (`opsis-packager`): `formats.rs` → `package`, `packager_config`; `rpm_package.rs` → `build_rpm`                     |
-| Package checks           | `crates/packager/src/linking.rs` → `check_self_contained`; `crates/packager/src/linux_deps.rs` (library to package names)             |
-| Staging                  | `scripts/stage.ts`; `scripts/lib/engine.ts` → `writeChromiumCredits`; `scripts/lib/unzip.ts`; `scripts/lib/ffmpeg.ts` → `stageFfmpeg` |
-| Resource paths           | `crates/ui/src/folders.rs` → `host_folders`, `resources_for`; `crates/session/src/paths.rs` → `AppPaths`                              |
-| FFmpeg beside the app    | `crates/engine/src/ffmpeg.rs` → `bundled_ffmpeg`                                                                                      |
-| Release profile          | `[profile.release]` in `Cargo.toml`                                                                                                   |
-| Icons                    | `brand/logo.svg` → `bun run brand:icons` → `brand/icons/`                                                                             |
-| Crate licence allow-list | `deny.toml`                                                                                                                           |
-| Notices                  | `THIRD_PARTY_NOTICES.md`, `packages/video/src/camera/LICENSE.programatic-demo`, `crates/capture/LICENSE.programatic-demo`             |
-| Notice link check        | `bun run notice:links` (`scripts/notice-links.ts`)                                                                                    |
+| Concern                  | Where                                                                                                                                                |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Build                    | `bun run make` → `scripts/make.ts`; `scripts/lib/release.ts` → `buildAndPackage`, `releaseBinary`                                                    |
+| Static Qt                | `scripts/lib/static-qt.ts` (`bun run qt:static`); `scripts/lib/trixie.ts` → `runInTrixie`                                                            |
+| Installers               | `crates/packager` (`opsis-packager`): `formats.rs` → `package`, `packager_config`; `rpm_package.rs` → `build_rpm`                                    |
+| Package checks           | `crates/packager/src/linking.rs` → `check_self_contained`; `crates/packager/src/linux_deps.rs`; `bun run package:check` (`scripts/package-check.ts`) |
+| Staging                  | `scripts/stage.ts`; `scripts/lib/engine.ts` → `writeChromiumCredits`; `scripts/lib/unzip.ts`; `scripts/lib/ffmpeg.ts` → `stageFfmpeg`                |
+| Resource paths           | `crates/ui/src/folders.rs` → `host_folders`, `resources_for`; `crates/session/src/paths.rs` → `AppPaths`                                             |
+| FFmpeg beside the app    | `crates/engine/src/ffmpeg.rs` → `bundled_ffmpeg`                                                                                                     |
+| Release profile          | `[profile.release]` in `Cargo.toml`                                                                                                                  |
+| Icons                    | `brand/logo.svg` → `bun run brand:icons` → `brand/icons/`                                                                                            |
+| Crate licence allow-list | `deny.toml`                                                                                                                                          |
+| Notices                  | `THIRD_PARTY_NOTICES.md`, `packages/video/src/camera/LICENSE.programatic-demo`, `crates/capture/LICENSE.programatic-demo`                            |
+| Notice link check        | `bun run notice:links` (`scripts/notice-links.ts`)                                                                                                   |
 
 ## Rules
 
 ### Building
 
-- **`bun run make` runs `bun run stage`, builds the release binary against the static Qt (`buildRelease`), then `opsis-packager` builds the installers into `~/.cache/opsis-build`.** It builds the deb on Linux, the macOS app and dmg on macOS, NSIS and MSI on Windows; `--formats` names others from `deb`, `rpm`, `appimage`, `pacman`, `nsis`, `msi`, `app` and `dmg`, and the remaining arguments go to `cargo build`.
-- **On Linux the release binary builds in a plain `debian:trixie` container, into `target/trixie`**, because linking the static Qt needs X11 and xcb development files a desktop doesn't have; it then needs glibc 2.41. With `CI=true` it builds on the machine itself, into `target/release`. The container runs as your user, with the repository, Cargo, rustup, Zig and both Qt folders mounted at their own paths.
+- **`bun run make` runs `bun run stage`, builds the release binary against the static Qt, then `opsis-packager` builds the installers into `~/.cache/opsis-build` (`buildAndPackage`).** It builds the deb on Linux, the macOS app and dmg on macOS, NSIS and MSI on Windows; `--formats` names others from `deb`, `rpm`, `appimage`, `pacman`, `nsis`, `msi`, `app` and `dmg`, and the remaining arguments go to `cargo build`.
+- **On Linux the release binary and its packages build in one plain `debian:trixie` container run, into `target/trixie`**, because linking the static Qt needs X11 and xcb development files a desktop doesn't have, and the AppImage bundles libraries from the system that builds it; the program then needs glibc 2.41. With `CI=true` it builds on the machine itself, into `target/release`. The container runs as your user, with the repository, Cargo, rustup, Zig and both Qt folders mounted at their own paths.
 - **`opsis-packager` refuses a program that loads Qt, ICU or KDDockWidgets, or looks for libraries in an absolute folder** (`check_self_contained`), so a development build can't be packaged.
 - **Every Linux package installs the same files**: the programs in `/usr/bin`, the resources in `/usr/lib/opsis`, the desktop entry and the hicolor icons. That is cargo-packager's deb layout, which its AppImage and pacman formats reuse; `build_rpm` lays out the rpm the same way with the `rpm` crate, and a test compares the three packages' file lists.
 - **Package dependencies come from the libraries the program loads**: `linux_deps.rs` names each one's deb and pacman package, the rpm requires the libraries themselves, and every format also needs `ca-certificates` for the downloads the app makes when asked. A library with no entry fails the build.
-- **Check a deb by installing it in a plain `debian:trixie` container** (apt resolves its dependencies) and running the installed `/usr/bin/opsis` through the `views` scenario on the offscreen platform.
+- **`bun run package:check` installs each Linux package from `~/.cache/opsis-build` in a plain `debian:trixie` container, the way its format installs, and runs the installed program through the `views` scenario on the offscreen platform**: the deb with apt (and again without CA certificates), the rpm with `rpm` into a separate root, the pacman package built by `makepkg` and installed with `pacman` (Debian's `pacman-package-manager` and `makepkg`), the AppImage with only the system libraries it leaves out.
+- **The AppImage bundles every library the program loads except those linuxdeploy's exclude list leaves to the system** (glibc, libstdc++, ALSA, fontconfig, FreeType, X11, xcb, the Wayland client; `APPIMAGE_SYSTEM_PACKAGES` in `package-check.ts`), so the check fails when a library it needs is neither bundled nor there.
+- **Building an AppImage downloads its tools**: linuxdeploy (pinned by cargo-packager to a commit), its AppImage plugin and the AppImage runtime (both from rolling `continuous` releases). In a container they run unpacked (`APPIMAGE_EXTRACT_AND_RUN=1`), since there is no FUSE.
 - **Cap cargo with `CARGO_BUILD_JOBS` locally.**
 - **There is one build: it ships FFmpeg as a program beside the app and never the recording browser.**
 - **`stage.ts` builds the film and terminal pages without source maps**, writes the browser's Chromium credits into the gitignored `resources/engine-licences/LICENSES.chromium.html`, and stages FFmpeg again.

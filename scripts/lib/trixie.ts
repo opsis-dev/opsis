@@ -6,6 +6,7 @@ import path from "node:path";
 const IMAGE = "debian:trixie";
 const PACKAGES = [
   "build-essential",
+  "ca-certificates",
   "cmake",
   "ninja-build",
   "perl",

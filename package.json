@@ -67,6 +67,7 @@
     "e2e:qt": "bun scripts/e2e-qt.ts",
     "stage": "bun scripts/stage.ts",
     "make": "bun scripts/make.ts",
+    "package:check": "bun scripts/package-check.ts",
     "profile": "bun scripts/profile.ts",
     "knip": "knip"
   },

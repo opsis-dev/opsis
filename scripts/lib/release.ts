@@ -1,7 +1,8 @@
 import { execFileSync } from "node:child_process";
-import { realpathSync } from "node:fs";
+import { mkdirSync, realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
+import { hostTarget, stagedFfmpeg } from "./ffmpeg";
 import { buildsNatively, ensureStaticQt } from "./static-qt";
 import { ROOT } from "./tool-config";
 import { runInTrixie } from "./trixie";
@@ -24,24 +25,44 @@ function zigProgram(): string {
   return realpathSync(found);
 }
 
-export async function buildRelease(cargoArgs: string[]): Promise<string> {
+export type PackageRun = { cargoArgs: string[]; formats: string; out: string };
+
+function packagerArgs(run: PackageRun): string[] {
+  const target = hostTarget();
+  return [
+    "--program",
+    releaseBinary(),
+    "--ffmpeg",
+    stagedFfmpeg(target),
+    "--target-triple",
+    target,
+    "--root",
+    ROOT,
+    "--out",
+    run.out,
+    "--formats",
+    run.formats,
+  ];
+}
+
+export async function buildAndPackage(run: PackageRun): Promise<void> {
   const qt = await ensureStaticQt();
   const jobs = process.env.CARGO_BUILD_JOBS ?? "8";
-  const build = ["cargo", "build", "--release", "-p", "opsis-ui", ...cargoArgs];
+  const build = ["cargo", "build", "--release", "-p", "opsis-ui", ...run.cargoArgs];
+  const packager = ["cargo", "run", "-q", "-p", "opsis-packager", "--", ...packagerArgs(run)];
+  mkdirSync(run.out, { recursive: true });
   if (buildsNatively()) {
-    execFileSync(build[0], build.slice(1), {
-      cwd: ROOT,
-      stdio: "inherit",
-      env: { ...process.env, OPSIS_QT: qt, CARGO_BUILD_JOBS: jobs },
-    });
-    return releaseBinary();
+    const env = { ...process.env, OPSIS_QT: qt, CARGO_BUILD_JOBS: jobs };
+    execFileSync(build[0], build.slice(1), { cwd: ROOT, stdio: "inherit", env });
+    execFileSync(packager[0], packager.slice(1), { cwd: ROOT, stdio: "inherit", env });
+    return;
   }
   const cargoHome = process.env.CARGO_HOME ?? path.join(homedir(), ".cargo");
   const rustupHome = process.env.RUSTUP_HOME ?? path.join(homedir(), ".rustup");
   const zig = zigProgram();
   const target = releaseTargetDir();
   runInTrixie({
-    script: `cd ${ROOT}\n${build.join(" ")}`,
+    script: [`cd ${ROOT}`, build.join(" "), packager.map(quoted).join(" ")].join("\n"),
     mounts: [
       ROOT,
       cargoHome,
@@ -49,6 +70,7 @@ export async function buildRelease(cargoArgs: string[]): Promise<string> {
       path.dirname(zig),
       path.dirname(path.dirname(qt)),
       path.join(homedir(), ".cache", "opsis-qt"),
+      run.out,
     ],
     env: {
       PATH: `${path.join(cargoHome, "bin")}:${SYSTEM_PATH}`,
@@ -60,7 +82,11 @@ export async function buildRelease(cargoArgs: string[]): Promise<string> {
       ZIG: zig,
       ZIG_GLOBAL_CACHE_DIR: path.join(target, "zig-cache"),
       XDG_CACHE_HOME: path.join(target, "cache"),
+      APPIMAGE_EXTRACT_AND_RUN: "1",
     },
   });
-  return releaseBinary();
+}
+
+function quoted(arg: string): string {
+  return `'${arg.replaceAll("'", "'\\''")}'`;
 }
