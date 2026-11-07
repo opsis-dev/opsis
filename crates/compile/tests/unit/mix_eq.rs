@@ -1,4 +1,4 @@
-use opsis_compile::mix::eq::{RANGE_DB, coefficients, curve, highpass_db, response_db};
+use opsis_compile::mix::eq::{RANGE_DB, coefficients, curve, highpass, highpass_db, response_db};
 use opsis_types::mix::{EqBand, EqType};
 use proptest::prelude::*;
 
@@ -9,6 +9,13 @@ fn kind() -> impl Strategy<Value = EqType> {
 }
 
 proptest! {
+    #[test]
+    fn the_highpass_filter_passes_highs_and_cuts_lows(cutoff in 40f64..400.0) {
+        let filter = highpass(cutoff, 0.7, RATE);
+        prop_assert!(response_db(&filter, cutoff * 20.0, RATE).abs() < 0.5);
+        prop_assert!(response_db(&filter, cutoff / 8.0, RATE) < -20.0);
+    }
+
     #[test]
     fn a_flat_band_changes_nothing(kind in kind(), freq in 40f64..15_000.0, q in 0.3f64..8.0, at in 30f64..18_000.0) {
         let band = EqBand { kind, freq, gain: 0.0, q };

@@ -733,6 +733,15 @@ pub mod ffi {
         fn audio_seek(self: &Session, seconds: f64);
         fn audio_clock(self: &Session) -> f64;
         fn audio_ready(self: &Session) -> bool;
+        fn audio_scrub(self: &Session, seconds: f64);
+        fn preview_mix(
+            self: &Session,
+            target: &str,
+            kind: &str,
+            current: f64,
+            next: f64,
+            band_json: &str,
+        );
         fn mixer(self: &Session) -> MixerView;
         fn meter(self: &Session, target: &str, frame: f64) -> MeterView;
         fn loudness_at(self: &Session, frame: f64) -> LoudnessView;

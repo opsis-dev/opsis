@@ -2716,10 +2716,12 @@ void Scenario::BuildMixer(MainWindow* window) {
         return Expect(level.has && !view.stale,
                       QStringLiteral("no levels after the mix rendered"));
       });
-  Add(QStringLiteral("mix-stem-decoded"), [] {}, 2000, [] {
-    return Expect(App::Get().session().audio_ready(),
-                  QStringLiteral("the mix wasn't decoded for playback"));
-  });
+  Add(
+      QStringLiteral("mix-stem-decoded"), [] {}, 2000,
+      [] {
+        return Expect(App::Get().session().audio_ready(),
+                      QStringLiteral("the mix wasn't decoded for playback"));
+      });
   Add(
       QStringLiteral("timeline-waveform"),
       [this, window] {

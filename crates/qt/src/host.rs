@@ -98,6 +98,8 @@ pub trait Host {
     fn audio_seek(&self, seconds: f64);
     fn audio_clock(&self) -> f64;
     fn audio_ready(&self) -> bool;
+    fn audio_scrub(&self, seconds: f64);
+    fn preview_mix(&self, target: &str, kind: &str, current: f64, next: f64, band_json: &str);
     fn mixer(&self) -> MixerView;
     fn meter(&self, target: &str, frame: f64) -> MeterView;
     fn loudness_at(&self, frame: f64) -> LoudnessView;
@@ -516,6 +518,21 @@ impl Session {
 
     pub(crate) fn audio_ready(&self) -> bool {
         self.0.audio_ready()
+    }
+
+    pub(crate) fn audio_scrub(&self, seconds: f64) {
+        self.0.audio_scrub(seconds);
+    }
+
+    pub(crate) fn preview_mix(
+        &self,
+        target: &str,
+        kind: &str,
+        current: f64,
+        next: f64,
+        band_json: &str,
+    ) {
+        self.0.preview_mix(target, kind, current, next, band_json);
     }
 
     pub(crate) fn mixer(&self) -> MixerView {

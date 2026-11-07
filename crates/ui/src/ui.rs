@@ -68,6 +68,7 @@ pub struct Ui {
     media: media::MediaCache,
     mixes: mixer::Mixes,
     audio: Arc<Mutex<opsis_audio::output::Output>>,
+    previews: mixer::Previews,
     started: Instant,
 }
 
@@ -165,6 +166,7 @@ impl Ui {
             media: media::MediaCache::default(),
             mixes: mixer::Mixes::default(),
             audio: Arc::new(Mutex::new(opsis_audio::output::Output::new())),
+            previews: mixer::Previews::default(),
             started: Instant::now(),
         }
     }
@@ -416,6 +418,7 @@ fn render_mix(
     handle: &tokio::runtime::Handle,
     mixes: &mixer::Mixes,
     audio: &Arc<Mutex<opsis_audio::output::Output>>,
+    previews: &mixer::Previews,
     plan: opsis_compile::mix::plan::MixPlan,
 ) {
     if plan.channels.is_empty() || !mixes.want(&plan.key) {
@@ -427,6 +430,7 @@ fn render_mix(
     let session = session.clone();
     let mixes = mixes.clone();
     let audio = Arc::clone(audio);
+    let previews = previews.clone();
     handle.spawn(async move {
         let key = plan.key.clone();
         let request = AnalysisRequest::Mix {
@@ -449,6 +453,11 @@ fn render_mix(
         opsis_qt::post_event(EventKind::Media);
         if let Some(src) = stem {
             load_stem(&session, &dir, &src, &audio).await;
+            previews.clear();
+            audio
+                .lock()
+                .expect("sound output")
+                .set_preview(opsis_audio::output::Preview::default());
         }
     });
 }
@@ -492,6 +501,7 @@ impl Host for Ui {
         let compiled = Arc::clone(&self.compiled);
         let mixes = self.mixes.clone();
         let audio = Arc::clone(&self.audio);
+        let previews = self.previews.clone();
         let handle = self.runtime.handle().clone();
         let session = self.session.clone();
         std::thread::spawn(move || {
@@ -508,7 +518,9 @@ impl Host for Ui {
                                     *compiled.lock().expect("latest compile") = latest;
                                     opsis_qt::post_event(EventKind::Compiled);
                                     if let Some(plan) = plan {
-                                        render_mix(&session, &handle, &mixes, &audio, plan);
+                                        render_mix(
+                                            &session, &handle, &mixes, &audio, &previews, plan,
+                                        );
                                     }
                                 }
                                 Err(error) => log::warn!("reading the compile: {error}"),
@@ -1521,6 +1533,27 @@ impl Host for Ui {
 
     fn audio_ready(&self) -> bool {
         self.audio.lock().expect("sound output").has_samples()
+    }
+
+    fn audio_scrub(&self, seconds: f64) {
+        self.audio.lock().expect("sound output").scrub(seconds);
+    }
+
+    fn preview_mix(&self, target: &str, kind: &str, current: f64, next: f64, band_json: &str) {
+        let frame = shared::shared_state(&self.session)
+            .playhead
+            .map_or(0.0, |p| p.frame);
+        let fraction = mixer::share_of(self.mixes.latest().as_deref(), target, frame);
+        let band = serde_json::from_str::<opsis_types::mix::EqBand>(band_json).ok();
+        let total = self.previews.change(
+            format!("{target}:{kind}"),
+            fraction,
+            kind,
+            current,
+            next,
+            band,
+        );
+        self.audio.lock().expect("sound output").set_preview(total);
     }
 
     fn timeline(&self) -> TimelineView {

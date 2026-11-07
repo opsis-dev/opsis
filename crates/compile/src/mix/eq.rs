@@ -51,6 +51,20 @@ pub fn coefficients(band: &EqBand, sample_rate: f64) -> Biquad {
     }
 }
 
+pub fn highpass(freq: f64, q: f64, sample_rate: f64) -> Biquad {
+    let w0 = 2.0 * PI * freq / sample_rate;
+    let cos_w0 = w0.cos();
+    let alpha = w0.sin() / (2.0 * q.max(f64::EPSILON));
+    Biquad {
+        b: [
+            f64::midpoint(1.0, cos_w0),
+            -(1.0 + cos_w0),
+            f64::midpoint(1.0, cos_w0),
+        ],
+        a: [1.0 + alpha, -2.0 * cos_w0, 1.0 - alpha],
+    }
+}
+
 fn magnitude(x: [f64; 3], w: f64) -> f64 {
     let re = x[2].mul_add((2.0 * w).cos(), x[1].mul_add(w.cos(), x[0]));
     let im = (-x[1]).mul_add(w.sin(), -(x[2] * (2.0 * w).sin()));

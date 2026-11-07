@@ -252,3 +252,126 @@ pub fn loudness(result: Option<&MixResult>, frame: f64) -> LoudnessView {
         range: loudness.and_then(|l| l.range).unwrap_or(f64::NAN),
     }
 }
+
+const MIN_POWER: f64 = 1e-9;
+const HIGHPASS_Q: f64 = 0.7;
+
+#[derive(Debug, Clone, Default)]
+struct Contribution {
+    gain_db: f64,
+    pan: f64,
+    filters: Vec<opsis_audio::output::PreviewFilter>,
+}
+
+#[derive(Debug, Default)]
+struct PreviewState {
+    contributions: IndexMap<String, Contribution>,
+    baselines: std::collections::HashMap<String, f64>,
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct Previews(Arc<Mutex<PreviewState>>);
+
+pub fn share_of(result: Option<&MixResult>, target: &str, frame: f64) -> f64 {
+    let Some(result) = result else {
+        return 1.0;
+    };
+    let Some(master) = result.levels.master.as_ref() else {
+        return 1.0;
+    };
+    let levels = if let Some(id) = target.strip_prefix("ch:") {
+        result.levels.channels.get(id)
+    } else if let Some(id) = target.strip_prefix("bus:") {
+        result.levels.buses.get(id)
+    } else {
+        return 1.0;
+    };
+    levels.map_or(1.0, |l| {
+        opsis_compile::mix::controls::share(&master.rms, &l.rms, frame)
+    })
+}
+
+pub fn gain_contribution(fraction: f64, delta_db: f64) -> f64 {
+    let ratio = fraction
+        .mul_add(10f64.powf(delta_db / 10.0), 1.0 - fraction)
+        .max(MIN_POWER);
+    10.0 * ratio.log10()
+}
+
+impl Previews {
+    pub fn clear(&self) {
+        let mut state = self.0.lock().expect("preview");
+        state.contributions.clear();
+        state.baselines.clear();
+    }
+
+    pub fn change(
+        &self,
+        key: String,
+        fraction: f64,
+        kind: &str,
+        current: f64,
+        next: f64,
+        band: Option<opsis_types::mix::EqBand>,
+    ) -> opsis_audio::output::Preview {
+        let mut state = self.0.lock().expect("preview");
+        let baseline = *state.baselines.entry(key.clone()).or_insert(current);
+        let delta = next - baseline;
+        let contribution = if kind == "pan" {
+            Contribution {
+                pan: delta * fraction,
+                ..Contribution::default()
+            }
+        } else if kind == "highpass" {
+            Contribution {
+                filters: vec![opsis_audio::output::PreviewFilter {
+                    kind: opsis_audio::output::FilterKind::Highpass,
+                    freq: next,
+                    gain: 0.0,
+                    q: HIGHPASS_Q,
+                }],
+                ..Contribution::default()
+            }
+        } else if let Some(band) = band {
+            Contribution {
+                filters: vec![opsis_audio::output::PreviewFilter {
+                    kind: opsis_audio::output::FilterKind::Band(band.kind),
+                    freq: band.freq,
+                    gain: delta * fraction,
+                    q: band.q,
+                }],
+                ..Contribution::default()
+            }
+        } else {
+            Contribution {
+                gain_db: gain_contribution(fraction, delta),
+                ..Contribution::default()
+            }
+        };
+        state.contributions.insert(key, contribution);
+        let mut total = opsis_audio::output::Preview::default();
+        for c in state.contributions.values() {
+            total.gain_db += c.gain_db;
+            total.pan += c.pan;
+            total.filters.extend(c.filters.iter().copied());
+        }
+        total
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use proptest::prelude::*;
+
+    use super::gain_contribution;
+
+    proptest! {
+        #[test]
+        fn a_strip_moves_the_mix_by_its_share(delta in -60f64..12.0, fraction in 0f64..1.0, other in -60f64..12.0) {
+            prop_assert!((gain_contribution(1.0, delta) - delta).abs() < 1e-6 || delta < -89.0);
+            prop_assert!(gain_contribution(0.0, delta).abs() < 1e-9);
+            let (low, high) = if delta <= other { (delta, other) } else { (other, delta) };
+            prop_assert!(gain_contribution(fraction, low) <= gain_contribution(fraction, high) + 1e-12);
+        }
+    }
+}

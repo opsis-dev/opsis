@@ -5098,6 +5098,7 @@ version = "0.1.0"
 dependencies = [
  "cpal",
  "log",
+ "opsis-compile",
  "opsis-media",
  "opsis-types",
  "proptest",

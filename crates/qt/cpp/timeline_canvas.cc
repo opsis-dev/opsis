@@ -947,6 +947,8 @@ void TimelineCanvas::mousePressEvent(QMouseEvent* event) {
     drag_ = Drag{};
     drag_.press = Press::kScrub;
     PlaybackClock::Instance()->Seek(FrameAt(point.x()));
+    App::Get().session().audio_scrub(PlaybackClock::Instance()->frame() /
+                                     std::max(1U, view_->fps));
     return;
   }
   if (point.y() < kRuler + kMarkers) {
@@ -1064,6 +1066,8 @@ void TimelineCanvas::mouseMoveEvent(QMouseEvent* event) {
   switch (drag_.press) {
     case Press::kScrub:
       PlaybackClock::Instance()->Seek(FrameAt(point.x()));
+      App::Get().session().audio_scrub(PlaybackClock::Instance()->frame() /
+                                       std::max(1U, view_->fps));
       return;
     case Press::kMarquee:
       marquee_ = QRectF(drag_.start, point).normalized();

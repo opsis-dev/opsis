@@ -9,6 +9,7 @@ publish.workspace = true
 [dependencies]
 cpal.workspace = true
 log.workspace = true
+opsis-compile.workspace = true
 opsis-media.workspace = true
 opsis-types.workspace = true
 thiserror.workspace = true
@@ -18,4 +19,6 @@ tokio.workspace = true
 workspace = true
 
 [dev-dependencies]
+opsis-compile.workspace = true
+opsis-types.workspace = true
 proptest.workspace = true

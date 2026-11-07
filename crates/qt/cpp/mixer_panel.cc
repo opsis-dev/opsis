@@ -38,13 +38,35 @@ constexpr double kQuietLufs = -70;
 
 using Patch = std::function<void(const QJsonObject& patch)>;
 
-QJsonObject ObjectOf(const rust::String& json) {
-  return QJsonDocument::fromJson(ToQ(json).toUtf8()).object();
-}
-
 QString Compact(const QJsonObject& object) {
   return QString::fromUtf8(
       QJsonDocument(object).toJson(QJsonDocument::Compact));
+}
+
+void Preview(const QString& target, const QString& kind, double current,
+             double next, const QJsonObject& band = QJsonObject()) {
+  App::Get().session().preview_mix(
+      ToRust(target), ToRust(kind), current, next,
+      ToRust(band.isEmpty() ? QString() : Compact(band)));
+}
+
+void PreviewBands(const QString& target, const QJsonObject& before,
+                  const QJsonObject& after) {
+  if (!after.value(QStringLiteral("on")).toBool()) return;
+  const QJsonArray old_bands = before.value(QStringLiteral("bands")).toArray();
+  const QJsonArray new_bands = after.value(QStringLiteral("bands")).toArray();
+  for (int i = 0; i < new_bands.size(); ++i) {
+    const QJsonObject band = new_bands.at(i).toObject();
+    const QJsonObject old_band = old_bands.at(i).toObject();
+    if (band == old_band) continue;
+    Preview(target, QStringLiteral("eq%1").arg(i),
+            old_band.value(QStringLiteral("gain")).toDouble(),
+            band.value(QStringLiteral("gain")).toDouble(), band);
+  }
+}
+
+QJsonObject ObjectOf(const rust::String& json) {
+  return QJsonDocument::fromJson(ToQ(json).toUtf8()).object();
 }
 
 QLabel* Small(const QString& text, const char* role, QWidget* parent) {
@@ -100,10 +122,11 @@ void AddTone(QVBoxLayout* column, const QJsonObject& book,
                        Qt::AlignHCenter);
   eq_button->setFixedHeight(40);
   QObject::connect(eq_button, &QPushButton::clicked, parent,
-                   [eq_button, book, eq, cut, patch] {
+                   [eq_button, book, eq, cut, patch, target] {
                      OpenEqPopover(
                          eq_button, book, eq, cut,
-                         [patch](const QJsonObject& next) {
+                         [patch, eq, target](const QJsonObject& next) {
+                           PreviewBands(target, eq, next);
                            patch(QJsonObject{{QStringLiteral("eq"), next}});
                          });
                    });
@@ -160,9 +183,10 @@ void AddLevel(QVBoxLayout* column, const QJsonObject& book,
   meters->addWidget(new Fader(
       label, fader, book.value(QStringLiteral("minDb")).toDouble(-60),
       book.value(QStringLiteral("maxDb")).toDouble(12),
-      [reading, patch](double value) {
+      [reading, patch, target, fader](double value) {
         reading->setText(MixText(QStringLiteral("db"), value) +
                          QStringLiteral(" dB"));
+        Preview(target, QStringLiteral("fader"), fader, value);
         patch(QJsonObject{{QStringLiteral("fader"), value}});
       },
       parent));
@@ -198,7 +222,8 @@ void AddLevel(QVBoxLayout* column, const QJsonObject& book,
 }
 
 QWidget* HighpassKnob(const QJsonObject& book, const QJsonObject& settings,
-                      const Patch& patch, QWidget* parent) {
+                      const QString& target, const Patch& patch,
+                      QWidget* parent) {
   const QJsonObject highpass =
       settings.value(QStringLiteral("highpass")).toObject();
   return MakeKnob(
@@ -206,9 +231,11 @@ QWidget* HighpassKnob(const QJsonObject& book, const QJsonObject& settings,
                QStringLiteral("Hz"), 1, QStringLiteral("hz"),
                QStringLiteral("Hz"), true),
       highpass.value(QStringLiteral("freq")).toDouble(), kSmallKnob,
-      [highpass, patch](double freq) {
+      [highpass, patch, target](double freq) {
         QJsonObject next = highpass;
         next.insert(QStringLiteral("freq"), freq);
+        Preview(target, QStringLiteral("highpass"),
+                highpass.value(QStringLiteral("freq")).toDouble(), freq);
         patch(QJsonObject{{QStringLiteral("highpass"), next}});
       },
       !highpass.value(QStringLiteral("on")).toBool(), parent);
@@ -429,22 +456,30 @@ QWidget* MixerPanel::ChannelStrip(const bridge::MixerStripView& strip,
   column->addLayout(bus_row);
   auto* knobs = new QHBoxLayout();
   knobs->setSpacing(0);
+  const QString target = QStringLiteral("ch:") + id;
+  const double trim = settings.value(QStringLiteral("trim")).toDouble();
+  const double pan = settings.value(QStringLiteral("pan")).toDouble();
   knobs->addWidget(MakeKnob(
       SpecFrom(book_.value(QStringLiteral("trim")).toObject(),
                QStringLiteral("Trim"), 0.5, QStringLiteral("db"),
                QStringLiteral("dB")),
       settings.value(QStringLiteral("trim")).toDouble(), kSmallKnob,
-      [patch](double v) { patch(QJsonObject{{QStringLiteral("trim"), v}}); },
+      [patch, target, trim](double v) {
+        Preview(target, QStringLiteral("trim"), trim, v);
+        patch(QJsonObject{{QStringLiteral("trim"), v}});
+      },
       false, shell));
-  knobs->addWidget(HighpassKnob(book_, settings, patch, shell));
+  knobs->addWidget(HighpassKnob(book_, settings, target, patch, shell));
   knobs->addWidget(MakeKnob(
       SpecFrom(book_.value(QStringLiteral("pan")).toObject(),
                QStringLiteral("Pan"), 0.01, QStringLiteral("pan"), QString()),
       settings.value(QStringLiteral("pan")).toDouble(), kSmallKnob,
-      [patch](double v) { patch(QJsonObject{{QStringLiteral("pan"), v}}); },
+      [patch, target, pan](double v) {
+        Preview(target, QStringLiteral("pan"), pan, v);
+        patch(QJsonObject{{QStringLiteral("pan"), v}});
+      },
       false, shell));
   column->addLayout(knobs);
-  const QString target = QStringLiteral("ch:") + id;
   AddTone(column, book_, settings, target, true, patch, shell);
   AddLevel(column, book_, settings, QStringLiteral("Fader"), target, true, true,
            patch, shell);
@@ -576,9 +611,9 @@ QWidget* MixerPanel::BusStrip(const bridge::MixerStripView& strip,
                 });
           });
   column->addWidget(duck_button);
-  column->addWidget(HighpassKnob(book_, settings, patch, shell), 0,
-                    Qt::AlignHCenter);
   const QString target = QStringLiteral("bus:") + id;
+  column->addWidget(HighpassKnob(book_, settings, target, patch, shell), 0,
+                    Qt::AlignHCenter);
   AddTone(column, book_, settings, target, false, patch, shell);
   AddLevel(column, book_, settings, ToQ(strip.name) + QStringLiteral(" fader"),
            target, false, true, patch, shell);
