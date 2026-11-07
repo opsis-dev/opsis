@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 
 use opsis_store::db::Database;
 use opsis_types::fonts::{FontCategory, FontFamilyDef, FontFormat, FontSource, FontStyle};
@@ -23,6 +23,10 @@ const AXES_FAILED: &str = "A font didn't download.";
 pub enum OnlineError {
     #[error("{0} {CHECK_CONNECTION}")]
     Offline(&'static str),
+    #[error(
+        "{0} This computer has no certificate authorities installed, so it can't make secure connections."
+    )]
+    NoCertificates(&'static str),
     #[error("{0}")]
     Failed(&'static str),
     #[error("Couldn't read that font's details.")]
@@ -115,7 +119,7 @@ fn number_text(value: &Value) -> String {
 
 #[derive(Debug)]
 pub struct FontsOnline {
-    client: reqwest::Client,
+    client: OnceLock<reqwest::Client>,
     api: String,
     cdn: String,
     catalog: Mutex<Option<Arc<Vec<FontCatalogEntry>>>>,
@@ -130,11 +134,21 @@ impl Default for FontsOnline {
 impl FontsOnline {
     pub fn with_hosts(api: &str, cdn: &str) -> Self {
         Self {
-            client: reqwest::Client::new(),
+            client: OnceLock::new(),
             api: api.to_owned(),
             cdn: cdn.to_owned(),
             catalog: Mutex::new(None),
         }
+    }
+
+    fn client(&self, failure: &'static str) -> Result<&reqwest::Client, OnlineError> {
+        if let Some(client) = self.client.get() {
+            return Ok(client);
+        }
+        let built = reqwest::Client::builder()
+            .build()
+            .map_err(|_| OnlineError::NoCertificates(failure))?;
+        Ok(self.client.get_or_init(|| built))
     }
 
     async fn fetch(
@@ -143,7 +157,7 @@ impl FontsOnline {
         failure: &'static str,
     ) -> Result<reqwest::Response, OnlineError> {
         let response = self
-            .client
+            .client(failure)?
             .get(url)
             .send()
             .await
@@ -347,6 +361,19 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let library = FontLibrary::new(dir.path());
         (dir, library, Database::in_memory().await.unwrap())
+    }
+
+    #[test]
+    fn the_font_service_makes_no_connection_client_until_it_goes_online() {
+        assert!(FontsOnline::default().client.get().is_none());
+    }
+
+    #[test]
+    fn says_a_computer_without_certificate_authorities_cant_connect_securely() {
+        assert_eq!(
+            OnlineError::NoCertificates(LIST_FAILED).to_string(),
+            "Couldn't load the font list. This computer has no certificate authorities installed, so it can't make secure connections."
+        );
     }
 
     #[tokio::test]

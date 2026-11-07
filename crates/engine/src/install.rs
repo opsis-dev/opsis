@@ -16,6 +16,10 @@ use crate::paths::{ShellPlatform, engine_paths};
 pub enum InstallError {
     #[error("Couldn't download {url}: {source}")]
     Network { url: String, source: reqwest::Error },
+    #[error(
+        "This computer has no certificate authorities installed, so it can't make secure connections."
+    )]
+    NoCertificates,
     #[error("Download failed ({status}): {url}")]
     Status { url: String, status: u16 },
     #[error("The download from {url} isn't the file Opsis expects. Try again later.")]
@@ -257,7 +261,9 @@ pub async fn install_engine(
     report: &mut (dyn FnMut(EngineInstallUpdate) + Send),
     cancel: &CancellationToken,
 ) -> Result<(), InstallError> {
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder()
+        .build()
+        .map_err(|_| InstallError::NoCertificates)?;
     let mut progress = Progress::new(report);
     install_headless_shell(&client, dir, platform, &mut progress, cancel).await
 }
