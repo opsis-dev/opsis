@@ -423,6 +423,83 @@ void Scenario::BuildTour() {
         return QStringLiteral("no hover card");
       });
   Add(
+      QStringLiteral("hover-row-plays-its-motion"),
+      [this, window, memo] {
+        auto* list = qobject_cast<NodeList*>(window->nodes_dock()->widget());
+        memo->other.clear();
+        for (const auto& entry : App::Get().session().palette()) {
+          if (!entry.motion.empty()) {
+            memo->other = ToQ(entry.node_type);
+            break;
+          }
+        }
+        QTreeWidgetItem* row = list->RowOf(memo->other);
+        if (row == nullptr) {
+          Miss(QStringLiteral("no node list row with a motion"));
+          return;
+        }
+        auto* tree = list->findChild<QTreeWidget*>();
+        tree->scrollToItem(row);
+        QTest::mouseMove(tree->viewport(), tree->visualItemRect(row).center());
+      },
+      200,
+      [window, memo] {
+        auto* list = qobject_cast<NodeList*>(window->nodes_dock()->widget());
+        return Expect(list->looks().MotionElapsed(memo->other) >= 0,
+                      QStringLiteral("hovering %1 didn't play its motion")
+                          .arg(memo->other));
+      });
+  Until(
+      QStringLiteral("hover-row-morphs"),
+      [this, window, memo] {
+        auto* list = qobject_cast<NodeList*>(window->nodes_dock()->widget());
+        memo->other.clear();
+        for (const auto& entry : App::Get().session().palette()) {
+          if (!entry.morph.empty()) {
+            memo->other = ToQ(entry.node_type);
+            break;
+          }
+        }
+        QTreeWidgetItem* row = list->RowOf(memo->other);
+        if (row == nullptr) {
+          Miss(QStringLiteral("no node list row with a morph"));
+          return;
+        }
+        auto* tree = list->findChild<QTreeWidget*>();
+        tree->scrollToItem(row);
+        QTest::mouseMove(tree->viewport(), tree->visualItemRect(row).center());
+      },
+      kEventuallyMs,
+      [window, memo] {
+        auto* list = qobject_cast<NodeList*>(window->nodes_dock()->widget());
+        return list->looks().MorphAt(memo->other) >= 1 &&
+               !list->looks().FrameOf(memo->other).morphing;
+      },
+      [window, memo] {
+        auto* list = qobject_cast<NodeList*>(window->nodes_dock()->widget());
+        return Expect(list->looks().MorphAt(memo->other) >= 1,
+                      QStringLiteral("hovering %1 didn't morph its glyph")
+                          .arg(memo->other));
+      });
+  Until(
+      QStringLiteral("leaving-row-morphs-back"),
+      [window] {
+        auto* list = qobject_cast<NodeList*>(window->nodes_dock()->widget());
+        QTest::mouseMove(list->findChild<QLineEdit*>());
+      },
+      kEventuallyMs,
+      [window, memo] {
+        auto* list = qobject_cast<NodeList*>(window->nodes_dock()->widget());
+        return list->looks().MorphAt(memo->other) == 0;
+      },
+      [window, memo] {
+        auto* list = qobject_cast<NodeList*>(window->nodes_dock()->widget());
+        list->findChild<QTreeWidget*>()->scrollToTop();
+        return Expect(
+            list->looks().MorphAt(memo->other) == 0,
+            QStringLiteral("leaving %1 didn't morph it back").arg(memo->other));
+      });
+  Add(
       QStringLiteral("add-node-from-list"),
       [window, memo] {
         memo->count = Graph().nodes.size();
@@ -899,8 +976,43 @@ void Scenario::BuildTour() {
       },
       200,
       [canvas, memo] {
-        return Expect(canvas->MotionElapsed(memo->other) >= 0,
+        return Expect(canvas->looks().MotionElapsed(memo->other) >= 0,
                       QStringLiteral("hovering didn't play the motion"));
+      });
+
+  Until(
+      QStringLiteral("hover-card-morphs"),
+      [this, canvas, view, memo] {
+        memo->other.clear();
+        for (const auto& card : Graph().nodes) {
+          if (!card.morph.empty()) {
+            memo->other = ToQ(card.id);
+            break;
+          }
+        }
+        if (memo->other.isEmpty()) {
+          Miss(QStringLiteral("no card with a morph"));
+          return;
+        }
+        QTest::mouseMove(view, QPoint(2, 2));
+        QTest::mouseMove(view, canvas->ViewPointOf(memo->other));
+      },
+      kEventuallyMs,
+      [canvas, memo] {
+        return canvas->looks().MorphAt(memo->other) >= 1 &&
+               !canvas->looks().FrameOf(memo->other).morphing;
+      },
+      [canvas, memo] {
+        return Expect(canvas->looks().MorphAt(memo->other) >= 1,
+                      QStringLiteral("hovering didn't morph the glyph"));
+      });
+  Until(
+      QStringLiteral("leaving-card-morphs-back"),
+      [view] { QTest::mouseMove(view, QPoint(2, 2)); }, kEventuallyMs,
+      [canvas, memo] { return canvas->looks().MorphAt(memo->other) == 0; },
+      [canvas, memo] {
+        return Expect(canvas->looks().MorphAt(memo->other) == 0,
+                      QStringLiteral("leaving didn't morph the glyph back"));
       });
 
   Add(

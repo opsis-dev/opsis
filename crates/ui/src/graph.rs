@@ -326,6 +326,10 @@ fn card(
             .and_then(|d| d.look.as_ref())
             .and_then(|l| l.motion)
             .map_or_default(|m| plain(&m)),
+        morph: def
+            .and_then(|d| d.look.as_ref())
+            .and_then(|l| l.morph.clone())
+            .unwrap_or_default(),
         problem: error.unwrap_or_default(),
         warning: String::new(),
         text: String::new(),

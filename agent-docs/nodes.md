@@ -19,7 +19,8 @@ How a node is defined, what its ports carry, how values convert between ports, h
 | Node looks                               | `crates/types/src/looks.rs` → `NodeLook`, `NodeMotion`, `GLYPH_SETS`                                                                    |
 | Glyph data and drawing                   | `crates/ui/glyphs.generated.json`, `crates/ui/src/look.rs` → `icon_svg`, `scripts/lib/glyph-sets.ts`                                    |
 | Look checks                              | `crates/compile/tests/unit/looks.rs`, `scripts/node-glyphs.test.ts`, `crates/ui/src/look.rs` → `every_card_icon_is_bundled`             |
-| Glyph motions                            | `motions.rs` → `motion_spec`, `sample`; `crates/ui/src/motion.rs`; `crates/qt/cpp/graph_canvas.cc` → `PlayMotion`                       |
+| Glyph motions                            | `motions.rs` → `motion_spec`, `sample`; `crates/ui/src/motion.rs`; `crates/qt/cpp/look_glyph.cc` → `LookPlayer`, `PaintLookGlyph`       |
+| Glyph morphs                             | `scripts/node-glyphs.ts` → `bakeMorphs`; `crates/ui/src/morph.rs` → `frame`, `step`; `crates/qt/cpp/look_glyph.cc` → `PaintMorph`       |
 | Ports before the first compile           | `catalog.rs` → `node_inputs`                                                                                                            |
 
 ## Rules
@@ -67,7 +68,10 @@ How a node is defined, what its ports carry, how values convert between ports, h
 - **Every node has a look, and two nodes share a glyph only if they move differently** (`looks.rs`). Two glyph names whose drawings lie within half a stroke of each other everywhere count as the same glyph (`scripts/node-glyphs.test.ts`, traced with morphicons' `resampleIcon`).
 - **Look-alikes drawn differently pass that check, so compare a new glyph with its neighbours by eye.**
 - **Run `bun run glyphs:bundle` after changing a look.** It reads the looks through `editor-data` and each set from its own package, keeps only each shape's geometry so every set draws with the badge's 2 px stroke, and fails on aliases, typos, fills, groups, any other attribute and a set whose licence isn't in `THIRD_PARTY_NOTICES.md`.
-- **Motions are keyframes in `motions.rs`, sampled in Rust**, played once when a canvas card is hovered and skipped under reduced motion.
+- **Canvas cards and node list rows play their look on hover through one `LookPlayer` and one painter (`PaintLookGlyph`)**, so a row's smaller badge shows the same animation as its card.
+- **Motions are keyframes in `motions.rs`, sampled in Rust**, played once per hover and skipped under reduced motion.
+- **Morphs are baked when glyphs are bundled, not computed in the app**: `glyphs:bundle` runs morphicons' plan and polar interpolation for each glyph pair and stores 23 frames from t = −0.05 to 1.05, so the spring's overshoot has frames too. `morph::frame` blends the two frames around a position.
+- **A morph follows morphicons' default spring** (`morph::step`: its snappy preset, stiffness 420 and damping 30, stepped at 240 Hz): towards the second glyph while hovered and back when the pointer leaves, from wherever it is. Under reduced motion it switches glyphs at once. At rest the badge draws the glyph itself, and in flight the baked lines.
 
 ## Deliberate limits
 

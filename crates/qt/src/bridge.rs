@@ -592,6 +592,19 @@ pub mod ffi {
         smear: f64,
     }
 
+    #[derive(Debug, Clone, PartialEq)]
+    struct MorphPathView {
+        points: Vec<f64>,
+        closed: bool,
+    }
+
+    #[derive(Debug, Clone, Copy)]
+    struct MorphStep {
+        position: f64,
+        velocity: f64,
+        settled: bool,
+    }
+
     #[derive(Debug, Clone)]
     struct MotionInfo {
         ms: u32,
@@ -714,6 +727,7 @@ pub mod ffi {
         disabled: bool,
         parent: String,
         motion: String,
+        morph: String,
         problem: String,
         warning: String,
         text: String,
@@ -765,6 +779,8 @@ pub mod ffi {
         category: String,
         color: String,
         glyph: String,
+        motion: String,
+        morph: String,
         description: String,
         inputs: String,
         outputs: String,
@@ -1040,6 +1056,19 @@ pub mod ffi {
         fn reveal_outputs(self: &Session) -> Result<()>;
         fn motion_info(self: &Session, motion: &str) -> MotionInfo;
         fn motion_pose(self: &Session, motion: &str, elapsed_ms: f64) -> PoseView;
+        fn morph_frame(
+            self: &Session,
+            glyph: &str,
+            morph: &str,
+            position: f64,
+        ) -> Vec<MorphPathView>;
+        fn morph_step(
+            self: &Session,
+            position: f64,
+            velocity: f64,
+            target: f64,
+            dt_ms: f64,
+        ) -> MorphStep;
         fn paste_text(self: &Session, text: &str) -> Result<()>;
         fn duplicate_selection(self: &Session) -> Result<()>;
         fn drop_files(self: &Session, paths: Vec<String>, x: f64, y: f64) -> Result<u32>;

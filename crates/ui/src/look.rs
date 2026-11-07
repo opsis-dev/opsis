@@ -116,9 +116,18 @@ const FALLBACK_GLYPH: &str = "lucide:box";
 type IconNode = Vec<(String, HashMap<String, String>)>;
 
 #[derive(Debug, Deserialize)]
+pub struct BakedMorph {
+    pub from: f64,
+    pub step: f64,
+    pub closed: Vec<bool>,
+    pub frames: Vec<Vec<Vec<f64>>>,
+}
+
+#[derive(Debug, Deserialize)]
 struct GlyphFile {
     glyphs: HashMap<String, IconNode>,
     icons: HashMap<String, IconNode>,
+    morphs: HashMap<String, BakedMorph>,
 }
 
 static GLYPHS: LazyLock<GlyphFile> = LazyLock::new(|| {
@@ -176,6 +185,10 @@ pub fn style_sheet() -> String {
         sheet = sheet.replace(&format!("@{name}"), &RESOLVED[*name]);
     }
     sheet.replace("@radius", &format!("{RADIUS}px"))
+}
+
+pub fn baked_morph(glyph: &str, morph: &str) -> Option<&'static BakedMorph> {
+    GLYPHS.morphs.get(&format!("{glyph}>{morph}"))
 }
 
 pub fn icon_svg(name: &str, color: &str, stroke: f64) -> String {

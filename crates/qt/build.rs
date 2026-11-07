@@ -17,8 +17,9 @@ const DEFINES: [&str; 6] = [
     "QT_TESTLIB_LIB",
 ];
 
-const MOC_HEADERS: [&str; 34] = [
+const MOC_HEADERS: [&str; 35] = [
     "event_hub.h",
+    "look_glyph.h",
     "widgets.h",
     "window_chrome.h",
     "dock_style.h",
@@ -54,8 +55,9 @@ const MOC_HEADERS: [&str; 34] = [
     "engine_card.h",
 ];
 
-const SOURCES: [&str; 51] = [
+const SOURCES: [&str; 52] = [
     "app.cc",
+    "look_glyph.cc",
     "event_hub.cc",
     "widgets.cc",
     "window_chrome.cc",

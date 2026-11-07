@@ -22,13 +22,14 @@ pub use bridge::ffi::{
     FontRowView, GradientInfo, GradientStopView, GraphView, InspectorView, InstalledFontView,
     IssueView, KeyLineView, KeyPointView, LicenceView, LiveCaptureView, LiveClickView, LiveView,
     LoudnessView, MarkDrawnView, MarkPointsView, MenuItemKind, MenuItemView, MenuSectionView,
-    MeterView, MixerStripView, MixerView, MotionInfo, NodeMove, PaletteEntry, PlayerView, PortView,
-    PoseView, PresetView, ProjectEntry, ProjectView, RemovalView, ReplayActionView, ReplayView,
-    RowView, RulerStep, RunLogView, RunPanelView, RunRowView, ScreenArea, SettingsView, ShapeView,
-    SnapView, StreamViewState, TemplateView, TerminalWindowView, TextToken, TimelineAudioView,
-    TimelineBarView, TimelineCameraKeyView, TimelineMarkView, TimelineMarkerView,
-    TimelineTransitionView, TimelineView, TokenKind, TraceActionView, TraceConsoleView,
-    TraceErrorView, TraceFrameView, TraceRequestView, TraceView, VariableView, WindowPlacement,
+    MeterView, MixerStripView, MixerView, MorphPathView, MorphStep, MotionInfo, NodeMove,
+    PaletteEntry, PlayerView, PortView, PoseView, PresetView, ProjectEntry, ProjectView,
+    RemovalView, ReplayActionView, ReplayView, RowView, RulerStep, RunLogView, RunPanelView,
+    RunRowView, ScreenArea, SettingsView, ShapeView, SnapView, StreamViewState, TemplateView,
+    TerminalWindowView, TextToken, TimelineAudioView, TimelineBarView, TimelineCameraKeyView,
+    TimelineMarkView, TimelineMarkerView, TimelineTransitionView, TimelineView, TokenKind,
+    TraceActionView, TraceConsoleView, TraceErrorView, TraceFrameView, TraceRequestView, TraceView,
+    VariableView, WindowPlacement,
 };
 pub use frame::FrameRef;
 pub use host::{

@@ -11,6 +11,7 @@
 #include <QVBoxLayout>
 
 #include "app.h"
+#include "look_glyph.h"
 #include "motion.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "widgets.h"
@@ -31,19 +32,32 @@ constexpr int kBadge = 20;
 constexpr int kPopoverWidth = 256;
 constexpr int kPopoverHeight = 400;
 
-QIcon BadgeIcon(const QString& glyph, const QColor& color) {
+constexpr double kBadgeRadius = 4;
+constexpr double kBadgeInset = 4;
+
+QIcon BadgeIcon(const Look& look, const QColor& color,
+                const LookFrame& frame = {}) {
   const qreal ratio = qApp->devicePixelRatio();
   QPixmap pixmap(QSize(kBadge, kBadge) * ratio);
   pixmap.setDevicePixelRatio(ratio);
   pixmap.fill(Qt::transparent);
   QPainter painter(&pixmap);
   painter.setRenderHint(QPainter::Antialiasing);
+  painter.setRenderHint(QPainter::SmoothPixmapTransform);
   painter.setPen(Qt::NoPen);
   painter.setBrush(color);
-  painter.drawRoundedRect(QRectF(0, 0, kBadge, kBadge), 4, 4);
-  painter.drawPixmap(4, 4, App::Get().Glyph(glyph, Qt::black, 12));
+  const QRectF badge(0, 0, kBadge, kBadge);
+  painter.drawRoundedRect(badge, kBadgeRadius, kBadgeRadius);
+  PaintLookGlyph(
+      &painter, badge,
+      badge.adjusted(kBadgeInset, kBadgeInset, -kBadgeInset, -kBadgeInset),
+      look, frame, color);
   painter.end();
   return {pixmap};
+}
+
+Look LookOf(const bridge::PaletteEntry& entry) {
+  return {ToQ(entry.glyph), ToQ(entry.motion), ToQ(entry.morph)};
 }
 
 }
@@ -126,6 +140,7 @@ NodeList::NodeList(const QString& category, const QString& label,
   hover_timer_.setInterval(kHoverDelayMs);
   connect(&hover_timer_, &QTimer::timeout, this, &NodeList::ShowCard);
   connect(tree_, &QTreeWidget::itemEntered, this, &NodeList::Hover);
+  connect(&looks_, &LookPlayer::Changed, this, &NodeList::Repaint);
   connect(tree_->verticalScrollBar(), &QScrollBar::valueChanged, this,
           [this] { Hover(nullptr); });
 
@@ -151,7 +166,8 @@ NodeList::NodeList(const QString& category, const QString& label,
                      ? new QTreeWidgetItem(section, {ToQ(entry.title)})
                      : new QTreeWidgetItem(tree_, {ToQ(entry.title)});
     item->setIcon(
-        0, BadgeIcon(ToQ(entry.glyph), QColor::fromString(ToQ(entry.color))));
+        0, BadgeIcon(LookOf(entry), QColor::fromString(ToQ(entry.color))));
+    rows_.insert(ToQ(entry.node_type), item);
     item->setData(0, kTypeRole, ToQ(entry.node_type));
     item->setData(0, kSearchRole,
                   ToQ(entry.title) + QLatin1Char(' ') + group +
@@ -188,8 +204,8 @@ CategoryRail::CategoryRail(QWidget* parent) : QWidget(parent) {
   layout->setSpacing(4);
   for (const auto& category : App::Get().session().categories()) {
     auto* button = new QToolButton(this);
-    button->setIcon(
-        BadgeIcon(ToQ(category.icon), QColor::fromString(ToQ(category.color))));
+    button->setIcon(BadgeIcon(Look{ToQ(category.icon), {}, {}},
+                              QColor::fromString(ToQ(category.color))));
     button->setIconSize(QSize(kBadge, kBadge));
     button->setToolTip(ToQ(category.label));
     button->setCursor(Qt::PointingHandCursor);
@@ -269,9 +285,35 @@ QString NodeList::Problems() const {
   return problems.join(QStringLiteral("; "));
 }
 
+const bridge::PaletteEntry* NodeList::EntryOf(QTreeWidgetItem* item) const {
+  if (item == nullptr) return nullptr;
+  const int index = item->data(0, kEntryRole).toInt();
+  if (item->data(0, kTypeRole).toString().isEmpty() || index < 0 ||
+      index >= static_cast<int>(entries_.size())) {
+    return nullptr;
+  }
+  return &entries_.at(static_cast<std::size_t>(index));
+}
+
+void NodeList::Repaint(const QString& node_type) {
+  QTreeWidgetItem* item = rows_.value(node_type);
+  const bridge::PaletteEntry* entry = EntryOf(item);
+  if (entry == nullptr) return;
+  item->setIcon(0,
+                BadgeIcon(LookOf(*entry), QColor::fromString(ToQ(entry->color)),
+                          looks_.FrameOf(node_type)));
+}
+
 void NodeList::Hover(QTreeWidgetItem* item) {
   hover_timer_.stop();
   if (card_ != nullptr) card_->close();
+  const bridge::PaletteEntry* entry = EntryOf(item);
+  const QString type = entry != nullptr ? ToQ(entry->node_type) : QString();
+  if (type != playing_) {
+    if (!playing_.isEmpty()) looks_.Leave(playing_);
+    playing_ = type;
+    if (entry != nullptr) looks_.Enter(type, LookOf(*entry));
+  }
   hovered_ = item;
   if (item != nullptr && !item->data(0, kTypeRole).toString().isEmpty()) {
     hover_timer_.start();
@@ -280,10 +322,9 @@ void NodeList::Hover(QTreeWidgetItem* item) {
 
 void NodeList::ShowCard() {
   if (hovered_ == nullptr) return;
-  const int index = hovered_->data(0, kEntryRole).toInt();
-  if (index < 0 || index >= static_cast<int>(entries_.size())) return;
-  const bridge::PaletteEntry& entry =
-      entries_.at(static_cast<std::size_t>(index));
+  const bridge::PaletteEntry* found = EntryOf(hovered_);
+  if (found == nullptr) return;
+  const bridge::PaletteEntry& entry = *found;
   auto* card = new QFrame(this, Qt::ToolTip | Qt::FramelessWindowHint);
   card->setObjectName(QStringLiteral("HoverCard"));
   card->setAttribute(Qt::WA_DeleteOnClose);
@@ -295,9 +336,9 @@ void NodeList::ShowCard() {
   auto* head = new QHBoxLayout();
   head->setSpacing(8);
   auto* badge = new QLabel(card);
-  badge->setPixmap(
-      BadgeIcon(ToQ(entry.glyph), QColor::fromString(ToQ(entry.color)))
-          .pixmap(kCardBadge, kCardBadge));
+  badge->setPixmap(BadgeIcon(Look{ToQ(entry.glyph), {}, {}},
+                             QColor::fromString(ToQ(entry.color)))
+                       .pixmap(kCardBadge, kCardBadge));
   head->addWidget(badge);
   auto* names = new QVBoxLayout();
   names->setSpacing(0);

@@ -21,10 +21,10 @@ use opsis_qt::{
     EngineView, EventKind, FilmTiles, FontCatalogView, FontChoicesView, FontPickView,
     FontReviewView, FontRowView, GradientInfo, GraphView, Host, HostResult, InspectorView,
     InstalledFontView, KeyLineView, LicenceView, LoudnessView, MarkDrawnView, MarkPointsView,
-    MenuSectionView, MeterView, MixerView, MotionInfo, NodeMove, PaletteEntry, PlayerView,
-    PoseView, ProjectEntry, ProjectView, RemovalView, ReplayView, RulerStep, RunPanelView,
-    ScreenArea, SettingsView, SnapView, TemplateView, TextToken, TimelineView, TraceView,
-    VariableView, WindowPlacement,
+    MenuSectionView, MeterView, MixerView, MorphPathView, MorphStep, MotionInfo, NodeMove,
+    PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView, ReplayView,
+    RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView, TemplateView, TextToken,
+    TimelineView, TraceView, VariableView, WindowPlacement,
 };
 use opsis_session::analysis::{self, AnalysisRequest, AnalysisResult};
 use opsis_session::document::DiskChoice;
@@ -53,7 +53,7 @@ use tokio::sync::broadcast::error::RecvError;
 use crate::platform::QtPlatform;
 use crate::project::Extras;
 use crate::{
-    clipboard, colors, font_views, graph, inspector, keys, live, look, media, mixer, motion,
+    clipboard, colors, font_views, graph, inspector, keys, live, look, media, mixer, morph, motion,
     player, project, replay, run_panel, streams, terminal_window, timeline,
 };
 
@@ -949,6 +949,16 @@ impl Host for Ui {
                         category: n.category_label.clone(),
                         color: look::category_color(&category).to_owned(),
                         glyph: n.look.as_ref().map_or_default(|l| l.glyph.clone()),
+                        motion: n
+                            .look
+                            .as_ref()
+                            .and_then(|l| l.motion)
+                            .map_or_default(|m| plain(&m)),
+                        morph: n
+                            .look
+                            .as_ref()
+                            .and_then(|l| l.morph.clone())
+                            .unwrap_or_default(),
                         description: n.description.clone().unwrap_or_default(),
                         inputs: port_labels(&n.inputs),
                         outputs: port_labels(&n.outputs),
@@ -1420,6 +1430,14 @@ impl Host for Ui {
 
     fn motion_pose(&self, motion: &str, elapsed_ms: f64) -> PoseView {
         motion::pose(motion, elapsed_ms)
+    }
+
+    fn morph_frame(&self, glyph: &str, morph: &str, position: f64) -> Vec<MorphPathView> {
+        morph::frame(glyph, morph, position)
+    }
+
+    fn morph_step(&self, position: f64, velocity: f64, target: f64, dt_ms: f64) -> MorphStep {
+        morph::step(position, velocity, target, dt_ms)
     }
 
     fn bar(&self) -> BarView {

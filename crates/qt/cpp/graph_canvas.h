@@ -1,7 +1,6 @@
 #ifndef OPSIS_QT_CPP_GRAPH_CANVAS_H_
 #define OPSIS_QT_CPP_GRAPH_CANVAS_H_
 
-#include <QElapsedTimer>
 #include <QGraphicsItem>
 #include <QGraphicsPathItem>
 #include <QGraphicsScene>
@@ -15,6 +14,7 @@
 #include <QToolButton>
 #include <optional>
 
+#include "look_glyph.h"
 #include "opsis-qt/src/bridge.rs.h"
 
 class QMimeData;
@@ -57,6 +57,7 @@ class CardItem : public QGraphicsItem {
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
 
  private:
   static constexpr unsigned kLeft = 1U;
@@ -126,9 +127,7 @@ class GraphCanvas : public QGraphicsView {
   int BackwardEdges() const;
   QString ToolbarProblems() const;
   bool GridShown() const { return grid_shown_; }
-  void PlayMotion(const QString& id);
-  double MotionElapsed(const QString& id) const;
-  const bridge::MotionInfo& MotionInfoOf(const QString& motion);
+  LookPlayer& looks() { return looks_; }
   CardItem* Card(const QString& id) const { return cards_.value(id); }
   QStringList GroupIds() const;
   void MoveChildren(const QString& group, const QPointF& delta);
@@ -196,13 +195,10 @@ class GraphCanvas : public QGraphicsView {
   QTimer toast_timer_;
   QTimer sync_timer_;
   QTimer spin_timer_;
-  QTimer motion_timer_;
   QTimer dash_timer_;
   QSet<QString> active_;
   double dash_offset_ = 0;
-  QElapsedTimer motion_clock_;
-  QHash<QString, qint64> motion_started_;
-  QHash<QString, bridge::MotionInfo> motion_infos_;
+  LookPlayer looks_;
   double spin_angle_ = 0;
   QPoint pan_from_;
   bool panning_ = false;

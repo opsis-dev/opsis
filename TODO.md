@@ -8,8 +8,6 @@ What's left that no plan covers: the places in the codebase that don't read as i
 
 Wrong behaviour found in the session transcripts and confirmed in the current code.
 
-- [ ] The native editor doesn't play a look's morph: a card plays its look's `motion` on hover (`crates/qt/cpp/graph_canvas.cc` → `PlayMotion`), but a look with a `morph` into another glyph stays still, and node list rows play nothing. The web editor morphed with `morphicons` on cards and list rows.
-
 - [ ] HEVC (H.265) files don't play in exports: the headless shell has no HEVC decoder (Chromium decodes HEVC only through platform hardware, so `canPlayType` is empty and loading fails with `DEMUXER_ERROR_NO_SUPPORTED_STREAMS`). The Run panel plays them (WebKitGTK through GStreamer's `avdec_h265`).
 
 ## Unconfirmed bugs

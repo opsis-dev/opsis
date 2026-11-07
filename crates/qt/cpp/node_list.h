@@ -2,6 +2,7 @@
 #define OPSIS_QT_CPP_NODE_LIST_H_
 
 #include <QFrame>
+#include <QHash>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPointer>
@@ -10,6 +11,7 @@
 #include <QWidget>
 #include <vector>
 
+#include "look_glyph.h"
 #include "opsis-qt/src/bridge.rs.h"
 
 namespace opsis {
@@ -38,6 +40,10 @@ class NodeList : public QWidget {
                     QWidget* parent = nullptr);
   void SetPlaceholder(const QString& text);
   QString Problems() const;
+  QTreeWidgetItem* RowOf(const QString& node_type) const {
+    return rows_.value(node_type);
+  }
+  const LookPlayer& looks() const { return looks_; }
 
  signals:
   void AddRequested(const QString& node_type);
@@ -47,6 +53,8 @@ class NodeList : public QWidget {
 
   void Hover(QTreeWidgetItem* item);
   void ShowCard();
+  void Repaint(const QString& node_type);
+  const bridge::PaletteEntry* EntryOf(QTreeWidgetItem* item) const;
 
   QLineEdit* search_;
   NodeTree* tree_;
@@ -55,6 +63,9 @@ class NodeList : public QWidget {
   QTimer hover_timer_;
   QTreeWidgetItem* hovered_ = nullptr;
   QPointer<QFrame> card_;
+  LookPlayer looks_;
+  QHash<QString, QTreeWidgetItem*> rows_;
+  QString playing_;
 };
 
 class CategoryRail : public QWidget {

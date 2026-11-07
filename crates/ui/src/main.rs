@@ -10,6 +10,7 @@ mod look;
 mod media;
 mod menu;
 mod mixer;
+mod morph;
 mod motion;
 mod platform;
 mod player;

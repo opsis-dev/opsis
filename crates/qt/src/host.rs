@@ -5,10 +5,10 @@ use crate::bridge::ffi::{
     EngineView, EventKind, FilmTiles, FontCatalogView, FontChoicesView, FontReviewView,
     FontRowView, GradientInfo, GraphView, InspectorView, InstalledFontView, KeyLineView,
     LicenceView, LiveView, LoudnessView, MarkDrawnView, MarkPointsView, MenuSectionView, MeterView,
-    MixerView, MotionInfo, NodeMove, PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView,
-    RemovalView, ReplayView, RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView,
-    StreamViewState, TemplateView, TerminalWindowView, TextToken, TimelineView, TraceView,
-    VariableView, WindowPlacement,
+    MixerView, MorphPathView, MorphStep, MotionInfo, NodeMove, PaletteEntry, PlayerView, PoseView,
+    ProjectEntry, ProjectView, RemovalView, ReplayView, RulerStep, RunPanelView, ScreenArea,
+    SettingsView, SnapView, StreamViewState, TemplateView, TerminalWindowView, TextToken,
+    TimelineView, TraceView, VariableView, WindowPlacement,
 };
 use crate::frame::FrameRef;
 
@@ -82,6 +82,8 @@ pub trait Host {
     fn reveal_outputs(&self) -> HostResult<()>;
     fn motion_info(&self, motion: &str) -> MotionInfo;
     fn motion_pose(&self, motion: &str, elapsed_ms: f64) -> PoseView;
+    fn morph_frame(&self, glyph: &str, morph: &str, position: f64) -> Vec<MorphPathView>;
+    fn morph_step(&self, position: f64, velocity: f64, target: f64, dt_ms: f64) -> MorphStep;
     fn paste_text(&self, text: &str) -> HostResult<()>;
     fn duplicate_selection(&self) -> HostResult<()>;
     fn drop_files(&self, paths: Vec<String>, x: f64, y: f64) -> HostResult<u32>;
@@ -572,6 +574,25 @@ impl Session {
 
     pub(crate) fn motion_pose(&self, motion: &str, elapsed_ms: f64) -> PoseView {
         self.0.motion_pose(motion, elapsed_ms)
+    }
+
+    pub(crate) fn morph_frame(
+        &self,
+        glyph: &str,
+        morph: &str,
+        position: f64,
+    ) -> Vec<MorphPathView> {
+        self.0.morph_frame(glyph, morph, position)
+    }
+
+    pub(crate) fn morph_step(
+        &self,
+        position: f64,
+        velocity: f64,
+        target: f64,
+        dt_ms: f64,
+    ) -> MorphStep {
+        self.0.morph_step(position, velocity, target, dt_ms)
     }
 
     pub(crate) fn paste_text(&self, text: &str) -> HostResult<()> {
