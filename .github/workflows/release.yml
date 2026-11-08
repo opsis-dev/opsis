@@ -21,10 +21,10 @@ env:
 jobs:
   notice:
     name: Source notice
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v7
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
           bun-version: 1.4.3
       - run: bun install --frozen-lockfile
@@ -54,30 +54,39 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v7
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
           bun-version: 1.4.3
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 24
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
         with:
           toolchain: nightly-2026-10-29
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
         with:
           key: release-${{ matrix.os }}
           cache-on-failure: true
-      - uses: mlugg/setup-zig@v2
+      - run: bun install --frozen-lockfile
+      - name: Cache Zig and its packages
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
-          version: 0.17.0
-          cache-key: ${{ matrix.os }}
+          path: |
+            ~/.cache/opsis-dev/zig
+            ~/.cache/zig
+            ~/Library/Caches/zig
+            ~/AppData/Local/zig
+          key: zig-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/zig-install.ts', 'crates/vt/zig/build.zig.zon') }}
+      - name: Install Zig
+        run: |
+          bun run zig:install | tee "$RUNNER_TEMP/zig-install.log"
+          sed -n 's/^Zig [^:]*: //p' "$RUNNER_TEMP/zig-install.log" >> "$GITHUB_PATH"
       - name: Fetch the terminal engine
         working-directory: crates/vt/zig
         run: zig build --fetch
-      - run: bun install --frozen-lockfile
       - name: Cache the static Qt
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ~/.cache/opsis-dev/qt-static
           key: static-qt-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/static-qt.ts') }}
@@ -88,14 +97,14 @@ jobs:
       - name: Fetch KDDockWidgets
         run: bun run qt:install
       - name: Cache the downloaded browser and its licences
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
             ~/.cache/opsis-dev/stage-engine
             ~/.cache/opsis-dev/chromium-credits
           key: stage-engine-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('crates/engine/src/downloads.generated.json') }}
       - name: Cache the pinned FFmpeg
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ~/.cache/opsis-dev/ffmpeg
           key: ffmpeg-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/ffmpeg.generated.json') }}
@@ -119,7 +128,7 @@ jobs:
       - name: Install and run each package in a plain Debian
         if: runner.os == 'Linux'
         run: bun run package:check
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: opsis-${{ runner.os }}-${{ runner.arch }}
           path: |
@@ -143,12 +152,12 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v7
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
           bun-version: 1.4.3
       - run: bun install --frozen-lockfile
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           path: ${{ runner.temp }}/artifacts
           merge-multiple: true
