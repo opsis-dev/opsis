@@ -8,9 +8,10 @@ The Rust nightly and how to move it, the Zig build of `opsis-vt`'s wrapper, the 
 | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | Nightly pin                            | `rust-toolchain.toml` (with `rustfmt` and `clippy`)                                                                   |
 | Minimum compiler                       | `rust-version` in `[workspace.package]`, `Cargo.toml`, inherited by every crate                                       |
-| CI toolchain steps                     | every `dtolnay/rust-toolchain` step of `.github/workflows/build.yml`                                                  |
+| CI toolchain steps                     | every `dtolnay/rust-toolchain` step of `.github/workflows/build.yml` and `.github/workflows/release.yml`              |
 | Workspace lints                        | `[workspace.lints.rust]`, `[workspace.lints.clippy]` in `Cargo.toml`; `[lints] workspace = true` in every crate       |
 | Zig build of the wrapper               | `crates/vt/build.rs`, `crates/vt/zig/build.zig`, `crates/vt/zig/build.zig.zon`                                        |
+| Zig in CI                              | `scripts/zig-install.ts` (`bun run zig:install`)                                                                      |
 | Opsis oxlint rules                     | `scripts/oxlint-plugin-opsis.ts`                                                                                      |
 | Shared oxlint, oxfmt, Vitest configs   | `scripts/lib/oxlint-base.ts`, `scripts/lib/oxfmt-base.ts`, `scripts/lib/vitest-base.ts`, `scripts/lib/tool-config.ts` |
 | Comment check                          | `scripts/comments.ts`                                                                                                 |
@@ -22,13 +23,14 @@ The Rust nightly and how to move it, the Zig build of `opsis-vt`'s wrapper, the 
 ## Rules
 
 - **The computer keeps one nightly, the one in `rust-toolchain.toml`.** To move it, in one change:
-  - change the date in `rust-toolchain.toml` and in every `dtolnay/rust-toolchain` step of `.github/workflows/build.yml`;
+  - change the date in `rust-toolchain.toml` and in every `dtolnay/rust-toolchain` step of `.github/workflows/build.yml` and `.github/workflows/release.yml`;
   - raise `rust-version` to the new compiler's;
   - run `rustup default` with the new toolchain and uninstall the old one;
   - move `~/projects/agent-os/rust-toolchain.toml` to the same date and leave it uncommitted there.
 - **Zig 0.17 builds the wrapper because Ghostty needs the same major and minor version.** `crates/vt/build.rs` runs `zig build` (the `ZIG` variable names another program) and refuses any other version.
 - **`build.rs` always names the Zig target** (`x86_64-linux-gnu`, `aarch64-macos`, `x86_64-windows-msvc`…), because Zig's native target compiles for the building computer's processor.
-- **CI installs Zig 0.17.0 with `mlugg/setup-zig` in every job and runs `zig build --fetch` before Cargo.** Zig unpacks the packages into `crates/vt/zig/zig-pkg` (ignored by git); the tarballs stay in Zig's global cache.
+- **CI installs Zig with `bun run zig:install` in every job and runs `zig build --fetch` before Cargo.** `scripts/zig-install.ts` pins each target's archive from ziglang.org by sha256 and size and unpacks it into `~/.cache/opsis-zig`; the job puts it on `PATH` and caches that folder with Zig's global cache, so ziglang.org is asked only when the cache is empty. Moving Zig changes `ZIG_VERSION` and `ARCHIVES` there.
+  - Zig unpacks the packages into `crates/vt/zig/zig-pkg` (ignored by git); the tarballs stay in Zig's global cache.
 - **The Clippy workspace allows are permanent and no line is added to them.** Each exists because:
   - `missing_errors_doc`, `missing_panics_doc`: they ask for doc comments, which the no-comments rule bans.
   - `option_if_let_else`: it would turn every `if let … else` into `map_or_else`.

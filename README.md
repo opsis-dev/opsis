@@ -50,7 +50,7 @@ Ready-made copies of every template are in [`examples/`](./examples) (**Open pro
 | `bun run make`       | Stage everything the app ships, build the release binary against the static Qt and package it into `~/.cache/opsis-build` (the deb by default; `-- --formats deb,rpm,appimage,pacman`) |
 | `CARGO_BUILD_JOBS=8` | Limit how many cores the Rust build uses                                                                                                                                               |
 
-The app ships FFmpeg (the pinned ffmpeg-static build, as the `opsis-ffmpeg` program beside the app's own) but never the recording browser; users download it or choose their own from Settings. On Linux the release binary and its packages build in a plain `debian:trixie` container. CI ([`.github/workflows/build.yml`](./.github/workflows/build.yml)) runs the checks and the end-to-end tests on Linux; the Windows and macOS packages come with their CI jobs.
+The app ships FFmpeg (the pinned ffmpeg-static build, as the `opsis-ffmpeg` program beside the app's own) but never the recording browser; users download it or choose their own from Settings. On Linux the release binary and its packages build in a plain `debian:trixie` container. CI runs the checks and the end-to-end tests on Linux on every push ([`.github/workflows/build.yml`](./.github/workflows/build.yml)), and builds the installers for Linux, Windows and macOS on `v*` tags and by hand ([`.github/workflows/release.yml`](./.github/workflows/release.yml)).
 
 ## Scripts
 

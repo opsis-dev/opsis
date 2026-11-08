@@ -1,0 +1,136 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  APPIMAGE_EXTRACT_AND_RUN: "1"
+
+jobs:
+  notice:
+    name: Source notice
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.4.3
+      - run: bun install --frozen-lockfile
+      - name: Check the links in the source notice
+        run: bun run notice:links
+
+  package:
+    name: Package · ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux x64
+            os: ubuntu-24.04
+            formats: deb,rpm,pacman,appimage
+          - name: Windows x64
+            os: windows-latest
+            formats: nsis,msi
+          - name: macOS Apple Silicon
+            os: macos-latest
+            formats: app,dmg
+          - name: macOS Intel
+            os: macos-26-intel
+            formats: app,dmg
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.4.3
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 24
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with:
+          toolchain: nightly-2026-10-29
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
+        with:
+          key: release-${{ matrix.os }}
+          cache-on-failure: true
+      - name: Install the static Qt's and the app's build packages
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ninja-build perl python3 pkg-config xz-utils file libasound2-dev libdbus-1-dev libfontconfig1-dev libfreetype-dev libwayland-dev wayland-protocols libx11-dev libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-util-dev libxcb-xfixes0-dev libxcb-xkb-dev libxext-dev libxfixes-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libxrender-dev
+      - run: bun install --frozen-lockfile
+      - name: Cache Zig and its packages
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            ~/.cache/opsis-zig
+            ~/.cache/zig
+            ~/Library/Caches/zig
+            ~/AppData/Local/zig
+          key: zig-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/zig-install.ts', 'crates/vt/zig/build.zig.zon') }}
+      - name: Install Zig
+        run: |
+          bun run zig:install | tee "$RUNNER_TEMP/zig-install.log"
+          sed -n 's/^Zig [^:]*: //p' "$RUNNER_TEMP/zig-install.log" >> "$GITHUB_PATH"
+      - name: Fetch the terminal engine
+        working-directory: crates/vt/zig
+        run: zig build --fetch
+      - name: Cache the static Qt
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: ~/.cache/opsis-qt-static
+          key: static-qt-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/static-qt.ts') }}
+      - name: Build the static Qt
+        run: |
+          bun run qt:static | tee "$RUNNER_TEMP/qt-static.log"
+          echo "OPSIS_QT=$(sed -n 's/^Static Qt [^:]*: //p' "$RUNNER_TEMP/qt-static.log")" >> "$GITHUB_ENV"
+      - name: Fetch KDDockWidgets
+        run: bun run qt:install
+      - name: Cache the downloaded browser and its licences
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            ~/.cache/opsis-stage-engine
+            ~/.cache/opsis-chromium-credits
+          key: stage-engine-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('crates/engine/src/downloads.generated.json') }}
+      - name: Cache the pinned FFmpeg
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: ~/.cache/opsis-ffmpeg
+          key: ffmpeg-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/ffmpeg.generated.json') }}
+      - name: Build the installers
+        run: bun run make -- --formats ${{ matrix.formats }}
+      - name: Check the bundled FFmpeg has everything Opsis uses
+        run: bun run test:rust -p opsis-media --lib capabilities
+      - name: Install and run each package in a plain Debian
+        if: runner.os == 'Linux'
+        run: bun run package:check
+      - name: Zip the macOS app
+        if: runner.os == 'macOS'
+        run: |
+          cd ~/.cache/opsis-build
+          for app in *.app; do ditto -c -k --keepParent "$app" "${app%.app}.zip"; done
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: opsis-${{ runner.os }}-${{ runner.arch }}
+          path: |
+            ~/.cache/opsis-build/*.deb
+            ~/.cache/opsis-build/*.rpm
+            ~/.cache/opsis-build/*.tar.gz
+            ~/.cache/opsis-build/*.AppImage
+            ~/.cache/opsis-build/*.exe
+            ~/.cache/opsis-build/*.msi
+            ~/.cache/opsis-build/*.zip
+            ~/.cache/opsis-build/*.dmg
+          if-no-files-found: error
