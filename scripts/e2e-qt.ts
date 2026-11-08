@@ -11,21 +11,20 @@ import {
 } from "node:fs";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
-import { homedir } from "node:os";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { setTimeout as sleep } from "node:timers/promises";
 import { runApiChecks } from "./lib/e2e-api";
 import { ensureFfmpeg } from "./lib/ffmpeg";
-import { ROOT } from "./lib/tool-config";
+import { devCache, ROOT } from "./lib/tool-config";
 import { DEV_ENGINE, browserIn, seedUserData } from "./lib/user-data";
 
 const SCENARIOS = ["tour", "runs", "api", "wayland"] as const;
 type ScenarioName = (typeof SCENARIOS)[number];
-const DATA_DIR = path.join(homedir(), ".cache", "opsis-qt-e2e");
-const RUNS_DIR = path.join(homedir(), ".cache", "opsis-qt-e2e-runs");
-const API_DIR = path.join(homedir(), ".cache", "opsis-qt-e2e-api");
-const WAYLAND_DIR = path.join(homedir(), ".cache", "opsis-qt-e2e-wayland");
+const DATA_DIR = devCache("qt-e2e");
+const RUNS_DIR = devCache("qt-e2e-runs");
+const API_DIR = devCache("qt-e2e-api");
+const WAYLAND_DIR = devCache("qt-e2e-wayland");
 const SWAY_CONFIG = [
   "output HEADLESS-1 resolution {size}",
   "default_border none",
@@ -35,7 +34,7 @@ const SWAY_CONFIG = [
 ].join("\n");
 const WAYLAND_SOCKET = /^wayland-\d+$/;
 const LOG_DIR = path.join(ROOT, "target", "e2e-qt");
-const SHOTS_DIR = path.join(homedir(), ".cache", "opsis-qt-shots");
+const SHOTS_DIR = devCache("qt-shots");
 const SHOTS_FLAG = "--shots";
 const BUNDLES = [
   ["film-bundle", "film:bundle"],

@@ -13,7 +13,7 @@ use opsis_footage::chain::{FootageSource, TimedRedaction};
 use opsis_footage::decoder::FootageTools;
 use opsis_footage::footage::Footage;
 use opsis_footage::serve::footage_routes;
-use opsis_golden::{ffmpeg, home};
+use opsis_golden::{dev_cache, ffmpeg};
 use opsis_image::ops::redact;
 use opsis_media::grade::GradeChain;
 use tower::ServiceExt;
@@ -23,7 +23,7 @@ const SECONDS: i64 = 4;
 const EVEN: &str = "scale=trunc(iw/2)*2:trunc(ih/2)*2";
 
 fn samples() -> PathBuf {
-    let dir = home().join(".cache/opsis-footage-samples");
+    let dir = dev_cache("footage-samples");
     std::fs::create_dir_all(dir.join("tmp")).unwrap();
     dir
 }

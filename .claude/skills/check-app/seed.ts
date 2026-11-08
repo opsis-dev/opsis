@@ -1,10 +1,9 @@
 import { cpSync, rmSync } from "node:fs";
-import os from "node:os";
 import path from "node:path";
-import { ROOT } from "../../../scripts/lib/tool-config";
+import { devCache, ROOT } from "../../../scripts/lib/tool-config";
 import { seedUserData } from "../../../scripts/lib/user-data";
 
-const CHECK_DIR = path.join(os.homedir(), ".cache", "opsis-check");
+const CHECK_DIR = devCache("check");
 const USER_DATA = path.join(CHECK_DIR, "user-data");
 const PROJECTS = path.join(CHECK_DIR, "projects");
 

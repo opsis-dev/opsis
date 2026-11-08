@@ -273,7 +273,7 @@ In place:
 
 - The hover card: the node list's `HoverCard` (`crates/qt/cpp/node_list.cc`) shows the title, category, description and ports.
 - `ElementMeta.thumbnail` exists in `crates/compile/src/elements/mod.rs` and is never filled.
-- `render-elements` (`crates/render/src/bin/render-elements.rs`, `bun run elements:render`) already compiles each registry element with its defaults in Rust, wires transitions, wrappers and sequencers to solid clips, and renders one frame through the frame driver into `~/.cache/opsis-element-stills` as 480 px JPEG.
+- `render-elements` (`crates/render/src/bin/render-elements.rs`, `bun run elements:render`) already compiles each registry element with its defaults in Rust, wires transitions, wrappers and sequencers to solid clips, and renders one frame through the frame driver into `~/.cache/opsis-dev/element-stills` as 480 px JPEG.
 
 Missing:
 
@@ -321,7 +321,7 @@ Missing:
 
 ### Work
 
-1. **Compare mode.** `render-elements --check` renders every element as in the thumbnails section into `~/.cache/opsis-element-stills/` and compares each with its stored still with the engine's FFmpeg `ssim` filter (no new dependency). It fails when SSIM is below a threshold (start at 0.97; measure the spread across a few runs first), when an element has no stored still, or when a still has no element, and writes a side-by-side image (`hstack`: stored | new) for each failure.
+1. **Compare mode.** `render-elements --check` renders every element as in the thumbnails section into `~/.cache/opsis-dev/element-stills/` and compares each with its stored still with the engine's FFmpeg `ssim` filter (no new dependency). It fails when SSIM is below a threshold (start at 0.97; measure the spread across a few runs first), when an element has no stored still, or when a still has no element, and writes a side-by-side image (`hstack`: stored | new) for each failure.
 2. **Workflow.** A job `elements` in `build.yml`, `needs: checks`, Linux, only when the change touches `packages/video/**`, `crates/compile/src/elements/**`, `public/fonts/**`, `package.json`, `packages/video/package.json` or `bun.lock` (a paths check step, since `build.yml` runs on several events). Steps as in `e2e` (engine cache, `install-engine`, `video:bundle`), then `bun run elements:render -- --check`, uploading the side-by-side images on failure. Check the workflow with `actionlint`.
 3. **Updating references.** A `workflow_dispatch` input `update-stills` runs the binary in write mode and uploads the stills as an artifact, so references come from the same machine type as the check. Locally on Linux x64, `bun run elements:render -- --thumbnails` writes them directly.
 4. **Check.** Break one element on purpose (change a default colour); the job fails with its side-by-side image. Revert; it passes twice in a row.

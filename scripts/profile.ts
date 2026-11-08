@@ -10,10 +10,10 @@ import { CONFIG_FILE, type InsideConfig, PROFILERS, type Profiler } from "./lib/
 import { writeInputs } from "./lib/profile/inputs";
 import { type Catalog, missingTypes, profileWorkflow, runOrder } from "./lib/profile/project";
 import { writeReport } from "./lib/profile/report";
-import { ROOT } from "./lib/tool-config";
+import { devCache, ROOT } from "./lib/tool-config";
 import { DEV_ENGINE, seedUserData } from "./lib/user-data";
 
-const PROFILE_DIR = path.join(os.homedir(), ".cache", "opsis-profile");
+const PROFILE_DIR = devCache("profile");
 const APP_DIR = path.join(PROFILE_DIR, "app");
 const IMAGE = "opsis-profile";
 const SAMPLY_VERSION = "0.13.1";

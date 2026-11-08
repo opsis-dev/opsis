@@ -8,7 +8,7 @@ Status: the Linux packages are built and checked ([packaging.md](../agent-docs/p
 
 - Sections 1–6 come before a first public release. Section 7 runs before every release. Section 8 is later work.
 - Each section has the same parts where they apply: **In place**, **Work** (numbered, only what is left), **Decided**, **Decision for the user**, **Risks**. Rules from `AGENTS.md` and `agent-docs/` hold throughout; when they disagree with this plan, they win.
-- Local builds: `bun run make` builds the deb unless `--formats` names more (all four Linux formats build here, in the trixie container), `CARGO_BUILD_JOBS=8`, output in `~/.cache/opsis-build`, checked with `bun run package:check`. The Windows and macOS packages are built in CI only.
+- Local builds: `bun run make` builds the deb unless `--formats` names more (all four Linux formats build here, in the trixie container), `CARGO_BUILD_JOBS=8`, output in `~/.cache/opsis-dev/build`, checked with `bun run package:check`. The Windows and macOS packages are built in CI only.
 
 ## Summary
 

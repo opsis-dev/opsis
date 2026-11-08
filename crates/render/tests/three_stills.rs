@@ -11,7 +11,7 @@ use opsis_compile::registry::node_def;
 use opsis_compile::vars::Vars;
 use opsis_engine::http_files::{FileServer, folder_routes};
 use opsis_engine::paths::{ShellPlatform, engine_paths, find_headless_shell};
-use opsis_golden::{home, repo};
+use opsis_golden::{dev_cache, home, repo};
 use opsis_prepare::serve::{PreparedDirs, prepared_routes};
 use opsis_render::frames::{StillRender, render_still};
 use opsis_types::numbers;
@@ -166,7 +166,7 @@ fn share_alike(made: &Path, baseline: &Path) -> Result<(), String> {
 #[ignore = "needs the dev engine and the film page (bun run film:bundle); OPSIS_STILLS_OUT names where stills go"]
 async fn draws_3d_elements_as_recorded() {
     let out = std::env::var_os("OPSIS_STILLS_OUT")
-        .map_or_else(|| home().join(".cache/opsis-three-stills"), PathBuf::from);
+        .map_or_else(|| dev_cache("three-stills"), PathBuf::from);
     let temp = out.join("tmp");
     let project = temp.join("project");
     copy_dir(

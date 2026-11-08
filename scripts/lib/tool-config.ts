@@ -1,6 +1,11 @@
+import { homedir } from "node:os";
 import path from "node:path";
 
 export const ROOT = path.resolve(import.meta.dirname, "..", "..");
+
+export function devCache(name: string): string {
+  return path.join(homedir(), ".cache", "opsis-dev", name);
+}
 
 const PACKAGES_DIR = path.join(ROOT, "packages");
 

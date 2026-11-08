@@ -20,6 +20,10 @@ pub fn home() -> PathBuf {
     std::env::var_os("HOME").map(PathBuf::from).expect("HOME")
 }
 
+pub fn dev_cache(name: &str) -> PathBuf {
+    home().join(".cache/opsis-dev").join(name)
+}
+
 pub fn ffmpeg() -> PathBuf {
     std::env::var_os("OPSIS_FFMPEG").map(PathBuf::from).expect(
         "OPSIS_FFMPEG names the staged FFmpeg: run cargo through bun run test:rust, or set it to what bun run ffmpeg:stage prints",

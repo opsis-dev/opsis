@@ -1,8 +1,8 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, renameSync, rmSync } from "node:fs";
-import { homedir } from "node:os";
 import path from "node:path";
 import { type Pinned, verifiedDownload } from "./lib/pins";
+import { devCache } from "./lib/tool-config";
 import { unzipTo } from "./lib/unzip";
 
 const ZIG_VERSION = "0.17.0";
@@ -41,7 +41,7 @@ const SYSTEMS: Partial<Record<NodeJS.Platform, string>> = {
 };
 
 function cacheDir(): string {
-  return path.join(homedir(), ".cache", "opsis-zig");
+  return devCache("zig");
 }
 
 function zigTarget(): string {

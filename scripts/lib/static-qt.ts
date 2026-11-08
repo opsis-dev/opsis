@@ -1,8 +1,8 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
 import path from "node:path";
+import { devCache } from "./tool-config";
 import { runInTrixie } from "./trixie";
 
 export const QT_VERSION = "6.12.0";
@@ -41,7 +41,7 @@ const CONFIGURE = [
 ];
 
 function cacheDir(): string {
-  return path.join(homedir(), ".cache", "opsis-qt-static");
+  return devCache("qt-static");
 }
 
 function folder(): string {

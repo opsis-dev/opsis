@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use opsis_compile::asset_ref::project_rel_path;
 use opsis_compile::terminal::preview::{PREVIEW_FILE, PREVIEW_FPS, preview_size};
 use opsis_engine::tools::EngineFiles;
-use opsis_golden::{edge, home, node, repo};
+use opsis_golden::{dev_cache, edge, home, node, repo};
 use opsis_media::executors::{Tools, media_executors};
 use opsis_media::ffmpeg::Ffmpeg;
 use opsis_probe::probe;
@@ -111,7 +111,7 @@ async fn make_clip(ffmpeg: &Path, file: &Path) {
 #[ignore = "needs the dev engine and the film page (bun run film:bundle)"]
 async fn runs_media_nodes_and_exports_a_film() {
     let engine = EngineFiles::downloaded(&home().join(".config/Opsis/engine"));
-    let base = home().join(".cache/opsis-render-test");
+    let base = dev_cache("render-test");
     let project = base.join("project");
     let temp = base.join("tmp");
     if project.exists() {
@@ -176,7 +176,7 @@ async fn runs_media_nodes_and_exports_a_film() {
 #[ignore = "needs the dev engine and the film page (bun run film:bundle)"]
 async fn draws_a_preview_of_every_terminal_take() {
     let engine = EngineFiles::downloaded(&home().join(".config/Opsis/engine"));
-    let base = home().join(".cache/opsis-render-test/preview");
+    let base = dev_cache("render-test/preview");
     let project = base.join("project");
     let temp = base.join("tmp");
     if project.exists() {

@@ -24,7 +24,7 @@ How Opsis is measured for size, CPU and memory with development tools only: the 
 - **The profiling build is the release binary with its symbols kept**, built with `CARGO_PROFILE_RELEASE_STRIP=false CARGO_PROFILE_RELEASE_DEBUG=line-tables-only bun run make`.
 
   - `line-tables-only` keeps function names and lines for samply, perf and heaptrack. Full debug info runs the full-LTO link out of memory on a 14 GiB machine.
-  - `bun run profile` copies it, the staged `opsis-ffmpeg`, both pages, the staged `resources` and the licences into `~/.cache/opsis-profile/app` (`assembleAppFolder`, `scripts/lib/app-folder.ts`), the layout the release build reads beside itself.
+  - `bun run profile` copies it, the staged `opsis-ffmpeg`, both pages, the staged `resources` and the licences into `~/.cache/opsis-dev/profile/app` (`assembleAppFolder`, `scripts/lib/app-folder.ts`), the layout the release build reads beside itself.
 
 - **`bun run profile` runs the app in Docker, never on the host**: Ubuntu 26.04 with Qt's X11 runtime libraries (`scripts/lib/profile/Dockerfile`), fixed cores and memory (`--cpus`, default `0-3`; `--memory`, default `6g`, swap equal to it), `--network none`, and the user's uid.
   - samply and perf carry `cap_perfmon,cap_ipc_lock` as file capabilities and the container gets `--cap-add PERFMON --cap-add IPC_LOCK`, so they record whatever the host's `kernel.perf_event_paranoid` is. Without the added capabilities the kernel refuses to start them.
@@ -47,7 +47,7 @@ How Opsis is measured for size, CPU and memory with development tools only: the 
   - CPU of a process that exits is counted up to its last sample; what the reapers' counters gain beyond that is `exited between samples`, so the tags add up to the container's CPU (the cgroup's `cpu.stat`, written to `cgroup.json`).
   - A run's CPU is each sample's CPU times the share of the sample inside the run (`overlapShare`); peak memory is the largest sample inside it.
   - `programs.json` lists the programs behind each tag.
-- **Each run writes `runs.json`, `events.jsonl` (every run event), `samples.jsonl`, `nodes.csv`, `samples.csv`, `report.html`, `problems.json`, `app.log` and `cgroup.json` to `~/.cache/opsis-profile/runs/<time>-<profiler>/out/`.**
+- **Each run writes `runs.json`, `events.jsonl` (every run event), `samples.jsonl`, `nodes.csv`, `samples.csv`, `report.html`, `problems.json`, `app.log` and `cgroup.json` to `~/.cache/opsis-dev/profile/runs/<time>-<profiler>/out/`.**
 - **Size has its own tools, none of them in the app**:
   - the binary by crate: `cargo bloat --release -p opsis-ui --bin opsis --crates -n 40`, then `--filter <crate>`, with the same profile variables as the profiling build;
   - generic code: `cargo llvm-lines -p <crate>` on the dev profile;

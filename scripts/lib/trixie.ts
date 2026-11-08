@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import { homedir, userInfo } from "node:os";
 import path from "node:path";
+import { devCache } from "./tool-config";
 
 const IMAGE = "debian:trixie";
 const PACKAGES = [
@@ -51,7 +52,7 @@ export type TrixieRun = {
 };
 
 function aptCache(): string {
-  const dir = path.join(homedir(), ".cache", "opsis-trixie-apt");
+  const dir = devCache("trixie-apt");
   mkdirSync(path.join(dir, "partial"), { recursive: true });
   return dir;
 }

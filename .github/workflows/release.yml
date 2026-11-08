@@ -74,7 +74,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
-            ~/.cache/opsis-zig
+            ~/.cache/opsis-dev/zig
             ~/.cache/zig
             ~/Library/Caches/zig
             ~/AppData/Local/zig
@@ -89,7 +89,7 @@ jobs:
       - name: Cache the static Qt
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
-          path: ~/.cache/opsis-qt-static
+          path: ~/.cache/opsis-dev/qt-static
           key: static-qt-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/static-qt.ts') }}
       - name: Build the static Qt
         run: |
@@ -101,13 +101,13 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
-            ~/.cache/opsis-stage-engine
-            ~/.cache/opsis-chromium-credits
+            ~/.cache/opsis-dev/stage-engine
+            ~/.cache/opsis-dev/chromium-credits
           key: stage-engine-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('crates/engine/src/downloads.generated.json') }}
       - name: Cache the pinned FFmpeg
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
-          path: ~/.cache/opsis-ffmpeg
+          path: ~/.cache/opsis-dev/ffmpeg
           key: ffmpeg-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/ffmpeg.generated.json') }}
       - name: Build the installers
         run: bun run make -- --formats ${{ matrix.formats }}
@@ -119,18 +119,18 @@ jobs:
       - name: Zip the macOS app
         if: runner.os == 'macOS'
         run: |
-          cd ~/.cache/opsis-build
+          cd ~/.cache/opsis-dev/build
           for app in *.app; do ditto -c -k --keepParent "$app" "${app%.app}.zip"; done
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: opsis-${{ runner.os }}-${{ runner.arch }}
           path: |
-            ~/.cache/opsis-build/*.deb
-            ~/.cache/opsis-build/*.rpm
-            ~/.cache/opsis-build/*.tar.gz
-            ~/.cache/opsis-build/*.AppImage
-            ~/.cache/opsis-build/*.exe
-            ~/.cache/opsis-build/*.msi
-            ~/.cache/opsis-build/*.zip
-            ~/.cache/opsis-build/*.dmg
+            ~/.cache/opsis-dev/build/*.deb
+            ~/.cache/opsis-dev/build/*.rpm
+            ~/.cache/opsis-dev/build/*.tar.gz
+            ~/.cache/opsis-dev/build/*.AppImage
+            ~/.cache/opsis-dev/build/*.exe
+            ~/.cache/opsis-dev/build/*.msi
+            ~/.cache/opsis-dev/build/*.zip
+            ~/.cache/opsis-dev/build/*.dmg
           if-no-files-found: error

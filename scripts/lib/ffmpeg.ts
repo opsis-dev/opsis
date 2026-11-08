@@ -7,7 +7,6 @@ import {
   existsSync,
   mkdirSync,
 } from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { pipeline } from "node:stream/promises";
 import { createGunzip } from "node:zlib";
@@ -15,7 +14,7 @@ import { z } from "zod";
 import { writeViaTemp } from "./atomic";
 import { pinnedSchema, verifiedDownload } from "./pins";
 import { readJsonWith } from "./read-json";
-import { ROOT } from "./tool-config";
+import { devCache, ROOT } from "./tool-config";
 
 export const FFMPEG_RELEASE = "b6.1.1";
 
@@ -29,7 +28,7 @@ export const FFMPEG_TARGETS = [
 
 export const FFMPEG_PINS = path.join(ROOT, "scripts", "lib", "ffmpeg.generated.json");
 
-export const FFMPEG_CACHE = path.join(os.homedir(), ".cache", "opsis-ffmpeg");
+export const FFMPEG_CACHE = devCache("ffmpeg");
 
 export const FFMPEG_LICENCE = path.join(ROOT, "resources", "LICENSE.ffmpeg.txt");
 

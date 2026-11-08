@@ -1,13 +1,13 @@
 import { execFileSync } from "node:child_process";
 import { cpSync, mkdirSync, readdirSync, rmSync } from "node:fs";
-import { homedir, userInfo } from "node:os";
+import { userInfo } from "node:os";
 import path from "node:path";
-import { ROOT } from "./lib/tool-config";
+import { devCache, ROOT } from "./lib/tool-config";
 import { DEV_ENGINE, seedUserData } from "./lib/user-data";
 
-const OUT = path.join(homedir(), ".cache", "opsis-build");
+const OUT = devCache("build");
 const IMAGE = "debian:trixie";
-const WORK = path.join(homedir(), ".cache", "opsis-package-check");
+const WORK = devCache("package-check");
 const EXAMPLE = "changelog";
 const BROWSER_PACKAGES = [
   "libnss3",

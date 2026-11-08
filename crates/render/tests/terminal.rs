@@ -19,7 +19,7 @@ use opsis_footage::decoder::FootageTools;
 use opsis_footage::footage::Footage;
 use opsis_footage::serve::footage_routes;
 use opsis_footage::terminal::TerminalFootage;
-use opsis_golden::home;
+use opsis_golden::{dev_cache, home};
 use opsis_render::frames::{StillRender, render_still};
 use opsis_terminal::cast::read_path;
 use opsis_terminal::frames::write;
@@ -86,7 +86,7 @@ fn terminal_clip(length_ms: f64) -> opsis_types::values::ClipValue {
 #[ignore = "needs the dev engine and the film page (bun run film:bundle)"]
 async fn draws_a_terminal_take_through_the_frame_driver_as_recorded() {
     let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let out = home().join(".cache/opsis-film-test/terminal");
+    let out = dev_cache("film-test/terminal");
     let project = out.join("project");
     std::fs::create_dir_all(&project).unwrap();
     let cast_file = opsis_golden::path("terminal/take.cast");
@@ -184,7 +184,7 @@ fn lit_share(picture: &image::RgbImage, background: [u8; 3]) -> f64 {
 #[ignore = "needs the dev engine and the terminal page (bun run terminal:bundle)"]
 async fn paints_a_live_terminal_frame_at_its_screen_size() {
     let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let out = home().join(".cache/opsis-film-test/painter");
+    let out = dev_cache("film-test/painter");
     std::fs::create_dir_all(&out).unwrap();
     let cast = read_path(opsis_golden::path("terminal/take.cast")).unwrap();
     let theme = theme_named("Default").unwrap();

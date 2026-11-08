@@ -18,7 +18,7 @@ use opsis_footage::decoder::FootageTools;
 use opsis_footage::footage::Footage;
 use opsis_footage::serve::footage_routes;
 use opsis_footage::terminal::TerminalFootage;
-use opsis_golden::home;
+use opsis_golden::{dev_cache, home};
 use opsis_render::frames::{StillRender, render_still};
 use opsis_types::terminal::{TerminalCursor, TerminalLook, TerminalTheme};
 use opsis_types::timeline::{SpecAssets, TimelineItem, TimelineSpec};
@@ -310,7 +310,7 @@ fn alike(ours: &[u8], theirs: &[u8]) -> f64 {
 #[tokio::test]
 #[ignore = "needs the dev engine and the film page (bun run film:bundle)"]
 async fn draws_every_sprite_like_ghosttys_own_reference_atlases() {
-    let out = home().join(".cache/opsis-film-test/sprites");
+    let out = dev_cache("film-test/sprites");
     std::fs::create_dir_all(&out).unwrap();
     let mut unlike = Vec::new();
     for cell in &CELLS {

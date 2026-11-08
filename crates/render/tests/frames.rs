@@ -15,7 +15,7 @@ use opsis_compile::vars::Vars;
 use opsis_engine::hash::sha256_hex;
 use opsis_engine::http_files::{FileServer, folder_routes};
 use opsis_engine::tools::EngineFiles;
-use opsis_golden::home;
+use opsis_golden::{dev_cache, home};
 use opsis_media::codecs::FilmEncoding;
 use opsis_media::ffmpeg::Ffmpeg;
 use opsis_prepare::serve::{PreparedDirs, prepared_routes};
@@ -106,7 +106,7 @@ struct Setup {
 impl Setup {
     async fn new() -> Self {
         let engine = EngineFiles::downloaded(&home().join(".config/Opsis/engine"));
-        let out = home().join(".cache/opsis-film-test");
+        let out = dev_cache("film-test");
         let temp = out.join("tmp");
         std::fs::create_dir_all(&temp).unwrap();
         let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");

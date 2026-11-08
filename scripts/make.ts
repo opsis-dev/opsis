@@ -1,10 +1,8 @@
 import { execFileSync } from "node:child_process";
-import { homedir } from "node:os";
-import path from "node:path";
 import { buildAndPackage } from "./lib/release";
-import { ROOT } from "./lib/tool-config";
+import { devCache, ROOT } from "./lib/tool-config";
 
-const OUT = path.join(homedir(), ".cache", "opsis-build");
+const OUT = devCache("build");
 const LOCAL_FORMATS: Partial<Record<NodeJS.Platform, string>> = {
   linux: "deb",
   darwin: "app,dmg",

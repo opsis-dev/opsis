@@ -7,14 +7,13 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
-import { homedir } from "node:os";
 import path from "node:path";
 import { gunzipSync } from "node:zlib";
 import type { FontCategory, FontFamilyDef } from "@opsis/video/generated/spec";
 import { z } from "zod";
 import { type Pinned, verifiedDownload } from "./lib/pins";
 import { readJsonWith } from "./lib/read-json";
-import { ROOT } from "./lib/tool-config";
+import { devCache, ROOT } from "./lib/tool-config";
 import { unzipTo } from "./lib/unzip";
 import { walkFiles } from "./lib/walk";
 
@@ -105,7 +104,7 @@ function copyFontFiles({ pkg }: BundledFont): FontFamilyDef {
   };
 }
 
-const CACHE = path.join(homedir(), ".cache", "opsis-fonts");
+const CACHE = devCache("fonts");
 const TERMINAL_OUT = path.join(OUT, "terminal");
 
 const JETBRAINS_MONO: Pinned = {

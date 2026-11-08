@@ -1,17 +1,16 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { chromium } from "playwright-core";
 import { z } from "zod";
 import { downloadTo, fetchOk } from "./download";
 import type { ShellPlatform } from "./engine-downloads";
-import { ROOT } from "./tool-config";
+import { devCache, ROOT } from "./tool-config";
 import { unzipTo } from "./unzip";
 
-const STAGED_ENGINE = path.join(os.homedir(), ".cache", "opsis-stage-engine");
+const STAGED_ENGINE = devCache("stage-engine");
 
-const CREDITS_CACHE = path.join(os.homedir(), ".cache", "opsis-chromium-credits");
+const CREDITS_CACHE = devCache("chromium-credits");
 
 const CREDITS_PAGE = "chrome://credits";
 

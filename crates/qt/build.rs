@@ -117,7 +117,7 @@ fn main() {
     let home = PathBuf::from(env::var("HOME").expect("HOME is set"));
     let qt_prefix = env::var("OPSIS_QT").map_or_else(
         |_| {
-            home.join(".cache/opsis-qt")
+            home.join(".cache/opsis-dev/qt")
                 .join(QT_VERSION)
                 .join(qt_folder())
         },
@@ -212,7 +212,7 @@ fn main() {
 
 fn build_kddw(qt_prefix: &Path, home: &Path) -> PathBuf {
     let source = env::var("OPSIS_KDDW_SOURCE").map_or_else(
-        |_| home.join(format!(".cache/opsis-qt/kddockwidgets-{KDDW_VERSION}")),
+        |_| home.join(format!(".cache/opsis-dev/qt/kddockwidgets-{KDDW_VERSION}")),
         PathBuf::from,
     );
     assert!(

@@ -4,7 +4,7 @@ import { homedir } from "node:os";
 import path from "node:path";
 import { hostTarget, stagedFfmpeg } from "./ffmpeg";
 import { buildsNatively, ensureStaticQt } from "./static-qt";
-import { ROOT } from "./tool-config";
+import { devCache, ROOT } from "./tool-config";
 import { runInTrixie } from "./trixie";
 
 const SYSTEM_PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
@@ -77,7 +77,7 @@ export async function buildAndPackage(run: PackageRun): Promise<void> {
       rustupHome,
       path.dirname(zig),
       path.dirname(path.dirname(qt)),
-      path.join(homedir(), ".cache", "opsis-qt"),
+      devCache("qt"),
       run.out,
     ],
     env: {

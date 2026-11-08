@@ -1,5 +1,3 @@
-import os from "node:os";
-import path from "node:path";
 import {
   ENGINE_DOWNLOADS,
   readEngineDownloads,
@@ -7,8 +5,9 @@ import {
   shellUrl,
 } from "./lib/engine-downloads";
 import { pinned, writeGeneratedJson } from "./lib/pins";
+import { devCache } from "./lib/tool-config";
 
-const CACHE = path.join(os.homedir(), ".cache", "opsis-engine-downloads");
+const CACHE = devCache("engine-downloads");
 
 const version = process.argv[2] ?? readEngineDownloads().testedVersion;
 const shells = [];

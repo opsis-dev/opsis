@@ -186,7 +186,7 @@ async fn main() {
     let shell = find_headless_shell(&engine)
         .expect("No engine in the app data. Set it up from Settings → Engine first.")
         .to_path_buf();
-    let out = home().join(".cache/opsis-element-stills");
+    let out = home().join(".cache/opsis-dev/element-stills");
     let temp = out.join("tmp");
     let project = temp.join("project");
     std::fs::create_dir_all(&project).expect("the output folder");

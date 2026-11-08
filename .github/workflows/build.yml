@@ -49,7 +49,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
-            ~/.cache/opsis-zig
+            ~/.cache/opsis-dev/zig
             ~/.cache/zig
           key: zig-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/zig-install.ts', 'crates/vt/zig/build.zig.zon') }}
       - name: Install Zig
@@ -105,7 +105,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
-            ~/.cache/opsis-zig
+            ~/.cache/opsis-dev/zig
             ~/.cache/zig
           key: zig-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/zig-install.ts', 'crates/vt/zig/build.zig.zon') }}
       - name: Install Zig

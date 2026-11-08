@@ -22,7 +22,7 @@ How an element is written in Rust and on the page, how its settings reach its co
 | 30 fps clock                   | `core/authored-clock.ts` → `useAuthoredFrame`, `useAuthoredConfig`, `useRealFrames`                                                                                                               |
 | Design box                     | `DesignBox`                                                                                                                                                                                       |
 | Colour literal allow-list      | `colors.test.ts`                                                                                                                                                                                  |
-| Element stills                 | `bun run elements:render` → `crates/render/src/bin/render-elements.rs`, into `~/.cache/opsis-element-stills`                                                                                      |
+| Element stills                 | `bun run elements:render` → `crates/render/src/bin/render-elements.rs`, into `~/.cache/opsis-dev/element-stills`                                                                                  |
 | 3D stage and loaders           | `three/` → `Stage3D`, `useDrawnScene`; `project.ts`                                                                                                                                               |
 | 3D stills check                | `crates/render/tests/three_stills.rs` against `fixtures/prepare/stills`                                                                                                                           |
 

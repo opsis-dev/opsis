@@ -29,7 +29,7 @@ Built with Rust, [Qt](https://www.qt.io) Widgets and [KDDockWidgets](https://git
 
 ## Getting started
 
-Requirements: [Bun](https://bun.sh), Node.js 22 or later, a Rust toolchain, Zig 0.17, and [uv](https://docs.astral.sh/uv/) for `bun run qt:install`, which puts Qt 6.12 and KDDockWidgets in `~/.cache/opsis-qt`. On Linux, also the sound library and Qt's X11 libraries (on Ubuntu: `libasound2-dev libxcb-cursor0 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-randr0 libxcb-shape0 libxcb-xkb1`).
+Requirements: [Bun](https://bun.sh), Node.js 22 or later, a Rust toolchain, Zig 0.17, and [uv](https://docs.astral.sh/uv/) for `bun run qt:install`, which puts Qt 6.12 and KDDockWidgets in `~/.cache/opsis-dev/qt`. On Linux, also the sound library and Qt's X11 libraries (on Ubuntu: `libasound2-dev libxcb-cursor0 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-randr0 libxcb-shape0 libxcb-xkb1`).
 
 ```sh
 bun install
@@ -45,10 +45,10 @@ Ready-made copies of every template are in [`examples/`](./examples) (**Open pro
 
 ## Building
 
-| Command              | What it does                                                                                                                                                                           |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bun run make`       | Stage everything the app ships, build the release binary against the static Qt and package it into `~/.cache/opsis-build` (the deb by default; `-- --formats deb,rpm,appimage,pacman`) |
-| `CARGO_BUILD_JOBS=8` | Limit how many cores the Rust build uses                                                                                                                                               |
+| Command              | What it does                                                                                                                                                                               |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `bun run make`       | Stage everything the app ships, build the release binary against the static Qt and package it into `~/.cache/opsis-dev/build` (the deb by default; `-- --formats deb,rpm,appimage,pacman`) |
+| `CARGO_BUILD_JOBS=8` | Limit how many cores the Rust build uses                                                                                                                                                   |
 
 The app ships FFmpeg (the pinned ffmpeg-static build, as the `opsis-ffmpeg` program beside the app's own) but never the recording browser; users download it or choose their own from Settings. On Linux the release binary and its packages build in a plain `debian:trixie` container. CI runs the checks and the end-to-end tests on Linux on every push ([`.github/workflows/build.yml`](./.github/workflows/build.yml)), and builds the installers for Linux, Windows and macOS on `v*` tags and by hand ([`.github/workflows/release.yml`](./.github/workflows/release.yml)).
 
@@ -67,8 +67,8 @@ The app ships FFmpeg (the pinned ffmpeg-static build, as the `opsis-ffmpeg` prog
 | `bun run terminal:bundle` | Build the page that draws live terminal pictures                                                  |
 | `bun run fonts:bundle`    | Copy the bundled fonts from their Fontsource packages                                             |
 | `bun run brand:icons`     | Render `brand/logo.svg` to PNGs                                                                   |
-| `bun run qt:install`      | Fetch Qt 6.12 and KDDockWidgets into `~/.cache/opsis-qt`                                          |
-| `bun run qt:static`       | Build the static Qt without ICU that release builds link, into `~/.cache/opsis-qt-static`         |
+| `bun run qt:install`      | Fetch Qt 6.12 and KDDockWidgets into `~/.cache/opsis-dev/qt`                                      |
+| `bun run qt:static`       | Build the static Qt without ICU that release builds link, into `~/.cache/opsis-dev/qt-static`     |
 | `bun run qt:notices`      | Write `QT_NOTICES.generated.md` from the static Qt's bill of materials                            |
 | `bun run package:check`   | Install each Linux package in a plain `debian:trixie` container and run it                        |
 | `bun run examples`        | Rewrite `examples/*/project.opsis.json` from the templates                                        |

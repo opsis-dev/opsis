@@ -5,9 +5,9 @@ description: Start the Opsis dev app off screen with its own short data folder, 
 
 # Check a change in the running app
 
-The app runs in a virtual X display, never on the real screen, and with a data folder of its own in `~/.cache/opsis-check`, so it never touches the user's projects or settings. Never move the real pointer and never use xdotool.
+The app runs in a virtual X display, never on the real screen, and with a data folder of its own in `~/.cache/opsis-dev/check`, so it never touches the user's projects or settings. Never move the real pointer and never use xdotool.
 
-The data folder must stay short. The Local API listens on `<data folder>/api.sock`, and a socket path over 100 bytes is refused, so the API never starts. A folder under the session scratchpad is already too long; use `~/.cache/opsis-check`.
+The data folder must stay short. The Local API listens on `<data folder>/api.sock`, and a socket path over 100 bytes is refused, so the API never starts. A folder under the session scratchpad is already too long; use `~/.cache/opsis-dev/check`.
 
 ## 1. Make the data folder
 
@@ -15,14 +15,14 @@ The data folder must stay short. The Local API listens on `<data folder>/api.soc
 bun .claude/skills/check-app/seed.ts
 ```
 
-It deletes and remakes `~/.cache/opsis-check`: a database made from `crates/store/schema.sql` with the Local API on and the dev engine's recording browser (`~/.config/Opsis/engine`, linked as `user-data/engine`) as `settings.engine`, and `examples/` copied to `~/.cache/opsis-check/projects`. It prints the data folder.
+It deletes and remakes `~/.cache/opsis-dev/check`: a database made from `crates/store/schema.sql` with the Local API on and the dev engine's recording browser (`~/.config/Opsis/engine`, linked as `user-data/engine`) as `settings.engine`, and `examples/` copied to `~/.cache/opsis-dev/check/projects`. It prints the data folder.
 
 ## 2. Start the app
 
 Run it as one background command (`run_in_background`), and stop it with TaskStop when done:
 
 ```bash
-CARGO_BUILD_JOBS=8 OPSIS_USER_DATA=$HOME/.cache/opsis-check/user-data OPSIS_AUDIO_DEVICE=alsa:null env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=xcb xvfb-run -n 99 -f $HOME/.cache/opsis-check/xauth -s "-screen 0 1600x1000x24" bun start > $HOME/.cache/opsis-check/app.log 2>&1
+CARGO_BUILD_JOBS=8 OPSIS_USER_DATA=$HOME/.cache/opsis-dev/check/user-data OPSIS_AUDIO_DEVICE=alsa:null env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=xcb xvfb-run -n 99 -f $HOME/.cache/opsis-dev/check/xauth -s "-screen 0 1600x1000x24" bun start > $HOME/.cache/opsis-dev/check/app.log 2>&1
 ```
 
 - `env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=xcb` keeps Qt off the desktop's Wayland display: Qt picks Wayland whenever `WAYLAND_DISPLAY` is set and ignores `DISPLAY`.
@@ -33,7 +33,7 @@ CARGO_BUILD_JOBS=8 OPSIS_USER_DATA=$HOME/.cache/opsis-check/user-data OPSIS_AUDI
 The app is ready when the socket exists. Wait for it with one background command, not a polling loop:
 
 ```bash
-S=$HOME/.cache/opsis-check; until [ -S $S/user-data/api.sock ] || rg -q "error\[|panicked|Error:" $S/app.log; do sleep 2; done
+S=$HOME/.cache/opsis-dev/check; until [ -S $S/user-data/api.sock ] || rg -q "error\[|panicked|Error:" $S/app.log; do sleep 2; done
 ```
 
 A first start compiles the app, which takes minutes.
@@ -43,7 +43,7 @@ A first start compiles the app, which takes minutes.
 Through the Local API (`/openapi.json` lists every route):
 
 ```bash
-S=$HOME/.cache/opsis-check
+S=$HOME/.cache/opsis-dev/check
 curl -s --unix-socket $S/user-data/api.sock http://localhost/status
 curl -s --unix-socket $S/user-data/api.sock -X POST -H 'content-type: application/json' -d "{\"dir\":\"$S/projects/changelog\"}" http://localhost/open
 curl -s --unix-socket $S/user-data/api.sock http://localhost/project/problems
@@ -54,10 +54,10 @@ curl -s --unix-socket $S/user-data/api.sock http://localhost/project/problems
 ## 4. Look at it
 
 ```bash
-DISPLAY=:99 XAUTHORITY=$HOME/.cache/opsis-check/xauth import -window root $HOME/.cache/opsis-check/shot.png
+DISPLAY=:99 XAUTHORITY=$HOME/.cache/opsis-dev/check/xauth import -window root $HOME/.cache/opsis-dev/check/shot.png
 ```
 
-Then read the PNG. The app's log is `~/.cache/opsis-check/app.log`.
+Then read the PNG. The app's log is `~/.cache/opsis-dev/check/app.log`.
 
 ## 5. Stop it
 

@@ -251,7 +251,7 @@ fn ffmpeg() -> PathBuf {
 
 fn ffprobe_program() -> PathBuf {
     PathBuf::from(std::env::var_os("HOME").expect("a home folder"))
-        .join(".cache/opsis-ffmpeg")
+        .join(".cache/opsis-dev/ffmpeg")
         .join(format!("ffprobe{}", std::env::consts::EXE_SUFFIX))
 }
 
@@ -263,7 +263,7 @@ fn samples() -> PathBuf {
 
 fn make_samples() -> PathBuf {
     let dir = PathBuf::from(std::env::var_os("HOME").expect("a home folder"))
-        .join(".cache/opsis-probe-samples");
+        .join(".cache/opsis-dev/probe-samples");
     std::fs::create_dir_all(&dir).expect("the sample folder");
     for (name, sources, args) in SAMPLES {
         let file = dir.join(name);
