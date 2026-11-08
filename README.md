@@ -4,7 +4,7 @@ Record a real website and turn it into a polished product demo.
 
 Opsis is a desktop app with a node editor. Browser nodes drive a real website (clicks, typing, scrolling) and record it in one take; camera, cursor, text, motion-graphics, transition, audio and media nodes turn the recording into a finished video, exported in several shapes at once. Everything runs on your computer.
 
-> **Early preview.** Built and tested on Linux in development. There are no installers yet: packaging the native editor comes next, and there are no signed installers or auto-updates. Expect rough edges.
+> **Early preview.** Built and tested on Linux, where the deb, rpm, AppImage and pacman packages install and run. Nothing has been built on Windows or macOS yet, and there are no signed installers or auto-updates. Expect rough edges.
 
 Built with Rust, [Qt](https://www.qt.io) Widgets and [KDDockWidgets](https://github.com/KDAB/KDDockWidgets) for the editor, React for the film page, and FFmpeg. See [`plans/`](./plans) for work that's planned but not built.
 
@@ -45,12 +45,12 @@ Ready-made copies of every template are in [`examples/`](./examples) (**Open pro
 
 ## Building
 
-| Command              | What it does                                                                         |
-| -------------------- | ------------------------------------------------------------------------------------ |
-| `bun run make`       | Stage everything the app ships and build the release binary (`target/release/opsis`) |
-| `CARGO_BUILD_JOBS=8` | Limit how many cores the Rust build uses                                             |
+| Command              | What it does                                                                                                                                                                           |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bun run make`       | Stage everything the app ships, build the release binary against the static Qt and package it into `~/.cache/opsis-build` (the deb by default; `-- --formats deb,rpm,appimage,pacman`) |
+| `CARGO_BUILD_JOBS=8` | Limit how many cores the Rust build uses                                                                                                                                               |
 
-The app ships FFmpeg (the pinned ffmpeg-static build, as the `opsis-ffmpeg` program beside the app's own) but never the recording browser; users download it or choose their own from Settings. CI ([`.github/workflows/build.yml`](./.github/workflows/build.yml)) runs the checks and the end-to-end tests on Linux; installers for Linux, Windows and macOS come with the packaging step.
+The app ships FFmpeg (the pinned ffmpeg-static build, as the `opsis-ffmpeg` program beside the app's own) but never the recording browser; users download it or choose their own from Settings. On Linux the release binary and its packages build in a plain `debian:trixie` container. CI ([`.github/workflows/build.yml`](./.github/workflows/build.yml)) runs the checks and the end-to-end tests on Linux; the Windows and macOS packages come with their CI jobs.
 
 ## Scripts
 
@@ -68,6 +68,9 @@ The app ships FFmpeg (the pinned ffmpeg-static build, as the `opsis-ffmpeg` prog
 | `bun run fonts:bundle`    | Copy the bundled fonts from their Fontsource packages                                             |
 | `bun run brand:icons`     | Render `brand/logo.svg` to PNGs                                                                   |
 | `bun run qt:install`      | Fetch Qt 6.12 and KDDockWidgets into `~/.cache/opsis-qt`                                          |
+| `bun run qt:static`       | Build the static Qt without ICU that release builds link, into `~/.cache/opsis-qt-static`         |
+| `bun run qt:notices`      | Write `QT_NOTICES.generated.md` from the static Qt's bill of materials                            |
+| `bun run package:check`   | Install each Linux package in a plain `debian:trixie` container and run it                        |
 | `bun run examples`        | Rewrite `examples/*/project.opsis.json` from the templates                                        |
 | `bun run ffmpeg:stage`    | Download the pinned FFmpeg for this computer, if missing, and print its path                      |
 

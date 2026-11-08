@@ -20,6 +20,10 @@ How the compiled spec becomes bars, how Timeline drags write back into the nodes
 
 ## Rules
 
+### The view
+
+- **The Timeline paints itself on a `QAbstractScrollArea` (`crates/qt/cpp/timeline_canvas.cc` → `TimelineCanvas`), not a `QGraphicsView`** like the canvas: it zooms on time only, so a scene transform would stretch its labels; its ruler and track labels stay put; and painting straight from the Rust view keeps no scene items in step.
+
 ### Bars
 
 - **`flatten_spec` turns the compiled spec into bars on lanes (greedy packing in drawing order), audio bars, transitions and action marks**, mapping frames through trims, loops and speed remaps, with each bar's local frame at every timeline frame for filmstrips and keys.

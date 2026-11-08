@@ -55,7 +55,6 @@ Ideas that were discussed but never finalized or planned.
 - [ ] Scaled renders drawn one frame at a time: begin-frame screenshots ignore an emulated scale, so a film with a scale other than 1 takes a screenshot per frame (`launch_film` in `crates/capture/src/film.rs`). Setting the scale at launch (`--force-device-scale-factor`) would let it use begin-frame capture.
 - [ ] More image operations in the footage chain (`crates/footage`): crop, rotate and flip, adjust, blur and sharpen, spotlight, magnify. Each needs its own design, since a crop changes the footage's size, which the camera and window frame depend on.
 - [ ] Allowing CSS animations and the Web Animations API in the film. The frame driver owns the page clock (the smooth-take machinery holds it and steps every CSS and web animation), so they could be drawn frame-exactly; `AGENTS.md` bans them until this is decided.
-- [ ] Shipping the ffmpeg-static binary inside the deb and rpm instead of downloading it in Settings → Engine. This would reverse shipping no FFmpeg of ours and bring FFmpeg's GPLv3 source offer into the release.
 - [ ] Settings the audit left out because the code under them can't take them yet:
   - the transitions our presentations draw with fixed values: the clock wipe's direction and start angle, the iris's centre and direction, a fade through a colour and the lens zoom's centre;
   - which side a tooltip or callout sits on (needs placement that keeps the box on screen, `packages/video/src/camera/annotations.tsx`);

@@ -18,6 +18,8 @@ How the editor's Qt Widgets views and the Rust session talk: the `cxx` bridge, w
 
 ## Rules
 
+- **Rust owns every piece of state and decides everything a Rust function can; C++ draws and forwards input.** Pure logic (edge lanes, snapping, ducking, envelopes, layout, schema reading) lives in Rust with property tests, never in C++.
+- **Every Qt call happens on the GUI thread, and C++ owns every `QObject` through Qt's parent tree**: Rust never holds or deletes one, and C++ holds the Rust host as a `rust::Box<Session>` (`App::Run`).
 - **Rust owns every piece of state; a view is a plain struct Rust builds when C++ asks** (`GraphView`, `InspectorView`, `TimelineView`, `MixerView`…). C++ keeps only the last view it drew, never project data of its own.
 - **C++ calls Rust through the `Session` methods of the bridge; Rust reaches C++ only through the `extern "C++"` functions**, and each of those queues its work onto the GUI thread (`QMetaObject::invokeMethod` with `Qt::QueuedConnection`), so any Rust thread may call them and none waits for the GUI.
 - **A panel rebuilds once per event loop turn and only when its view changed.** `EventHub::Post` merges the kinds and edited node ids that arrive in one turn; the view structs derive `PartialEq`, `cxx` generates `operator==`, and a panel compares the new view with the last before rebuilding.
@@ -30,6 +32,9 @@ How the editor's Qt Widgets views and the Rust session talk: the `cxx` bridge, w
 - **C++ follows the Google style**, formatted and checked by `scripts/cpp.ts` (`bun run format:fix`, `bun run lint:fix`), with no comments, like the rest of the codebase.
 
 ## How it works
+
+- **Why Qt 6.12 LTS Widgets**: five years of fixes; widgets paint with QPainter's raster engine, so no GPU, driver, virtual machine or Xvfb question; native Wayland with text-input-v3 input methods, drag and drop including files from the file manager, and fractional scaling; accessibility through UIA, NSAccessibility and AT-SPI. Checked on 2026-11-05 against Avalonia (the runner-up, on XWayland by default with an experimental Wayland backend), Qt Quick with CXX-Qt (GPU drawing, an API that breaks twice a year), Slint, GTK 4, egui, Iced, Flutter, Compose, JavaFX, Godot and others, each of which failed a stable release, more than one active maintainer, drawing without a GPU, native Wayland, docking or tests.
+- **Why KDDockWidgets and `cxx`**: KDDockWidgets nests, tabs and floats native windows that dock back, built for Widgets first; `cxx` is 1.0 and stable, with `cxx-build` compiling the C++ from `build.rs` and `qt-build-utils` finding Qt and running `moc` and `rcc`.
 
 - **Start:** `main.rs` builds the Tokio runtime, the `opsis_session::Session` and the `Ui`, then `opsis_qt::run` hands the host to C++. `App::Run` makes the `QApplication`, loads the fonts and the style sheet, opens the main window and starts the host's event pump (`Host::start_pump`), a thread that turns each session event into `post_event` and the payload calls (`post_edited`, `post_replay`, `post_disk_change`).
 - **Exit:** `App::Run` deletes the remaining windows and drops the host before the `QApplication` ends, so nothing in Rust outlives the GUI it posts to; dropping the `Ui` closes the players and the sound output.

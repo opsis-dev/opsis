@@ -20,6 +20,14 @@ export function releaseBinary(): string {
   return path.join(releaseTargetDir(), "release", `opsis${exe}`);
 }
 
+export function cargoProfileVariables(env: NodeJS.ProcessEnv): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(env).flatMap(([name, value]) =>
+      name.startsWith("CARGO_PROFILE_") && value !== undefined ? [[name, value]] : [],
+    ),
+  );
+}
+
 function zigProgram(): string {
   const found = process.env.ZIG ?? execFileSync("which", ["zig"], { encoding: "utf8" }).trim();
   return realpathSync(found);
@@ -73,6 +81,7 @@ export async function buildAndPackage(run: PackageRun): Promise<void> {
       run.out,
     ],
     env: {
+      ...cargoProfileVariables(process.env),
       PATH: `${path.join(cargoHome, "bin")}:${SYSTEM_PATH}`,
       CARGO_HOME: cargoHome,
       RUSTUP_HOME: rustupHome,

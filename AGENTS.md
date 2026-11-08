@@ -202,7 +202,7 @@ agent-docs/            the domain docs (§8)
 
 ### User-facing copy
 
-- **No library, tool or format names in node titles, descriptions, field labels, badges, toasts or error messages** (Playwright, Chromium, FFmpeg, CRF, DPR, page.evaluate…), and never Tauri, Rust, Bun, CDP, a crate or the services behind a download. Settings → Licences and About are the exceptions, listing what Opsis includes by name. Technical settings go under `advanced`.
+- **No library, tool or format names in node titles, descriptions, field labels, badges, toasts or error messages** (Playwright, Chromium, FFmpeg, CRF, DPR, page.evaluate…), and never Qt, Rust, Bun, CDP, a crate or the services behind a download. Settings → Licences and About are the exceptions, listing what Opsis includes by name. Technical settings go under `advanced`.
 - **Sentence case; durations in seconds.**
 - **Browser nodes are "actions", never "steps".**
 - **Elements are described in words** (`element_name`); element descriptions are on their entries.

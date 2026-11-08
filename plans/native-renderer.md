@@ -113,7 +113,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 - **How Opsis calls Skia: open.** No third-party sys crates or pins is the aim; Skia itself is given.
   - `skia-safe` (rust-skia 0.157.0 on Skia m157): its `unsafe` stays in the dependency, and its prebuilt binaries download at build time. pragmatrix wrote 449 of its 496 commits since 2026-05-05, its README calls it "a prerelease crate", and no prebuilt archive is CPU-only with Skottie.
-  - Our own `cxx` wrapper over the Skia calls listed above, building Skia from a pinned commit with GN. It reuses the `cxx` bridge [native-editor.md](native-editor.md) picks for Qt, and it is a second crate that needs `unsafe` beside `opsis-vt`.
+  - Our own `cxx` wrapper over the Skia calls listed above, building Skia from a pinned commit with GN. It reuses the `cxx` bridge the editor uses for Qt ([ui.md](../agent-docs/ui.md)), and it is a second crate that needs `unsafe` beside `opsis-vt`.
 - **Skia's text modules or Parley.** This plan uses Parley (see **Text and layout**); SkParagraph brings ICU and HarfBuzz into the Skia build.
 
 ### Risks
@@ -334,7 +334,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### What it changes
 
-- **In one step, the browser stops drawing films.** Removed: `apps/film`, `apps/terminal`, `film-bundle`, `terminal-bundle`, `packages/runtime`, the film parts of `packages/video` (the editor keeps `packages/video/src/common` and `generated/spec.ts` until [native-editor.md](native-editor.md) replaces it), `FrameDriver` and `film_switches` (`crates/capture/src/film.rs`), `TerminalPainter`, the `CanvasDrawElement` feature switch and the begin-frame driver.
+- **In one step, the browser stops drawing films.** Removed: `apps/film`, `apps/terminal`, `film-bundle`, `terminal-bundle`, `packages/runtime`, the film parts of `packages/video`, `FrameDriver` and `film_switches` (`crates/capture/src/film.rs`), `TerminalPainter`, the `CanvasDrawElement` feature switch and the begin-frame driver.
 - **The recording browser stays** for capture, page stills, smooth takes, sign-in and the streamed views; its download is unchanged, and its SwiftShader doubles as the renderer's software driver.
 - **The docs move with it**: `film.md` becomes the renderer's doc, `elements.md` and `terminal.md` lose their page parts, `scene.md` is new, AGENTS.md's film rules (`packages/video` purity, oxlint animation bans, `holdRender`) become their Rust equivalents.
 
