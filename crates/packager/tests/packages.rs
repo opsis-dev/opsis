@@ -5,7 +5,7 @@ use std::process::Command;
 use opsis_packager::app::desktop_entry;
 use opsis_packager::{AppFiles, Format, package};
 
-const RESOURCES: [(&str, &str); 6] = [
+const RESOURCES: [(&str, &str); 7] = [
     ("film-bundle/index.html", "<html></html>"),
     ("film-bundle/assets/index.js", "export {}"),
     ("terminal-bundle/index.html", "<html></html>"),
@@ -15,6 +15,7 @@ const RESOURCES: [(&str, &str); 6] = [
         "credits",
     ),
     ("THIRD_PARTY_NOTICES.md", "# Notices"),
+    ("QT_NOTICES.generated.md", "# Qt notices"),
 ];
 const ICON_SIZES: [u32; 8] = [16, 24, 32, 48, 64, 128, 256, 512];
 

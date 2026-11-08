@@ -51,6 +51,7 @@
     "ffmpeg:pin": "bun scripts/ffmpeg-pin.ts",
     "qt:install": "bun scripts/qt-install.ts",
     "qt:static": "bun scripts/qt-static.ts",
+    "qt:notices": "bun scripts/qt-notices.ts",
     "ffmpeg:stage": "bun scripts/ffmpeg-stage.ts",
     "ffprobe:stage": "bun scripts/ffprobe-stage.ts",
     "notice:links": "bun scripts/notice-links.ts",

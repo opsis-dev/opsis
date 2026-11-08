@@ -108,6 +108,24 @@ const bridge::CardView* CardTitled(bridge::GraphView&& graph,
 
 QString Expect(bool ok, const QString& what) { return ok ? QString() : what; }
 
+QString Named(const QWidget* widget) {
+  if (widget == nullptr) return QStringLiteral("none");
+  const QString name = widget->objectName().isEmpty() ? widget->windowTitle()
+                                                      : widget->objectName();
+  return QStringLiteral("%1 '%2'").arg(
+      QString::fromLatin1(widget->metaObject()->className()), name);
+}
+
+QString WidgetsInTheWay(const QWidget* window) {
+  return QStringLiteral(
+             "popup %1, modal %2, active window %3, window active %4")
+      .arg(Named(QApplication::activePopupWidget()),
+           Named(QApplication::activeModalWidget()),
+           Named(QApplication::activeWindow()),
+           window->isActiveWindow() ? QStringLiteral("yes")
+                                    : QStringLiteral("no"));
+}
+
 int BackwardEdges(const bridge::GraphView& graph) {
   int backward = 0;
   for (const auto& edge : graph.edges) {
@@ -220,7 +238,8 @@ void Scenario::ClickMenu(const QString& section, const QString& item) {
   QTest::mouseClick(bar, Qt::LeftButton, {}, bar->actionGeometry(top).center());
   QMenu* menu = top->menu();
   if (!QTest::qWaitFor([menu] { return menu->isVisible(); }, kMenuOpenMs)) {
-    Miss(QStringLiteral("the %1 menu didn't open").arg(section));
+    Miss(QStringLiteral("the %1 menu didn't open (%2)")
+             .arg(section, WidgetsInTheWay(window_)));
     return;
   }
   QAction* chosen = nullptr;

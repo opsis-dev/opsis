@@ -653,7 +653,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ## Qt — the editor's widgets, built from the Qt 6.12 source
 
-The editor is built on Qt (Qt Core, Qt GUI, Qt Widgets, Qt SVG and Qt Test, with its X11, Wayland and offscreen platform plugins), linked statically into the program and used under the GNU General Public License version 3 in `LICENSE`; Qt offers these modules under the LGPL-3.0, the GPL-2.0 or the GPL-3.0. Copyright (C) The Qt Company Ltd. and other contributors. The source of the Qt version Opsis is built with is at https://download.qt.io/official_releases/qt/6.12/ and https://code.qt.io/.
+The editor is built on Qt (Qt Core, Qt GUI, Qt Widgets, Qt SVG and Qt Test, with its X11, Wayland and offscreen platform plugins), linked statically into the program and used under the GNU General Public License version 3 in `LICENSE`; Qt offers these modules under the LGPL-3.0, the GPL-2.0 or the GPL-3.0. Copyright (C) The Qt Company Ltd. and other contributors. The source of the Qt version Opsis is built with is at https://download.qt.io/official_releases/qt/6.12/ and https://code.qt.io/. The notices of the third-party code compiled into those Qt modules and plugins are in `QT_NOTICES.generated.md`, shipped beside this file.
 
 ## KDDockWidgets — the editor's docks, built from the kddockwidgets-2.5.1 source
 

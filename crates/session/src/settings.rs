@@ -111,6 +111,13 @@ fn licence_sources(state: &AppState) -> Vec<LicenceSource> {
             path: resources.join("THIRD_PARTY_NOTICES.md"),
         },
         LicenceSource {
+            id: "qt-components",
+            title: "Code inside Qt",
+            summary: "Notices for the third-party code compiled into the editor's Qt",
+            kind: LicenceKind::Text,
+            path: resources.join("QT_NOTICES.generated.md"),
+        },
+        LicenceSource {
             id: "engine-chromium",
             title: "Recording browser",
             summary: "Credits and licences of the Chromium build that records takes and exports videos",

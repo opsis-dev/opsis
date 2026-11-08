@@ -16,7 +16,11 @@ pub const MACOS_MINIMUM: &str = "11.0";
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 const RESOURCE_FOLDERS: [&str; 3] = ["film-bundle", "terminal-bundle", "resources"];
-const RESOURCE_FILES: [&str; 2] = ["LICENSE", "THIRD_PARTY_NOTICES.md"];
+const RESOURCE_FILES: [&str; 3] = [
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md",
+    "QT_NOTICES.generated.md",
+];
 const ICON_SIZES: [u32; 8] = [16, 24, 32, 48, 64, 128, 256, 512];
 
 #[derive(Debug, Clone)]

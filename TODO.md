@@ -12,6 +12,7 @@ Wrong behaviour found in the session transcripts and confirmed in the current co
 
 Seen once during a session and never reproduced or explained.
 
+- [ ] The View menu didn't open once in the `runs` e2e scenario, at `run-panel-plays-the-export` (`crates/qt/cpp/e2e_ports.cc`), right after `changelog-exports`: the click reached the menu bar and the menu wasn't visible within `kMenuOpenMs`. It passed in the two runs after it (2026-11-08). `Scenario::ClickMenu` now names the open popup, the modal dialog and the active window when a menu doesn't open, so the next failure says what was in the way.
 - [ ] The native editor froze once in the `runs` e2e scenario, in the action of `typing-waits-to-mark-changed` (`crates/qt/cpp/e2e_ports.cc`), and logged nothing until the 15-minute limit. That action starts a run with `session.run_node`, which blocks the GUI thread in `runtime.block_on` until the run has started. It passed in the 13 runs after it, all under gdb. To catch it: `OPSIS_QT_E2E_HANG_MS=240000 bun run e2e:qt runs` runs the app under gdb and writes every thread's backtrace into `target/e2e-qt/runs.log` if it's still going after that time.
 
 ## To be implemented

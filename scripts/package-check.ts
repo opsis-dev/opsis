@@ -1,10 +1,34 @@
 import { execFileSync } from "node:child_process";
-import { readdirSync } from "node:fs";
-import { homedir } from "node:os";
+import { cpSync, mkdirSync, readdirSync, rmSync } from "node:fs";
+import { homedir, userInfo } from "node:os";
 import path from "node:path";
+import { ROOT } from "./lib/tool-config";
+import { DEV_ENGINE, seedUserData } from "./lib/user-data";
 
 const OUT = path.join(homedir(), ".cache", "opsis-build");
 const IMAGE = "debian:trixie";
+const WORK = path.join(homedir(), ".cache", "opsis-package-check");
+const EXAMPLE = "changelog";
+const BROWSER_PACKAGES = [
+  "libnss3",
+  "libnspr4",
+  "libatk1.0-0t64",
+  "libatk-bridge2.0-0t64",
+  "libatspi2.0-0t64",
+  "libcups2t64",
+  "libdrm2",
+  "libgbm1",
+  "libglib2.0-0t64",
+  "libpango-1.0-0",
+  "libcairo2",
+  "libexpat1",
+  "libxcomposite1",
+  "libxdamage1",
+  "libxext6",
+  "libxfixes3",
+  "libxrandr2",
+  "fonts-liberation",
+];
 const APPIMAGE_SYSTEM_PACKAGES = [
   "libasound2t64",
   "libfontconfig1",
@@ -15,7 +39,12 @@ const APPIMAGE_SYSTEM_PACKAGES = [
   "libwayland-client0",
 ];
 
-type Check = { format: string; suffix: string; script: (file: string) => string };
+type Check = {
+  format: string;
+  suffix: string;
+  script: (file: string) => string;
+  exports?: boolean;
+};
 
 const COMMON = String.raw`
 set -eu
@@ -23,6 +52,32 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
 apt_install() { apt-get install -y -qq --no-install-recommends "$@" > /tmp/apt.log 2>&1 || { tail -30 /tmp/apt.log; exit 1; }; }
 deb_depends() { dpkg-deb -f /pkg/$(cd /pkg && ls *.deb | head -1) Depends | tr ',' '\n' | sed 's/|.*//; s/ //g'; }
+export_film() {
+  apt_install curl __BROWSER__
+  data=$OPSIS_CHECK_WORK/user-data
+  sock=$data/api.sock
+  project=$OPSIS_CHECK_WORK/projects/__EXAMPLE__
+  mkdir -p /tmp/apphome && chown "$OPSIS_CHECK_UID:$OPSIS_CHECK_GID" /tmp/apphome
+  setpriv --reuid="$OPSIS_CHECK_UID" --regid="$OPSIS_CHECK_GID" --clear-groups \
+    env HOME=/tmp/apphome OPSIS_USER_DATA="$data" QT_QPA_PLATFORM=offscreen OPSIS_AUDIO_DEVICE=alsa:null \
+    "$1" > /tmp/app.log 2>&1 &
+  app=$!
+  for _ in $(seq 120); do [ -S "$sock" ] && break; sleep 1; done
+  [ -S "$sock" ] || { echo "export FAILED: the Local API never started"; tail -20 /tmp/app.log; exit 1; }
+  api() { curl -sS --unix-socket "$sock" -H 'content-type: application/json' "$@"; }
+  api -X POST -d "{\"dir\":\"$project\"}" http://localhost/open > /tmp/open.json
+  for _ in $(seq 60); do api http://localhost/project | grep -q '"nodes"' && break; sleep 1; done
+  curl -sN --unix-socket "$sock" http://localhost/project/run/events > /tmp/events.log &
+  sleep 1
+  api -X POST -d '{}' http://localhost/project/run > /tmp/started.json
+  for _ in $(seq 900); do grep -q '"type":"run:done"' /tmp/events.log && break; sleep 1; done
+  done=$(grep -m1 '"type":"run:done"' /tmp/events.log || echo "no run:done")
+  echo "$done" | grep -q '"ok":true' || { echo "export FAILED: $done"; cat /tmp/open.json /tmp/started.json; grep -i -E "error|fail" /tmp/events.log | tail -5; tail -30 /tmp/app.log; exit 1; }
+  video=$(find "$project" -name '*.mp4' | head -1)
+  [ -n "$video" ] || { echo "export FAILED: no video in $project"; exit 1; }
+  echo "exported $(basename "$video"), $(stat -c %s "$video") bytes: $(/usr/bin/opsis-ffmpeg -hide_banner -i "$video" 2>&1 | grep -E 'Duration|Video:' | sed 's/^ *//' | tr '\n' ' ')"
+  kill "$app"; wait "$app" 2>/dev/null || true
+}
 views() {
   rm -rf /tmp/run && mkdir -p /tmp/run/projects
   if OPSIS_USER_DATA=/tmp/run/user-data OPSIS_QT_SCENARIO=views OPSIS_QT_PROJECTS=/tmp/run/projects \
@@ -40,12 +95,14 @@ const CHECKS: Check[] = [
   {
     format: "deb",
     suffix: ".deb",
+    exports: true,
     script: (file) => String.raw`
 apt_install /pkg/${file}
 dpkg-query -W -f='installed ${"${Package}"} ${"${Version}"}\n' opsis
 test -f /usr/lib/opsis/THIRD_PARTY_NOTICES.md
 /usr/bin/opsis-ffmpeg -hide_banner -version | head -1
 views /usr/bin/opsis
+export_film /usr/bin/opsis
 dpkg -r --force-depends ca-certificates > /dev/null 2>&1
 rm -rf /etc/ssl/certs/*
 echo "without certificates:"
@@ -100,8 +157,31 @@ function packageFile(suffix: string): string | undefined {
   return readdirSync(OUT).find((name) => name.endsWith(suffix));
 }
 
+function prepareExport(): string[] {
+  rmSync(WORK, { recursive: true, force: true });
+  seedUserData(path.join(WORK, "user-data"));
+  mkdirSync(path.join(WORK, "projects"), { recursive: true });
+  cpSync(path.join(ROOT, "examples", EXAMPLE), path.join(WORK, "projects", EXAMPLE), {
+    recursive: true,
+  });
+  const { uid, gid } = userInfo();
+  return [
+    "-v",
+    `${WORK}:${WORK}`,
+    "-v",
+    `${DEV_ENGINE}:${DEV_ENGINE}:ro`,
+    "-e",
+    `OPSIS_CHECK_WORK=${WORK}`,
+    "-e",
+    `OPSIS_CHECK_UID=${uid}`,
+    "-e",
+    `OPSIS_CHECK_GID=${gid}`,
+  ];
+}
+
 function runCheck(check: Check, file: string): boolean {
   console.log(`\n${check.format}: ${file}`);
+  const extra = check.exports ? prepareExport() : [];
   try {
     execFileSync(
       "docker",
@@ -112,10 +192,12 @@ function runCheck(check: Check, file: string): boolean {
         `opsis-package-check-${check.format}-${process.pid}`,
         "-v",
         `${OUT}:/pkg:ro`,
+        ...extra,
         IMAGE,
         "bash",
         "-c",
-        COMMON + check.script(file),
+        COMMON.replace("__BROWSER__", BROWSER_PACKAGES.join(" ")).replace("__EXAMPLE__", EXAMPLE) +
+          check.script(file),
       ],
       { stdio: "inherit" },
     );
@@ -143,4 +225,4 @@ if (failed.length > 0) {
   console.error(`\nFailed: ${failed.join(", ")}`);
   process.exit(1);
 }
-console.log("\nEvery package installed and ran the views scenario.");
+console.log("\nEvery package installed and ran the views scenario; the deb exported a film.");

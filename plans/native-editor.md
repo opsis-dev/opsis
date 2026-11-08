@@ -44,14 +44,13 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 - The deb was checked 2026-11-08 in a plain `debian:trixie` container: apt installed it with its dependencies and the installed program passed the `views` scenario, with and without CA certificates. The rpm, the AppImage and the pacman package (built by `makepkg` and installed with `pacman`) pass the same check, all built in the trixie container (`bun run package:check`).
 - [packaging.md](../agent-docs/packaging.md) has the rules.
 
-**Missing.** The static Qt and the packages on macOS and Windows; the notices of the code the static Qt compiles in; signing and notarization; the CI jobs.
+**Missing.** The static Qt and the packages on macOS and Windows; signing and notarization; the CI jobs.
 
 ### Work
 
 1. Static Qt on macOS and Windows: `static-qt.ts` builds only on Linux. Add each platform's configure flags (no `-xcb`, `-fontconfig` or `-system-freetype`) and build them in CI, cached by Qt version and flags.
 2. CI: on each platform, build the static Qt, run `bun run make -- --formats` with that platform's formats, install each package on a clean runner and run the `views` scenario, and check every Mach-O's signature.
-3. Licences: add the notices of the third-party code the static Qt compiles in (its copies of zlib, libpng, libjpeg, HarfBuzz and PCRE2, and Qt's other bundled code, listed in its `qt_attribution.json` files).
-4. Signing: the macOS identity, entitlements and notarization, and the Windows certificate, through cargo-packager's `macos` and `windows` settings ([release.md](release.md), code signing).
+3. Signing: the macOS identity, entitlements and notarization, and the Windows certificate, through cargo-packager's `macos` and `windows` settings ([release.md](release.md), code signing).
 
 ### Decided
 
