@@ -24,7 +24,7 @@ terminal-bundle/
 examples/**/secrets/
 .env
 .env.*
-/.tauri/opsis.key
+/signing/opsis.key
 
 # Logs
 *.log

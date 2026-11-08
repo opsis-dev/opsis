@@ -104,13 +104,13 @@ The named pipe is created with the default security descriptor, which grants rea
 
 **In place** (2026-10-26).
 
-- The key pair was made with `tauri signer generate`: the private key is `.tauri/opsis.key`, ignored by git (`/.tauri/opsis.key` in `.gitignore`), with its password in the ignored `.env` as `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`; the public key is committed as `.tauri/opsis.key.pub` (`4b0af6d`). A test signature with the values from `.env` succeeded. If both copies of the private key are lost, installed copies can never update again.
-- Both values are set as secrets on `bismitpanda/opsis`.
-- cargo-packager writes and reads keys in the same format as `tauri signer` (a base64 minisign box); the committed public key decodes as one. Its signer reads `CARGO_PACKAGER_SIGN_PRIVATE_KEY` and `CARGO_PACKAGER_SIGN_PRIVATE_KEY_PASSWORD`, so the release job passes the two secrets under those names. No update has been signed with the private key yet.
+- The key pair was made with `tauri signer generate`: the private key is `signing/opsis.key`, ignored by git (`/signing/opsis.key` in `.gitignore`), with the key and its password in the ignored `.env` as `CARGO_PACKAGER_SIGN_PRIVATE_KEY` and `CARGO_PACKAGER_SIGN_PRIVATE_KEY_PASSWORD`; the public key is committed as `signing/opsis.key.pub`. A test signature with the values from `.env` succeeded. If both copies of the private key are lost, installed copies can never update again.
+- Both values are set as secrets on `bismitpanda/opsis` under the same names (2026-11-08).
+- cargo-packager writes and reads keys in the same format as `tauri signer` (a base64 minisign box); the committed public key decodes as one. Its signer reads `CARGO_PACKAGER_SIGN_PRIVATE_KEY` and `CARGO_PACKAGER_SIGN_PRIVATE_KEY_PASSWORD`, the names `.env` and the secrets use. No update has been signed with the private key yet.
 
 **Work.**
 
-1. Add `cargo-packager-updater`, with the contents of `.tauri/opsis.key.pub` as its public key and the feed on the releases of `bismitpanda/opsis`.
+1. Add `cargo-packager-updater`, with the contents of `signing/opsis.key.pub` as its public key and the feed on the releases of `bismitpanda/opsis`.
 2. Settings → About gets the button and the switch (an `updates` section in the settings); the exit dialog lists a running download (`AppState.tasks`).
 3. `opsis-packager` signs the update files with `cargo_packager::sign_outputs` when the key is set, and the release job writes the feed to the draft release.
 
