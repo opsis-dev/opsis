@@ -1,9 +1,10 @@
 use std::path::PathBuf;
 use std::process::ExitCode;
 
-use opsis_packager::{AppFiles, Format, PackagerError, package};
+use opsis_packager::appimage::AppImageTools;
+use opsis_packager::{AppFiles, Format, PackagerError, Tools, package};
 
-const USAGE: &str = "opsis-packager --program <path> --ffmpeg <path> --target-triple <triple> --root <repository> --out <folder> --formats <deb,rpm,…>";
+const USAGE: &str = "opsis-packager --program <path> --ffmpeg <path> --target-triple <triple> --root <repository> --out <folder> --formats <deb,rpm,…> [--appimagetool <path> --appimage-runtime <path>]";
 
 #[derive(Debug, Default)]
 struct Args {
@@ -13,6 +14,8 @@ struct Args {
     root: Option<PathBuf>,
     out: Option<PathBuf>,
     formats: Option<String>,
+    appimagetool: Option<PathBuf>,
+    appimage_runtime: Option<PathBuf>,
 }
 
 fn parse_args(mut args: impl Iterator<Item = String>) -> Result<Args, PackagerError> {
@@ -28,6 +31,8 @@ fn parse_args(mut args: impl Iterator<Item = String>) -> Result<Args, PackagerEr
             "--root" => parsed.root = Some(value.into()),
             "--out" => parsed.out = Some(value.into()),
             "--formats" => parsed.formats = Some(value),
+            "--appimagetool" => parsed.appimagetool = Some(value.into()),
+            "--appimage-runtime" => parsed.appimage_runtime = Some(value.into()),
             _ => {
                 return Err(PackagerError::Usage(format!(
                     "unknown flag {flag}; {USAGE}"
@@ -54,7 +59,16 @@ fn run() -> Result<Vec<PathBuf>, PackagerError> {
         .split(',')
         .map(Format::parse)
         .collect::<Result<Vec<_>, _>>()?;
-    package(&app, &formats, &needed(args.out, "--out")?)
+    let tools = Tools {
+        appimage: args
+            .appimagetool
+            .zip(args.appimage_runtime)
+            .map(|(appimagetool, runtime)| AppImageTools {
+                appimagetool,
+                runtime,
+            }),
+    };
+    package(&app, &formats, &tools, &needed(args.out, "--out")?)
 }
 
 fn main() -> ExitCode {

@@ -1,21 +1,18 @@
 use std::path::{Path, PathBuf};
 
-use cargo_packager::config::{
-    AppCategory, AppImageConfig, Binary, DebianConfig, DmgConfig, MacOsConfig, NsisConfig,
-    PacmanConfig, Resource, WixConfig,
-};
-use cargo_packager::{Config, PackageFormat};
+use opsis_update::installer::Installer;
 
-use crate::app::{
-    AppFiles, COPYRIGHT, DESCRIPTION, FFMPEG, HOMEPAGE, IDENTIFIER, MACOS_MINIMUM, PRODUCT,
-    PROGRAM, PUBLISHER, SUMMARY, VERSION, desktop_entry,
-};
-use crate::error::{PackagerError, io_error};
-use crate::linking::{Linked, check_self_contained, read_linked};
-use crate::linux_deps::{deb_depends, pacman_depends};
+use crate::app::AppFiles;
+use crate::appimage::{AppImageTools, build_appimage};
+use crate::deb::build_deb;
+use crate::error::PackagerError;
+use crate::linking::{check_self_contained, read_linked};
+use crate::marker::marked_program;
+use crate::pacman::build_pacman;
 use crate::rpm_package::build_rpm;
-
-const DEB_SECTION: &str = "video";
+use crate::sign::{UpdateKey, key_from_env, sign_update};
+use crate::target::Target;
+use crate::tools::{fresh_dir, remove_dir};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Format {
@@ -62,125 +59,113 @@ impl Format {
         }
     }
 
+    pub const fn installer(self) -> Installer {
+        match self {
+            Self::Deb => Installer::Deb,
+            Self::Rpm => Installer::Rpm,
+            Self::AppImage => Installer::AppImage,
+            Self::Pacman => Installer::Pacman,
+            Self::Nsis => Installer::Nsis,
+            Self::Msi => Installer::Msi,
+            Self::App | Self::Dmg => Installer::App,
+        }
+    }
+
     pub fn parse(name: &str) -> Result<Self, PackagerError> {
         Self::ALL
             .into_iter()
             .find(|format| format.name() == name)
             .ok_or_else(|| PackagerError::UnknownFormat(name.to_owned()))
     }
+}
 
-    const fn packager_format(self) -> Option<PackageFormat> {
-        match self {
-            Self::Deb => Some(PackageFormat::Deb),
-            Self::Rpm => None,
-            Self::AppImage => Some(PackageFormat::AppImage),
-            Self::Pacman => Some(PackageFormat::Pacman),
-            Self::Nsis => Some(PackageFormat::Nsis),
-            Self::Msi => Some(PackageFormat::Wix),
-            Self::App => Some(PackageFormat::App),
-            Self::Dmg => Some(PackageFormat::Dmg),
-        }
+#[derive(Debug, Clone, Default)]
+pub struct Tools {
+    pub appimage: Option<AppImageTools>,
+}
+
+fn signed(
+    key: Option<&UpdateKey>,
+    file: PathBuf,
+    installer: Installer,
+    target: &Target,
+) -> Result<Vec<PathBuf>, PackagerError> {
+    let mut made = Vec::new();
+    if let Some(key) = key {
+        made.extend(sign_update(key, &file, installer, target)?);
     }
+    made.insert(0, file);
+    Ok(made)
 }
 
-fn ffmpeg_base(app: &AppFiles) -> Result<PathBuf, PackagerError> {
-    let suffix = if cfg!(windows) { ".exe" } else { "" };
-    let expected = format!("{FFMPEG}-{}{suffix}", app.target_triple);
-    let named = app
-        .ffmpeg
-        .file_name()
-        .is_some_and(|name| name.to_string_lossy() == expected);
-    if !named {
-        return Err(PackagerError::Usage(format!(
-            "the FFmpeg program must be named {expected}, not {}",
-            app.ffmpeg.display()
-        )));
-    }
-    Ok(app.ffmpeg.with_file_name(FFMPEG))
+fn appimage_tools(tools: &Tools) -> Result<&AppImageTools, PackagerError> {
+    tools.appimage.as_ref().ok_or_else(|| {
+        PackagerError::Usage("the AppImage needs --appimagetool and --appimage-runtime".to_owned())
+    })
 }
 
-fn text(path: &Path) -> String {
-    path.to_string_lossy().into_owned()
-}
-
-pub fn packager_config(
+fn build_one(
+    format: Format,
     app: &AppFiles,
-    linked: &Linked,
-    formats: &[Format],
+    target: &Target,
+    tools: &Tools,
+    key: Option<&UpdateKey>,
     out: &Path,
-    desktop_template: &Path,
-) -> Result<Config, PackagerError> {
-    let wanted: Vec<PackageFormat> = formats
-        .iter()
-        .filter_map(|format| format.packager_format())
-        .collect();
-    let linux = wanted.iter().any(|format| {
-        matches!(
-            format,
-            PackageFormat::Deb | PackageFormat::AppImage | PackageFormat::Pacman
-        )
-    });
-    let deb = if linux {
-        Some(
-            DebianConfig::new()
-                .depends(deb_depends(linked)?)
-                .desktop_template(desktop_template)
-                .section(DEB_SECTION),
-        )
-    } else {
-        None
+) -> Result<Vec<PathBuf>, PackagerError> {
+    let linked = read_linked(&app.program)?;
+    let marked_dir = fresh_dir(&out.join(format!(".marked-{}", format.name())))?;
+    let program = marked_program(&app.program, format.installer(), &marked_dir)?;
+    let made = match format {
+        Format::Deb => vec![build_deb(app, &linked, &program, target, out)?],
+        Format::Rpm => vec![build_rpm(app, &linked, &program, target, out)?],
+        Format::Pacman => vec![build_pacman(app, &linked, &program, target, out)?],
+        Format::AppImage => signed(
+            key,
+            build_appimage(app, &program, target, appimage_tools(tools)?, out)?,
+            Installer::AppImage,
+            target,
+        )?,
+        Format::Nsis => signed(
+            key,
+            crate::windows::build_nsis(app, &program, target, out)?,
+            Installer::Nsis,
+            target,
+        )?,
+        Format::Msi => signed(
+            key,
+            crate::windows::build_msi(app, &program, target, out)?,
+            Installer::Msi,
+            target,
+        )?,
+        Format::App | Format::Dmg => {
+            let bundle = crate::macos::build_app(app, &program, out)?;
+            let archive = crate::macos::update_archive(&bundle, target, out)?;
+            let mut made = vec![bundle.clone()];
+            made.extend(signed(key, archive, Installer::App, target)?);
+            if format == Format::Dmg {
+                made.push(crate::macos::build_dmg(&bundle, target, out)?);
+            }
+            made
+        }
     };
-    let pacman = if linux {
-        Some(PacmanConfig::new().depends(pacman_depends(linked)?))
-    } else {
-        None
-    };
-    let binaries_dir = app
-        .program
-        .parent()
-        .map(Path::to_owned)
-        .ok_or_else(|| PackagerError::Missing(app.program.clone()))?;
-    let mut config = Config::default();
-    PRODUCT.clone_into(&mut config.product_name);
-    VERSION.clone_into(&mut config.version);
-    config.binaries = vec![Binary::new(PROGRAM).main(true)];
-    config.identifier = Some(IDENTIFIER.to_owned());
-    config.formats = Some(wanted);
-    out.clone_into(&mut config.out_dir);
-    config.binaries_dir = Some(binaries_dir);
-    config.target_triple = Some(app.target_triple.clone());
-    config.description = Some(SUMMARY.to_owned());
-    config.long_description = Some(DESCRIPTION.to_owned());
-    config.homepage = Some(HOMEPAGE.to_owned());
-    config.authors = Some(vec![PUBLISHER.to_owned()]);
-    config.publisher = Some(PUBLISHER.to_owned());
-    config.license_file = Some(app.root.join("LICENSE"));
-    config.copyright = Some(COPYRIGHT.to_owned());
-    config.category = Some(AppCategory::Video);
-    config.icons = Some(app.icons().iter().map(|(_, path)| text(path)).collect());
-    config.resources = Some(
-        app.resource_roots()
-            .into_iter()
-            .map(|placed| Resource::Mapped {
-                src: text(&placed.source),
-                target: placed.target,
-            })
-            .collect(),
-    );
-    config.external_binaries = Some(vec![ffmpeg_base(app)?]);
-    config.deb = deb;
-    config.appimage = Some(AppImageConfig::new());
-    config.pacman = pacman;
-    config.nsis = Some(NsisConfig::new());
-    config.wix = Some(WixConfig::new());
-    config.dmg = Some(DmgConfig::new());
-    config.macos = Some(MacOsConfig::new().minimum_system_version(MACOS_MINIMUM));
-    Ok(config)
+    remove_dir(&marked_dir)?;
+    Ok(made)
+}
+
+fn plan(formats: &[Format]) -> Vec<Format> {
+    let mut planned: Vec<Format> = formats.to_vec();
+    planned.sort_unstable();
+    planned.dedup();
+    if planned.contains(&Format::Dmg) {
+        planned.retain(|format| *format != Format::App);
+    }
+    planned
 }
 
 pub fn package(
     app: &AppFiles,
     formats: &[Format],
+    tools: &Tools,
     out: &Path,
 ) -> Result<Vec<PathBuf>, PackagerError> {
     let here = std::env::consts::OS;
@@ -192,24 +177,14 @@ pub fn package(
         });
     }
     app.check()?;
+    let target = Target::parse(&app.target_triple)?;
     let linked = read_linked(&app.program)?;
     check_self_contained(&app.program, &linked)?;
-    std::fs::create_dir_all(out).map_err(io_error(out))?;
+    std::fs::create_dir_all(out).map_err(crate::error::io_error(out))?;
+    let key = key_from_env()?;
     let mut made = Vec::new();
-    if formats
-        .iter()
-        .any(|format| format.packager_format().is_some())
-    {
-        let template = out.join(format!("{PROGRAM}.desktop.hbs"));
-        std::fs::write(&template, desktop_entry()).map_err(io_error(&template))?;
-        let config = packager_config(app, &linked, formats, out, &template)?;
-        for output in cargo_packager::package(&config)? {
-            made.extend(output.paths);
-        }
-        std::fs::remove_file(&template).map_err(io_error(&template))?;
-    }
-    if formats.contains(&Format::Rpm) {
-        made.push(build_rpm(app, &linked, out)?);
+    for format in plan(formats) {
+        made.extend(build_one(format, app, &target, tools, key.as_ref(), out)?);
     }
     Ok(made)
 }
@@ -224,6 +199,18 @@ mod tests {
         #[test]
         fn a_format_reads_back_from_its_name(format in prop::sample::select(Format::ALL.to_vec())) {
             prop_assert_eq!(Format::parse(format.name()).unwrap(), format);
+        }
+
+        #[test]
+        fn a_plan_builds_each_format_once_and_the_app_once(formats in prop::collection::vec(prop::sample::select(Format::ALL.to_vec()), 0..12)) {
+            let planned = plan(&formats);
+            let mut unique = planned.clone();
+            unique.dedup();
+            prop_assert_eq!(&unique, &planned);
+            prop_assert!(!(planned.contains(&Format::App) && planned.contains(&Format::Dmg)));
+            for format in &formats {
+                prop_assert!(planned.contains(format) || (*format == Format::App && planned.contains(&Format::Dmg)));
+            }
         }
     }
 

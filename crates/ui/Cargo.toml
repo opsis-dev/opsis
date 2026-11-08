@@ -32,6 +32,7 @@ opsis-session.workspace = true
 opsis-store.workspace = true
 opsis-stream.workspace = true
 opsis-types.workspace = true
+opsis-update.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 thiserror.workspace = true

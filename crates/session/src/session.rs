@@ -16,6 +16,7 @@ use crate::shared::Shared;
 use crate::startup::StartupError;
 use crate::state::AppState;
 use crate::terminal_live::LiveTapes;
+use crate::updates::Updates;
 use crate::views::Views;
 
 const EVENTS_KEPT: usize = 1024;
@@ -30,6 +31,7 @@ struct Parts {
     mixes: Mixes,
     node_keys: NodeKeys,
     api: Api,
+    updates: Updates,
     events: broadcast::Sender<Addressed>,
     platform: Arc<dyn Platform>,
 }
@@ -69,6 +71,7 @@ parts!(
     Mixes => mixes,
     NodeKeys => node_keys,
     Api => api,
+    Updates => updates,
 );
 
 impl Session {
@@ -90,6 +93,7 @@ impl Session {
             mixes: Mixes::default(),
             node_keys: NodeKeys::default(),
             api,
+            updates: Updates::default(),
             events: broadcast::Sender::new(EVENTS_KEPT),
             platform,
         })))
@@ -100,6 +104,7 @@ impl Session {
         #[cfg(unix)]
         crate::exit::close_on_signals(self);
         crate::engine::verify_on_start(self);
+        crate::updates::begin(self);
     }
 
     pub fn end(&self) {

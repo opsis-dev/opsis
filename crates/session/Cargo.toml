@@ -29,6 +29,7 @@ opsis-stream.workspace = true
 opsis-terminal.workspace = true
 opsis-traces.workspace = true
 opsis-types.workspace = true
+opsis-update.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 specta = { workspace = true, features = ["serde_json", "indexmap"] }

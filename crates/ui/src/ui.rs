@@ -24,7 +24,7 @@ use opsis_qt::{
     MenuSectionView, MeterView, MixerView, MorphPathView, MorphStep, MotionInfo, NodeMove,
     PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView, ReplayView,
     RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView, TemplateView, TextToken,
-    TimelineView, TraceView, VariableView, WindowPlacement,
+    TimelineView, TraceView, UpdateView, VariableView, WindowPlacement,
 };
 use opsis_session::analysis::{self, AnalysisRequest, AnalysisResult};
 use opsis_session::document::DiskChoice;
@@ -34,7 +34,7 @@ use opsis_session::exit::{self, Exit};
 use opsis_session::run::RunHost;
 use opsis_session::state::AppState;
 use opsis_session::windows::{self, SavedWindow, WorkArea};
-use opsis_session::{Session, compile, document, projects, run, settings, shared};
+use opsis_session::{Session, compile, document, projects, run, settings, shared, updates};
 use opsis_stream::picker::PickRequest;
 use opsis_stream::view::ViewInput;
 use opsis_types::actions::{MouseButton, Viewport};
@@ -187,6 +187,7 @@ const fn event_kind(event: &SessionEvent) -> Option<EventKind> {
         SessionEvent::RunViewChanged(_) | SessionEvent::RunStateReset(_) => Some(EventKind::Run),
         SessionEvent::ApiStatusChanged(_) => Some(EventKind::Api),
         SessionEvent::EngineChanged(_) => Some(EventKind::Engine),
+        SessionEvent::UpdateChanged(_) => Some(EventKind::Update),
         _ => None,
     }
 }
@@ -2708,6 +2709,10 @@ impl Host for Ui {
             development: !env.is_packaged,
             shell: env.versions.shell,
             platform: format!("{} / {}", env.platform, env.arch),
+            target: opsis_update::TARGET.to_owned(),
+            commit: opsis_update::COMMIT.to_owned(),
+            installer: updates::installer()
+                .map_or_default(|installer| installer.label().to_owned()),
             browser: env
                 .engine
                 .browser
@@ -2716,6 +2721,48 @@ impl Host for Ui {
             downloads: env.engine.download_dir,
             user_data: env.user_data,
         }
+    }
+
+    fn update_view(&self) -> UpdateView {
+        let status = self.session.state::<updates::Updates>().snapshot();
+        let installer = updates::installer();
+        let available = status.available.unwrap_or_default();
+        UpdateView {
+            installed: installer.is_some(),
+            self_updating: installer
+                .is_some_and(opsis_update::installer::Installer::updates_itself),
+            checking: status.checking,
+            checked: status.checked,
+            available: available.version,
+            notes: available.notes,
+            page: available.page,
+            downloading: status.downloading,
+            progress: status.progress.unwrap_or(-1.0),
+            downloaded: status.downloaded.is_some(),
+            error: status.error,
+            check_on_start: settings::get_settings(&self.session).updates.check_on_start,
+        }
+    }
+
+    fn check_updates(&self) {
+        let session = self.session.clone();
+        self.runtime
+            .spawn(async move { updates::check(session).await });
+    }
+
+    fn download_update(&self) {
+        let session = self.session.clone();
+        self.runtime
+            .spawn(async move { updates::download(session).await });
+    }
+
+    fn cancel_update_download(&self) {
+        updates::cancel_download(&self.session);
+    }
+
+    fn restart_to_update(&self) {
+        updates::want_restart(&self.session, true);
+        self.request_close();
     }
 
     fn licences(&self) -> Vec<LicenceView> {
@@ -3084,6 +3131,8 @@ impl Host for Ui {
             session.state::<Exit>().finish_asking(closing);
             if closing {
                 opsis_qt::quit(0);
+            } else {
+                updates::want_restart(&session, false);
             }
         });
     }

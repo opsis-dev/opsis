@@ -15,9 +15,6 @@ aes-gcm = "0.11"
 apple-native-keyring-store = { version = "1", features = ["keychain"] }
 axum = "0.8"
 base64 = "0.23"
-cargo-packager = { git = "https://github.com/crabnebula-dev/cargo-packager", rev = "d5704a39a63e0c522c320de3cdc5a71044a568e0", default-features = false, features = [
-  "rustls-tls",
-] }
 cc = "1"
 cpal = "0.18"
 chromiumoxide = "0.9"
@@ -30,6 +27,7 @@ ebur128 = "0.1"
 env_logger = "0.11"
 fast_image_resize = { version = "6", features = ["image"] }
 filetime = "0.2"
+flate2 = "1"
 fontdb = "0.24"
 fundsp = { version = "0.23", default-features = false, features = ["std"] }
 futures = "0.3"
@@ -57,6 +55,8 @@ keyring-core = "1"
 language-tags = "0.3"
 layout-rs = "0.1"
 log = "0.4"
+minisign = "0.10"
+minisign-verify = "0.3"
 moxcms = "0.9"
 nanoid = "0.5"
 nnnoiseless = { version = "0.5", default-features = false }
@@ -87,6 +87,7 @@ opsis-stream = { path = "crates/stream" }
 opsis-terminal = { path = "crates/terminal" }
 opsis-traces = { path = "crates/traces" }
 opsis-types = { path = "crates/types" }
+opsis-update = { path = "crates/update" }
 opsis-vt = { path = "crates/vt" }
 path-clean = "1"
 percent-encoding = "2"
@@ -98,9 +99,9 @@ qt-build-utils = "0.10"
 quote = "1"
 regex = "1"
 reqwest = { version = "0.13", default-features = false, features = ["rustls"] }
-rpm = { version = "0.30", default-features = false, features = ["payload", "zstd-compression"] }
 sanitize-filename = "0.6"
 schemars = { version = "1", features = ["indexmap2"] }
+semver = "1"
 serde = "1"
 serde_json = "1"
 serde_path_to_error = "0.1"
@@ -118,6 +119,7 @@ sqlx = { version = "0.9", default-features = false, features = [
   "sqlite-bundled",
 ] }
 syn = { version = "3", features = ["full"] }
+tar = { version = "0.4", default-features = false }
 sys-locale = "0.3"
 sysinfo = "0.40"
 tempfile = "3"

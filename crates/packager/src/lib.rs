@@ -1,10 +1,20 @@
 pub mod app;
+pub mod appimage;
+pub mod deb;
 pub mod error;
 pub mod formats;
+pub mod layout;
 pub mod linking;
 pub mod linux_deps;
+pub mod macos;
+pub mod marker;
+pub mod pacman;
 pub mod rpm_package;
+pub mod sign;
+pub mod target;
+pub mod tools;
+pub mod windows;
 
 pub use app::AppFiles;
 pub use error::PackagerError;
-pub use formats::{Format, package};
+pub use formats::{Format, Tools, package};

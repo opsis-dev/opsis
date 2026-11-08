@@ -22,6 +22,7 @@ pub mod ffi {
         Media,
         Engine,
         Fonts,
+        Update,
     }
 
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -900,9 +901,28 @@ pub mod ffi {
         development: bool,
         shell: String,
         platform: String,
+        target: String,
+        commit: String,
+        installer: String,
         browser: String,
         downloads: String,
         user_data: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct UpdateView {
+        installed: bool,
+        self_updating: bool,
+        checking: bool,
+        checked: bool,
+        available: String,
+        notes: String,
+        page: String,
+        downloading: bool,
+        progress: f64,
+        downloaded: bool,
+        error: String,
+        check_on_start: bool,
     }
 
     #[derive(Debug, Clone)]
@@ -1150,6 +1170,11 @@ pub mod ffi {
         fn install_engine(self: &Session);
         fn choose_browser(self: &Session);
         fn about(self: &Session) -> AboutView;
+        fn update_view(self: &Session) -> UpdateView;
+        fn check_updates(self: &Session);
+        fn download_update(self: &Session);
+        fn cancel_update_download(self: &Session);
+        fn restart_to_update(self: &Session);
         fn licences(self: &Session) -> Vec<LicenceView>;
         fn font_licences(self: &Session, library: bool) -> Vec<LicenceView>;
         fn open_licence_file(self: &Session, file: &str) -> Result<()>;

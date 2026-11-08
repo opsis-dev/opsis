@@ -40,4 +40,3 @@ allow = [
   "Unlicense",
   "Zlib",
 ]
-exceptions = [{ allow = ["CDLA-Permissive-2.0"], crate = "webpki-roots" }]

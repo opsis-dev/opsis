@@ -1,70 +1,88 @@
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
-use rpm::{BuildConfig, CompressionType, Dependency, FileOptions, PackageBuilder};
-
-use crate::app::{
-    AppFiles, DESCRIPTION, FFMPEG, HOMEPAGE, LICENSE, PROGRAM, PUBLISHER, SUMMARY, VERSION,
-    desktop_entry,
-};
-use crate::error::{PackagerError, io_error};
+use crate::app::{AppFiles, DESCRIPTION, HOMEPAGE, LICENSE, PROGRAM, PUBLISHER, SUMMARY, VERSION};
+use crate::error::PackagerError;
+use crate::layout::stage_linux;
 use crate::linking::Linked;
 use crate::linux_deps::rpm_requires;
+use crate::target::Target;
+use crate::tools::{fresh_dir, remove_dir, run, write};
 
 const RELEASE: &str = "1";
-const PROGRAM_MODE: u16 = 0o755;
-const FILE_MODE: u16 = 0o644;
 
-pub fn install_path(relative: &Path) -> String {
-    format!("/usr/lib/{PROGRAM}/{}", relative.to_string_lossy())
+pub fn spec(requires: &[String], root: &Path, owned: &[String]) -> String {
+    let mut lines = vec![
+        "%global debug_package %{nil}".to_owned(),
+        "%global __os_install_post %{nil}".to_owned(),
+        "%global _build_id_links none".to_owned(),
+        "%global _binary_payload w19.zstdio".to_owned(),
+        format!("Name: {PROGRAM}"),
+        format!("Version: {VERSION}"),
+        format!("Release: {RELEASE}"),
+        format!("Summary: {SUMMARY}"),
+        format!("License: {LICENSE}"),
+        format!("URL: {HOMEPAGE}"),
+        format!("Vendor: {PUBLISHER}"),
+        "AutoReqProv: no".to_owned(),
+    ];
+    lines.extend(requires.iter().map(|soname| format!("Requires: {soname}")));
+    lines.extend([
+        String::new(),
+        "%description".to_owned(),
+        DESCRIPTION.to_owned(),
+        String::new(),
+        "%install".to_owned(),
+        format!("cp -a '{}/.' %{{buildroot}}/", root.display()),
+        String::new(),
+        "%files".to_owned(),
+    ]);
+    lines.extend(owned.iter().cloned());
+    lines.push(String::new());
+    lines.join("\n")
 }
 
-pub fn build_rpm(app: &AppFiles, linked: &Linked, out: &Path) -> Result<PathBuf, PackagerError> {
-    let arch = std::env::consts::ARCH;
-    let mut builder = PackageBuilder::new(PROGRAM, VERSION, LICENSE, arch, SUMMARY);
-    builder
-        .using_config(BuildConfig::v4().compression(CompressionType::Zstd))
-        .release(RELEASE)
-        .description(DESCRIPTION)
-        .url(HOMEPAGE)
-        .vendor(PUBLISHER);
-    for soname in rpm_requires(linked)? {
-        builder.requires(Dependency::any(soname));
+pub fn build_rpm(
+    app: &AppFiles,
+    linked: &Linked,
+    program: &Path,
+    target: &Target,
+    out: &Path,
+) -> Result<PathBuf, PackagerError> {
+    let work = fresh_dir(&out.join(".rpm"))?;
+    let root = work.join("root");
+    let tree = stage_linux(app, program, &root)?;
+    let spec_file = work.join(format!("{PROGRAM}.spec"));
+    write(&spec_file, spec(&rpm_requires(linked)?, &root, &tree.owned))?;
+    let name = format!("{PROGRAM}-{VERSION}-{RELEASE}.{}.rpm", target.arch);
+    run(Command::new("rpmbuild")
+        .arg("-bb")
+        .arg("--define")
+        .arg(format!("_topdir {}", work.join("top").display()))
+        .arg("--define")
+        .arg(format!("_rpmdir {}", out.display()))
+        .arg("--define")
+        .arg(format!("_build_name_fmt {name}"))
+        .arg("--target")
+        .arg(target.arch)
+        .arg(&spec_file))?;
+    remove_dir(&work)?;
+    Ok(out.join(name))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_spec_requires_each_library_and_owns_each_path() {
+        let text = spec(
+            &["libc.so.6()(64bit)".to_owned()],
+            Path::new("/work/root"),
+            &["/usr/bin/opsis".to_owned(), "/usr/lib/opsis".to_owned()],
+        );
+        assert!(text.contains("\nRequires: libc.so.6()(64bit)\n"));
+        assert!(text.contains("\ncp -a '/work/root/.' %{buildroot}/\n"));
+        assert!(text.ends_with("%files\n/usr/bin/opsis\n/usr/lib/opsis\n"));
     }
-    builder.with_file(
-        &app.program,
-        FileOptions::new(format!("/usr/bin/{PROGRAM}")).permissions(PROGRAM_MODE),
-    )?;
-    builder.with_file(
-        &app.ffmpeg,
-        FileOptions::new(format!("/usr/bin/{FFMPEG}")).permissions(PROGRAM_MODE),
-    )?;
-    for placed in app.resource_files()? {
-        builder.with_file(
-            &placed.source,
-            FileOptions::new(install_path(&placed.target)).permissions(FILE_MODE),
-        )?;
-    }
-    let staging = out.join(".rpm-staging");
-    std::fs::create_dir_all(&staging).map_err(io_error(&staging))?;
-    let desktop = staging.join(format!("{PROGRAM}.desktop"));
-    std::fs::write(&desktop, desktop_entry()).map_err(io_error(&desktop))?;
-    builder.with_file(
-        &desktop,
-        FileOptions::new(format!("/usr/share/applications/{PROGRAM}.desktop"))
-            .permissions(FILE_MODE),
-    )?;
-    for (size, icon) in app.icons() {
-        builder.with_file(
-            &icon,
-            FileOptions::new(format!(
-                "/usr/share/icons/hicolor/{size}x{size}/apps/{PROGRAM}.png"
-            ))
-            .permissions(FILE_MODE),
-        )?;
-    }
-    let package = builder.build()?;
-    let path = out.join(format!("{PROGRAM}-{VERSION}-{RELEASE}.{arch}.rpm"));
-    package.write_file(&path)?;
-    std::fs::remove_dir_all(&staging).map_err(io_error(&staging))?;
-    Ok(path)
 }

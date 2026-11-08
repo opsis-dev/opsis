@@ -22,6 +22,7 @@
 #include "event_hub.h"
 #include "fonts_page.h"
 #include "opsis-qt/src/bridge.rs.h"
+#include "update_card.h"
 #include "widgets.h"
 #include "window_chrome.h"
 
@@ -505,7 +506,7 @@ QWidget* SettingsWindow::AboutPage() {
   auto* grid = new QGridLayout();
   grid->setHorizontalSpacing(16);
   grid->setVerticalSpacing(8);
-  const QList<std::pair<QString, QString>> rows = {
+  QList<std::pair<QString, QString>> rows = {
       {QStringLiteral("App"),
        about.development ? ToQ(about.app) + QStringLiteral(" (development)")
                          : ToQ(about.app)},
@@ -513,10 +514,17 @@ QWidget* SettingsWindow::AboutPage() {
       {QStringLiteral("Docking"),
        QStringLiteral("KDDockWidgets ") + FromVersion(bridge::kddw_version())},
       {QStringLiteral("Platform"), ToQ(about.platform)},
-      {QStringLiteral("Recording browser"), ToQ(about.browser)},
-      {QStringLiteral("Engine downloads"), ToQ(about.downloads)},
-      {QStringLiteral("App data"), ToQ(about.user_data)},
+      {QStringLiteral("Build target"), ToQ(about.target)},
   };
+  if (!about.commit.empty()) {
+    rows.append({QStringLiteral("Commit"), ToQ(about.commit)});
+  }
+  rows.append({QStringLiteral("Installed from"),
+               about.installer.empty() ? QStringLiteral("Not installed")
+                                       : ToQ(about.installer)});
+  rows.append({QStringLiteral("Recording browser"), ToQ(about.browser)});
+  rows.append({QStringLiteral("Engine downloads"), ToQ(about.downloads)});
+  rows.append({QStringLiteral("App data"), ToQ(about.user_data)});
   QFont mono(QStringLiteral("JetBrains Mono"));
   mono.setPixelSize(11);
   int row = 0;
@@ -531,8 +539,9 @@ QWidget* SettingsWindow::AboutPage() {
   }
   grid->setColumnStretch(1, 1);
   card->body()->addLayout(grid);
-  return Page(QStringLiteral("About"), QStringLiteral("Versions and folders."),
-              {card});
+  return Page(QStringLiteral("About"),
+              QStringLiteral("Versions, folders and updates."),
+              {card, new UpdateCard()});
 }
 
 void SettingsWindow::Load() {

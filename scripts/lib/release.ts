@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
+import { APPIMAGE_TOOLS_CACHE, appImageTools } from "./appimage-tools";
 import { hostTarget, stagedFfmpeg } from "./ffmpeg";
 import { buildsNatively, ensureStaticQt } from "./static-qt";
 import { devCache, ROOT } from "./tool-config";
@@ -35,7 +36,22 @@ function zigProgram(): string {
 
 export type PackageRun = { cargoArgs: string[]; formats: string; out: string };
 
-function packagerArgs(run: PackageRun): string[] {
+export const UPDATE_KEY_ENV = ["OPSIS_UPDATE_KEY", "OPSIS_UPDATE_KEY_PASSWORD"];
+
+function commit(): string {
+  return (
+    process.env.GITHUB_SHA ??
+    execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim()
+  );
+}
+
+async function toolArgs(run: PackageRun, target: string): Promise<string[]> {
+  if (!run.formats.split(",").includes("appimage")) return [];
+  const tools = await appImageTools(target);
+  return ["--appimagetool", tools.appimagetool, "--appimage-runtime", tools.runtime];
+}
+
+function packagerArgs(run: PackageRun, tools: string[]): string[] {
   const target = hostTarget();
   return [
     "--program",
@@ -50,17 +66,28 @@ function packagerArgs(run: PackageRun): string[] {
     run.out,
     "--formats",
     run.formats,
+    ...tools,
   ];
 }
 
 export async function buildAndPackage(run: PackageRun): Promise<void> {
   const qt = await ensureStaticQt();
   const jobs = process.env.CARGO_BUILD_JOBS ?? "8";
+  const tools = await toolArgs(run, hostTarget());
   const build = ["cargo", "build", "--release", "-p", "opsis-ui", ...run.cargoArgs];
-  const packager = ["cargo", "run", "-q", "-p", "opsis-packager", "--", ...packagerArgs(run)];
+  const packager = [
+    "cargo",
+    "run",
+    "-q",
+    "-p",
+    "opsis-packager",
+    "--",
+    ...packagerArgs(run, tools),
+  ];
+  const built = commit();
   mkdirSync(run.out, { recursive: true });
   if (buildsNatively()) {
-    const env = { ...process.env, OPSIS_QT: qt, CARGO_BUILD_JOBS: jobs };
+    const env = { ...process.env, OPSIS_QT: qt, CARGO_BUILD_JOBS: jobs, OPSIS_COMMIT: built };
     execFileSync(build[0], build.slice(1), { cwd: ROOT, stdio: "inherit", env });
     execFileSync(packager[0], packager.slice(1), { cwd: ROOT, stdio: "inherit", env });
     return;
@@ -78,9 +105,12 @@ export async function buildAndPackage(run: PackageRun): Promise<void> {
       path.dirname(zig),
       path.dirname(path.dirname(qt)),
       devCache("qt"),
+      APPIMAGE_TOOLS_CACHE,
       run.out,
     ],
+    passEnv: UPDATE_KEY_ENV,
     env: {
+      OPSIS_COMMIT: built,
       ...cargoProfileVariables(process.env),
       PATH: `${path.join(cargoHome, "bin")}:${SYSTEM_PATH}`,
       CARGO_HOME: cargoHome,

@@ -8,7 +8,7 @@ use crate::bridge::ffi::{
     MixerView, MorphPathView, MorphStep, MotionInfo, NodeMove, PaletteEntry, PlayerView, PoseView,
     ProjectEntry, ProjectView, RemovalView, ReplayView, RulerStep, RunPanelView, ScreenArea,
     SettingsView, SnapView, StreamViewState, TemplateView, TerminalWindowView, TextToken,
-    TimelineView, TraceView, VariableView, WindowPlacement,
+    TimelineView, TraceView, UpdateView, VariableView, WindowPlacement,
 };
 use crate::frame::FrameRef;
 
@@ -154,6 +154,11 @@ pub trait Host {
     fn install_engine(&self);
     fn choose_browser(&self);
     fn about(&self) -> AboutView;
+    fn update_view(&self) -> UpdateView;
+    fn check_updates(&self);
+    fn download_update(&self);
+    fn cancel_update_download(&self);
+    fn restart_to_update(&self);
     fn licences(&self) -> Vec<LicenceView>;
     fn font_licences(&self, library: bool) -> Vec<LicenceView>;
     fn open_licence_file(&self, file: &str) -> HostResult<()>;
@@ -851,6 +856,26 @@ impl Session {
 
     pub(crate) fn about(&self) -> AboutView {
         self.0.about()
+    }
+
+    pub(crate) fn update_view(&self) -> UpdateView {
+        self.0.update_view()
+    }
+
+    pub(crate) fn check_updates(&self) {
+        self.0.check_updates();
+    }
+
+    pub(crate) fn download_update(&self) {
+        self.0.download_update();
+    }
+
+    pub(crate) fn cancel_update_download(&self) {
+        self.0.cancel_update_download();
+    }
+
+    pub(crate) fn restart_to_update(&self) {
+        self.0.restart_to_update();
     }
 
     pub(crate) fn licences(&self) -> Vec<LicenceView> {

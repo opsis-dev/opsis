@@ -51,6 +51,9 @@ pub struct EngineChanged(pub EngineStatus);
 pub struct SettingsChanged(pub AppSettings);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct UpdateChanged;
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct ViewPrefChanged(pub ViewPrefChange);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
@@ -148,6 +151,7 @@ session_events!(
     EngineInstallProgress,
     EngineChanged,
     SettingsChanged,
+    UpdateChanged,
     ViewPrefChanged,
     ApiStatusChanged,
     MenuCommandFired,

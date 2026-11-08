@@ -43,12 +43,20 @@ const PACKAGES = [
   "libxkbcommon-dev",
   "libxkbcommon-x11-dev",
   "libxrender-dev",
+  "rpm",
+  "makepkg",
+  "pacman-package-manager",
+  "fakeroot",
+  "libarchive-tools",
+  "zstd",
+  "patchelf",
 ];
 
 export type TrixieRun = {
   script: string;
   mounts: string[];
   env?: Record<string, string>;
+  passEnv?: string[];
 };
 
 function aptCache(): string {
@@ -77,6 +85,7 @@ export function runInTrixie(run: TrixieRun): void {
     `${aptCache()}:/var/cache/apt/archives`,
     ...run.mounts.flatMap((mount) => ["-v", `${mount}:${mount}`]),
     ...Object.entries(env).flatMap(([name, value]) => ["-e", `${name}=${value}`]),
+    ...(run.passEnv ?? []).filter((name) => process.env[name]).flatMap((name) => ["-e", name]),
     IMAGE,
     "bash",
     "-c",

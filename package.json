@@ -70,6 +70,7 @@
     "stage": "bun scripts/stage.ts",
     "make": "bun scripts/make.ts",
     "package:check": "bun scripts/package-check.ts",
+    "packager:test": "bun scripts/packager-test.ts",
     "profile": "bun scripts/profile.ts",
     "knip": "knip"
   },

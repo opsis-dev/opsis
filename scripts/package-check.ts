@@ -89,6 +89,11 @@ views() {
     echo "views FAILED"; tail -20 /tmp/run/views.log; exit 1
   fi
 }
+installed_from() {
+  grep -q "installed from $1" /tmp/run/views.log \
+    && echo "the program knows it came from the $1" \
+    || { echo "installer FAILED: the program doesn't know it came from the $1"; grep -m1 "installed from\|not installed" /tmp/run/views.log; exit 1; }
+}
 `;
 
 const CHECKS: Check[] = [
@@ -102,6 +107,7 @@ dpkg-query -W -f='installed ${"${Package}"} ${"${Version}"}\n' opsis
 test -f /usr/lib/opsis/THIRD_PARTY_NOTICES.md
 /usr/bin/opsis-ffmpeg -hide_banner -version | head -1
 views /usr/bin/opsis
+installed_from "deb package"
 export_film /usr/bin/opsis
 dpkg -r --force-depends ca-certificates > /dev/null 2>&1
 rm -rf /etc/ssl/certs/*
@@ -121,6 +127,7 @@ rpm --root /tmp/root --nodeps -i /pkg/${file} 2>&1 | grep -v "private mounts" ||
 rpm --root /tmp/root -q opsis
 test -f /tmp/root/usr/lib/opsis/THIRD_PARTY_NOTICES.md
 views /tmp/root/usr/bin/opsis
+installed_from "rpm package"
 `,
   },
   {
@@ -131,24 +138,21 @@ apt_install ${APPIMAGE_SYSTEM_PACKAGES.join(" ")}
 cp /pkg/${file} /tmp/opsis.AppImage
 export APPIMAGE_EXTRACT_AND_RUN=1
 views /tmp/opsis.AppImage
+installed_from "AppImage"
 `,
   },
   {
     format: "pacman",
-    suffix: ".tar.gz",
+    suffix: ".pkg.tar.zst",
     script: (file) => String.raw`
-apt_install pacman-package-manager makepkg fakeroot libarchive-tools binutils zstd file
+apt_install pacman-package-manager zstd
 apt_install $(deb_depends)
-useradd -m builder
-mkdir -p /tmp/build && cp /pkg/PKGBUILD /pkg/${file} /tmp/build/ && chown -R builder /tmp/build
-su builder -c "cd /tmp/build && makepkg --nodeps --noconfirm > /tmp/makepkg.log 2>&1" || { tail -30 /tmp/makepkg.log; exit 1; }
-built=$(ls /tmp/build/*.pkg.tar.*)
-echo "built $(basename $built)"
 mkdir -p /tmp/root/var/lib/pacman
-pacman -U --root /tmp/root --dbpath /tmp/root/var/lib/pacman --noconfirm --nodeps --nodeps "$built" > /tmp/pacman.log 2>&1 || { tail -30 /tmp/pacman.log; exit 1; }
+pacman -U --root /tmp/root --dbpath /tmp/root/var/lib/pacman --noconfirm --nodeps --nodeps /pkg/${file} > /tmp/pacman.log 2>&1 || { tail -30 /tmp/pacman.log; exit 1; }
 pacman --root /tmp/root --dbpath /tmp/root/var/lib/pacman -Q opsis
 test -f /tmp/root/usr/lib/opsis/THIRD_PARTY_NOTICES.md
 views /tmp/root/usr/bin/opsis
+installed_from "pacman package"
 `,
   },
 ];

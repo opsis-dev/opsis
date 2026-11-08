@@ -46,10 +46,25 @@ pub enum PackagerError {
     },
     #[error("{0}")]
     Usage(String),
-    #[error("packaging: {0}")]
-    Packager(#[from] cargo_packager::Error),
-    #[error("building the rpm: {0}")]
-    Rpm(#[from] rpm::Error),
+    #[error("{tool} isn't installed or isn't on the PATH: {source}")]
+    ToolMissing {
+        tool: String,
+        source: std::io::Error,
+    },
+    #[error("{tool} failed ({status}){}", if output.is_empty() { String::new() } else { format!(":\n{output}") })]
+    ToolFailed {
+        tool: String,
+        status: String,
+        output: String,
+    },
+    #[error("{program} holds the installer marker {found} times; a release program holds it once")]
+    Marker { program: PathBuf, found: usize },
+    #[error("{0} isn't a target triple this packager knows")]
+    UnknownTarget(String),
+    #[error("ldd couldn't find {0} on this system, so the AppImage can't be put together")]
+    SystemLibraryMissing(String),
+    #[error("the update key can't be used: {0}")]
+    UpdateKey(String),
 }
 
 pub fn io_error(path: impl Into<PathBuf>) -> impl FnOnce(std::io::Error) -> PackagerError {

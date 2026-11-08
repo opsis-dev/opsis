@@ -233,6 +233,24 @@ pub struct ApiSection {
     schemars::JsonSchema,
 )]
 #[serde(rename_all = "camelCase", default)]
+pub struct UpdatesSection {
+    #[garde(skip)]
+    pub check_on_start: bool,
+}
+
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Default,
+    Serialize,
+    Deserialize,
+    Validate,
+    Type,
+    schemars::JsonSchema,
+)]
+#[serde(rename_all = "camelCase", default)]
 pub struct AppSettings {
     #[garde(dive)]
     pub app: AppSection,
@@ -250,6 +268,8 @@ pub struct AppSettings {
     pub engine: EngineSection,
     #[garde(dive)]
     pub media: MediaSection,
+    #[garde(dive)]
+    pub updates: UpdatesSection,
 }
 
 #[choice(export)]
@@ -295,8 +315,8 @@ pub struct MediaSection {
     pub encode_speed: EncodePreset,
 }
 
-pub const SETTINGS_SECTIONS: [&str; 8] = [
-    "app", "traces", "live", "projects", "editor", "api", "engine", "media",
+pub const SETTINGS_SECTIONS: [&str; 9] = [
+    "app", "traces", "live", "projects", "editor", "api", "engine", "media", "updates",
 ];
 
 pub const RUST_ONLY_SECTIONS: [&str; 1] = ["engine"];

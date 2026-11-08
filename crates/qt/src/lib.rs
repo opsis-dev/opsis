@@ -29,7 +29,7 @@ pub use bridge::ffi::{
     TerminalWindowView, TextToken, TimelineAudioView, TimelineBarView, TimelineCameraKeyView,
     TimelineMarkView, TimelineMarkerView, TimelineTransitionView, TimelineView, TokenKind,
     TraceActionView, TraceConsoleView, TraceErrorView, TraceFrameView, TraceRequestView, TraceView,
-    VariableView, WindowPlacement,
+    UpdateView, VariableView, WindowPlacement,
 };
 pub use frame::FrameRef;
 pub use host::{

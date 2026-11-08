@@ -109,7 +109,7 @@ function buildScript(tarballs: string[], build: string, prefix: string): string 
 }
 
 export function buildsNatively(): boolean {
-  return process.env.CI === "true";
+  return process.env.CI === "true" && process.platform !== "linux";
 }
 
 export async function ensureStaticQt(): Promise<string> {

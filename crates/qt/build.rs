@@ -17,7 +17,7 @@ const DEFINES: [&str; 6] = [
     "QT_TESTLIB_LIB",
 ];
 
-const MOC_HEADERS: [&str; 35] = [
+const MOC_HEADERS: [&str; 36] = [
     "event_hub.h",
     "look_glyph.h",
     "widgets.h",
@@ -53,9 +53,10 @@ const MOC_HEADERS: [&str; 35] = [
     "font_picker.h",
     "terminal_window.h",
     "engine_card.h",
+    "update_card.h",
 ];
 
-const SOURCES: [&str; 52] = [
+const SOURCES: [&str; 53] = [
     "app.cc",
     "look_glyph.cc",
     "event_hub.cc",
@@ -104,6 +105,7 @@ const SOURCES: [&str; 52] = [
     "terminal_window.cc",
     "e2e_terminal.cc",
     "engine_card.cc",
+    "update_card.cc",
     "e2e_ports.cc",
     "e2e_api.cc",
     "e2e_views.cc",

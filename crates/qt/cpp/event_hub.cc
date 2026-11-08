@@ -97,6 +97,9 @@ void EventHub::Dispatch(std::uint8_t kind) {
     case bridge::EventKind::Fonts:
       emit FontsChanged();
       break;
+    case bridge::EventKind::Update:
+      emit UpdateChanged();
+      break;
     default:
       break;
   }

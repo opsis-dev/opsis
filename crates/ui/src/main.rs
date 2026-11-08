@@ -74,5 +74,6 @@ fn main() {
     let session = ui.session().clone();
     let code = opsis_qt::run(Box::new(ui));
     session.end();
+    opsis_session::updates::finish(&session);
     std::process::exit(code);
 }
