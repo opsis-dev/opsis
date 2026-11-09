@@ -12,16 +12,16 @@ Status: the Linux packages are built and checked ([packaging.md](../agent-docs/p
 
 ## Summary
 
-| Topic                       | What users get                                                       | Left to do                                            | Status                           |
-| --------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------- | -------------------------------- |
-| 1. Size work                | A smaller download and install                                       | act on the findings, record CI sizes                  | measured 2026-11-08              |
-| 2. Windows and macOS builds | Installers that have actually run on each system                     | static Qt and package jobs, push, first CI run, fixes | Linux packages built and checked |
-| 3. Platform checks          | The editor working the same on Windows and macOS                     | runner checks, the macOS shell, sign-in end to end    | not started                      |
-| 4. Local API on Windows     | A named pipe only the user's account can open                        | the access list and its test                          | not started                      |
-| 5. Code signing             | No "unknown publisher" or "can't be opened" warnings                 | identities, entitlements, CI signing                  | not started                      |
-| 6. Updates                  | Check for updates, ask first, install signed updates                 | check a real update on each system                    | built, not yet run               |
-| 7. Release test pass        | Fewer surprises: long takes, odd paths, every template, every system | the manual pass before each release                   | e2e in place (4 scenarios)       |
-| 8. Node packs (long term)   | Nodes that install and update apart from the app                     | all of it, after sections 1–7                         | not started                      |
+| Topic                       | What users get                                                       | Left to do                                         | Status                           |
+| --------------------------- | -------------------------------------------------------------------- | -------------------------------------------------- | -------------------------------- |
+| 1. Size work                | A smaller download and install                                       | act on the findings, record CI sizes               | measured 2026-11-08              |
+| 2. Windows and macOS builds | Installers that have actually run on each system                     | static Qt off Linux, push, first CI run, fixes     | Linux packages built and checked |
+| 3. Platform checks          | The editor working the same on Windows and macOS                     | runner checks, the macOS shell, sign-in end to end | not started                      |
+| 4. Local API on Windows     | A named pipe only the user's account can open                        | the access list and its test                       | not started                      |
+| 5. Code signing             | No "unknown publisher" or "can't be opened" warnings                 | identities, entitlements, CI signing               | not started                      |
+| 6. Updates                  | Check for updates, ask first, install signed updates                 | check a real update on each system                 | built, not yet run               |
+| 7. Release test pass        | Fewer surprises: long takes, odd paths, every template, every system | the manual pass before each release                | e2e in place (4 scenarios)       |
+| 8. Node packs (long term)   | Nodes that install and update apart from the app                     | all of it, after sections 1–7                      | not started                      |
 
 ## 1. Size work
 
@@ -42,14 +42,14 @@ Status: the Linux packages are built and checked ([packaging.md](../agent-docs/p
 
 **In place.**
 
-- `.github/workflows/build.yml`: checks, the offscreen view tests and the `wayland` scenario on Ubuntu 22.04, the other e2e scenarios with the engine, the source notice's links on `v*` tags (`bun run notice:links`), and `workflow_dispatch`.
-- `.github/workflows/release.yml`: a package job for each system (Linux in the trixie container, Windows with the pinned NSIS and WiX v7, both Macs) and, on `v*` tags, the draft release with the update feed ([packaging.md](../agent-docs/packaging.md)). None has run.
-- `actionlint` passes on the workflow (2026-10-26).
+- `.github/workflows/build.yml`, on every push, on Ubuntu 24.04: the checks (the offscreen view tests among them) and the `wayland` scenario, and the other e2e scenarios with the engine.
+- `.github/workflows/release.yml`, on `v*` tags or by hand (`workflow_dispatch`): the source notice's links (`bun run notice:links`), a package job for each system (Linux in the trixie container, Windows with the pinned NSIS and WiX v7, both Macs) and, on tags, the draft release with the update feed ([packaging.md](../agent-docs/packaging.md)). None has run, and its `qt:static` step fails on Windows and macOS until Work item 1 is done.
+- `actionlint` passed on the single workflow before it was split in two (2026-10-26).
 - The repository is `github.com/bismitpanda/opsis`. It is private; its `main` is behind the local one, its one workflow run (Build, 2026-11-05) failed, and it has no releases. The update signing secrets are set on it (section 6).
 
 **Work.**
 
-1. **Static Qt on Windows and macOS.** `static-qt.ts` builds only on Linux: add each platform's configure flags, without `-xcb`, `-fontconfig` and `-system-freetype`, so the package jobs can build on their runners.
+1. **Static Qt on Windows and macOS.** `static-qt.ts` builds only on Linux (`ensureStaticQt` refuses any other platform): let it build on the runner there and add each platform's configure flags, without `-xcb`, `-fontconfig` and `-system-freetype`, so the package jobs can build on their runners.
 2. **Push and make it public.** Push `main`, then switch the repository to public (decided below).
 3. **First run.** Start the workflow with `workflow_dispatch`; expect every build job to need fixes at least once (`fail-fast: false` is set).
 4. **Fix failures one system at a time.** Likely places: `install-engine` on Windows (Chrome for Testing download and unzip), begin-frame control on each platform's browser (the driver falls back to screenshots and says so), the MSI (WiX runs only on Windows and needs the VBSCRIPT feature), long paths on Windows (the downloaded engine sits several folders deep).

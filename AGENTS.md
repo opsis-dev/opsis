@@ -14,7 +14,7 @@
 - **No comments. Any kind. Anywhere.** No `//`, `///`, `//!`, no `/* */`, no JSDoc, no file headers, no CSS comments, in source, tests, scripts and config, in TS, Rust, Zig and C++.
   - If something needs explaining, the name is wrong or the function is too big; a constraint that spans the codebase goes in this file, a domain's in its doc.
   - Allowed comment-shaped lines are functional directives only: `oxlint-disable…`, `/// <reference …>`, `@ts-…`. Rust attributes (`#[expect(…)]`, `#[cfg(…)]`) and a lint exception's `reason` are not comments.
-  - `bun run lint:comments` (`scripts/comments.ts`, part of `lint` and `lint:fix`) checks every TS file through `oxc-parser`, C++ files line by line outside string literals, and CSS, Rust and Zig files line by line, everywhere but installed and generated code. TypeScript 7 has no parser API; its native compiler only type-checks.
+  - `bun run lint:comments` (`scripts/comments.ts`, part of `lint` and `lint:fix`) checks every TS file through `oxc-parser`, C++ files line by line outside string literals, and CSS, Rust, Zig and Qt style sheet files line by line, in `apps`, `packages`, `crates`, `scripts` and the root `*.config.ts`, skipping git-ignored files and `generated/` folders. TypeScript 7 has no parser API; its native compiler only type-checks.
 - **TS file names are kebab-case** (`trace-panel.tsx`); the code inside keeps its usual names (`TracePanel`).
   - oxlint enforces it (`unicorn/filename-case`).
   - Rust module files are snake_case, because a module name must be an identifier.
@@ -49,7 +49,7 @@
 - **No old formats.** Nothing is released, so there is no migration or fallback code for older project files, settings, engine folders or caches.
   - When a format changes, change it everywhere, write `examples/` again (`bun run examples`, `crates/project/src/bin/write-examples.rs`, from `examples()` in `crates/project/src/templates.rs`) and delete local test projects.
   - A test opens every example and fails when one isn't what the templates write; the formatter leaves `examples/` alone so they stay exactly as the app saves a project.
-- **The cache version constants (`PICTURE_VERSION`, `PREPARED_VERSION`, `ENGINE_VERSION`, `MIX_VERSION`) are not bumped before the first release.** To get fresh results while verifying, delete the test project's `.opsis/cache` or use a new project. What each one keys is in [runs.md](agent-docs/runs.md).
+- **The cache version constants (`PICTURE_VERSION`, `PREPARED_VERSION`, `ENGINE_VERSION`, `MIX_VERSION`, `ANALYSIS_VERSION`) are not bumped before the first release.** To get fresh results while verifying, delete the test project's `.opsis/cache` or use a new project. What each one keys is in [runs.md](agent-docs/runs.md).
 - **Do not commit or push.** Leave changes in the working tree unless asked.
 - **Large files go under `~/.cache`; `/tmp` is for small scripts and screenshots only.** Long-running processes start with `run_in_background`.
   - What the dev process keeps (toolchains, pinned downloads, release builds, e2e and test outputs) lives in `~/.cache/opsis-dev/<name>`, named through `devCache` (`scripts/lib/tool-config.ts`) or `opsis_golden::dev_cache`.
@@ -65,7 +65,7 @@
 - **Rust imports are grouped std, external crates, then the workspace's own, one `use` per module, and struct fields use the shorthand.** `rustfmt.toml` keeps the imports so (`group_imports = "StdExternalCrate"`, `imports_granularity = "Module"`, applied only by the nightly).
 - **`bun start` (`scripts/start.ts`) stages FFmpeg when missing and runs the editor (`cargo run -p opsis-ui`).** Exports and terminal previews also need `bun run film:bundle`, live terminal pictures `bun run terminal:bundle`; make each again whenever `packages/video` or `packages/runtime` changes.
 - **To see a change in the running app, use the `check-app` skill** (`.claude/skills/check-app`): it seeds `~/.cache/opsis-dev/check` (short, so the API socket fits), starts `bun start` in a virtual display and drives it through the Local API.
-- **Environment variables:** `OPSIS_USER_DATA` moves the data folder (default `<config dir>/Opsis`), for tests and side-by-side runs; `OPSIS_FFMPEG` (absolute, read only by builds with debug assertions) names the FFmpeg the app and tests start; `OPSIS_API_SOCKET` moves the Local API socket ([api.md](agent-docs/api.md)); `OPSIS_AUDIO_DEVICE` (a sound output's id such as `alsa:null`, read only by builds with debug assertions) replaces the default sound output; `OPSIS_WRITE_GOLDEN=1` records golden files; `OPSIS_UPDATE_KEY` and `OPSIS_UPDATE_KEY_PASSWORD` (the ignored `.env` locally, repository secrets in CI) sign update files; `OPSIS_COMMIT` (set by `bun run make`) puts the commit in a release build's About page.
+- **Environment variables:** `OPSIS_USER_DATA` moves the data folder (default `<config dir>/Opsis`), for tests and side-by-side runs; `OPSIS_FFMPEG` (absolute, read only by builds with debug assertions) names the FFmpeg the app and tests start; `OPSIS_API_SOCKET` moves the Local API socket ([api.md](agent-docs/api.md)); `OPSIS_AUDIO_DEVICE` (a sound output's id such as `alsa:null`, read only by builds with debug assertions) replaces the default sound output; `OPSIS_WRITE_GOLDEN=1` records golden files; `OPSIS_UPDATE_KEY` and `OPSIS_UPDATE_KEY_PASSWORD` (the ignored `.env` locally, repository secrets in CI) sign update files; `OPSIS_COMMIT` (set by `bun run make`) puts the commit in a release build's About page; `OPSIS_QT` and `OPSIS_KDDW_SOURCE` name another Qt and KDDockWidgets source ([toolchain.md](agent-docs/toolchain.md)).
   - `bun start`, `bun run test:rust` and the e2e runner set `OPSIS_FFMPEG` to the staged program; a test that starts FFmpeg reads it through `opsis_golden::ffmpeg()`.
 
 ## 4. Verifying
@@ -75,12 +75,12 @@
   - `format:fix` runs oxfmt (TS, JSON and Markdown), `cargo fmt --all`, `zig fmt` (`format:zig`) and `clang-format` on the C++; `test` runs every package's Vitest and `cargo test --workspace`.
 - **Clippy runs `pedantic` and `nursery` as warnings and `-D warnings` fails on any of them.** The permanent workspace allows and why each exists are in [toolchain.md](agent-docs/toolchain.md); never add a workspace line.
 - **A lint exception is local, on the item or statement, and written `#[expect(lint, reason = "…")]`**, the reason saying why the flagged code is meant; `unfulfilled_lint_expectations` reports it once the lint stops firing.
-  - An exception that holds in only some builds sits in a `cfg_attr` for those builds (`native_menu`, dead outside macOS).
+  - An exception that holds in only some builds sits in a `cfg_attr` for those builds.
   - `#[allow]` is only for code where an expectation can't hold in every build that compiles it (test helpers shared by several test binaries, `crates/capture/tests/support/mod.rs`), as an inner `#![allow(…, reason = "…")]`. Clippy's `allow_attributes` and `allow_attributes_without_reason` fail the rest.
   - An oxlint suppression is `// oxlint-disable-next-line <plugin>/<rule>`.
 - **A pure function with an invariant (a round trip, a bound, an order, a count) is tested as a property over generated inputs**: `proptest` in Rust, `fast-check` in TS. A hand-written case only pins exact text people see; a test never restates a lookup table or checks a pure function against itself.
-- **TS tests are `*.test.ts` on Node** (each package's `src`, the apps' `src`, `scripts`); a test that renders React components or hooks is `*.test.tsx` in happy-dom with Testing Library (the two `projects` in `scripts/lib/vitest-base.ts`).
-- **Scripts that need the catalogue read it from Rust through the `editor-data` binary** (`crates/compile/src/bin/editor-data.rs`, built in release): `glyphs:bundle` and the profiler.
+- **TS tests are `*.test.ts` on Node** (each package's `src`, `scripts`; the apps have no tests); a test that renders React components or hooks is `*.test.tsx` in happy-dom with Testing Library (the two `projects` in `scripts/lib/vitest-base.ts`).
+- **Scripts that need the catalogue read it from Rust through the `editor-data` binary** (`crates/compile/src/bin/editor-data.rs`, built in release): `glyphs:bundle`, the profiler, and the root's Vitest run, whose global setup builds it (`scripts/lib/build-editor-data.ts`).
 - **`cargo test -p opsis-ui` checks the native views on Qt's offscreen platform**, through the `views` scenario, so `bun run test` covers them without a display ([e2e.md](agent-docs/e2e.md)).
 - **Tests that need the dev engine or a built page are `#[ignore]`d with the reason**; run them with `cargo test -p <crate> -- --ignored` (render tests also need `bun run film:bundle`).
 - **End-to-end tests run only in a virtual display, never on the real screen, and never move the real pointer** ([e2e.md](agent-docs/e2e.md)).
@@ -104,12 +104,12 @@
 - **Apps build things and nothing imports them**: `apps/film` (`@opsis/film`, the film page the frame driver renders, mounting `@opsis/video/film`), `apps/terminal` (`@opsis/terminal`, the page that paints live terminal pictures, on `@opsis/video/terminal/view`).
 - **`packages/video` (`@opsis/video`) is source the apps compile**: the film (`film.tsx`, `DemoTimeline`), the elements, and its plain helpers (`src/common`).
 - **`packages/runtime` (`@opsis/runtime`) is the film's page runtime**: the clock (`useFrame`, `useFilm`), `Sequence`, `Freeze`, `Loop`, the render holds (`holdRender`, `failRender`, `useHeldLoad`), `AbsoluteFill`, `Img`, the render environment, the maths (`interpolate`, `Easing`, `spring`, `random`, our own, property-tested), the page protocol (`page.tsx`) and the test harness (`test-frame.tsx`).
-- **Each member declares the dependencies it imports and has its own `tsconfig.json` (extending `tsconfig.base.json`), `vitest.config.ts` and `oxlint.config.ts`**; root scripts run each check everywhere plus the root's own (`typecheck:app`, `lint:app`, `test:app` cover `scripts`).
+- **Each member declares the dependencies it imports and has its own `tsconfig.json` (extending `tsconfig.base.json`) and `oxlint.config.ts`, and each package its `vitest.config.ts`**; root scripts run each check everywhere plus the root's own (`typecheck:app`, `lint:app`, `test:app` cover `scripts`).
 - **Installs are bun's isolated layout**: a folder imports only what it or the root declares, and scripts read a package's files from the package that owns it.
 - **Imports:**
   - Members import each other only by package name, through their `exports` (`@opsis/video/common/*`, `@opsis/video/generated/spec`, `@opsis/video/film`…).
-  - A member imports its own files through its `package.json` `imports` with its own prefix (`#video/…`, `#runtime/…`, `#film/…`), never `#/`. `video` and `runtime` mix `.ts` and `.tsx` and import with the extension (`#video/core/frame.tsx`).
-  - Nothing imports by a relative path; oxlint rejects `@/` in `video`.
+  - A member imports its own files through its `package.json` `imports` with its own prefix (`#video/…`, `#runtime/…`, `#film/…`, `#terminal/…`), never `#/`. `video` and `runtime` mix `.ts` and `.tsx` and import with the extension (`#video/core/frame.ts`, `#video/demo-timeline.tsx`).
+  - No member imports by a relative path; oxlint rejects `@/` in every member.
 - **Use the shared helpers before writing a local copy**: `packages/video/src/common` (`math.ts`, `geometry.ts`…) for plain helpers, `packages/video/src/lib/<purpose>/` for the video's helpers, `packages/video/src/parts/` for parts several elements share.
 
 ```
@@ -117,10 +117,10 @@ crates/                Rust, one domain per crate (table below)
 apps/film/src/         the film page: mounts the film for the frame driver
 apps/terminal/src/     the terminal page: paints live terminal frames for the editor
 packages/runtime/src/  the film's page runtime
-packages/video/src/    the film: film.tsx, DemoTimeline, registry/, core/, camera/, three/, terminal/, common/, generated/, elements/, parts/, lib/
+packages/video/src/    the film: film.tsx, DemoTimeline, registry/, core/, camera/, three/, terminal/, common/, generated/, elements/, parts/, lib/, fonts/
 fixtures/              golden files
 examples/              example projects, written by `bun run examples`
-public/                the app's files (`app:` refs): fonts, sounds, music, placeholders, backdrops
+public/                the app's files (`app:` refs): fonts, sound effects (`sfx`), music, placeholders, backdrops
 scripts/               bundling, pinning, packaging, the oxlint plugin, shared tool configs
 plans/                 planned work
 agent-docs/            the domain docs (§8)
@@ -193,9 +193,9 @@ agent-docs/            the domain docs (§8)
 
 ### The app
 
-- **Nothing uses the internet unless the user asks.** The app works offline; anything that needs the network (setting up the engine, getting fonts online) sits behind a button and asks first, and what it downloads is saved locally (`<data folder>/engine`, `<data folder>/fonts`).
+- **Nothing uses the internet unless the user asks.** The app works offline; anything that needs the network (setting up the engine, getting fonts online) sits behind a button and asks first, and what it downloads is saved locally (`<data folder>/engine`, `<data folder>/fonts`). Updates are checked only on their button, or at start when the user turns that on ([updates.md](agent-docs/updates.md)).
 - **Never hold a lock across a call that may take it again** (the settings lock and `announce`, which reads the settings): a database lock held that way hangs the close.
-- **Nothing blocks on the async runtime.** The keyring is the one thing made in setup itself, and a run reaches it only through `off_runtime` ([app-state.md](agent-docs/app-state.md)), because the Linux Secret Service store blocks inside `zbus` and panics on a runtime thread.
+- **Nothing blocks on the async runtime.** The keyring is the one thing made before the session starts (`start`, `crates/ui/src/main.rs`), and a run reaches it only through `off_runtime` ([app-state.md](agent-docs/app-state.md)), because the Linux Secret Service store blocks inside `zbus` and panics on a runtime thread.
 - **Register long app work in `AppState.tasks`** (`begin(label)`/`end(label)`, `crates/session/src/state.rs`) so the exit dialog lists it.
 - **Never write intermediates to the system temp folder from the app**; every child program gets its own temp folder ([engine.md](agent-docs/engine.md)).
 - **Views that read a node by id handle it being gone**: a panel can refresh once more after the node is deleted.
@@ -210,7 +210,7 @@ agent-docs/            the domain docs (§8)
 - **Elements are described in words** (`element_name`); element descriptions are on their entries.
 - **The node's name (`node.label`) is also its camera, chapter and caption label.**
 - **Categories keep their internal ids**; display names come from `Category::label` (`crates/compile/src/node.rs`), sent with the catalogue.
-- **`crates/compile/tests/unit/nodes_c.rs` enforces descriptions and the banned words.**
+- **`crates/compile/tests/unit/nodes_c.rs` enforces descriptions and bans the names in its list from node titles, descriptions and field labels**; the other copy (badges, toasts, errors) is kept to these rules by hand.
 
 ## 8. Domain docs
 

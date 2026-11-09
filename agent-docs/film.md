@@ -4,36 +4,38 @@ The film page and its protocol, the frame driver that renders it, the paint trap
 
 ## Code map
 
-| Concern                        | Where                                                                                                                                                                                   |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Page protocol (`window.opsis`) | `packages/runtime/src/page.tsx` → `mountFilm`                                                                                                                                           |
-| Film page app                  | `apps/film` (built into `film-bundle/`)                                                                                                                                                 |
-| Film served                    | render file server, `/.opsis/film/` (`FILM_FOLDER`, `folder_routes`)                                                                                                                    |
-| Frame driver                   | `crates/capture/src/film.rs` → `FrameDriver`, `film_switches`, `seek`                                                                                                                   |
-| Launch switches                | `crates/capture/src/browser.rs` → `effective_switches`                                                                                                                                  |
-| Encoding and stills            | `crates/render/src/frames.rs`; arguments `crates/media/src/codecs.rs` → `film_encode_args`; test `crates/render/tests/frames.rs`                                                        |
-| Canvas transitions and filters | `packages/video/src/lib/transitions/` → `makeCanvasPresentation`, `makeCanvasFilter`, `untilPainted` (`canvas-presentation.tsx`), `scene-series.tsx` → `SceneSeries`                    |
-| Cut boards                     | `packages/video/src/core/transition-cuts.tsx` → `CutBoardProvider`; `packages/video/src/demo-timeline.tsx` → `TransitionWrap`                                                           |
-| Sequence cuts                  | `cuts_for`, `sequence_clips` (`crates/compile/src`)                                                                                                                                     |
-| Transition warnings            | `cover_row`; `TransitionMark.covers`                                                                                                                                                    |
-| Other shapes                   | `packages/video/src/core/frame.ts` (`overlayScale`, `shapeInsets`, `zoomBoost`, `narrowPose`, `frameFor`, `NarrowBleedClip`); `containBox` in `packages/video/src/core/still-layout.ts` |
-| Export sizes, shapes           | `crates/compile/src/nodes/output.rs` → `variant_size`; catalogue `shapes`, `variant_canvas`                                                                                             |
-| Window frames                  | `WindowFrame`; `packages/video/src/camera/frame-address.ts` → `frameAddress`                                                                                                            |
-| Paintable scale                | `PAINTABLE_SCALE`                                                                                                                                                                       |
+| Concern                        | Where                                                                                                                                                                                                                                                                                 |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Page protocol (`window.opsis`) | `packages/runtime/src/page.tsx` → `mountFilm`; holds in `packages/runtime/src/holds.ts` (`holdRender`, `failRender`, `settled`)                                                                                                                                                       |
+| Film page app                  | `apps/film` (built into `film-bundle/`)                                                                                                                                                                                                                                               |
+| Film served                    | render file server, `/.opsis/film/` (`crates/compile/src/asset_ref.rs` → `FILM_FOLDER`; `crates/engine/src/http_files.rs` → `folder_routes`)                                                                                                                                          |
+| Frame driver                   | `crates/capture/src/film.rs` → `FrameDriver`, `Capture`, `film_switches`, `seek`, `PROBE_ATTEMPTS`, `FRAME_TIMEOUT`                                                                                                                                                                   |
+| Launch switches                | `crates/capture/src/browser.rs` → `effective_switches`                                                                                                                                                                                                                                |
+| Encoding and stills            | `crates/render/src/frames.rs` → `FRAME_QUALITY`; arguments `crates/media/src/codecs.rs` → `film_encode_args`; test `crates/render/tests/frames.rs`                                                                                                                                    |
+| Canvas transitions and filters | `packages/video/src/lib/transitions/` → `makeCanvasPresentation`, `makeCanvasFilter`, `untilPainted` (`canvas-presentation.tsx`), `scene-series.tsx` → `SceneSeries`                                                                                                                  |
+| Cut boards                     | `packages/video/src/core/transition-cuts.tsx` → `CutBoardProvider`; `packages/video/src/demo-timeline.tsx` → `TransitionWrap`                                                                                                                                                         |
+| Sequence cuts                  | `crates/compile/src/nodes/timeline.rs` → `cuts_for`; `crates/compile/src/clip.rs` → `sequence_clips`                                                                                                                                                                                  |
+| Transition warnings            | `crates/compile/src/card_rows.rs` → `cover`, `cover_row`, `squeezed_too_much`, `TRANSITION_WARN_RATIO`; `crates/compile/src/nodes/elements.rs` → `SHORT_ELEMENT_RATIO`; `crates/compile/src/timeline/flatten.rs` → `TransitionMark.covers`                                            |
+| Other shapes                   | `packages/video/src/core/frame.ts` (`overlayScale`, `shapeInsets`, `zoomBoost`); `packages/video/src/camera/lib/camera-track.ts` (`narrowPose`, `frameFor`); `packages/video/src/camera/demo-clip.tsx` → `NarrowBleedClip`; `containBox` in `packages/video/src/core/still-layout.ts` |
+| Export sizes, shapes           | `crates/compile/src/nodes/output.rs` → `variant_size`; catalogue `shapes`, `variant_canvas`                                                                                                                                                                                           |
+| Window frames                  | `packages/video/src/camera/window-frame.tsx` → `WindowFrame`; `packages/video/src/camera/frame-address.ts` → `frameAddress`, used by `packages/video/src/core/recording-clip.tsx`                                                                                                     |
+| Paintable scale                | `packages/video/src/elements/data/animated-bar-chart.tsx` → `PAINTABLE_SCALE`                                                                                                                                                                                                         |
 
 ## Rules
 
 ### The page and the driver
 
-- **`window.opsis` is the whole protocol**: `load(spec)` mounts the film at frame 0 and resolves with its size, rate and length once every hold is released and the fonts are ready; `seek(frame)` commits the frame with `flushSync` and resolves the same way; `holds()` names what is still open.
-- **The driver launches the browser with the film's own switches** (`film_switches`: the GL choice and the element-drawing feature) and, on Linux, under begin-frame control.
-  - It probes once that a test page draws, tries again, and otherwise takes a screenshot per frame; the run log says which.
+- **`window.opsis` is the whole protocol**: `load(spec)` mounts the film at frame 0 and resolves with its size, rate and length once every hold is released and the fonts are ready; `seek(frame)` commits the frame with `flushSync` and resolves, with nothing, once the holds are released and the fonts are ready; `holds()` names what is still open.
+  - A React error while drawing fails the render (`failRender` from the root's error handlers in `mountFilm`).
+- **The driver launches the browser with the film's own switches** (`film_switches`: the GL choice and the element-drawing feature) and, on Linux, under begin-frame control (`Capture::for_this_computer`); on Windows and macOS it takes a screenshot per frame.
+  - A film whose scale isn't 1, or a caller that asks for screenshots, takes a screenshot per frame too.
+  - Otherwise it probes that a test page draws (`PROBE_ATTEMPTS`), and falls back to a screenshot per frame when it doesn't; the run log says why.
 - **A render or still that fails while drawing with a graphics card setting checks whether the browser can draw WebGL with it (`draws_webgl`, `crates/capture/src/film.rs`)**, and when it can't, says so and names the Draw with choice to use instead (`FilmError::NoWebGl`, `crates/render/src/frames.rs`); the original error goes to the log.
   - On a Linux laptop with both Intel's and NVIDIA's Vulkan drivers, "Graphics card, newer drivers" starts ANGLE on Vulkan, then fails to share the first WebGL image (`initExternalMemory`, error -2) and the page hangs. Films without WebGL render, so nothing checks before a render.
   - The page loads while display-less frames tick; each frame is a seek, then one `beginFrame` with its picture. A frame with no damage repeats the last picture.
-- **A frame that isn't ready within 30 s fails, naming the holds still open.**
+- **A frame that isn't ready within `FRAME_TIMEOUT` fails, naming the holds still open.**
 - **The page only draws when the driver asks, so while a seek waits on holds the driver issues frames it doesn't capture** (`seek`). A hold may therefore wait for an animation frame or a canvas `paint` event (`untilPainted`); the captured frame comes after them.
-- **Frames are JPEG at quality 80** into FFmpeg (`film_encode_args`).
+- **Film frames are JPEG at `FRAME_QUALITY`** into FFmpeg (`film_encode_args`).
 - **A film is drawn in one tab, in frame order**, which the footage decoders rely on (each frame decoded once). Measure before adding tabs: shader backgrounds lose their WebGL context when several tabs draw at once.
 - **Development film pages keep their source maps** so render errors point at source lines; release staging builds without them.
 
@@ -53,8 +55,8 @@ The film page and its protocol, the frame driver that renders it, the paint trap
 
 - **A transition overlaps the clips by its length unless Keep every clip whole is on** (`TransitionRef.hold`): then `sequence_clips` holds the outgoing clip's last frame and the incoming clip's first frame for the transition (group `remap`) and delays the incoming sound, so no clip loses screen time.
 - **A Sequence's `cuts` give the cut before a port its own transition, length and hold** (`cuts_for`): `before` is a port name from the `cut` widget, so connecting other clips never moves it; the last entry for a port wins, and entries for empty ports are kept and ignored.
-- **Cards warn when a transition covers more than 40% of a clip** (`cover_row`, fed `inputFrames`), when it is squeezed below 40% of its designed length, when Fit length cuts or speeds a lot, and when an element is shorter than 60% of its usual length; the Timeline outlines heavy transitions (`TransitionMark.covers`).
-- **Transition marks carry the `slot` that owns them**; clicking a mark's label on the Timeline selects that node.
+- **Cards warn when a transition covers too much of a clip or is squeezed well below its designed length** (`cover`, `cover_row`, `squeezed_too_much`, both at `TRANSITION_WARN_RATIO`), when Fit length cuts or speeds a lot, and when an element is much shorter than its usual length (`SHORT_ELEMENT_RATIO`). The flattened marks also record how much of a clip each transition covers (`TransitionMark.covers`), though the Timeline draws every transition the same.
+- **Transition marks carry the `slot` that owns them** (`TransitionMark.slot`); the Timeline's view of a mark (`TimelineTransitionView`) has neither the slot nor `covers`.
 
 ### Other shapes
 

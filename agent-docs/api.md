@@ -4,14 +4,14 @@ The HTTP API scripts and agents use to read, change and run the open project. Pa
 
 ## Code map
 
-| Concern                | Where                                                                            |
-| ---------------------- | -------------------------------------------------------------------------------- |
-| Routes                 | `api/src/routes.rs` → `ApiHost`                                                  |
-| Host implementation    | `session/src/api.rs`                                                             |
-| Socket address         | `api/src/address.rs` → `api_address`                                             |
-| OpenAPI document       | `api/src/openapi.rs`                                                             |
-| Validation             | `check_workflow`, `workflow_problems`, `workflow_problems_with`, `file_problems` |
-| Editor side of `/open` | `useApiHost` (`OpenRequested`)                                                   |
+| Concern                | Where                                                                                                                                     |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Routes                 | `api/src/routes.rs` → `routes`, `ApiHost`, `HostError`, `MAX_BODY`                                                                        |
+| Server and socket      | `api/src/server.rs` → `ApiServer::set_enabled`; `api/src/address.rs` → `api_address`                                                      |
+| Host implementation    | `session/src/api.rs` → `follow_setting`, `document_failure`, `start_failure`                                                              |
+| OpenAPI document       | `api/src/openapi.rs`; tests in `api/tests/routes.rs`                                                                                      |
+| Validation             | `compile/src/check.rs` → `check_workflow`, `workflow_problems`, `workflow_problems_with`; `session/src/node_results.rs` → `file_problems` |
+| Editor side of `/open` | `session/src/api.rs` emits `OpenRequested` to `MAIN_WINDOW`; `ui/src/ui.rs` shows the project                                             |
 
 ## Rules
 
@@ -20,12 +20,17 @@ The HTTP API scripts and agents use to read, change and run the open project. Pa
   - A stale socket from a crash is replaced, a live one from another copy of the app is left alone and reported, and anything that isn't a socket is never deleted.
 - **Socket paths are capped at 100 bytes (`api_address`)**, below the OS limits (107 on Linux, 103 on macOS): a longer or relative path is refused before listening, and Settings → API says to set `OPSIS_API_SOCKET` to a shorter full path. There is no automatic fallback location.
 - **On Windows the variable is ignored and the API uses the named pipe `\\.\pipe\opsis-api-<user>`, never a TCP port.**
-- **Without an open project it answers `/openapi.json`, `/status`, `/nodes`, `/nodes/{type}`, `/validate` and `/open`.**
+- **Without an open project it answers `/openapi.json`, `/status`, `/nodes`, `/nodes/{type}`, `/validate` and `/open`.** The other `/project` routes answer 409 then, except `/project/run/stop` and `/project/run/events`, which never look for a project.
+- **A route that fails answers `{"error": …}`, with the status the host chose for its own failures** (`HostError`, mapped by `document_failure` and `start_failure`); unknown routes answer 404 pointing to `/openapi.json`, and a body over `MAX_BODY` is refused before any route reads it.
 - **Under `/project`, every request works on the document in Rust through `ApiHost`**: an edit is one `WorkflowEdit`, so one undo step, autosaved and shown in every window, whether or not an editor window is open.
 - **Rust checks bodies, node types, connections and settings before editing, and adds the problems to every answer**: the editor's own, from the run results and file checks (`ApiHost::problems`).
 - **`/open` opens the project in Rust and asks the main window to show it (`OpenRequested`)**; runs start from the document like the editor's, and run events also stream on `/project/run/events`.
-- **Every route is documented in `openapi.rs`** (from the `schemars` schemas of the bodies). A test keeps the document under 100 KB and checks every route is in it; node settings schemas come from `/nodes/{type}`.
+  - `/open` takes an absolute folder (400 otherwise) that holds a project file (404 otherwise).
+  - A run answers 409 while another runs and while the project's version is unchosen, as well as with no project (`StartError`, `session/src/run.rs`).
+  - The events are server-sent events, one `data:` line of JSON per run event, sent only while a client follows them.
+- **Every route is documented in `openapi.rs`** (from the `schemars` schemas of the bodies); node settings schemas come from `/nodes/{type}`.
+  - `documents_every_route_it_serves` checks a list of routes written in the test, not the router, so a new route goes in that list too; another test keeps the document under 100 KB.
 
 ## Deliberate limits
 
-- **The Windows named pipe has no current-user-only ACL.**
+- **The Windows named pipe has no current-user-only ACL**, although the description `openapi.rs` serves (`DESCRIPTION`) says only the user's account can open it.

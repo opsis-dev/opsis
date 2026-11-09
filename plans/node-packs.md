@@ -24,7 +24,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ## Decided
 
-- **Phases from [release.md](release.md) §8:** no-code nodes first, packs as data second, pack code third, third-party packs fourth. Third-party packs install from a file, with no online catalogue at first. Unsigned packs may run code after a clear warning naming what they can do; signed ones skip it.
+- **Phases:** no-code nodes first, packs as data second, pack code third, third-party packs fourth. Third-party packs install from a file, with no online catalogue at first. Unsigned packs may run code after a clear warning naming what they can do; signed ones skip it.
 - **Pack code is WebAssembly components described in WIT** (`opsis:pack`), for elements, compile steps and executors alike. A pack is one component.
 - **wasmtime is the loader**: Cranelift compiles packs, and it is the reference runtime the component model and WASI are built on. Not Extism: its ABI is its own, on plain modules, and it doesn't use the component model or WIT (extism/extism#666, open since 2024-01-26). Not wasmi, and not an embedded JavaScript engine.
 - **Packs may be written in any language that builds WIT components.** Rust (`wit-bindgen` on `wasm32-wasip2`) is the documented and tested one; others are allowed and unsupported.
@@ -57,7 +57,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Fit with Opsis
 
-- **In place:** templates from `templates.json` (`opsis-project`), the document's selection and gestures (`opsis-document`).
+- **In place:** templates from `templates.json` (`opsis-project`), the shared selection (`crates/session/src/shared.rs`) and the document's gestures (`opsis-document`).
 - **Missing:** the subgraph node, its expansion in compile, saved presets.
 
 ### Work
@@ -283,7 +283,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Fit with Opsis
 
-- **In place:** update signing work in [release.md](release.md) §5 and §6.
+- **In place:** update signing ([release.md](release.md) §6); code signing is still to come (§5).
 - **Missing:** the permission list, the warning, signature checks.
 
 ### Work
@@ -344,7 +344,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Fit with Opsis
 
-- **In place:** the builder API from the native renderer, `render-elements`.
+- **In place:** `render-elements`; by then, the builder API from the native renderer.
 - **Missing:** the SDK crate, the template, the checker.
 
 ### Work

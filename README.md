@@ -1,110 +1,159 @@
-# Opsis
+<p align="center">
+  <img src="./brand/logo.svg" alt="Opsis" width="96">
+</p>
 
-Record a real website and turn it into a polished product demo.
+<h1 align="center">Opsis</h1>
 
-Opsis is a desktop app with a node editor. Browser nodes drive a real website (clicks, typing, scrolling) and record it in one take; camera, cursor, text, motion-graphics, transition, audio and media nodes turn the recording into a finished video, exported in several shapes at once. Everything runs on your computer.
+<p align="center"><b>Record a real website or terminal and turn it into a polished product demo.</b></p>
 
-> **Early preview.** Built and tested on Linux, where the deb, rpm, AppImage and pacman packages install and run. Nothing has been built on Windows or macOS yet, and there are no signed installers or auto-updates. Expect rough edges.
+Opsis is a desktop app with a node editor. Browser and terminal nodes drive a real website or shell (clicks, typing, scrolling, commands) and record it in one take; camera, cursor, text, motion-graphics, transition, audio and media nodes turn the recording into a finished video, exported in several shapes at once. Everything runs on your computer. 💻
 
-Built with Rust, [Qt](https://www.qt.io) Widgets and [KDDockWidgets](https://github.com/KDAB/KDDockWidgets) for the editor, React for the film page, and FFmpeg. See [`plans/`](./plans) for work that's planned but not built.
+> 🚧 **Early preview.** Opsis hasn't had a release yet. It is built and tested on Linux, where the deb, rpm, AppImage and pacman packages install and run. Windows and macOS builds don't work yet, and the installers aren't code signed. Expect rough edges.
 
-## What it does
+Built with Rust, [Qt](https://www.qt.io) Widgets and [KDDockWidgets](https://github.com/KDAB/KDDockWidgets) for the editor, React for the film page, Ghostty's terminal engine, and FFmpeg. Work that's planned but not built lives in [`plans/`](./plans).
 
-- **Record:** 18 browser actions (go to page, click, type, hover, drag onto an element, by a distance or along a path, scroll, choose option, upload file, press keys, wait, check text, fake a response, freeze time, hide clutter, page scripts, chapters, HTML overlays…), a Sign in step that saves the login once and reuses it in every take, a Start recording step so setup runs off camera, a live view of the recording browser, and a replay with a step-by-step trace of every take.
-- **Camera and cursor:** a camera that zooms to every action, manual zooms, pans, follow the cursor, speed up quiet parts, speed ramps, crop, laptop and phone frames, macOS, Windows and Linux window frames (light or dark, with the page address), studio backdrops, motion blur; cursor styles (a simple arrow, or a Mac cursor that turns into a hand over links and a text cursor over fields), click ripples, keystroke chips, spotlights and highlight boxes, clean or hand-drawn; blurred areas that hide private details and stay on the page while the camera moves. Cursor, marks, backdrop and frame settings form a style that one take or several share.
-- **Graphics:** 138 elements (text effects, overlays, charts, UI scenes, device mockups, backgrounds, effects), plus Lottie animations (`.json` and `.lottie`), a mosaic effect for hiding private details, title cards with a hand-drawn mark on chosen words, and a picture look (colour, dark edges, film grain).
-- **3D:** a 3D logo, card and text in any project font, 3D models from your project with their own animations, a clip shown on a 3D laptop, monitor, phone or floating screen that ends facing the camera, and floating shapes as a background; camera keyframes set in the Inspector and dragged on the timeline.
-- **Transitions:** 25 plus a light-leak cut. A Sequence can use a different transition, length and hold before any of its clips.
-- **Text and fonts:** 16 bundled font families; a font library you fill from font files or ZIPs, fonts installed on your computer, or free fonts downloaded online (only when you ask). Projects set fonts for text, headings and code, and copy the fonts they use so they open anywhere.
-- **Audio:** music with fades and ducking under sound effects (3 built-in CC0 songs or your own files), music fitted to the film (stretched a little, or looped with a crossfade), sound effects (7 built-in CC0 sounds or your own files) at a time or on a browser action, click and key sounds at every action of a take, a whoosh at every transition, a riser that ends on an action, a marker or the clip's end, generated sounds (whoosh, riser, pop, ding, tap, swell, click) with their variations, tones and countdown beeps, room tone, any number of sounds under a clip, captions timed from a script.
-- **Media:** trim, join, speed (up to 64×), reverse, resize, convert, GIF, extract audio, even out volume, grab a frame, web-ready; for sound: clean speech (noise, rumble, harsh "s" sounds, level), fix clicks and clipping, remove hum, shorten pauses, change pitch, voice effects (telephone, radio, rooms, echo) and a picture of the waveform or spectrum. Media file nodes read their file without a run, and nodes warn before a run when they get the wrong kind of file.
-- **Images:** resize, crop (an area you draw or margins), rotate and flip, straighten, tilt in 3D, adjust colour, auto levels, blur and sharpen, place a logo or watermark, redact, spotlight, trim empty edges, make a colour transparent, outline, a grid of images, a framed screenshot on a backdrop, before and after, magnify, compare two screenshots, annotate with arrows, boxes, ovals, numbered steps and text, and save as PNG, JPEG, WebP or AVIF. Phone photos come out the right way up and in the right colours.
-- **Export:** 16:9, 9:16, 1:1 and 4:5 in one go. Other shapes keep the whole window and zoom in closer on the action, with captions and lower thirds kept clear of the edges. Video files carry the film's chapters (from Chapter actions) for players that list them, with an optional chapter list to paste into a YouTube description. Also still images in social sizes.
-- **Timeline:** the film as bars with filmstrips, waveforms, action marks, chapters, markers and music beats; move, trim, split, ripple, roll, slip, speed and keyframes, each written back to the nodes (or added as a named node) as one undo step; snapping, J/K/L, in and out points.
-- **Mixer:** a strip per sound with trim, low cut, 4-band EQ, compressor, pan, fader, mute and solo, grouped under its bus; buses with low cut, EQ, compressor, presets for the bus or every sound on it, and sidechain ducking that can ignore short sounds; a master with EQ, compressor, limiter and loudness targets (−14, −16, −23 LUFS); meters and loudness readouts; type exact values on any knob; Ctrl-click or Shift-click strip names to apply a preset, paste or reset to several sounds at once. Exports play exactly the rendered mix, and a mix change only adds the new sound to the already rendered picture.
-- **Editor:** 252 node types, 7 templates, undo/redo, groups, auto layout. Timeline, Mixer and Run are tabs, and each can open in its own window; the Timeline plays the film's sound on its own clock and marks the nodes under its playhead. The canvas has a mouse mode and a touchpad mode (two fingers move, pinch zooms) and a minimap you can hide.
-- **Projects:** new projects go to `~/OpsisProjects` (changeable in Settings), and the New project dialog shows the folder it will create. If the project file changes on disk while it's open (a text editor, a script, version control), the editor loads it, or asks first when you have unsaved edits; it never saves over a change it hasn't seen.
-- **Settings:** its own window with pages for General, Projects, Editor, Engine, Recording, Fonts, API, Licences (every licence Opsis and its fonts come with) and About.
-- **Local API (off by default):** scripts and AI agents on your computer can read, change and run the open project over plain HTTP on a local socket (a named pipe on Windows) that only your user account can open. The socket is `api.sock` in the app's data folder; set `OPSIS_API_SOCKET` to another full path (at most 100 bytes) if that path is too long. `GET /openapi.json` describes it; `GET /nodes/{type}` gives each node's ports and settings. Every request is one undo step in the editor.
+## ✨ What it does
 
-## Getting started
+### 🎬 Record
 
-Requirements: [Bun](https://bun.sh), Node.js 22 or later, a Rust toolchain, Zig 0.17, and [uv](https://docs.astral.sh/uv/) for `bun run qt:install`, which puts Qt 6.12 and KDDockWidgets in `~/.cache/opsis-dev/qt`. On Linux, also the sound library and Qt's X11 libraries (on Ubuntu: `libasound2-dev libxcb-cursor0 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-randr0 libxcb-shape0 libxcb-xkb1`).
+- **A real browser:** 18 actions, from go to page, click, type, hover, drag (onto an element, by a distance or along a path) and scroll to choose option, upload file, press keys, wait, check text, find an element early, fake a response, freeze time, hide clutter, page scripts, chapters and HTML overlays.
+- **Sign in once:** a Sign in node saves the login and reuses it in every take; a Start recording node keeps the setup off camera.
+- **A real terminal:** run commands, type, press keys, click, drag, scroll the wheel and wait for text in bash, zsh or PowerShell, and record it with any terminal colour theme. Play a VHS tape, use an asciinema cast file as a take, or record a new tape by typing in a terminal window, and export any session back as a tape.
+- **Watch it happen:** a live view of the recording, and a replay of every take with its trace.
+
+### 🎥 Camera and cursor
+
+- A camera that zooms to every action, manual zooms, pans, follows the cursor, speeds up quiet parts and ramps speed; crop, laptop and phone frames, macOS, Windows and Linux window frames (light or dark, with the page address), studio backdrops and motion blur.
+- Cursor styles (a simple arrow, or a Mac cursor that turns into a hand over links and a text cursor over fields), click ripples, keystroke chips, spotlights and highlight boxes, clean or hand-drawn.
+- Blurred areas that hide private details and stay on the page while the camera moves.
+- Cursor, marks, backdrop and frame settings form a style that one take or several share.
+
+### 🎨 Graphics, 3D and transitions
+
+- **More than a hundred elements:** text effects, overlays, charts, UI scenes, device mockups, backgrounds and effects, plus Lottie animations (`.json` and `.lottie`), a mosaic for hiding details, title cards with a hand-drawn mark on chosen words, and a picture look (colour, dark edges, film grain).
+- **3D:** a 3D logo, card and text in any project font, 3D models from your project with their own animations, a clip on a 3D laptop, monitor, phone or floating screen that ends facing the camera, and floating shapes as a background; camera keyframes set in the Inspector and dragged on the Timeline.
+- **25 transitions plus a light-leak cut.** A Sequence can use a different transition, length and hold before any of its clips.
+
+### 🔤 Text and fonts
+
+- 16 bundled font families, and a font library you fill from font files or ZIPs, fonts installed on your computer, or free fonts downloaded online (only when you ask).
+- Projects set fonts for text, headings and code, and copy the fonts they use so they open anywhere.
+
+### 🔊 Audio
+
+- Music with fades and ducking under sound effects (3 built-in CC0 songs or your own files), fitted to the film by stretching it a little or looping it with a crossfade.
+- Sound effects (8 built-in CC0 sounds or your own files) at a time or on an action; click and key sounds at every action of a take; a whoosh at every transition; a riser that ends on an action, a marker or the clip's end.
+- Generated sounds (whoosh, riser, pop, ding, tap, swell, click) with their variations, tones and countdown beeps, room tone, and captions timed from a script.
+- **The Mixer:** a strip per sound with trim, low cut, 4-band EQ, compressor, pan, fader, mute and solo, grouped under buses with their own EQ, compressor, presets and sidechain ducking; a master with EQ, compressor, limiter and loudness targets (−14, −16, −23 LUFS). Exports play exactly the rendered mix, and a mix change only adds the new sound to the picture already rendered.
+
+### 🎞️ Media and images
+
+- **Video and sound:** trim, join, speed (up to 64×), reverse, resize, convert, GIF, extract audio, even out volume, grab a frame, web-ready; clean speech, fix clicks and clipping, remove hum, shorten pauses, change pitch, voice effects (telephone, radio, rooms, echo) and a picture of the waveform or spectrum.
+- **Images:** resize, crop, rotate and flip, straighten, tilt in 3D, adjust colour, auto levels, blur and sharpen, place a logo, redact, spotlight, trim empty edges, make a colour transparent, outline, grids, framed screenshots, before and after, magnify, compare two screenshots, annotate, and save as PNG, JPEG, WebP or AVIF. Phone photos come out the right way up and in the right colours.
+
+### 📤 Export
+
+- 16:9, 9:16, 1:1 and 4:5 in one go. Other shapes keep the whole window and zoom in closer on the action, with captions and lower thirds kept clear of the edges.
+- Video files carry the film's chapters for players that list them, with an optional chapter list to paste into a YouTube description.
+- Stills in social sizes, a take's own recording, and terminal sessions as tapes.
+
+### 🧭 The editor
+
+- More than 250 node types, 7 sample projects, undo and redo, groups and auto layout.
+- **Timeline:** the film as bars with filmstrips, waveforms, action marks, chapters, markers and music beats; move, trim, split, ripple, roll, slip, speed and keyframes, each written back to the nodes as one undo step; snapping, J/K/L, in and out points.
+- Timeline, Mixer and Run are tabs, and any panel can pop out into its own window. The canvas has a mouse mode and a touchpad mode and a minimap you can hide.
+- New projects go to `~/OpsisProjects` (changeable in Settings). If the project file changes on disk while it's open, the editor loads it, or asks first when you have unsaved edits; it never saves over a change it hasn't seen.
+- Settings has pages for General, Projects, Editor, Engine, Recording, Fonts, API, Licences and About.
+
+### 🔌 Local API
+
+Off by default; switch it on in **Settings → API**. Scripts and AI agents on your computer can then read, change and run the open project over plain HTTP on a local socket (`api.sock` in the app's data folder, or the full path in `OPSIS_API_SOCKET`; a named pipe on Windows). `GET /openapi.json` describes every route, and every edit is one undo step in the editor.
+
+### 🔄 Updates
+
+A copy installed from a release package checks for updates when you click **Check for updates** in Settings → About, or at start if you turn that on. The AppImage, Windows and macOS installs download the signed update and install it when Opsis closes; deb, rpm and pacman installs open the release page instead.
+
+## 🚀 Getting started
+
+You need:
+
+- [Bun](https://bun.sh), and Node.js 22.12 or later for the TypeScript tests
+- [rustup](https://rustup.rs) (the repository pins its nightly, which rustup installs by itself)
+- [cargo-deny](https://github.com/EmbarkStudios/cargo-deny) for `bun run lint:fix` (`cargo install cargo-deny`)
+- [uv](https://docs.astral.sh/uv/), which `bun run qt:install` uses to fetch Qt
+- CMake and a C++ compiler
+- on Linux, the sound library and Qt's X11 libraries (on Ubuntu: `libasound2-dev libxcb-cursor0 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-randr0 libxcb-shape0 libxcb-xkb1`)
 
 ```sh
 bun install
-bun run qt:install
+bun run zig:install      # Zig 0.17 into ~/.cache/opsis-dev/zig; put the folder it prints on your PATH
+bun run qt:install       # Qt 6.12 and KDDockWidgets into ~/.cache/opsis-dev/qt
 bun run film:bundle
 bun run terminal:bundle
 bun start
 ```
 
-`bun run film:bundle` builds the film page that exports draw, and `bun run terminal:bundle` the page that draws live terminal pictures; run them again after changing `packages/video` or `packages/runtime`. `bun start` downloads the pinned FFmpeg into `target/ffmpeg/` the first time and points the app at it (`OPSIS_FFMPEG`); a release build looks for the same program beside its own. The first time, open **Settings → Engine** and either **Download engine**, which puts the recording browser (Chrome Headless Shell) in the app's data folder, or **Choose file…** for a browser you already have. Opsis checks it before using it, and again at start if the file changed. Editing and mixing work without it; recording and exporting need it. Then **New project → Sample: to-do app → Run**.
+`bun run film:bundle` builds the film page that exports draw, and `bun run terminal:bundle` the page that draws terminal pictures; run them again after changing `packages/video` or `packages/runtime`. `bun start` downloads the pinned FFmpeg into `target/ffmpeg/` the first time and runs the app with it.
 
-Ready-made copies of every template are in [`examples/`](./examples) (**Open project…**).
+The first time, open **Settings → Engine** and either **Download engine**, which puts the recording browser (Chrome Headless Shell) in the app's data folder, or **Choose file…** for one you already have. Editing and mixing work without it; recording and exporting need it. Then **New project → Sample: to-do app → Run**. 🎉
 
-## Building
+Ready-made copies of every sample are in [`examples/`](./examples) (**Open project…**).
 
-| Command              | What it does                                                                                                                                                                               |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `bun run make`       | Stage everything the app ships, build the release binary against the static Qt and package it into `~/.cache/opsis-dev/build` (the deb by default; `-- --formats deb,rpm,appimage,pacman`) |
-| `CARGO_BUILD_JOBS=8` | Limit how many cores the Rust build uses                                                                                                                                                   |
+## 📦 Building
 
-The app ships FFmpeg (the pinned ffmpeg-static build, as the `opsis-ffmpeg` program beside the app's own) but never the recording browser; users download it or choose their own from Settings. On Linux the release binary and its packages build in a plain `debian:trixie` container. CI runs the checks and the end-to-end tests on Linux on every push ([`.github/workflows/build.yml`](./.github/workflows/build.yml)), and builds the installers for Linux, Windows and macOS on `v*` tags and by hand ([`.github/workflows/release.yml`](./.github/workflows/release.yml)).
+`bun run make` stages everything the app ships, builds the release binary against a static Qt and packages it into `~/.cache/opsis-dev/build`: the deb on Linux, the app and DMG on macOS, NSIS and MSI on Windows. Pick others with `bun run make -- --formats deb,rpm,appimage,pacman`.
 
-## Scripts
+- On Linux the static Qt, the release binary and its packages build in a plain `debian:trixie` container, so you need Docker; the program then needs glibc 2.41.
+- The Rust build uses 8 jobs unless `CARGO_BUILD_JOBS` says otherwise.
+- The app ships FFmpeg (the pinned ffmpeg-static build, as the `opsis-ffmpeg` program beside its own) but never the recording browser.
+- CI checks every push ([`build.yml`](./.github/workflows/build.yml)); the release workflow ([`release.yml`](./.github/workflows/release.yml)) builds the installers on `v*` tags or by hand and drafts the release on tags.
+
+## 🛠️ Scripts
 
 | Script                    | What it does                                                                                      |
 | ------------------------- | ------------------------------------------------------------------------------------------------- |
 | `bun start`               | Run the app in development                                                                        |
-| `bun run typecheck`       | `tsc --noEmit` everywhere                                                                         |
-| `bun run lint:fix`        | oxlint, `cargo clippy`, clang-tidy and the comment check                                          |
+| `bun run typecheck`       | Type-check every package                                                                          |
+| `bun run lint:fix`        | oxlint, Clippy, `cargo deny`, the Zig wrapper build, clang-tidy and the comment check             |
 | `bun run format:fix`      | oxfmt, `cargo fmt`, `zig fmt` and clang-format                                                    |
-| `bun run test`            | vitest and `cargo test` (with the staged FFmpeg)                                                  |
+| `bun run test`            | Vitest and `cargo test` (with the staged FFmpeg)                                                  |
 | `bun run e2e:qt`          | The editor driven through its scenarios in a virtual display (needs `xvfb`; `sway` for `wayland`) |
-| `bun run types:export`    | Write the film's TypeScript types from the Rust code                                              |
 | `bun run film:bundle`     | Build the film page that exports draw                                                             |
-| `bun run terminal:bundle` | Build the page that draws live terminal pictures                                                  |
-| `bun run fonts:bundle`    | Copy the bundled fonts from their Fontsource packages                                             |
-| `bun run brand:icons`     | Render `brand/logo.svg` to PNGs                                                                   |
-| `bun run qt:install`      | Fetch Qt 6.12 and KDDockWidgets into `~/.cache/opsis-dev/qt`                                      |
-| `bun run qt:static`       | Build the static Qt without ICU that release builds link, into `~/.cache/opsis-dev/qt-static`     |
-| `bun run qt:notices`      | Write `QT_NOTICES.generated.md` from the static Qt's bill of materials                            |
+| `bun run terminal:bundle` | Build the page that draws terminal pictures                                                       |
+| `bun run types:export`    | Write the film's TypeScript types from the Rust code                                              |
+| `bun run make`            | Build the release program and its installers                                                      |
 | `bun run package:check`   | Install each Linux package in a plain `debian:trixie` container and run it                        |
-| `bun run examples`        | Rewrite `examples/*/project.opsis.json` from the templates                                        |
-| `bun run ffmpeg:stage`    | Download the pinned FFmpeg for this computer, if missing, and print its path                      |
+| `bun run examples`        | Rewrite the projects in `examples/` from the templates                                            |
 
-## Architecture
+## 🏗️ How it works
 
 ```
 Editor (Qt 6 Widgets + KDDockWidgets, C++ views over a cxx bridge)
-   canvas · node list · inspector · timeline · mixer        ── views and calls (cxx) ──
-                                                                         │
-Rust: session · projects · app database · fonts · Local API
-   compile (graph → TimelineSpec) · runner (topo-sort → sha256 cache → phases → events)
-   capture over CDP · media (FFmpeg) · prepared 3D files · image nodes · streamed views
-        │ CDP
-   Chrome Headless Shell: recording, the film page frame by frame, sign-in, element picker
+   canvas · node list · inspector · timeline · mixer · run panel
+                          │ views and calls
+Rust: the open project, compiles, runs, settings, fonts, the Local API, updates
+   compile (graph → TimelineSpec) · runner (keys → cache → executors → events)
+   browser capture over CDP · terminal takes on Ghostty · FFmpeg · images · 3D files
+                          │ CDP
+Chrome Headless Shell: recording, the film page frame by frame, terminal pictures,
+                       sign-in, element picker
 ```
 
 - **Nodes never generate film code.** They produce files and compile to a `TimelineSpec`; the film page's one `DemoTimeline` draws any spec, and Rust captures it frame by frame into FFmpeg.
-- **Nodes pass resources forward:** a browser session (Open browser and its steps), a recording, a recording style, clips, files, images, sounds and captions. Browser nodes add their steps to the session, and the Record node replays them in one continuous take. Timing comes from the recorded frames' own timestamps, so cursor moves, clicks and camera zooms line up with the picture.
-- **Caching:** every node is hashed from its type, settings and upstream hashes; results are cached in `.opsis/cache/<hash>`, so only changed branches run again.
+- **Nodes pass resources forward:** a browser or terminal session, a take, a style, clips, files, images, sounds and captions. Browser and terminal actions add to their session, and the record node plays them in one continuous take.
+- **Caching:** every node is hashed from its type, settings and the hashes before it; results are kept in `.opsis/cache/<hash>`, so only changed branches run again.
 
-```
-crates/      Rust: types, compile, store, project, fonts, engine, traces, runner, media, render,
-             capture, stream, prepare, image, api, session, qt (the editor's views), ui (the app)
+| Folder             | What's there                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------------- |
+| `crates/`          | Rust, one domain per crate: the session, compile, runs, capture, media, the editor and more |
+| `apps/film`        | The film page the renderer draws                                                            |
+| `apps/terminal`    | The page that paints terminal pictures                                                      |
+| `packages/video`   | The film: `DemoTimeline`, elements, camera, 3D, terminal drawing                            |
+| `packages/runtime` | The film's page runtime: clock, sequences, render holds, maths                              |
+| `scripts/`         | Bundling, pinning, packaging, profiling and the shared tool configs                         |
+| `agent-docs/`      | How each part works, and why                                                                |
 
-apps/film    the film page the renderer draws
-
-packages/video  the film: DemoTimeline, elements, parts, lib, fonts, camera, 3D
-packages/runtime the film's page runtime: clock, sequences, holds, maths
-scripts/     fonts, icons, engine downloads, packaging stage
-```
-
-Contributor rules (no code comments, kebab-case files, pinned versions, what must not regress) are in [AGENTS.md](./AGENTS.md).
-
-## Why it's built this way
+## 🤔 Why it's built this way
 
 | Decision          | Choice                                                                                                      | Why                                                                                                                                   |
 | ----------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
@@ -114,14 +163,19 @@ Contributor rules (no code comments, kebab-case files, pinned versions, what mus
 | Workflow format   | A versioned JSON graph, compiled in Rust to one `TimelineSpec`                                              | The graph is for people; the spec is the single input the video renders from.                                                         |
 | Video engine      | React with Opsis's own small runtime, drawn frame by frame by Rust                                          | One page, `DemoTimeline`, renders every spec; Rust seeks it, captures each frame and encodes with FFmpeg, with no Node at run time.   |
 | Browser           | One Chrome Headless Shell for recording, renders, sign-in and the element picker, driven over CDP from Rust | The same engine everywhere; Playwright's page scripts and keyboard are reused without its Node runtime.                               |
+| Terminal          | Ghostty's terminal engine, drawn by the same page as the film                                               | A real terminal's behaviour, and the editor shows exactly what the export draws.                                                      |
 | Animations        | Frame-driven only: every element and transition                                                             | Every frame has to be a pure function of the frame number; CSS transitions and tween libraries don't survive a render.                |
 | GSAP              | Not used                                                                                                    | The runtime's `interpolate`, `spring` and easing cover it, without GSAP's licence clause on visual builders.                          |
 | FFmpeg            | The ffmpeg-static build, pinned by sha256 and shipped beside the app as a separate program                  | Exports work without setting anything up, and every run starts the same known build.                                                  |
 | Camera and cursor | Built on [programatic-demo](https://github.com/ashrafchowdury/programatic-demo) (MIT)                       | It already solved the click log, auto-zoom camera, vector cursor and motion blur; its notice is kept.                                 |
-| Offline           | Nothing uses the internet unless you ask                                                                    | Engine and font downloads sit behind a button, and a film never loads anything remote.                                                |
+| Offline           | Nothing uses the internet unless you ask                                                                    | Engine, font and update downloads sit behind a button or a setting you turn on, and a film never loads anything remote.               |
 | Licensing         | GPLv3 or later                                                                                              | Free software, with no other licence needed to export.                                                                                |
 
-## Licences
+## 🤝 Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for setting up, the checks to run and the rules the code follows, and [SECURITY.md](./SECURITY.md) for reporting a vulnerability.
+
+## 📜 Licences
 
 Opsis is free software under the [GNU General Public License version 3 or later](./LICENSE). Videos you make with Opsis are yours: the licence covers the program, not what it makes.
 

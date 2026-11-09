@@ -36,13 +36,13 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ## Summary
 
-| Feature                | What users get                                                                                                 | Needs                                 | Status    |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------- | --------- |
-| Model access           | Settings → Assistant: a model on this computer or an online one with a key in the keyring; consent per request | nothing                               | not built |
-| Prompt → flow          | Describe the demo in a sentence plus the site address; get actions, Record take, Auto zoom, a title and Export | Model access, engine (hidden browser) | not built |
-| Auto-chapters          | Chapter titles for a take, from what it did, inserted as Chapter actions                                       | Model access, a recorded take         | not built |
-| Headline copy variants | A list of alternative wordings next to title and headline fields                                               | Model access                          | not built |
-| Picker suggestions     | After picking an element: a clearer, unique name for it and a name for the action                              | picker change (works without a model) | not built |
+| Feature                | What users get                                                                                                      | Needs                                 | Status    |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | --------- |
+| Model access           | Settings → Assistant: a model on this computer or an online one with a key in the keyring; consent per request      | nothing                               | not built |
+| Prompt → flow          | Describe the demo in a sentence plus the site address; get actions, Record take, Clip from take, a title and Export | Model access, engine (hidden browser) | not built |
+| Auto-chapters          | Chapter titles for a take, from what it did, inserted as Chapter actions                                            | Model access, a recorded take         | not built |
+| Headline copy variants | A list of alternative wordings next to title and headline fields                                                    | Model access                          | not built |
+| Picker suggestions     | After picking an element: a clearer, unique name for it and a name for the action                                   | picker change (works without a model) | not built |
 
 ## What the Local API already gives outside agents
 
@@ -64,7 +64,7 @@ A Settings page, **Assistant**, with three choices: Off (default), "A model on t
 
 In place:
 
-- Settings: `AppSettings` (`crates/types/src/settings.rs`), one section per area, checked with `garde`, written one section at a time with `patch_settings` and followed in every window through `useAppSettings`; `SettingsChanged` reaches every window.
+- Settings: `AppSettings` (`crates/types/src/settings.rs`), one section per area, checked with `garde`, written one section at a time with `patch_settings`; `SettingsChanged` reaches every window.
 - Settings pages: `SettingsPage` (`crates/types/src/shell.rs`) and `crates/qt/cpp/settings_window.cc`; the API page is the model for an off-by-default switch with a status badge.
 - Keys: `Keyring::set_key` / `key` (`crates/store/src/keys.rs`) keep named secrets in the OS keyring and refuse when the platform has no secure store, with a plain message.
 - Asking before going online: the "Go online to get fonts?" question (`crates/qt/cpp/fonts_page.cc`) in front of `opsis-fonts`'s online fetch.
@@ -109,14 +109,14 @@ Missing: an `assistant` settings section, the page, the client, consent, the req
 
 ### What it adds
 
-On an empty canvas, in the New project dialog and in the Edit menu: **Describe a demo…**. The user writes one sentence ("Sign up, create a project and invite a teammate") and the site address. Opsis opens the page in the hidden browser, takes an outline of what's on it, and asks the model for a draft. The user reviews the draft as a list of actions, edits it, and inserts it: Open browser, Go to page, the actions, Record take, Auto zoom, a Title card, a Sequence and Export, as one undo step.
+On an empty canvas, in the New project dialog and in the Edit menu: **Describe a demo…**. The user writes one sentence ("Sign up, create a project and invite a teammate") and the site address. Opsis opens the page in the hidden browser, takes an outline of what's on it, and asks the model for a draft. The user reviews the draft as a list of actions, edits it, and inserts it: Open browser, Go to page, the actions, Record take, Clip from take, a Title card, a Sequence and Export, as one undo step.
 
 ### Fit with Opsis
 
 In place:
 
 - The hidden browser: `Session::open` (`crates/capture/src/browser.rs`) launches the headless shell with Open browser's settings and talks CDP; a take applies a saved sign-in through its `SignIns` (`crates/capture/src/take.rs`).
-- Selectors: `crates/capture/src/selectors.rs` and `locators.rs` find an element by visible name and role; targets are stored as a name plus its role setting (`targetRoleKey` in the editor).
+- Selectors: `crates/capture/src/selectors.rs` and `locators.rs` find an element by visible name and role; targets are stored as a name plus its role setting (`<key>Role`, written by `crates/ui/src/ui.rs`).
 - Takes: `crates/capture/src/take.rs` plays a session's steps; a check take would be one more caller with no recording.
 - The catalogue (`node_catalog`, `catalog_entry`) gives titles, descriptions and settings; `check_workflow` validates; Title card is `fx.title`; the templates in `crates/project/src/templates.json` show the target shape.
 
@@ -127,7 +127,7 @@ Missing: the outline, the draft schema, the draft-to-nodes mapping, the dialog. 
 1. **Page outline.** In `opsis-capture`: open the page with `Session::open` (the project's Open browser settings, plus its saved sign-in applied as a take does), wait for load, read `Accessibility.getFullAXTree`, keep landmarks and named controls, cut to a fixed size, and give each kept node a ref (`e1`, `e2`…) with its role and name. agent-browser's snapshot code (`cli/src/native/snapshot.rs`, Apache-2.0) is a working model of the same idea. Returns the outline text, the ref table, the page title and the final address; a command `page_outline` runs it in the background like analysis.
 2. **Draft schema.** `FlowDraft { title, subtitle, actions: Vec<DraftAction { act, ref_id, text, address, label }> }`, every field required. `act` is an enum of draft actions mapped to node types (`browser.navigate`, `browser.click`, `browser.type`, `browser.hover`, `browser.scroll`, `browser.press`, `browser.select`, `browser.wait`, `browser.chapter`); `ref_id` is an enum of the outline's refs built per request, or empty.
 3. **The catalogue as the model's tools.** The prompt lists each draft action with its node's title and description from the catalogue, so new wording in a node definition reaches the model. A test checks every draft action maps to a visible node type and that the settings `draft_to_workflow` writes pass that node's schema.
-4. **Draft to nodes.** `draft_to_workflow(workflow, draft, outline)` (pure, in `opsis-compile`): refs become a target name plus role; the first action is Go to page with `{{Site address}}`; then `capture.record`, `camera.autoZoom`, `fx.title` with the title, `timeline.sequence`, `output.render`, placed to the right of existing nodes with the same placement the Local API uses for new nodes. Sets the "Site address" variable when it's empty.
+4. **Draft to nodes.** `draft_to_workflow(workflow, draft, outline)` (pure, in `opsis-compile`): refs become a target name plus role; the first action is Go to page with `{{Site address}}`; then `capture.record`, `camera.take`, `fx.title` with the title, `timeline.sequence`, `output.render`, placed to the right of existing nodes with the same placement the Local API uses for new nodes. Sets the "Site address" variable when it's empty.
 5. **Check and repair.** Run `check_workflow` on the result; if the new nodes have problems, send them back once; anything left shows in the review list.
 6. **Review dialog.** A `DescribeDialog` in `crates/qt/cpp`: sentence and address, progress ("Opening the page", "Writing the actions", "Checking"), then the draft as editable rows with the node icons. Rows whose target wasn't on the first page are marked "Not seen on the page". **Insert** applies one update, selects the new nodes and fits the view.
 7. **Entry points.** A menu command `edit:describe` in `app_menu` (`crates/session/src/menu.rs`), the empty-canvas button, and "Describe your demo" in the New project dialog. Hidden when the assistant is off; without the engine, offers to set it up.
@@ -162,7 +162,7 @@ On a Record take that has run: **Suggest chapters**. Opsis splits the take where
 
 In place:
 
-- The action log: `ActionLog` (`crates/types/src/actions.rs`) with each action's kind, time, label, text and node id; the Record executor returns it with the recording, and the editor has it in the run store's results.
+- The action log: `ActionLog` (`crates/types/src/actions.rs`) with each action's kind, time, label, text and node id; the Record executor returns it with the recording, and the session keeps it in that node's result (`crates/session/src/node_results.rs`).
 - The Chapter action `browser.chapter` (`crates/compile/src/nodes/browser.rs`); chapter marks on the Timeline from `flatten_spec`; `film_chapters` for exports.
 - `session_into` (`crates/compile/src/graph.rs`) gives a capture's session with the chain's steps in order.
 

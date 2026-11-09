@@ -4,23 +4,25 @@ The app's one database, the settings held in memory, the keyring and the project
 
 ## Code map
 
-| Concern                   | Where                                                                                                                     |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Schema                    | `store/schema.sql`                                                                                                        |
-| Queries                   | `store` (`sqlx::query!`, `query_as!`, `query_scalar!`); offline cache `.sqlx/`                                            |
-| Offline build             | `.cargo/config.toml` (`SQLX_OFFLINE=true`)                                                                                |
-| Settings in memory        | `session/src/state.rs` → `AppState::settings`, `AppState::patch_settings`; `types/src/settings.rs` → `RUST_ONLY_SECTIONS` |
-| Start                     | `desktop/src/lib.rs` → `open`                                                                                             |
-| Keyring and sealing       | `store/src/keys.rs` (`keyring-core`)                                                                                      |
-| Project folder suggestion | `project_folder` command                                                                                                  |
+| Concern                   | Where                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Schema                    | `store/schema.sql`                                                                                                                      |
+| Queries                   | `store/src` (`sqlx::query!`, `query_as!`, `query_scalar!`); offline cache `.sqlx/` at the repository root                               |
+| Offline build             | `.cargo/config.toml` at the repository root (`SQLX_OFFLINE=true`)                                                                       |
+| Settings in memory        | `session/src/state.rs` → `AppState::settings`, `AppState::patch_settings`; `store/src/settings.rs` → `merged_settings`, `read_settings` |
+| Settings from the editor  | `session/src/settings.rs` → `patch_settings` (refuses `RUST_ONLY_SECTIONS`, `types/src/settings.rs`)                                    |
+| Start                     | `ui/src/main.rs` → `start`; `session/src/session.rs` → `Session::start`                                                                 |
+| Long work                 | `session/src/state.rs` → `Tasks` (`AppState.tasks`), read by `session/src/exit.rs`                                                      |
+| Keyring and sealing       | `store/src/keys.rs` (`keyring-core`); `store/src/secrets.rs`; `session/src/settings.rs` → `ProjectSignIns`                              |
+| Project folder suggestion | `project/src/paths.rs` → `project_locations`; `session/src/projects.rs` → `project_folder`, `create_project`                            |
 
 ## Rules
 
 ### The database
 
 - **App state is one database, `<data folder>/opsis.db`**: SQLite through `sqlx` with the bundled SQLite, WAL, foreign keys on. It holds settings (one row per section), every project ever opened, each project's view state, window bounds and the font library index.
-- **Recent projects are a query**: newest first, folders that still hold a project, first 20.
-- **Only Rust opens it (`AppState::db()`, a pool, so every query is async); windows go through commands.**
+- **Recent projects are read newest first, then Rust keeps the folders that still hold a project, up to `MAX_RECENT`** (`store/src/projects.rs` → `list_recent`).
+- **Only Rust opens it (`AppState::db()`, a pool, so every query is async); windows reach it through the session over the bridge** ([ui.md](ui.md)).
 - **The tables are plain SQL with snake_case columns**, embedded by the store and run on an empty database.
 - **Every query is a checked macro against that schema.** After changing the schema or a query, run `bun run db:prepare` (it needs `sqlx-cli` built with SQLite).
 - **There are no migrations: the `meta` table holds the sha256 of the schema SQL, and a database made for another schema is deleted and made again at startup.**
@@ -28,20 +30,27 @@ The app's one database, the settings held in memory, the keyring and the project
 
 ### Settings
 
-- **Settings also live in memory in `AppState`**, read with `settings()` and written only through `patch_settings`, one patch at a time, so handlers that can't wait (the close request) read them without a query.
-- **`settings.engine` is written only by Rust** (`RUST_ONLY_SECTIONS`, refused by `patch_settings`) ([engine.md](engine.md)).
-- **Setup spawns the start (`open`)**: it opens the database, registers every piece of state at once and then opens the main window, so no command runs before the state exists; a failed start logs why and exits.
+- **Settings also live in memory in `AppState`**, read with `settings()` and written only through `AppState::patch_settings`, one patch at a time, so handlers that can't wait (the close request) read them without a query.
+  - A patch merges field by field into each section it names (`merged_settings`) and must still parse and validate, or nothing changes; it is written to the database before the copy in memory is replaced.
+  - At start `read_settings` reads every section; when the whole doesn't parse and validate, every setting falls back to its default, with a warning.
+- **`settings.engine` is written only by Rust**: the editor's `patch_settings` (`session/src/settings.rs`) refuses `RUST_ONLY_SECTIONS` ([engine.md](engine.md)).
+- **Nothing runs before the state exists**: `start` (`ui/src/main.rs`) makes the keyring and blocks on `Session::start`, which opens the database and builds every part of the session before the Qt event loop starts; a failed start logs why and exits with 1.
+- **Long app work is counted in `AppState.tasks`, and the exit dialog lists its labels** (`session/src/exit.rs`).
+  - `begin(label)` and `end(label)` nest: a label stays until every `begin` has its `end`.
 
 ### Secrets
 
-- **Secrets use the OS keyring** (`keyring-core` with the Apple, Windows and Secret Service stores): sign-ins are sealed with AES-256-GCM under one key kept there, and saving refuses when the platform has no secure store.
-- **The keyring is made in setup itself, and every call to it during a run goes through `off_runtime` (`capture/src/take.rs`) onto a blocking thread**, because the Linux Secret Service store blocks inside `zbus` and panics on a runtime thread.
-  - `capture/tests/keyring_sign_in.rs` saves a sign-in through a real Secret Service from a run. It runs under its own `dbus-run-session` with `gnome-keyring-daemon --unlock --components=secrets`, and `XDG_RUNTIME_DIR` must be a short path: the daemon's control socket doesn't fit a long one and the store then waits two minutes before giving up.
+- **Secrets use the OS keyring** (`keyring-core` with the Apple, Windows and Secret Service stores): sign-ins are sealed with AES-256-GCM under one key kept there.
+  - The sealed values are files in the project's `secrets` folder (`store/src/secrets.rs`), where `ensure_secrets_dir` writes a `.gitignore` of everything but itself when there is none.
+  - With no secure store the app still starts: `AppState::keys` holds the error, and reading or saving a sign-in fails with it (`ProjectSignIns`).
+- **The keyring is made before the session starts (`start`), and every call to it during a run goes through `off_runtime` (`capture/src/take.rs`) onto a blocking thread**, because the Linux Secret Service store blocks inside `zbus` and panics on a runtime thread.
+  - `capture/tests/keyring_sign_in.rs` saves a sign-in through a real Secret Service from a run, so it is `#[ignore]`d and run by hand under its own `dbus-run-session` with `gnome-keyring-daemon --unlock --components=secrets`, and `XDG_RUNTIME_DIR` must be a short path: the daemon's control socket doesn't fit a long one and the store then waits two minutes before giving up.
 
 ### Projects folder
 
-- **New projects are suggested in `settings.projects.lastDir` (the last place one was created) or else the default folder**: `settings.projects.defaultDir`, empty meaning `~/OpsisProjects` on every OS. Changing the default clears `lastDir`.
-- **Open project starts in the default folder.**
+- **New projects are suggested in `settings.projects.lastDir` (the last place one was created, while that folder exists) or else the default folder** (`project_locations`): `settings.projects.defaultDir`, empty meaning `~/OpsisProjects` on every OS.
+  - `create_project` writes `lastDir`; changing the default clears it (`merged_settings`).
+- **Open project starts in the default folder** (`pick_project_dir`).
 - **The New project dialog shows the folder it will create (`project_folder`)**; started from a template card, it shows only that template with Change.
 
 ## Deliberate limits

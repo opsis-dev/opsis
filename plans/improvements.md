@@ -35,13 +35,13 @@ Because smooth recording is slower than real time, a reply has almost always arr
 
 ### In place
 
-- Request interception for Mock response, pausing requests before they're sent (`crates/capture/src/route.rs`, `Fetch.enable` at the request stage).
-- The trace records every request and reply with times (`crates/capture/src/trace.rs:186`).
+- Request interception for Fake a response (`MockResponse`), pausing requests before they're sent (`crates/capture/src/route.rs`, `Fetch.enable` at the request stage).
+- The trace records every request and reply with times (`crates/capture/src/trace.rs` → `Trace::start`).
 - Smooth takes: the take clock (`TakeClock`, `crates/capture/src/take_clock.rs`) and the frame stepper (`Smooth`, `crates/capture/src/smooth.rs`), see Smooth takes in `agent-docs/capture.md`.
 
 ### Work
 
-1. **Hold whole replies.** In smooth takes, intercept at the reply stage: note the page time and real time each request was sent, take the body when it arrives, and release it on the first tick at or after its due page time. Covers pages, scripts, styles, images, fonts and plain API calls. Mock response keeps working (a mocked reply is due at once).
+1. **Hold whole replies.** In smooth takes, intercept at the reply stage: note the page time and real time each request was sent, take the body when it arrives, and release it on the first tick at or after its due page time. Covers pages, scripts, styles, images, fonts and plain API calls. Fake a response keeps working (a faked reply is due at once).
 2. **Hold streamed replies.** An init script wraps `fetch` bodies, `EventSource` and `WebSocket` messages: it reads the real stream, notes each piece's real arrival, and passes each piece to the page at its own page time. Its timers already run on the paused page clock.
 3. **Stall.** When a request is still out and the page clock has caught up with the real time since it was sent, the stepper stops ticking until the reply arrives.
 4. **Longest wait.** A setting on Record take, under `x-advanced`, shown only for smooth takes (ms, `x-zero-label` "As live"), capping each reply's delay.

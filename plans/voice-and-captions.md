@@ -117,7 +117,7 @@ In place:
 
 - Sounds join a clip through Add sound (`audio.mix`, `crates/compile/src/nodes/audio.rs`), which takes any number of `audio` values (`many()`) and places anchored ones at their action's mark with `anchor_sounds` (via `flatten_spec`). Sound effect stores its action through the `action` widget and an offset.
 - `AudioItem` (`crates/types/src/timeline.rs`) carries `channel`, `role` (`AudioRole`: Music, Effect), `length_frames`, `anchor` and `handles`; each `channel` is one Mixer strip.
-- Ducking is a bus setting: `duck_keys_for` (`crates/compile/src/mix/levels.rs`) keys a bus on the buses it names; the mix plan renders it with `sidechaincompress`. A **Voice** strip preset exists in the Mixer (`STRIP_PRESETS`).
+- Ducking is a bus setting: `duck_keys_for` (`crates/compile/src/mix/levels.rs`) keys a bus on the buses it names; the mix plan renders it with `sidechaincompress`. A **Voice** strip preset exists in the Mixer (`strip_presets`, `crates/types/src/mix.rs`).
 - `CaptionsValue` (`crates/types/src/values.rs`) is a list of `Caption { text, start_ms, end_ms }` per word; Show captions (`text.captions`, `crates/compile/src/nodes/text.rs`) draws it with `captions`, whose component groups words into lines of up to six or at sentence ends.
 - Media executors run FFmpeg behind `MediaTools` and return files (`crates/media/src/executors.rs`); a compile can read its executor's result.
 
@@ -136,9 +136,9 @@ Missing:
 4. **Executor.** In `opsis-voice`, registered like the media executors: for each line, synthesise to WAV in a shared cache `.opsis/cache/voice/<sha256 of pack, voice, speed, text>.wav`, so editing one line re-speaks only that line; probe each length; word times from `word_timing` (step 6). Outputs `{ lines: [{ src, duration_ms, words }] }` as JSON in the node's folder, plus the whole voice as an `audio` result for the card.
 5. **Compile.** From the result and the settings (so moving or pausing never re-speaks): one `AudioItem` per line with `channel` = the node id, `role: Voice`, `length_frames`, `anchor` from `line_actions`, `from` = start + earlier lines + pauses + nudges, `handles.move` pointing at the line's entry in `nudges_ms` (or its `offset_ms` when anchored). `AudioValue.duration_in_frames` = end of the last unanchored line. `CaptionsValue` with each word's times, shifted the same way.
 6. **Word timing.** "Estimated": spread the line's length over its words by character count, with a short lead-in; a pure function in `crates/voice/src/words.rs`, unit-tested. "From the voice": transcribe each line (Captions from speech's code) and keep its word times when the words match the script, else fall back to the estimate.
-7. **Voice role and bus.** `AudioRole::Voice` and `ChannelKind::Voice` with `VOICE_BUS`; `default_buses` gains a Voice bus starting from the Voice preset's EQ and compressor; `sound_length` (`crates/compile/src/audio.rs`) treats voice like effects (natural length); the flattener draws it. Mixes saved without the Voice bus get it where mixes are normalized. When the first Voiceover is added, the Music bus's ducking is keyed on the Voice bus if it's off, in the same undo step. `bun run types:export`.
+7. **Voice role and bus.** `AudioRole::Voice` and `ChannelKind::Voice` with `VOICE_BUS`; `default_buses` gains a Voice bus starting from the Voice preset's EQ and compressor; `sound_length` (`crates/compile/src/audio.rs`) treats voice like effects (natural length); the flattener draws it. Mixes saved without the Voice bus get it in `Workflow::normalized` (`crates/types/src/workflow.rs`), which today only prunes channels. When the first Voiceover is added, the Music bus's ducking is keyed on the Voice bus if it's off, in the same undo step. `bun run types:export`.
 8. **Captions on actions.** `Caption` gains an optional `anchor`; Show captions resolves them against its **Over clip** input with the same marks as `anchor_sounds` (a shared `mark_frame` helper). Without a clip, anchored lines use their unanchored times and the card says so.
-9. **Icons.** `MicVocal` and `Speech` in `Icon` and `NODE_ICONS`; a look on the node's definition (`.look(…)`), then `bun run glyphs:bundle`.
+9. **Icons.** `MicVocal` and `Speech` in `Icon` (`crates/types/src/cards.rs`) and in `ICONS` (`scripts/node-glyphs.ts`); a look on the node's definition (`.look(…)`), then `bun run glyphs:bundle`.
 10. **Tests.** The executor exists; descriptions and banned words; compile placement with pauses, nudges and anchors; a round-trip for the line move handle with the other timeline edit tests; ducking keys include the voice; the Voice bus is added once.
 11. **Check.** A film with music, a voiceover of five lines (two on actions) and Show captions: the music dips under each line, captions follow the words, dragging a line on the Timeline moves its captions, re-running after editing one line re-speaks only that line, and the export sounds like the Timeline's playback.
 
@@ -216,7 +216,7 @@ A **Captions from speech** node (Text & overlays): a video or sound file in, wor
 In place:
 
 - The captions pipeline: `CaptionsValue`, the `captions` port, Show captions, and Captions from script (`text.captionsFromText`) as the model for the node's shape.
-- Files reach nodes as `MediaValue` on `media` ports from Import file, Extract audio and the other media nodes; media executors get the file's path and run FFmpeg with progress.
+- Files reach nodes as `MediaValue` on `media` ports from Media file, Extract sound and the other media nodes; media executors get the file's path and run FFmpeg with progress.
 
 Missing: the transcription model in Rust, the node, its executor, and turning tokens into words.
 
@@ -273,7 +273,7 @@ Missing: a tail; the card says "Fits the sound" whatever is connected.
 
 1. **Tail.** A `tail_ms` setting ("Hold after the sound", 0–10 s, shown only when a sound is connected) added to the target.
 2. **Card.** "Fits the sound + 1.5 s"; a warning when the voiceover has lines on actions, since those don't count toward its length.
-3. **Template.** A "Narrated demo" template in `crates/project/src/templates.json`: Record → Auto zoom → Fit length (voice) → Add sound (voice, music) → Show captions (voice) → Export; write `examples/` again with `bun run examples`.
+3. **Template.** A "Narrated demo" template in `crates/project/src/templates.json`: Record take → Clip from take → Fit length (voice) → Add sound (voice, music) → Show captions (voice) → Export video; write `examples/` again with `bun run examples`.
 4. **Tests.** Fit to a Voiceover value and to Music, with a tail, in all three modes.
 
 ### Risks

@@ -18,10 +18,10 @@ Order with [native-renderer.md](native-renderer.md): this plan's components are 
 These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with this plan, they win:
 
 - Packages through `bun add` / `cargo add`, latest release.
-- Never hand-edit `packages/video/src/elements/**`, `lib/**`, `hooks/**` or any `*.generated.*`. Code written from an upstream component is Opsis's own and never goes there.
+- Never hand-edit installed or generated code (any `*.generated.*`). Code written from an upstream component is Opsis's own source.
 - Element settings are Rust structs in `opsis-compile` with `schemars` attributes (`x-` keywords); components are TS in `packages/video`, keyed separately.
 - Every animation in `packages/video` is a pure function of the runtime's `useFrame()`; randomness through `random(seed)`; async through `holdRender`. Nothing loads from the internet at render time.
-- No library, tool or format names in titles, descriptions, labels or errors (the Lottie element's description is the one precedent for naming the tool that made a file).
+- No library, tool or format names in titles, descriptions, labels or errors; the Lottie element is "Animation" ("Plays an animation file from your project…") and `nodes_c.rs` refuses "lottie" in a description.
 - No comments anywhere, kebab-case TS file names.
 
 **Checks when a feature is done.**
@@ -55,7 +55,7 @@ For users, 18 elements that product demos use often and that Opsis doesn't have 
 | 3   | Text around a circle  | Magic UI `spinning-text`                                                                                                                                                                                                                                | `text`       | Motion rotate loop. Rotation `= 360 * t / period`.                                                                                                                                                          |
 | 4   | Morphing letters      | Motion Primitives `text-morph`                                                                                                                                                                                                                          | `text`       | `layoutId` per letter glides shared letters to new places. Measure both words once (see **Risks**), then interpolate each letter's x with `spring()`.                                                       |
 | 5   | Aurora text           | Magic UI `aurora-text`                                                                                                                                                                                                                                  | `text`       | Tailwind `animate-aurora` moves a gradient. `backgroundPosition` from the frame.                                                                                                                            |
-| 6   | Running border        | Magic UI `border-beam`                                                                                                                                                                                                                                  | `overlay`    | Motion animates `offsetDistance`. Same CSS property, value from the frame. Placed over a spot with `placedAt`.                                                                                              |
+| 6   | Running border        | Magic UI `border-beam`                                                                                                                                                                                                                                  | `overlay`    | Motion animates `offsetDistance`. Same CSS property, value from the frame. Placed over a spot as a fraction of the frame, like Ink arrow.                                                                   |
 | 7   | Glow behind           | Motion Primitives `glow-effect`                                                                                                                                                                                                                         | `overlay`    | Motion rotates/pulses a blurred gradient. Angle and scale from the frame.                                                                                                                                   |
 | 8   | Call-to-action button | Magic UI `shimmer-button`, `pulsating-button`, `rainbow-button`                                                                                                                                                                                         | `ui`         | CSS keyframes (`animate-shimmer-slide`, `animate-spin-around`, `animate-pulse`, `animate-rainbow`). One element with a `look` choice; every keyframe becomes an `interpolate`.                              |
 | 9   | Status pill           | Cult UI `dynamic-island`                                                                                                                                                                                                                                | `ui`         | Motion layout springs and `setTimeout` between states. A list of states with times; width, height and radius sprung between them.                                                                           |
@@ -79,7 +79,7 @@ In place:
 - `elements()` lists every element's `definition()` in one ordered list; every entry becomes a node (`element_node_type`: `fx.<name>`) with its card, length handle and envelope. A file per element and a line in that list is all these elements need on the Rust side.
 - Settings structs: every element's settings are a struct with `schemars` attributes; all of them, collected in `ElementSettings`, are exported to `packages/video/src/generated/spec.ts`, so components get typed props. The `font` widget (`x-widget = "font"`) and `font_stack` (`crates/compile/src/fonts/mod.rs`) turn a family into a CSS stack; `df-main`, `df-heading`, `df-code` follow the project fonts.
 - Loading: `ELEMENTS` (`packages/video/src/elements/index.ts`) imports every element, and `DemoTimeline` looks each up synchronously (`resolveElement`).
-- Each element places itself: centring, a spot's position (`numberOr(x, 0.5) * width`), screen fitting (`ScreenFit`, `packages/video/src/lib/layout/screen-fit.tsx`) and its background are done inside its own component; `packages/video/src/lib/settings/shape.ts` holds the setting conversions.
+- Each element places itself: centring, a spot's position (a fraction of the frame times its size, `x * width` in `elements/overlay/ink-arrow.tsx`), screen fitting (`ScreenFit`, `packages/video/src/lib/layout/screen-fit.tsx`) and its background are done inside its own component; `packages/video/src/lib/settings/shape.ts` holds the setting conversions.
 - Guardrails already cover any new folder in `packages/video`: `no-restricted-imports` bans `framer-motion`, `motion`, `gsap` and `useFrame` (`scripts/lib/oxlint-base.ts`), `opsis/no-animate-class` bans Tailwind `animate-*` and `opsis/no-three-clock` bans three.js clocks (`packages/video/oxlint.config.ts`, `scripts/oxlint-plugin-opsis.ts`).
 - Placeholder images in `public/placeholders` (`logo-mark.svg`, `screen-wide.svg`, `screen-tall.svg`) for logo and image defaults.
 
@@ -100,7 +100,7 @@ Missing:
    - Copy the upstream file once into the target folder, then rewrite it. Delete `"use client"`, `cn()` imports from the web app and every comment.
    - `motion.div` with `initial` / `animate` / `transition` → a plain element whose style comes from `interpolate(frame, [start, end], [from, to], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing })` or `spring({ frame, fps, config })`. Keyframe arrays (`rotate: [0, -10, 10, -10, 0]`) → `interpolate` with as many input points, spread over the original `duration` in frames. Motion `ease` names map to `Easing.bezier` with the same control points.
    - `variants` + `useAnimation()` / hover handlers → a `start` (seconds, default 0) and `loop` setting; the variant plays from `start`.
-   - CSS `@keyframes` / Tailwind `animate-*` → the same property computed from the frame. Only when a keyframe can't be rewritten (a long multi-stop gradient), a paused CSS animation (`animationPlayState: "paused"`, `animationDelay` set to minus the element's time in seconds) is allowed, with keyframe names prefixed `df-` and never `spin` (see **Never name a keyframe `spin`** in `agent-docs/editor.md`); record each such case in `AGENTS.md`.
+   - CSS `@keyframes` / Tailwind `animate-*` → the same property computed from the frame. Only when a keyframe can't be rewritten (a long multi-stop gradient), a paused CSS animation (`animationPlayState: "paused"`, `animationDelay` set to minus the element's time in seconds) is allowed, with keyframe names prefixed `df-` and never `spin`; record each such case in `AGENTS.md`.
    - `useEffect` timers, `setInterval`, `requestAnimationFrame` → frame math. Canvas drawing happens in a `useLayoutEffect` keyed on the frame, drawing the whole picture each time (never incrementally).
    - `Math.random()` → `random(seed + "-" + index)` with a `seed` setting (min 1).
    - Measuring (`getBoundingClientRect`, `ResizeObserver`, `IntersectionObserver`) → compute layout from settings; when text must be measured, measure once after fonts load under `holdRender`, never per frame.
@@ -123,7 +123,7 @@ Checked 2026-10-16 from each repository's licence file:
 | Motion Primitives (`ibelick/motion-primitives`)      | MIT, "Copyright (c) 2024 ibelick"                                                                                                                                                                                           | yes    |
 | Cult UI (`nolly-studio/cult-ui`)                     | MIT, "Copyright (c) 2023 Jordan-Gilliam"                                                                                                                                                                                    | yes    |
 | SmoothUI (`educlopez/smoothui`)                      | MIT, "Copyright (c) 2024 Eduardo Calvo"                                                                                                                                                                                     | yes    |
-| lucide-animated (`pqoqubbw/icons`)                   | MIT, "Copyright (c) 2024-2026 pqoqubbw"; the shapes are Lucide icons (ISC, as in the installed `lucide-react`)                                                                                                              | yes    |
+| lucide-animated (`pqoqubbw/icons`)                   | MIT, "Copyright (c) 2024-2026 pqoqubbw"; the shapes are Lucide icons (ISC, as in the installed `lucide`)                                                                                                                    | yes    |
 | Aceternity UI                                        | Its own licence: "You cannot re-distribute the Item as a stock image or its source files, regardless of modifications." Opsis's source is public, so using it would redistribute it.                                        | **no** |
 | React Bits (`DavidHDev/react-bits`)                  | MIT + Commons Clause: commercial use allowed "so long as you do not sell, sublicense, or redistribute the components themselves".                                                                                           | **no** |
 | Animate UI (`imskyleen/animate-ui`), incl. its icons | MIT + Commons Clause: rights granted only "as part of an application, website, or product", and "so long as you do not sell or redistribute the components themselves in their original form—whether alone or in a bundle". | **no** |
@@ -136,7 +136,7 @@ The Commons Clause sources and Aceternity are left out because Opsis's repositor
 - **Measuring text.** Morphing letters needs letter positions in two words. Measure with a hidden copy in a `useLayoutEffect` after `FontProvider` has loaded the font (under `holdRender`); measuring before fonts load gives wrong positions only in the render.
 - **Paused CSS animations.** They are frame-exact in Chrome only while the element stays mounted; a remount restarts them at the delay. Prefer frame-computed styles; the escape hatch is for rare cases and must pass the scrub-backwards check.
 - **Upstream drift.** These files don't follow upstream changes (unlike registry elements). The upstream commit in the notice lets a later update diff.
-- **Canvas size.** Canvas backgrounds must size their backing store from `useFilm()` times the render scale, or scaled-down stills and 4K exports blur.
+- **Canvas size.** Canvas backgrounds must size their backing store from `useFilm()` times `window.devicePixelRatio`, which the frame driver sets to the render scale (`Emulation.setDeviceMetricsOverride` in `crates/capture/src/film.rs`), or scaled-down stills and 4K exports blur.
 
 ### Sources
 
@@ -196,7 +196,7 @@ A hand-drawn cross over a part of the page in a take. The Remotion Elements "Cro
 
 - Title card already has it: its **Mark a word** look includes "Crossed out" (`MarkLook` in `crates/compile/src/elements/text/title.rs`, drawn by `HandDrawnMark` in `packages/video/src/core/hand-drawn.tsx`). Don't add a separate element.
 - Close registry elements: Strikethrough Replace and Text Highlight (which includes a strikethrough).
-- The gap: Highlight box's looks are Clean, Hand-drawn box, Circle, Underline and Marker (`HighlightLook`, `crates/types/src/recording.rs`, labels in `crates/compile/src/nodes/cursor.rs`).
+- The gap: Highlight box's looks are Clean, Hand-drawn box, Circle, Underline and Marker (`HighlightLook` and its labels in `crates/types/src/recording.rs`).
 
 ### Work
 
@@ -277,14 +277,14 @@ In place:
 
 Missing:
 
-- Core elements in `render-elements` (it skips `core/`), WebP output (`StillFormat` has PNG and JPEG; the render library's `renderStill` also takes `webp`), a fixed drawing mode, and a place in the app for the stills.
+- WebP output (`StillFormat` has PNG and JPEG; the browser's screenshot also takes `webp`), a fixed drawing mode (`render-elements` draws with `Gl::Angle`), and a place in the app for the stills.
 
 ### Work
 
-1. **Stills.** Extend `render-elements` with a `--thumbnails` mode: every element including core ones, overlays and text over a neutral dark `solid`, the frame at 60% of the default length (a per-key override list for exceptions), Software drawing (`Gl::Swangle`) so the result doesn't depend on the graphics card, 320×180, WebP quality 75 (add `Webp` to `StillFormat`; the browser's screenshot takes `webp` as a format).
+1. **Stills.** Extend `render-elements` with a `--thumbnails` mode: every element, overlays and text over a neutral dark `solid`, the frame at 60% of the default length (a per-key override list for exceptions), Software drawing (`Gl::Swangle`) so the result doesn't depend on the graphics card, 320×180, WebP quality 75 (add `Webp` to `StillFormat`; the browser's screenshot takes `webp` as a format).
 2. **Storage.** `crates/ui/resources/element-stills/<key with "/" as "--">.webp`, editor-only, compiled into the app with `rcc` beside the style sheet.
 3. **Budget.** At most 24 KB per still and 3.5 MB in all (about 140 elements today, 160 with the web motion components, × 15–20 KB); the binary fails above either.
-4. **Hover card.** `NodePreview` shows the still of the hovered element at the top.
+4. **Hover card.** The node list's hover card (`NodeList::ShowCard`, `crates/qt/cpp/node_list.cc`) shows the still of the hovered element at the top.
 5. **Check.** Offline, every element in the list shows a still.
 
 ### Decided
@@ -313,16 +313,17 @@ In place:
 
 - `.github/workflows/build.yml` has a `checks` job and an `e2e` job that already caches the dev engine, installs it with `install-engine` and runs `bun run film:bundle`.
 - The thumbnail stills above are rendered deterministically (software drawing, fixed frame) and are the reference images.
-- `opsis-media` runs FFmpeg from the engine.
+- `opsis-media` runs the bundled FFmpeg.
 
 Missing:
 
 - Any image comparison.
+- `pull_request` and `workflow_dispatch` triggers: `build.yml` runs on `push` only.
 
 ### Work
 
-1. **Compare mode.** `render-elements --check` renders every element as in the thumbnails section into `~/.cache/opsis-dev/element-stills/` and compares each with its stored still with the engine's FFmpeg `ssim` filter (no new dependency). It fails when SSIM is below a threshold (start at 0.97; measure the spread across a few runs first), when an element has no stored still, or when a still has no element, and writes a side-by-side image (`hstack`: stored | new) for each failure.
-2. **Workflow.** A job `elements` in `build.yml`, `needs: checks`, Linux, only when the change touches `packages/video/**`, `crates/compile/src/elements/**`, `public/fonts/**`, `package.json`, `packages/video/package.json` or `bun.lock` (a paths check step, since `build.yml` runs on several events). Steps as in `e2e` (engine cache, `install-engine`, `video:bundle`), then `bun run elements:render -- --check`, uploading the side-by-side images on failure. Check the workflow with `actionlint`.
+1. **Compare mode.** `render-elements --check` renders every element as in the thumbnails section into `~/.cache/opsis-dev/element-stills/` and compares each with its stored still with the bundled FFmpeg's `ssim` filter (no new dependency). It fails when SSIM is below a threshold (start at 0.97; measure the spread across a few runs first), when an element has no stored still, or when a still has no element, and writes a side-by-side image (`hstack`: stored | new) for each failure.
+2. **Workflow.** A job `elements` in `build.yml`, `needs: checks`, Linux, only when the change touches `packages/video/**`, `crates/compile/src/elements/**`, `public/fonts/**`, `package.json`, `packages/video/package.json` or `bun.lock` (a paths check step, since a job can't filter on paths by itself). Steps as in `e2e` (engine cache, `install-engine`, `film:bundle`), then `bun run elements:render -- --check`, uploading the side-by-side images on failure. Check the workflow with `actionlint`.
 3. **Updating references.** A `workflow_dispatch` input `update-stills` runs the binary in write mode and uploads the stills as an artifact, so references come from the same machine type as the check. Locally on Linux x64, `bun run elements:render -- --thumbnails` writes them directly.
 4. **Check.** Break one element on purpose (change a default colour); the job fails with its side-by-side image. Revert; it passes twice in a row.
 

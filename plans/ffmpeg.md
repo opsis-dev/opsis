@@ -11,12 +11,12 @@ Replace the ffmpeg-static program the app ships as its `opsis-ffmpeg` sidecar wi
 
 ## Summary
 
-| Topic                        | What users get                                             | Left to do                                            | Status              |
-| ---------------------------- | ---------------------------------------------------------- | ----------------------------------------------------- | ------------------- |
-| 1. The sidecar on macOS      | Exports that work on a signed Mac app                      | check it under the hardened runtime                   | waiting on signing  |
-| 2. Source notice in releases | Where FFmpeg's source is, in each release's notes          | the release notes                                     | waiting on releases |
-| 3. Own build                 | One FFmpeg version on every platform, only what Opsis uses | pinned sources, the build script, CI builds, the swap | not started         |
-| 4. FFmpeg inside the app     | Nothing                                                    | not planned                                           | not chosen          |
+| Topic                        | What users get                                             | Left to do                                            | Status             |
+| ---------------------------- | ---------------------------------------------------------- | ----------------------------------------------------- | ------------------ |
+| 1. The sidecar on macOS      | Exports that work on a signed Mac app                      | check it under the hardened runtime                   | waiting on signing |
+| 2. Source notice in releases | Where FFmpeg's source is, in each release's notes          | the release notes                                     | not built          |
+| 3. Own build                 | One FFmpeg version on every platform, only what Opsis uses | pinned sources, the build script, CI builds, the swap | not started        |
+| 4. FFmpeg inside the app     | Nothing                                                    | not planned                                           | not chosen         |
 
 ## 1. The sidecar on macOS
 
@@ -34,9 +34,9 @@ Replace the ffmpeg-static program the app ships as its `opsis-ffmpeg` sidecar wi
 
 **Work.**
 
-1. **Release notes.** Put the source notice in each GitHub release's notes once a workflow creates releases (none does yet).
+1. **Release notes.** Put the source notice in each GitHub release's notes: the `draft` job in `.github/workflows/release.yml` writes them from `latest.json`, whose notes `scripts/release-feed.ts` takes from `CHANGELOG.md` only.
 
-**Decided.** Upstream links only; no source tarballs attached to releases. Until releases are made by CI, the notice lives in `THIRD_PARTY_NOTICES.md` only.
+**Decided.** Upstream links only; no source tarballs attached to releases. Until the release notes carry it, the notice lives in `THIRD_PARTY_NOTICES.md` only.
 
 ## 3. Own build
 

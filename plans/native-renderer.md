@@ -113,7 +113,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 - **How Opsis calls Skia: open.** No third-party sys crates or pins is the aim; Skia itself is given.
   - `skia-safe` (rust-skia 0.157.0 on Skia m157): its `unsafe` stays in the dependency, and its prebuilt binaries download at build time. pragmatrix wrote 449 of its 496 commits since 2026-05-05, its README calls it "a prerelease crate", and no prebuilt archive is CPU-only with Skottie.
-  - Our own `cxx` wrapper over the Skia calls listed above, building Skia from a pinned commit with GN. It reuses the `cxx` bridge the editor uses for Qt ([ui.md](../agent-docs/ui.md)), and it is a second crate that needs `unsafe` beside `opsis-vt`.
+  - Our own `cxx` wrapper over the Skia calls listed above, building Skia from a pinned commit with GN. It reuses the `cxx` bridge the editor uses for Qt ([ui.md](../agent-docs/ui.md)), and it is a third crate that needs `unsafe`, beside `opsis-vt` and `opsis-qt`.
 - **Skia's text modules or Parley.** This plan uses Parley (see **Text and layout**); SkParagraph brings ICU and HarfBuzz into the Skia build.
 
 ### Risks
@@ -133,11 +133,11 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 - **Taffy lays out every box**: flex and grid as CSS defines them. Its 1,689 fixtures take their expected numbers from Chrome for Testing (`scripts/gentest`).
 - **Parley shapes and breaks text** (harfrust, ICU4X segmentation, `skrifa`, fontique fallback): rich runs, variable fonts, OpenType features, letter and word spacing, bidi, CSS whitespace. Its line breaks are tested against Chromium's (`parley_tests/linebreaking_cases`).
 - **Text is a Taffy leaf whose measure function calls Parley**, and the same glyph runs are drawn by Skia from the same font bytes.
-- **Elements that measure before laying out** (word-push, kinetic-center-build, slot-machine-roll, punch-lines, the terminal view, which call `measureText` today) call the same measurer.
+- **Elements that measure before laying out** (word-push, kinetic-center-build, slot-machine-roll, punch-lines, launch-anything's shader text reveal, the terminal view, which call `measureText` today) call the same measurer.
 
 ### Fit with Opsis
 
-- **In place:** `skrifa` and the font library (`opsis-fonts`), `family_for` and `face_for` (`crates/image/src/text.rs`).
+- **In place:** `skrifa` and the font library (`opsis-fonts`), `family_for` (`crates/compile/src/fonts/mod.rs`) and `face_for` (`crates/compile/src/elements/prepared.rs`), which the image nodes call (`crates/image/src/executors.rs`) and draw with `crates/image/src/text.rs`.
 - **Missing:** Taffy and Parley in the workspace, the layout pass over scene nodes, the measurer.
 
 ### Work
@@ -243,7 +243,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Work
 
-1. `rawvideo` joins the required demuxers; `film_encode_args` takes raw input with the tags above.
+1. `rawvideo` joins the required formats (`REQUIRED_FORMATS`); `film_encode_args` takes raw input with the tags above.
 2. The chunk scheduler with the reorder buffer and progress per frame.
 3. Stills and `render-elements` through the renderer directly.
 
@@ -364,7 +364,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 What the film's 140 element and transition implementations use today, from a scan of each one's import closure in `packages/video/src` on 5 November 2026 (type-only imports, `@opsis/runtime` and generated files left out), with every perspective, canvas, shader and 3D hit checked by hand. Counts are elements, not occurrences.
 
-- **Layout and text:** CSS flex in 71 and grid in 10; text wrapping 52, letter spacing 53, font variations and tabular numbers 18, `background-clip: text` 5, text shadow 3, text stroke 1 (the cursor label). Text measured in the page: `measureText` in word-push, kinetic-center-build, slot-machine-roll, punch-lines and the terminal view; DOM measuring in announce-title, `core/hand-drawn.tsx`, `lib/layout/screen-fit.tsx`.
+- **Layout and text:** CSS flex in 71 and grid in 10; text wrapping 52, letter spacing 53, font variations and tabular numbers 18, `background-clip: text` 5, text shadow 3, text stroke 1 (the cursor label). Text measured in the page: `measureText` in word-push, kinetic-center-build, slot-machine-roll, punch-lines, launch-anything's shader text reveal and the terminal view; DOM measuring in announce-title, `core/hand-drawn.tsx`, `lib/layout/screen-fit.tsx`.
 - **CSS filters:** `blur()` on subtrees in 87 (75 through the `blur` entrance in `core/anim.ts`), brightness 13, saturate 10, drop-shadow 8, contrast 5, sepia 2, hue-rotate 2. `backdrop-filter` in 3 (glass-code-block, frosted-glass-wipe, lower-third).
 - **Blend modes:** screen 10, overlay 2, lighten 1 (13 elements).
 - **Clips and masks:** `clip-path` inset 10, polygon 4, circle 1, path 1, `url(#…)` 2 (19 elements); gradient masks with size, position and repeat in 8.
