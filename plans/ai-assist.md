@@ -7,7 +7,7 @@ Status: plan only. Nothing here is built yet.
 ## How to read this plan
 
 - **Model access** comes first: every other feature depends on it. The other four can be built in any order after it, and each can ship on its own.
-- Each section has the same parts: **What it adds**, **Fit with Opsis** (In place / Missing), **Work**, **Decisions**, **Risks**, **Sources**.
+- Each section has the same parts: **What it adds**, **Fit with Opsis** (In place / Missing), **Work**, **Decisions**, **Risks**, and **Sources** where it cites outside facts.
 - External facts link their source and the date they were checked.
 
 ## Conventions
@@ -57,7 +57,7 @@ The assistant reuses those pieces rather than a second path: the catalogue for n
 A Settings page, **Assistant**, with three choices: Off (default), "A model on this computer", "An online model". Every feature asks through one Rust function, so the privacy rules live in one place.
 
 - **On this computer: a local server.** Any server that speaks the OpenAI-compatible chat API on a loopback address. Ollama (MIT, `http://localhost:11434`), llama.cpp's `llama-server` (MIT) and LM Studio (`http://localhost:1234/v1`) all do, and all accept a JSON schema to shape the answer. The user installs and runs the server; Opsis stores its address and model name, lists its models and has a **Test** button.
-- **No model inside Opsis (decided).** Opsis ships no model runtime and downloads no models.
+- **No model inside Opsis for the assistant (decided).** The assistant ships no model runtime and downloads no models; the speech models of `plans/voice-and-captions.md` are separate and don't serve it.
 - **Online.** A provider, a model name and an API key. Anthropic can force an answer to a JSON schema through `output_config.format` (type `json_schema`) and strict tool use, OpenAI through `text.format` with `strict: true`. "Compatible service" takes an address too; OpenRouter and similar services go there, with no preset of their own (decided).
 
 ### Fit with Opsis
@@ -75,7 +75,7 @@ Missing: an `assistant` settings section, the page, the client, consent, the req
 ### Work
 
 1. **Settings.** An `assistant` section in `AppSettings`: `mode` (`off`, `local`, `online`; default `off`), `local_address` (default `http://127.0.0.1:11434/v1`), `local_model`, `provider` (`anthropic`, `openai`, `compatible`), `online_address`, `online_model`, `ask_each_time` (default `true`).
-2. **Keys.** `Keyring::clear_key`; keys named `assistant:<provider>`. `Session` calls on the bridge `save_assistant_key`, `has_assistant_key`, `clear_assistant_key` ([ui.md](../agent-docs/ui.md)); the key itself is read only inside `opsis-assist`. Views only ever learn `has_key`.
+2. **Keys.** `Keyring::clear_key` (`crates/store/src/keys.rs`, shared with `plans/voice-and-captions.md`; whichever plan is built first adds it); keys named `assistant:<provider>`, read on a blocking thread as `off_runtime` does (`crates/capture/src/take.rs`), since the Linux keyring blocks and panics on a runtime thread. `Session` calls on the bridge `save_assistant_key`, `has_assistant_key`, `clear_assistant_key` ([ui.md](../agent-docs/ui.md)); the key itself is read only inside `opsis-assist`. Views only ever learn `has_key`.
 3. **Client.** `ask_model(task, input, schema, cancel)` in `opsis-assist` returns the parsed struct or a plain error, choosing the provider: local server (chat completions with `response_format` and a JSON schema), Anthropic (Messages API with `output_config.format`), OpenAI (Responses API with `text.format`, `strict: true`), compatible (as the local server, at `online_address`). It refuses when `mode` is `off`, refuses an online request without a consent token, and treats a non-loopback `local_address` as online. Each call is listed in `AppState.tasks` ("Waiting for the assistant") and cancellable.
 4. **Schemas every provider accepts.** Strict online modes reject `minimum`/`maximum`, string lengths and optional-heavy objects (Anthropic: at most 24 optional parameters per request). Each task's struct is flat with every field required (empty string for "none"), and limits are enforced after parsing. A test checks every task schema for unsupported keywords.
 5. **Consent.** For an online request the editor first shows `AssistConsentDialog`: what will be sent (the exact text, expandable), Send / Cancel, and "Don't ask again", which turns `ask_each_time` off app-wide (decided) and can be turned back on in Settings. Rust issues a one-time token per approved request and refuses online requests without one.
@@ -86,7 +86,7 @@ Missing: an `assistant` settings section, the page, the client, consent, the req
 
 ### Decisions
 
-- **Naming providers (decided).** Anthropic and OpenAI in the provider choice and key field; OpenRouter under Compatible service; local programs only in the `?` card.
+- **Naming providers (decided).** Anthropic and OpenAI in the provider choice and key field; OpenRouter under Compatible service; local programs only in the `?` card. Settings → Voice and captions (`plans/voice-and-captions.md`) gives OpenRouter a preset of its own for speech; the AGENTS.md naming exception written when either plan ships covers both pages.
 - **No built-in model (decided).**
 - **"Don't ask again" (decided).** Allowed, app-wide.
 

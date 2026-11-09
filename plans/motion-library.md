@@ -4,13 +4,13 @@ More elements and better ways to find them: frame-driven rewrites of web motion 
 
 Status: plan only. Nothing here is built yet.
 
-Order with [native-renderer.md](native-renderer.md): this plan's components are written for the film page as it is today, in TS on `@opsis/runtime`. The native renderer replaces the film page in one go. Elements built from this plan before that cut-over join its port to Rust draw functions with every other element; after it, they are written as Rust draw functions from the start. The Rive section loads Rive's canvas runtime into the film page, so after the cut-over it needs Rive's C++ runtime drawing into a layer instead, which no plan covers yet.
+Order with [native-renderer.md](native-renderer.md): this plan's components are written for the film page as it is today, in TS on `@opsis/runtime`. The native renderer replaces the film page in one go. Elements built from this plan before that cut-over join its port to Rust draw functions with every other element; after it, they are written as Rust draw functions from the start. The Rive section loads Rive's canvas runtime into the film page, so after the cut-over it needs Rive's C++ runtime drawing into a layer instead, which no plan covers yet. Element thumbnails and the visual check in CI render through `render-elements` on the film page until the cut-over; after it they come from the renderer (native-renderer.md, Element stills), and the reference stills are recorded again.
 
 ## How to read this plan
 
 - Each feature is one section. The user picks which to build and when. A large one is split into phases, each checked before the next starts.
 - **Status** in the summary is one of: `not built`, `partly in place` (some pieces exist).
-- Each section has the same parts: **What it adds**, **Fit with Opsis** (In place / Missing), **Work**, **Licence**, **Risks**, **Sources**.
+- Each section has the same parts: **What it adds**, **Fit with Opsis** (In place / Missing), **Work**, **Licence**, **Risks**, and **Sources** where it cites outside facts.
 - External facts carry the date they were checked. Licences were read from each project's own licence file.
 
 ## Conventions
@@ -69,7 +69,7 @@ For users, 18 elements that product demos use often and that Opsis doesn't have 
 | 17  | Assistant orb         | SmoothUI `siri-orb`                                                                                                                                                                                                                                     | `background` | Rotating conic gradients through CSS animation. Angles from the frame.                                                                                                                                      |
 | 18  | Animated icon         | lucide-animated (about 20 icons: `check`, `bell`, `sparkles`, `rocket`, `send`, `download`, `upload`, `search`, `settings`, `heart`, `zap`, `lock`, `clock`, `refresh-cw`, `cloud-upload`, `bot`, `party-popper`, `arrow-right`, `copy`, `trending-up`) | `overlay`    | Motion `variants` started on hover (`useAnimation`). One element with an `icon` choice; each icon's variant keyframes become a table of `interpolate` ranges played once at the element's start, or looped. |
 
-Left out on purpose because Opsis already has them: number tickers (Rolling Number, Slot Machine Roll), text scramble (Matrix Decode), shimmer text (Shimmer Sweep), typewriters, blur-in text (Soft Blur In), notification lists (Notification stack), terminals, device mockups, file trees, confetti, particles, gauges, hand-drawn highlights (Marker Highlight, Ink Underline, Scribble Circle, and the hand-drawn looks of Highlight box and Title card, drawn by `HandDrawnMark` on `roughjs`). SmoothUI's `soft-blur-in`, `shimmer-sweep`, `mask-reveal-up`, `line-by-line-slide` and `kinetic-center-build` share names with elements Opsis already has; skip them. Hover-, scroll- and pointer-driven components (Magic UI `magic-card`, `lens`, `dock`, `smooth-cursor`, `scroll-progress`, Motion Primitives `magnetic`, `tilt`) have no meaning in a video.
+Left out on purpose because Opsis already has them: number tickers (Rolling Number, Slot Machine Roll), text scramble (Matrix Decode), shimmer text (Shimmer Sweep), typewriters, blur-in text (Soft Blur In), notification lists (Notification stack), terminals, device mockups, file trees, confetti, particles, gauges, hand-drawn highlights (Marker Highlight, Ink Underline, Scribble Circle, and the hand-drawn looks of the Highlight box annotation and the Title card element, drawn by `HandDrawnMark` on `roughjs`). SmoothUI's `soft-blur-in`, `shimmer-sweep`, `mask-reveal-up`, `line-by-line-slide` and `kinetic-center-build` share names with elements Opsis already has; skip them. Hover-, scroll- and pointer-driven components (Magic UI `magic-card`, `lens`, `dock`, `smooth-cursor`, `scroll-progress`, Motion Primitives `magnetic`, `tilt`) have no meaning in a video.
 
 ### Fit with Opsis
 
@@ -194,9 +194,14 @@ A hand-drawn cross over a part of the page in a take. The Remotion Elements "Cro
 
 ### Fit with Opsis
 
+In place:
+
 - Title card already has it: its **Mark a word** look includes "Crossed out" (`MarkLook` in `crates/compile/src/elements/text/title.rs`, drawn by `HandDrawnMark` in `packages/video/src/core/hand-drawn.tsx`). Don't add a separate element.
 - Close registry elements: Strikethrough Replace and Text Highlight (which includes a strikethrough).
-- The gap: Highlight box's looks are Clean, Hand-drawn box, Circle, Underline and Marker (`HighlightLook` and its labels in `crates/types/src/recording.rs`).
+
+Missing:
+
+- Highlight box's looks are Clean, Hand-drawn box, Circle, Underline and Marker (`HighlightLook` and its labels in `crates/types/src/recording.rs`).
 
 ### Work
 
@@ -244,7 +249,7 @@ Opsis's own component on the low-level runtime, with the WASM bundled and every 
 2. **Bundled runtime.** `scripts/rive-runtime.ts` (`bun run rive:runtime`) copies `rive.wasm` from the installed package to `public/rive/rive.wasm`, like `fonts:bundle` copies fonts; add the row to the generated-files table in `AGENTS.md`. A test checks the copy matches the installed package byte for byte, so a version bump can't leave an old runtime behind. `rive_fallback.wasm` isn't needed: the advanced runtime never names it.
 3. **Settings.** `rive` in its own file under `crates/compile/src/elements/`: `src` (`asset`, `x-accept = ".riv"`), `artboard` and `animation` (text, empty = the default), `fit` ("Show all" / "Fill the frame"), `background`; 90 frames.
 4. **Component.** `packages/video/src/elements/<category>/rive.tsx`, in `ELEMENTS`: loads the runtime with `locateFile: () => publicFile("rive/rive.wasm")`, the file like Lottie's, draws the frame's pose on a canvas on the page, and holds the frame until it's drawn.
-5. **Copy.** Title "Rive animation", description in the Lottie element's style: "Plays an animation made in Rive (.riv)."
+5. **Copy.** No tool or format name in the title or description: title "Interactive animation", description in the Lottie element's style: "Plays an interactive animation file from your project." Add "rive" to the banned words in `crates/compile/tests/unit/nodes_c.rs`.
 6. **Licences.** `THIRD_PARTY_NOTICES.md`: `@rive-app/canvas-advanced` (MIT), including the bundled `rive.wasm`.
 7. **Check.** With networking off, an export loads the element and no request goes to unpkg or Rive's servers (the page's network log through CDP); a still of a frame equals the same frame of an export.
 
@@ -282,9 +287,9 @@ Missing:
 ### Work
 
 1. **Stills.** Extend `render-elements` with a `--thumbnails` mode: every element, overlays and text over a neutral dark `solid`, the frame at 60% of the default length (a per-key override list for exceptions), Software drawing (`Gl::Swangle`) so the result doesn't depend on the graphics card, 320×180, WebP quality 75 (add `Webp` to `StillFormat`; the browser's screenshot takes `webp` as a format).
-2. **Storage.** `crates/ui/resources/element-stills/<key with "/" as "--">.webp`, editor-only, compiled into the app with `rcc` beside the style sheet.
+2. **Storage.** `crates/qt/resources/element-stills/<key with "/" as "--">.webp`, editor-only, listed in `crates/qt/resources/resources.qrc` (the one resource file `crates/qt/build.rs` compiles with `rcc`) and read by the hover card from `:/opsis/element-stills/…`.
 3. **Budget.** At most 24 KB per still and 3.5 MB in all (about 140 elements today, 160 with the web motion components, × 15–20 KB); the binary fails above either.
-4. **Hover card.** The node list's hover card (`NodeList::ShowCard`, `crates/qt/cpp/node_list.cc`) shows the still of the hovered element at the top.
+4. **Hover card.** The node list's hover card (`NodeList::ShowCard`, `crates/qt/cpp/node_list.cc`) shows the still of the hovered element at the top; the element key it needs reaches it through `bridge::PaletteEntry` (`crates/qt/src/bridge.rs`).
 5. **Check.** Offline, every element in the list shows a still.
 
 ### Decided
@@ -298,8 +303,6 @@ Opsis's own renders of its elements; the elements' own notices already cover the
 ### Risks
 
 - **Elements that need a file** (Image, Video, Lottie, Rive, Looping video) render empty at defaults; give them a placeholder from `public/placeholders` in the binary, or a fixed picture.
-
-### Sources
 
 ## Visual check in CI
 

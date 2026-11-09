@@ -2,7 +2,7 @@
 
 What Opsis needs to speak a script and to caption speech: a Voiceover node that turns text into a voice on this computer (or, when the user turns it on, through an online service), captions from the speech in a file, a film that fits the voice's length, and a Settings page for the voices and speech models. Captions from script, Show captions, the Mixer and its ducking are already built.
 
-Status: plan only. Nothing here is built yet.
+Status: plan only. None of the work below is built.
 
 ## How to read this plan
 
@@ -16,7 +16,7 @@ These apply to every feature in this plan. They restate rules from `AGENTS.md` a
 
 **Where code goes.**
 
-- `crates/voice` (`opsis-voice`): the model catalogue and downloads, the speech models, word timing and the online services. Its executors register with the runner like `opsis-media`'s; its nodes are definitions in `opsis-compile`; keys come from `opsis-store`.
+- `crates/voice` (`opsis-voice`): the model catalogue and downloads, the speech models, word timing and the online services. Its executors register with the runner like `opsis-media`'s, in both lists that name every executor crate: `executors` in `crates/session/src/run.rs` and `all_executors` in `crates/render/tests/executors.rs`; its nodes are definitions in `opsis-compile`; keys come from `opsis-store`. The crate gets its row in the AGENTS.md crate table, and its rules go in `agent-docs/audio.md` or a new `agent-docs/voice.md` listed in AGENTS.md §8.
 - Node definitions in `crates/compile/src/nodes/` (settings structs with `schemars` attributes, `card`, `compile`). Every node with `executes: true` has an executor (`crates/render/tests/executors.rs`).
 - Speech never runs in `packages/video` or the editor.
 
@@ -31,7 +31,7 @@ These apply to every feature in this plan. They restate rules from `AGENTS.md` a
 **User-facing copy.**
 
 - No library, model, tool or format names in node titles, descriptions, field labels, badges, toasts or errors: "Voice on this computer", "Online voice", "English", "European languages". Sentence case, durations in seconds, technical settings under `x-advanced`.
-- Decided naming exception, added to `AGENTS.md` when this is built: Settings → Voice and captions may name the online services (ElevenLabs, OpenAI, OpenRouter) in its service choices and key fields. Local voices and models show plain labels ("Natural voices", "English", "European languages"); each label has a small circled `?` whose hover card names the model and gives size, languages and licence. Names appear nowhere else (nodes, cards, toasts, errors), and in Settings → Licences.
+- Decided naming exception, added to `AGENTS.md` when this is built: Settings → Voice and captions may name the online services (ElevenLabs, OpenAI, OpenRouter) in its service choices and key fields. Local voices and models show plain labels ("Natural voices", "English", "European languages"); each label has a small circled `?` whose hover card names the model and gives size, languages and licence. Names appear nowhere else (nodes, cards, toasts, errors), and in Settings → Licences. `plans/ai-assist.md` decides its own exception for its provider choice (OpenRouter there sits under Compatible service); one AGENTS.md exception covers both pages.
 - `crates/compile/tests/unit/nodes_c.rs` checks every node's description and the banned words; add Kokoro, Parakeet, NeMo, ElevenLabs, OpenAI, OpenRouter and ONNX to its list.
 
 **Licences.** Downloaded models get a licence entry that appears once they're on disk, like the engine's (`LicenceSource`, `crates/engine/src/licences.rs`). Never offer a voice whose licence hasn't been checked for commercial use, the same rule as built-in sounds.
@@ -78,13 +78,13 @@ Missing: the crate, the catalogue, the runtime, the page, the `speech` settings 
 
 ### Work
 
-1. **Runtime.** `cargo add ort` in `crates/voice`. Choose how ONNX Runtime ships by measuring the app both ways (`plans/release.md`, size work): linked statically from ort's prebuilt binaries (`download-binaries`, fetched at build time) or one shared library staged with the app and loaded with `load-dynamic`, which ort's docs recommend for apps. Either way it is one runtime for every model. A test loads each model's input and output names, so a model that needs an operator the build lacks fails in CI.
+1. **Runtime.** Pin `ort` in the root `Cargo.toml`'s `[workspace.dependencies]`, then `cargo add -p opsis-voice ort` (the same for `misaki-rs` and every other new crate here). Choose how ONNX Runtime ships by measuring the app both ways (`plans/release.md`, size work): linked statically from ort's prebuilt binaries (`download-binaries`, fetched at build time) or one shared library staged with the app and loaded with `load-dynamic`, which ort's docs recommend for apps. Either way it is one runtime for every model. A test loads each model's input and output names, so a model that needs an operator the build lacks fails in CI.
 2. **Catalogue.** `crates/voice/src/catalog.rs`: `VOICE_PACKS` and `TRANSCRIBE_MODELS` as Rust data (id, label, languages, voices with display names, files with URL pinned by Hugging Face commit, SHA-256 and size, licence), exported to the editor with the other generated types. A test checks every entry has a hash, a size, a checked licence and no banned word in its labels.
 3. **Paths and status.** `speech_paths(data)` → `<data folder>/speech/{voices/<id>,models/<id>}`; `speech_status()` reports what's installed.
 4. **Installer.** `install_speech_item(id)`: each file through `fetch_verified` (made public in `opsis-engine`) into a staging folder, renamed into place when all are there; `remove_speech_item(id)`. Models are plain files, so nothing is unpacked.
 5. **Session calls.** `install_speech(item)` on the bridge, listed in `AppState.tasks` ("Downloading speech files"), with progress the way engine setup reports it: Rust posts an event and the page reads its view again (`install_engine`, `engine_view`, `crates/qt/cpp/engine_card.cc`); `remove_speech(item)`; `speech_status`.
-6. **Keys.** `Keyring::clear_key` (shared with `plans/ai-assist.md`); keys named `speech:<service>`. `Session` calls `set_service_key(service, key)`, `has_service_key(service)`, `clear_service_key(service)`; views never read a key back.
-7. **Settings.** `AppSettings` gains `speech: { voice, transcribe: english | european, online: { elevenlabs, openai, openrouter, compatible: { enabled, address, voice_model, transcribe_model } } }`, all off or empty by default. Add `SettingsPage::Voice`, its page in `crates/qt/cpp/settings_window.cc` and its row in the page list ("Voice and captions", icon `audio-lines`). Download buttons ask in a dialog naming the size before anything is fetched. The `?` cards are one small hover card behind a `?`, fed from the catalogue entry.
+6. **Keys.** `Keyring::clear_key` (shared with `plans/ai-assist.md`; whichever plan is built first adds it); keys named `speech:<service>`. `Session` calls `set_service_key(service, key)`, `has_service_key(service)`, `clear_service_key(service)`; views never read a key back.
+7. **Settings.** `AppSettings` gains `speech: { voice, transcribe: english | european, online: { elevenlabs: { enabled, ask_first }, openai: { enabled, ask_first }, openrouter: { enabled, ask_first }, compatible: { enabled, ask_first, address, voice_model, transcribe_model } } }`, where `ask_first` is cleared by "Don't ask again" (Online voices, step 4), all off or empty by default. Add `SettingsPage::Voice`, its page in `crates/qt/cpp/settings_window.cc` and its row in the page list ("Voice and captions", icon `audio-lines`). Download buttons ask in a dialog naming the size before anything is fetched. The `?` cards are one small hover card behind a `?`, fed from the catalogue entry.
 8. **Licences.** `LicenceSource` entries for each voice pack and each transcription model (CC-BY-4.0, crediting NVIDIA), shown once downloaded; ONNX Runtime's notice in `THIRD_PARTY_NOTICES.md`.
 9. **Tests.** Catalogue test; `speech_paths` per platform; a hash mismatch rejects the download and leaves nothing behind (against `wiremock`).
 
@@ -124,7 +124,7 @@ In place:
 Missing:
 
 - Any text-to-speech. Recordings carry no sound, so all speech comes from this node or from files.
-- A voice role: `AudioRole` and `ChannelKind` (`crates/types/src/mix.rs`) know music, effects and clips; `default_buses` has Music, Effects and Clips, so there's no Voice bus to duck under.
+- A voice role: `AudioRole` (`crates/types/src/timeline.rs`) knows music and effects, and `ChannelKind` (`crates/types/src/mix.rs`) music, effects and clips; `default_buses` has Music, Effects and Clips, so there's no Voice bus to duck under.
 - Captions can't follow an action: `Caption` has no anchor, and Show captions doesn't resolve marks.
 - Icons: the `Icon` enum (`crates/types/src/cards.rs`) has `AudioLines` and `Captions` but no microphone or speech icon.
 
@@ -173,7 +173,7 @@ Missing: request code for the services, a voice list cache, a first-use confirma
 
 ### Work
 
-1. **Requests** in `crates/voice/src/online.rs`, with `reqwest` and the key read from the keyring inside the crate:
+1. **Requests** in `crates/voice/src/online.rs`, with `reqwest` and the key read from the keyring inside the crate on a blocking thread, as `off_runtime` does for sign-ins (`crates/capture/src/take.rs`), since the Linux keyring blocks and panics on a runtime thread:
    - ElevenLabs voice: `POST /v1/text-to-speech/{voice_id}/with-timestamps` (`xi-api-key` header, `voice_settings.speed`); decode `audio_base64`, turn `alignment` (per-character start and end times) into word times with a pure, tested function.
    - OpenAI voice: `POST /v1/audio/speech` with `gpt-4o-mini-tts`, a built-in voice and `response_format: "wav"`. It returns no timestamps and documents no speed setting, so word timing uses the estimate or the transcriber, and Speed is applied with FFmpeg's `atempo`.
    - ElevenLabs transcription: `POST /v1/speech-to-text` with `model_id: "scribe_v2"` and `timestamps_granularity: "word"`, words read into `Caption`s.

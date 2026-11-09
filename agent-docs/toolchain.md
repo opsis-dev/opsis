@@ -12,11 +12,11 @@ The Rust nightly and how to move it, the Zig build of `opsis-vt`'s wrapper, Qt a
 | Workspace lints                        | `[workspace.lints.rust]`, `[workspace.lints.clippy]` in `Cargo.toml`; `[lints] workspace = true` in every crate                       |
 | Zig build of the wrapper               | `crates/vt/build.rs` → `zig_target`; `crates/vt/zig/build.zig`, `crates/vt/zig/build.zig.zon`                                         |
 | Zig in CI                              | `scripts/zig-install.ts` (`bun run zig:install`) → `ZIG_VERSION`, `ARCHIVES`                                                          |
-| Opsis oxlint rules                     | `scripts/oxlint-plugin-opsis.ts`                                                                                                      |
+| Opsis oxlint rules                     | `scripts/oxlint-plugin-opsis.ts`; switched on in `scripts/lib/oxlint-base.ts` (every member), `packages/video/oxlint.config.ts` and the root `oxlint.config.ts` (`scripts/**`) |
 | Shared oxlint, oxfmt, Vitest configs   | `scripts/lib/oxlint-base.ts`, `scripts/lib/oxfmt-base.ts`, `scripts/lib/vitest-base.ts`, `scripts/lib/tool-config.ts`                 |
 | Comment check                          | `scripts/comments.ts`                                                                                                                 |
 | Qt and KDDockWidgets for `opsis-qt`    | `scripts/qt-install.ts` (`bun run qt:install`); `crates/qt/build.rs` → `QT_VERSION`, `QT_MIN_MINOR`, `KDDW_VERSION`, `STATIC_PLUGINS` |
-| The release build's static Qt          | `bun run qt:static` → `scripts/qt-static.ts`; `scripts/lib/static-qt.ts` → `ensureStaticQt`; `scripts/lib/trixie.ts` → `runInTrixie`  |
+| The release build's static Qt          | `bun run qt:static` → `scripts/qt-static.ts`; `scripts/lib/static-qt.ts` → `ensureStaticQt`, `SOURCES`, `CONFIGURE`; `scripts/lib/trixie.ts` → `runInTrixie` |
 | Qt in CI                               | `jurplel/install-qt-action` in `.github/workflows/build.yml`; `bun run qt:static` in `.github/workflows/release.yml`                  |
 | C++ format and lint                    | `scripts/cpp.ts` → `STYLE`, `CHECKS`; `compile_commands.json` written by `crates/qt/build.rs`                                         |
 | Rust test runner (stages FFmpeg first) | `scripts/test-rust.ts`                                                                                                                |
@@ -51,11 +51,11 @@ The Rust nightly and how to move it, the Zig build of `opsis-vt`'s wrapper, Qt a
 
 - **`opsis-qt` builds against the Qt and KDDockWidgets that `QT_VERSION` and `KDDW_VERSION` name, from `~/.cache/opsis-dev/qt`**, which `bun run qt:install` fills: Qt through aqtinstall (`uvx`), KDDockWidgets from its release tarball, pinned by URL, sha256 and size. `build.rs` never downloads; it refuses any Qt but Qt 6 from `QT_MIN_MINOR` up and names `qt:install` when either is missing.
   - `OPSIS_QT` names another Qt and `OPSIS_KDDW_SOURCE` another KDDockWidgets source.
-  - A static Qt (one with `libQt6Core.a`) is linked statically, with its platform plugins imported by name (`STATIC_PLUGINS`) and linked as one group; the shared Qt is linked with an rpath.
+  - A static Qt (one with `libQt6Core.a`) is linked statically, with the Qt plugins it needs (platforms, Wayland shell and decoration, input context, platform theme) imported by name (`STATIC_PLUGINS`) and linked as one group, and KDDockWidgets built static too; `build.rs` stops when a listed plugin's archive is missing. The shared Qt is linked with an rpath.
   - KDDockWidgets builds against Qt's private Widgets headers, so moving Qt means rebuilding and re-checking it.
-  - The Qt version is written in `crates/qt/build.rs`, `scripts/qt-install.ts`, `scripts/lib/static-qt.ts` (with its pinned source tarballs) and both `install-qt-action` steps of `build.yml`, and moves in all of them at once; KDDockWidgets' in `build.rs` and `qt-install.ts`.
+  - The Qt version is written in `crates/qt/build.rs`, `scripts/qt-install.ts`, `scripts/lib/static-qt.ts` (with its pinned source tarballs) and both `install-qt-action` steps of `build.yml`, and moves in all of them at once; KDDockWidgets' in `build.rs`, `qt-install.ts` and the About page check in `crates/qt/cpp/e2e_settings.cc`. After a move, run `bun run qt:notices` again, and update the "Qt 6.12" in AGENTS.md, README.md, `ui.md` and `build.rs`'s messages.
 - **CI's Qt depends on the workflow**: `build.yml` points `OPSIS_QT` at `jurplel/install-qt-action`'s shared Qt; `release.yml` builds the static Qt with `bun run qt:static`, caches it, and sets `OPSIS_QT` from the folder it reports. Both then run `bun run qt:install`, which uses the Qt in `OPSIS_QT` when that folder has a `lib` folder (and downloads one otherwise) and fetches KDDockWidgets.
-- **Release builds link the static Qt `bun run qt:static` builds (`ensureStaticQt`)**: Qt Base and Qt Svg from the pinned source tarballs, without ICU or OpenGL, into `~/.cache/opsis-dev/qt-static/<version>/<folder>`, marked done by an `.opsis-complete` file.
+- **Release builds link the static Qt `bun run qt:static` builds (`ensureStaticQt`)**: the modules in `SOURCES` from the pinned source tarballs, configured by `CONFIGURE`, into `~/.cache/opsis-dev/qt-static/<version>/<folder>`, marked done by an `.opsis-complete` file. Why a release links it statically is in [packaging.md](packaging.md).
   - It builds only on Linux, locally and in CI, inside the `debian:trixie` packaging container (`runInTrixie`, so Docker is needed), because a static link needs X11 and xcb development files a desktop doesn't have. On any other platform `ensureStaticQt` refuses unless a finished build is already there ([plans/release.md](../plans/release.md) section 2).
 
 ### C++
@@ -66,10 +66,13 @@ The Rust nightly and how to move it, the Zig build of `opsis-vt`'s wrapper, Qt a
 
 ### TypeScript
 
-- **The Opsis oxlint rules that fix code add their import from `common/`**, so run `lint:fix` until it reports nothing ([AGENTS.md](../AGENTS.md) §2).
+- **Opsis's own oxlint rules live in one plugin (`scripts/oxlint-plugin-opsis.ts`)**, each switched on where it applies:
+  - every member (`scripts/lib/oxlint-base.ts`): `use-find-by-id`, `use-function-components`, `use-function-declarations`, `use-parse-json-with`, `use-percent-text`, `use-type-guards`;
+  - `packages/video` only: `no-animate-class` and `no-three-clock`, with `src/common/lists.ts` and `src/common/guards.ts` left out of the rules that point to them;
+  - `scripts/**` only (the root `oxlint.config.ts`, `scripts/lib/tool-config.ts` aside): `use-root`.
+- **`use-parse-json-with` asks for `parseJsonWith` (`packages/video/src/common/guards.ts`) where a schema's `safeParse` takes `JSON.parse(…)` or an `ok ? … : …`, and `use-root` for `ROOT` (`scripts/lib/tool-config.ts`) where a script resolves a path from `import.meta.dirname`**; neither fixes code.
+- **Only the rules whose fix calls `fixWith` (`use-find-by-id`, `use-type-guards`, `use-percent-text`) add an import from `common/`**, and only in `packages/video/src` (`#video/common/…`) and `scripts` (`@opsis/video/common/…`); in a file that already declares that name, they offer no fix. `use-function-components` and `use-function-declarations` rewrite the code without an import. Run `lint:fix` until it reports nothing ([AGENTS.md](../AGENTS.md) §2).
 
 ## Deliberate limits
-
-- **TypeScript 7 has no parser API**, so the comment check parses TS with `oxc-parser`; the native compiler only type-checks.
 - **`lint:zig` builds the wrapper in Debug as a check** into `target/zig-check`; it is not the build Cargo links.
-- **The static Qt, and so the release packages, isn't built on macOS or Windows**: the release workflow's jobs there fail at `qt:static` unless their cache already holds a finished build.
+- **The static Qt, and so the release packages, isn't built on macOS or Windows**: the release workflow's jobs there fail at `qt:static` unless their cache already holds a finished build ([packaging.md](packaging.md)).

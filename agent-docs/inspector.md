@@ -1,6 +1,6 @@
 # Settings and the Inspector
 
-How node and element settings are declared in Rust, how their JSON Schema carries the Inspector's UI, what Rust sends the forms beyond the schema, and how the forms behave. Rust paths are relative to `crates/compile/src/` unless they name another crate; C++ paths to `crates/qt/cpp/`.
+How node and element settings are declared in Rust, how their JSON Schema carries the Inspector's UI, what Rust sends the forms beyond the schema, and how the forms behave. Rust paths are relative to `crates/compile/src/` unless they name another crate; C++ paths to `crates/qt/cpp/`. Elements' settings are in [elements.md](elements.md), node definitions in [nodes.md](nodes.md), the bridge the forms use in [ui.md](ui.md); see also [AGENTS.md](../AGENTS.md).
 
 ## Code map
 
@@ -16,9 +16,9 @@ How node and element settings are declared in Rust, how their JSON Schema carrie
 | Variable chips                      | `var_text.cc` → `VarText`, `VarSurface`; tokens from `crates/ui/src/project.rs` → `text_tokens`, `join_tokens` (over `opsis_compile::vars`)  |
 | Colour field                        | `color_picker.cc` → `ColorPicker`; `color.rs` (formats)                                                                                      |
 | Marks field                         | `marks_field.cc`; geometry in `marks.rs`                                                                                                     |
-| Gradient field                      | `gradient.rs` → `gradient_view`, `edit_gradient`, called through `crates/session/src/gradients.rs`                                           |
-| Empty values dropped from props     | `nodes/elements.rs` → `element_props`; `elements/introspect.rs` → `map_leaves`                                                               |
-| Spot and target keys                | `crates/ui/src/inspector.rs` → `spot_y_key`; the target's role in `<key>Role`                                                                |
+| Gradient field                      | `gradient.rs` → `gradient_view`, `edit_gradient`, called through `crates/ui/src/colors.rs`                                                   |
+| Empty values dropped from props     | `nodes/elements.rs` → `element_props`, `setting_value`; `elements/introspect.rs` → `map_leaves`                                              |
+| Spot and target keys                | `crates/ui/src/inspector.rs` → `spot_y_key`; the target's role in `<key>Role`, written on a pick by `crates/ui/src/ui.rs` and cleared by typing (`inspector_panel.cc`, `FieldKind::Target`); the hidden-role test in `crates/compile/tests/unit/nodes_a.rs` |
 | Frames-at-30 conversion             | `elements/introspect.rs` → `frames_from_seconds`                                                                                             |
 | Basic and Advanced tabs             | `inspector_panel.cc` → `InspectorPanel::AddTabs`                                                                                             |
 
@@ -28,9 +28,9 @@ How node and element settings are declared in Rust, how their JSON Schema carrie
 
 - **Node settings are Rust structs with `serde` defaults and `schemars` attributes, validated with `jsonschema`**; elements are settings structs registered in `elements/` the same way.
 - **A settings struct is marked `#[settings]` and each field `#[setting(…)]`; never add a `derive`, and never write `#[schemars(…)]` or `#[default …]` on a settings field by hand.**
-  - `#[settings]` writes `Debug`, `Clone`, `PartialEq`, `SmartDefault`, `Serialize`, `Deserialize`, `JsonSchema`, `#[serde(rename_all = "camelCase", default)]` and `impl Params`.
+  - `#[settings]` writes the derives, the serde attributes (camelCase, defaults) and `impl Params` (`crates/macros/src/settings.rs`).
   - `#[settings(export)]` adds `specta::Type` (element settings and their rows); `#[settings(eq)]` adds `Eq` (settings with no floats); `#[settings(check)]` leaves `impl Params` to the struct, which writes `check`.
-- **`#[setting(…)]` takes the label first, then in the order written:** `default = <expr>`, `range(…)`, `length(…)`, `transform = <fn>`, `check = colour` or `colour_or_empty` (or a rule object), a bare word for an `x-` keyword that is `true` (`advanced`, `hidden`), any other `word = <value>` for `x-<word>` with `_` as `-` (`help`, `zero_label`, `show_if`), and `"key" = <value>` for a schema keyword as it is (`"type"`).
+- **`#[setting(…)]` takes an optional label first, then its parts in any order** (`crates/macros/src/setting.rs`): `default`, `range`, `length`, `transform`, `check`, a bare word for an `x-` keyword that is `true`, `word = <value>` for `x-<word>` with `_` as `-`, and `"key" = <value>` for a schema keyword as it is. A default given both here and by hand is an error.
 - **Every enum a setting picks from is a `#[choice]`**: it writes the derives (`Default` when a variant is `#[default]`, `specta::Type` with `#[choice(export)]`) and `rename_all = "kebab-case"` (another with `#[choice(rename_all = "…")]`).
   - `#[label("…")]` on every variant gives the enum's `x-labels`, keyed by the wire name, and its `label()`, which cards use instead of matching the variants again.
   - A field's own `labels = {…}` is only for a field that names the choices differently from its enum.
@@ -47,31 +47,40 @@ How node and element settings are declared in Rust, how their JSON Schema carrie
 ### Keyword meanings the editor relies on
 
 - **`x-unit: "ms"` is stored in milliseconds and shown in seconds** (`number_field`, `crates/ui/src/inspector.rs`); any other unit, `"frames"` included, is shown as stored, with the unit beside the field.
-- **`x-frames-at: 30` stores a frame count as seconds**, and compile turns it back into frames (`frames_from_seconds`, also inside rows and comma lists) ([elements.md](elements.md)).
-- **`x-zero-label` on a colour, file or text field means empty is unset**: for an element, compile drops the empty value (`map_leaves` in `element_props`, also inside rows and nested objects), and the field shows the label ("Theme", "Built-in photo"); other nodes read the empty value themselves. On a number it is shown in place of 0; a number whose schema allows `null` also gets a Clear button that unsets it.
-- **`x-unconnected-zero-label` takes its place while none of the node's inputs is connected** (a wrapper whose clip is optional plays its usual length alone).
-- **`x-show-if` values are text (`["true"]` for a switch, never `[true]`)**, because the form compares the setting's value as text; `nodes_c.rs` fails on any other. `"*"` matches any value that isn't empty.
+- **`x-frames-at: 30` stores a frame count as seconds**; how compile turns it back into frames is in [elements.md](elements.md), Time and size.
+- **`x-step` sets a number field's step and decimals.**
+- **`x-presets` (titled by `x-presets-label`) puts preset buttons above a field** (`InspectorPanel::WithPresets`).
+- **`x-pauses` lets a text field hold pause marks** (passed to `VarText`).
+- **`x-hidden` keeps a setting out of the form.**
+- **`x-zero-label` on a colour, file, select or text field means empty is unset**: for an element, compile drops the empty string (`setting_value` through `map_leaves` in `element_props`; inside a list row the item becomes `null`), and other nodes read the empty value themselves.
+  - Colour and text fields show the label in place of empty ("Theme"); on a number it is shown in place of 0, and a number whose schema allows `null` also gets a Clear button that unsets it.
+  - A file field always reads "Choose a file" and a select its own empty choice, so their labels never show (TODO.md).
+- **`x-unconnected-zero-label` is meant to take its place while none of the node's inputs is connected** (a wrapper whose clip is optional plays its usual length alone); `blank` compares the setting's key with the connected port names, so the Inspector shows it even with a clip connected (TODO.md).
+- **`x-show-if` values are text (`["true"]` for a switch, never `[true]`)**, because the form compares the setting's value as text; `nodes_c.rs` fails on any other. In the form `"*"` matches any value that isn't empty (`ANY_VALUE`); the card rows' check (`shown`, `nodes/elements.rs`) compares `"*"` as text (TODO.md).
 - **`x-show-if-file: { path: ["image"] }` shows a field only when that setting holds a file of that kind**; Rust sends each file setting's kind (`InspectorContext.file_kinds`, `kind_from_path`), so the editor never reads extensions; only top-level `asset` settings have a kind, so it doesn't work inside list rows.
 - **`x-show-if-take: ["browser"]` shows a field only for that kind of take**; Rust sends the kind of take the node reaches on its own inputs or a later node's (`InspectorContext.take_kind`), and the field shows while no take is connected.
 
 ### Widgets with a contract
 
-- **`spot` keeps its y in `spot_y_key(name)` and shows the frame at the time in its `x-time-key` setting**; `target` keeps the picked element's role in `<name>Role`.
+- **`spot` keeps its y in `spot_y_key(name)` and shows the frame at the time in its `x-time-key` setting.**
+- **`target` keeps the picked element's role in a hidden `<name>Role` setting that the node declares**; `nodes_a.rs` fails on a `target` without one.
 - **`boxes` are areas drawn over the node's spot picture (a frame of the upstream recording, the graded file or the image input), stored as fractions of the frame.**
 - **`marks` draws on the inspected picture, and each drag is written once when it ends**; the selected mark's other settings are its nested form.
 - **`gradient` only draws what Rust sends**: Rust parses the CSS gradient and applies each edit (`gradient_view`, `edit_gradient`).
 - **`theme` is `{ mode, colors }` over the preset in `x-themes`, storing only changed tokens**; `terminal-theme` names a theme from the catalogue's `terminalThemes`, and empty keeps the take's own.
 - **`cut` and `port` pick one of the node's connected numbered inputs over `InspectorContext.ports`**; `cut` leaves out the first ([film.md](film.md), Transitions).
 - **`font` lists project, built-in and library fonts; picking a library font copies it into the project** ([fonts.md](fonts.md)).
-- **`sound` and `music` offer built-in sounds or songs or a project file, with a play button** ([audio.md](audio.md)).
+- **`sound` and `music` are a list of the catalogue's built-in sounds or songs, and None** ([audio.md](audio.md)).
 - **`envelope` and `camera` edit keys that Rust applies** ([timeline.md](timeline.md)).
 
 ### Form behaviour
 
-- **Rust sends what the inspected node's form needs beyond the schema with every compile** (`InspectorContext`: variables, layers, actions, the spot's frame, the picker's page, the project's colours, connected inputs, file kinds, ports, take kind).
+- **Rust sends what the inspected node's form needs beyond the schema with every compile** (`InspectorContext`).
 - **Plain text fields render variables as chips (`VarText`); never show `{{…}}` to a user.**
   - Rust splits the text into variables, pause marks and plain text and joins it back (`text_tokens`, `join_tokens`), so the field has no tokenizer of its own.
 - **Fields write on every keystroke, so a focused text field is wrapped in a gesture** (`FormHold` around `VarSurface`'s live typing): typing until it loses focus is one undo step.
-- **Lists pick their input from the item schema**: text items a text list, numbers a number list (each with an Add button and a remove button per row, `list_fields.cc`), colours a palette, objects rows (each a nested form, so any widget works in a column).
-  - All honour the array's `minItems`/`maxItems`; rows reorder by dragging, one undo step per drop, an object row duplicates below itself, and a list of four or more starts collapsed.
-- **The colour field (our own; formats in `color.rs`) keeps the format a value is written in** (`#hex`, `rgb()`, `hsl()`, `oklch()`, with alpha) and rewrites it only when the user picks; its popover is one gesture and offers the project's colours as swatches.
+- **Lists pick their input from the item schema**: text items a text list, numbers a number list (each with an Add button and a remove button per row, `list_fields.cc`), colours a palette, choices a row of toggles, objects rows (each a nested form, so any widget works in a column).
+  - All honour the array's `minItems`/`maxItems`; rows reorder by dragging, one undo step per drop.
+  - An object row duplicates below itself, and a list of four or more object rows starts collapsed (`kCollapseFrom`).
+- **Nested forms open two levels deep** (`NESTING`, `crates/ui/src/inspector.rs`); deeper rows show only their summary.
+- **The colour field (our own; formats in `color.rs`) keeps the format a value is written in** and rewrites it only when the user picks; its popover is one gesture and offers the project's colours as swatches.

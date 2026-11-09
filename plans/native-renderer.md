@@ -76,7 +76,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Decisions
 
-- **Where the scene types are written.** The WIT is a boundary, and AGENTS.md makes Rust the source of every type that crosses one. Either the Rust types are generated from the WIT by `wasmtime::component::bindgen!` and AGENTS.md records that exception, or they are hand-written in Rust and a test fails when they and the WIT disagree. Decide before Scene starts.
+- **Where the scene types are written.** The WIT isn't in the repository yet (node-packs.md, Contract: "Missing: the WIT in the repository"), so Scene either adds it first or writes the Rust types first. The WIT is a boundary, and AGENTS.md makes Rust the source of every type that crosses one. Either the Rust types are generated from the WIT by `wasmtime::component::bindgen!` and AGENTS.md records that exception, or they are hand-written in Rust and a test fails when they and the WIT disagree. Decide before Scene starts.
 - **`comemo` or explicit hash keys** for the memo layer (`comemo` 0.5.1, MIT/Apache-2.0, thread-safe behind `parking_lot::RwLock`).
 
 ### Risks
@@ -257,7 +257,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Sources
 
-- `crates/render/src/frames.rs`, `crates/media/src/{codecs,capabilities}.rs`, FFmpeg 6.1.1 `libavcodec/mjpegdec.c:147`.
+- `crates/render/src/frames.rs`, `crates/media/src/{codecs,capabilities}.rs`, FFmpeg 6.1.1 `libavcodec/mjpegdec.c:147` (6.1.1 is the Windows program's version; the Linux program is 7.0.2, `plans/ffmpeg.md`).
 
 ## Elements
 
@@ -345,7 +345,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Work
 
-1. Delete the listed apps, packages, bundles and Rust paths; remove their scripts (`film:bundle`, `terminal:bundle`) and their table rows in AGENTS.md.
+1. Delete the listed apps, packages, bundles and Rust paths; remove their scripts (`film:bundle`, `terminal:bundle`) and their table rows in AGENTS.md; add `opsis-scene` and the renderer to the AGENTS.md crate table, and, when the Skia choice is our own `cxx` wrapper, name that crate in the AGENTS.md rule on the crates allowed `unsafe`.
 2. Rewrite the docs named above in the same change.
 
 ### Decisions

@@ -6,16 +6,17 @@ How an element is written in Rust and on the page, how its settings reach its co
 
 | Concern                        | Where                                                                                                                                                                                                                                                     |
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| One element's definition       | `<category>/<element>.rs` (categories `media`, `text`, `overlay`, `transition`, `background`, `effect`, `ui`, `data`, `scene`, `device`)                                                                                                                  |
+| One element's definition       | `<category>/<element>.rs`, one folder per `ElementCategory` (`mod.rs`)                                                                                                                                                                                    |
 | The builder                    | `entry.rs` → `element`, `meta`, `design`, `exact_design`, `optional_clip`; what an element is: `mod.rs` → `ElementKind`                                                                                                                                   |
 | Node list order                | `mod.rs` → `elements()`                                                                                                                                                                                                                                   |
 | Choices several elements share | `shared.rs`                                                                                                                                                                                                                                               |
-| Theme preset tables            | `theme.rs` → `neutral_themes`, `warm_themes`, `code_themes`, `keystroke_themes`, `stat_card_themes`, `data_story_themes`…, `with_themes`                                                                                                                  |
+| Theme preset tables            | `theme.rs` (the `*_themes` tables and `with_themes`)                                                                                                                                                                                                      |
+| Settings walking and defaults  | `introspect.rs` → `map_leaves`, `frames_from_seconds`, `widget_keys`; `default_props.rs` and `length_cases.rs` write the generated JSON (`bun run types:export`)                                                                                           |
 | Props built from settings      | `crates/compile/src/nodes/elements.rs` → `element_props`; `crates/compile/src/nodes/capture.rs` → `StillProps`; `crates/compile/src/clip.rs` → `PlaceholderProps`; the page's settings types from `props.rs` → `ElementSettings` (`bun run types:export`) |
 | Element sounds                 | `crates/compile/src/nodes/elements.rs` → `element_sounds`                                                                                                                                                                                                 |
 | Lengths                        | `lengths.rs` → `element_timing`, `animation_length`, `fits_its_animation`; the Length field `crates/compile/src/nodes/elements.rs` → `clip_duration_field`; checked by `registry/lengths.test.ts` through `length-cases.generated.json`                   |
 | Components                     | `elements/<category>/<key>.tsx` or `elements/<category>/<key>/index.tsx`                                                                                                                                                                                  |
-| Key → implementation           | `elements/index.ts` → `ELEMENTS`; lookup `registry/index.ts` → `resolveElement`                                                                                                                                                                           |
+| Key → implementation           | `elements/index.ts` → `ELEMENTS`; lookup `registry/index.ts` → `getComponent`, `getPresentation`, `getSequencer` (`resolveElement` wraps a lookup's result)                                                                                              |
 | What an implementation is      | `registry/framing.tsx` (`component`, `presentation`, `sequencer`)                                                                                                                                                                                         |
 | Settings shape helpers         | `lib/settings/shape.ts` → `nestedFrom`, `listsFrom`, `ticksFromWords`, `treeFromPaths`                                                                                                                                                                    |
 | UI kits                        | `lib/neutral-ui`, `lib/warm-ui` (`theme.ts`, `fonts.ts`, `item.tsx`), `lib/ui-kit` (colour, motion, step and timeline helpers)                                                                                                                            |
@@ -24,22 +25,24 @@ How an element is written in Rust and on the page, how its settings reach its co
 | Colour literal allow-list      | `colors.test.ts` (`ELEMENT_FILES`, `DIRS`)                                                                                                                                                                                                                |
 | Element stills                 | `bun run elements:render` → `crates/render/src/bin/render-elements.rs`, into `~/.cache/opsis-dev/element-stills`                                                                                                                                          |
 | 3D stage and loaders           | `three/` → `Stage3D`, `useDrawnScene`; `project.ts`                                                                                                                                                                                                       |
-| 3D stills check                | `crates/render/tests/three_stills.rs` against `fixtures/prepare/stills`                                                                                                                                                                                   |
+| 3D stills check                | `crates/render/tests/three_stills.rs` against `fixtures/prepare/stills`; `OPSIS_STILLS_OUT` names where it writes its stills (default `~/.cache/opsis-dev/three-stills`)                                                                                  |
 
 ## Rules
 
 ### One shape for every element
 
-- **Every element is one Rust file holding its settings struct, the rows and choices only it uses, and `definition()`**, which registers it with the one builder (kind, key, title, description, category, length, design size, fixed props, kind props, the 30 fps clock, look).
-- **An element's key is its plain name (`title`, `soft-blur-in`) and its node type `fx.<key>` or, for a transition, `transition.<key>`.** No name, type, path or field says where an element came from; only `THIRD_PARTY_NOTICES.md` records that.
+- **Every element is one Rust file holding its settings struct, the rows and choices only it uses, and `definition()`**, which registers it with the one builder (`entry.rs`).
+- **An element's key is its plain name (`title`, `soft-blur-in`) and its node type `fx.<key>` or, for a transition (`ElementKind::Presentation`), `transition.<key>`.** Captions has no element node of its own: Show captions and Captions from script draw it. No name, type, path or field says where an element came from; only `THIRD_PARTY_NOTICES.md` records that.
 - **Every element is Opsis's own code under the same rules, checks and formatting as the rest**, whatever it started as.
 - **Theme settings reach the preset tables through a `schemars` transform**; a family of elements with a palette of its own has its own table built with `with_themes`.
 - **`ELEMENTS` imports every implementation and `DemoTimeline` looks each one up synchronously**, so a page that opens loads them all once.
+- **`ELEMENTS` also holds `placeholder` and `still`, page-only implementations with no element entry in Rust**; their props are `PlaceholderProps` and `StillProps`.
 
 ### Settings to props
 
-- **Every element's exported component takes its settings exactly as stored** and does in its own file whatever its drawing needs: its background, centring and placement, and the conversions in `lib/settings/shape.ts` (`listsFrom` leaves out an all-empty column).
-- **Nothing outside an element reshapes its props**; `registry/framing.tsx` only marks what an implementation is.
+- **Every element's exported component takes its settings as compile wrote them** and does in its own file whatever its drawing needs: its background, centring and placement, and the conversions in `lib/settings/shape.ts` (`listsFrom` leaves out an all-empty column).
+  - Compile turns seconds into frames, fills kind props and font stacks and drops empty labelled values (`element_props`); on the page `DemoTimeline` only turns `app:` refs into addresses (`withAppFiles`, [assets.md](assets.md)).
+- **Nothing else reshapes an element's props**; `registry/framing.tsx` only marks what an implementation is.
 - **A component prop is a setting, a fixed prop (`.fixed`), a kind prop (`.kind_prop`), a wrapper's output, or left at the component's own value** when it is timing, a function, a React node, internal or a sound.
 - **A prop that follows the kind of a file setting is declared with `.kind_prop`** (`media` → `src` on the text mask): compile sets it from `kind_from_path`, so a component never guesses a file's kind from its name.
 - **A component has no defaults of its own, so anything drawing an element for another node builds its props from that element's full defaults with its own values on top** (`meta.default_props`, then `element_props`), never a partial map (Device frame's screen, the light-leak cut).
@@ -49,7 +52,7 @@ How an element is written in Rust and on the page, how its settings reach its co
 
 - **On themed elements, a colour the component falls back to a theme token for (`prop ?? t.token`) is empty ("Theme") by default** unless its default differs from that token, so the theme switch reaches it.
 - **A themed element turns its theme value into its UI kit's provider**:
-  - the warm kit takes the mode and the changed colours;
+  - the warm kit's provider takes the mode, and the changed colours go to the element's view (`useWarmTheme`);
   - the neutral kit takes the whole light or dark preset with the changed colours on top, since its components force light mode;
   - an element with its own palette takes its preset for the mode with the changed colours on top (`{ ...PALETTES[theme.mode], ...theme.colors }`).
 - **Opsis's own video code keeps colour literals only for internal fallbacks a finished film never shows** (`PAGE_BG`/`BLEED_BG`, empty-clip placeholders), shadows and window frames; `colors.test.ts` lists each with its reason and fails on a new one.
@@ -58,9 +61,10 @@ How an element is written in Rust and on the page, how its settings reach its co
 ### Time and size
 
 - **Elements whose entry has `.authored_clock` count time on a 30 fps clock**: their code reads `useAuthoredFrame()`/`useAuthoredConfig()` instead of `useFrame()`/`useFilm()`, and a `<Sequence from>` inside them takes `useRealFrames()`, so a 60 fps project plays them at their own speed.
-- **Their timing settings counted in frames are stored as seconds with `x-frames-at: 30`.**
+- **Their timing settings counted in frames are stored as seconds with `x-frames-at: 30`**, and compile turns them back into frames (`frames_from_seconds`, also inside rows and comma lists).
 - **An element's Length defaults to 0 when it can work its length out** (`clip_duration_field`): "Fit the animation" when `lengths.rs` knows how its animation ends or it runs on the 30 fps clock (`fits_its_animation`), otherwise "Match the clip" for a wrapper; `animation_length` keeps the designer's hold after the last animation.
-  - An element built with `optional_clip` reads "Usual length" while no clip is connected.
+  - An element built with `optional_clip` is meant to read "Usual length" while no clip is connected (`x-unconnected-zero-label`); the Inspector shows it even with a clip connected (TODO.md).
+  - An element on the 30 fps clock with no `element_timing` entry keeps its designed length, scaled to the project's frame rate and its speed.
 - **Elements laid out in fixed pixels carry a design size and draw in a `DesignBox` scaled to fit the frame**, so other shapes and 4K keep them whole.
   - With `design` the box grows to the frame's shape at that scale; with `exact_design` it keeps exactly the design size, centred.
 
@@ -72,7 +76,7 @@ How an element is written in Rust and on the page, how its settings reach its co
 
 ### Checking elements
 
-- **After changing elements, run `bun run elements:render`**: it compiles every element with its defaults in Rust (captions through Captions from script, transitions and sequencers between two solid colours, wrappers around one) and renders its middle frame as a small JPEG (`STILL_WIDTH`) through the frame driver, on a file server that answers prepared files as an export's does.
+- **After changing elements, run `bun run elements:render`** (optionally `-- <part of a key> <position>`, the position a share of the length, 0.5 by default): it compiles every element with its defaults in Rust (captions through Captions from script, transitions and sequencers between two solid colours, wrappers around one) and renders that frame as a small JPEG (`STILL_WIDTH`) through the frame driver, on a file server that answers prepared files as an export's does.
   - It needs the engine in the dev data folder and `bun run film:bundle`; elements whose default is no file (image, video, animation, 3D model) render empty.
 - **Tests check every element's defaults pass its own schema and neither load from the internet nor name a library (`crates/compile/tests/unit/nodes_e.rs`), and that every declared font is bundled (`nodes_c.rs`).**
 
@@ -83,9 +87,21 @@ How an element is written in Rust and on the page, how its settings reach its co
 - **Assets load through `useHeldLoad`**, which releases its hold only after the loaded value has rendered, so a still is never captured between a load and the canvas it mounts.
 - **3D text, models, SVG logos and textures load prepared files**; the element only fetches an address ([assets.md](assets.md)). 3D text picks its face with the same `family_for` as the page.
 - **The 3D screen shows its clip as a page layer placed with `matrix3d` from `project.ts`**; with **End facing the camera** its last pose fills the frame exactly, so it cuts pixel for pixel to the same clip.
-- **Camera keys are the `camera` setting, active when the motion or move is Keyframes**: compile puts them on the item's `camera` (`ItemBase`, `crates/types/src/timeline.rs`) and `flatten_spec` turns them into `camera_keys` marks (`camera_key_marks`) the Timeline moves ([timeline.md](timeline.md)).
+- **Camera keys are the `camera` setting, active when the motion or move is Keyframes or the element has neither setting** (`active_camera`, `crates/compile/src/nodes/elements.rs`): compile puts them on the item's `camera` (`ItemBase`, `crates/types/src/timeline.rs`) and `flatten_spec` turns them into `camera_keys` marks (`camera_key_marks`) the Timeline moves ([timeline.md](timeline.md)).
+
+## How it works
+
+### Adding an element
+
+1. Write `<category>/<key>.rs` with its settings struct and `definition()`, add it to the category's `mod.rs` and to the list in `elements()` (`mod.rs`).
+2. Add its settings to `ElementSettings` (`props.rs`), renamed to its key.
+3. Write the component and add it to `ELEMENTS` (`elements/index.ts`) as a `component`, `presentation` or `sequencer`.
+4. Run `bun run types:export` for `generated/spec.ts`, `default-props.generated.json` and `length-cases.generated.json`.
+5. When its animation ends at a known time, add its arm to `element_timing` (`lengths.rs`) and its cases to `length_cases.rs`.
+6. When it keeps colour literals, list its file in `ELEMENT_FILES` (`colors.test.ts`).
+7. Run `bun run elements:render` and look at its still.
 
 ## Deliberate limits
 
 - **`elements:render` isn't part of `bun run test`**, because shaders need WebGL; the 3D stills check (`three_stills.rs`) is `#[ignore]`d because it needs the dev engine and the film page, and runs with `--ignored` after `bun run film:bundle`.
-- **The grain gradient element mounts its shader with the blob shape's `clamp` bounds in order** (`parts/shader-fields.tsx` → `ORDERED_CLAMP_SHADER`). The library's `clamp(0., 1., length(…))` is undefined: graphics cards read it as `min(1., …)` and Software drawing (export `gl: "swangle"`) as 1, where Grain dissolve would draw no blobs.
+- **The shared grain gradient field mounts its shader with the blob shape's `clamp` bounds in order** (`parts/shader-fields.tsx` → `GrainGradientField`, `ORDERED_CLAMP_SHADER`), for the grain gradient background and the Grain dissolve, Ripple zoom and Wave wipe transitions. The library's `clamp(0., 1., length(…))` is undefined: graphics cards read it as `min(1., …)` and Software drawing (export `gl: "swangle"`) as 1, where Grain dissolve would draw no blobs.

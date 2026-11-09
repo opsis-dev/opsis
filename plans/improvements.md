@@ -44,8 +44,9 @@ Because smooth recording is slower than real time, a reply has almost always arr
 1. **Hold whole replies.** In smooth takes, intercept at the reply stage: note the page time and real time each request was sent, take the body when it arrives, and release it on the first tick at or after its due page time. Covers pages, scripts, styles, images, fonts and plain API calls. Fake a response keeps working (a faked reply is due at once).
 2. **Hold streamed replies.** An init script wraps `fetch` bodies, `EventSource` and `WebSocket` messages: it reads the real stream, notes each piece's real arrival, and passes each piece to the page at its own page time. Its timers already run on the paused page clock.
 3. **Stall.** When a request is still out and the page clock has caught up with the real time since it was sent, the stepper stops ticking until the reply arrives.
-4. **Longest wait.** A setting on Record take, under `x-advanced`, shown only for smooth takes (ms, `x-zero-label` "As live"), capping each reply's delay.
+4. **Longest wait.** A `#[setting]` on `Record` (`crates/compile/src/nodes/capture.rs`), with `advanced` and `show_if = { "timing": ["smooth"] }`, so it shows only for smooth takes (ms, `x-zero-label` "As live"), capping each reply's delay.
 5. **Self-test.** A local server with a delayed reply, a slow image and a stream that sends pieces 200 ms apart; the test checks the frames each one lands on.
+6. **Docs.** In `agent-docs/capture.md`, rewrite the Deliberate limits bullet that says server replies keep real time on a held clock, and add the reply hold, the stream hold and the stall to Smooth takes.
 
 ### Risks
 

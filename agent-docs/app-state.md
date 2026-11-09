@@ -7,6 +7,9 @@ The app's one database, the settings held in memory, the keyring and the project
 | Concern                   | Where                                                                                                                                   |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | Schema                    | `store/schema.sql`                                                                                                                      |
+| Database file and opening | `session/src/paths.rs` → `AppPaths::database` (in `AppPaths::user_data`); `store/src/db.rs` → `Database::open`, `DB_FILE`              |
+| Projects and view state   | `store/src/projects.rs` → `list_recent`, `read_view_state`, `write_view_state`, `forget_view_state`                                     |
+| Window bounds             | `store/src/windows.rs` → `saved_bounds`, `save_bounds`                                                                                  |
 | Queries                   | `store/src` (`sqlx::query!`, `query_as!`, `query_scalar!`); offline cache `.sqlx/` at the repository root                               |
 | Offline build             | `.cargo/config.toml` at the repository root (`SQLX_OFFLINE=true`)                                                                       |
 | Settings in memory        | `session/src/state.rs` → `AppState::settings`, `AppState::patch_settings`; `store/src/settings.rs` → `merged_settings`, `read_settings` |
@@ -21,11 +24,12 @@ The app's one database, the settings held in memory, the keyring and the project
 ### The database
 
 - **App state is one database, `<data folder>/opsis.db`**: SQLite through `sqlx` with the bundled SQLite, WAL, foreign keys on. It holds settings (one row per section), every project ever opened, each project's view state, window bounds and the font library index.
-- **Recent projects are read newest first, then Rust keeps the folders that still hold a project, up to `MAX_RECENT`** (`store/src/projects.rs` → `list_recent`).
+- **Recent projects are read newest first, then Rust keeps the folders that hold a project file (`WORKFLOW_FILE`), up to `MAX_RECENT`** (`store/src/projects.rs` → `list_recent`).
+- **View state is written only for a project the database knows**: `write_view_state` saves nothing for a folder never opened, and a project's view state is deleted with its row (`ON DELETE CASCADE`); `create_project` forgets any view state left for its folder before recording it.
 - **Only Rust opens it (`AppState::db()`, a pool, so every query is async); windows reach it through the session over the bridge** ([ui.md](ui.md)).
 - **The tables are plain SQL with snake_case columns**, embedded by the store and run on an empty database.
 - **Every query is a checked macro against that schema.** After changing the schema or a query, run `bun run db:prepare` (it needs `sqlx-cli` built with SQLite).
-- **There are no migrations: the `meta` table holds the sha256 of the schema SQL, and a database made for another schema is deleted and made again at startup.**
+- **There are no migrations: the `meta` table holds the sha256 of the schema SQL, and a database made for another schema is deleted and made again at startup** (`Database::open_at`), its `-wal` and `-shm` files with it.
 - **Projects stay plain folders: nothing about a project's contents goes in the database.**
 
 ### Settings
@@ -40,7 +44,7 @@ The app's one database, the settings held in memory, the keyring and the project
 
 ### Secrets
 
-- **Secrets use the OS keyring** (`keyring-core` with the Apple, Windows and Secret Service stores): sign-ins are sealed with AES-256-GCM under one key kept there.
+- **Secrets use the OS keyring** (`keyring-core` with the Apple, Windows and Secret Service stores): sign-ins are sealed with AES-256-GCM under one key kept there, made on the first seal.
   - The sealed values are files in the project's `secrets` folder (`store/src/secrets.rs`), where `ensure_secrets_dir` writes a `.gitignore` of everything but itself when there is none.
   - With no secure store the app still starts: `AppState::keys` holds the error, and reading or saving a sign-in fails with it (`ProjectSignIns`).
 - **The keyring is made before the session starts (`start`), and every call to it during a run goes through `off_runtime` (`capture/src/take.rs`) onto a blocking thread**, because the Linux Secret Service store blocks inside `zbus` and panics on a runtime thread.
@@ -52,7 +56,3 @@ The app's one database, the settings held in memory, the keyring and the project
   - `create_project` writes `lastDir`; changing the default clears it (`merged_settings`).
 - **Open project starts in the default folder** (`pick_project_dir`).
 - **The New project dialog shows the folder it will create (`project_folder`)**; started from a template card, it shows only that template with Change.
-
-## Deliberate limits
-
-- **There are no migrations before the first release**; a schema change wipes the app database.

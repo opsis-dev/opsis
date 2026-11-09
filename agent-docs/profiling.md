@@ -8,6 +8,9 @@ How Opsis is measured for size, CPU and memory with development tools only: the 
 | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | Host side of a run              | `scripts/profile.ts` (`bun run profile`)                                                                               |
 | Container side of a run         | `scripts/profile-inside.ts`                                                                                            |
+| What the host hands the container | `scripts/lib/profile/config.ts` → `InsideConfig`, `PROFILERS`, `CONFIG_FILE` (written to the run folder)            |
+| Release program                 | `scripts/lib/release.ts` → `releaseBinary`, `cargoProfileVariables`                                                    |
+| Canvas item cache               | `crates/qt/cpp/graph_canvas.cc` → `CardItem` (`OPSIS_QT_NO_ITEM_CACHE`)                                                |
 | Profile project and run order   | `scripts/lib/profile/project.ts` → `profileWorkflow`, `missingTypes`, `runOrder`                                       |
 | Generated inputs                | `scripts/lib/profile/inputs.ts` → `writeInputs`                                                                        |
 | Local test site                 | `scripts/lib/profile/site.ts` → `serveSite`                                                                            |
@@ -24,24 +27,26 @@ How Opsis is measured for size, CPU and memory with development tools only: the 
 - **The profiling build is the release binary with its symbols kept**, built with `CARGO_PROFILE_RELEASE_STRIP=false CARGO_PROFILE_RELEASE_DEBUG=line-tables-only bun run make`.
 
   - `line-tables-only` keeps function names and lines for samply, perf and heaptrack. Full debug info runs the full-LTO link out of memory on a 14 GiB machine.
+  - On Linux the program is built in the trixie container into `target/trixie/release` ([packaging.md](packaging.md)), and `cargoProfileVariables` passes the `CARGO_PROFILE_*` variables into it.
   - `bun run profile` copies it, the staged `opsis-ffmpeg`, both pages, the staged `resources` and the licences into `~/.cache/opsis-dev/profile/app` (`assembleAppFolder`, `scripts/lib/app-folder.ts`), the layout the release build reads beside itself; it refuses to start until `bun run make` has left the program, FFmpeg, both pages and `resources`.
 
 - **`bun run profile` runs the app in Docker, never on the host**: Ubuntu 26.04 with Qt's X11 runtime libraries (`scripts/lib/profile/Dockerfile`), fixed cores (`--cpus`, a CPU list passed as `--cpuset-cpus`) and memory (`--memory`, swap equal to it), with the defaults in `scripts/profile.ts`, `--network none`, and the user's uid.
   - samply and perf carry `cap_perfmon,cap_ipc_lock` as file capabilities and the container gets `--cap-add PERFMON --cap-add IPC_LOCK`, so they record whatever the host's `kernel.perf_event_paranoid` is. Without the added capabilities the kernel refuses to start them.
   - perf ships as `linux-perf` in Ubuntu 26.04; samply comes from its release, pinned by version and sha256 in `scripts/profile.ts`.
   - The browser nodes need the dev engine: the seeded data folder links `~/.config/Opsis/engine` only when it exists, and nothing checks it before the run.
-  - The repository, the dev engine (`~/.config/Opsis/engine`) and the app folder are mounted read-only at their host paths (the release binary links Qt and KDDockWidgets statically, so no Qt folder is needed); the run folder is mounted writable, and the host's `bun`, mounted read-only, runs the container side.
-- **`--profiler samply|perf|heaptrack` starts the app under that tool**, writing `samply.json.gz` (with `.syms.json` beside it), `perf.data` (DWARF stacks; Rust keeps no frame pointers) or `heaptrack.raw.gz` to the run's `out/`. heaptrack follows only the app's own process.
+  - The repository, the dev engine (`~/.config/Opsis/engine`) and the app folder are mounted read-only at their host paths; the run folder is mounted writable, and the host's `bun`, mounted read-only, runs the container side.
+- **`--profiler` (one of `PROFILERS`) runs the app bare (`none`, the default) or under samply, perf or heaptrack**, writing `samply.json.gz` (with `.syms.json` beside it), `perf.data` (DWARF stacks; Rust keeps no frame pointers) or `heaptrack.raw.gz` to the run's `out/`. heaptrack follows only the app's own process.
   - heaptrack records with `--raw`: interpreting as it records makes the app wait on heaptrack's pipe for minutes at startup while it reads the line tables.
   - Interpreting a whole pass afterwards (`heaptrack_interpret`) doesn't finish on a 14 GiB machine: against the line-tables build it reads about 90 KB a minute, against a symbols-only copy (`objcopy --strip-debug`, mounted over the app folder's `opsis`) it runs out of memory. Record short passes, or use the app's `/proc` files below.
 - **`--gpu` passes `/dev/dri` into the container with its device groups, and `--render-gl <choice>` sets every Render node's `gl`**; only `vulkan` reaches the GPU from the container (see Deliberate limits).
 - **`--app-env NAME=VALUE` (repeatable) sets a variable for the app**, such as `MALLOC_ARENA_MAX`.
+- **`OPSIS_QT_NO_ITEM_CACHE`, set to anything, turns off the canvas cards' pixel cache** (`DeviceCoordinateCache` on `CardItem`), to measure the canvas without it.
 - **When the pass ends, the app's `/proc/<pid>/status` and `smaps_rollup` are saved as `app-status.txt` and `app-smaps_rollup.txt`**: resident, anonymous and file-backed memory and the peak.
 - **The image carries GNU `time`, for `/usr/bin/time -v` on the standalone programs** (`render-elements`, `editor-data`), run in the container with the repository mounted at its own path.
 - **The profile project holds every node type in the catalogue, and `project.test.ts` fails when one is missing**, when an edge joins ports that don't connect, or when a setting that may not be blank is blank.
   - It is built from `editor-data catalog` with each node's defaults; a table in `project.ts` wires each type and fills the settings it needs.
-  - Inputs are generated (a test clip and pictures from the staged FFmpeg, a look file, a Lottie file) or copied from fixtures (a cast, a VHS tape, a Draco model), and the browser nodes record the site `serveSite` serves on 127.0.0.1 inside the container.
-  - Every output node saves under its own node id; outputs with the same file name are an error.
+  - Inputs are generated or copied from fixtures (`INPUTS`, `inputs.ts`), and the browser nodes record the site `serveSite` serves on 127.0.0.1 inside the container.
+  - Every output node saves under its own node id (`fileName`), since two outputs saving the same file name are an error.
 - **Each working node is measured alone**: one `POST /project/run` with `targetNodeIds: [id]` per working node in dependency order. The runner forces the target and takes everything upstream from the cache, so each run does one node's work (`needed_nodes`, `forced_nodes` in `crates/runner/src/runner.rs`). Compile-only nodes are measured by the Render of their own film.
 - **`--only <regex>` picks runs by `"<type> <id>"`**; the upstream work of a picked run runs inside it, because the cache starts empty.
 - **Every `--sample-ms` milliseconds the container side reads `/proc` for every process in the container**: CPU from `stat` (own and reaped children), RSS and PSS from `smaps_rollup`, a tag from the command line (`tagOf`).

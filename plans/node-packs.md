@@ -188,7 +188,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### What it changes
 
-- **Pack elements join the catalogue** with their settings schema, defaults, fonts, design size and 30 fps clock flag from `element-info`, beside built-in elements.
+- **Pack elements join the catalogue** with their settings schema, defaults, fonts, design size and authored-clock flag (the 30 fps clock, `.authored_clock`) from `element-info`, beside built-in elements.
 - **Before a render, `assets(key, settings)`** lists what the element needs; the native renderer's resolve pass loads it and `element.open` receives an `asset-info` for each.
 - **Each frame, `draw` returns scene nodes** that take the same path as built-in elements: hashes, caches, layout, Skia, wgpu.
 
@@ -865,8 +865,9 @@ interface elements {
 
   enum element-kind {
     component,
-    transition,
     wrapper,
+    presentation,
+    sequencer,
   }
 
   record element-info {

@@ -14,8 +14,8 @@ Built-in sounds and music, the Mixer and its stems, ducking, how sounds are plac
 | Filter graphs                      | `media/src/mix/graph.rs` → `pack_lanes`                                                                                                                                                     |
 | Stems                              | `media/src/mix/render.rs`; `.opsis/cache/mix/` (`MIX_DIR`, `types/src/project.rs`)                                                                                                          |
 | Channel pruning                    | `compile/src/edits/workflow.rs` → `remove_nodes`; `types/src/workflow.rs` → `Workflow::normalized`                                                                                          |
-| Export sound                       | `with_master_stem`; `media/src/codecs.rs` → `mux_args`                                                                                                                                      |
-| Stem player and live Mixer changes | `crates/audio/src/output.rs` → `Output`, `Preview`, `set_preview`; `crates/ui/src/mixer.rs` → `Previews`, `share_of`; `crates/ui/src/ui.rs` → `preview_mix`; `crates/qt/cpp/mixer_panel.cc` |
+| Export sound                       | `with_master_stem`; `render/src/film.rs` → `mixed`; `render/src/executors.rs` → `render_variant`; `media/src/codecs.rs` → `mux_args`                                                      |
+| Stem player and live Mixer changes | `audio/src/output.rs` → `Output`, `Preview`, `set_preview`; `ui/src/mixer.rs` → `Previews`, `share_of`; `ui/src/ui.rs` → `preview_mix`; `qt/cpp/mixer_panel.cc` |
 | Placing sounds on marks            | `compile/src/nodes/audio.rs` → `anchor_sounds` (via `flatten_spec`); `types/src/timeline.rs` → `Anchor`                                                                                     |
 | Sound file filters                 | `media/src/executors.rs` → `filter_sound`; builders in `media/src/filters.rs`; real-FFmpeg checks `media/tests/sound_fixes.rs`                                                              |
 | Clean speech                       | `noise_level_listen_filter`, `noise_level`, `spectral_floor`, `speech_filter`; `media/src/denoise.rs` → `denoised`                                                                          |
@@ -38,6 +38,7 @@ Built-in sounds and music, the Mixer and its stems, ducking, how sounds are plac
 - **Sound effects carry `role: "effect"` and their natural `lengthFrames`.**
 - **A Sound effect with On an action stores the action's node id; Add sound places it at that action's mark in the clip** (`anchor_sounds`), plus an offset that may be negative.
 - **An action or a clip's end is an `Anchor` (`node_id`, or `clip_end`) that Add sound resolves**; `keep_end` makes a start before the clip trim the head instead of shifting the sound, so it still ends on time. A marker's time counts from the start of the clip the sound is added to.
+- **A sound anchored to an action that isn't in the clip is dropped without a warning**; a Chapter mark never anchors a sound (`anchor_sounds`).
 
 ### Mixer
 
@@ -46,23 +47,24 @@ Built-in sounds and music, the Mixer and its stems, ducking, how sounds are plac
 - **Removing nodes prunes their channels** (`remove_nodes`; `Workflow::normalized` on open and replace).
 - **`build_mix_plan` and the filter graphs are pure; the graphs are tested by string.**
 - **Stems render into `.opsis/cache/mix/`, content-hashed, with recent plans kept**: channel, bus and master stems with per-frame peak and RMS, compressor gain reduction and EBU R128 loudness.
-- **Exports always play the master stem** (`with_master_stem`): the picture is drawn once without sound and the master stem added with FFmpeg (`mux_args`), so a mix or sound-only change never renders the picture again ([runs.md](runs.md)).
+- **An export with sound in a format that carries sound plays the master stem** (`with_master_stem`, `render_variant`): the picture is drawn once without sound and the master stem added with FFmpeg (`mux_args`), so a mix or sound-only change never renders the picture again ([runs.md](runs.md)).
+  - A film with no sound gets no stem (`render_mix` returns no master, and `mixed` keeps the levels on the spec), and a format without a sound track (GIF) renders straight to its file.
 - **Mute and solo are saved and apply to exports, on strips and buses alike** (`audible`): a muted strip or bus is silent, and while anything is soloed only soloed strips and the strips on soloed buses are heard.
 - **Strip selection is the editor's node selection** (Ctrl/Cmd-click toggles, Shift-click takes the range in strip order); a strip menu on a selected strip applies to every selected strip in one `MixEdit`, one undo step.
 - **A Mixer drag is heard at once, before the new stem is ready**: `preview_mix` weighs the change by the strip's share of the master at the playhead (`share_of`), `Previews` adds it to the other pending changes, and the stem player applies the total as one `Preview` (`set_preview`).
-- **The stem player plays through the default sound output (`Output`), and with none playback stays silent**; builds with debug assertions take another output from `OPSIS_AUDIO_DEVICE` ([AGENTS.md](../AGENTS.md) §3).
+- **The stem player plays through the default sound output (`Output`), and with none playback stays silent**; builds with debug assertions take another output from `OPSIS_AUDIO_DEVICE` ([AGENTS.md](../AGENTS.md) §3), and an id that names no output leaves playback silent (`output_device`).
 - **What `MIX_VERSION` keys is in [runs.md](runs.md).**
 
 ### Ducking
 
 - **Ducking is a bus setting; rendered stems use `sidechaincompress`.**
 - **A bus is keyed only by the audible channels on the buses its ducking names, never by its own** (`duck_keys_for`); channels shorter than its `ignoreShorterMs` and `keepMusic` sound effects never key it, so muting or soloing changes the ducking too.
-- **Each ducked sound carries its merged spans (`duck_spans`, `Duck.spans`)**: the mix applies them, and the Timeline draws the ducked level by scaling the waveform with `duck_gain` (`crates/compile/src/timeline/media.rs`).
+- **Each ducked sound carries its merged spans (`duck_spans`, `Duck.spans`) only for the Timeline**, which draws the ducked level by scaling the waveform with `duck_gain` (`compile/src/timeline/media.rs`, read in `ui/src/timeline.rs`); the mix ducks through `sidechaincompress` fed by the key stems (`Duck.keys`, `media/src/mix/graph.rs`).
 
 ### Hits on actions and transitions
 
-- **Action sounds (`audio.actionSounds`, `clip → sound`) puts its click sound at every press of a Click or Type and its key sound at every Press keys chord and typed key** in its clip's takes; `flatten_spec` lists them as `hits`, mapped through trims, loops, remaps and speed like the action marks, and the take logs each typed key's time (`keyTimes`).
-- **Transition sounds (`audio.transitionSounds`, `clip → sound`) puts a sound at every transition of its clip, centred on its middle** (`transition_cues` over `flatten_spec`). A generated sound is made when the node runs, one file per transition length when Fit is on (`transition_sound_file`), and compile finds each in the node's artifacts.
+- **Action sounds (`audio.actionSounds`, `clip → sound`) puts its click sound at every press of a Click or Type (both presses of a double click) and its key sound at every Press keys chord and typed key** in its clip's takes, plus the click sound at each press and release of a Drag when its Drags setting is on; `flatten_spec` lists them as `hits`, mapped through trims, loops, remaps and speed like the action marks, and the take logs each typed key's time (`keyTimes`).
+- **Transition sounds (`audio.transitionSounds`, `clip → sound`) puts a sound at every transition of its clip, at its start, middle (the default) or end (`TransitionAlign`)** (`transition_cues` over `flatten_spec`). A generated sound is made when the node runs, one file per transition length when Fit is on (`transition_sound_file`), and compile finds each in the node's artifacts.
   - Plain cuts have no transition mark, so Also at plain cuts adds one at each (`FlatTimeline.cuts`, every clip start after the first with no entering transition, never sent to the editor), with the variation's own length.
 - **Hits are one item per hit on the node's own Effects channel, never keying the ducking, each with a seeded small change of pitch (`AudioItem.pitch`, `asetrate` in the mix) and level**, so the Timeline and the export sound the same.
 - **An action's No sound (`silent`, logged with it) leaves it out**; the card counts hits from the node's own output (`AudioValue.hits`, `Hits.transitions`).
@@ -71,7 +73,8 @@ Built-in sounds and music, the Mixer and its stems, ducking, how sounds are plac
 
 ### Sound file nodes
 
-- **Each sound file node is one filter chain through `filter_sound`**: a sound file keeps its format and sample rate, a video keeps its picture (copied when it can be), and a file with no sound fails with the node's own message.
+- **Even out volume, Remove hum, Clean speech, Fix clicks, Change pitch and Voice effects are each one filter chain through `filter_sound`**: a sound file keeps its format and sample rate, a video keeps its picture (copied when it can be), and a file with no sound fails with the node's own message.
+  - Shorten pauses (`joined_parts_graph`), Fit music (`fit_graph`) and Sound picture (`sound_picture_graph`) build their own graphs and don't follow that rule.
 - **Shorten pauses works on sound files only**, because a video would lose its sync; parts are joined with short crossfades (`PAUSE_CROSSFADE_S`) and the time saved goes to the run log.
 - **Listening passes read levels from FFmpeg's log**: Remove hum's Find it reads 50 and 60 Hz and the louder wins; Clean speech reads astats every 20 ms (960 samples at 48 kHz, `noise_level_listen_filter`) and takes the quietest share (`QUIET_SHARE`) as the noise level.
 - **Clean speech removes noise the learned way or the spectral way, then cuts rumble, softens "s" sounds and evens the level in one pass.**

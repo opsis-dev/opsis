@@ -4,15 +4,26 @@ What's left that no plan covers: the places in the codebase that don't read as i
 
 ## Written for Rust and Qt
 
+- [ ] The runtime-neutral oxlint messages in `scripts/lib/oxlint-base.ts` (`runtimeNeutral`) still describe the old editor: one cites a heading "AGENTS.md, Runtime boundaries" that doesn't exist, and the `@/**` ban (applied with `relativeOnly` to `apps/film` and `apps/terminal`) says "packages/video imports its own files by relative path: the UI compiles them too, with its own @/ alias", while every member imports its own files through its `#…` prefix and never by a relative path.
+- [ ] Code nothing calls or reads: `crates/session/src/gradients.rs` (the editor reaches `gradient_view` and `edit_gradient` through `crates/ui/src/colors.rs`); the `LIVE_WINDOW` branch of `run::watch_live` with `LiveWindowWatching` and `live_window_watching` (`crates/session/src/run.rs`, `events.rs`), since no window watches as `LIVE_WINDOW`; `EditorCompile.converts` (`output_conversions`), which no view reads; the `x-accept` and `x-length-key` keywords the settings emit and nothing reads; `ChildKind::Setup` (`crates/engine/src/temp.rs`).
+
 ## Bugs
 
 Wrong behaviour found in the session transcripts and confirmed in the current code.
+
+- [ ] FFmpeg runs from the app get no temp folder: `Ffmpeg::with_temp` (`crates/media/src/ffmpeg.rs`) is called only from tests, and `engine_tools` (`crates/session/src/engine.rs`) builds `Ffmpeg::new` with an empty environment, so no run, analysis or player FFmpeg gets `TMPDIR`, `TEMP` and `TMP`, against the rule that every child program gets its own temp folder.
+- [ ] `clear_stale_child_temps` (`crates/engine/src/temp.rs`) never deletes a stray file in `<data folder>/tmp`: `remove_child_temp` uses `std::fs::remove_dir_all`, which fails on a plain file with `NotADirectory`, so the file stays while its name is still returned and counted as removed.
+- [ ] Child temp folder names keep only the first 8 characters of the id (`child_temp_name`), so the file players `player10` and `player100` share `<pid>-analysis-player10`, and closing one deletes the other's files.
+- [ ] A clip length field shows "Usual length" even with a clip connected: `blank` (`crates/ui/src/inspector.rs`) looks for the setting's own key (`clipDuration`) in `InspectorContext.connected_inputs`, which holds the connected port names (`clip`), so `x-unconnected-zero-label` always wins.
+- [ ] `x-zero-label` on a file (`asset`) or select field is never shown: the asset field always reads "Choose a file" and a select shows its `none_label`, so labels such as Launch anything's "Built-in photo" and Terminal look's "The take's own" never appear.
+- [ ] Card rows and the Inspector disagree on `x-show-if` with `"*"`: the Inspector treats `"*"` as any non-empty value (`ANY_VALUE`, `crates/ui/src/inspector.rs`), while `shown` in `crates/compile/src/nodes/elements.rs` compares it as text.
+- [ ] `documents_every_route_it_serves` (`crates/api/tests/routes.rs`) leaves out `/openapi.json`, `/status`, `/nodes` and `/nodes/{type}`, so those routes could lose their OpenAPI entry without a failing test.
 
 ## Unconfirmed bugs
 
 Seen once during a session and never reproduced or explained.
 
-- [ ] The View menu didn't open once in the `runs` e2e scenario, at `run-panel-plays-the-export` (`crates/qt/cpp/e2e_ports.cc`), right after `changelog-exports`: the click reached the menu bar and the menu wasn't visible within `kMenuOpenMs`. It passed in the two runs after it (2026-11-08). `Scenario::ClickMenu` now names the open popup, the modal dialog and the active window when a menu doesn't open, so the next failure says what was in the way.
+- [ ] The View menu didn't open once in the `runs` e2e scenario, at `run-panel-plays-the-export` (`crates/qt/cpp/e2e_ports.cc`), right after `changelog-exports`: the click reached the menu bar and the menu wasn't visible within `kMenuOpenMs` (`crates/qt/cpp/e2e_steps.cc`). It passed in the two runs after it (2026-11-08). `Scenario::ClickMenu` now names the open popup, the modal dialog and the active window when a menu doesn't open, so the next failure says what was in the way.
 - [ ] The native editor froze once in the `runs` e2e scenario, in the action of `typing-waits-to-mark-changed` (`crates/qt/cpp/e2e_ports.cc`), and logged nothing until the 15-minute limit. That action starts a run with `session.run_node`, whose host side (`Ui::run_node`, `crates/ui/src/ui.rs`) blocks the GUI thread in `runtime.block_on` until the run has started. It passed in the 13 runs after it, all under gdb. To catch it: `OPSIS_QT_E2E_HANG_MS=240000 bun run e2e:qt runs` runs the app under gdb and writes every thread's backtrace into `target/e2e-qt/runs.log` if it's still going after that time.
 
 ## To be implemented
@@ -20,11 +31,10 @@ Seen once during a session and never reproduced or explained.
 Ideas you approved but left for later.
 
 - [ ] A clip-level Reverse that plays a recording backwards through its time mapping, with one encode and no frame buffer (the Reverse node, `media.reverse`, only reverses a whole file).
-- [ ] A lossless format option for Export video, for files that feed later nodes.
+- [ ] A lossless format option for Export video, for files that feed later nodes (its ProRes is ProRes HQ, which isn't lossless).
 - [ ] A keep-quality encode option for the file nodes, in place of the fixed H.264 at quality 18 and `yuv420p` they encode with (`EDIT_CRF`, `crates/media/src/codecs.rs`).
 - [ ] A lossless checkpoint node that renders a clip's finished picture to a file the rest of the graph plays.
 - [ ] Recording the page's own sound in a take.
-- [ ] An Open terminal session source.
 - [ ] An App window session source.
 - [ ] A Moments node that marks clicks and typing by hand on an imported video.
 - [ ] A Resize window browser action.

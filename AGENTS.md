@@ -5,7 +5,8 @@
 ## 1. The project
 
 - **Opsis is a desktop app (Rust, with a native Qt Widgets editor): browser and terminal nodes record takes, and the other nodes turn them into finished videos.** GPL-3.0-or-later and unreleased.
-- **The editor is Qt 6 Widgets with KDDockWidgets, its views written in C++ over Rust through a `cxx` bridge** ([ui.md](agent-docs/ui.md)). **Capture, the streamed views and every render run in the recording browser**, a pinned Chrome Headless Shell ([engine.md](agent-docs/engine.md)).
+- **The editor is Qt 6 Widgets with KDDockWidgets, its views written in C++ over Rust through a `cxx` bridge** ([ui.md](agent-docs/ui.md)).
+- **Capture, the streamed views and every render run in the recording browser**, a pinned Chrome Headless Shell ([engine.md](agent-docs/engine.md)).
 - **There is no live preview: a film is watched as an export.**
 - **Rust owns the open project, the document, compiling, runs and every file; windows are views onto it** ([document.md](agent-docs/document.md)).
 
@@ -23,7 +24,7 @@
 - **Every function is a declaration: `function name(…) { … }`, never a function assigned to a `const`**, at module level or inside another function. Inline callbacks passed as arguments stay arrows; installed code keeps its upstream style.
   - `opsis/use-function-declarations` enforces it and `bun run lint:fix` rewrites what it safely can. It leaves to you a `const` with a type annotation, a named function expression and an arrow that uses `this` or `arguments`.
   - A nested declaration is hoisted, so it doesn't see a narrowing of the outer scope (`if (!gl) return`): pass the checked value in, or move the code after the check into a function that takes it.
-  - `opsis/use-find-by-id`, `opsis/use-type-guards`, `opsis/use-function-components` and `opsis/use-percent-text` (only `Math.round(x * 100)%`) also rewrite code and add the import from `common/`. Two fixes that add imports to one file land on separate passes: run `lint:fix` again until it reports nothing.
+  - `opsis/use-find-by-id`, `opsis/use-type-guards` and `opsis/use-percent-text` (only `Math.round(x * 100)%`) also rewrite code and add the import from `common/`; `opsis/use-function-components` rewrites a component without an import. Two fixes that add imports to one file land on separate passes: run `lint:fix` again until it reports nothing. Every Opsis rule and where it applies is in [toolchain.md](agent-docs/toolchain.md).
 - **Never hand-edit installed or generated code.** Regenerate it:
 
 | Path                                                                                                                                        | Owner                                                                                                                                                                                                                                                                         | Regenerate with                                                                                      |
@@ -32,7 +33,7 @@
 | `brand/icons/*.png`                                                                                                                         | `brand/logo.svg` (the one source for the app icon)                                                                                                                                                                                                                            | `bun run brand:icons` (renders with the recording browser; ImageMagick draws the gradients wrong)    |
 | `resources/**` (gitignored)                                                                                                                 | the packaging stage: the browser's licences                                                                                                                                                                                                                                   | `bun run stage`                                                                                      |
 | `crates/compile/src/terminal/themes.generated.json`                                                                                         | VHS's `themes.json` (https://github.com/charmbracelet/vhs, MIT), at the commit and sha256 pinned in `scripts/terminal-themes.ts`                                                                                                                                              | `bun run terminal:themes`                                                                            |
-| `crates/ui/glyphs.generated.json`                                                                                                           | the glyph sets' own packages (dev packages: `lucide`, `@tabler/icons`, `@lucide/lab`, `@hugeicons/core-free-icons`, `iconoir`, `@mynaui/icons`) for the glyphs the catalogue's node looks name, and `lucide` for the editor's own icons (`ICONS` in `scripts/node-glyphs.ts`) | `bun run glyphs:bundle`                                                                              |
+| `crates/ui/glyphs.generated.json`                                                                                                           | the glyph sets' own dev packages (`GLYPH_SETS` in `scripts/lib/glyph-sets.ts`) for the glyphs the catalogue's node looks name, and `lucide` for the editor's own icons (`ICONS` in `scripts/node-glyphs.ts`) | `bun run glyphs:bundle`                                                                              |
 | `packages/video/src/camera/lib/mac-cursors.generated.ts`                                                                                    | apple_cursor (https://github.com/ful1e5/apple_cursor, GPL-3.0, not on npm): its macOS theme's SVGs for the CSS cursor keywords, with their hotspots                                                                                                                           | `bun run cursors:bundle <path to an apple_cursor checkout>`                                          |
 | `.sqlx/`                                                                                                                                    | the `sqlx` query macros of `opsis-store`, checked against `crates/store/schema.sql`                                                                                                                                                                                           | `bun run db:prepare` (a throwaway SQLite database made from the schema, then `cargo sqlx prepare`)   |
 | `packages/video/src/generated/spec.ts`, `packages/video/src/registry/length-cases.generated.json`, `default-props.generated.json` beside it | the timeline spec types, the element length cases and every element's default props (`opsis-compile`)                                                                                                                                                                         | `bun run types:export`                                                                               |
@@ -58,15 +59,22 @@
 ## 3. Toolchain
 
 - **bun is the package manager and runs every script** (`bun scripts/x.ts`, the e2e runner too); scripts import TypeScript without file extensions. Never run scripts through `tsx` or Node.
-- **Every tool config is a `*.config.ts`, except the Rust ones**, which are TOML at the root (`rust-toolchain.toml`, `rustfmt.toml`, `deny.toml`). Shared TS tool configs are in `scripts/lib/` (`oxlint-base.ts`, `oxfmt-base.ts`, `vitest-base.ts`, `tool-config.ts`).
+- **Every tool config is a `*.config.ts`, except the Rust ones and the files a tool reads only in its own format**: the Rust ones are TOML at the root (`rust-toolchain.toml`, `rustfmt.toml`, `deny.toml`, `.cargo/config.toml`), and turbo and TypeScript read `turbo.json`, `tsconfig.base.json` and each member's `tsconfig.json`. Shared TS tool configs are in `scripts/lib/` (`oxlint-base.ts`, `oxfmt-base.ts`, `vitest-base.ts`, `tool-config.ts`).
 - **Rust builds on one pinned nightly, `rust-toolchain.toml`**, with `rust-version` in `[workspace.package]` refusing an older compiler. Moving it touches several files and another repository ([toolchain.md](agent-docs/toolchain.md)).
-- **Zig 0.17 builds `opsis-vt`'s wrapper**, and `crates/vt/build.rs` refuses any other version ([toolchain.md](agent-docs/toolchain.md)).
+- **Zig 0.17 builds `opsis-vt`'s wrapper**, installed into `~/.cache/opsis-dev/zig` by `bun run zig:install`, and `crates/vt/build.rs` refuses any other version ([toolchain.md](agent-docs/toolchain.md)).
 - **Qt 6.12 and KDDockWidgets 2.5.1 build `opsis-qt`**, from `~/.cache/opsis-dev/qt` after `bun run qt:install`; release builds link a static Qt without ICU from `~/.cache/opsis-dev/qt-static` (`bun run qt:static`). Its C++ follows Google style ([toolchain.md](agent-docs/toolchain.md)).
 - **Rust imports are grouped std, external crates, then the workspace's own, one `use` per module, and struct fields use the shorthand.** `rustfmt.toml` keeps the imports so (`group_imports = "StdExternalCrate"`, `imports_granularity = "Module"`, applied only by the nightly).
 - **`bun start` (`scripts/start.ts`) stages FFmpeg when missing and runs the editor (`cargo run -p opsis-ui`).** Exports and terminal previews also need `bun run film:bundle`, live terminal pictures `bun run terminal:bundle`; make each again whenever `packages/video` or `packages/runtime` changes.
 - **To see a change in the running app, use the `check-app` skill** (`.claude/skills/check-app`): it seeds `~/.cache/opsis-dev/check` (short, so the API socket fits), starts `bun start` in a virtual display and drives it through the Local API.
-- **Environment variables:** `OPSIS_USER_DATA` moves the data folder (default `<config dir>/Opsis`), for tests and side-by-side runs; `OPSIS_FFMPEG` (absolute, read only by builds with debug assertions) names the FFmpeg the app and tests start; `OPSIS_API_SOCKET` moves the Local API socket ([api.md](agent-docs/api.md)); `OPSIS_AUDIO_DEVICE` (a sound output's id such as `alsa:null`, read only by builds with debug assertions) replaces the default sound output; `OPSIS_WRITE_GOLDEN=1` records golden files; `OPSIS_UPDATE_KEY` and `OPSIS_UPDATE_KEY_PASSWORD` (the ignored `.env` locally, repository secrets in CI) sign update files; `OPSIS_COMMIT` (set by `bun run make`) puts the commit in a release build's About page; `OPSIS_QT` and `OPSIS_KDDW_SOURCE` name another Qt and KDDockWidgets source ([toolchain.md](agent-docs/toolchain.md)).
-  - `bun start`, `bun run test:rust` and the e2e runner set `OPSIS_FFMPEG` to the staged program; a test that starts FFmpeg reads it through `opsis_golden::ffmpeg()`.
+- **The environment variables any session may need are these; the ones a single domain's tests or scripts read are in its doc.**
+  - `OPSIS_USER_DATA` moves the data folder (default `<config dir>/Opsis`), for tests and side-by-side runs.
+  - `OPSIS_FFMPEG` (absolute, read only by builds with debug assertions) names the FFmpeg the app and tests start. `bun start`, `bun run test:rust` and the e2e runner set it to the staged program; a test that starts FFmpeg reads it through `opsis_golden::ffmpeg()`.
+  - `OPSIS_API_SOCKET` moves the Local API socket ([api.md](agent-docs/api.md)).
+  - `OPSIS_AUDIO_DEVICE` (a sound output's id such as `alsa:null`, read only by builds with debug assertions) replaces the default sound output.
+  - `OPSIS_WRITE_GOLDEN=1` records golden files.
+  - `OPSIS_UPDATE_KEY` and `OPSIS_UPDATE_KEY_PASSWORD` (the ignored `.env` locally, repository secrets in CI) sign update files; `OPSIS_COMMIT` (set by `bun run make`) puts the commit in a release build's About page ([updates.md](agent-docs/updates.md)).
+  - `OPSIS_QT` and `OPSIS_KDDW_SOURCE` name another Qt and KDDockWidgets source ([toolchain.md](agent-docs/toolchain.md)).
+  - The domain ones: `OPSIS_QT_*` in [e2e.md](agent-docs/e2e.md); `OPSIS_ENGINE_DIR` and `OPSIS_TAKE_DIR` in [capture.md](agent-docs/capture.md); `OPSIS_STILLS_OUT` in [elements.md](agent-docs/elements.md); `OPSIS_HEADLESS_SHELL`, `OPSIS_APPIMAGETOOL`, `OPSIS_APPIMAGE_RUNTIME`, `OPSIS_CHECK_*` and `OPSIS_TRIXIE_SCRIPT` in [packaging.md](agent-docs/packaging.md); `OPSIS_QT_NO_ITEM_CACHE` in [profiling.md](agent-docs/profiling.md).
 
 ## 4. Verifying
 
@@ -106,7 +114,7 @@
 - **`packages/runtime` (`@opsis/runtime`) is the film's page runtime**: the clock (`useFrame`, `useFilm`), `Sequence`, `Freeze`, `Loop`, the render holds (`holdRender`, `failRender`, `useHeldLoad`), `AbsoluteFill`, `Img`, the render environment, the maths (`interpolate`, `Easing`, `spring`, `random`, our own, property-tested), the page protocol (`page.tsx`) and the test harness (`test-frame.tsx`).
 - **Each member declares the dependencies it imports and has its own `tsconfig.json` (extending `tsconfig.base.json`) and `oxlint.config.ts`, and each package its `vitest.config.ts`**; root scripts run each check everywhere plus the root's own (`typecheck:app`, `lint:app`, `test:app` cover `scripts`).
 - **Installs are bun's isolated layout**: a folder imports only what it or the root declares, and scripts read a package's files from the package that owns it.
-- **Imports:**
+- **A member imports another member only by package name and its own files only through its own prefix:**
   - Members import each other only by package name, through their `exports` (`@opsis/video/common/*`, `@opsis/video/generated/spec`, `@opsis/video/film`…).
   - A member imports its own files through its `package.json` `imports` with its own prefix (`#video/…`, `#runtime/…`, `#film/…`, `#terminal/…`), never `#/`. `video` and `runtime` mix `.ts` and `.tsx` and import with the extension (`#video/core/frame.ts`, `#video/demo-timeline.tsx`).
   - No member imports by a relative path; oxlint rejects `@/` in every member.
@@ -126,7 +134,8 @@ plans/                 planned work
 agent-docs/            the domain docs (§8)
 ```
 
-- **Rust crates live in `crates/<domain>`, named `opsis-<domain>`, one domain each; nothing Rust lives in `apps/`.** Only `opsis-qt` opens windows or dialogs; `opsis-session` asks its host through `Platform`.
+- **Rust crates live in `crates/<domain>`, named `opsis-<domain>`, one domain each; nothing Rust lives in `apps/`.**
+- **Only `opsis-qt` opens windows or dialogs**; `opsis-session` asks its host through `Platform`.
 
 | Crate             | Domain                                                                                                                                                                                                                                                                       |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -156,7 +165,7 @@ agent-docs/            the domain docs (§8)
 | `opsis-update`    | updates: which installer made this copy, the release feed, the signed download and the install step                                                                                                                                                                          |
 | `opsis-ui`        | the native editor's state and logic behind the views, implementing `Host` over `opsis-session`; the `opsis` binary                                                                                                                                                           |
 | `opsis-e2e-input` | dev-only: holds a virtual pointer and keyboard on a headless Wayland compositor and carries out the e2e's real input requests                                                                                                                                                |
-| `opsis-golden`    | dev-only: the golden-file helper and the readers and builders more than one crate's tests use (`repo`, `home`, `typed`, `text`, `number`, `cases`, `node`, `edge`)                                                                                                           |
+| `opsis-golden`    | dev-only: the golden-file helper, `dev_cache`, `ffmpeg()`, and the readers and builders more than one crate's tests use (`crates/golden/src/lib.rs`)                                                                                                                        |
 | `opsis-macros`    | procedural macros (`proc-macro2`, `syn`, `quote`; no `paste` or `pastey`, since `quote` and `format_ident!` build every name)                                                                                                                                                |
 | `opsis-packager`  | dev-only: the installers `bun run make` builds with each format's own tool (deb, rpm, pacman, AppImage, NSIS, MSI, the macOS app and dmg), each program marked with its installer, and the signed update files, after checking the program loads no Qt, ICU or KDDockWidgets |
 
@@ -166,13 +175,12 @@ agent-docs/            the domain docs (§8)
 
 ### Boundaries and types
 
-- **`packages/video` and `packages/runtime` are runtime-neutral**: the editor and the film page both compile them, so no `node:*` or `playwright-core` there (oxlint enforces it). Node-only code lives in `scripts`; everything else that touches the system is Rust.
+- **`packages/video`, `packages/runtime`, `apps/film` and `apps/terminal` are runtime-neutral**: they become pages the recording browser loads, so no `node:*` or `playwright-core` there (oxlint enforces it through `runtimeNeutral`, `scripts/lib/oxlint-base.ts`). Node-only code lives in `scripts`; everything else that touches the system is Rust.
 - **Rust is the source of every type that crosses a boundary** (the editor's views and calls, the timeline spec, run events). The editor's are the `cxx` bridge's structs ([ui.md](agent-docs/ui.md)); the film's are exported with specta (`bun run types:export`) into `packages/video/src/generated/spec.ts`. Never write such a type by hand in TS; tests fail when an export is stale.
   - JSON Schema for the Inspector and the Local API comes from the same types (`schemars`).
 - **Whole numbers are integers**: frame lengths, sizes, frame rates, counts and settings in milliseconds are `u32`, a sound's start (which can fall before its clip) `i32`, timestamps `i64` milliseconds since the epoch. Only values that can be fractional (positions in a remapped clip, action times, volumes, rates) are `f64`.
-- **No number is converted with `as`.** Widening uses `f64::from`, integers `try_from`, everything else `opsis_types::numbers`.
-  - `whole` and `whole_signed` round a float into a whole number, `truncate` cuts toward zero like a cast, `float`, `float_wide` and `narrow` go to `f64` and `f32`, `count` and `signed` narrow integers, `millis` reads a `Duration`.
-  - `byte_size` writes a size in binary units ("1.5 KiB"), the one way sizes read in the app.
+- **No number is converted with `as`.** Widening uses `f64::from`, integers `try_from`, everything else the functions in `opsis_types::numbers` (`crates/types/src/numbers.rs`).
+  - Sizes read in the app are written in binary units through `numbers::byte_size` ("1.5 KiB").
   - The `pedantic` cast lints fail a new cast.
 - **Floats are compared exactly only through `exact_eq`** (a setting at its neutral value, whole numbers kept as `f64`, exact properties in tests). Clippy's `float_cmp` skips functions with `eq` in their name, so `exact_eq` needs no exception.
 - **Kinds that form a fixed set are enums** (`BrowserAction`, `Sign`), and node types the code names are constants next to their definitions (`OPEN_BROWSER_TYPE`, `RENDER_TYPE`).

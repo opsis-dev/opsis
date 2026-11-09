@@ -67,7 +67,7 @@ Built with Rust, [Qt](https://www.qt.io) Widgets and [KDDockWidgets](https://git
 
 ### 🔌 Local API
 
-Off by default; switch it on in **Settings → API**. Scripts and AI agents on your computer can then read, change and run the open project over plain HTTP on a local socket (`api.sock` in the app's data folder, or the full path in `OPSIS_API_SOCKET`; a named pipe on Windows). `GET /openapi.json` describes every route, and every edit is one undo step in the editor.
+Off by default; switch it on in **Settings → API**. Scripts and AI agents on your computer can then read, change and run the open project over plain HTTP on a local socket (`api.sock` in the app's data folder, or the full path in `OPSIS_API_SOCKET`, at most 100 bytes long; a named pipe on Windows). `GET /openapi.json` describes every route, and every edit is one undo step in the editor.
 
 ### 🔄 Updates
 

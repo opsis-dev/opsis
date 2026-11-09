@@ -8,7 +8,7 @@ Status: the Linux packages are built and checked ([packaging.md](../agent-docs/p
 
 - Sections 1–6 come before a first public release. Section 7 runs before every release. Section 8 is later work.
 - Each section has the same parts where they apply: **In place**, **Work** (numbered, only what is left), **Decided**, **Decision for the user**, **Risks**. Rules from `AGENTS.md` and `agent-docs/` hold throughout; when they disagree with this plan, they win.
-- Local builds: `bun run make` builds the deb unless `--formats` names more (all four Linux formats build here, in the trixie container), `CARGO_BUILD_JOBS=8`, output in `~/.cache/opsis-dev/build`, checked with `bun run package:check`. The Windows and macOS packages are built in CI only.
+- Local builds: `bun run make` builds the deb unless `--formats` names more (all four Linux formats build here, in the trixie container), cargo capped at 8 jobs unless `CARGO_BUILD_JOBS` says otherwise, output in `~/.cache/opsis-dev/build`, checked with `bun run package:check`. The Windows and macOS packages are built in CI only.
 
 ## Summary
 
@@ -44,7 +44,6 @@ Status: the Linux packages are built and checked ([packaging.md](../agent-docs/p
 
 - `.github/workflows/build.yml`, on every push, on Ubuntu 24.04: the checks (the offscreen view tests among them) and the `wayland` scenario, and the other e2e scenarios with the engine.
 - `.github/workflows/release.yml`, on `v*` tags or by hand (`workflow_dispatch`): the source notice's links (`bun run notice:links`), a package job for each system (Linux in the trixie container, Windows with the pinned NSIS and WiX v7, both Macs) and, on tags, the draft release with the update feed ([packaging.md](../agent-docs/packaging.md)). None has run, and its `qt:static` step fails on Windows and macOS until Work item 1 is done.
-- `actionlint` passed on the single workflow before it was split in two (2026-10-26).
 - The repository is `github.com/bismitpanda/opsis`. It is private; its `main` is behind the local one, its one workflow run (Build, 2026-11-05) failed, and it has no releases. The update signing secrets are set on it (section 6).
 
 **Work.**
@@ -106,7 +105,7 @@ The named pipe is created with the default security descriptor, which grants rea
 
 ## 7. Release test pass
 
-**In place.** `bun run e2e:qt` runs four scenarios in the real app: `tour` (every panel, field and window), `runs` (setup, recording, export, Replay, the element picker, terminal takes recorded, played, taped live and imported from a cast), `api` (every Local API route from outside, ending with the close check) and `wayland` (real input on headless sway); `cargo test -p opsis-ui` runs the `views` scenario offscreen. They carry the nine WebdriverIO spec files the Tauri app had. The Tauri app's deb was checked off-screen through the Local API on 2026-10-31: from empty caches it recorded and exported a film with footage, a grade and Redact, and exported the Changelog template in both shapes.
+**In place.** `bun run e2e:qt` runs four scenarios in the real app: `tour` (every panel, field and window), `runs` (setup, recording, export, Replay, the element picker, terminal takes recorded, played, taped live and imported from a cast), `api` (every Local API route from outside, ending with the close check) and `wayland` (real input on headless sway); `cargo test -p opsis-ui` runs the `views` scenario offscreen. `bun run package:check` installs each Linux package in a clean container and opens and exports the changelog example in it ([packaging.md](../agent-docs/packaging.md)).
 
 **Work, before each release** (Linux by hand, Windows and macOS through the runner checks in section 3):
 
