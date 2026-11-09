@@ -4,25 +4,26 @@ How an installed Opsis checks for, downloads, verifies and installs a newer vers
 
 ## Code map
 
-| Concern                        | Where                                                                                                     |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| Which installer made this copy | `crates/update/src/installer.rs` → `installed_from`, `Installer`                                          |
-| The feed and its keys          | `crates/update/src/feed.rs` → `Feed`, `feed_url`, `feed_key`, `is_newer`                                  |
-| Check, download, verify        | `crates/update/src/fetch.rs` → `check`, `offered`, `download`, `public_key`                               |
-| Install                        | `crates/update/src/install.rs` → `install`, `windows_script`, `replace_file`, `swap_folder`               |
-| Build target and commit        | `crates/update/build.rs`; `opsis_update::TARGET`, `opsis_update::COMMIT`                                  |
-| Update state, start check      | `crates/session/src/updates.rs` → `Updates`, `begin`, `check`, `download`, `want_restart`, `finish`       |
-| Setting                        | `crates/types/src/settings.rs` → `UpdatesSection` (`updates.checkOnStart`)                                |
+| Concern                        | Where                                                                                                                                                                                |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Which installer made this copy | `crates/update/src/installer.rs` → `installed_from`, `Installer`                                                                                                                     |
+| The feed and its keys          | `crates/update/src/feed.rs` → `Feed`, `feed_url`, `feed_key`, `is_newer`                                                                                                             |
+| Check, download, verify        | `crates/update/src/fetch.rs` → `check`, `offered`, `download`, `public_key`                                                                                                          |
+| Install                        | `crates/update/src/install.rs` → `install`, `windows_script`, `replace_file`, `swap_folder`                                                                                          |
+| Build target and commit        | `crates/update/build.rs`; `opsis_update::TARGET`, `opsis_update::COMMIT`                                                                                                             |
+| Update state, start check      | `crates/session/src/updates.rs` → `Updates`, `begin`, `check`, `download`, `want_restart`, `finish`                                                                                  |
+| Setting                        | `crates/types/src/settings.rs` → `UpdatesSection` (`updates.checkOnStart`)                                                                                                           |
 | About page                     | `crates/qt/cpp/update_card.cc` → `UpdateCard`; `crates/qt/cpp/settings_window.cc` (build target, commit, installer rows); `crates/ui/src/ui.rs` → `update_view`, `restart_to_update` |
-| Messages                       | `crates/update/src/error.rs` → `UpdateError`                                                              |
-| Commit at build time           | `scripts/lib/release.ts` → `commit`                                                                       |
-| Install at exit                | `crates/ui/src/main.rs` → `main` (after `Session::end`); the close decision `crates/session/src/exit.rs` → `confirm`, and `crates/ui/src/ui.rs` → `request_close` |
-| Public key                     | `signing/opsis.key.pub`                                                                                   |
+| Messages                       | `crates/update/src/error.rs` → `UpdateError`                                                                                                                                         |
+| Commit at build time           | `scripts/lib/release.ts` → `commit`                                                                                                                                                  |
+| Install at exit                | `crates/ui/src/main.rs` → `main` (after `Session::end`); the close decision `crates/session/src/exit.rs` → `confirm`, and `crates/ui/src/ui.rs` → `request_close`                    |
+| Public key                     | `signing/opsis.key.pub`                                                                                                                                                              |
 
 ## Rules
 
 - **Opsis goes online for updates only when the person clicks Check for updates, or at start when they turned on "Check for updates when Opsis starts"** (`updates.checkOnStart`, off by default).
-- **A download starts only on Download update**, and a check or a download is ignored while one is already going; Stop cancels a download, deletes its partial file and says the update was stopped.
+- **A download starts only on the Updates card's "Download version …" button**; Stop cancels it, deletes its partial file and says the update was stopped.
+  - The session ignores a check while a check or a download runs, and a download while another download runs (`check`, `download`); the card disables both buttons while either runs.
 - **Only a copy installed from a release package checks.** The installer marker (`installed_from`) is `None` in development builds and in any program the packager didn't mark; such a copy never checks at start (`begin`), its start switch is disabled, and the About page's Updates card says why.
 - **The feed is `latest.json` on the repository's latest release** (`feed_url`).
   - A draft or prerelease isn't "latest", so a release reaches people only when it's published.
@@ -35,7 +36,7 @@ How an installed Opsis checks for, downloads, verifies and installs a newer vers
 - **Downloads go to `<data folder>/updates/<version>`**, and the whole `updates` folder is removed in the background at the next start (`begin`), so nothing pending survives a restart; a running download is in `AppState.tasks`, so the exit dialog lists it.
 - **A downloaded update installs when Opsis closes, after the close decision and the last save** (`finish`, called from `main` after `Session::end`): Restart to update closes the usual way and reopens the new version; an ordinary close installs it without reopening.
   - Declining the close dialog cancels the restart (`request_close` → `want_restart(false)`).
-- **Opsis does the install step itself, never in the system temp folder**: each new file is staged beside the one it replaces and renamed over it (`sibling`), so the swap stays on one file system.
+- **Opsis does the install step itself, never through the system temp folder.** For the AppImage and the macOS app the new copy is staged beside the one it replaces and renamed over it (`sibling`), so the swap stays on one file system; on Windows the downloaded installer runs from the updates folder.
   - AppImage: the new file is written beside the running one (`$APPIMAGE`, which must be set) and renamed over it, keeping its permissions.
   - macOS: the `.app.tar.gz` is unpacked beside the bundle, the bundle renamed aside, the new one moved in and the old one removed (`swap_folder`); reopening is `open -n`.
   - Windows: a hidden PowerShell waits for Opsis to exit, runs the NSIS installer with `/P` or `msiexec /i … /passive`, and starts the program again only for Restart to update (`windows_script`).

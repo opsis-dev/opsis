@@ -4,22 +4,22 @@ The native editor's windows, docks and panels, the title bar and menus, the canv
 
 ## Code map
 
-| Concern                     | Where                                                                                                                                                                                                            |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Main window and its screens | `main_window.cc` → `MainWindow` (start screen, setup, editor), `StartAsChosen`; `start_screen.cc`, `engine_card.cc` → `SetupScreen`                                                                              |
+| Concern                     | Where                                                                                                                                                                                                                         |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Main window and its screens | `main_window.cc` → `MainWindow` (start screen, setup, editor), `StartAsChosen`; `start_screen.cc`, `engine_card.cc` → `SetupScreen`                                                                                           |
 | Docks and panels            | `main_window.cc` → `BuildDocks`, `MakeDock`; `node_list.cc` (`NodeList`, `CategoryRail`); `dock_style.cc` → `DockTitleBar`, `DockStack` (the pop-out and collapse corner), `DockViewFactory`; KDDockWidgets flags in `app.cc` |
-| Quick add                   | `main_window.cc` → `QuickAdd`                                                                                                                                                                                    |
-| Title bar and window frame  | `window_chrome.cc` → `AppBar`, `WindowChrome`; `top_bar.cc` → `TopBar`                                                                                                                                           |
-| Menus                       | `crates/session/src/menu.rs` → `app_menu`; `crates/ui/src/menu.rs` → `menu`; `main_window.cc` → `BuildMenus`, `Dispatch`, `RunRole`                                                                              |
-| Canvas                      | `graph_canvas.cc` → `GraphCanvas`, `CardItem`, `EdgeItem`, `Minimap`; `graph.rs` (cards, edges, lanes, active nodes)                                                                                             |
-| Tidy up                     | `crates/compile/src/layout.rs` → `auto_layout`; `ui.rs` → `tidy_layout`                                                                                                                                          |
-| Edge lanes                  | `crates/compile/src/lanes.rs` → `step_positions`                                                                                                                                                                 |
-| Look and motion             | `crates/ui/resources/style.qss`, `look.rs` → `TOKENS`; `look_style.cc` → `LookStyle`, `FocusRing`; `motion.cc` → `ReducedMotion`, `MotionMs`, `EaseOut`, `FadeIn`, `FadeOut`, `GrowWidth`; `widgets.h` → `Combo` |
-| Players and pictures        | `file_player.cc` → `FilePlayer`, `ImagePreview`; `player.rs`                                                                                                                                                     |
-| Closing                     | `main_window.cc` → `ShowCloseDialog`; `crates/session/src/exit.rs` (`close_shown`, `decide_close`, `close_on_signals`)                                                                                           |
-| Settings window             | `settings_window.cc` → `SettingsWindow`; `fonts_page.cc`, `engine_card.cc`, `update_card.cc`                                                                                                                     |
-| Project Inspector           | `project_panel.cc` → `ProjectPanel`                                                                                                                                                                              |
-| View state                  | `ui.rs` → `load_layout`, `save_layout`, `project_window`, `save_window`; `main_window.cc` → `SaveLayout`, `SaveWindow`; `crates/session/src/windows.rs` → `visible_bounds`                                       |
+| Quick add                   | `main_window.cc` → `QuickAdd`                                                                                                                                                                                                 |
+| Title bar and window frame  | `window_chrome.cc` → `AppBar`, `WindowChrome`; `top_bar.cc` → `TopBar`                                                                                                                                                        |
+| Menus                       | `crates/session/src/menu.rs` → `app_menu`; `crates/ui/src/menu.rs` → `menu`; `main_window.cc` → `BuildMenus`, `Dispatch`, `RunRole`                                                                                           |
+| Canvas                      | `graph_canvas.cc` → `GraphCanvas`, `CardItem`, `EdgeItem`, `Minimap`; `graph.rs` (cards, edges, lanes, active nodes)                                                                                                          |
+| Tidy up                     | `crates/compile/src/layout.rs` → `auto_layout`; `ui.rs` → `tidy_layout`                                                                                                                                                       |
+| Edge lanes                  | `crates/compile/src/lanes.rs` → `step_positions`                                                                                                                                                                              |
+| Look and motion             | `crates/ui/resources/style.qss`, `look.rs` → `TOKENS`; `look_style.cc` → `LookStyle`, `FocusRing`; `motion.cc` → `ReducedMotion`, `MotionMs`, `EaseOut`, `FadeIn`, `FadeOut`, `GrowWidth`; `widgets.h` → `Combo`              |
+| Players and pictures        | `file_player.cc` → `FilePlayer`, `ImagePreview`; `player.rs`                                                                                                                                                                  |
+| Closing                     | `main_window.cc` → `ShowCloseDialog`; `crates/session/src/exit.rs` (`close_shown`, `decide_close`, `close_on_signals`)                                                                                                        |
+| Settings window             | `settings_window.cc` → `SettingsWindow`; `fonts_page.cc`, `engine_card.cc`, `update_card.cc`                                                                                                                                  |
+| Project Inspector           | `project_panel.cc` → `ProjectPanel`                                                                                                                                                                                           |
+| View state                  | `ui.rs` → `load_layout`, `save_layout`, `project_window`, `save_window`; `main_window.cc` → `SaveLayout`, `SaveWindow`; `crates/session/src/windows.rs` → `visible_bounds`                                                    |
 
 ## Rules
 
@@ -27,7 +27,8 @@ The native editor's windows, docks and panels, the title bar and menus, the canv
 
 - **The main window holds three screens in one stack**: the start screen, setup (shown while the engine is missing and setup wasn't skipped) and the editor. Settings, Replay, the streamed views, the Live window and the terminal window are windows of their own.
 - **The panels are KDDockWidgets docks**: the node list on the left, the Inspector on the right, and Timeline, Mixer and Run as tabs of one bottom dock (`kBottomShare` of the height), Timeline first.
-- **The bottom dock's panels pop out into their own window and dock back**: the corner of a dock with more than one tab (`DockStack`) holds the pop-out button ("Open … in a new window", `setFloating`) and the button that hides the bottom panel. The node list and the Inspector, lone docks with a zero-height title bar, have no control that pops them out.
+- **Every dock group with more than one tab shows two corner buttons (`DockStack`)**: one pops the current panel out into its own window ("Open … in a new window", `setFloating`), where it can dock back, and one hides the bottom panel, whichever group it sits on.
+  - As the editor builds the docks only the bottom one has tabs; the node list and the Inspector, lone docks with a zero-height title bar, have no control that pops them out.
 - **The arrangement, popped-out panels included, is saved per project (`SaveLayout`, `kdw::LayoutSaver`)** when the project closes (`CloseProject`), when the window goes back to the start screen, and when the window asks Rust whether it may close and Rust asks first (`closeEvent`).
   - It is restored only when the docks are first built in a launch (`BuildDocks`); opening another project later in the same launch keeps the docks as they are and reopens the node list, Inspector and Timeline if they were closed (`ShowEditor`).
 - **The node list, Inspector and bottom panel collapse from the View menu, its shortcuts and the top bar**; a closed node list leaves a narrow category rail (`CategoryRail::kWidth`) whose categories open as popovers.
@@ -48,13 +49,14 @@ The native editor's windows, docks and panels, the title bar and menus, the canv
 - **The grid and minimap toggles sit in their own toolbar cards** and show their state with the selected overlay; neither is saved, so both start as the canvas builds them each launch.
 - **Quick add (`QuickAdd`, Cmd/Ctrl+K) adds a node by name.**
 - **The canvas mirrors the session's whole selection**: a selection made elsewhere (the Run panel, Replay, the Local API) selects exactly those cards, so clicking a card always changes what is selected.
-- **Tidy up lays the cards out in Rust** (`auto_layout`) from each card's shape, as one undo step.
+- **Tidy up lays the cards out in Rust** (`tidy_layout` → `auto_layout`) from each card's shape, as one undo step.
 - **Edges entering one column turn in their own lane where their runs overlap** (`step_positions`).
 - **The nodes playing at the playhead are ringed and their edges move as dashes**; selecting exactly one node, with no pinned source, moves the playhead to the start of its span when the last film has one (`selection_start`). The dashes stand still with reduced motion.
 
 ### Look and motion
 
-- **Colours are tokens in `look.rs` (`TOKENS`)**, resolved into `style.qss` and read in C++ with `App::Token`; panels, the menu bar and the top bar sit on the sidebar colour, popup menus on the popover colour, the canvas on the background colour. A few C++ colours are still literals (`look_glyph.cc`, `color_picker.cc`, `marks_field.cc`).
+- **Colours are tokens in `look.rs` (`TOKENS`)**, resolved into `style.qss` and read in C++ with `App::Token`; panels, the menu bar and the top bar sit on the sidebar colour, popup menus on the popover colour, the canvas on the background colour.
+  - C++ writes a colour as a literal only where the theme doesn't change it: black glyphs and text on a category's own colour, black behind pictures (players, Replay, the live view), the colour and gradient pickers' white and black, the Marks field's default mark colours and the glyph effects in `look_glyph.cc`.
 - **Motion respects the system's reduced motion setting** (`ReducedMotion`, from `QAccessibilityHints::motionPreference`): fades and slides become instant.
   - Widget animations take their length through `MotionMs` and their curve from `EaseOut` (`motion.cc`, which also holds `FadeIn`, `FadeOut` and `GrowWidth`); the canvas's moving edge dashes and the sweep on a loading card's ring check `ReducedMotion` themselves.
 - **The focus ring shows only after Tab or Backtab** (`FocusRing` and `LookStyle` in `look_style.cc`): a `QFocusFrame` draws the `ring` colour outside the widget, which a style sheet can't, and Fusion's dotted focus rectangle is never drawn.
@@ -66,9 +68,9 @@ The native editor's windows, docks and panels, the title bar and menus, the canv
 - **Closing the main window asks first unless the user said not to**: "Are you sure you want to exit?" with "Don't ask again", and the button "Exit".
   - Unfinished work is always listed, and the button becomes "Close anyway": a run, the labels in `AppState.tasks` (engine setup, a font or update download), and unsaved changes or a value still being typed (`ongoing`, `crates/session/src/exit.rs`).
   - With asking turned off, unfinished work still shows the dialog, titled "Some work hasn't finished yet" and without "Don't ask again".
-- **Closing hands held values over before saving**: the session asks for them (`FlushSave`, which the editor receives as `FlushDrafts`), the Inspector ends its typing, and Rust saves.
+- **Closing saves the values still being typed first** (`flush_save`, `crates/session/src/exit.rs`): when the editor has reported drafts (`report_drafts`), the session asks for them (`FlushSave`, which the editor receives as `FlushDrafts`), the Inspector ends its typing and answers `save_flushed`, and Rust waits for that up to `FLUSH_WITHIN` before it saves.
 - **The dialog tells Rust it is up as soon as it shows (`close_shown`); if nothing does within `SHOWN_WITHIN`, Rust saves and closes without asking**, so a broken window can always close.
-- **SIGTERM, SIGINT and SIGHUP save the project and close without asking** (`close_on_signals`, Unix only); the dock arrangement and window place aren't saved then.
+- **SIGTERM, SIGINT and SIGHUP save the project and close without asking** (`close_on_signals`, Unix only).
 
 ### Settings window
 
@@ -84,3 +86,7 @@ The native editor's windows, docks and panels, the title bar and menus, the canv
 - **A saved place is used only while a screen can still show it** (`visible_bounds`); otherwise only whether the window was maximized is kept.
 - **A project with no saved window opens maximized; the start screen leaves the window as it is.**
 - **Nothing is saved while no project is open.**
+
+## Deliberate limits
+
+- **A close by signal doesn't save the dock arrangement or the window's place**: only the project is saved (`close_on_signals`), since the window never runs its own close.

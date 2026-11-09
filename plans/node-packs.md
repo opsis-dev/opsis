@@ -35,18 +35,18 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ## Summary
 
-| Part                    | What it changes                                                                      | Needs                           |
-| ----------------------- | ------------------------------------------------------------------------------------ | ------------------------------- |
-| Phase 1                 | reusable subgraph nodes, project templates, per-node presets                         | —                               |
-| Phase 2                 | `pack.json`, first-party packs grouping today's nodes, packs listed per project      | Phase 1                         |
-| Contract                | the `opsis:pack` WIT: types, host, files, elements, nodes; versioning                | native renderer's Scene         |
-| Host                    | `opsis-packs`: wasmtime engine, compile cache, linking, limits, instances per worker | Contract                        |
-| Elements from packs     | pack elements in the catalogue, the resolve pass, `draw` per frame                   | Host                            |
-| Nodes from packs        | pack settings schemas, `compile`, `execute` with files and scoped WASI               | Host                            |
-| Shaders                 | pack WGSL validated and run like built-in effects                                    | Host, native renderer's Effects |
-| Permissions and signing | manifest permissions, the warning, signatures                                        | Nodes from packs                |
-| Installing              | install from a file, update, remove, the data folder and project packs               | Permissions and signing         |
-| SDK and checks          | the Rust SDK crate, a template pack, the pack checker                                | Contract                        |
+| Part                    | What it changes                                                                      | Needs                                                |
+| ----------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| Phase 1                 | reusable subgraph nodes, project templates, per-node presets                         | —                                                    |
+| Phase 2                 | `pack.json`, first-party packs grouping today's nodes, packs listed per project      | Phase 1                                              |
+| Contract                | the `opsis:pack` WIT: types, host, files, elements, nodes; versioning                | the scene types, shared with native renderer's Scene |
+| Host                    | `opsis-packs`: wasmtime engine, compile cache, linking, limits, instances per worker | Contract                                             |
+| Elements from packs     | pack elements in the catalogue, the resolve pass, `draw` per frame                   | Host                                                 |
+| Nodes from packs        | pack settings schemas, `compile`, `execute` with files and scoped WASI               | Host                                                 |
+| Shaders                 | pack WGSL validated and run like built-in effects                                    | Host, native renderer's Effects                      |
+| Permissions and signing | manifest permissions, the warning, signatures                                        | Nodes from packs                                     |
+| Installing              | install from a file, update, remove, the data folder and project packs               | Permissions and signing                              |
+| SDK and checks          | the Rust SDK crate, a template pack, the pack checker                                | Contract                                             |
 
 ## Phase 1
 
@@ -126,17 +126,23 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 ### Fit with Opsis
 
 - **In place:** a first draft, `opsis:pack@0.1.0`, written during the native-renderer research. It passes `wasmtime::component::bindgen!` for both worlds under wasmtime 50.0.1 (wit-parser 0.261.0) with no warnings; that check renamed the displacement filter's `map` field to `source`, since `map` is a WIT keyword. The draft is in [Appendix: draft WIT](#appendix-draft-wit).
-- **Missing:** the WIT in the repository, the `wasi` imports in the `pack` world, a guest built against it.
+- **Missing:** the WIT in the repository, the `wasi` imports in the `pack` world, a guest built against it, and the fields a built-in needs that the draft can't carry yet (Work 4), though the Decided section puts built-ins behind the same contract.
 
 ### Work
 
 1. The WIT in the repository with its version, checked by `bindgen!` in a test.
 2. The `pack` world gains `wasi:filesystem`, `wasi:clocks` and `wasi:random` imports for executors.
 3. A guest pack in Rust built against it in the tests, so both sides are checked.
+4. Give the draft what today's built-ins declare, so each can be described by it:
+   - `element-info`: the default length, `optional_clip`, fixed and kind props, the look, and whether the design size is exact;
+   - `port`: the label, whether it is optional and its file need, and a port kind that is the `PortType` enum rather than a free string;
+   - `node-info`: the phase, the input family, whether it is a browser action or hidden, and `uses_project_size` and `uses_project_fonts`;
+   - `category`: the `Category` and `ElementCategory` enums rather than strings.
 
 ### Decisions
 
 - **Where the scene types are written**: shared with [native-renderer.md](native-renderer.md) **Scene** (generated from the WIT, or hand-written with a test).
+- **Which comes first, this Contract or native-renderer's Scene.** Each is written as waiting on the other: the Summary has Contract needing Scene, and Scene's node types are this plan's WIT `types`. Whichever starts first writes the scene types, and the other builds on them.
 - **WIT file layout**: one file, or one per interface in a `wit/` folder.
 
 ### Risks

@@ -51,4 +51,4 @@ Because smooth recording is slower than real time, a reply has almost always arr
 ### Risks
 
 - Frames from other origins (out-of-process iframes), service workers and cached replies need the same hold per target or are left at real time.
-- Uploads and very long streams that never end must not let the stall rule freeze the take; the cap in step 4 and the take's timeout apply.
+- Uploads and very long streams that never end must not let the stall rule freeze the take; the cap in step 4 and each action's own time limit (`timeout_ms` on Go to page, Wait and Check text) apply, since a take as a whole has no time limit.

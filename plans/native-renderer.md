@@ -264,7 +264,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 ### What it changes
 
 - **Every element's draw function lives in its Rust file** in `crates/compile/src/elements/<category>/`, next to its `#[settings]` struct and `definition()`, and returns scene nodes through a builder API. One file per element instead of a Rust file and a TSX file.
-- **All 140 implementations in `ELEMENTS` move**, by the capabilities they need ([Appendix: elements](#appendix-elements)): layout 71, text 84, vector 93, layer effects 96, SVG filters 12, perspective 7, pixel programs 24, 3D 6, media 20, canvas drawing 5.
+- **All 140 implementations in `ELEMENTS` move**: the 138 elements into their own Rust files, and `placeholder` and `still`, which have no element file or category in Rust, with the camera and takes below. By the capabilities they need ([Appendix: elements](#appendix-elements)): layout 71, text 84, vector 93, layer effects 96, SVG filters 12, perspective 7, pixel programs 24, 3D 6, media 20, canvas drawing 5.
 - **The camera and takes move**: `core/recording-clip.tsx` and `camera/` (stage, cursor with the macOS cursor SVGs, window frame, keycap HUD, annotations, motion blur, demo clip), captions, the still and placeholder elements.
 - **The film's JavaScript libraries are replaced:**
   - `roughjs` by `roughr` with rough.js's own Park–Miller generator (`Math.imul(48271, seed)`) in place of `rand`'s `StdRng`, so seeded strokes keep today's shapes;
@@ -341,12 +341,16 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 ### Fit with Opsis
 
 - **In place:** everything above, by then.
-- **Missing:** the deletions and the doc rewrite.
+- **Missing:** the deletions, the doc rewrite, and a place for what code outside the film still takes from `packages/video`:
+  - `bun run types:export` writes into it: `SPEC_TYPES_FILE` (`crates/compile/src/ts_export.rs`), `DEFAULT_PROPS_FILE` and `LENGTH_CASES_FILE` (`crates/compile/src/elements/default_props.rs`, `length_cases.rs`);
+  - `scripts/fonts-bundle.ts` imports its font types from `@opsis/video/generated/spec`, and `scripts/lib/e2e-api.ts` `findById` from `@opsis/video/common/lists`;
+  - `scripts/lib/tool-config.ts` lists its generated files as ignored.
 
 ### Work
 
-1. Delete the listed apps, packages, bundles and Rust paths; remove their scripts (`film:bundle`, `terminal:bundle`) and their table rows in AGENTS.md; add `opsis-scene` and the renderer to the AGENTS.md crate table, and, when the Skia choice is our own `cxx` wrapper, name that crate in the AGENTS.md rule on the crates allowed `unsafe`.
-2. Rewrite the docs named above in the same change.
+1. Move or drop each of those uses of `packages/video` (Fit with Opsis, Missing) before it goes.
+2. Delete the listed apps, packages, bundles and Rust paths; remove their scripts (`film:bundle`, `terminal:bundle`) and their table rows in AGENTS.md; add `opsis-scene` and the renderer to the AGENTS.md crate table, and, when the Skia choice is our own `cxx` wrapper, name that crate in the AGENTS.md rule on the crates allowed `unsafe`.
+3. Rewrite the docs named above in the same change.
 
 ### Decisions
 

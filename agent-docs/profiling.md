@@ -4,22 +4,22 @@ How Opsis is measured for size, CPU and memory with development tools only: the 
 
 ## Code map
 
-| Concern                         | Where                                                                                                                  |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Host side of a run              | `scripts/profile.ts` (`bun run profile`)                                                                               |
-| Container side of a run         | `scripts/profile-inside.ts`                                                                                            |
-| What the host hands the container | `scripts/lib/profile/config.ts` → `InsideConfig`, `PROFILERS`, `CONFIG_FILE` (written to the run folder)            |
-| Release program                 | `scripts/lib/release.ts` → `releaseBinary`, `cargoProfileVariables`                                                    |
-| Canvas item cache               | `crates/qt/cpp/graph_canvas.cc` → `CardItem` (`OPSIS_QT_NO_ITEM_CACHE`)                                                |
-| Profile project and run order   | `scripts/lib/profile/project.ts` → `profileWorkflow`, `missingTypes`, `runOrder`                                       |
-| Generated inputs                | `scripts/lib/profile/inputs.ts` → `writeInputs`                                                                        |
-| Local test site                 | `scripts/lib/profile/site.ts` → `serveSite`                                                                            |
-| `/proc` sampling and accounting | `scripts/lib/profile/procfs.ts` → `snapshot`, `cpuByTag`, `memoryByTag`, `tagOf`                                       |
-| Local API client and run events | `scripts/lib/profile/api.ts` → `apiClient`, `eventsIn`                                                                 |
-| Report                          | `scripts/lib/profile/report.ts` → `nodeCosts`, `overlapShare`, `writeReport`                                           |
-| Image                           | `scripts/lib/profile/Dockerfile`                                                                                       |
-| Data folder seed                | `scripts/lib/user-data.ts` → `seedUserData` (shared with the e2e runner, `package-check.ts` and the `check-app` skill) |
-| Unused files and exports        | `knip.config.ts` (`bun run knip`)                                                                                      |
+| Concern                           | Where                                                                                                                  |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Host side of a run                | `scripts/profile.ts` (`bun run profile`)                                                                               |
+| Container side of a run           | `scripts/profile-inside.ts`                                                                                            |
+| What the host hands the container | `scripts/lib/profile/config.ts` → `InsideConfig`, `PROFILERS`, `CONFIG_FILE` (written to the run folder)               |
+| Release program                   | `scripts/lib/release.ts` → `releaseBinary`, `cargoProfileVariables`                                                    |
+| Canvas item cache                 | `crates/qt/cpp/graph_canvas.cc` → `CardItem` (`OPSIS_QT_NO_ITEM_CACHE`)                                                |
+| Profile project and run order     | `scripts/lib/profile/project.ts` → `profileWorkflow`, `missingTypes`, `runOrder`                                       |
+| Generated inputs                  | `scripts/lib/profile/inputs.ts` → `writeInputs`                                                                        |
+| Local test site                   | `scripts/lib/profile/site.ts` → `serveSite`                                                                            |
+| `/proc` sampling and accounting   | `scripts/lib/profile/procfs.ts` → `snapshot`, `cpuByTag`, `memoryByTag`, `tagOf`                                       |
+| Local API client and run events   | `scripts/lib/profile/api.ts` → `apiClient`, `eventsIn`                                                                 |
+| Report                            | `scripts/lib/profile/report.ts` → `nodeCosts`, `overlapShare`, `writeReport`                                           |
+| Image                             | `scripts/lib/profile/Dockerfile`                                                                                       |
+| Data folder seed                  | `scripts/lib/user-data.ts` → `seedUserData` (shared with the e2e runner, `package-check.ts` and the `check-app` skill) |
+| Unused files and exports          | `knip.config.ts` (`bun run knip`)                                                                                      |
 
 ## Rules
 
@@ -28,9 +28,10 @@ How Opsis is measured for size, CPU and memory with development tools only: the 
 
   - `line-tables-only` keeps function names and lines for samply, perf and heaptrack. Full debug info runs the full-LTO link out of memory on a 14 GiB machine.
   - On Linux the program is built in the trixie container into `target/trixie/release` ([packaging.md](packaging.md)), and `cargoProfileVariables` passes the `CARGO_PROFILE_*` variables into it.
-  - `bun run profile` copies it, the staged `opsis-ffmpeg`, both pages, the staged `resources` and the licences into `~/.cache/opsis-dev/profile/app` (`assembleAppFolder`, `scripts/lib/app-folder.ts`), the layout the release build reads beside itself; it refuses to start until `bun run make` has left the program, FFmpeg, both pages and `resources`.
+  - `bun run profile` copies it, the staged `opsis-ffmpeg`, both pages, the staged `resources` and the licences into `~/.cache/opsis-dev/profile/app` (`assembleAppFolder`, `scripts/lib/app-folder.ts`), the layout the release build reads beside itself.
+  - Without the program, FFmpeg, both pages and `resources` from `bun run make` it stops, naming what is missing; by then it has already made the run's folder, inputs and data folder.
 
-- **`bun run profile` runs the app in Docker, never on the host**: Ubuntu 26.04 with Qt's X11 runtime libraries (`scripts/lib/profile/Dockerfile`), fixed cores (`--cpus`, a CPU list passed as `--cpuset-cpus`) and memory (`--memory`, swap equal to it), with the defaults in `scripts/profile.ts`, `--network none`, and the user's uid.
+- **`bun run profile` runs the app in Docker, never on the host**: Ubuntu 26.04 with Qt's X11 runtime libraries (`scripts/lib/profile/Dockerfile`), fixed cores (`--cpus`, a CPU list passed as `--cpuset-cpus`) and memory (`--memory`, swap equal to it), with the defaults in `scripts/profile.ts`, a larger `/dev/shm` for the browser (`--shm-size`), `--network none`, and the user's uid.
   - samply and perf carry `cap_perfmon,cap_ipc_lock` as file capabilities and the container gets `--cap-add PERFMON --cap-add IPC_LOCK`, so they record whatever the host's `kernel.perf_event_paranoid` is. Without the added capabilities the kernel refuses to start them.
   - perf ships as `linux-perf` in Ubuntu 26.04; samply comes from its release, pinned by version and sha256 in `scripts/profile.ts`.
   - The browser nodes need the dev engine: the seeded data folder links `~/.config/Opsis/engine` only when it exists, and nothing checks it before the run.
@@ -40,7 +41,7 @@ How Opsis is measured for size, CPU and memory with development tools only: the 
   - Interpreting a whole pass afterwards (`heaptrack_interpret`) doesn't finish on a 14 GiB machine: against the line-tables build it reads about 90 KB a minute, against a symbols-only copy (`objcopy --strip-debug`, mounted over the app folder's `opsis`) it runs out of memory. Record short passes, or use the app's `/proc` files below.
 - **`--gpu` passes `/dev/dri` into the container with its device groups, and `--render-gl <choice>` sets every Render node's `gl`**; only `vulkan` reaches the GPU from the container (see Deliberate limits).
 - **`--app-env NAME=VALUE` (repeatable) sets a variable for the app**, such as `MALLOC_ARENA_MAX`.
-- **`OPSIS_QT_NO_ITEM_CACHE`, set to anything, turns off the canvas cards' pixel cache** (`DeviceCoordinateCache` on `CardItem`), to measure the canvas without it.
+- **`OPSIS_QT_NO_ITEM_CACHE`, set to anything but empty, turns off the canvas cards' pixel cache** (`DeviceCoordinateCache` on `CardItem`), to measure the canvas without it.
 - **When the pass ends, the app's `/proc/<pid>/status` and `smaps_rollup` are saved as `app-status.txt` and `app-smaps_rollup.txt`**: resident, anonymous and file-backed memory and the peak.
 - **The image carries GNU `time`, for `/usr/bin/time -v` on the standalone programs** (`render-elements`, `editor-data`), run in the container with the repository mounted at its own path.
 - **The profile project holds every node type in the catalogue, and `project.test.ts` fails when one is missing**, when an edge joins ports that don't connect, or when a setting that may not be blank is blank.
@@ -53,8 +54,8 @@ How Opsis is measured for size, CPU and memory with development tools only: the 
   - CPU of a process that exits is counted up to its last sample; what the reapers' counters gain beyond that is `exited between samples`, so the tags add up to the container's CPU (the cgroup's `cpu.stat`, written to `cgroup.json`).
   - A run's CPU is each sample's CPU times the share of the sample inside the run (`overlapShare`); peak memory is the largest PSS sample inside it.
   - `programs.json` lists the programs behind each tag.
-- **Each run writes `runs.json`, `events.jsonl` (every run event), `samples.jsonl`, `nodes.csv`, `samples.csv`, `report.html`, `problems.json`, `app.log`, `xvfb.log` and `cgroup.json` to `~/.cache/opsis-dev/profile/runs/<time>-<profiler>[-gpu]/out/`.**
-- **Size has its own tools, none of them in the app**:
+- **A pass writes into `out/` in its run folder, `~/.cache/opsis-dev/profile/runs/<time>-<profiler>[-gpu]/`**: the container side its measurements and logs (`profile-inside.ts`), then the host, once the container has stopped, the tables and the report built from them (`writeReport`).
+- **Size has its own tools, none of them in the app.**
   - the binary by crate: `cargo bloat --release -p opsis-ui --bin opsis --crates -n 40`, then `--filter <crate>`, with the same profile variables as the profiling build;
   - generic code: `cargo llvm-lines -p <crate>` on the dev profile;
   - duplicates and unused crates: `cargo tree -d --workspace -e normal --depth 0` and `cargo machete` (it misses crates used only through a macro's expansion, like `smart-default` behind `#[settings]`);

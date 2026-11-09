@@ -4,22 +4,22 @@ How the compiled spec becomes bars, how Timeline drags write back into the nodes
 
 ## Code map
 
-| Concern                       | Where                                                                                                                                                            |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Flattener                     | `timeline/flatten.rs` → `flatten_spec`, `VideoBar::local_frames` (sent as `flat`, `localFrames`)                                                                 |
-| Timeline edits                | `edits/timeline.rs` → `TimelineEdits`, `apply_removal`, `close_gaps`; `crates/document/src/lib.rs` → `timeline_removal`                                          |
-| Handle round trips            | `crates/compile/tests/unit/timeline_edits.rs`                                                                                                                    |
-| Envelopes                     | `envelope.rs`                                                                                                                                                    |
-| Keyframe and camera key edits | `edits/keyframes.rs` → `KeyframeEdit`, `apply_keyframe_edit`                                                                                                     |
-| Tracks, easings, camera dials | catalogue `timeline` (`catalog.rs` → `TimelineBook`)                                                                                                             |
-| Chapters                      | `timeline/chapters.rs` → `film_chapters`, `MIN_LISTED_CHAPTERS`; `crates/render/src/executors.rs` → `chapters_for`; `finish_args` (`crates/media/src/codecs.rs`) |
-| Clock                         | `playback_clock.cc` → `PlaybackClock`; `crates/ui/src/ui.rs` → `share_playhead`, `wrap_playhead`, `audio_clock`, `audio_seek`                                    |
-| View helpers                  | `timeline/view.rs` → `loop_of`, `wrap_in_loop`, `snap_frame`, `snap_span`, `SnapKind`, `ruler_step`, `play_range`                                                |
-| Camera keys                   | `timeline/camera_path.rs` → `CAMERA_DIALS`, `camera_key_at`, `sorted_camera_keys`                                                                                |
-| Waveforms                     | `timeline/media.rs` → `pick_level`, `wave_column`, `duck_gain`                                                                                                   |
-| The editor's Timeline         | `crates/ui/src/timeline.rs` (the view); `timeline_canvas.cc` → `TimelineCanvas`; `timeline_panel.cc`; `keyframe_fields.cc`                                       |
-| Stem player                   | `crates/audio/src/output.rs` → `Output`                                                                                                                          |
-| Active nodes                  | `timeline/view.rs` → `active_at` over the compiled `spans`; `crates/ui/src/graph.rs`; `graph_canvas.cc`                                                          |
+| Concern                       | Where                                                                                                                                                                                                       |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Flattener                     | `timeline/flatten.rs` → `flatten_spec`, `VideoBar::local_frames` (sent as `flat`, `localFrames`)                                                                                                            |
+| Timeline edits                | `edits/timeline.rs` → `TimelineEdits`, `apply_removal`, `close_gaps`; `crates/document/src/lib.rs` → `timeline_removal`                                                                                     |
+| Handle round trips            | `crates/compile/tests/unit/timeline_edits.rs`                                                                                                                                                               |
+| Envelopes                     | `envelope.rs`                                                                                                                                                                                               |
+| Keyframe and camera key edits | `edits/keyframes.rs` → `KeyframeEdit`, `apply_keyframe_edit`                                                                                                                                                |
+| Tracks, easings, camera dials | catalogue `timeline` (`catalog.rs` → `TimelineBook`)                                                                                                                                                        |
+| Chapters                      | `timeline/chapters.rs` → `film_chapters`, `MIN_LISTED_CHAPTERS`; `crates/render/src/executors.rs` → `chapters_for`; `finish_args` (`crates/media/src/codecs.rs`)                                            |
+| Clock                         | `playback_clock.cc` → `PlaybackClock`; `crates/ui/src/ui.rs` → `share_playhead`, `wrap_playhead`, `audio_clock`, `audio_seek`; the stem `render_mix`, `load_stem`; `crates/session/src/analysis.rs` → `mix` |
+| View helpers                  | `timeline/view.rs` → `loop_of`, `wrap_in_loop`, `snap_frame`, `snap_span`, `SnapKind`, `ruler_step`, `play_range`                                                                                           |
+| Camera keys                   | `timeline/camera_path.rs` → `CAMERA_DIALS`, `camera_key_at`, `sorted_camera_keys`                                                                                                                           |
+| Waveforms                     | `timeline/media.rs` → `pick_level`, `wave_column` (ducking: [audio.md](audio.md))                                                                                                                           |
+| The editor's Timeline         | `crates/ui/src/timeline.rs` (the view); `timeline_canvas.cc` → `TimelineCanvas`; `timeline_panel.cc`; `keyframe_fields.cc`                                                                                  |
+| Stem player                   | `crates/audio/src/output.rs` → `Output`                                                                                                                                                                     |
+| Active nodes                  | `timeline/view.rs` → `active_at` over the compiled `spans`; `crates/ui/src/graph.rs`; `graph_canvas.cc`                                                                                                     |
 
 ## Rules
 
@@ -30,7 +30,7 @@ How the compiled spec becomes bars, how Timeline drags write back into the nodes
 ### Bars
 
 - **`flatten_spec` turns the compiled spec into bars on lanes (`pack_lanes`, greedy packing in drawing order), audio bars on lanes per role (`pack_audio`), transitions, action marks, camera key marks and the hits and cuts the sounds use**, mapping frames through trims, loops and speed remaps, with each bar's local frame at every timeline frame for filmstrips and keys.
-- **Edits never touch the spec.** Compile records `handles` on items (`move`, `trimStart`, `trimEnd`, `speed`, `volume` as `ParamRef`s), and container children carry a `slot` (container node + port).
+- **Edits never touch the spec.** Compile records `handles` on items (`EditHandles`, each a `ParamRef` naming the setting a drag edits), and container children carry a `slot` (container node + port).
 
 ### Edits
 
@@ -38,7 +38,7 @@ How the compiled spec becomes bars, how Timeline drags write back into the nodes
 - **The editor only snaps (to the targets in `SnapKind`, through `snap_frame` and `snap_span`) and sends the snapped delta as a `TimelineEdit` naming the bar by its key.**
 - **A drag is a gesture** (`begin_gesture` and `end_gesture` around it in `timeline_canvas.cc`); how a gesture's moves replace each other is in [document.md](document.md), Edits.
 - **Every handle has a round-trip test in `timeline_edits.rs`; add one when a node gains a handle.**
-- **Removing clips closes the gaps and splitting shifts ports up, both through `renumber_family`** ([nodes.md](nodes.md)).
+- **Removing clips closes the gaps and splitting shifts ports up** (renumbering, [nodes.md](nodes.md), Growing inputs).
 - **`splitBar` splits inside any Sequence** (`split_in_sequence`), shifting later ports and cuts by one and, when the Sequence has a transition, joining the halves with a plain cut.
 - **A clip outside a Sequence is split into a new Sequence** (`split_with_new_sequence`).
 
@@ -46,15 +46,18 @@ How the compiled spec becomes bars, how Timeline drags write back into the nodes
 
 - **Keyframes are an `envelope` setting, in frames local to the item**, shown on the Timeline and in the Inspector (`envelope` widget); they compile onto the item's `envelope` (`ItemBase`) or the sound's (`AudioItem`) and stay pure functions of the frame.
 - **Rust applies every keyframe and camera key edit (`apply_keyframe_edit`)**: the Inspector sends it as a `WorkflowEdit`, the Timeline as a `TimelineEdit`, so a drag applies to the keys as they were when it began.
-  - Keys are found by their stored position, values kept in the track's range and frames whole, and the keys sorted after every edit.
+  - A key is named by its index in the stored list (`at_index`), which every edit leaves sorted by frame; values are kept in the track's range and frames whole.
 - **The tracks' labels, ranges and rest values, the easing names and the camera dials come from Rust in the catalogue (`TimelineBook`)**; the camera dials also give `CameraKey` its schema ranges. The editor only draws them and checks a value's shape.
 
 ### The Timeline clock
 
 - **One `PlaybackClock` drives the playhead for the whole editor.**
-  - It moves the playhead at the shuttle rate (J, K and L, `Shuttle`, up to `kMaxShuttleRate`), steps a frame at a time (`Step`), and follows the sound output's clock while the film plays (`audio_clock`).
-  - It loops the film or the in and out points (`SetIn`, `SetOut`, `ClearRange`; `loop_of`/`wrap_in_loop`); when wrapping puts the playhead more than a frame from where the sound is, it seeks the sound there (`audio_seek`).
-- **The Timeline plays only the film's master stem (`Output`), loading the newest stem once its analysis finishes** (`load_stem`, `crates/ui/src/ui.rs`); a result for an older mix is dropped.
+  - It moves the playhead at the shuttle rate (J, K and L, up to `kMaxShuttleRate`) and a frame at a time.
+  - While the film plays it follows the sound output's clock (`audio_clock`), and with no clock there (no stem loaded, or no sound output) the time elapsed at its rate (`PlaybackClock::Tick`).
+  - It loops the film or the in and out points (`loop_of`, `wrap_in_loop`); when wrapping puts the playhead more than a frame from where the sound is, it seeks the sound there (`audio_seek`).
+- **The Timeline plays only the film's master stem (`Output`)**: each compile's mix plan renders once (`render_mix`, `crates/ui/src/ui.rs`), and each finished mix with a master stem is loaded (`load_stem`).
+  - A mix still waiting its turn when a newer one for the same project is asked for is skipped (`mix`, `crates/session/src/analysis.rs`).
+  - A plan with no channels renders nothing, so the last stem loaded keeps playing.
 - **Dragging the playhead scrubs the sound** (`audio_scrub`, `timeline_canvas.cc`).
 - **Play and Space in the Timeline, the Mixer's meters, the camera field and the node rings all follow that playhead**; how the canvas rings nodes and moves the playhead on a selection is in [editor.md](editor.md), Canvas.
 

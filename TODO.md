@@ -4,14 +4,19 @@ What's left that no plan covers: the places in the codebase that don't read as i
 
 ## Written for Rust and Qt
 
-- [ ] The runtime-neutral oxlint messages in `scripts/lib/oxlint-base.ts` (`runtimeNeutral`) still describe the old editor: one cites a heading "AGENTS.md, Runtime boundaries" that doesn't exist, and the `@/**` ban (applied with `relativeOnly` to `apps/film` and `apps/terminal`) says "packages/video imports its own files by relative path: the UI compiles them too, with its own @/ alias", while every member imports its own files through its `#…` prefix and never by a relative path.
+- [ ] The runtime-neutral oxlint messages in `scripts/lib/oxlint-base.ts` (`runtimeNeutral`) still describe the old editor and one package:
+  - the Node-only ban cites a heading "AGENTS.md, Runtime boundaries" that doesn't exist;
+  - the `@/**` ban, applied with `relativeOnly` to all four runtime-neutral members (`packages/video`, `packages/runtime`, `apps/film`, `apps/terminal`), says "packages/video imports its own files by relative path: the UI compiles them too, with its own @/ alias", while every member imports its own files through its `#…` prefix and never by a relative path;
+  - the wall-clock library ban says "Animations in packages/video must be a pure function of the runtime's useFrame()" in every one of those members.
+- [ ] The `window_bounds` table (`crates/store/schema.sql`) and `Database::saved_bounds` and `save_bounds` (`crates/store/src/windows.rs`) are used only by their own tests: the app keeps the main window's place in the project's view state under `mainWindow` (`crates/session/src/windows.rs` → `save_main_window`). `Bounds` there is still used by `visible_bounds`.
+- [ ] `crates/probe/tests/ffprobe.rs` reads `OPSIS_FFMPEG` and builds `~/.cache/opsis-dev/…` paths itself (`ffmpeg`, `ffprobe_program`, `make_samples`) instead of through `opsis_golden::ffmpeg()` and `dev_cache`, against the rule in AGENTS.md §3; `opsis-probe` doesn't take `opsis-golden` as a dev-dependency.
 - [ ] Code nothing calls or reads: `crates/session/src/gradients.rs` (the editor reaches `gradient_view` and `edit_gradient` through `crates/ui/src/colors.rs`); the `LIVE_WINDOW` branch of `run::watch_live` with `LiveWindowWatching` and `live_window_watching` (`crates/session/src/run.rs`, `events.rs`), since no window watches as `LIVE_WINDOW`; `EditorCompile.converts` (`output_conversions`), which no view reads; the `x-accept` and `x-length-key` keywords the settings emit and nothing reads; `ChildKind::Setup` (`crates/engine/src/temp.rs`).
 
 ## Bugs
 
 Wrong behaviour found in the session transcripts and confirmed in the current code.
 
-- [ ] FFmpeg runs from the app get no temp folder: `Ffmpeg::with_temp` (`crates/media/src/ffmpeg.rs`) is called only from tests, and `engine_tools` (`crates/session/src/engine.rs`) builds `Ffmpeg::new` with an empty environment, so no run, analysis or player FFmpeg gets `TMPDIR`, `TEMP` and `TMP`, against the rule that every child program gets its own temp folder.
+- [ ] FFmpeg runs through `MediaTools` get no temp folder: `Ffmpeg::with_temp` (`crates/media/src/ffmpeg.rs`) is called only from tests, and `engine_tools` (`crates/session/src/engine.rs`) builds `Ffmpeg::new` with an empty environment, so the media nodes, the mix, analysis and a file player's sound (`decode_stem`) get no `TMPDIR`, `TEMP` and `TMP`, against the rule that every child program gets its own temp folder. Only the footage decoders (`crates/footage/src/decoder.rs`, `terminal.rs`) set them.
 - [ ] `clear_stale_child_temps` (`crates/engine/src/temp.rs`) never deletes a stray file in `<data folder>/tmp`: `remove_child_temp` uses `std::fs::remove_dir_all`, which fails on a plain file with `NotADirectory`, so the file stays while its name is still returned and counted as removed.
 - [ ] Child temp folder names keep only the first 8 characters of the id (`child_temp_name`), so the file players `player10` and `player100` share `<pid>-analysis-player10`, and closing one deletes the other's files.
 - [ ] A clip length field shows "Usual length" even with a clip connected: `blank` (`crates/ui/src/inspector.rs`) looks for the setting's own key (`clipDuration`) in `InspectorContext.connected_inputs`, which holds the connected port names (`clip`), so `x-unconnected-zero-label` always wins.

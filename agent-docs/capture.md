@@ -10,7 +10,7 @@ Browser sessions and their actions, the take value every recording shares, recor
 | What the page draws         | `crates/types/src/recording.rs` → `RecordingProps` (`camera`, `shot`, `window`, `pointer`, `screen`/`ScreenProps`)                                                                                   |
 | Drawing a take              | `camera/demo-clip.tsx` → `DemoClip`; `core/screen.tsx` → `Screen`                                                                                                                                    |
 | Style and edit application  | `crates/compile/src/style.rs` → `restyle_with`, `retime_with`                                                                                                                                        |
-| Taking a take               | `take.rs` (the driver: `play_chain`, `begin_video`, `start_screencast`, `landed_on_sign_in`, `off_runtime`); `cdp.rs` → `Tab`                                                                       |
+| Taking a take               | `take.rs` (the driver: `play_chain`, `begin_video`, `start_screencast`, `landed_on_sign_in`, `off_runtime`); `cdp.rs` → `Tab`                                                                        |
 | Browser launch              | `browser.rs` → `Session::open`, `check_browser`                                                                                                                                                      |
 | Cursor and input            | `cursor.rs` (`CursorDriver`, glides, clicks, drags, `quick_onto`, `quick_along`); `input.rs` (`move_watching_drags`); `keyboard.rs`                                                                  |
 | Finding elements            | `selectors.rs`, `locators.rs`                                                                                                                                                                        |
@@ -26,7 +26,7 @@ Browser sessions and their actions, the take value every recording shares, recor
 | Traces                      | `trace.rs` records; `crates/traces/src/lib.rs` → `read_trace`, `apply_retention`; `crates/qt/cpp/replay_dialog.cc` → `TracePanel`                                                                    |
 | Screenshot scale and layout | `still.rs` (the capture); `still_layout.rs` → `capture_scale`; page `core/still-layout.ts` → `windowLayout`, `cutoutLayout`, `bleedLayout`, `stillLayout`; `core/still.tsx` → `StillElement`         |
 | Playwright pieces           | `playwright/*.generated.*` (generated, [AGENTS.md](../AGENTS.md))                                                                                                                                    |
-| Tests                       | `crates/capture/tests`; `OPSIS_ENGINE_DIR` names the engine folder they use (default `~/.config/Opsis/engine`, `tests/support/mod.rs`), `OPSIS_TAKE_DIR` keeps `todomvc.rs`'s projects there   |
+| Tests                       | `crates/capture/tests`; `OPSIS_ENGINE_DIR` names the engine folder they use (default `~/.config/Opsis/engine`, `tests/support/mod.rs`), `OPSIS_TAKE_DIR` keeps `todomvc.rs`'s projects there         |
 
 ## Rules
 
@@ -68,7 +68,8 @@ Browser sessions and their actions, the take value every recording shares, recor
 ### Capture timing
 
 - **Capture timing comes from frames, not markers.** Screencast JPEGs go into `FrameEncoder` through `offer`, which never waits: Chrome sends the next frame only after the last is acknowledged, so waiting on the encoder loses any page change painted during a stall. Encoder errors surface at `finish`.
-- **The screencast runs for the whole take (`start_screencast`), but the video starts at `begin_video`**, after the steps before Start recording: the encoder writes a constant-rate stream from there, action timestamps share that origin, and the take then waits Record take's pause before the first action (`establish_ms`) on the take clock.
+- **The screencast starts with the take (`start_screencast`) and runs to its end on the real clock; a smooth take stops it at Start recording and draws its own frames from there (`step_frames`).**
+- **The video starts at `begin_video`**, after the steps before Start recording: the encoder writes a constant-rate stream from there, action timestamps share that origin, and the take then waits Record take's pause before the first action (`establish_ms`) on the take clock.
 - **Live frames for the editor are the same frames**, throttled to the live fps setting, sent as raw bytes to each window that watches ([document.md](document.md)).
 
 ### Smooth takes
@@ -91,7 +92,9 @@ Browser sessions and their actions, the take value every recording shares, recor
   - Its step in the take adds the saved cookies and, per origin, the page storage (an init script, plus the current page when it is that origin).
 - **Its executor is stamped (`sign_in_stamp`)**: the saved sign-in's file stamp goes into its cache key, so a new sign-in runs every take after it again. The runner works keys out again as soon as a stamped node has run (`rekey`), so a take recorded right after a new sign-in is saved under its new key.
 - **A Go to page that lands on the Sign in step's address, without asking for it, fails the take with "Signed out during the take. Run “<name>” again."** (`landed_on_sign_in`); nothing retries across nodes. A sign-in page reached by a click or an in-page route isn't caught.
-- **The sign-in finishes on an address change or a selector**, in single-page apps too, and also when its window is closed or its time limit passes; each of these saves the sign-in, and only cancelling the run saves nothing (`crates/stream/src/sign_in.rs` → `watch`). Sign-in state is storage-state JSON, sealed ([app-state.md](app-state.md)).
+- **The sign-in finishes on the one condition its Done when setting picks (`DoneWhen`)**: the address moving off the first page it landed on (in single-page apps too), an element appearing, or the window closing.
+  - Whatever it picks, closing the window or reaching the time limit also finishes it; each of these saves the sign-in, and only cancelling the run saves nothing (`crates/stream/src/sign_in.rs` → `watch`).
+  - Sign-in state is storage-state JSON, sealed ([app-state.md](app-state.md)).
 
 ### Traces
 
@@ -114,4 +117,4 @@ Browser sessions and their actions, the take value every recording shares, recor
 ## Deliberate limits
 
 - **On a held clock nothing the page itself waits for happens between steps**: a page script that awaits a timer never ends, and server replies, videos, canvases driven by real time, workers and other-origin frames keep real time.
-- **Frame pictures cost more the more they keep**: Lossless takes about 70% longer than Standard and Full detail about four times as long, as the Frame pictures setting's help says (`Record`, `crates/compile/src/nodes/capture.rs`).
+- **Frame pictures cost more the more they keep**: Lossless and Full detail take longer than Standard, by how much the Frame pictures setting's help says (`Record`, `crates/compile/src/nodes/capture.rs`).

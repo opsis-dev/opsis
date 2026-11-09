@@ -27,9 +27,10 @@ How a node's key is made, how results follow keys as the workflow changes, how M
 - **A skipped node is hashed as `<type>:skipped` with no params**, so skipping or unskipping it changes the keys after it.
 - **Render-phase nodes add the project settings, the variables (a node such as Choose by variable reads their values directly), the mix, `PICTURE_VERSION` and `PREPARED_VERSION`**, so changing the project's fonts re-exports.
 - **An executing node that reads the project's width, height or frame rate sets `uses_project_size`; one that draws text in the project's fonts sets `uses_project_fonts`**, so those are in its key.
+  - Only nodes outside the render phase read the two flags (`hash_nodes`): a render-phase node's key holds every project setting already.
 - **An executor whose output depends on something outside its settings and inputs adds it with a stamp (`Executor::stamped`)**, read when the keys are worked out; the runner works the keys out again as soon as a stamped node has run (`rekey`, [capture.md](capture.md), sign-in stamps).
 - **Node keys and picture keys hold the app's version, and node keys the recording browser's hash (`Release`)**, so a new release or another browser runs everything again. The bundled FFmpeg changes only with a release.
-- **Every key that picks a file on disk is a sha256 cut to a fixed length (`versioned_hash`; node keys `KEY_LENGTH`)**; the 64-bit `lookup_key` only matches values in memory, such as a mix plan to its result.
+- **Every key that picks a file on disk is a sha256 cut to a fixed length (`versioned_hash`; node keys `KEY_LENGTH`)**; the 64-bit `lookup_key` (`compile/src/mix/plan.rs`) only matches values in memory, such as a mix plan to its result.
 - **The working files' encode speed (`settings.media.encodeSpeed`, Settings → General) is in no key**: a file made at another speed is still right, so changing it runs nothing again, and a node uses the new speed the next time it runs for its own reasons. Every media node that makes a video reads it (`encode_speed`, `media/src/executors.rs`); Render keeps its own Speed vs file size.
 
 ### Version constants
@@ -43,13 +44,15 @@ How a node's key is made, how results follow keys as the workflow changes, how M
 
 ### Saved pictures
 
-- **The render executor draws the picture once without sound into `.opsis/cache/pictures/`, named by `picture_key`**: the key covers the render's settings and leaves out the spec's audio, mix and asset address, and only the most recent pictures are kept (`KEEP_PICTURES`). The master stem is added afterwards ([audio.md](audio.md)); the mix keeps its own recent plans (`KEEP_PLANS`, `media/src/mix/render.rs`).
+- **The render executor draws the picture once without sound into `.opsis/cache/pictures/`, named by `picture_key`**, and adds the master stem afterwards ([audio.md](audio.md)).
+- **`picture_key` covers the whole spec except its `audio`, `mix` and `assets`, plus the render's picture options (`PictureOptions`), `ENGINE_VERSION`, `PICTURE_VERSION`, `PREPARED_VERSION` and the app's version.**
+- **Only the most recently made or used pictures are kept (`KEEP_PICTURES`, `cached_picture`)**: reusing a picture sets its modified time, which is what the pruning sorts by.
 
 ### Results follow the keys
 
-- **Compile hands each node its last result, and after every compile the app works out every executing node's key** (`refresh`, through `hash_nodes`).
+- **Compile hands each node its last result, and after every compile the app works out the key of every executing node that is turned on and isn't structural** (`refresh`, `current_keys`, through `hash_nodes`).
   - When a result was made under another key and `.opsis/cache/<key>` holds one for the current key whose files still have the size and modified time they were saved with (`read_cached`, `runner/src/cache.rs`), that result takes its place (undo brings the earlier result back).
-  - One that still doesn't match goes in the compile's `outdated`: a Changed badge on the card, Changed since the last run in the Run panel.
+  - One that still doesn't match goes in the compile's `outdated`: a Changed badge on the card, Changed since the last run in the Run panel. A Media file whose new key is still being checked (`check_media_files`) isn't marked.
 - **While a gesture is open, compiles keep the keys worked out last (`held`)** and only the problems of unreadable files are refreshed, with no hashing and no file checks; closing the gesture compiles again with fresh keys.
 - **Results and checks land only in the project they were made for (`adopt`).**
 - **A change in the engine's status compiles again** (`send_status`, `session/src/engine.rs`), since the media file checks need the engine's tools.

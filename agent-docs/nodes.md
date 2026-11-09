@@ -4,33 +4,33 @@ How a node is defined, what its ports carry, how values convert between ports, h
 
 ## Code map
 
-| Concern                                  | Where                                                                                                                                                                                  |
-| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Node definition builder                  | `node.rs` → `NodeDef`, `PortFamily`, `Claim`, `CardInputs`, `MAX_CARD_ROWS`, `style_modifier`, `recording_modifier`, `grade_modifier`, `clip_modifier`, `with_clip`, `Category::label` |
-| Groups and notes                         | `graph.rs` → `GROUP_TYPE`, `NOTE_TYPE`, `is_structural`, `topo_sort`                                                                                                                   |
-| Node definitions                         | `nodes/<area>.rs`, each with its `nodes()`, gathered in `nodes/mod.rs` → `all()`; `registry.rs` (`Registry::new` refuses a duplicate type, `is_output_type`)                          |
-| Card row helpers                         | `card_rows.rs`                                                                                                                                                                         |
-| Port types                               | `crates/types/src/workflow.rs` → `PortType`                                                                                                                                            |
-| Conversions and connect checks           | `ports.rs` → `conversion`, `can_connect`, `value_converts`, `refused_conversion`                                                                                                       |
-| Gathering inputs                         | `compile.rs` → `gather_inputs`, `merge_values`, `film_of`, `bypass`; `ports.rs` → `convert_input`; the runner calls the same `gather_inputs` (`crates/runner/src/context.rs`)          |
-| Validation                               | `graph.rs` → `claim_clashes`, `file_need_issues`, `value_issues`                                                                                                                       |
-| File needs                               | `node.rs` → `FileNeed`, `FileNeed::refuses`                                                                                                                                            |
+| Concern                                  | Where                                                                                                                                                                                                      |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Node definition builder                  | `node.rs` → `NodeDef`, `PortFamily`, `Claim`, `CardInputs`, `MAX_CARD_ROWS`, `style_modifier`, `recording_modifier`, `grade_modifier`, `clip_modifier`, `with_clip`, `Category::label`                     |
+| Groups and notes                         | `graph.rs` → `GROUP_TYPE`, `NOTE_TYPE`, `is_structural`, `topo_sort`                                                                                                                                       |
+| Node definitions                         | `nodes/<area>.rs`, each with its `nodes()`, gathered in `nodes/mod.rs` → `all()`; `registry.rs` (`Registry::new` refuses a duplicate type, `is_output_type`)                                               |
+| Card row helpers                         | `card_rows.rs`                                                                                                                                                                                             |
+| Port types                               | `crates/types/src/workflow.rs` → `PortType`                                                                                                                                                                |
+| Conversions and connect checks           | `ports.rs` → `conversion`, `can_connect`, `value_converts`, `refused_conversion`                                                                                                                           |
+| Gathering inputs                         | `compile.rs` → `gather_inputs`, `merge_values`, `film_of`, `bypass`; `ports.rs` → `convert_input`; the runner calls the same `gather_inputs` (`crates/runner/src/context.rs`)                              |
+| Validation                               | `graph.rs` → `claim_clashes`, `file_need_issues`, `value_issues`                                                                                                                                           |
+| File needs                               | `node.rs` → `FileNeed`, `FileNeed::refuses`                                                                                                                                                                |
 | Executors by node type                   | `crates/media`, `crates/render`, `crates/capture`, `crates/image`, `crates/terminal`; registered in `crates/session/src/run.rs` → `executors`; check: `crates/render/tests/executors.rs` → `all_executors` |
-| Card names of picked actions and markers | `cards.rs` → `picked_names`                                                                                                                                                            |
-| Card icons                               | `crates/types/src/cards.rs` → `Icon`; bundled from `lucide` by `scripts/node-glyphs.ts` (`ICONS`)                                                                                      |
-| Node looks                               | `crates/types/src/looks.rs` → `NodeLook`, `NodeMotion`, `GLYPH_SETS`                                                                                                                   |
-| Glyph data and drawing                   | `crates/ui/glyphs.generated.json`, `crates/ui/src/look.rs` → `icon_svg`, `scripts/lib/glyph-sets.ts`                                                                                   |
-| Look checks                              | `crates/compile/tests/unit/looks.rs`, `scripts/node-glyphs.test.ts`, `crates/ui/src/look.rs` → `every_card_icon_is_bundled`                                                            |
-| Glyph motions                            | `motions.rs` → `motion_spec`, `sample`; `crates/ui/src/motion.rs`; `crates/qt/cpp/look_glyph.cc` → `LookPlayer`, `PaintLookGlyph`                                                      |
-| Glyph morphs                             | `scripts/node-glyphs.ts` → `bakeMorphs`; `crates/ui/src/morph.rs` → `frame`, `step`; `crates/qt/cpp/look_glyph.cc` → `PaintMorph`                                                      |
-| Ports before the first compile           | `catalog.rs` → `node_inputs`                                                                                                                                                           |
+| Card names of picked actions and markers | `cards.rs` → `picked_names`                                                                                                                                                                                |
+| Card icons                               | `crates/types/src/cards.rs` → `Icon`; bundled from `lucide` by `scripts/node-glyphs.ts` (`ICONS`)                                                                                                          |
+| Node looks                               | `crates/types/src/looks.rs` → `NodeLook`, `NodeMotion`, `GLYPH_SETS`                                                                                                                                       |
+| Glyph data and drawing                   | `crates/ui/glyphs.generated.json`, `crates/ui/src/look.rs` → `icon_svg`, `scripts/lib/glyph-sets.ts`                                                                                                       |
+| Look checks                              | `crates/compile/tests/unit/looks.rs`, `scripts/node-glyphs.test.ts`, `crates/ui/src/look.rs` → `every_card_icon_is_bundled`                                                                                |
+| Glyph motions                            | `motions.rs` → `motion_spec`, `sample`; `crates/ui/src/motion.rs`; `crates/qt/cpp/look_glyph.cc` → `LookPlayer`, `PaintLookGlyph`                                                                          |
+| Glyph morphs                             | `scripts/node-glyphs.ts` → `bakeMorphs`; `crates/ui/src/morph.rs` → `frame`, `step`; `crates/qt/cpp/look_glyph.cc` → `PaintMorph`                                                                          |
+| Family inputs                            | `catalog.rs` → `node_inputs`; `node.rs` → `NodeDef::input_ports`, `PortFamily::shown_count`                                                                                                                |
 
 ## Rules
 
 ### Definitions
 
-- **A node definition has ports, settings and an optional pure `compile`; it never generates film code.** Compile produces a `TimelineSpec`; every timeline item has a `kind` (`group`, `recording` with typed `GroupProps`/`RecordingProps`, `element` naming a registry `component`), read by narrowing on `kind`, never by component name.
-- **Every node with `executes: true` has an executor**, registered by node type in the crate that runs it.
+- **A node definition has ports, settings and an optional pure `compile`; it never generates film code.** Compile produces a `TimelineSpec` ([film.md](film.md) has how its items are read).
+- **Every node built with `.executes()` (`executes: true`) has an executor**, registered by node type in the crate that runs it.
   - Each executor crate's list is joined in two places that must name the same crates: `executors` in `crates/session/src/run.rs`, which the app runs, and `all_executors` in `crates/render/tests/executors.rs`, which checks every executing node has one and none has two. A crate missing from the first never runs; one missing from the second isn't checked.
 - **A node's `Phase` picks the runner lane it runs in and whether its key takes the project settings** (render-phase nodes, [runs.md](runs.md)); an Output-category node is an export (`is_output_type`).
 - **A node that saves something only one node may save (a sign-in name, an export file) says so with `claims`**, and validation reports every later node, skipped ones aside, claiming the same (`claim_clashes`).
@@ -61,15 +61,17 @@ How a node is defined, what its ports carry, how values convert between ports, h
 ### Growing inputs and many connections
 
 - **Numbered inputs (`in1`, `in2`, …) are a `PortFamily` declared with `.family(…)`**: how many are required, a label for each that knows the last connected one, and `refs`, the list settings that name its ports. The nodes that use it call `.family(` in `nodes/`.
-- **A family node shows one empty input after the last connected one, and never fewer than the family's minimum** (`input_ports`, `PortFamily::shown_count`); `NodeDef::input` accepts any member and the catalogue describes the family so the editor and the Local API know any member.
-- **Each compile sends every family node's inputs (`EditorCompile.inputs`) and the canvas draws those**; before the first compile it draws the connected members plus one empty one from the edges (`node_inputs`), so an edge into `in3` never hangs loose.
+- **A family node shows one empty input after the last connected one, and never fewer than `PortFamily::shown`, its required count but at least two** (`NodeDef::input_ports`, `PortFamily::shown_count`); `NodeDef::input` accepts any member and the catalogue describes the family so the editor and the Local API know any member.
+- **Every family node's inputs come from the edges through one function, `node_inputs`**: each compile sends them (`EditorCompile.inputs`) and before the first compile the canvas works them out itself (`crates/ui/src/graph.rs`), so an edge into `in3` never hangs loose.
 - **Renumbering a family moves the edges and the `refs` settings together** (`renumber_family`), for closing gaps after a removal and shifting ports on a split.
 - **A `many()` input accepts any number of edges and `gather_inputs` merges their values** (`merge_values`): sounds are concatenated (Add sound's Sounds); for any other type the last edge's value wins.
 
 ### Cards
 
 - **Every visible node has a `description` and a `card` of at most `MAX_CARD_ROWS` `row(icon, text)` lines**, computed in Rust from interpolated params, run results, saved sign-ins, connected inputs (lengths, takes, files, captions, session step types, style entry types) and the names of picked actions and markers (`CardInputs.names`, so a card says “Launch”, never an id). The editor shows the rows sent with every compile (`cards`); before the first compile it works them out itself (`crates/ui/src/graph.rs`, calling `cards.rs` → `workflow_cards`).
-- **Every `Icon` variant is bundled**: a new variant is added by hand to `ICONS` in `scripts/node-glyphs.ts`, and `glyphs:bundle` takes each from `lucide` by its name and fails on a name lucide lacks, and `every_card_icon_is_bundled` fails when a variant has no bundled icon, since a missing one would draw the fallback box.
+- **Every `Icon` variant is bundled**, since a missing one would draw the fallback box.
+  - A new variant is added by hand to `ICONS` in `scripts/node-glyphs.ts`; `glyphs:bundle` takes each from `lucide` by its name and fails on a name lucide lacks.
+  - `every_card_icon_is_bundled` fails when a variant has no bundled icon.
 - **Cards show no picture**: no stills, poster frames or live thumbnails; a node's output is seen in the Run panel.
 
 ### Looks
@@ -91,8 +93,9 @@ How a node is defined, what its ports carry, how values convert between ports, h
 ### Adding a node
 
 1. Write its settings struct and its `NodeDef` (`NodeDef::of::<P>(type, title, Category, Phase)` or a modifier builder) in the `nodes/` file for its area, with a description, card and look, and add it to that file's `nodes()`.
-2. If it executes, write its executor in the crate that runs that kind of work and register it there; a new executor crate is added to both lists named in Definitions.
-3. Run `bun run glyphs:bundle` for its look, `bun run types:export` when it changes exported types, and the tests (`crates/compile/tests/unit/nodes_*.rs` check descriptions, banned words, card rows and settings; `looks.rs` its look).
+2. If it executes, mark it `.executes()`, write its executor in the crate that runs that kind of work and register it there; a new executor crate is added to both lists named in Definitions.
+3. Unless it is a film node with only `clip` ports, which the profile project places by itself (`isFilmNode`), add it to the profile project in `scripts/lib/profile/project.ts`; `project.test.ts` fails on a node type the project leaves out.
+4. Run `bun run glyphs:bundle` for its look, `bun run types:export` when it changes exported types, and the tests (`crates/compile/tests/unit/nodes_*.rs` check descriptions, banned words, card rows and settings; `looks.rs` its look).
 
 ## Deliberate limits
 

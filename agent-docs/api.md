@@ -24,12 +24,15 @@ The HTTP API scripts and agents use to read, change and run the open project. Pa
 - **On Windows the variable is ignored and the API uses the named pipe `\\.\pipe\opsis-api-<user>`, never a TCP port.**
 - **Only the `/project` routes need an open project** (`routes`): without one they answer 409, except `/project/run/stop` and `/project/run/events`, which never look for a project.
 - **A route that fails answers `{"error": …}`.**
-  - The routes check what they can themselves: a body that isn't valid JSON or UTF-8 is 400, an unknown node type 404, a refused connection 400 or 404 (`connection_problem`).
+  - The routes check what they can themselves: a body that isn't valid JSON or UTF-8 is 400, a node type `POST /project/nodes` doesn't know 400 and one `GET /nodes/{type}` doesn't know 404, a refused connection 400 or 404 (`connection_problem`).
   - The host chooses the status of its own failures (`HostError`, mapped by `document_failure` and `start_failure`).
   - Unknown routes answer 404 pointing to `/openapi.json`, and a body over `MAX_BODY` is refused before any route reads it.
 - **Under `/project`, every request works on the document in Rust through `ApiHost`**: an edit is one `WorkflowEdit`, so one undo step, autosaved and shown in every window, whether or not an editor window is open.
 - **Rust checks bodies, node types, connections and settings before editing.**
-- **Every edit answer (`edited_reply`), `/validate`, `PUT /project` and `GET /project/problems` carry the problems**: the editor's own, from the run results and file checks (`ApiHost::problems`). `GET /project`, `/open` and the run routes don't.
+- **Every edit answer and `GET /project/problems` carry the editor's problems** (`ApiHost::problems`): the workflow's checks against the run results, plus the file checks.
+  - The edit answers (`edited_reply`) are those of the node, edge, settings and variables routes, of an accepted `PUT /project`, and of undo, redo and save. `GET /project`, `/open` and the run routes carry none.
+- **`/validate` checks a body without the open project** (`check_workflow`): it answers the workflow's checks with no run results and no file checks.
+  - A `PUT /project` whose body isn't a project answers 400 with the same check's problem, which names the JSON path that failed.
 - **`/open` opens the project in Rust and asks the main window to show it (`OpenRequested`).**
   - It takes an absolute folder (400 otherwise) that holds a project file (404 otherwise); a project file that can't be read answers 422 (`AppApi::open`).
   - The project opens even when telling the window fails; that failure is only logged.

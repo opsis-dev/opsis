@@ -11,20 +11,20 @@ How an element is written in Rust and on the page, how its settings reach its co
 | Node list order                | `mod.rs` → `elements()`                                                                                                                                                                                                                                   |
 | Choices several elements share | `shared.rs`                                                                                                                                                                                                                                               |
 | Theme preset tables            | `theme.rs` (the `*_themes` tables and `with_themes`)                                                                                                                                                                                                      |
-| Settings walking and defaults  | `introspect.rs` → `map_leaves`, `frames_from_seconds`, `widget_keys`; `default_props.rs` and `length_cases.rs` write the generated JSON (`bun run types:export`)                                                                                           |
+| Settings walking and defaults  | `introspect.rs` → `map_leaves`, `frames_from_seconds`, `widget_keys`; `default_props.rs` and `length_cases.rs` write the generated JSON (`bun run types:export`)                                                                                          |
 | Props built from settings      | `crates/compile/src/nodes/elements.rs` → `element_props`; `crates/compile/src/nodes/capture.rs` → `StillProps`; `crates/compile/src/clip.rs` → `PlaceholderProps`; the page's settings types from `props.rs` → `ElementSettings` (`bun run types:export`) |
 | Element sounds                 | `crates/compile/src/nodes/elements.rs` → `element_sounds`                                                                                                                                                                                                 |
 | Lengths                        | `lengths.rs` → `element_timing`, `animation_length`, `fits_its_animation`; the Length field `crates/compile/src/nodes/elements.rs` → `clip_duration_field`; checked by `registry/lengths.test.ts` through `length-cases.generated.json`                   |
 | Components                     | `elements/<category>/<key>.tsx` or `elements/<category>/<key>/index.tsx`                                                                                                                                                                                  |
-| Key → implementation           | `elements/index.ts` → `ELEMENTS`; lookup `registry/index.ts` → `getComponent`, `getPresentation`, `getSequencer` (`resolveElement` wraps a lookup's result)                                                                                              |
+| Key → implementation           | `elements/index.ts` → `ELEMENTS`; lookup `registry/index.ts` → `getComponent`, `getPresentation`, `getSequencer` (`resolveElement` wraps a lookup's result)                                                                                               |
 | What an implementation is      | `registry/framing.tsx` (`component`, `presentation`, `sequencer`)                                                                                                                                                                                         |
 | Settings shape helpers         | `lib/settings/shape.ts` → `nestedFrom`, `listsFrom`, `ticksFromWords`, `treeFromPaths`                                                                                                                                                                    |
 | UI kits                        | `lib/neutral-ui`, `lib/warm-ui` (`theme.ts`, `fonts.ts`, `item.tsx`), `lib/ui-kit` (colour, motion, step and timeline helpers)                                                                                                                            |
 | 30 fps clock                   | `core/authored-clock.ts` → `useAuthoredFrame`, `useAuthoredConfig`, `useRealFrames`                                                                                                                                                                       |
 | Design box                     | `demo-timeline.tsx` → `DesignBox`                                                                                                                                                                                                                         |
-| Colour literal allow-list      | `colors.test.ts` (`ELEMENT_FILES`, `DIRS`)                                                                                                                                                                                                                |
+| Colour literal allow-list      | `colors.test.ts` (`ALLOWED`, `ELEMENT_FILES`, `DIRS`)                                                                                                                                                                                                     |
 | Element stills                 | `bun run elements:render` → `crates/render/src/bin/render-elements.rs`, into `~/.cache/opsis-dev/element-stills`                                                                                                                                          |
-| 3D stage and loaders           | `three/` → `Stage3D`, `useDrawnScene`; `project.ts`                                                                                                                                                                                                       |
+| 3D stage and loaders           | `three/` → `Stage3D`, `useDrawnScene`; `three/project.ts`                                                                                                                                                                                                 |
 | 3D stills check                | `crates/render/tests/three_stills.rs` against `fixtures/prepare/stills`; `OPSIS_STILLS_OUT` names where it writes its stills (default `~/.cache/opsis-dev/three-stills`)                                                                                  |
 
 ## Rules
@@ -55,15 +55,17 @@ How an element is written in Rust and on the page, how its settings reach its co
   - the warm kit's provider takes the mode, and the changed colours go to the element's view (`useWarmTheme`);
   - the neutral kit takes the whole light or dark preset with the changed colours on top, since its components force light mode;
   - an element with its own palette takes its preset for the mode with the changed colours on top (`{ ...PALETTES[theme.mode], ...theme.colors }`).
-- **Opsis's own video code keeps colour literals only for internal fallbacks a finished film never shows** (`PAGE_BG`/`BLEED_BG`, empty-clip placeholders), shadows and window frames; `colors.test.ts` lists each with its reason and fails on a new one.
-  - The test reads only the folders in `DIRS` and the files in `ELEMENT_FILES`, so an element file with fallback colours has to be added to that list to be checked.
+- **Opsis's own video code keeps colour literals only for internal fallbacks a finished film never shows** (`PAGE_BG`/`BLEED_BG`, empty-clip placeholders), shadows and window frames; `colors.test.ts` lists each with its reason (`ALLOWED`) and fails on a new one and on a listed one that is gone.
+  - The test reads only the folders in `DIRS` and the files in `ELEMENT_FILES`, so an element file with fallback colours has to be added to that list to be checked, and each of its literals to `ALLOWED` with its reason.
 
 ### Time and size
 
 - **Elements whose entry has `.authored_clock` count time on a 30 fps clock**: their code reads `useAuthoredFrame()`/`useAuthoredConfig()` instead of `useFrame()`/`useFilm()`, and a `<Sequence from>` inside them takes `useRealFrames()`, so a 60 fps project plays them at their own speed.
-- **Their timing settings counted in frames are stored as seconds with `x-frames-at: 30`**, and compile turns them back into frames (`frames_from_seconds`, also inside rows and comma lists).
-- **An element's Length defaults to 0 when it can work its length out** (`clip_duration_field`): "Fit the animation" when `lengths.rs` knows how its animation ends or it runs on the 30 fps clock (`fits_its_animation`), otherwise "Match the clip" for a wrapper; `animation_length` keeps the designer's hold after the last animation.
-  - An element built with `optional_clip` is meant to read "Usual length" while no clip is connected (`x-unconnected-zero-label`); the Inspector shows it even with a clip connected (TODO.md).
+- **Their timing settings counted in frames are stored as seconds with `x-frames-at: 30`**, and compile turns them back into frames: `map_leaves` walks the settings, rows and nested settings included, and `frames_from_seconds` turns each such leaf, a number or a comma list (`settings_in_frames`, `element_props`).
+- **An element's Length defaults to 0 when it can work its length out** (`clip_duration_field`).
+  - It reads "Fit the animation" when `lengths.rs` knows how its animation ends or it runs on the 30 fps clock (`fits_its_animation`), a wrapper included; any other wrapper reads "Match the clip".
+  - At 0, a wrapper with a clip connected takes the clip's length whichever label it shows, and any other element its animation's length (`compile_element`), where `animation_length` keeps the designer's hold after the last animation.
+  - An element built with `optional_clip` carries "Usual length" for while no clip is connected (`x-unconnected-zero-label`).
   - An element on the 30 fps clock with no `element_timing` entry keeps its designed length, scaled to the project's frame rate and its speed.
 - **Elements laid out in fixed pixels carry a design size and draw in a `DesignBox` scaled to fit the frame**, so other shapes and 4K keep them whole.
   - With `design` the box grows to the frame's shape at that scale; with `exact_design` it keeps exactly the design size, centred.
@@ -86,7 +88,7 @@ How an element is written in Rust and on the page, how its settings reach its co
 - **Every pose is a pure function of the frame.** oxlint bans fiber's `useFrame` and `opsis/no-three-clock` bans three's clocks and animation loops; model animations call `mixer.setTime`, never `update`.
 - **Assets load through `useHeldLoad`**, which releases its hold only after the loaded value has rendered, so a still is never captured between a load and the canvas it mounts.
 - **3D text, models, SVG logos and textures load prepared files**; the element only fetches an address ([assets.md](assets.md)). 3D text picks its face with the same `family_for` as the page.
-- **The 3D screen shows its clip as a page layer placed with `matrix3d` from `project.ts`**; with **End facing the camera** its last pose fills the frame exactly, so it cuts pixel for pixel to the same clip.
+- **The 3D screen shows its clip as a page layer placed with `matrix3d` from `three/project.ts`**; with **End facing the camera** its last pose fills the frame exactly, so it cuts pixel for pixel to the same clip.
 - **Camera keys are the `camera` setting, active when the motion or move is Keyframes or the element has neither setting** (`active_camera`, `crates/compile/src/nodes/elements.rs`): compile puts them on the item's `camera` (`ItemBase`, `crates/types/src/timeline.rs`) and `flatten_spec` turns them into `camera_keys` marks (`camera_key_marks`) the Timeline moves ([timeline.md](timeline.md)).
 
 ## How it works
@@ -98,7 +100,7 @@ How an element is written in Rust and on the page, how its settings reach its co
 3. Write the component and add it to `ELEMENTS` (`elements/index.ts`) as a `component`, `presentation` or `sequencer`.
 4. Run `bun run types:export` for `generated/spec.ts`, `default-props.generated.json` and `length-cases.generated.json`.
 5. When its animation ends at a known time, add its arm to `element_timing` (`lengths.rs`) and its cases to `length_cases.rs`.
-6. When it keeps colour literals, list its file in `ELEMENT_FILES` (`colors.test.ts`).
+6. When it keeps colour literals, list its file in `ELEMENT_FILES` and each literal with its reason in `ALLOWED` (`colors.test.ts`).
 7. Run `bun run elements:render` and look at its still.
 
 ## Deliberate limits

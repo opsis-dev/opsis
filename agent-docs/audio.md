@@ -1,32 +1,32 @@
 # Audio
 
-Built-in sounds and music, the Mixer and its stems, ducking, how sounds are placed, and the sound nodes with the FFmpeg traps their filters work around. Paths are relative to `crates/` unless they name another folder. The Timeline's sound playback is in [timeline.md](timeline.md); see also [AGENTS.md](../AGENTS.md).
+Built-in sounds and music, the Mixer and its stems, ducking, how sounds are placed, and the sound nodes with the FFmpeg traps their filters work around. Rust paths are relative to `crates/`; `public/` and `THIRD_PARTY_NOTICES.md` are at the repository root, and `.opsis/` paths are inside the project folder. The Timeline's sound playback is in [timeline.md](timeline.md); see also [AGENTS.md](../AGENTS.md).
 
 ## Code map
 
-| Concern                            | Where                                                                                                                                                                                       |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Built-in sounds                    | `public/sfx`, listed in `compile/src/data/sounds.json` (catalogue `sounds`)                                                                                                                 |
-| Built-in music                     | `public/music` (128 kbps AAC), listed in `compile/src/data/music.json` (catalogue `music`)                                                                                                  |
-| Credits                            | `THIRD_PARTY_NOTICES.md`                                                                                                                                                                    |
-| Mix settings and the book          | `types/src/mix.rs` → `mixer_book` (catalogue `mixer`)                                                                                                                                       |
-| Mix plan                           | `compile/src/mix/plan.rs` → `build_mix_plan`, `lookup_key`; `compile/src/mix/levels.rs` → `audible`, `duck_keys_for`, `duck_spans`, `with_master_stem`                                      |
-| Filter graphs                      | `media/src/mix/graph.rs` → `pack_lanes`                                                                                                                                                     |
-| Stems                              | `media/src/mix/render.rs`; `.opsis/cache/mix/` (`MIX_DIR`, `types/src/project.rs`)                                                                                                          |
-| Channel pruning                    | `compile/src/edits/workflow.rs` → `remove_nodes`; `types/src/workflow.rs` → `Workflow::normalized`                                                                                          |
-| Export sound                       | `with_master_stem`; `render/src/film.rs` → `mixed`; `render/src/executors.rs` → `render_variant`; `media/src/codecs.rs` → `mux_args`                                                      |
+| Concern                            | Where                                                                                                                                                           |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Built-in sounds                    | `public/sfx`, listed in `compile/src/data/sounds.json` (catalogue `sounds`)                                                                                     |
+| Built-in music                     | `public/music` (128 kbps AAC), listed in `compile/src/data/music.json` (catalogue `music`)                                                                      |
+| Credits                            | `THIRD_PARTY_NOTICES.md`                                                                                                                                        |
+| Mix settings and the book          | `types/src/mix.rs` → `mixer_book` (catalogue `mixer`)                                                                                                           |
+| Mix plan                           | `compile/src/mix/plan.rs` → `build_mix_plan`, `lookup_key`; `compile/src/mix/levels.rs` → `audible`, `duck_keys_for`, `duck_spans`, `with_master_stem`          |
+| Filter graphs                      | `media/src/mix/graph.rs` → `pack_lanes`                                                                                                                         |
+| Stems                              | `media/src/mix/render.rs`; `.opsis/cache/mix/` (`MIX_DIR`, `types/src/project.rs`)                                                                              |
+| Channel pruning                    | `compile/src/edits/workflow.rs` → `remove_nodes`; `types/src/workflow.rs` → `Workflow::normalized`                                                              |
+| Export sound                       | `with_master_stem`; `render/src/film.rs` → `mixed`; `render/src/executors.rs` → `render_variant`; `media/src/codecs.rs` → `mux_args`                            |
 | Stem player and live Mixer changes | `audio/src/output.rs` → `Output`, `Preview`, `set_preview`; `ui/src/mixer.rs` → `Previews`, `share_of`; `ui/src/ui.rs` → `preview_mix`; `qt/cpp/mixer_panel.cc` |
-| Placing sounds on marks            | `compile/src/nodes/audio.rs` → `anchor_sounds` (via `flatten_spec`); `types/src/timeline.rs` → `Anchor`                                                                                     |
-| Sound file filters                 | `media/src/executors.rs` → `filter_sound`; builders in `media/src/filters.rs`; real-FFmpeg checks `media/tests/sound_fixes.rs`                                                              |
-| Clean speech                       | `noise_level_listen_filter`, `noise_level`, `spectral_floor`, `speech_filter`; `media/src/denoise.rs` → `denoised`                                                                          |
-| Remove hum                         | `hum_listen_filter`, `rms_level`                                                                                                                                                            |
-| Shorten pauses                     | `silence_listen_filter`, `silences`, `joined_parts_graph`; `compile/src/nodes/media.rs` → `kept_parts`                                                                                      |
-| Change pitch, voice effects        | `pitch_filter`, `voice_filter`; rooms `media/src/generate.rs` → `room_response`                                                                                                             |
-| Fit music to the film              | `fit_graph`, `fit_inputs`; `compile/src/nodes/media.rs` → `fit_plan`                                                                                                                        |
-| Sound picture                      | `sound_picture_graph`                                                                                                                                                                       |
-| Generated sounds                   | `compile/src/nodes/audio.rs` → `sound_shape`; `media/src/sound_maker.rs` (`fundsp`)                                                                                                         |
-| Room tone, tones                   | `media/src/generate.rs`                                                                                                                                                                     |
-| Transition and action sounds       | `transition_cues`, `transition_sound_file`, `FlatTimeline.cuts`, `hits`, `AudioValue.hits`, `AudioItem.hit`, `AudioBar.hits`                                                                |
+| Placing sounds on marks            | `compile/src/nodes/audio.rs` → `anchor_sounds` (via `flatten_spec`); `types/src/timeline.rs` → `Anchor`                                                         |
+| Sound file filters                 | `media/src/executors.rs` → `filter_sound`; builders in `media/src/filters.rs`; real-FFmpeg checks `media/tests/sound_fixes.rs`                                  |
+| Clean speech                       | `noise_level_listen_filter`, `noise_level`, `spectral_floor`, `speech_filter`; `media/src/denoise.rs` → `denoised`                                              |
+| Remove hum                         | `hum_listen_filter`, `rms_level`                                                                                                                                |
+| Shorten pauses                     | `silence_listen_filter`, `silences`, `joined_parts_graph`; `compile/src/nodes/media.rs` → `kept_parts`                                                          |
+| Change pitch, voice effects        | `pitch_filter`, `voice_filter`; rooms `media/src/generate.rs` → `room_response`                                                                                 |
+| Fit music to the film              | `fit_graph`, `fit_inputs`; `compile/src/nodes/media.rs` → `fit_plan`                                                                                            |
+| Sound picture                      | `sound_picture_graph`                                                                                                                                           |
+| Generated sounds                   | `compile/src/nodes/audio.rs` → `sound_shape`; `media/src/sound_maker.rs` (`fundsp`)                                                                             |
+| Room tone, tones                   | `media/src/generate.rs`                                                                                                                                         |
+| Transition and action sounds       | `transition_cues`, `transition_sound_file`, `FlatTimeline.cuts`, `hits`, `AudioValue.hits`, `AudioItem.hit`, `AudioBar.hits`                                    |
 
 ## Rules
 
@@ -42,11 +42,12 @@ Built-in sounds and music, the Mixer and its stems, ducking, how sounds are plac
 
 ### Mixer
 
-- **Mix settings are `workflow.mix`**: a strip per channel keyed by node id (Music, each Sound effect, each clip with sound), buses (Music, Effects, Clips built in, plus user buses) with sidechain ducking, and a master with EQ, compressor, limiter and loudness target.
+- **Mix settings are `workflow.mix`**: a strip per channel, the built-in buses plus the person's own with sidechain ducking, and a master with EQ, compressor, limiter and loudness target.
+- **Every node that makes sound is one channel keyed by its node id**: each sound node's items (`sound_item`, and Room tone's), an element's sounds (`compile/src/nodes/elements.rs`) and a clip's own sound (`sound_node_id`, `compile/src/clip.rs`); every hit of an Action sounds or Transition sounds node is on that node's one channel.
 - **The ranges, defaults, built-in buses, loudness targets and strip presets are Rust's (`mixer_book`)**; each channel's bus, strip and whether it is heard come from the mix plan, and the compile result carries the resolved mix and whether solo is on.
 - **Removing nodes prunes their channels** (`remove_nodes`; `Workflow::normalized` on open and replace).
 - **`build_mix_plan` and the filter graphs are pure; the graphs are tested by string.**
-- **Stems render into `.opsis/cache/mix/`, content-hashed, with recent plans kept**: channel, bus and master stems with per-frame peak and RMS, compressor gain reduction and EBU R128 loudness.
+- **Stems render into `.opsis/cache/mix/`, content-hashed, with the most recent plans kept (`KEEP_PLANS`, `media/src/mix/render.rs`)**: channel, bus and master stems with per-frame peak and RMS, compressor gain reduction and EBU R128 loudness.
 - **An export with sound in a format that carries sound plays the master stem** (`with_master_stem`, `render_variant`): the picture is drawn once without sound and the master stem added with FFmpeg (`mux_args`), so a mix or sound-only change never renders the picture again ([runs.md](runs.md)).
   - A film with no sound gets no stem (`render_mix` returns no master, and `mixed` keeps the levels on the spec), and a format without a sound track (GIF) renders straight to its file.
 - **Mute and solo are saved and apply to exports, on strips and buses alike** (`audible`): a muted strip or bus is silent, and while anything is soloed only soloed strips and the strips on soloed buses are heard.
@@ -63,9 +64,11 @@ Built-in sounds and music, the Mixer and its stems, ducking, how sounds are plac
 
 ### Hits on actions and transitions
 
-- **Action sounds (`audio.actionSounds`, `clip → sound`) puts its click sound at every press of a Click or Type (both presses of a double click) and its key sound at every Press keys chord and typed key** in its clip's takes, plus the click sound at each press and release of a Drag when its Drags setting is on; `flatten_spec` lists them as `hits`, mapped through trims, loops, remaps and speed like the action marks, and the take logs each typed key's time (`keyTimes`).
+- **Action sounds (`audio.actionSounds`, `clip → sound`) puts its click sound at every press of a Click or Type (both presses of a double click) and its key sound at every Press keys chord and typed key** in its clip's takes.
+  - With its Drags setting on, it also puts the click sound at each press and release of a Drag.
+  - `flatten_spec` lists them as `hits`, mapped through trims, loops, remaps and speed like the action marks; the take logs each typed key's time (`keyTimes`).
 - **Transition sounds (`audio.transitionSounds`, `clip → sound`) puts a sound at every transition of its clip, at its start, middle (the default) or end (`TransitionAlign`)** (`transition_cues` over `flatten_spec`). A generated sound is made when the node runs, one file per transition length when Fit is on (`transition_sound_file`), and compile finds each in the node's artifacts.
-  - Plain cuts have no transition mark, so Also at plain cuts adds one at each (`FlatTimeline.cuts`, every clip start after the first with no entering transition, never sent to the editor), with the variation's own length.
+  - Plain cuts have no transition mark, so Also at plain cuts adds one at each, with the variation's own length (`FlatTimeline.cuts`, never sent to the editor): on every track, nested ones included, each item after the track's first that has no entering transition.
 - **Hits are one item per hit on the node's own Effects channel, never keying the ducking, each with a seeded small change of pitch (`AudioItem.pitch`, `asetrate` in the mix) and level**, so the Timeline and the export sound the same.
 - **An action's No sound (`silent`, logged with it) leaves it out**; the card counts hits from the node's own output (`AudioValue.hits`, `Hits.transitions`).
 - **The Timeline shows a node's hits as one bar with a tick per hit (`AudioItem.hit`, `AudioBar.hits`) whose only edit is its volume.**
@@ -76,17 +79,22 @@ Built-in sounds and music, the Mixer and its stems, ducking, how sounds are plac
 - **Even out volume, Remove hum, Clean speech, Fix clicks, Change pitch and Voice effects are each one filter chain through `filter_sound`**: a sound file keeps its format and sample rate, a video keeps its picture (copied when it can be), and a file with no sound fails with the node's own message.
   - Shorten pauses (`joined_parts_graph`), Fit music (`fit_graph`) and Sound picture (`sound_picture_graph`) build their own graphs and don't follow that rule.
 - **Shorten pauses works on sound files only**, because a video would lose its sync; parts are joined with short crossfades (`PAUSE_CROSSFADE_S`) and the time saved goes to the run log.
-- **Listening passes read levels from FFmpeg's log**: Remove hum's Find it reads 50 and 60 Hz and the louder wins; Clean speech reads astats every 20 ms (960 samples at 48 kHz, `noise_level_listen_filter`) and takes the quietest share (`QUIET_SHARE`) as the noise level.
+- **Listening passes read levels from FFmpeg's log.**
+  - Remove hum's Find it reads 50 and 60 Hz and the louder wins (`hum_listen_filter`, `rms_level`).
+  - Clean speech reads the level of each short block (`noise_level_listen_filter`) and takes the quietest share (`QUIET_SHARE`) as the noise level (`noise_level`).
 - **Clean speech removes noise the learned way or the spectral way, then cuts rumble, softens "s" sounds and evens the level in one pass.**
   - Learned: the voice decoded to 48 kHz mono, `nnnoiseless` frame by frame with its one-frame delay taken back, mixed with the original in even decibel steps by strength, and passed back to `filter_sound` as the sound under the file's picture with its channels restored.
   - Spectral: `afftdn` told a floor `FLOOR_ABOVE_NOISE_DB` above the measured level (`spectral_floor`).
-  - The evening skips half-waves below 1% so it never lifts the noise in the gaps; the levels before and after go on the result as `Measured::NoiseLevel`.
+  - The evening (`speech_level`) leaves the quietest half-waves alone (`speechnorm`'s threshold) so it never lifts the noise in the gaps.
+  - The levels before and after go on the result as `Measured::NoiseLevel`.
 - **Change pitch uses `rubberband` with `transients=mixed`**, because the default resets the phase at a sudden start and plays the first 0.4 s about 7 dB quieter.
 - **`rubberband` drops its last block (69 ms), so Change pitch (when the file's length is known) and Fit music's stretch pad silence (`PITCH_TAIL_S`) before it and trim back to the file's length after it.**
 - **"Keep the voice's character" preserves formants**, which suits voices but nearly silences a pure tone moved far.
-- **Voice effects blend with the original through `asplit` and `amix`**, because afir's own `dry` and `wet` are input and output gains, not a mix. The telephone is a 4th-order band of 300 to 3400 Hz.
+- **Voice effects blend with the original through `asplit` and `amix`**, because afir's own `dry` and `wet` are input and output gains, not a mix.
 - **Rooms are generated, never recordings (`room_response`)**: seeded early reflections and a noise tail that falls 60 dB over the reverb time with the highs fading faster, at unit energy and different on each side, read by `amovie` into `afir` with `gtype=none:irnorm=-1`, because afir otherwise normalises the response and a room comes out about 26 dB quiet.
-- **Fit music to the film takes the film's clip for its length**, so it keys on the project size and frame rate; `fit_plan` stretches within the largest stretch, loops the chosen section with equal-power crossfades when that is too far, or cuts a longer song, and `fit_graph` ends on the film's length with a fade. The card reads `Measured::Fitted`.
+- **Fit music to the film takes the film's clip for its length**, so it keys on the project size and frame rate.
+  - `fit_plan` stretches within the largest stretch, loops the chosen section with equal-power crossfades when that is too far, or cuts a longer song.
+  - `fit_graph` ends on the film's length with a fade, and the card reads `Measured::Fitted`.
 - **Each loop piece is its own input of the same file (`fit_inputs`)**, because `acrossfade` drops the second of two branches split from one input.
 - **Sound picture outputs an `image`** (waveform or spectrum with a named colour scale, no axes, over a background colour), so the image nodes take it.
 

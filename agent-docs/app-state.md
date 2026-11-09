@@ -7,9 +7,8 @@ The app's one database, the settings held in memory, the keyring and the project
 | Concern                   | Where                                                                                                                                   |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | Schema                    | `store/schema.sql`                                                                                                                      |
-| Database file and opening | `session/src/paths.rs` → `AppPaths::database` (in `AppPaths::user_data`); `store/src/db.rs` → `Database::open`, `DB_FILE`              |
+| Database file and opening | `session/src/paths.rs` → `AppPaths::database` (in `AppPaths::user_data`); `store/src/db.rs` → `Database::open`                          |
 | Projects and view state   | `store/src/projects.rs` → `list_recent`, `read_view_state`, `write_view_state`, `forget_view_state`                                     |
-| Window bounds             | `store/src/windows.rs` → `saved_bounds`, `save_bounds`                                                                                  |
 | Queries                   | `store/src` (`sqlx::query!`, `query_as!`, `query_scalar!`); offline cache `.sqlx/` at the repository root                               |
 | Offline build             | `.cargo/config.toml` at the repository root (`SQLX_OFFLINE=true`)                                                                       |
 | Settings in memory        | `session/src/state.rs` → `AppState::settings`, `AppState::patch_settings`; `store/src/settings.rs` → `merged_settings`, `read_settings` |
@@ -23,7 +22,7 @@ The app's one database, the settings held in memory, the keyring and the project
 
 ### The database
 
-- **App state is one database, `<data folder>/opsis.db`**: SQLite through `sqlx` with the bundled SQLite, WAL, foreign keys on. It holds settings (one row per section), every project ever opened, each project's view state, window bounds and the font library index.
+- **App state is one database, `<data folder>/opsis.db`**: SQLite through `sqlx` with the bundled SQLite, WAL, foreign keys on. It holds settings (one row per section), every project ever opened, each project's view state (the main window's place among it, [editor.md](editor.md)) and the font library index.
 - **Recent projects are read newest first, then Rust keeps the folders that hold a project file (`WORKFLOW_FILE`), up to `MAX_RECENT`** (`store/src/projects.rs` → `list_recent`).
 - **View state is written only for a project the database knows**: `write_view_state` saves nothing for a folder never opened, and a project's view state is deleted with its row (`ON DELETE CASCADE`); `create_project` forgets any view state left for its folder before recording it.
 - **Only Rust opens it (`AppState::db()`, a pool, so every query is async); windows reach it through the session over the bridge** ([ui.md](ui.md)).

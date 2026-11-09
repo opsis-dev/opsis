@@ -6,8 +6,8 @@ The Image category: how pictures are loaded and passed between nodes, the pure p
 
 | Concern                       | Where                                                                                                                                                                                                                                             |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Definitions and pure planning | `crates/compile/src/nodes/image.rs`: the `*_size`, `*_rect` and `*_plan` functions beside each node, `area_rect`, `framed_placement`                                                                                                             |
-| Inputs and results            | `crates/image/src/executors.rs` → `input`, `saved`; `crates/types` → `ImageValue`                                                                                                                                                                 |
+| Definitions and pure planning | `crates/compile/src/nodes/image.rs`: the `*_size`, `*_rect` and `*_plan` functions beside each node, `area_rect`, `framed_placement`                                                                                                              |
+| Inputs and results            | `crates/image/src/executors.rs` → `input`, `saved`, `saved_png`; `crates/types` → `ImageValue`                                                                                                                                                    |
 | Frame screenshot backdrop     | `crates/image/src/executors.rs` → `paint_of`; `crates/compile/src/gradient.rs` → `parse_gradient`                                                                                                                                                 |
 | Loading                       | `crates/image/src/load.rs` → `load_image`                                                                                                                                                                                                         |
 | Pixel operations              | `crates/image/src/ops.rs` (`is_deep`, `on_each_depth`, `in_depth`, `encode`)                                                                                                                                                                      |
@@ -21,6 +21,7 @@ The Image category: how pictures are loaded and passed between nodes, the pure p
 - **Every image is loaded upright (its EXIF orientation applied) and in sRGB (an embedded ICC profile converted with `moxcms`), keeping 16 bits and transparency** (`load_image`).
   - A file whose format can't be told is `NotAnImage`; a profile that can't be read is ignored and an sRGB one skipped.
 - **An executor reads its input through `input` (the file read and decoded on a blocking thread) and hands back `saved`**: the picture written as `image.<ext>` in its folder and an `ImageValue` with an image artifact.
+  - Compare screenshots has two outputs, so it writes `marked.png` and `differences.png` through `saved_png` instead.
 - **Between nodes an image is a PNG, except the file Image format writes** (`encode`): PNG, JPEG at its quality (see-through parts filled with a background), lossless WebP, or AVIF at its quality and speed.
   - JPEG, WebP and AVIF are written in 8 bits, so only PNG keeps a 16-bit picture.
 - **Inputs are `media` ports and outputs are images** (`image_node`), so imported pictures, screenshots, grabbed frames and Sound picture all connect; nodes that take two pictures add their own ports (`AFTER_PORT`, `OVERLAY_PORT`, `DIFFERENCES_PORT`).
@@ -30,7 +31,8 @@ The Image category: how pictures are loaded and passed between nodes, the pure p
 - **The sizes a node makes are pure functions shared by the executor and the card**, which warns when Resize enlarges an image past `SOFT_UPSCALE` or a crop leaves less than `SMALL_CROP`.
   - Resize's run also logs the enlargement; the small-crop warning is on the card only.
 - **The Inspector picture of an image node is its connected input** (`input_picture`).
-- **Text in images (labels, step numbers, Annotate's text) picks its family and weight like 3D text (`family_for`, `face_for`, in `font_named`), never an italic face.**
+- **Text in images (labels, step numbers, Annotate's text) picks its family and weight like 3D text (`family_for`, `face_for`, in `font_named`), asking for an upright face.**
+  - A family with no upright face gives one of its italic faces instead (`face_for`).
   - An empty font name means the project's Main font; a name the project doesn't have fails the node ("The font “…” isn't in this project. Pick another.").
   - `load_font` unwraps WOFF and WOFF2 with `wuff` and sets the weight on a variable font, and `ab_glyph` draws the outlines.
   - Such nodes set `uses_project_fonts` ([runs.md](runs.md)).
