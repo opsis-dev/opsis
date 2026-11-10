@@ -29988,7 +29988,7 @@
       "maximum": 108000,
       "default": 0,
       "x-unit": "frames",
-      "x-zero-label": "Fit the animation"
+      "x-zero-label": "Its usual length"
      },
      "envelope": {
       "description": "Keyframes",
@@ -30574,8 +30574,9 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 108000,
-      "default": 75,
-      "x-unit": "frames"
+      "default": 0,
+      "x-unit": "frames",
+      "x-zero-label": "Its usual length"
      },
      "envelope": {
       "description": "Keyframes",
@@ -30742,7 +30743,7 @@
     },
     "default": {
      "kind": "clean",
-     "clipDuration": 75,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -32480,8 +32481,9 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 108000,
-      "default": 90,
-      "x-unit": "frames"
+      "default": 0,
+      "x-unit": "frames",
+      "x-zero-label": "Its usual length"
      },
      "envelope": {
       "description": "Keyframes",
@@ -32648,7 +32650,7 @@
     },
     "default": {
      "kind": "solid",
-     "clipDuration": 90,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -34771,8 +34773,9 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 108000,
-      "default": 120,
-      "x-unit": "frames"
+      "default": 0,
+      "x-unit": "frames",
+      "x-zero-label": "Its usual length"
      },
      "envelope": {
       "description": "Keyframes",
@@ -34939,7 +34942,7 @@
     },
     "default": {
      "kind": "outline",
-     "clipDuration": 120,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -38621,7 +38624,7 @@
       "maximum": 108000,
       "default": 0,
       "x-unit": "frames",
-      "x-zero-label": "Fit the animation"
+      "x-zero-label": "Its usual length"
      },
      "envelope": {
       "description": "Keyframes",
@@ -39849,6 +39852,55 @@
         "x-step": 0.05,
         "x-advanced": true
        },
+       "motion": {
+        "description": "Motion",
+        "type": "string",
+        "enum": [
+         "spin",
+         "tilt-in",
+         "float",
+         "orbit",
+         "swing",
+         "still",
+         "keyframes"
+        ],
+        "x-labels": {
+         "spin": "Spin",
+         "tilt-in": "Tilt in",
+         "float": "Float",
+         "orbit": "Orbit",
+         "swing": "Swing",
+         "still": "Still",
+         "keyframes": "Keyframes"
+        },
+        "default": "spin"
+       },
+       "lighting": {
+        "description": "Lighting",
+        "type": "string",
+        "enum": [
+         "studio",
+         "soft",
+         "dramatic"
+        ],
+        "x-labels": {
+         "studio": "Studio",
+         "soft": "Soft",
+         "dramatic": "Dramatic"
+        },
+        "default": "studio"
+       },
+       "background": {
+        "description": "Background",
+        "type": "string",
+        "default": "",
+        "x-widget": "color",
+        "x-zero-label": "None",
+        "x-check": {
+         "rule": "colour-or-empty",
+         "message": "Pick a colour"
+        }
+       },
        "roughness": {
         "description": "Matte",
         "type": "number",
@@ -39874,6 +39926,17 @@
         "minimum": 0,
         "maximum": 0.5,
         "default": 0.12,
+        "x-advanced": true
+       },
+       "tilt": {
+        "description": "Tilt",
+        "type": "integer",
+        "format": "uint32",
+        "minimum": 0,
+        "maximum": 80,
+        "default": 52,
+        "x-step": 1,
+        "x-unit": "°",
         "x-advanced": true
        }
       },
@@ -39913,6 +39976,66 @@
         "default": 0.04,
         "x-step": 0.01,
         "x-advanced": true
+       },
+       "tilt": {
+        "description": "Tilt",
+        "type": "integer",
+        "format": "uint32",
+        "minimum": 0,
+        "maximum": 80,
+        "default": 40,
+        "x-step": 1,
+        "x-unit": "°",
+        "x-help": "How far the card is turned before it settles."
+       },
+       "motion": {
+        "description": "Motion",
+        "type": "string",
+        "enum": [
+         "spin",
+         "tilt-in",
+         "float",
+         "orbit",
+         "swing",
+         "still",
+         "keyframes"
+        ],
+        "x-labels": {
+         "spin": "Spin",
+         "tilt-in": "Tilt in",
+         "float": "Float",
+         "orbit": "Orbit",
+         "swing": "Swing",
+         "still": "Still",
+         "keyframes": "Keyframes"
+        },
+        "default": "tilt-in"
+       },
+       "lighting": {
+        "description": "Lighting",
+        "type": "string",
+        "enum": [
+         "studio",
+         "soft",
+         "dramatic"
+        ],
+        "x-labels": {
+         "studio": "Studio",
+         "soft": "Soft",
+         "dramatic": "Dramatic"
+        },
+        "default": "soft"
+       },
+       "background": {
+        "description": "Background",
+        "type": "string",
+        "default": "",
+        "x-widget": "color",
+        "x-zero-label": "None",
+        "x-check": {
+         "rule": "colour-or-empty",
+         "message": "Pick a colour"
+        }
        },
        "edgeColor": {
         "description": "Edge colour",
@@ -40046,6 +40169,49 @@
         "x-help": "Long text wraps onto a new line after about this many letters.",
         "x-advanced": true
        },
+       "motion": {
+        "description": "Motion",
+        "type": "string",
+        "enum": [
+         "spin",
+         "tilt-in",
+         "float",
+         "orbit",
+         "swing",
+         "still",
+         "keyframes"
+        ],
+        "x-labels": {
+         "spin": "Spin",
+         "tilt-in": "Tilt in",
+         "float": "Float",
+         "orbit": "Orbit",
+         "swing": "Swing",
+         "still": "Still",
+         "keyframes": "Keyframes"
+        },
+        "default": "tilt-in"
+       },
+       "lighting": {
+        "description": "Lighting",
+        "type": "string",
+        "enum": [
+         "studio",
+         "soft",
+         "dramatic"
+        ],
+        "x-labels": {
+         "studio": "Studio",
+         "soft": "Soft",
+         "dramatic": "Dramatic"
+        },
+        "default": "studio"
+       },
+       "background": {
+        "description": "Background",
+        "type": "string",
+        "default": "transparent"
+       },
        "size": {
         "description": "Size in frame",
         "type": "number",
@@ -40074,6 +40240,17 @@
         "maximum": 1,
         "default": 0.3,
         "x-advanced": true
+       },
+       "tilt": {
+        "description": "Tilt",
+        "type": "integer",
+        "format": "uint32",
+        "minimum": 0,
+        "maximum": 80,
+        "default": 52,
+        "x-step": 1,
+        "x-unit": "°",
+        "x-advanced": true
        }
       },
       "x-kind": true,
@@ -40093,6 +40270,27 @@
         "x-widget": "asset",
         "x-accept": ".glb,.gltf",
         "x-help": "A 3D model file. A model saved as several files keeps them next to it."
+       },
+       "motion": {
+        "description": "Motion",
+        "type": "string",
+        "enum": [
+         "spin",
+         "orbit",
+         "swing",
+         "float",
+         "still",
+         "keyframes"
+        ],
+        "x-labels": {
+         "spin": "Turntable",
+         "orbit": "Orbit",
+         "swing": "Swing",
+         "float": "Float",
+         "still": "Still",
+         "keyframes": "Keyframes"
+        },
+        "default": "spin"
        },
        "animation": {
         "description": "Animation",
@@ -40117,10 +40315,36 @@
         "default": true,
         "x-advanced": true
        },
+       "lighting": {
+        "description": "Lighting",
+        "type": "string",
+        "enum": [
+         "studio",
+         "soft",
+         "dramatic"
+        ],
+        "x-labels": {
+         "studio": "Studio",
+         "soft": "Soft",
+         "dramatic": "Dramatic"
+        },
+        "default": "studio"
+       },
        "shadow": {
         "description": "Floor shadow",
         "type": "boolean",
         "default": true
+       },
+       "background": {
+        "description": "Background",
+        "type": "string",
+        "default": "",
+        "x-widget": "color",
+        "x-zero-label": "None",
+        "x-check": {
+         "rule": "colour-or-empty",
+         "message": "Pick a colour"
+        }
        },
        "shadowOpacity": {
         "description": "Shadow strength",
@@ -40130,6 +40354,17 @@
         "maximum": 1,
         "default": 0.55,
         "x-advanced": true
+       },
+       "tilt": {
+        "description": "Tilt",
+        "type": "integer",
+        "format": "uint32",
+        "minimum": 0,
+        "maximum": 80,
+        "default": 52,
+        "x-step": 1,
+        "x-unit": "°",
+        "x-advanced": true
        }
       },
       "x-kind": true,
@@ -40138,29 +40373,6 @@
         "model"
        ]
       }
-     },
-     "motion": {
-      "description": "Motion",
-      "type": "string",
-      "enum": [
-       "spin",
-       "tilt-in",
-       "float",
-       "orbit",
-       "swing",
-       "still",
-       "keyframes"
-      ],
-      "x-labels": {
-       "spin": "Spin",
-       "tilt-in": "Tilt in",
-       "float": "Float",
-       "orbit": "Orbit",
-       "swing": "Swing",
-       "still": "Still",
-       "keyframes": "Keyframes"
-      },
-      "default": "spin"
      },
      "camera": {
       "description": "Camera keyframes",
@@ -40250,32 +40462,6 @@
       "default": 1.0,
       "x-step": 0.05
      },
-     "lighting": {
-      "description": "Lighting",
-      "type": "string",
-      "enum": [
-       "studio",
-       "soft",
-       "dramatic"
-      ],
-      "x-labels": {
-       "studio": "Studio",
-       "soft": "Soft",
-       "dramatic": "Dramatic"
-      },
-      "default": "studio"
-     },
-     "background": {
-      "description": "Background",
-      "type": "string",
-      "default": "",
-      "x-widget": "color",
-      "x-zero-label": "None",
-      "x-check": {
-       "rule": "colour-or-empty",
-       "message": "Pick a colour"
-      }
-     },
      "zoom": {
       "description": "Zoom",
       "type": "number",
@@ -40290,17 +40476,6 @@
         "model"
        ]
       }
-     },
-     "tilt": {
-      "description": "Tilt",
-      "type": "integer",
-      "format": "uint32",
-      "minimum": 0,
-      "maximum": 80,
-      "default": 52,
-      "x-step": 1,
-      "x-unit": "°",
-      "x-advanced": true
      },
      "growIn": {
       "description": "Grow in",
@@ -40344,8 +40519,9 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 108000,
-      "default": 150,
-      "x-unit": "frames"
+      "default": 0,
+      "x-unit": "frames",
+      "x-zero-label": "Its usual length"
      },
      "envelope": {
       "description": "Keyframes",
@@ -40512,21 +40688,17 @@
     },
     "default": {
      "kind": "logo",
-     "motion": "spin",
      "camera": {
       "keys": []
      },
      "speed": 1.0,
-     "lighting": "studio",
-     "background": "",
      "zoom": 1.0,
-     "tilt": 52,
      "growIn": true,
      "endFacing": false,
      "motionAmount": 1.0,
      "reverse": false,
      "lens": 30.0,
-     "clipDuration": 150,
+     "clipDuration": 0,
      "envelope": {}
     }
    }

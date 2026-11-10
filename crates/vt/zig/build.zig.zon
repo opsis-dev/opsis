@@ -2,11 +2,11 @@
     .name = .opsis_vtwrap,
     .version = "0.0.0",
     .fingerprint = 0x999ac6bed310e806,
-    .minimum_zig_version = "0.17.0",
+    .minimum_zig_version = "0.17.1",
     .dependencies = .{
         .ghostty = .{
-            .url = "https://tip.files.ghostty.org/83fb95624b0439ee660c2679b43b38c8b63769cd/libghostty-vt-source.tar.gz",
-            .hash = "ghostty-1.4.0-5UdBCyABPwEUlNNylMEI0O0f7XW8Q6chZlOyf_Ff3Wxe",
+            .url = "https://tip.files.ghostty.org/0fa3d577a5614150ff8e2c152de5fb9d5c6d2dec/libghostty-vt-source.tar.gz",
+            .hash = "ghostty-1.4.1-dev-5UdBC5mjUAGeGuweMyO2HI3F3hi9teL8yJg4knRhcpFb",
         },
     },
     .paths = .{ "build.zig", "build.zig.zon", "src" },

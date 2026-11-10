@@ -648,7 +648,7 @@ fn key_frames(flat: &FlatTimeline) -> Vec<f64> {
 fn shows_the_keys_of_a_keyframed_3d_element_where_they_play() {
     let flat = flat_film(&three_film(
         "fx.object-3d",
-        json!({ "motion": "keyframes" }),
+        json!({ "logo": { "motion": "keyframes" } }),
     ));
     let marks: Vec<(String, u32, f64)> = flat
         .camera_keys
@@ -663,13 +663,16 @@ fn shows_the_keys_of_a_keyframed_3d_element_where_they_play() {
 
 #[test]
 fn shows_no_keys_while_a_preset_move_drives_the_camera() {
-    let flat = flat_film(&three_film("fx.object-3d", json!({ "motion": "spin" })));
+    let flat = flat_film(&three_film(
+        "fx.object-3d",
+        json!({ "logo": { "motion": "spin" } }),
+    ));
     assert_eq!(flat.camera_keys, []);
 }
 
 #[test]
 fn moves_a_key_by_the_drag_and_lands_where_it_was_dropped() {
-    let wf = three_film("fx.object-3d", json!({ "motion": "keyframes" }));
+    let wf = three_film("fx.object-3d", json!({ "logo": { "motion": "keyframes" } }));
     let moved = applied(&wf, |e, flat| {
         e.move_camera_key(&flat.camera_keys[1], -15.0)
     });

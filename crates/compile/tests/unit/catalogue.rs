@@ -139,6 +139,39 @@ fn every_group_compiles_at_every_kind() {
     }
 }
 
+#[test]
+fn a_group_at_its_defaults_draws_each_kind_as_its_element_does() {
+    use opsis_compile::nodes::elements::compile_element;
+    use opsis_compile::nodes::groups::{KIND, groups};
+    use opsis_types::values::CompileValue;
+    let fed = background();
+    let input = match serde_json::from_value::<CompileValue>(fed.clone()).unwrap() {
+        CompileValue::Clip(clip) => clip,
+        other => panic!("{other:?}"),
+    };
+    let settings = opsis_types::workflow::WorkflowSettings::default();
+    for group in groups() {
+        for kind in &group.kinds {
+            let grouped = crate::helpers::compile_clip(
+                group.node_type,
+                serde_json::json!({ KIND: kind.id }),
+                serde_json::json!({ "clip": fed }),
+            );
+            let mut own = kind.meta().default_props.clone();
+            own.extend(kind.fixed.clone());
+            let alone = compile_element(kind.meta(), "n", &own, Some(&input), &settings);
+            assert_eq!(
+                crate::helpers::clip_value(&grouped),
+                crate::helpers::clip_value(&alone),
+                "{} at {} differs from {} on its own",
+                group.node_type,
+                kind.id,
+                kind.element
+            );
+        }
+    }
+}
+
 const DROPS_THE_TRANSITION: &[(&str, &str)] = &[(
     "timeline.stack",
     "layers stack clips, so a transition on a layer has nothing to join",

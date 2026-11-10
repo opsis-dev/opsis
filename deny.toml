@@ -17,6 +17,7 @@ ignore = [
   { id = "RUSTSEC-2026-0370", reason = "Unmaintained, not vulnerable, and no safe upgrade: zbus 5 needs it, and the Secret Service keyring store has no release past zbus 5" },
   { id = "RUSTSEC-2026-0371", reason = "Unmaintained, not vulnerable, and no safe upgrade: zbus 5 needs it, and the Secret Service keyring store has no release past zbus 5" },
   { id = "RUSTSEC-2026-0372", reason = "Unmaintained, not vulnerable, and no safe upgrade: zbus 5 needs it, and the Secret Service keyring store has no release past zbus 5" },
+  { id = "RUSTSEC-2026-0459", reason = "No safe upgrade: sqlx 0.9, the newest release, needs libsqlite3-sys 0.37, and the fix is in 0.39; the app opens only its own database. Remove once sqlx takes 0.39" },
 ]
 
 [licenses]

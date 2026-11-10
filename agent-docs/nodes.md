@@ -63,14 +63,17 @@ What a node may be, how a node is defined, how kind groups put several elements 
 - **A kind group is one node over several elements, its Kind picking the element** (`KindGroup`, built by `group_node`; every group is in `groups`). Each element keeps its own metadata and component; only the node over them is shared.
 - **Each kind's settings live in their own object, `params.<kind>.<prop>`**, marked `x-kind` and shown only for its kind (`x-show-if` on `kind`).
   - One object per kind, not one flat set, because the elements' props collide (`speed`, `color`, `fontSize`) and switching Kind and back keeps each kind's values.
-  - Settings every kind shares (`KindGroup.shared`, such as 3D object's camera and lighting) sit at the top level, shown only for the kinds that have them.
+  - Settings every kind shares (`KindGroup.shared`, such as 3D object's camera and lens) sit at the top level, shown only for the kinds that have them.
+  - **A setting is shared only when every kind that has it gives it the same default.** A shared field takes one kind's default for all of them, so a setting whose defaults differ (3D object's motion, tilt, lighting and background) stays in each kind's object.
+  - The Inspector judges a top-level field's `x-show-if` against the top level and the picked kind's object together (`with_picked_kind`, `crates/ui/src/inspector.rs`), so a shared field can follow a kind's setting (3D object's camera keys follow its motion).
+- **A group's Length defaults to 0, each kind's usual length** (`duration_field`): the label is the kinds' own zero label when they all have the same one ("Fit the animation", "Match the clip"), "Its usual length" otherwise.
   - A kind can fix props (`GroupKind::fixed`, such as Code's glass look) and hide others (`GroupKind::hide`).
 - **A group compiles and draws its card from the picked kind only**: `kind_values` lays the element's full defaults, then the fixed props, the shared settings the element takes and the kind's own object (`compile_element`, `element_card`).
 - **Saving keeps only the picked kind's object** (`saved_workflow`, called by `workflow_text` in `crates/project/src/files.rs`), so a file holds no settings for kinds it doesn't use.
 - **Everything that names a setting takes a path into the kind's object**: the Inspector shows the picked object's fields as the node's own ([inspector.md](inspector.md)), and Timeline handles and edits read and write `kind/prop` paths (`param_value`, `put_param` in `edits/timeline.rs`).
 - **An element under a group has no node of its own** (`grouped_elements`, which also lists the elements Device frame and Use as clip draw).
 - **Device frame and the Transition node keep each drawn element's settings in the same objects** (`nodes/device_frame.rs`, `nodes/transitions.rs`); Frame (`camera.frame`) and Frame for images are plain settings switched by `x-show-if`, since they draw no element per kind.
-- `crates/compile/tests/unit/catalogue.rs` → `every_group_compiles_at_every_kind` compiles each group at each of its kinds and checks the picked element is drawn, so a kind path that reads nothing fails there.
+- `crates/compile/tests/unit/catalogue.rs` → `every_group_compiles_at_every_kind` compiles each group at each of its kinds and checks the picked element is drawn, so a kind path that reads nothing fails there; `a_group_at_its_defaults_draws_each_kind_as_its_element_does` fails when a group's own defaults (Length, a shared setting) change what a kind draws.
 
 ### Ports and values
 

@@ -47,6 +47,7 @@ fn workflow() -> Workflow {
         node("mixed", "audio.mix", json!({})),
         node("film", "output.render", json!({ "fileName": "film" })),
         node("still", "output.still", json!({ "fileName": "film" })),
+        node("as-clip", "media.toClip", json!({})),
         node(
             "imported",
             "output.render",
@@ -66,7 +67,8 @@ fn workflow() -> Workflow {
         edge("click", "audio", "mixed", "sounds"),
         edge("mixed", "clip", "film", "clip"),
         edge("title", "clip", "still", "clip"),
-        edge("import", "clip", "imported", "clip"),
+        edge("import", "media", "as-clip", "media"),
+        edge("as-clip", "clip", "imported", "clip"),
     ];
     serde_json::from_value(
         json!({ "version": 1, "id": "e2e", "name": "End to end", "nodes": nodes, "edges": edges }),

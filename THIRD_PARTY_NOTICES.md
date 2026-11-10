@@ -658,7 +658,7 @@ Plays the film's sound while the editor's timeline plays, in `crates/audio`. htt
 
 ## Ghostty's terminal engine — crates/vt, packages/video/src/terminal/sprites.ts, crates/render/tests/sprites
 
-The terminal engine that keeps a terminal take's screen, libghostty-vt from Ghostty v1.4.0 (https://github.com/ghostty-org/ghostty), built from source by `crates/vt/zig` and linked into the app. The terminal's sprites (`packages/video/src/terminal/sprites.ts`) are ported from Ghostty's `src/font/sprite/draw`, and the reference atlases their test compares with (`crates/render/tests/sprites`) are Ghostty's `src/font/sprite/testdata` at commit ae0dc1b7136c2baddc3e067663aa041cd555cfda. Licensed under the MIT License:
+The terminal engine that keeps a terminal take's screen, libghostty-vt 1.0.0 from Ghostty (https://github.com/ghostty-org/ghostty, tag vt-1.0.0), built from source by `crates/vt/zig` and linked into the app. The terminal's sprites (`packages/video/src/terminal/sprites.ts`) are ported from Ghostty's `src/font/sprite/draw`, and the reference atlases their test compares with (`crates/render/tests/sprites`) are Ghostty's `src/font/sprite/testdata` at commit ae0dc1b7136c2baddc3e067663aa041cd555cfda. Licensed under the MIT License:
 
 ```
 MIT License

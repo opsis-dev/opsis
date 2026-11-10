@@ -43,8 +43,9 @@ fn form(
     depth: usize,
     out: &mut Vec<FieldView>,
 ) {
+    let seen = with_picked_kind(properties, values, ctx);
     for (key, schema) in properties {
-        if flag(schema, "x-hidden") || !shown(schema, values, ctx) {
+        if flag(schema, "x-hidden") || !shown(schema, &seen, ctx) {
             continue;
         }
         let path = format!("{prefix}{key}");
@@ -208,6 +209,32 @@ fn name_of(value: &impl serde::Serialize) -> String {
 fn lists(list: &Value, wanted: &str) -> bool {
     list.as_array()
         .is_some_and(|items| items.iter().any(|v| v.as_str() == Some(wanted)))
+}
+
+fn with_picked_kind(
+    properties: &Map<String, Value>,
+    values: &Map<String, Value>,
+    ctx: &FormCtx<'_>,
+) -> Map<String, Value> {
+    let mut seen = values.clone();
+    for (key, schema) in properties {
+        if !flag(schema, KIND_OBJECT) || !shown(schema, values, ctx) {
+            continue;
+        }
+        let kind_props = schema
+            .get("properties")
+            .and_then(Value::as_object)
+            .cloned()
+            .unwrap_or_default();
+        let own = values
+            .get(key)
+            .cloned()
+            .unwrap_or_else(|| Value::Object(Map::new()));
+        for (inner, value) in with_defaults(&kind_props, &own) {
+            seen.entry(inner).or_insert(value);
+        }
+    }
+    seen
 }
 
 fn shown(schema: &Value, values: &Map<String, Value>, ctx: &FormCtx<'_>) -> bool {

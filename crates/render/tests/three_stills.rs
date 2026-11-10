@@ -6,6 +6,7 @@ use opsis_compile::clip::clip_to_spec;
 use opsis_compile::elements::element_node_type;
 use opsis_compile::hosted::hosted;
 use opsis_compile::node::{CLIP_PORT, Ctx};
+use opsis_compile::nodes::groups::{KIND, groups};
 use opsis_compile::nodes::output::{Gl, StillFormat};
 use opsis_compile::registry::node_def;
 use opsis_compile::vars::Vars;
@@ -83,13 +84,35 @@ fn cases() -> Vec<(&'static str, &'static str, Value)> {
     ]
 }
 
+fn node_params(key: &str, params: &Value) -> (String, serde_json::Map<String, Value>) {
+    let given = params.as_object().cloned().unwrap_or_default();
+    let grouped = groups().iter().find_map(|group| {
+        group
+            .kinds
+            .iter()
+            .find(|kind| kind.element == key)
+            .map(|kind| (group, kind))
+    });
+    let Some((group, kind)) = grouped else {
+        return (element_node_type(key), given);
+    };
+    let (shared, own): (
+        serde_json::Map<String, Value>,
+        serde_json::Map<String, Value>,
+    ) = given
+        .into_iter()
+        .partition(|(prop, _)| group.shared.contains(&prop.as_str()));
+    let mut values = shared;
+    values.insert(KIND.to_owned(), json!(kind.id));
+    values.insert(kind.id.to_owned(), Value::Object(own));
+    (group.node_type.to_owned(), values)
+}
+
 fn spec_for(key: &str, params: &Value) -> TimelineSpec {
-    let kind = element_node_type(key);
+    let (kind, given) = node_params(key, params);
     let def = node_def(&kind).unwrap();
     let mut merged = def.defaults();
-    if let Some(from) = params.as_object() {
-        merged.extend(from.clone());
-    }
+    merged.extend(given);
     let values = def.parse(&merged, None).unwrap();
     let workflow: Workflow = serde_json::from_value(
         json!({ "version": 1, "id": "wf", "name": "Test", "nodes": [], "edges": [] }),

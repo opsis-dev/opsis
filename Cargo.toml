@@ -50,7 +50,7 @@ imagesize = "0.15"
 indexmap = "2"
 jiff = "0.2"
 jpeg-encoder = { version = "0.7", features = ["simd"] }
-jsonschema = "0.60"
+jsonschema = "0.61"
 keyring-core = "1"
 language-tags = "0.3"
 layout-rs = "0.1"
@@ -110,9 +110,9 @@ shellexpand = "3"
 skrifa = "0.49"
 slug = "0.1"
 smart-default = "0.7"
-specta = { version = "=2.0.0-rc.26", features = ["derive"] }
-specta-serde = "=0.0.13"
-specta-typescript = "=0.0.13"
+specta = { version = "=2.0.0-rc.28", features = ["derive"] }
+specta-serde = "=0.0.15"
+specta-typescript = "=0.0.15"
 sqlx = { version = "0.9", default-features = false, features = [
   "macros",
   "runtime-tokio",

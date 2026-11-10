@@ -170,7 +170,7 @@ fn dynamic(colour: vt.color.DynamicRGB) u32 {
 }
 
 fn styleColour(colour: Style.Color) u32 {
-    return switch (colour) {
+    return switch (colour.value()) {
         .none => 0,
         .palette => |index| tag_palette | index,
         .rgb => |rgb| tagged(rgb),

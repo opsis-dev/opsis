@@ -113707,7 +113707,7 @@
     "ok": true,
     "data": {
      "kind": "clean",
-     "clipDuration": 75,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -113721,7 +113721,7 @@
     "ok": true,
     "data": {
      "kind": "clean",
-     "clipDuration": 75,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -113846,7 +113846,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 75,
+    "value": 0,
     "keys": 3
    }
   },
@@ -114006,7 +114006,7 @@
     "ok": true,
     "data": {
      "kind": "solid",
-     "clipDuration": 90,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -114020,7 +114020,7 @@
     "ok": true,
     "data": {
      "kind": "solid",
-     "clipDuration": 90,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -114663,7 +114663,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 90,
+    "value": 0,
     "keys": 3
    }
   },
@@ -115159,7 +115159,7 @@
     "ok": true,
     "data": {
      "kind": "outline",
-     "clipDuration": 120,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -115173,7 +115173,7 @@
     "ok": true,
     "data": {
      "kind": "outline",
-     "clipDuration": 120,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -115187,7 +115187,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": 120,
+    "value": 0,
     "keys": 3
    }
   },
@@ -117614,21 +117614,17 @@
     "ok": true,
     "data": {
      "kind": "logo",
-     "motion": "spin",
      "camera": {
       "keys": []
      },
      "speed": 1.0,
-     "lighting": "studio",
-     "background": "",
      "zoom": 1.0,
-     "tilt": 52,
      "growIn": true,
      "endFacing": false,
      "motionAmount": 1.0,
      "reverse": false,
      "lens": 30.0,
-     "clipDuration": 150,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -117642,21 +117638,17 @@
     "ok": true,
     "data": {
      "kind": "logo",
-     "motion": "spin",
      "camera": {
       "keys": []
      },
      "speed": 1.0,
-     "lighting": "studio",
-     "background": "",
      "zoom": 1.0,
-     "tilt": 52,
      "growIn": true,
      "endFacing": false,
      "motionAmount": 1.0,
      "reverse": false,
      "lens": 30.0,
-     "clipDuration": 150,
+     "clipDuration": 0,
      "envelope": {}
     }
    }
@@ -117671,7 +117663,7 @@
    "outcome": {
     "ok": true,
     "value": "logo",
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -117708,7 +117700,7 @@
    "outcome": {
     "ok": true,
     "value": null,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -117745,7 +117737,7 @@
    "outcome": {
     "ok": true,
     "value": null,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -117782,7 +117774,7 @@
    "outcome": {
     "ok": true,
     "value": null,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -117819,7 +117811,7 @@
    "outcome": {
     "ok": true,
     "value": null,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -117855,8 +117847,8 @@
    },
    "outcome": {
     "ok": true,
-    "value": "spin",
-    "keys": 15
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -117867,8 +117859,9 @@
     "set": null
    },
    "outcome": {
-    "ok": false,
-    "problem": "Motion has a value that isn't allowed"
+    "ok": true,
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -117879,8 +117872,9 @@
     "set": "not-a-choice"
    },
    "outcome": {
-    "ok": false,
-    "problem": "Motion has a value that isn't allowed"
+    "ok": true,
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -117895,7 +117889,7 @@
     "value": {
      "keys": []
     },
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -117932,7 +117926,7 @@
    "outcome": {
     "ok": true,
     "value": 1.0,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -118005,7 +117999,7 @@
    "outcome": {
     "ok": true,
     "value": 0.25,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -118030,7 +118024,7 @@
    "outcome": {
     "ok": true,
     "value": 3,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -118042,8 +118036,8 @@
    },
    "outcome": {
     "ok": true,
-    "value": "studio",
-    "keys": 15
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -118054,8 +118048,9 @@
     "set": null
    },
    "outcome": {
-    "ok": false,
-    "problem": "Lighting has a value that isn't allowed"
+    "ok": true,
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -118066,8 +118061,9 @@
     "set": "not-a-choice"
    },
    "outcome": {
-    "ok": false,
-    "problem": "Lighting has a value that isn't allowed"
+    "ok": true,
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -118079,8 +118075,8 @@
    },
    "outcome": {
     "ok": true,
-    "value": "",
-    "keys": 15
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -118091,8 +118087,9 @@
     "set": null
    },
    "outcome": {
-    "ok": false,
-    "problem": "Background isn't valid"
+    "ok": true,
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -118103,8 +118100,9 @@
     "set": 5
    },
    "outcome": {
-    "ok": false,
-    "problem": "Background isn't valid"
+    "ok": true,
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -118115,8 +118113,9 @@
     "set": "{{Product name}}"
    },
    "outcome": {
-    "ok": false,
-    "problem": "Pick a colour"
+    "ok": true,
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -118128,8 +118127,8 @@
    },
    "outcome": {
     "ok": true,
-    "value": "   ",
-    "keys": 15
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -118140,8 +118139,9 @@
     "set": "not a colour"
    },
    "outcome": {
-    "ok": false,
-    "problem": "Pick a colour"
+    "ok": true,
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -118154,7 +118154,7 @@
    "outcome": {
     "ok": true,
     "value": 1.0,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -118227,7 +118227,7 @@
    "outcome": {
     "ok": true,
     "value": 0.3,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -118252,7 +118252,7 @@
    "outcome": {
     "ok": true,
     "value": 3,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -118264,8 +118264,8 @@
    },
    "outcome": {
     "ok": true,
-    "value": 52,
-    "keys": 15
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -118276,8 +118276,9 @@
     "set": null
    },
    "outcome": {
-    "ok": false,
-    "problem": "Tilt isn't valid"
+    "ok": true,
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -118288,8 +118289,9 @@
     "set": "abc"
    },
    "outcome": {
-    "ok": false,
-    "problem": "Tilt isn't valid"
+    "ok": true,
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -118300,8 +118302,9 @@
     "set": "{{Speed}}"
    },
    "outcome": {
-    "ok": false,
-    "problem": "Tilt takes a number. Variables work only in text settings"
+    "ok": true,
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -118312,8 +118315,9 @@
     "set": 0.5
    },
    "outcome": {
-    "ok": false,
-    "problem": "Tilt isn't valid"
+    "ok": true,
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -118324,8 +118328,9 @@
     "set": 1000000000000
    },
    "outcome": {
-    "ok": false,
-    "problem": "Tilt must be at most 80°"
+    "ok": true,
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -118336,8 +118341,9 @@
     "set": -1
    },
    "outcome": {
-    "ok": false,
-    "problem": "Tilt must be at least 0°"
+    "ok": true,
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -118349,8 +118355,8 @@
    },
    "outcome": {
     "ok": true,
-    "value": 0,
-    "keys": 15
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -118361,8 +118367,9 @@
     "set": 81
    },
    "outcome": {
-    "ok": false,
-    "problem": "Tilt must be at most 80°"
+    "ok": true,
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -118374,8 +118381,8 @@
    },
    "outcome": {
     "ok": true,
-    "value": 80,
-    "keys": 15
+    "value": null,
+    "keys": 11
    }
   },
   {
@@ -118388,7 +118395,7 @@
    "outcome": {
     "ok": true,
     "value": true,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -118425,7 +118432,7 @@
    "outcome": {
     "ok": true,
     "value": false,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -118462,7 +118469,7 @@
    "outcome": {
     "ok": true,
     "value": 1.0,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -118535,7 +118542,7 @@
    "outcome": {
     "ok": true,
     "value": 0,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -118560,7 +118567,7 @@
    "outcome": {
     "ok": true,
     "value": 2,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -118573,7 +118580,7 @@
    "outcome": {
     "ok": true,
     "value": false,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -118610,7 +118617,7 @@
    "outcome": {
     "ok": true,
     "value": 30.0,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -118683,7 +118690,7 @@
    "outcome": {
     "ok": true,
     "value": 10,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -118708,7 +118715,7 @@
    "outcome": {
     "ok": true,
     "value": 70,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -118720,8 +118727,8 @@
    },
    "outcome": {
     "ok": true,
-    "value": 150,
-    "keys": 15
+    "value": 0,
+    "keys": 11
    }
   },
   {
@@ -118806,7 +118813,7 @@
    "outcome": {
     "ok": true,
     "value": 0,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -118831,7 +118838,7 @@
    "outcome": {
     "ok": true,
     "value": 108000,
-    "keys": 15
+    "keys": 11
    }
   },
   {
@@ -118844,7 +118851,7 @@
    "outcome": {
     "ok": true,
     "value": {},
-    "keys": 15
+    "keys": 11
    }
   },
   {

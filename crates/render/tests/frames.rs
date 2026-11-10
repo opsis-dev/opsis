@@ -8,8 +8,10 @@ use opsis_compile::clip::{ItemExtra, clip_to_spec, item_clip};
 use opsis_compile::elements::{ElementKind, element_meta, element_node_type};
 use opsis_compile::hosted::hosted;
 use opsis_compile::node::{CLIP_PORT, Ctx};
+use opsis_compile::nodes::groups::{KIND, groups};
 use opsis_compile::nodes::media::Codec;
 use opsis_compile::nodes::output::{Gl, StillFormat};
+use opsis_compile::nodes::transitions::{default_transition, join_clips};
 use opsis_compile::registry::node_def;
 use opsis_compile::vars::Vars;
 use opsis_engine::hash::sha256_hex;
@@ -45,9 +47,11 @@ fn solid(id: &str, color: &str) -> CompileValue {
     CompileValue::Clip(item_clip(id, "solid", props, 90, ItemExtra::default()))
 }
 
-fn compile_clip(kind: &str, inputs: &PortValues) -> ClipValue {
-    let def = node_def(kind).unwrap();
-    let values = def.parse(&def.defaults(), None).unwrap();
+fn compile_clip(kind: &str, params: &Map<String, Value>, inputs: &PortValues) -> ClipValue {
+    let def = node_def(kind).unwrap_or_else(|| panic!("no node {kind}"));
+    let mut given = def.defaults();
+    given.extend(params.clone());
+    let values = def.parse(&given, None).unwrap();
     let workflow: Workflow = serde_json::from_value(
         json!({ "version": 1, "id": "wf", "name": "Test", "nodes": [], "edges": [] }),
     )
@@ -77,23 +81,48 @@ fn compile_clip(kind: &str, inputs: &PortValues) -> ClipValue {
     }
 }
 
+fn as_clip(value: CompileValue) -> ClipValue {
+    match value {
+        CompileValue::Clip(clip) => clip,
+        other => panic!("not a clip: {other:?}"),
+    }
+}
+
 fn spec_for(key: &str) -> TimelineSpec {
     let meta = element_meta(key).unwrap();
-    let (kind, inputs) = match meta.kind {
-        ElementKind::Presentation => (
-            format!("transition.{key}"),
-            PortValues::from_iter([
-                ("a".to_owned(), solid("a", "#334155")),
-                ("b".to_owned(), solid("b", "#7c3aed")),
-            ]),
-        ),
-        ElementKind::Wrapper => (
-            element_node_type(key),
-            PortValues::from_iter([("clip".to_owned(), solid("in", "#334155"))]),
-        ),
-        _ => (element_node_type(key), PortValues::new()),
+    let wrapped = PortValues::from_iter([("clip".to_owned(), solid("in", "#334155"))]);
+    let clip = if meta.kind == ElementKind::Presentation {
+        join_clips(
+            "n",
+            &[
+                as_clip(solid("a", "#334155")),
+                as_clip(solid("b", "#7c3aed")),
+            ],
+            &[None, Some(default_transition(key))],
+            &["in1".to_owned(), "in2".to_owned()],
+        )
+    } else {
+        let inputs = if meta.kind == ElementKind::Wrapper {
+            wrapped
+        } else {
+            PortValues::new()
+        };
+        let grouped = groups().iter().find_map(|group| {
+            group
+                .kinds
+                .iter()
+                .find(|kind| kind.element == key)
+                .map(|kind| {
+                    (
+                        group.node_type.to_owned(),
+                        Map::from_iter([(KIND.to_owned(), json!(kind.id))]),
+                    )
+                })
+        });
+        let (kind, params) = grouped.unwrap_or_else(|| (element_node_type(key), Map::new()));
+        compile_clip(&kind, &params, &inputs)
     };
-    clip_to_spec(&compile_clip(&kind, &inputs), &WorkflowSettings::default())
+    clip_to_spec(&clip, &WorkflowSettings::default())
 }
 
 struct Setup {

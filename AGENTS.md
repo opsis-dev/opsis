@@ -104,8 +104,8 @@
   - A new dependency needs its pin added to the root table by hand (the only dependency block edited by hand), then `cargo add -p`.
   - A root entry carries only the features every crate that uses it needs, since crates can add features but never remove them, and `default-features = false` wherever any crate turns them off; a crate that wants them says `default-features = true` (`image`).
 - **`Cargo.lock` holds exact versions, and adding or updating a dependency takes the latest release**, except these pins:
-  - `specta` `=2.0.0-rc.26` and `specta-typescript` and `specta-serde` `=0.0.13` in the root table: prereleases whose API changes between releases and whose output is `packages/video/src/generated/spec.ts`, so they move together and only with `bun run types:export`.
-  - Ghostty's terminal engine is pinned in `crates/vt/zig/build.zig.zon` to the lib-vt source tarball of v1.4.0 (commit `83fb956`) by URL and hash, written with `zig fetch --save=ghostty <url>` in `crates/vt/zig`, never by hand. Ghostty builds only with the Zig version it names, so moving it may move Zig too.
+  - `specta` `=2.0.0-rc.28` and `specta-typescript` and `specta-serde` `=0.0.15` in the root table: prereleases whose API changes between releases and whose output is `packages/video/src/generated/spec.ts`, so they move together and only with `bun run types:export`.
+  - Ghostty's terminal engine is pinned in `crates/vt/zig/build.zig.zon` to the source tarball of libghostty-vt 1.0.0 (tag `vt-1.0.0`, commit `0fa3d57`) by URL and hash, written with `zig fetch --save=ghostty <url>` in `crates/vt/zig`, never by hand. Ghostty's build accepts only the major and minor Zig version its `minimum_zig_version` names (`requireZig`), so a Ghostty pin that names a new minor moves Zig too.
 - **Every dependency must be GPLv3-compatible** ([packaging.md](agent-docs/packaging.md) has the allowed licences and the notices).
 
 ## 6. Workspace and layout

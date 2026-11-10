@@ -19,6 +19,8 @@ use crate::registry::node_def;
 
 pub const KIND: &str = "kind";
 pub const KIND_OBJECT: &str = "x-kind";
+const ZERO_LABEL: &str = "x-zero-label";
+const USUAL_LENGTH: &str = "Its usual length";
 
 #[derive(Debug, Clone)]
 pub struct GroupKind {
@@ -214,7 +216,18 @@ pub fn kind_properties(label: &str, kinds: &[GroupKind], shared: &[&str]) -> Map
 
 fn duration_field(group: &KindGroup) -> Value {
     let mut field = clip_duration_field(group.kinds[0].meta());
+    let labels: Vec<Option<Value>> = group
+        .kinds
+        .iter()
+        .map(|k| clip_duration_field(k.meta()).get(ZERO_LABEL).cloned())
+        .collect();
+    let label = match labels.first() {
+        Some(Some(first)) if labels.iter().all(|l| l.as_ref() == Some(first)) => first.clone(),
+        _ => Value::from(USUAL_LENGTH),
+    };
     field["minimum"] = Value::from(0);
+    field["default"] = Value::from(0);
+    field[ZERO_LABEL] = label;
     field
 }
 
@@ -548,13 +561,9 @@ fn object_3d() -> KindGroup {
             kind("model", "Model", "model-3d"),
         ],
         shared: vec![
-            "motion",
             "camera",
             "speed",
-            "lighting",
-            "background",
             "zoom",
-            "tilt",
             "growIn",
             "endFacing",
             "motionAmount",

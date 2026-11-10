@@ -5,32 +5,32 @@ import { type Pinned, verifiedDownload } from "./lib/pins";
 import { devCache } from "./lib/tool-config";
 import { unzipTo } from "./lib/unzip";
 
-const ZIG_VERSION = "0.17.0";
+const ZIG_VERSION = "0.17.1";
 const ARCHIVES: Partial<Record<string, Pinned>> = {
   "x86_64-linux": {
-    url: "https://ziglang.org/download/0.17.0/zig-x86_64-linux-0.17.0.tar.xz",
-    sha256: "1cbe9df9f27e6b78d14ccbca43b6703a404ef79ef1c463de901d7f088d4e2026",
-    size: 57332648,
+    url: "https://ziglang.org/download/0.17.1/zig-x86_64-linux-0.17.1.tar.xz",
+    sha256: "3581863e3cbcfd0fce0efc682ce7e9e93da96668a977791d356a26d2a7e9b17a",
+    size: 57411036,
   },
   "aarch64-linux": {
-    url: "https://ziglang.org/download/0.17.0/zig-aarch64-linux-0.17.0.tar.xz",
-    sha256: "9e8d11661d4ae3bd57702a3832781e23ad151dde5798e16a5ccd503f65234ff8",
-    size: 52877280,
+    url: "https://ziglang.org/download/0.17.1/zig-aarch64-linux-0.17.1.tar.xz",
+    sha256: "a1546d5646eb184437918d6635ca6b762a0e889eac09cef720ee7a1ed3fe7795",
+    size: 52977364,
   },
   "x86_64-windows": {
-    url: "https://ziglang.org/download/0.17.0/zig-x86_64-windows-0.17.0.zip",
-    sha256: "b5663f69581dcf391293fbf16c06cb80d81d806545ce618b4d0bab7f0eb8c428",
-    size: 100268137,
+    url: "https://ziglang.org/download/0.17.1/zig-x86_64-windows-0.17.1.zip",
+    sha256: "b03f477a1943673e02aca0f570e8030dffd536ce1f45cbc4d3326ec31159562e",
+    size: 100343666,
   },
   "aarch64-macos": {
-    url: "https://ziglang.org/download/0.17.0/zig-aarch64-macos-0.17.0.tar.xz",
-    sha256: "b607e9b9234790a008116ae5bdb71c6243b84b9fb42a53a9e70fde41c06c536a",
-    size: 53985220,
+    url: "https://ziglang.org/download/0.17.1/zig-aarch64-macos-0.17.1.tar.xz",
+    sha256: "75f1bc7a1e9852f17ec9a0c1895f767c4ec56d46bc8a834920eece1d0359dd8d",
+    size: 54001240,
   },
   "x86_64-macos": {
-    url: "https://ziglang.org/download/0.17.0/zig-x86_64-macos-0.17.0.tar.xz",
-    sha256: "4f9a1c5269aa17ebda5e6d3c2b89d6cbf36f7d2b22a0306e9ab98f25f95529c6",
-    size: 59317572,
+    url: "https://ziglang.org/download/0.17.1/zig-x86_64-macos-0.17.1.tar.xz",
+    sha256: "9af07b20319fbd0c92ee46ad23e81d6a782b1aaea2cfb8dcbff35f1d2c7ddbb7",
+    size: 59496824,
   },
 };
 const ARCHES: Partial<Record<NodeJS.Architecture, string>> = { x64: "x86_64", arm64: "aarch64" };

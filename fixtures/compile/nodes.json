@@ -5379,7 +5379,7 @@
   "hostDefaults": null,
   "defaults": {
    "kind": "clean",
-   "clipDuration": 75,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5414,7 +5414,7 @@
   "hostDefaults": null,
   "defaults": {
    "kind": "solid",
-   "clipDuration": 90,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5484,7 +5484,7 @@
   "hostDefaults": null,
   "defaults": {
    "kind": "outline",
-   "clipDuration": 120,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5737,21 +5737,17 @@
   "hostDefaults": null,
   "defaults": {
    "kind": "logo",
-   "motion": "spin",
    "camera": {
     "keys": []
    },
    "speed": 1.0,
-   "lighting": "studio",
-   "background": "",
    "zoom": 1.0,
-   "tilt": 52,
    "growIn": true,
    "endFacing": false,
    "motionAmount": 1.0,
    "reverse": false,
    "lens": 30.0,
-   "clipDuration": 150,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
