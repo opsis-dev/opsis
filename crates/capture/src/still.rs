@@ -11,7 +11,9 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::cdp::{CaptureError, Handle, Tab};
-use crate::still_layout::{Area, Size, capture_canvas, capture_scale, padded_region, tallest_shot};
+use crate::still_layout::{
+    Area, LOOKS, Size, capture_canvas, capture_scale, padded_region, tallest_shot,
+};
 use crate::take::{Played, StepError, TakeEnv, TakeRun, failed, play_take};
 use crate::trace::CallInfo;
 
@@ -120,7 +122,10 @@ async fn region_for(
     match p.region {
         Region::Element => element_region(take, p).await,
         Region::FullPage => {
-            let tallest = tallest_shot(p.look, view.page_width, canvas);
+            let tallest = LOOKS
+                .iter()
+                .map(|look| tallest_shot(*look, view.page_width, canvas))
+                .fold(0.0, f64::max);
             if view.page_height > tallest {
                 take.log(LogLevel::Info, &format!("The page is {} px tall; keeping the top {tallest} px, as much as the video can show.", view.page_height));
             }
@@ -152,17 +157,14 @@ async fn capture_shot(take: &TakeRun<'_>, request: &StillRequest<'_>) -> Result<
     let view: View = tab.evaluate_main(VIEW).await?;
     let canvas = capture_canvas(request.project);
     let (region, body) = region_for(take, p, &view, canvas).await?;
-    let scale = capture_scale(
-        p.look,
-        Size {
-            width: region.width,
-            height: region.height,
-        },
-        canvas,
-        body,
-        p.fit(),
-        view.dpr,
-    );
+    let size = Size {
+        width: region.width,
+        height: region.height,
+    };
+    let scale = LOOKS
+        .iter()
+        .map(|look| capture_scale(*look, size, canvas, body, 1.0, view.dpr))
+        .fold(view.dpr, f64::max);
     let beyond =
         p.region == Region::FullPage || region.width > view.width || region.height > view.height;
     let clip = json!({ "x": region.x, "y": region.y, "width": region.width, "height": region.height, "scale": scale / take.dpr() });

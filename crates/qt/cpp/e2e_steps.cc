@@ -1286,7 +1286,17 @@ void Scenario::BuildTour() {
   Add(
       QStringLiteral("backdrop-select"),
       [this, window, add_from_list] {
-        add_from_list(QStringLiteral("Record"), QStringLiteral("Screenshot"));
+        add_from_list(QStringLiteral("Camera"), QStringLiteral("Frame"));
+        QTest::qWait(kSettleMs);
+        for (QComboBox* combo :
+             window->inspector_dock()->widget()->findChildren<QComboBox*>()) {
+          if (combo->isVisible() &&
+              combo->findData(QStringLiteral("image")) >= 0) {
+            combo->setFocus();
+            QTest::keyClick(combo, Qt::Key_Down);
+            break;
+          }
+        }
         QTest::qWait(kSettleMs);
         for (QComboBox* combo :
              window->inspector_dock()->widget()->findChildren<QComboBox*>()) {
@@ -1309,8 +1319,7 @@ void Scenario::BuildTour() {
   Add(
       QStringLiteral("undo-backdrop"),
       [this, window] {
-        Click(window, QStringLiteral("Undo"));
-        Click(window, QStringLiteral("Undo"));
+        for (int i = 0; i < 3; ++i) Click(window, QStringLiteral("Undo"));
       },
       500, back);
   Add(
@@ -1443,7 +1452,7 @@ void Scenario::BuildTour() {
   Add(
       QStringLiteral("color-list-add"),
       [this, window, memo, select_titled] {
-        select_titled(QStringLiteral("Shader mesh gradient"));
+        select_titled(QStringLiteral("Background"));
         memo->count = static_cast<std::size_t>(
             std::max(0, ListLength(bridge::FieldKind::ColorList)));
         Click(window->inspector_dock()->widget(), QStringLiteral("Add colour"));
@@ -1652,9 +1661,9 @@ void Scenario::BuildTour() {
   Add(
       QStringLiteral("gradient-field"),
       [add_from_list, pick_kind] {
-        add_from_list(QStringLiteral("Camera"), QStringLiteral("Backdrop"));
+        add_from_list(QStringLiteral("Camera"), QStringLiteral("Frame"));
         QTest::qWait(kSettleMs);
-        for (int i = 0; i < 3 && !pick_kind(QStringLiteral("gradient")); ++i) {
+        for (int i = 0; i < 4 && !pick_kind(QStringLiteral("gradient")); ++i) {
           QTest::qWait(kSettleMs);
         }
       },
@@ -1722,15 +1731,15 @@ void Scenario::BuildTour() {
   Add(
       QStringLiteral("undo-gradient"),
       [this, window] {
-        for (int i = 0; i < 4; ++i) Click(window, QStringLiteral("Undo"));
+        for (int i = 0; i < 5; ++i) Click(window, QStringLiteral("Undo"));
       },
       600, back);
   Add(
       QStringLiteral("asset-choose-opens-dialog"),
       [this, window, add_from_list, pick_kind] {
-        add_from_list(QStringLiteral("Camera"), QStringLiteral("Backdrop"));
+        add_from_list(QStringLiteral("Camera"), QStringLiteral("Frame"));
         QTest::qWait(kSettleMs);
-        for (int i = 0; i < 4 && !pick_kind(QStringLiteral("asset")); ++i) {
+        for (int i = 0; i < 5 && !pick_kind(QStringLiteral("asset")); ++i) {
           QTest::qWait(kSettleMs);
         }
         ClickLater(window->inspector_dock()->widget(),
@@ -1786,7 +1795,7 @@ void Scenario::BuildTour() {
   Add(
       QStringLiteral("undo-asset"),
       [this, window] {
-        for (int i = 0; i < 5; ++i) Click(window, QStringLiteral("Undo"));
+        for (int i = 0; i < 6; ++i) Click(window, QStringLiteral("Undo"));
       },
       600, back);
   const auto field_of = [](bridge::FieldKind kind) {
@@ -1827,7 +1836,7 @@ void Scenario::BuildTour() {
   Add(
       QStringLiteral("spot-drag"),
       [this, window, add_from_list] {
-        add_from_list(QStringLiteral("Camera"), QStringLiteral("Zoom here"));
+        add_from_list(QStringLiteral("Camera"), QStringLiteral("Camera move"));
         QTest::qWait(kSettleMs);
         auto* frame =
             window->inspector_dock()->widget()->findChild<SpotFrame*>();
@@ -2153,8 +2162,7 @@ void Scenario::BuildTour() {
   Add(
       QStringLiteral("camera-key-at-the-picked-node"),
       [add_from_list, pick_kind] {
-        add_from_list(QStringLiteral("Text & overlays"),
-                      QStringLiteral("3D text"));
+        add_from_list(QStringLiteral("Graphics"), QStringLiteral("3D object"));
         QTest::qWait(kSettleMs);
         for (int i = 0; i < 12 && !pick_kind(QStringLiteral("keyframes"));
              ++i) {
@@ -2187,10 +2195,10 @@ void Scenario::BuildTour() {
       },
       700,
       [] {
-        return Expect(
-            FieldText(QStringLiteral("theme")) == QStringLiteral("light"),
-            QStringLiteral("the theme is %1")
-                .arg(FieldText(QStringLiteral("theme"))));
+        return Expect(FieldText(QStringLiteral("laptop/theme")) ==
+                          QStringLiteral("light"),
+                      QStringLiteral("the theme is %1")
+                          .arg(FieldText(QStringLiteral("laptop/theme"))));
       });
   Add(
       QStringLiteral("theme-colours-open"),
@@ -2209,8 +2217,14 @@ void Scenario::BuildTour() {
   Add(
       QStringLiteral("theme-colour-typed"),
       [this, window] {
+        QAbstractButton* toggle =
+            Find(window->inspector_dock()->widget(), QStringLiteral("Colours"));
+        if (toggle == nullptr) {
+          Miss(QStringLiteral("no theme colours"));
+          return;
+        }
         for (auto* input :
-             window->inspector_dock()->widget()->findChildren<ColorInput*>()) {
+             toggle->parentWidget()->findChildren<ColorInput*>()) {
           if (!input->isVisible()) continue;
           auto* line = input->findChild<QLineEdit*>();
           QTest::mouseClick(line, Qt::LeftButton);
@@ -2224,7 +2238,7 @@ void Scenario::BuildTour() {
       [this, window] {
         QString problems;
         for (const auto& field : App::Get().session().inspector().fields) {
-          if (ToQ(field.key) == QStringLiteral("theme") &&
+          if (ToQ(field.key) == QStringLiteral("laptop/theme") &&
               !ToQ(field.value_json).contains(QStringLiteral("#ff0000"))) {
             problems += QStringLiteral(" the colour wasn't saved");
           }

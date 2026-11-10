@@ -86,7 +86,7 @@ fn count(wf: &Workflow, kind: &str) -> usize {
     wf.nodes.iter().filter(|n| n.kind == kind).count()
 }
 
-fn sequence_of(clips: &[(&str, u32)], extra: Value) -> Workflow {
+fn sequence_of(clips: &[(&str, u32)], shared: Option<Value>, marks: &[(&str, Value)]) -> Workflow {
     film(|g| {
         for (i, (id, frames)) in clips.iter().enumerate() {
             g.node(
@@ -94,13 +94,13 @@ fn sequence_of(clips: &[(&str, u32)], extra: Value) -> Workflow {
                 TITLE,
                 json!({ "title": id.to_uppercase(), "clipDuration": frames }),
             );
-            g.link_ports(id, "seq", "clip", &format!("in{}", i + 1));
+            let fed = match marks.iter().find(|(marked, _)| marked == id) {
+                Some((_, transition)) => g.marked(&format!("{id}-in"), id, transition.clone()),
+                None => (*id).to_owned(),
+            };
+            g.link_ports(&fed, "seq", "clip", &format!("in{}", i + 1));
         }
-        let mut params = json!({ "transition": "none" });
-        if let (Some(all), Value::Object(more)) = (params.as_object_mut(), extra) {
-            all.extend(more);
-        }
-        g.node("seq", "timeline.sequence", params);
+        g.sequence("seq", shared);
         "seq".into()
     })
 }
@@ -191,7 +191,7 @@ fn feed_inputs(g: &mut Graph, id: &str, kind: &str, family_inputs: usize) {
                 g.link_ports(&src, id, "clip", port);
             }
             PortType::Media => {
-                g.node(&src, "media.import", json!({ "path": "assets/clip.mp4" }));
+                g.node(&src, "media.import", json!({ "path": "assets/still.png" }));
                 g.link_ports(&src, id, "media", port);
             }
             _ => {}
@@ -285,14 +285,11 @@ fn every_handle_moves_its_bar_by_the_delta() {
 
 #[test]
 fn trims_an_image_media_file_through_its_length() {
-    let image = round_trips(
-        "media.import",
-        json!({ "path": "assets/still.png", "stillMs": 4000 }),
-    );
+    let image = round_trips("media.toClip", json!({ "lengthMs": 4000 }));
     assert!(
         image
             .iter()
-            .any(|t| t.kind == HandleKind::TrimEnd && t.owner == "media.import" && t.added == 0)
+            .any(|t| t.kind == HandleKind::TrimEnd && t.owner == "media.toClip" && t.added == 0)
     );
     assert!(image.iter().all(|t| t.off.abs() <= tolerance(t.kind)));
 }
@@ -388,7 +385,7 @@ fn adds_a_trim_to_slip_a_clip_that_has_none() {
 
 #[test]
 fn wont_move_a_sequenced_clip_before_the_one_before_it() {
-    let wf = sequence_of(&[("a", 60), ("b", 60)], json!({}));
+    let wf = sequence_of(&[("a", 60), ("b", 60)], None, &[]);
     assert!(refused(&wf, |e, flat| e.move_bar(bar_of(flat, "b"), -10.0)));
 }
 
@@ -401,15 +398,13 @@ fn splits_a_clip_at_the_playhead_into_two_parts_in_a_sequence() {
     let mut bars = after.bars;
     bars.sort_by(|a, b| a.from.total_cmp(&b.from));
     assert!(near(bars[1].content_start, 30.0, 0.5));
-    assert_eq!(
-        param(&next, "timeline.sequence", "transition"),
-        Some(&json!("none"))
-    );
+    assert_eq!(count(&next, "timeline.sequence"), 1);
+    assert_eq!(flat_film(&next).transitions, []);
 }
 
 #[test]
 fn splits_inside_a_cut_only_sequence_without_nesting_another_one() {
-    let wf = sequence_of(&[("a", 60), ("b", 60)], json!({}));
+    let wf = sequence_of(&[("a", 60), ("b", 60)], None, &[]);
     let next = applied(&wf, |e, flat| e.split_bar(bar_of(flat, "a"), 20.0));
     assert_eq!(count(&next, "timeline.sequence"), 1);
     assert_eq!(
@@ -419,26 +414,16 @@ fn splits_inside_a_cut_only_sequence_without_nesting_another_one() {
 }
 
 #[test]
-fn splits_in_place_inside_a_sequence_with_a_transition_keeping_each_cut_on_its_clip() {
+fn splits_in_place_inside_a_sequence_keeping_each_transition_on_its_clip() {
     let wf = sequence_of(
         &[("a", 60), ("b", 60), ("c", 60)],
-        json!({
-            "transition": "fade",
-            "transitionDuration": 10,
-            "cuts": [{ "before": "in3", "transition": "wipe", "transitionDuration": 20, "keepWhole": false }],
-        }),
+        Some(json!({ "kind": "fade", "durationInFrames": 10 })),
+        &[("c", json!({ "kind": "wipe", "durationInFrames": 20 }))],
     );
     let next = applied(&wf, |e, flat| e.split_bar(bar_of(flat, "a"), 20.0));
     assert_eq!(count(&next, "timeline.sequence"), 1);
-    assert_eq!(
-        param(&next, "timeline.sequence", "cuts"),
-        Some(&json!([
-            { "before": "in4", "transition": "wipe", "transitionDuration": 20, "keepWhole": false },
-            { "before": "in2", "transition": "none", "transitionDuration": 15, "keepWhole": false, "easing": "linear" },
-        ]))
-    );
-    let after = flat_film(&next);
-    let marks: Vec<(String, Option<String>)> = after
+    assert!(next.node("seq").unwrap().params.is_empty());
+    let marks: Vec<(String, Option<String>)> = flat_film(&next)
         .transitions
         .iter()
         .map(|t| (t.kind.clone(), t.slot.as_ref().map(|s| s.port.clone())))
@@ -446,27 +431,26 @@ fn splits_in_place_inside_a_sequence_with_a_transition_keeping_each_cut_on_its_c
     assert_eq!(
         marks,
         [
+            ("fade".to_owned(), Some("in2".to_owned())),
             ("fade".to_owned(), Some("in3".to_owned())),
             ("wipe".to_owned(), Some("in4".to_owned())),
         ]
     );
-    assert_eq!(
-        by_start(&after),
-        [(0.0, 20.0), (20.0, 60.0), (50.0, 110.0), (90.0, 150.0)]
-    );
 }
 
 #[test]
-fn keeps_a_cuts_own_transition_when_rolling_it() {
+fn keeps_a_clips_own_transition_when_rolling_it() {
     let wf = sequence_of(
         &[("a", 60), ("b", 60)],
-        json!({ "cuts": [{ "before": "in2", "transition": "wipe", "transitionDuration": 10, "keepWhole": true }] }),
+        None,
+        &[(
+            "b",
+            json!({ "kind": "wipe", "durationInFrames": 10, "keepWhole": true }),
+        )],
     );
     let next = applied(&wf, |e, flat| {
         e.roll_cut(bar_of(flat, "a"), bar_of(flat, "b"), 12.0)
     });
-    let cuts = |w: &Workflow| w.node("seq").and_then(|n| n.params.get("cuts")).cloned();
-    assert_eq!(cuts(&next), cuts(&wf));
     let kinds: Vec<String> = flat_film(&next)
         .transitions
         .iter()
@@ -477,7 +461,7 @@ fn keeps_a_cuts_own_transition_when_rolling_it() {
 
 #[test]
 fn rolls_the_cut_between_two_clips_without_changing_the_total() {
-    let wf = sequence_of(&[("a", 60), ("b", 60)], json!({}));
+    let wf = sequence_of(&[("a", 60), ("b", 60)], None, &[]);
     let next = applied(&wf, |e, flat| {
         e.roll_cut(bar_of(flat, "a"), bar_of(flat, "b"), 12.0)
     });
@@ -492,7 +476,7 @@ fn rolls_the_cut_between_two_clips_without_changing_the_total() {
 
 #[test]
 fn rolls_through_the_neighbour_of_a_dragged_edge() {
-    let wf = sequence_of(&[("a", 60), ("b", 60)], json!({}));
+    let wf = sequence_of(&[("a", 60), ("b", 60)], None, &[]);
     let key = bar_of(&flat_film(&wf), "b").key.clone();
     let next = applied(&wf, |e, flat| {
         e.apply(
@@ -518,7 +502,7 @@ fn removes_the_nodes_that_only_feed_one_clip() {
             json!({ "startMs": 0, "durationMs": 1000 }),
         );
         g.node("b", TITLE, json!({ "clipDuration": 60 }));
-        g.node("seq", "timeline.sequence", json!({ "transition": "none" }));
+        g.sequence("seq", None);
         g.link("a", "trim")
             .link_ports("trim", "seq", "clip", "in1")
             .link_ports("b", "seq", "clip", "in2");
@@ -610,7 +594,7 @@ fn doesnt_trim_sound_effects() {
 
 #[test]
 fn moves_through_a_new_node_when_the_move_settings_node_is_gone() {
-    let wf = sequence_of(&[("a", 60), ("b", 60)], json!({}));
+    let wf = sequence_of(&[("a", 60), ("b", 60)], None, &[]);
     let flat = flat_film(&wf);
     let mut bar = bar_of(&flat, "b").clone();
     let owner = bar
@@ -649,7 +633,7 @@ fn three_film(kind: &str, preset: Value) -> Workflow {
             all.extend(more);
         }
         g.node("three", kind, params);
-        g.node("seq", "timeline.sequence", json!({ "transition": "none" }));
+        g.sequence("seq", None);
         g.link_ports("intro", "seq", "clip", "in1")
             .link_ports("three", "seq", "clip", "in2");
         "seq".into()
@@ -662,7 +646,10 @@ fn key_frames(flat: &FlatTimeline) -> Vec<f64> {
 
 #[test]
 fn shows_the_keys_of_a_keyframed_3d_element_where_they_play() {
-    let flat = flat_film(&three_film("fx.logo-3d", json!({ "motion": "keyframes" })));
+    let flat = flat_film(&three_film(
+        "fx.object-3d",
+        json!({ "motion": "keyframes" }),
+    ));
     let marks: Vec<(String, u32, f64)> = flat
         .camera_keys
         .iter()
@@ -676,13 +663,13 @@ fn shows_the_keys_of_a_keyframed_3d_element_where_they_play() {
 
 #[test]
 fn shows_no_keys_while_a_preset_move_drives_the_camera() {
-    let flat = flat_film(&three_film("fx.logo-3d", json!({ "motion": "spin" })));
+    let flat = flat_film(&three_film("fx.object-3d", json!({ "motion": "spin" })));
     assert_eq!(flat.camera_keys, []);
 }
 
 #[test]
 fn moves_a_key_by_the_drag_and_lands_where_it_was_dropped() {
-    let wf = three_film("fx.logo-3d", json!({ "motion": "keyframes" }));
+    let wf = three_film("fx.object-3d", json!({ "motion": "keyframes" }));
     let moved = applied(&wf, |e, flat| {
         e.move_camera_key(&flat.camera_keys[1], -15.0)
     });
@@ -695,8 +682,8 @@ fn shows_and_moves_the_keys_of_a_3d_screen_around_a_clip() {
         g.node("intro", TITLE, json!({ "title": "Hi", "clipDuration": 90 }));
         g.node(
             "screen",
-            "fx.screen-3d",
-            json!({ "move": "keyframes", "camera": camera_keys() }),
+            "camera.deviceFrame",
+            json!({ "angle": "three-d", "move": "keyframes", "camera": camera_keys() }),
         );
         g.link("intro", "screen");
         "screen".into()

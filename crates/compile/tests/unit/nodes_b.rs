@@ -103,7 +103,7 @@ fn names_export_files_stably_and_refuses_repeated_shapes() {
 }
 
 fn props_after(kind: &str, params: Value) -> Value {
-    let clip = zoomed(Some(&[(kind, params)]), &[], None, json!({ "speed": 1 }));
+    let clip = zoomed(Some(&[(kind, params)]), &[], None, Some(1.0));
     serde_json::to_value(recording_props(&clip)[0]).unwrap()
 }
 
@@ -175,8 +175,7 @@ fn asks_for_mark_text_only_where_marks_draw_text() {
 }
 
 fn styled(style: &[(&str, Value)], own: &[(&str, Value)]) -> Value {
-    serde_json::to_value(recording_props(&zoomed(Some(style), own, None, json!({ "speed": 1 })))[0])
-        .unwrap()
+    serde_json::to_value(recording_props(&zoomed(Some(style), own, None, Some(1.0)))[0]).unwrap()
 }
 
 #[test]
@@ -202,11 +201,11 @@ fn keeps_marks_in_chain_order_and_applies_style_steps_in_any_order() {
     let style = [
         ("cursor.style", json!({ "size": 2 })),
         (
-            "camera.backdrop",
-            json!({ "kind": "solid", "color": "#ff0000" }),
+            "camera.frame",
+            json!({ "background": "solid", "color": "#ff0000" }),
         ),
     ];
-    let zoom = [("camera.manualZoom", json!({ "atMs": 500 }))];
+    let zoom = [("camera.move", json!({ "atMs": 500 }))];
     let pick = |p: Value| {
         (
             p["pointer"]["scale"].clone(),
@@ -224,9 +223,9 @@ fn keeps_marks_in_chain_order_and_applies_style_steps_in_any_order() {
 fn keeps_zooms_and_marks_made_before_a_laptop_frame_on_its_screen() {
     let clip = zoomed(
         Some(&[("cursor.spotlight", json!({}))]),
-        &[("camera.manualZoom", json!({ "atMs": 500 }))],
+        &[("camera.move", json!({ "atMs": 500 }))],
         None,
-        json!({ "speed": 1 }),
+        Some(1.0),
     );
     let framed = compile_clip(
         "camera.deviceFrame",

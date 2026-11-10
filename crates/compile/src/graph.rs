@@ -663,6 +663,72 @@ fn file_need_issues(wf: &Workflow, compiled: &CompileResult) -> Vec<GraphIssue> 
         .collect()
 }
 
+fn first_join_port(wf: &Workflow, node_id: &str) -> Option<String> {
+    wf.edges
+        .iter()
+        .filter(|e| e.target == node_id)
+        .filter_map(|e| {
+            Some((
+                crate::ports::in_index(&e.target_handle)?,
+                e.target_handle.clone(),
+            ))
+        })
+        .min_by_key(|(i, _)| *i)
+        .map(|(_, port)| port)
+}
+
+fn transition_plays(wf: &Workflow, from: &str) -> bool {
+    let mut seen: HashSet<String> = HashSet::new();
+    let mut queue = vec![(from.to_owned(), crate::node::CLIP_PORT.to_owned())];
+    while let Some((node_id, handle)) = queue.pop() {
+        if !seen.insert(format!("{node_id}/{handle}")) {
+            continue;
+        }
+        for edge in wf
+            .edges
+            .iter()
+            .filter(|e| e.source == node_id && e.source_handle == handle)
+        {
+            let Some(target) = wf.node(&edge.target) else {
+                continue;
+            };
+            if target.kind == crate::nodes::timeline::SEQUENCE_TYPE {
+                if first_join_port(wf, &target.id).as_deref() != Some(edge.target_handle.as_str()) {
+                    return true;
+                }
+            } else if target.kind == crate::nodes::timeline::LAYERS_TYPE {
+                continue;
+            }
+            let Some(def) = node_def(&target.kind) else {
+                continue;
+            };
+            queue.extend(
+                def.outputs
+                    .iter()
+                    .filter(|(_, spec)| spec.kind == PortType::Clip)
+                    .map(|(id, _)| (target.id.clone(), (*id).to_owned())),
+            );
+        }
+    }
+    false
+}
+
+fn transition_issues(wf: &Workflow) -> Vec<GraphIssue> {
+    wf.nodes
+        .iter()
+        .filter(|n| {
+            n.kind == crate::nodes::transitions::TRANSITION_TYPE && n.disabled != Some(true)
+        })
+        .filter(|n| {
+            wf.edges
+                .iter()
+                .any(|e| e.source == n.id && e.source_handle == crate::node::CLIP_PORT)
+        })
+        .filter(|n| !transition_plays(wf, &n.id))
+        .map(|n| warning(&n.id, "Nothing comes before this clip"))
+        .collect()
+}
+
 pub fn validate_workflow(wf: &Workflow, compiled: Option<&CompileResult>) -> Vec<GraphIssue> {
     let owned;
     let compiled = if let Some(c) = compiled {
@@ -681,6 +747,7 @@ pub fn validate_workflow(wf: &Workflow, compiled: Option<&CompileResult>) -> Vec
         skipped_source_issues(wf),
         file_need_issues(wf, compiled),
         value_issues(wf, compiled),
+        transition_issues(wf),
     ]
     .into_iter()
     .flatten()

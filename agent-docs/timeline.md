@@ -31,6 +31,7 @@ How the compiled spec becomes bars, how Timeline drags write back into the nodes
 
 - **`flatten_spec` turns the compiled spec into bars on lanes (`pack_lanes`, greedy packing in drawing order), audio bars on lanes per role (`pack_audio`), transitions, action marks, camera key marks and the hits and cuts the sounds use**, mapping frames through trims, loops and speed remaps, with each bar's local frame at every timeline frame for filmstrips and keys.
 - **Edits never touch the spec.** Compile records `handles` on items (`EditHandles`, each a `ParamRef` naming the setting a drag edits), and container children carry a `slot` (container node + port).
+  - A setting inside a kind group's object is named `kind/prop`, which `param_value` and `put_param` read and write ([nodes.md](nodes.md), Kind groups).
 
 ### Edits
 
@@ -39,7 +40,7 @@ How the compiled spec becomes bars, how Timeline drags write back into the nodes
 - **A drag is a gesture** (`begin_gesture` and `end_gesture` around it in `timeline_canvas.cc`); how a gesture's moves replace each other is in [document.md](document.md), Edits.
 - **Every handle has a round-trip test in `timeline_edits.rs`; add one when a node gains a handle.**
 - **Removing clips closes the gaps and splitting shifts ports up** (renumbering, [nodes.md](nodes.md), Growing inputs).
-- **`splitBar` splits inside any Sequence** (`split_in_sequence`), shifting later ports and cuts by one and, when the Sequence has a transition, joining the halves with a plain cut.
+- **`splitBar` splits inside any Sequence** (`split_in_sequence`), shifting later ports by one; the new half has no `enter`, so the halves join with a plain cut unless the Sequence has a `transition` input ([film.md](film.md), Transitions).
 - **A clip outside a Sequence is split into a new Sequence** (`split_with_new_sequence`).
 
 ### Keyframes

@@ -12,9 +12,8 @@ const ELEMENT_FILES = [
   "elements/background/shapes-3d.tsx",
   "elements/background/solid.tsx",
   "elements/background/starburst.tsx",
-  "elements/background/video-loop.tsx",
   "elements/device/screen-3d.tsx",
-  "elements/effect/mosaic/index.tsx",
+  "elements/effect/redact/index.tsx",
   "elements/media/image.tsx",
   "elements/media/video.tsx",
   "elements/overlay/callout.tsx",
@@ -76,9 +75,6 @@ const ALLOWED: Record<string, Record<string, string>> = {
     "rgba(255,255,255,0.9)": "window top highlight",
   },
   "elements/overlay/captions.tsx": { "rgba(0,0,0,0.55)": "caption text shadow" },
-  "core/still.tsx": {
-    "rgba(0,0,0,${props.shadow})": "cut-out screenshot shadow at the Shadow setting",
-  },
   "core/placeholder.tsx": {
     "rgba(255,255,255,0.05)": "empty clip sweep, never in a finished film",
     "rgba(255,255,255,0.18)": "empty clip border, never in a finished film",

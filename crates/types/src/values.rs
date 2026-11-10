@@ -5,7 +5,7 @@ use specta::Type;
 
 use crate::actions::{ActionLog, Bounds, Viewport};
 use crate::terminal::{TerminalSessionValue, TerminalTheme};
-use crate::timeline::{AudioItem, TimelineTrack};
+use crate::timeline::{AudioItem, TimelineTrack, TransitionRef};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -142,6 +142,7 @@ pub enum MediaKind {
     Video,
     Audio,
     Image,
+    Animation,
     #[serde(rename = "terminal-take")]
     TerminalTake,
 }
@@ -171,6 +172,8 @@ pub struct ClipValue {
     pub audio: Vec<AudioItem>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub recording: Option<TaggedRecording>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub enter: Option<TransitionRef>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
@@ -299,6 +302,7 @@ pub enum CompileValue {
     Clip(ClipValue),
     Audio(AudioValue),
     Captions(CaptionsValue),
+    Transition(TransitionRef),
 }
 
 impl CompileValue {
@@ -315,6 +319,14 @@ impl CompileValue {
             Self::Clip(_) => PortType::Clip,
             Self::Audio(_) => PortType::Audio,
             Self::Captions(_) => PortType::Captions,
+            Self::Transition(_) => PortType::Transition,
+        }
+    }
+
+    pub const fn as_transition(&self) -> Option<&TransitionRef> {
+        match self {
+            Self::Transition(transition) => Some(transition),
+            _ => None,
         }
     }
 

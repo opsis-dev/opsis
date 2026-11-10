@@ -385,36 +385,6 @@ export type Captions = {
 	unspokenOpacity: number,
 };
 
-export type CapturedVideoCamera = {
-	at: number,
-	duration: number,
-	zoom: number,
-	x: number,
-	y: number,
-};
-
-export type CapturedVideoEntrance = "fade" | "none";
-
-export type CapturedVideoFit = "cover" | "contain";
-
-export type CapturedVideo = {
-	src: string,
-	cropTop: number,
-	cropRight: number,
-	cropBottom: number,
-	cropLeft: number,
-	fit: CapturedVideoFit,
-	backdropColor: string,
-	entrance: CapturedVideoEntrance,
-	radius: number,
-	trimBefore: number,
-	audio: boolean,
-	theme: Theme,
-	camera: CapturedVideoCamera[],
-	speed: number,
-	sourceAspect?: number,
-};
-
 export type Card3d = {
 	src: string,
 	cornerRadius: number,
@@ -754,58 +724,6 @@ export type CursorSample = {
 
 export type CursorVariant = "arrow" | "pointer";
 
-export type DataStoryBarData = {
-	label: string,
-	value: number,
-	delta?: string,
-	color?: string,
-};
-
-export type DataStoryMetric = {
-	label: string,
-	value: number,
-	delta: string,
-	trend: (number)[],
-	suffix?: string,
-	prefix?: string,
-};
-
-export type DataStoryStep = {
-	title: string,
-	description: string,
-};
-
-export type DataStory = {
-	title: string,
-	subtitle: string,
-	barData: DataStoryBarData[],
-	metrics: DataStoryMetric[],
-	steps: DataStoryStep[],
-	chartTitle: string,
-	metricsTitle: string,
-	timelineTitle: string,
-	insight: string,
-	insightEyebrow: string,
-	ctaTitle: string,
-	ctaLabel: string,
-	theme: Theme,
-	accentColor: string,
-	dataColor: string,
-	timelineColor: string,
-	backgroundColor: string,
-	showScale: boolean,
-	highlightBar: string,
-	chartSubtitle: string,
-	numberFormat: NumberFormat,
-	textSize: number,
-	logoSrc: string,
-	ctaUrl: string,
-	ctaSubtitle: string,
-	eyebrowCaps: boolean,
-	glow: number,
-	fontFamily: string,
-};
-
 export type Design = {
 	width: number,
 	height: number,
@@ -813,14 +731,9 @@ export type Design = {
 };
 
 export type DeviceMockupZoom = {
-	src: string,
-	title: string,
-	subtitle: string,
-	eyebrow: string,
 	device: MockupDevice,
 	backgroundColor: string,
 	accentColor: string,
-	textColor: string,
 	deviceColor: string,
 	deviceEdgeColor: string,
 	bezelColor: string,
@@ -831,19 +744,12 @@ export type DeviceMockupZoom = {
 	baseGradient: string,
 	secondAccent: string,
 	thirdAccent: string,
-	screenColor: string,
-	screenTextColor: string,
-	screenMutedColor: string,
 	backgroundTint: string,
 	shadow: number,
 	glow: number,
 	showGrid: boolean,
 	pullBackFrom: number,
 	scale: number,
-	titleSize: number,
-	titleWeight: number,
-	subtitleSize: number,
-	fontFamily: string,
 };
 
 export type Direction = "from-left" | "from-right" | "from-top" | "from-bottom";
@@ -937,14 +843,14 @@ export type ElementRef = {
 
 export type ElementSettings = {
 	placeholder: PlaceholderProps,
-	still: StillProps,
+	"framed-image": FramedImageProps,
 	title: Title,
 	"kinetic-headline": KineticHeadline,
 	"lower-third": LowerThird,
 	callout: Callout,
 	captions: Captions,
 	image: Image,
-	mosaic: Mosaic,
+	redact: Redact,
 	lottie: Lottie,
 	video: Video,
 	solid: Solid,
@@ -953,7 +859,6 @@ export type ElementSettings = {
 	starburst: Starburst,
 	paper: Paper,
 	backdrop: StudioBackdrop,
-	"video-loop": VideoLoop,
 	"light-leak": LightLeak,
 	"logo-3d": Logo3d,
 	"card-3d": Card3d,
@@ -969,20 +874,15 @@ export type ElementSettings = {
 	iris: NoSettings,
 	"soft-blur-in": SoftBlurIn,
 	typewriter: Typewriter,
-	"shimmer-sweep": ShimmerSweep,
 	"matrix-decode": MatrixDecode,
 	"slot-machine-roll": SlotMachineRoll,
 	"staggered-fade-up": StaggeredFadeUp,
-	"kinetic-center-build": KineticCenterBuild,
 	"mask-reveal-up": MaskRevealUp,
 	"tracking-in": TrackingIn,
 	"word-push": WordPush,
 	"rgb-glitch-text": RgbGlitchText,
 	"gradient-scale-cut-text": GradientScaleCutText,
-	"strikethrough-replace": StrikethroughReplace,
 	"line-by-line-slide": LineByLineSlide,
-	"marker-highlight": MarkerHighlight,
-	"inline-highlight": InlineHighlight,
 	"ink-underline": InkUnderline,
 	"scribble-circle": ScribbleCircle,
 	"ink-arrow": InkArrow,
@@ -1031,11 +931,8 @@ export type ElementSettings = {
 	"signup-flow": SignupFlow,
 	"ai-prompt-flow": AiPromptFlow,
 	"command-menu": CommandMenu,
-	"release-teaser": ReleaseTeaser,
-	"launch-anything": LaunchAnything,
 	"laptop-frame": LaptopFrame,
 	"phone-frame": PhoneFrame,
-	"captured-video": CapturedVideo,
 	"announce-title": AnnounceTitle,
 	"punch-lines": PunchLines,
 	"text-highlight": TextHighlight,
@@ -1055,7 +952,8 @@ export type ElementSettings = {
 	"comparison-bars": ComparisonBars,
 	"bar-chart-race": BarChartRace,
 	"gauge-dial": GaugeDial,
-	"data-story": DataStory,
+	"steps-timeline": StepsTimeline,
+	"logo-wipe": LogoWipe,
 	"logo-reveal": LogoReveal,
 	"pricing-card": PricingCard,
 	"comparison-table": ComparisonTable,
@@ -1100,11 +998,11 @@ export type EndCard = {
 	buttonArrow: boolean,
 };
 
-export type Entrance = "rise" | "fade" | "blur" | "scale" | "none";
+export type Entrance = "rise" | "fade" | "blur" | "scale" | "none" | "soft-blur" | "typewriter" | "fade-up" | "word-push" | "mask-reveal" | "tracking" | "glitch" | "decode" | "line-by-line" | "headline" | "handwriting" | "neon" | "scale-cut";
 
 export type FadeCurve = "tri" | "qsin" | "exp" | "log";
 
-export type FieldWidget = "action" | "asset" | "backdrop" | "boxes" | "camera" | "code" | "color" | "cut" | "datetime" | "envelope" | "font" | "gradient" | "keys" | "loudness" | "marker" | "marks" | "multiselect" | "music" | "offsets" | "port" | "quality" | "sound" | "spot" | "target" | "terminal-theme" | "textarea" | "theme" | "timezone" | "transition" | "variable";
+export type FieldWidget = "action" | "asset" | "boxes" | "camera" | "code" | "color" | "datetime" | "envelope" | "font" | "gradient" | "keys" | "loudness" | "marker" | "marks" | "multiselect" | "music" | "offsets" | "quality" | "sound" | "spot" | "target" | "terminal-theme" | "textarea" | "theme" | "timezone" | "variable";
 
 export type FileTreeReveal = {
 	nodes: string[],
@@ -1175,6 +1073,25 @@ export type FootageChain = {
 };
 
 export type FrameTheme = "light" | "dark";
+
+export type FramedImageProps = {
+	src: string,
+	x: number,
+	y: number,
+	width: number,
+	height: number,
+	window?: WindowStyle,
+	theme?: FrameTheme,
+	device?: RecordingDevice,
+	radius: number,
+	shadowDrop: number,
+	shadowSoftness: number,
+	shadowOpacity: number,
+	shadowColor: string,
+	background: string,
+	backgroundImage: string,
+	tilt?: ImageTilt,
+};
 
 export type FrostedGlassWipe = {
 	blur: number,
@@ -1385,7 +1302,14 @@ export type HeroLaunch = {
 
 export type HighlightLook = "clean" | "box" | "circle" | "underline" | "marker";
 
-export type HighlightPreset = "logo-wipe" | "marker" | "color" | "underline" | "strikethrough" | "shimmer";
+export type HighlightPreset = "marker" | "color" | "underline" | "strikethrough" | "shimmer";
+
+export type ImageTilt = {
+	turn: number,
+	tilt: number,
+	lean: number,
+	perspective: number,
+};
 
 export type Image = {
 	src: string,
@@ -1431,22 +1355,6 @@ export type InkUnderline = {
 	wobble: number,
 	angle: number,
 	opacity: number,
-};
-
-export type InlineHighlight = {
-	before: string,
-	highlight: string,
-	after: string,
-	baseColor: string,
-	highlightColor: string,
-	fontSize: number,
-	fontWeight: FontWeight,
-	background: string,
-	fontFamily: string,
-	speed: number,
-	changeStart: number,
-	changeEnd: number,
-	letterSpacing: number,
 };
 
 export type ItemBase = {
@@ -1537,21 +1445,6 @@ export type Keystroke = {
 	roundness: number,
 };
 
-export type KineticCenterBuild = {
-	text: string,
-	entryOffset: number,
-	fontSize: number,
-	color: string,
-	fontWeight: FontWeight,
-	background: string,
-	fontFamily: string,
-	speed: number,
-	wordGap: number,
-	wordTime: number,
-	entryBlur: number,
-	letterSpacing: number,
-};
-
 export type KineticHeadline = {
 	text: string,
 	color: string,
@@ -1587,7 +1480,6 @@ export type LaptopEntrance = "rise" | "open" | "none";
 export type LaptopFinale = "none" | "zoom-to-screen";
 
 export type LaptopFrame = {
-	screenSrc: string,
 	entrance: LaptopEntrance,
 	finale: LaptopFinale,
 	notchLabel: string,
@@ -1610,85 +1502,6 @@ export type LaptopFrame = {
 	zoomLength: number,
 	floatPeriod: number,
 	notchLabelSize: number,
-};
-
-export type LaunchAnythingLogoImage = {
-	image: string,
-};
-
-export type LaunchAnythingStat = {
-	label: string,
-	value: string,
-};
-
-export type LaunchAnything = {
-	opening: string,
-	subject: string,
-	brandUrl: string,
-	accentColor: string,
-	copyReady: string,
-	copyNext: string,
-	copyAction: string,
-	copyProof: string,
-	copyIndustry: string,
-	copyPromise: string,
-	copyLaunch: string,
-	copyShoppers: string,
-	copyShopName: string,
-	copyShopHeadline: string,
-	copyShopDetail: string,
-	copyShopAction: string,
-	copyBuilder: string,
-	copyBuilderPrompt: string,
-	copyTrading: string,
-	copyLoyalty: string,
-	copyLoyaltyPayoff: string,
-	copyIntegration: string,
-	copyConnections: string,
-	copyIntegrations: string[],
-	screenDashboard: string,
-	screenShoppers: string,
-	screenExchange: string,
-	screenBuilder: string,
-	screenTrading: string,
-	screenLoyalty: string,
-	screenIntegrations: string,
-	photoDesk: string,
-	photoHorizon: string,
-	photoRocket: string,
-	photoEarth: string,
-	logoImages: LaunchAnythingLogoImage[],
-	logoSrc: string,
-	music: string,
-	musicVolume: number,
-	fontFamily: string,
-	nightColor: string,
-	paperColor: string,
-	lightTextColor: string,
-	inkColor: string,
-	sageColor: string,
-	openingShimmer: number,
-	openingSize: number,
-	headlineWeight: number,
-	textSize: number,
-	photoDimming: number,
-	logoSize: number,
-	copyAppName: string,
-	copyDashboardMenu: string[],
-	copyDashboard: string,
-	copyDashboardPeriod: string,
-	copyDashboardNote: string,
-	dashboardStats: LaunchAnythingStat[],
-	copyMomentum: string,
-	copyActivityTitle: string,
-	dashboardActivity: string[],
-	copyShopNote: string,
-	copyReviewTitle: string,
-	copyReviewProject: string,
-	copyReviewButtons: string[],
-	reviewRows: LaunchAnythingStat[],
-	copyIdeasCard: string,
-	copyIdeasNote: string,
 };
 
 export type LegendValue = "percent" | "value";
@@ -1917,6 +1730,32 @@ export type LogoWall = {
 	startBrightness: number,
 };
 
+export type LogoWipe = {
+	wordmark: string,
+	logoSrc: string,
+	baseColor: string,
+	accentColor: string,
+	highlightedTextColor: string,
+	startAt: number,
+	drawDuration: number,
+	logoScale: number,
+	spinTurns: number,
+	holdDuration: number,
+	rushDuration: number,
+	rushScale: number,
+	rushDrift: number,
+	swingOut: number,
+	coverColor: string,
+	fontSize: number,
+	fontWeight: FontWeight,
+	theme: Theme,
+	background: string,
+	fontFamily: string,
+	speed: number,
+	letterSpacing: number,
+	markGap: number,
+};
+
 export type Lottie = {
 	src: string,
 	loop: boolean,
@@ -1945,26 +1784,6 @@ export type LowerThird = {
 	titleWeight: number,
 	subtitleSize: number,
 	subtitleOpacity: number,
-};
-
-export type MarkLook = "underline" | "circle" | "box" | "marker" | "crossed-off";
-
-export type MarkerHighlight = {
-	before: string,
-	highlight: string,
-	after: string,
-	markerColor: string,
-	baseColor: string,
-	highlightedTextColor: string,
-	fontSize: number,
-	fontWeight: FontWeight,
-	background: string,
-	fontFamily: string,
-	speed: number,
-	markerAt: number,
-	markerHeight: number,
-	x: number,
-	y: number,
 };
 
 export type MaskReveal = "left" | "right" | "up" | "down" | "none";
@@ -2005,7 +1824,7 @@ export type MatrixDecode = {
 	letterSpacing: number,
 };
 
-export type MediaKind = "video" | "audio" | "image" | "terminal-take";
+export type MediaKind = "video" | "audio" | "image" | "animation" | "terminal-take";
 
 export type MenuIcon = "search" | "settings" | "user" | "file";
 
@@ -2066,19 +1885,6 @@ export type ModelMotion = "spin" | "orbit" | "swing" | "float" | "still" | "keyf
 
 export type MorphShape = "circle" | "square" | "squircle" | "triangle" | "diamond" | "blob";
 
-export type MosaicBox = {
-	x: number,
-	y: number,
-	width: number,
-	height: number,
-};
-
-export type Mosaic = {
-	boxes: MosaicBox[],
-	frameMs: number,
-	blockSize: number,
-};
-
 export type Motion = "spin" | "tilt-in" | "float" | "orbit" | "swing" | "still" | "keyframes";
 
 export type MultiDeviceLineup = {
@@ -2129,7 +1935,7 @@ export type NodeLook = {
 	morph?: string,
 };
 
-export type NodeMotion = "blur-swap" | "bob" | "caret" | "clock-wipe" | "collapse" | "dissolve" | "draw" | "fade-through" | "flare" | "flicker" | "flip" | "glitch" | "grow" | "hard-cut" | "iris" | "march" | "mask-up" | "nudge-down" | "nudge-right" | "nudge-up" | "open" | "pan" | "press" | "push" | "rack-focus" | "ripple" | "rise" | "roll" | "shimmer" | "shutter" | "slide-through" | "smear" | "snap" | "stretch" | "track" | "tracking" | "turn" | "turn-over" | "twist" | "whip" | "wipe-reveal" | "zoom-blur" | "zoom-through";
+export type NodeMotion = "blur-swap" | "bob" | "collapse" | "draw" | "fade-through" | "grow" | "hard-cut" | "march" | "nudge-down" | "nudge-right" | "nudge-up" | "pan" | "press" | "ripple" | "roll" | "smear" | "stretch" | "turn" | "turn-over" | "twist";
 
 export type Noise = {
 	color1: string,
@@ -2238,7 +2044,6 @@ export type PhoneEntrance = "rise" | "rotate-in" | "float";
 export type PhoneFrame = {
 	variant: PhoneVariant,
 	entrance: PhoneEntrance,
-	screenSrc: string,
 	bezelColor: string,
 	screenColor: string,
 	radius: number,
@@ -2255,7 +2060,7 @@ export type PhoneFrame = {
 	floatPeriod: number,
 };
 
-export type PhoneVariant = "flat" | "tilt" | "showcase";
+export type PhoneVariant = "flat" | "tilt";
 
 export type PhotoShape = "16:9" | "4:3" | "1:1" | "3:4";
 
@@ -2386,6 +2191,8 @@ export type RadialBurst = {
 	y: number,
 };
 
+export type RecordingDevice = "laptop" | "phone";
+
 export type RecordingProps = {
 	log: ActionLog,
 	name: string,
@@ -2407,28 +2214,26 @@ export type Rect = {
 	h: number,
 };
 
-export type ReframeMode = "follow" | "center" | "fit";
-
-export type ReleaseTeaser = {
-	brandName: string,
-	release: string,
-	tagline: string,
-	accentColor: string,
-	reducedMotion: boolean,
-	statements: string[],
-	logoSrc: string,
-	themeBackground: string,
-	themeSurface: string,
-	themeForeground: string,
-	themeMuted: string,
-	lightIntensity: number,
-	music: string,
-	musicVolume: number,
-	fontFamily: string,
-	textSize: number,
-	statementWeight: number,
-	logoSize: number,
+export type RedactBox = {
+	x: number,
+	y: number,
+	width: number,
+	height: number,
 };
+
+export type RedactStyle = "pixelate" | "blur" | "solid";
+
+export type Redact = {
+	boxes: RedactBox[],
+	frameMs: number,
+	style: RedactStyle,
+	blockSize: number,
+	blur: number,
+	color: string,
+	radius: number,
+};
+
+export type ReframeMode = "follow" | "center" | "fit";
 
 export type RgbGlitchText = {
 	text: string,
@@ -2654,28 +2459,13 @@ export type Shapes3d = {
 	kinds: ShapeKind[],
 };
 
-export type ShimmerSweep = {
-	text: string,
-	baseColor: string,
-	shineColor: string,
-	fontSize: number,
-	fontWeight: FontWeight,
-	background: string,
-	fontFamily: string,
-	speed: number,
-	sweeps: number,
-	bandAngle: number,
-	bandWidth: number,
-	letterSpacing: number,
-};
-
 export type ShotProps = {
 	style: CameraStyle,
 	backdrop: string,
 	backdropChosen?: boolean,
 	inDevice?: boolean,
+	device?: RecordingDevice,
 	windowFit?: number,
-	ground?: string,
 	radius?: number,
 	rimGlow?: number,
 	liftColours?: boolean,
@@ -2887,45 +2677,18 @@ export type StatusCycle = {
 	introZoom: number,
 };
 
-export type StillAlign = "top" | "middle";
-
-export type StillLook = "window" | "cutout" | "bleed";
-
-export type StillProps = {
-	src: string,
-	look: StillLook,
-	backdrop: string,
-	shot?: StillShot,
-	fit: number,
-	shadow: number,
-	frame?: WindowStyle,
-	pushIn: number,
-	pushInFrames: number,
-	align: StillAlign,
-};
-
-export type StillShot = {
-	width: number,
-	height: number,
-	scale: number,
-	body?: Bounds,
-};
-
-export type StrikethroughReplace = {
-	from: string,
-	to: string,
-	lineColor: string,
-	fontSize: number,
-	color: string,
-	fontWeight: FontWeight,
-	background: string,
-	fontFamily: string,
+export type StepsTimeline = {
+	title: string,
+	eyebrow: string,
+	steps: TimelineStep[],
+	theme: Theme,
+	accentColor: string,
+	backgroundColor: string,
 	speed: number,
-	strikeEnd: number,
-	swapLength: number,
-	letterSpacing: number,
-	thickness?: number,
-	toColor: string,
+	textSize: number,
+	eyebrowCaps: boolean,
+	glow: number,
+	fontFamily: string,
 };
 
 export type StudioBackdrop = {
@@ -3048,39 +2811,35 @@ export type Text3d = {
 export type TextAlign = "center" | "left" | "right";
 
 export type TextHighlight = {
+	preset: HighlightPreset,
 	before: string,
 	highlight: string,
 	after: string,
-	preset: HighlightPreset,
+	replaceWith: string,
 	baseColor: string,
 	accentColor: string,
 	highlightedTextColor: string,
-	replaceWith: string,
 	startAt: number,
 	drawDuration: number,
+	swapLength: number,
 	thickness: number,
+	markerOpacity: number,
+	markerHeight: number,
 	shineColor: string,
-	logoSrc: string,
-	logoScale: number,
-	spinTurns: number,
-	holdDuration: number,
-	rushDuration: number,
-	rushScale: number,
-	rushDrift: number,
-	swingOut: number,
-	coverColor: string,
+	shineWidth: number,
+	sweeps: number,
+	bandAngle: number,
 	fontSize: number,
 	fontWeight: FontWeight,
 	theme: Theme,
 	background: string,
 	fontFamily: string,
 	speed: number,
+	x: number,
+	y: number,
 	letterSpacing: number,
 	lineHeight: number,
 	textWidth: number,
-	markerOpacity: number,
-	shineWidth: number,
-	markGap: number,
 };
 
 export type TextMaskVideo = {
@@ -3137,6 +2896,11 @@ export type TimelineSpec = {
 	mix?: MasterStem,
 };
 
+export type TimelineStep = {
+	title: string,
+	description: string,
+};
+
 export type TimelineTrack = {
 	id: string,
 	items: TimelineItem[],
@@ -3154,9 +2918,6 @@ export type Title = {
 	eyebrow: string,
 	title: string,
 	subtitle: string,
-	mark: string,
-	markLook: MarkLook,
-	markColor: string,
 	align: TitleAlign,
 	entrance: Entrance,
 	color: string,
@@ -3172,10 +2933,6 @@ export type Title = {
 	subtitleSize: number,
 	letterSpacing: number,
 	lineStagger: number,
-	markThickness: number,
-	markerOpacity: number,
-	markSeed: number,
-	markDrawTime: number,
 	fadeOut: number,
 	subtitleColor: string,
 };
@@ -3264,15 +3021,6 @@ export type VhsFilter = {
 	scanlines: number,
 };
 
-export type VideoLoop = {
-	src: string,
-	dim: number,
-	dimColor: string,
-	fit: Fit,
-	playbackRate: number,
-	trimBeforeMs: number,
-};
-
 export type Video = {
 	src: string,
 	fit: Fit,
@@ -3282,6 +3030,8 @@ export type Video = {
 	playbackRate: number,
 	trimBeforeMs: number,
 	background: string,
+	dim: number,
+	dimColor: string,
 };
 
 export type Viewport = {

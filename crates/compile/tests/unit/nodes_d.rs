@@ -5,8 +5,8 @@ use opsis_compile::node::CardInputs;
 use opsis_compile::nodes::timeline::branch_port;
 use opsis_compile::vars::Vars;
 use opsis_types::cards::Tone;
-use opsis_types::timeline::TimelineItem;
-use opsis_types::values::{BrowserAction, ClipValue, CompileValue};
+use opsis_types::timeline::TransitionRef;
+use opsis_types::values::{BrowserAction, ClipValue, CompileValue, PortValues};
 use serde_json::{Map, Value, json};
 
 use crate::helpers::{
@@ -138,10 +138,6 @@ fn checks_screenshot_and_sign_in_settings() {
         .is_ok()
     );
     assert!(parse_params("capture.still", json!({ "region": "viewport" })).is_ok());
-    assert_eq!(
-        parse_params("capture.still", json!({ "durationMs": 0 })).unwrap_err(),
-        "Length must be at least 0.1 s"
-    );
     let problem = |params: Value| parse_params("browser.signIn", params).err();
     assert_eq!(
         problem(json!({ "url": " " })).as_deref(),
@@ -169,7 +165,7 @@ fn checks_screenshot_and_sign_in_settings() {
     assert_eq!(interpolated["url"], "https://app.example.com/login");
 }
 
-fn still(params: Value, image: Option<Value>) -> (Value, String, Map<String, Value>, u32) {
+fn still(image: Option<Value>) -> PortValues {
     let result = image.map(|i| {
         let mut img = json!({ "type": "image" });
         img.as_object_mut()
@@ -177,57 +173,24 @@ fn still(params: Value, image: Option<Value>) -> (Value, String, Map<String, Val
             .extend(i.as_object().unwrap().clone());
         node_result(json!({ "outputs": { "image": img } }))
     });
-    let mut out = compile_node_with("capture.still", params, json!({}), result.as_ref()).unwrap();
-    let image = serde_json::to_value(out.shift_remove("image")).unwrap();
-    let Some(CompileValue::Clip(clip)) = out.shift_remove("clip") else {
-        panic!("no clip")
-    };
-    match &clip.tracks[0].items[0] {
-        TimelineItem::Element {
-            component, props, ..
-        } => (
-            image,
-            component.clone(),
-            props.clone(),
-            clip.duration_in_frames,
-        ),
-        other => panic!("{other:?}"),
-    }
+    compile_node_with("capture.still", json!({}), json!({}), result.as_ref()).unwrap()
 }
 
 #[test]
-fn shows_a_placeholder_until_the_screenshot_is_taken_then_the_screenshot() {
-    let (image, component, _, frames) = still(json!({ "durationMs": 3000 }), None);
+fn gives_only_the_screenshot_once_it_is_taken() {
+    let before = still(None);
     assert_eq!(
-        (image, component.as_str(), frames),
-        (json!({ "type": "image", "src": null }), "placeholder", 90)
+        serde_json::to_value(&before).unwrap(),
+        json!({ "image": { "type": "image", "src": null } })
     );
-    let (_, component, props, _) = still(
-        json!({ "look": "cutout" }),
-        Some(json!({ "src": "project:shot.png", "width": 400, "height": 300, "scale": 2 })),
-    );
-    assert_eq!(component, "still");
+    let after = still(Some(
+        json!({ "src": "project:shot.png", "width": 400, "height": 300, "scale": 2 }),
+    ));
     assert_eq!(
-        (
-            props["src"].clone(),
-            props["look"].clone(),
-            props["shot"].clone()
-        ),
-        (
-            json!("project:shot.png"),
-            json!("cutout"),
-            json!({ "width": 400, "height": 300, "scale": 2.0 })
-        )
+        serde_json::to_value(&after["image"]).unwrap(),
+        json!({ "type": "image", "src": "project:shot.png", "width": 400, "height": 300, "scale": 2.0 })
     );
-    let (_, component, props, _) = still(json!({}), Some(json!({ "src": "project:shot.png" })));
-    assert_eq!(
-        (
-            component.as_str(),
-            props["src"].clone(),
-            props.get("shot").cloned().unwrap_or(Value::Null)
-        ),
-        ("still", json!("project:shot.png"), Value::Null)
-    );
+    assert!(!after.contains_key("clip"));
 }
 
 fn over(kind: &str, params: Value) -> ClipValue {
@@ -248,18 +211,33 @@ fn rounds_delays_and_trim_starts_to_whole_frames() {
     assert_eq!([from(10), from(1000)], [Some(0.0), Some(30.0)]);
 }
 
+fn transition(kind: &str, frames: u32, hold: bool) -> TransitionRef {
+    let mut t = json!({ "kind": kind, "durationInFrames": frames });
+    if hold {
+        t["hold"] = json!(true);
+    }
+    serde_json::from_value(t).unwrap()
+}
+
 #[test]
-fn counts_sequence_cuts() {
-    let cuts = json!([
-        { "before": "in3", "transition": "wipe", "transitionDuration": 50, "keepWhole": false },
-        { "before": "in5", "transition": "iris", "transitionDuration": 10, "keepWhole": false }
-    ]);
-    let context = || CardInputs {
-        connected: vec!["in1".into(), "in2".into(), "in3".into()],
+fn names_each_join_of_a_sequence_and_warns_when_one_covers_a_clip() {
+    let context = |own: TransitionRef| CardInputs {
+        connected: vec![
+            "in1".into(),
+            "in2".into(),
+            "in3".into(),
+            "transition".into(),
+        ],
         frames: [
             ("in1".to_owned(), 300),
             ("in2".to_owned(), 100),
             ("in3".to_owned(), 300),
+        ]
+        .into_iter()
+        .collect(),
+        enters: [
+            ("in3".to_owned(), own),
+            ("transition".to_owned(), transition("fade", 10, false)),
         ]
         .into_iter()
         .collect(),
@@ -269,26 +247,34 @@ fn counts_sequence_cuts() {
     assert_eq!(
         card_texts(
             "timeline.sequence",
-            json!({ "transitionDuration": 10, "cuts": cuts }),
-            context()
+            json!({}),
+            context(transition("wipe", 50, false))
         ),
         [
             "3 clips · 23 s",
-            "Fade · 0.33 s",
-            "1 cut uses its own transition",
+            "Fade, Wipe",
             "Covers 50% of a 3.33 s clip"
         ]
     );
-    let mut held = cuts[0].clone();
-    held["keepWhole"] = json!(true);
     assert!(
         !card_texts(
             "timeline.sequence",
-            json!({ "transitionDuration": 10, "cuts": [held] }),
-            context()
+            json!({}),
+            context(transition("wipe", 50, true))
         )
         .iter()
         .any(|t| t.starts_with("Covers"))
+    );
+    assert_eq!(
+        card_texts(
+            "timeline.sequence",
+            json!({}),
+            CardInputs {
+                connected: vec!["in1".into(), "in2".into(), "in3".into()],
+                ..CardInputs::default()
+            }
+        ),
+        ["3 clips", "2 joins cut"]
     );
 }
 

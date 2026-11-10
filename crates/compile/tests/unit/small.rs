@@ -287,7 +287,7 @@ fn reads_every_saved_output_kind_and_rejects_mismatched_ones() {
         "captions": { "type": "captions", "captions": [{ "text": "Hi", "startMs": 0, "endMs": 900 }] },
         "recording": {
             "type": "recording", "log": null, "durationMs": 5000, "nodeId": "record",
-            "edits": [{ "nodeId": "zoom", "type": "camera.manualZoom", "params": { "atMs": 500 } }],
+            "edits": [{ "nodeId": "zoom", "type": "camera.move", "params": { "atMs": 500 } }],
             "source": { "kind": "browser", "video": "project:r.mp4", "viewport": { "width": 1920, "height": 1080 } }
         }
     });
@@ -559,6 +559,17 @@ mod color_formats {
     use opsis_compile::color::{ColorFormat, Hsva, format_color, parse_color, rgb_of};
     use proptest::prelude::*;
 
+    #[test]
+    fn writes_oklch_precisely_enough_to_get_a_bright_green_back() {
+        let green = parse_color("#05f2ad").unwrap();
+        let text = format_color(green, ColorFormat::Oklch);
+        assert_eq!(text, "oklch(0.8509 0.1816 163.72)");
+        assert_eq!(
+            format_color(parse_color(&text).unwrap(), ColorFormat::Hex),
+            "#05f2ad"
+        );
+    }
+
     proptest! {
         #[test]
         fn a_formatted_colour_parses_back_to_the_same_colour(
@@ -575,7 +586,7 @@ mod color_formats {
             let back = parse_color(&text).expect("a colour it wrote");
             prop_assert!((back.a - a).abs() < 0.01, "{} alpha {} vs {}", text, back.a, a);
             let (want, got) = (rgb_of(&original).unwrap(), rgb_of(&text).unwrap());
-            let rounded = matches!(format, ColorFormat::Hsl | ColorFormat::Oklch);
+            let rounded = format == ColorFormat::Hsl;
             let tolerance = if rounded { 4.0 / 255.0 } else { 2.0 / 255.0 };
             prop_assert!((want.r - got.r).abs() <= tolerance
                 && (want.g - got.g).abs() <= tolerance

@@ -14,8 +14,7 @@ use crate::graph::upstream_of;
 use crate::ids::{Ids, node_id_prefix};
 use crate::limits::{MAX_SPEED, MAX_VOLUME, MIN_SPEED};
 use crate::node::NodeDef;
-use crate::nodes::timeline::Cut;
-use crate::nodes::transitions::NO_TRANSITION;
+use crate::nodes::timeline::SEQUENCE_TYPE;
 use crate::ports::{in_index, in_port};
 use crate::registry::{node_def, node_name};
 use crate::time::{frames_to_ms, ms_to_exact_frames, whole_frames};
@@ -24,7 +23,6 @@ use crate::timeline::flatten::{AudioBar, CameraKeyMark, ChainLink, FlatTimeline,
 
 pub const HALF_FRAME: f64 = 0.5;
 const CLIP_PORT: &str = "clip";
-const SEQUENCE_TYPE: &str = "timeline.sequence";
 const DELAY_TYPE: &str = "timeline.delay";
 const TRIM_TYPE: &str = "timeline.trim";
 const SPEED_TYPE: &str = "timeline.speed";
@@ -147,10 +145,43 @@ pub fn container_of(bar: &VideoBar) -> Option<&str> {
 }
 
 fn param_value(node: &WorkflowNode, param: &str) -> Option<Value> {
+    let Some((top, inner)) = param.split_once('/') else {
+        return node
+            .params
+            .get(param)
+            .cloned()
+            .or_else(|| node_def(&node.kind).and_then(|d| d.defaults().get(param).cloned()));
+    };
     node.params
-        .get(param)
+        .get(top)
+        .and_then(|object| object.get(inner))
         .cloned()
-        .or_else(|| node_def(&node.kind).and_then(|d| d.defaults().get(param).cloned()))
+        .or_else(|| {
+            node_def(&node.kind)?
+                .params
+                .field(top)?
+                .get("properties")?
+                .get(inner)?
+                .get("default")
+                .cloned()
+        })
+}
+
+fn put_param(node: &mut WorkflowNode, param: &str, value: Value) {
+    let Some((top, inner)) = param.split_once('/') else {
+        node.params.insert(param.to_owned(), value);
+        return;
+    };
+    let slot = node
+        .params
+        .entry(top.to_owned())
+        .or_insert_with(|| Value::Object(serde_json::Map::new()));
+    if !slot.is_object() {
+        *slot = Value::Object(serde_json::Map::new());
+    }
+    if let Some(object) = slot.as_object_mut() {
+        object.insert(inner.to_owned(), value);
+    }
 }
 
 fn parse_number(text: &str) -> Option<f64> {
@@ -243,7 +274,7 @@ fn write_param(wf: &mut Workflow, at: &ParamAt, value: f64) {
             Value::String(format_number_list(&parts))
         }
     };
-    node.params.insert(at.param.clone(), written);
+    put_param(node, &at.param, written);
 }
 
 const fn sign_of(sign: Sign) -> f64 {
@@ -728,23 +759,7 @@ impl TimelineEdits<'_> {
         renumber_family(&mut self.workflow, &container.id, &|i| {
             Some(if i <= port { i } else { i + 1 })
         });
-        let transition = param_value(container, "transition");
         let wf = &mut self.workflow;
-        if transition.as_ref().and_then(Value::as_str) != Some(NO_TRANSITION)
-            && let Some(node) = wf.nodes.iter_mut().find(|n| n.id == container.id)
-        {
-            let mut cut = serde_json::to_value(Cut::default()).unwrap_or_else(|_| json!({}));
-            cut["before"] = Value::String(next.to_owned());
-            cut["transition"] = Value::String(NO_TRANSITION.to_owned());
-            let mut cuts = node
-                .params
-                .get("cuts")
-                .and_then(Value::as_array)
-                .cloned()
-                .unwrap_or_default();
-            cuts.push(cut);
-            node.params.insert("cuts".to_owned(), Value::Array(cuts));
-        }
         wf.edges.extend(parts.feeds);
         wf.edges.push(clip_edge(
             &parts.head.id,
@@ -761,7 +776,7 @@ impl TimelineEdits<'_> {
     fn split_with_new_sequence(&mut self, edge: &WorkflowEdge, parts: SplitParts) {
         let join = self.new_node(
             SEQUENCE_TYPE,
-            values(&[("transition", json!(NO_TRANSITION))]),
+            serde_json::Map::new(),
             "Split",
             (&edge.source, &edge.target),
             2.0,
@@ -1136,27 +1151,6 @@ pub fn renumber_family(wf: &mut Workflow, node_id: &str, map: &dyn Fn(usize) -> 
             }
         })
         .collect();
-    let Some(node) = wf.nodes.iter_mut().find(|n| n.id == node_id) else {
-        return;
-    };
-    for (list, field) in family.refs {
-        let Some(Value::Array(items)) = node.params.get_mut(*list) else {
-            continue;
-        };
-        items.retain_mut(|item| {
-            let Some(port) = item.get(*field).and_then(Value::as_str) else {
-                return true;
-            };
-            match renamed(port) {
-                None => true,
-                Some(None) => false,
-                Some(Some(next)) => {
-                    item[*field] = Value::String(next);
-                    true
-                }
-            }
-        });
-    }
 }
 
 fn close_gaps(wf: &mut Workflow, node_id: &str) {

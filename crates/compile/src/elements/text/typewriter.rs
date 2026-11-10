@@ -1,5 +1,5 @@
 use opsis_macros::settings;
-use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::looks::NodeLook;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::{FontWeight, TextAlign};
@@ -73,6 +73,6 @@ pub fn definition() -> ElementMeta {
             120,
         )
         .authored_clock()
-        .look(NodeLook::of("lucide:text-cursor").moves(NodeMotion::Caret)),
+        .look(NodeLook::of("lucide:text-cursor")),
     )
 }

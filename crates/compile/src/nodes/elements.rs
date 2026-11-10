@@ -2,8 +2,7 @@ use opsis_macros::settings;
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::numbers;
 use opsis_types::timeline::{
-    AudioItem, AudioRole, CameraPath, EditHandles, ElementRef, GroupProps, ParamRef, ParamUnit,
-    SequencerProps, VisualEnvelope,
+    CameraPath, EditHandles, ElementRef, GroupProps, ParamRef, ParamUnit, VisualEnvelope,
 };
 use opsis_types::values::{ClipValue, CompileValue};
 use opsis_types::workflow::{PortType, WorkflowSettings};
@@ -12,9 +11,7 @@ use serde_json::{Map, Value, json};
 
 use crate::asset_ref::{kind_from_path, project_ref};
 use crate::card_rows::{file_row, frame_secs, quoted, sentence};
-use crate::clip::{
-    EMPTY_CLIP_FRAMES, ItemExtra, empty_clip, item_clip, scene_sequence, with_handles, wrap_clip,
-};
+use crate::clip::{ItemExtra, item_clip, with_handles, wrap_clip};
 use crate::elements::introspect::{
     frames_from_seconds, is_color_schema, map_leaves, widget_keys, widget_of,
 };
@@ -25,55 +22,20 @@ use crate::elements::{ElementCategory, ElementKind, ElementMeta, element_node_ty
 use crate::fonts::font_prop;
 use crate::gradient::{GradientKind, parse_gradient};
 use crate::limits::MAX_FRAMES;
-use crate::node::{
-    CLIP_PORT, CardCtx, Category, Ctx, NodeDef, Outputs, Phase, RowExt, outputs, port, row,
-};
+use crate::node::{CLIP_PORT, CardCtx, Category, Ctx, NodeDef, Phase, RowExt, outputs, port, row};
+use crate::nodes::groups::{group_node, grouped_elements, groups};
 use crate::params::{ParamSchema, Values, schema_of, whole_number};
-use crate::ports::{clip_family, connected_clips, in_index, scene_label};
 use crate::text::plural;
 
 const TEXT_KEYS: [&str; 9] = [
     "title", "text", "headline", "heading", "label", "name", "words", "quote", "message",
 ];
 const SHORT_ELEMENT_RATIO: f64 = 0.6;
-const CLIP_DURATION: &str = "clipDuration";
-const ENVELOPE: &str = "envelope";
+pub const CLIP_DURATION: &str = "clipDuration";
+pub const ENVELOPE: &str = "envelope";
 
 #[settings]
-struct EnvelopeField {
-    #[setting(
-        "Keyframes",
-        help = "Change opacity, position and size over time. Edit them here or on the timeline.",
-        widget = "envelope",
-        advanced
-    )]
-    envelope: VisualEnvelope,
-}
-
-#[settings(eq)]
-pub struct SceneBackground {
-    #[setting("Scene", default = "in1", widget = "port")]
-    pub scene: String,
-    #[setting("Colour", default = "#0b0b10", widget = "color")]
-    pub color: String,
-}
-
-#[settings]
-struct SequencerFields {
-    #[setting(
-        "Pause between scenes",
-        default = 1,
-        range(min = 0, max = 120),
-        step = 1,
-        unit = "frames",
-        help = "How long the stage stays empty between one scene leaving and the next landing."
-    )]
-    gap_frames: u32,
-    #[setting(
-        "Scene backgrounds",
-        help = "A colour behind a scene. It fades into the next scene's colour."
-    )]
-    backgrounds: Vec<SceneBackground>,
+pub struct EnvelopeField {
     #[setting(
         "Keyframes",
         help = "Change opacity, position and size over time. Edit them here or on the timeline.",
@@ -97,7 +59,7 @@ const fn node_category(category: ElementCategory) -> Category {
     }
 }
 
-fn properties_of(schema: &Value) -> Map<String, Value> {
+pub fn properties_of(schema: &Value) -> Map<String, Value> {
     schema
         .get("properties")
         .and_then(Value::as_object)
@@ -114,7 +76,7 @@ pub fn extended_schema(base: &ParamSchema, extra: Map<String, Value>) -> ParamSc
     ParamSchema::new(schema)
 }
 
-fn clip_duration_field(meta: &ElementMeta) -> Value {
+pub fn clip_duration_field(meta: &ElementMeta) -> Value {
     let wrapper = meta.kind == ElementKind::Wrapper;
     let fits = fits_its_animation(meta);
     let open = wrapper || fits;
@@ -184,42 +146,7 @@ pub fn element_props(meta: &ElementMeta, params: &Values) -> Values {
     props
 }
 
-pub fn sound_volume_key(sound_key: &str) -> String {
-    format!("{sound_key}Volume")
-}
-
-fn element_sounds(
-    meta: &ElementMeta,
-    node_id: &str,
-    props: &mut Values,
-    frames: u32,
-) -> Vec<AudioItem> {
-    widget_keys(&meta.schema, "sound")
-        .into_iter()
-        .filter_map(|key| {
-            let volume_key = sound_volume_key(&key);
-            let src = props.remove(&key);
-            let volume = props.remove(&volume_key).and_then(|v| v.as_f64());
-            let src = src
-                .as_ref()
-                .and_then(Value::as_str)
-                .filter(|s| !s.is_empty())?;
-            let mut item = AudioItem::new(format!("{node_id}:{key}"), project_ref(src), 0);
-            item.duration_in_frames = Some(frames);
-            item.volume = Some(volume.unwrap_or(1.0));
-            item.node_id = Some(node_id.to_owned());
-            item.channel = Some(node_id.to_owned());
-            item.role = Some(AudioRole::Music);
-            item.handles = Some(EditHandles {
-                volume: Some(ParamRef::new(node_id, volume_key, ParamUnit::Number)),
-                ..EditHandles::default()
-            });
-            Some(item)
-        })
-        .collect()
-}
-
-fn active_camera(params: &Values) -> Option<CameraPath> {
+pub fn active_camera(params: &Values) -> Option<CameraPath> {
     let path: CameraPath = serde_json::from_value(params.get("camera")?.clone()).ok()?;
     if path.keys.is_empty() {
         return None;
@@ -249,7 +176,7 @@ fn trim_end_handles(node_id: &str) -> EditHandles {
     }
 }
 
-fn compile_element(
+pub fn compile_element(
     meta: &ElementMeta,
     node_id: &str,
     values: &Values,
@@ -269,11 +196,10 @@ fn compile_element(
             } else {
                 animation_length(meta, &params, fps)
             };
-            let audio = element_sounds(meta, node_id, &mut props, frames);
             let extra = ItemExtra {
                 handles: Some(handles),
                 envelope: Some(envelope),
-                audio,
+                audio: Vec::new(),
                 camera,
                 design: meta.design.clone(),
                 recording: None,
@@ -306,7 +232,7 @@ fn compile_element(
     }
 }
 
-fn shown(field: &Value, params: &Values) -> bool {
+pub fn shown(field: &Value, params: &Values) -> bool {
     let Some(show_if) = field.get("x-show-if").and_then(Value::as_object) else {
         return true;
     };
@@ -434,7 +360,7 @@ fn duration_row(meta: &ElementMeta, params: &Values, fps: u32, clip_connected: b
     )
 }
 
-fn element_card(
+pub fn element_card(
     meta: &ElementMeta,
     params: &Values,
     fps: u32,
@@ -523,128 +449,15 @@ fn element_node(meta: &'static ElementMeta) -> NodeDef {
     def
 }
 
-fn sequencer_card(ctx: &CardCtx<'_, Values>) -> Vec<Option<CardRow>> {
-    let mut ports: Vec<(usize, &str)> = ctx
-        .inputs
-        .connected
-        .iter()
-        .filter_map(|c| Some((in_index(c)?, c.as_str())))
-        .collect();
-    ports.sort_unstable();
-    ports.dedup();
-    let ports: Vec<&str> = ports.into_iter().map(|(_, p)| p).collect();
-    let items: Vec<usize> = ports
-        .iter()
-        .map(|p| ctx.inputs.items.get(*p).copied().unwrap_or(1))
-        .collect();
-    let gap = ctx
-        .values
-        .get("gapFrames")
-        .and_then(|gap| whole_number(Some(gap)))
-        .unwrap_or(0);
-    vec![
-        Some(
-            row(
-                Icon::Clapperboard,
-                plural(numbers::float(ports.len()), "scene"),
-            )
-            .warn_if(ports.is_empty()),
-        ),
-        items.iter().any(|n| *n > 1).then(|| {
-            let shown: Vec<String> = items.iter().map(|n| (*n).to_string()).collect();
-            row(
-                Icon::Layers,
-                format!("Items per scene: {}", shown.join(" · ")),
-            )
-        }),
-        (gap > 0).then(|| {
-            row(
-                Icon::Timer,
-                format!("{} between scenes", frame_secs(gap, ctx.fps())),
-            )
-        }),
-        ctx.inputs
-            .clip_frames
-            .filter(|f| *f != 0)
-            .map(|f| row(Icon::Clock, frame_secs(f, ctx.fps()))),
-    ]
-}
-
-fn compile_sequencer(
-    meta: &ElementMeta,
-    node_id: &str,
-    values: &Values,
-    ctx_inputs: &crate::node::Inputs,
-) -> ClipValue {
-    let mut params = values.clone();
-    let gap = whole_number(params.remove("gapFrames").as_ref()).unwrap_or(0);
-    let backgrounds: Vec<SceneBackground> = params
-        .remove("backgrounds")
-        .and_then(|v| serde_json::from_value(v).ok())
-        .unwrap_or_default();
-    let envelope: VisualEnvelope = params
-        .remove(ENVELOPE)
-        .and_then(|v| serde_json::from_value(v).ok())
-        .unwrap_or_default();
-    let scenes = connected_clips(ctx_inputs);
-    if scenes.is_empty() {
-        return empty_clip(EMPTY_CLIP_FRAMES);
-    }
-    let color_of = |handle: &str| {
-        backgrounds
-            .iter()
-            .rev()
-            .find(|b| b.scene == handle)
-            .map(|b| b.color.clone())
-    };
-    let mut props = element_props(meta, &params);
-    props.insert("gapFrames".into(), Value::from(gap));
-    let sequencer = SequencerProps {
-        component: meta.key.clone(),
-        props,
-        backgrounds: scenes.iter().map(|(handle, _)| color_of(handle)).collect(),
-    };
-    let scenes: Vec<(String, ClipValue)> =
-        scenes.into_iter().map(|(p, c)| (p, c.clone())).collect();
-    let clip = scene_sequence(node_id, &scenes, gap, sequencer);
-    with_handles(clip, EditHandles::default(), Some(envelope), None)
-}
-
-fn sequencer_node(meta: &'static ElementMeta) -> NodeDef {
-    let schema = extended_schema(&meta.schema, properties_of(&schema_of::<SequencerFields>()));
-    let mut def = NodeDef::new(
-        element_node_type(&meta.key),
-        sentence(&meta.title),
-        Category::Timeline,
-        Phase::Compile,
-        schema,
-    )
-    .element(meta)
-    .family(clip_family(scene_label).with_refs(&[("backgrounds", "scene")]))
-    .outputs(vec![(CLIP_PORT, port(PortType::Clip, "Clip"))])
-    .card(sequencer_card)
-    .compiles(move |ctx: &Ctx<'_, Values>| -> Outputs {
-        outputs([(
-            CLIP_PORT,
-            CompileValue::Clip(compile_sequencer(meta, ctx.node_id, ctx.values, ctx.inputs)),
-        )])
-    });
-    if let Some(description) = &meta.description {
-        def = def.describe(description.clone());
-    }
-    def
-}
-
 pub fn nodes() -> Vec<NodeDef> {
     elements()
         .iter()
-        .filter(|e| e.kind != ElementKind::Presentation && e.key != CAPTIONS_ELEMENT)
-        .map(|meta| {
-            if meta.kind == ElementKind::Sequencer {
-                sequencer_node(meta)
-            } else {
-                element_node(meta)
-            }
+        .filter(|e| {
+            !matches!(e.kind, ElementKind::Presentation | ElementKind::Sequencer)
+                && e.key != CAPTIONS_ELEMENT
+                && !grouped_elements().contains(&e.key.as_str())
         })
+        .map(element_node)
+        .chain(groups().iter().map(group_node))
         .collect()
 }

@@ -25,35 +25,41 @@ fn value(v: Value) -> CompileValue {
     serde_json::from_value(v).unwrap()
 }
 
-const DEFAULT_STYLES: [&str; 3] = ["camera.camera", "camera.shot", "camera.motionBlur"];
+const DEFAULT_STYLES: [&str; 2] = ["camera.camera", "camera.motionBlur"];
 
 fn props_with(defaults: &[&str]) -> Value {
     let style: Vec<(&str, Value)> = defaults.iter().map(|k| (*k, json!({}))).collect();
-    serde_json::to_value(recording_props(&zoomed(Some(&style), &[], None, json!({})))[0]).unwrap()
+    serde_json::to_value(recording_props(&zoomed(Some(&style), &[], None, None))[0]).unwrap()
 }
 
 proptest! {
     #[test]
     fn default_camera_shot_and_motion_blur_change_nothing(
-        picked in proptest::sample::subsequence(DEFAULT_STYLES.to_vec(), 0..=3).prop_shuffle()
+        picked in proptest::sample::subsequence(DEFAULT_STYLES.to_vec(), 0..=2).prop_shuffle()
     ) {
         prop_assert_eq!(props_with(&picked), props_with(&[]));
     }
 }
 
 #[test]
-fn applies_the_camera_before_any_other_style_so_a_follow_never_loses_its_far_pans() {
-    let follow = ("camera.followCursor", json!({ "zoomOutOnJumps": false }));
+fn applies_the_camera_before_any_other_style_so_a_far_move_never_loses_its_pans() {
     let camera = ("camera.camera", json!({ "longestPan": 900 }));
-    let pan = |style: &[(&str, Value)]| {
-        serde_json::to_value(recording_props(&zoomed(Some(style), &[], None, json!({})))[0])
+    let pan = |style: &[(&str, Value)], own: &[(&str, Value)]| {
+        serde_json::to_value(recording_props(&zoomed(Some(style), own, None, None))[0])
             .unwrap()["camera"]["tuning"]["longestPanPx"]
             .clone()
     };
-    let unlimited = pan(&[follow.clone(), camera.clone()]);
-    assert_eq!(unlimited, pan(&[camera.clone(), follow]));
-    assert!(unlimited.as_f64().unwrap() > 1.0e6);
-    assert_eq!(pan(&[camera]), json!(900.0));
+    let following = (
+        "camera.camera",
+        json!({ "follows": "cursor", "zoomOutOnJumps": false, "longestPan": 900 }),
+    );
+    assert!(pan(&[following], &[]).as_f64().unwrap() > 1.0e6);
+    let far = [(
+        "camera.move",
+        json!({ "fromSpot": true, "zoomOutWhenFar": false }),
+    )];
+    assert!(pan(std::slice::from_ref(&camera), &far).as_f64().unwrap() > 1.0e6);
+    assert_eq!(pan(&[camera], &[]), json!(900.0));
 }
 
 #[test]
@@ -117,7 +123,7 @@ fn refuses_a_terminal_take_into_a_file_input_and_flags_one_already_there() {
 fn finds_the_take_a_style_node_reaches_for_its_inspector() {
     let (mut wf, results) = with_terminal_take();
     let mut g = Graph::default();
-    g.node("frame", "camera.windowFrame", json!({}));
+    g.node("frame", "camera.frame", json!({}));
     let frame = g.build();
     wf.nodes.extend(frame.nodes);
     wf.edges.push(
@@ -193,7 +199,7 @@ fn names_the_file_a_take_is_saved_as_by_its_kind() {
 fn says_which_kind_of_take_a_clip_is_made_from() {
     let texts = card_texts(
         "camera.take",
-        json!({ "speed": 2 }),
+        json!({}),
         CardInputs {
             takes: IndexMap::from([(
                 "recording".to_owned(),
@@ -207,7 +213,7 @@ fn says_which_kind_of_take_a_clip_is_made_from() {
         },
     );
     assert!(
-        texts.contains(&"Browser take · 3 s".to_owned()),
+        texts.contains(&"Browser take · 4.8 s".to_owned()),
         "{texts:?}"
     );
     assert!(texts.contains(&"The usual style".to_owned()));

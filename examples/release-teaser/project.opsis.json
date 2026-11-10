@@ -1,0 +1,258 @@
+{
+  "version": 1,
+  "id": "example_release_teaser",
+  "name": "Release teaser",
+  "settings": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "theme": "dark",
+    "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+    }
+  },
+  "variables": {
+    "Product name": "Orvio",
+    "Version": "2"
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "type": "fx.animated-text",
+      "position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "params": {
+        "kind": "soft-blur",
+        "soft-blur": {
+          "text": "Start with an idea",
+          "color": "#F2F5F7",
+          "background": "#050709",
+          "fontSize": 96
+        }
+      }
+    },
+    {
+      "id": "room",
+      "type": "fx.animated-text",
+      "position": {
+        "x": 0.0,
+        "y": 200.0
+      },
+      "params": {
+        "kind": "line-by-line",
+        "line-by-line": {
+          "text": "Make room\nfor better work",
+          "color": "#F2F5F7",
+          "background": "#050709"
+        }
+      }
+    },
+    {
+      "id": "detail",
+      "type": "fx.animated-text",
+      "position": {
+        "x": 0.0,
+        "y": 400.0
+      },
+      "params": {
+        "kind": "tracking",
+        "tracking": {
+          "text": "Bring every detail to life",
+          "color": "#F2F5F7",
+          "background": "#050709"
+        }
+      }
+    },
+    {
+      "id": "together",
+      "type": "fx.animated-text",
+      "position": {
+        "x": 0.0,
+        "y": 600.0
+      },
+      "params": {
+        "kind": "mask-reveal",
+        "mask-reveal": {
+          "text": "Move together.\nGo further.",
+          "color": "#F2F5F7",
+          "background": "#050709"
+        }
+      }
+    },
+    {
+      "id": "chapter",
+      "type": "fx.animated-text",
+      "position": {
+        "x": 0.0,
+        "y": 800.0
+      },
+      "params": {
+        "kind": "fade-up",
+        "fade-up": {
+          "text": "A fresh chapter. No starting over.",
+          "color": "#F2F5F7",
+          "background": "#050709"
+        }
+      }
+    },
+    {
+      "id": "lockup",
+      "type": "fx.logo-reveal",
+      "position": {
+        "x": 0.0,
+        "y": 1000.0
+      },
+      "params": {
+        "kind": "wipe",
+        "wipe": {
+          "wordmark": "{{Product name}} {{Version}}",
+          "accentColor": "#9BC8DD",
+          "background": "#050709"
+        }
+      }
+    },
+    {
+      "id": "transition",
+      "type": "timeline.transition",
+      "position": {
+        "x": 300.0,
+        "y": -200.0
+      },
+      "params": {
+        "kind": "dither-dissolve",
+        "durationInFrames": 20
+      }
+    },
+    {
+      "id": "sequence",
+      "type": "timeline.sequence",
+      "position": {
+        "x": 600.0,
+        "y": 500.0
+      },
+      "params": {}
+    },
+    {
+      "id": "music",
+      "type": "audio.music",
+      "position": {
+        "x": 600.0,
+        "y": 760.0
+      },
+      "params": {
+        "src": "app:music/calm-piano.m4a",
+        "volume": 0.4,
+        "loop": true
+      }
+    },
+    {
+      "id": "mix",
+      "type": "audio.mix",
+      "position": {
+        "x": 900.0,
+        "y": 500.0
+      },
+      "params": {}
+    },
+    {
+      "id": "render",
+      "type": "output.render",
+      "position": {
+        "x": 1200.0,
+        "y": 500.0
+      },
+      "params": {
+        "fileName": "{{Project name}}",
+        "codec": "h264",
+        "crf": 18,
+        "variants": [
+          "16:9",
+          "9:16"
+        ],
+        "reframe": "follow",
+        "scale": 1,
+        "chapters": true,
+        "chapterList": false,
+        "gl": "angle"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "start.clip->sequence.in1",
+      "source": "start",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in1"
+    },
+    {
+      "id": "room.clip->sequence.in2",
+      "source": "room",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in2"
+    },
+    {
+      "id": "detail.clip->sequence.in3",
+      "source": "detail",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in3"
+    },
+    {
+      "id": "together.clip->sequence.in4",
+      "source": "together",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in4"
+    },
+    {
+      "id": "chapter.clip->sequence.in5",
+      "source": "chapter",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in5"
+    },
+    {
+      "id": "lockup.clip->sequence.in6",
+      "source": "lockup",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in6"
+    },
+    {
+      "id": "transition.transition->sequence.transition",
+      "source": "transition",
+      "sourceHandle": "transition",
+      "target": "sequence",
+      "targetHandle": "transition"
+    },
+    {
+      "id": "sequence.clip->mix.clip",
+      "source": "sequence",
+      "sourceHandle": "clip",
+      "target": "mix",
+      "targetHandle": "clip"
+    },
+    {
+      "id": "music.audio->mix.sounds",
+      "source": "music",
+      "sourceHandle": "audio",
+      "target": "mix",
+      "targetHandle": "sounds"
+    },
+    {
+      "id": "mix.clip->render.clip",
+      "source": "mix",
+      "sourceHandle": "clip",
+      "target": "render",
+      "targetHandle": "clip"
+    }
+  ],
+  "markers": []
+}

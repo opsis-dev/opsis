@@ -17,9 +17,10 @@ use crate::remap::{RemapSide, inverse_remap};
 
 pub const EMPTY_CLIP_FRAMES: u32 = 30;
 pub const PLACEHOLDER: &str = "placeholder";
-pub const STILL: &str = "still";
+pub const FRAMED_IMAGE: &str = "framed-image";
 pub const IMAGE: &str = "image";
 pub const VIDEO: &str = "video";
+pub const ANIMATION: &str = "lottie";
 
 const fn yes() -> bool {
     true
@@ -45,31 +46,9 @@ pub struct VideoProps {
     pub playback_rate: f64,
 }
 
-pub const CAPTURED_VIDEO: &str = "captured-video";
-const CAPTURED_VIDEO_FPS: f64 = 30.0;
-
-fn captured_video_props(props: &Map<String, Value>) -> Option<VideoProps> {
-    let src = props.get("src")?.as_str()?.to_owned();
-    let is_video = props.get("srcKind").and_then(Value::as_str) == Some("video");
-    let audio = props.get("audio").and_then(Value::as_bool).unwrap_or(false);
-    let trim_frames = props
-        .get("trimBefore")
-        .and_then(Value::as_f64)
-        .unwrap_or(0.0);
-    Some(VideoProps {
-        src,
-        looped: false,
-        muted: !(audio && is_video) || props.get("muted").and_then(Value::as_bool) == Some(true),
-        volume: props.get("volume").and_then(Value::as_f64).unwrap_or(1.0),
-        trim_before_ms: trim_frames * 1000.0 / CAPTURED_VIDEO_FPS,
-        playback_rate: props.get("speed").and_then(Value::as_f64).unwrap_or(1.0),
-    })
-}
-
 pub fn video_props(component: &str, props: &Map<String, Value>) -> Option<VideoProps> {
     match component {
         VIDEO => serde_json::from_value(Value::Object(props.clone())).ok(),
-        CAPTURED_VIDEO => captured_video_props(props),
         _ => None,
     }
 }
@@ -117,6 +96,7 @@ fn make_clip(
         tracks,
         audio,
         recording: recording.map(TaggedRecording::Recording),
+        enter: None,
     }
 }
 
@@ -403,6 +383,7 @@ pub fn wrap_clip(
         tracks: one_track(node_id, group),
         audio,
         recording: clip.recording.clone(),
+        enter: clip.enter.clone(),
     }
 }
 
@@ -568,6 +549,12 @@ fn sequence_placements(
     (at, end)
 }
 
+pub fn sequence_cuts(clips: &[ClipValue], transitions: &[Option<TransitionRef>]) -> Vec<u32> {
+    let enters = resolve_enters(clips, transitions);
+    let (at, _) = sequence_placements(clips, &enters);
+    at.iter().map(|p| p.from + p.lead).collect()
+}
+
 #[derive(Debug, Clone, Copy, Default)]
 pub struct SequenceSlots<'a> {
     pub ports: Option<&'a [String]>,
@@ -589,10 +576,14 @@ pub fn sequence_clips(
         .iter()
         .enumerate()
         .map(|(i, clip)| {
-            let slot = slots.ports.and_then(|p| p.get(i)).map(|port| Slot {
-                node_id: slots.slot_node.unwrap_or(node_id).to_owned(),
-                port: port.clone(),
-            });
+            let slot = slots
+                .ports
+                .and_then(|p| p.get(i))
+                .filter(|port| !port.is_empty())
+                .map(|port| Slot {
+                    node_id: slots.slot_node.unwrap_or(node_id).to_owned(),
+                    port: port.clone(),
+                });
             let item = place_clip(
                 format!("{node_id}:s{i}"),
                 clip,
@@ -808,6 +799,7 @@ fn scene_of(id: &str, clip: &ClipValue) -> Scene {
 
 pub fn scene_sequence(
     node_id: &str,
+    slot_node: &str,
     scenes: &[(String, ClipValue)],
     gap: u32,
     sequencer: SequencerProps,
@@ -833,7 +825,7 @@ pub fn scene_sequence(
     for (i, (id, port, scene)) in built.into_iter().enumerate() {
         let mut base = ItemBase::new(id.clone(), starts[i], scene.duration_in_frames);
         base.slot = Some(Slot {
-            node_id: node_id.to_owned(),
+            node_id: slot_node.to_owned(),
             port: port.clone(),
         });
         items.push(group_item(

@@ -5,8 +5,11 @@ use opsis_compile::elements::elements;
 use opsis_compile::elements::introspect::FieldWidget;
 use opsis_compile::elements::overlay::captions::CAPTIONS_ELEMENT;
 use opsis_compile::node::{CardInputs, InputMedia, PortSpec};
+use opsis_compile::nodes::device_frame::drawn_elements;
+use opsis_compile::nodes::groups::groups;
+use opsis_compile::nodes::media::CLIP_ELEMENTS;
 use opsis_compile::nodes::text::{ScriptPace, ends_sentence, script_to_captions};
-use opsis_compile::nodes::transitions::presentations;
+use opsis_compile::nodes::transitions::transition_kinds;
 use opsis_compile::ports::{can_connect, convert_input};
 use opsis_compile::registry::registry;
 use opsis_compile::sounds::{BuiltinSong, BuiltinSound, Mood, builtin_songs, builtin_sounds};
@@ -61,11 +64,19 @@ fn starts_every_node_with_parseable_defaults_and_a_hidden_role_beside_each_picke
 }
 
 #[test]
-fn generates_one_node_per_placeable_registry_element() {
+fn places_every_element_in_a_node() {
     let mut placed: Vec<String> = registry()
         .all()
         .iter()
         .filter_map(|d| d.element.clone())
+        .chain(
+            groups()
+                .iter()
+                .flat_map(|g| g.kinds.iter().map(|k| k.element.to_owned())),
+        )
+        .chain(transition_kinds().into_iter().filter(|k| k != "none"))
+        .chain(drawn_elements().map(str::to_owned))
+        .chain(CLIP_ELEMENTS.map(str::to_owned))
         .collect();
     let mut expected: Vec<String> = elements()
         .iter()
@@ -73,6 +84,7 @@ fn generates_one_node_per_placeable_registry_element() {
         .map(|e| e.key.clone())
         .collect();
     placed.sort();
+    placed.dedup();
     expected.sort();
     assert_eq!(placed, expected);
 }
@@ -152,11 +164,22 @@ fn frames(pairs: &[(&str, u32)]) -> CardInputs {
     }
 }
 
+fn transition(params: Value) -> Value {
+    match compile_node("timeline.transition", params, json!({})).shift_remove("transition") {
+        Some(transition) => serde_json::to_value(transition).unwrap(),
+        None => panic!("no transition"),
+    }
+}
+
 fn leak_in(a: u32, b: u32, length: u32) -> (u32, u32, u32) {
     let film = compile_clip(
-        "transition.lightLeak",
-        json!({ "durationInFrames": length }),
-        json!({ "a": clip_value(&empty_clip(a)), "b": clip_value(&empty_clip(b)) }),
+        "timeline.sequence",
+        json!({}),
+        json!({
+            "in1": clip_value(&empty_clip(a)),
+            "in2": clip_value(&empty_clip(b)),
+            "transition": transition(json!({ "kind": "light-leak", "durationInFrames": length }))
+        }),
     );
     let leak = film.tracks[1].items[0].base();
     (film.duration_in_frames, leak.from, leak.duration_in_frames)
@@ -169,38 +192,38 @@ fn centres_a_light_leak_on_the_cut_and_keeps_a_long_one_inside_the_film() {
     assert_eq!(leak_in(10, 90, 40), (100, 0, 40));
     assert_eq!(
         card_texts(
-            "transition.lightLeak",
-            json!({ "durationInFrames": 90 }),
-            frames(&[("a", 30), ("b", 30)])
+            "timeline.transition",
+            json!({ "kind": "light-leak", "durationInFrames": 90 }),
+            CardInputs::default()
         ),
-        ["3 s", "Longer than both clips, so it plays for 2 s"]
-    );
-    assert_eq!(
-        card_texts(
-            "transition.lightLeak",
-            json!({ "durationInFrames": 90 }),
-            frames(&[("a", 60), ("b", 60)])
-        ),
-        ["3 s"]
+        ["Light leak cut · 3 s"]
     );
 }
 
 #[test]
-fn every_transition_passes_a_lone_clip_through_unchanged() {
-    let kinds: Vec<String> = presentations()
-        .map(|m| format!("transition.{}", m.key))
+fn every_transition_marks_the_clip_it_brings_in_and_changes_nothing_else() {
+    let kinds: Vec<String> = transition_kinds()
+        .into_iter()
+        .filter(|k| k != "none")
         .collect();
-    assert!(kinds.len() > 10);
-    let (first, then) = (empty_clip(40), empty_clip(70));
+    assert!(kinds.len() > 20);
+    let clip = empty_clip(40);
     for kind in kinds {
-        assert_eq!(
-            compile_clip(&kind, json!({}), json!({ "a": clip_value(&first) })),
-            first,
-            "{kind}"
+        let marked = compile_clip(
+            "timeline.transition",
+            json!({ "kind": kind }),
+            json!({ "clip": clip_value(&clip) }),
         );
         assert_eq!(
-            compile_clip(&kind, json!({}), json!({ "b": clip_value(&then) })),
-            then,
+            marked.enter.as_ref().map(|e| e.kind.as_str()),
+            Some(kind.as_str())
+        );
+        assert_eq!(
+            opsis_types::values::ClipValue {
+                enter: None,
+                ..marked
+            },
+            clip,
             "{kind}"
         );
     }
@@ -303,22 +326,27 @@ fn loops_room_tone_under_the_whole_film_with_its_fades() {
 }
 
 #[test]
-fn places_tones_at_a_time_or_on_an_action_for_their_own_length() {
-    let at = made_item("audio.tones", json!({ "atMs": 2000 }), "tones.wav", 150);
+fn places_made_tones_at_a_time_or_on_an_action_for_their_own_length() {
+    let at = made_item(
+        "audio.sfx",
+        json!({ "source": "made", "sound": "beep", "atMs": 2000 }),
+        "made.wav",
+        150,
+    );
     assert_eq!((at.from, at.length_frames, at.anchor), (60, Some(5), None));
     assert_eq!(at.role, Some(opsis_types::timeline::AudioRole::Effect));
     let on = made_item(
-        "audio.tones",
-        json!({ "kind": "countdown", "atAction": "click", "offsetMs": -3000 }),
-        "tones.wav",
+        "audio.sfx",
+        json!({ "source": "made", "sound": "countdown", "timing": "on-action", "atAction": "click", "offsetMs": -3000 }),
+        "made.wav",
         3450,
     );
     assert_eq!(on.from, -90);
     assert_eq!(on.anchor.map(|a| a.node_id).as_deref(), Some("click"));
     assert_eq!(
         card_texts(
-            "audio.tones",
-            json!({ "kind": "countdown", "count": 3 }),
+            "audio.sfx",
+            json!({ "source": "made", "sound": "countdown", "count": 3 }),
             CardInputs::default()
         ),
         ["Countdown · 3 beeps", "At 0 s", "Made when the node runs"]
@@ -326,36 +354,28 @@ fn places_tones_at_a_time_or_on_an_action_for_their_own_length() {
 }
 
 #[test]
-fn lists_what_clean_speech_does_and_the_noise_before_and_after_a_run() {
+fn says_how_noise_is_removed_and_the_noise_before_and_after_a_run() {
     assert_eq!(
-        card_texts("media.cleanSpeech", json!({}), CardInputs::default()),
+        card_texts("media.removeNoise", json!({}), CardInputs::default()),
         [
-            "Removes noise, rumble and harsh “s”, evens the level",
+            "Learned, for speech · 80%",
             "For speech: music under the voice goes too"
         ]
     );
     assert_eq!(
         card_texts(
-            "media.cleanSpeech",
-            json!({ "noise": 0, "softenS": 0, "evenLevel": false }),
+            "media.removeNoise",
+            json!({ "method": "spectral", "noise": 0.5 }),
             CardInputs::default()
         ),
-        ["Removes rumble"]
-    );
-    assert_eq!(
-        card_texts(
-            "media.cleanSpeech",
-            json!({ "method": "spectral", "softenS": 0 }),
-            CardInputs::default()
-        ),
-        ["Removes noise and rumble, evens the level"]
+        ["Spectral, for steady noise · 50%"]
     );
     let made = node_result(json!({
-        "outputs": { "media": { "type": "media", "kind": "audio", "src": "project:.opsis/cache/h/speech.wav", "durationMs": 4000 } },
+        "outputs": { "media": { "type": "media", "kind": "audio", "src": "project:.opsis/cache/h/denoised.wav", "durationMs": 4000 } },
         "measured": [{ "type": "noiseLevel", "beforeDb": -41.4, "afterDb": -68.6 }]
     }));
     let rows: Vec<String> = node_card_with(
-        "media.cleanSpeech",
+        "media.removeNoise",
         json!({ "method": "spectral" }),
         CardInputs::default(),
         Some(&made),
@@ -365,6 +385,14 @@ fn lists_what_clean_speech_does_and_the_noise_before_and_after_a_run() {
     .collect();
     assert_eq!(rows[1], "Noise -41 dB → -69 dB");
     assert_eq!(rows.len(), 3);
+    assert_eq!(
+        card_texts(
+            "media.softenS",
+            json!({ "strength": 0.25 }),
+            CardInputs::default()
+        ),
+        ["Strength 25%"]
+    );
 }
 
 #[test]
@@ -679,12 +707,17 @@ fn counts_the_marks_and_steps_and_warns_about_empty_text() {
 
 #[test]
 fn starts_each_generated_sound_at_the_pick_and_reaches_the_other_variations() {
-    use opsis_compile::nodes::audio::{GenerateSound, SoundPreset, sound_shape};
+    use opsis_compile::nodes::audio::SoundPreset;
+    use opsis_compile::nodes::sound_effect::SoundEffect;
     let shape = |params: Value| {
-        sound_shape(&typed::<GenerateSound>(&crate::helpers::defaults_with(
-            "audio.generate",
-            params,
-        )))
+        let mut params = params;
+        params["source"] = json!("made");
+        if let Some(preset) = params.as_object_mut().and_then(|p| p.remove("preset")) {
+            params["sound"] = preset;
+        }
+        typed::<SoundEffect>(&crate::helpers::defaults_with("audio.sfx", params))
+            .shape()
+            .unwrap()
     };
     let picks = [
         ("whoosh", 0.8, 0.0, 0.15),
@@ -732,7 +765,7 @@ fn starts_each_generated_sound_at_the_pick_and_reaches_the_other_variations() {
         (0, 4, 0.1)
     );
     let custom = shape(
-        json!({ "preset": "pop", "variation": "custom", "lengthMs": 400, "pitch": -2.5, "brightness": 0.7, "take": 9 }),
+        json!({ "preset": "pop", "variation": "custom", "customMs": 400, "pitch": -2.5, "brightness": 0.7, "take": 9 }),
     );
     assert_eq!(
         (custom.seconds, custom.pitch, custom.brightness, custom.seed),
@@ -745,18 +778,18 @@ fn starts_each_generated_sound_at_the_pick_and_reaches_the_other_variations() {
 }
 
 #[test]
-fn places_a_generated_sound_like_a_sound_effect_and_names_it_on_the_card() {
+fn places_a_made_sound_like_a_file_and_names_it_on_the_card() {
     let at = made_item(
-        "audio.generate",
-        json!({ "atMs": 1000 }),
-        "generated.wav",
+        "audio.sfx",
+        json!({ "source": "made", "atMs": 1000 }),
+        "made.wav",
         800,
     );
     assert_eq!((at.from, at.length_frames), (30, Some(24)));
     let on = made_item(
-        "audio.generate",
-        json!({ "atAction": "go", "offsetMs": -500 }),
-        "generated.wav",
+        "audio.sfx",
+        json!({ "source": "made", "timing": "on-action", "atAction": "go", "offsetMs": -500 }),
+        "made.wav",
         800,
     );
     assert_eq!(
@@ -765,8 +798,8 @@ fn places_a_generated_sound_like_a_sound_effect_and_names_it_on_the_card() {
     );
     assert_eq!(
         card_texts(
-            "audio.generate",
-            json!({ "preset": "riser", "variation": "lower" }),
+            "audio.sfx",
+            json!({ "source": "made", "sound": "riser", "variation": "lower" }),
             CardInputs::default()
         ),
         [
@@ -905,8 +938,7 @@ fn redacted(params: &[Value]) -> Value {
         .iter()
         .map(|p| ("effect.redactTake", p.clone()))
         .collect();
-    serde_json::to_value(recording_props(&zoomed(None, &own, None, json!({ "speed": 1 })))[0])
-        .unwrap()
+    serde_json::to_value(recording_props(&zoomed(None, &own, None, Some(1.0)))[0]).unwrap()
 }
 
 #[test]
@@ -976,7 +1008,7 @@ fn grade_value(kind: &str) -> Value {
 #[test]
 fn grades_the_footage_of_recordings_videos_and_images_only() {
     let grade = grade_value("grade.colour");
-    let take = zoomed(None, &[], None, json!({ "speed": 1 }));
+    let take = zoomed(None, &[], None, Some(1.0));
     let graded = compile_clip(
         "effect.gradeFootage",
         json!({}),

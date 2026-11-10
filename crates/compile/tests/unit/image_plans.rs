@@ -1,8 +1,8 @@
 use opsis_compile::nodes::image::{
-    BeforeAfter, CropImage, FrameScreenshot, ImageGrid, Magnify, Rect, ResizeImage, RotateImage,
-    area_rect, before_after_plan, crop_rect, framed_placement, grid_plan, magnify_plan,
-    resized_size, rotated_size,
+    BeforeAfter, CropImage, ImageGrid, Magnify, Rect, ResizeImage, RotateImage, area_rect,
+    before_after_plan, crop_rect, grid_plan, magnify_plan, resized_size, rotated_size,
 };
+use opsis_compile::nodes::image_frame::{FrameImage, framed_placement};
 use opsis_types::numbers::exact_eq;
 use proptest::prelude::*;
 use serde::de::DeserializeOwned;
@@ -159,7 +159,7 @@ proptest! {
         padding in 0.0..50.0f64,
         shape in prop::sample::select(vec!["keep", "wide", "square", "portrait", "story"]),
     ) {
-        let p: FrameScreenshot = settings(json!({ "padding": padding, "shape": shape }));
+        let p: FrameImage = settings(json!({ "padding": padding, "shape": shape }));
         let ((w, h), (x, y)) = framed_placement(source, &p);
         let pad = (source.0.min(source.1) * padding / 100.0).round();
         prop_assert!(x >= pad - 0.5 && y >= pad - 0.5);

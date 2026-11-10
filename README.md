@@ -23,16 +23,16 @@ Built with Rust, [Qt](https://www.qt.io) Widgets and [KDDockWidgets](https://git
 
 ### 🎥 Camera and cursor
 
-- A camera that zooms to every action, manual zooms, pans, follows the cursor, speeds up quiet parts and ramps speed; crop, laptop and phone frames, macOS, Windows and Linux window frames (light or dark, with the page address), studio backdrops and motion blur.
+- A camera that zooms to every action or follows the cursor, camera moves you place yourself, speeding up quiet parts and speed ramps; crop, laptop and phone frames, macOS, Windows and Linux window frames (light or dark, with the page address), studio backgrounds and motion blur.
 - Cursor styles (a simple arrow, or a Mac cursor that turns into a hand over links and a text cursor over fields), click ripples, keystroke chips, spotlights and highlight boxes, clean or hand-drawn.
 - Blurred areas that hide private details and stay on the page while the camera moves.
-- Cursor, marks, backdrop and frame settings form a style that one take or several share.
+- Cursor, marks, frame and background settings form a style that one take or several share.
 
 ### 🎨 Graphics, 3D and transitions
 
-- **More than a hundred elements:** text effects, overlays, charts, UI scenes, device mockups, backgrounds and effects, plus Lottie animations (`.json` and `.lottie`), a mosaic for hiding details, title cards with a hand-drawn mark on chosen words, and a picture look (colour, dark edges, film grain).
-- **3D:** a 3D logo, card and text in any project font, 3D models from your project with their own animations, a clip on a 3D laptop, monitor, phone or floating screen that ends facing the camera, and floating shapes as a background; camera keyframes set in the Inspector and dragged on the Timeline.
-- **25 transitions plus a light-leak cut.** A Sequence can use a different transition, length and hold before any of its clips.
+- **More than a hundred elements:** animated text, title cards, text highlights, arrows, charts, logo sets and reveals, UI scenes, device frames, backgrounds and film looks, each family one node with a kind to pick; your images, videos and Lottie animations (`.json` and `.lottie`) as clips; a redact effect (large pixels, blur or a solid colour) for hiding details; and a picture look (colour, dark edges, film grain).
+- **3D:** one 3D object node for a logo, an image card, text in any project font or a model from your project with its own animations, a clip on a 3D laptop, monitor, phone or floating screen that ends facing the camera, and floating shapes as a background; camera keyframes set in the Inspector and dragged on the Timeline.
+- **25 transitions plus a light-leak cut and spring settle.** A Transition node puts one on the clip it brings in, so every join in a Sequence can have its own transition, length and hold.
 
 ### 🔤 Text and fonts
 
@@ -42,14 +42,13 @@ Built with Rust, [Qt](https://www.qt.io) Widgets and [KDDockWidgets](https://git
 ### 🔊 Audio
 
 - Music with fades and ducking under sound effects (3 built-in CC0 songs or your own files), fitted to the film by stretching it a little or looping it with a crossfade.
-- Sound effects (8 built-in CC0 sounds or your own files) at a time or on an action; click and key sounds at every action of a take; a whoosh at every transition; a riser that ends on an action, a marker or the clip's end.
-- Generated sounds (whoosh, riser, pop, ding, tap, swell, click) with their variations, tones and countdown beeps, room tone, and captions timed from a script.
+- Sound effects (8 built-in CC0 sounds, your own files, or sounds made from settings: whoosh, riser, swell, pop, ding, tap, click, tone, beep and countdown) at a time, on an action, or ending on an action, a marker or the clip's end with a hit; click and key sounds at every action of a take; a whoosh at every transition; room tone, and captions timed from a script.
 - **The Mixer:** a strip per sound with trim, low cut, 4-band EQ, compressor, pan, fader, mute and solo, grouped under buses with their own EQ, compressor, presets and sidechain ducking; a master with EQ, compressor, limiter and loudness targets (−14, −16, −23 LUFS). Exports play exactly the rendered mix, and a mix change only adds the new sound to the picture already rendered.
 
 ### 🎞️ Media and images
 
-- **Video and sound:** trim, join, speed (up to 64×), reverse, resize, convert, GIF, extract audio, even out volume, grab a frame, web-ready; clean speech, fix clicks and clipping, remove hum, shorten pauses, change pitch, voice effects (telephone, radio, rooms, echo) and a picture of the waveform or spectrum.
-- **Images:** resize, crop, rotate and flip, straighten, tilt in 3D, adjust colour, auto levels, blur and sharpen, place a logo, redact, spotlight, trim empty edges, make a colour transparent, outline, grids, framed screenshots, before and after, magnify, compare two screenshots, annotate, and save as PNG, JPEG, WebP or AVIF. Phone photos come out the right way up and in the right colours.
+- **Video and sound:** trim, join, speed (up to 64×), reverse, resize, convert (a web-ready copy included), GIF, extract audio, even out volume, grab a frame; remove noise, soften "s" sounds, fix clicks, fix clipping, remove hum, shorten pauses, change pitch, voice effects (telephone, radio, rooms, echo) and a picture of the waveform or spectrum.
+- **Images:** resize, crop, rotate and flip, straighten, frame in a window or on a laptop or phone, flat or tilted in 3D, colour fixes through the same grade nodes as video, place a logo, redact, spotlight, trim empty edges, make a colour transparent, outline, grids, before and after, magnify, compare two screenshots, annotate, and save as PNG, JPEG, WebP or AVIF. Phone photos come out the right way up and in the right colours.
 
 ### 📤 Export
 

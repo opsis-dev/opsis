@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
+use opsis_compile::nodes::groups::saved_workflow;
 use opsis_compile::text::project_folder_name;
 use opsis_engine::files::{atomic_write, none_if_missing, read_text_if_present};
 use opsis_engine::hash::sha256_hex;
@@ -87,8 +88,8 @@ pub fn parse_workflow_text(text: &str) -> Result<Workflow, WorkflowTextError> {
 }
 
 pub fn workflow_text(workflow: &Workflow) -> String {
-    let text =
-        serde_json::to_string_pretty(&workflow.clone().normalized()).expect("workflows serialize");
+    let text = serde_json::to_string_pretty(&saved_workflow(workflow).normalized())
+        .expect("workflows serialize");
     format!("{text}\n")
 }
 

@@ -1,5 +1,5 @@
 use opsis_macros::{choice, settings};
-use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::looks::NodeLook;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
@@ -65,8 +65,8 @@ pub fn definition() -> ElementMeta {
                 "Particle dissolve",
                 "The frame is ground into drifting grey dust whose specks carry real fragments of the picture, and the next scene coalesces back out of the same dust.",
                 ElementCategory::Transition,
-                84,
+                36,
             )
-                .look(NodeLook::of("lucide:sparkles").moves(NodeMotion::Dissolve)),
+                .look(NodeLook::of("lucide:sparkles")),
         )
 }

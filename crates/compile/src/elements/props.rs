@@ -1,14 +1,14 @@
 use serde::Serialize;
 
 use crate::clip::PlaceholderProps;
-use crate::nodes::capture::StillProps;
+use crate::nodes::image_frame::FramedImageProps;
 
 #[derive(Debug, Clone, Serialize, specta::Type)]
 pub struct ElementSettings {
     #[serde(rename = "placeholder")]
     pub placeholder: PlaceholderProps,
-    #[serde(rename = "still")]
-    pub still: StillProps,
+    #[serde(rename = "framed-image")]
+    pub framed_image: FramedImageProps,
     #[serde(rename = "title")]
     pub title: crate::elements::text::title::Title,
     #[serde(rename = "kinetic-headline")]
@@ -21,8 +21,8 @@ pub struct ElementSettings {
     pub captions: crate::elements::overlay::captions::Captions,
     #[serde(rename = "image")]
     pub image: crate::elements::media::image::Image,
-    #[serde(rename = "mosaic")]
-    pub mosaic: crate::elements::effect::mosaic::Mosaic,
+    #[serde(rename = "redact")]
+    pub redact: crate::elements::effect::redact::Redact,
     #[serde(rename = "lottie")]
     pub lottie: crate::elements::overlay::lottie::Lottie,
     #[serde(rename = "video")]
@@ -39,8 +39,6 @@ pub struct ElementSettings {
     pub paper: crate::elements::background::paper::Paper,
     #[serde(rename = "backdrop")]
     pub backdrop: crate::elements::background::backdrop::StudioBackdrop,
-    #[serde(rename = "video-loop")]
-    pub video_loop: crate::elements::background::video_loop::VideoLoop,
     #[serde(rename = "light-leak")]
     pub light_leak: crate::elements::overlay::light_leak::LightLeak,
     #[serde(rename = "logo-3d")]
@@ -71,16 +69,12 @@ pub struct ElementSettings {
     pub soft_blur_in: crate::elements::text::soft_blur_in::SoftBlurIn,
     #[serde(rename = "typewriter")]
     pub typewriter: crate::elements::text::typewriter::Typewriter,
-    #[serde(rename = "shimmer-sweep")]
-    pub shimmer_sweep: crate::elements::text::shimmer_sweep::ShimmerSweep,
     #[serde(rename = "matrix-decode")]
     pub matrix_decode: crate::elements::text::matrix_decode::MatrixDecode,
     #[serde(rename = "slot-machine-roll")]
     pub slot_machine_roll: crate::elements::text::slot_machine_roll::SlotMachineRoll,
     #[serde(rename = "staggered-fade-up")]
     pub staggered_fade_up: crate::elements::text::staggered_fade_up::StaggeredFadeUp,
-    #[serde(rename = "kinetic-center-build")]
-    pub kinetic_center_build: crate::elements::text::kinetic_center_build::KineticCenterBuild,
     #[serde(rename = "mask-reveal-up")]
     pub mask_reveal_up: crate::elements::text::mask_reveal_up::MaskRevealUp,
     #[serde(rename = "tracking-in")]
@@ -92,14 +86,8 @@ pub struct ElementSettings {
     #[serde(rename = "gradient-scale-cut-text")]
     pub gradient_scale_cut_text:
         crate::elements::text::gradient_scale_cut_text::GradientScaleCutText,
-    #[serde(rename = "strikethrough-replace")]
-    pub strikethrough_replace: crate::elements::text::strikethrough_replace::StrikethroughReplace,
     #[serde(rename = "line-by-line-slide")]
     pub line_by_line_slide: crate::elements::text::line_by_line_slide::LineByLineSlide,
-    #[serde(rename = "marker-highlight")]
-    pub marker_highlight: crate::elements::overlay::marker_highlight::MarkerHighlight,
-    #[serde(rename = "inline-highlight")]
-    pub inline_highlight: crate::elements::overlay::inline_highlight::InlineHighlight,
     #[serde(rename = "ink-underline")]
     pub ink_underline: crate::elements::overlay::ink_underline::InkUnderline,
     #[serde(rename = "scribble-circle")]
@@ -197,16 +185,10 @@ pub struct ElementSettings {
     pub ai_prompt_flow: crate::elements::scene::ai_prompt_flow::AiPromptFlow,
     #[serde(rename = "command-menu")]
     pub command_menu: crate::elements::scene::command_menu::CommandMenu,
-    #[serde(rename = "release-teaser")]
-    pub release_teaser: crate::elements::scene::release_teaser::ReleaseTeaser,
-    #[serde(rename = "launch-anything")]
-    pub launch_anything: crate::elements::scene::launch_anything::LaunchAnything,
     #[serde(rename = "laptop-frame")]
     pub laptop_frame: crate::elements::device::laptop_frame::LaptopFrame,
     #[serde(rename = "phone-frame")]
     pub phone_frame: crate::elements::device::phone_frame::PhoneFrame,
-    #[serde(rename = "captured-video")]
-    pub captured_video: crate::elements::device::captured_video::CapturedVideo,
     #[serde(rename = "announce-title")]
     pub announce_title: crate::elements::text::announce_title::AnnounceTitle,
     #[serde(rename = "punch-lines")]
@@ -247,8 +229,10 @@ pub struct ElementSettings {
     pub bar_chart_race: crate::elements::data::bar_chart_race::BarChartRace,
     #[serde(rename = "gauge-dial")]
     pub gauge_dial: crate::elements::data::gauge_dial::GaugeDial,
-    #[serde(rename = "data-story")]
-    pub data_story: crate::elements::scene::data_story::DataStory,
+    #[serde(rename = "steps-timeline")]
+    pub steps_timeline: crate::elements::scene::steps_timeline::StepsTimeline,
+    #[serde(rename = "logo-wipe")]
+    pub logo_wipe: crate::elements::scene::logo_wipe::LogoWipe,
     #[serde(rename = "logo-reveal")]
     pub logo_reveal: crate::elements::scene::logo_reveal::LogoReveal,
     #[serde(rename = "pricing-card")]

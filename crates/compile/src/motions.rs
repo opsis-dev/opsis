@@ -7,18 +7,9 @@ pub struct Pose {
     pub sx: f64,
     pub sy: f64,
     pub rotate: f64,
-    pub tilt_x: f64,
-    pub tilt_y: f64,
     pub opacity: f64,
     pub blur: f64,
-    pub clip_top: f64,
-    pub iris: f64,
-    pub sweep: f64,
-    pub mask: f64,
     pub dash: f64,
-    pub split_x: f64,
-    pub split_y: f64,
-    pub rgb: f64,
     pub smear: f64,
 }
 
@@ -28,18 +19,9 @@ pub const REST: Pose = Pose {
     sx: 1.0,
     sy: 1.0,
     rotate: 0.0,
-    tilt_x: 0.0,
-    tilt_y: 0.0,
     opacity: 1.0,
     blur: 0.0,
-    clip_top: 0.0,
-    iris: 0.75,
-    sweep: 360.0,
-    mask: 0.0,
     dash: 0.0,
-    split_x: 0.0,
-    split_y: 0.0,
-    rgb: 0.0,
     smear: 0.0,
 };
 
@@ -58,15 +40,6 @@ pub enum Part {
     Shapes,
     March,
     Ring,
-    Flare,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Mask {
-    None,
-    Wipe,
-    Clock,
-    Shimmer,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -83,7 +56,6 @@ pub struct MotionSpec {
     pub origin: (f64, f64),
     pub part: Part,
     pub clip: bool,
-    pub mask: Mask,
 }
 
 const fn at(pose: Pose, ease: Ease) -> Frame {
@@ -109,7 +81,6 @@ const fn spec(frames: Vec<Frame>, ms: u32) -> MotionSpec {
         origin: (0.5, 0.5),
         part: Part::Glyph,
         clip: false,
-        mask: Mask::None,
     }
 }
 
@@ -156,19 +127,6 @@ const fn scaled(s: f64) -> Pose {
     }
 }
 
-const fn blurred(px: f64) -> Pose {
-    Pose { blur: px, ..REST }
-}
-
-fn orbit(step: u32) -> Pose {
-    let angle = f64::from(step) * std::f64::consts::FRAC_PI_4;
-    Pose {
-        tx: angle.sin() * 0.12,
-        ty: angle.cos().mul_add(-0.12, 0.12),
-        ..REST
-    }
-}
-
 #[expect(
     clippy::too_many_lines,
     reason = "one table of every motion, each entry as short as its CSS original"
@@ -190,7 +148,6 @@ pub fn motion_spec(motion: NodeMotion) -> MotionSpec {
             ],
             1300,
         ),
-        NodeMotion::Track => spec((0..=8).map(|i| at(orbit(i % 8), Linear)).collect(), 1100),
         NodeMotion::Turn => spec(
             vec![
                 at(REST, InOut),
@@ -237,41 +194,6 @@ pub fn motion_spec(motion: NodeMotion) -> MotionSpec {
                 700,
             )
         },
-        NodeMotion::Open => MotionSpec {
-            origin: (0.5, 1.0),
-            ..out_and_back(
-                Pose {
-                    tilt_x: 55.0,
-                    ..REST
-                },
-                800,
-                InOut,
-            )
-        },
-        NodeMotion::Flip => spec(
-            vec![
-                at(REST, InOut),
-                at(
-                    Pose {
-                        tilt_y: 180.0,
-                        ..REST
-                    },
-                    InOut,
-                ),
-                at(
-                    Pose {
-                        tilt_y: 360.0,
-                        ..REST
-                    },
-                    Linear,
-                ),
-            ],
-            800,
-        ),
-        NodeMotion::Shutter => MotionSpec {
-            origin: (0.5, 0.0),
-            ..out_and_back(Pose { sy: 0.0, ..REST }, 600, InOut)
-        },
         NodeMotion::Collapse => spec(
             vec![
                 at(REST, InOut),
@@ -289,60 +211,9 @@ pub fn motion_spec(motion: NodeMotion) -> MotionSpec {
             ],
             1100,
         ),
-        NodeMotion::SlideThrough => away(
-            Pose { tx: 0.7, ..REST },
-            Pose { tx: -0.7, ..REST },
-            800,
-            InOut,
-        ),
-        NodeMotion::Push => away(
-            Pose { tx: -0.6, ..REST },
-            Pose { tx: 0.6, ..REST },
-            800,
-            Out,
-        ),
         NodeMotion::Roll => away(
             Pose { ty: -0.8, ..REST },
             Pose { ty: 0.8, ..REST },
-            700,
-            InOut,
-        ),
-        NodeMotion::ZoomThrough => away(scaled(1.6), scaled(0.6), 800, InOut),
-        NodeMotion::Whip => MotionSpec {
-            clip: true,
-            ..spec(
-                vec![
-                    at(REST, InOut),
-                    at_offset(
-                        Pose {
-                            tx: 0.6,
-                            blur: 3.0,
-                            opacity: 0.0,
-                            ..REST
-                        },
-                        0.4,
-                        Step,
-                    ),
-                    at_offset(
-                        Pose {
-                            tx: -0.6,
-                            blur: 3.0,
-                            opacity: 0.0,
-                            ..REST
-                        },
-                        0.41,
-                        InOut,
-                    ),
-                    at(REST, Linear),
-                ],
-                520,
-            )
-        },
-        NodeMotion::ZoomBlur => out_and_back(
-            Pose {
-                blur: 3.0,
-                ..scaled(1.45)
-            },
             700,
             InOut,
         ),
@@ -382,69 +253,6 @@ pub fn motion_spec(motion: NodeMotion) -> MotionSpec {
                 1500,
             )
         },
-        NodeMotion::Caret => spec(
-            [1.0, 0.0, 1.0, 0.0, 1.0, 1.0]
-                .iter()
-                .zip(0u32..)
-                .map(|(opacity, i)| {
-                    at_offset(
-                        Pose {
-                            opacity: *opacity,
-                            ..REST
-                        },
-                        f64::from(i) / 5.0,
-                        Step,
-                    )
-                })
-                .collect(),
-            1100,
-        ),
-        NodeMotion::WipeReveal => MotionSpec {
-            mask: Mask::Wipe,
-            ..spec(
-                vec![
-                    at(REST, InOut),
-                    at_offset(Pose { mask: 1.0, ..REST }, 0.35, InOut),
-                    at(REST, Linear),
-                ],
-                900,
-            )
-        },
-        NodeMotion::MaskUp => spec(
-            vec![
-                at(REST, Out),
-                at_offset(
-                    Pose {
-                        opacity: 0.0,
-                        ..REST
-                    },
-                    0.2,
-                    Step,
-                ),
-                at_offset(
-                    Pose {
-                        clip_top: 1.0,
-                        ..REST
-                    },
-                    0.21,
-                    Out,
-                ),
-                at(REST, Linear),
-            ],
-            800,
-        ),
-        NodeMotion::ClockWipe => MotionSpec {
-            mask: Mask::Clock,
-            ..out_and_back(Pose { sweep: 0.0, ..REST }, 1000, InOut)
-        },
-        NodeMotion::Iris => out_and_back(Pose { iris: 0.0, ..REST }, 800, InOut),
-        NodeMotion::Shimmer => MotionSpec {
-            mask: Mask::Shimmer,
-            ..spec(
-                vec![at(Pose { mask: 1.0, ..REST }, Linear), at(REST, Linear)],
-                1000,
-            )
-        },
         NodeMotion::BlurSwap => {
             let hidden = Pose {
                 blur: 5.0,
@@ -461,64 +269,6 @@ pub fn motion_spec(motion: NodeMotion) -> MotionSpec {
                 750,
             )
         }
-        NodeMotion::RackFocus => out_and_back(blurred(3.0), 800, InOut),
-        NodeMotion::Rise => spec(
-            vec![
-                at(REST, Out),
-                at_offset(
-                    Pose {
-                        opacity: 0.0,
-                        ..REST
-                    },
-                    0.2,
-                    Step,
-                ),
-                at_offset(
-                    Pose {
-                        ty: 0.35,
-                        opacity: 0.0,
-                        ..REST
-                    },
-                    0.21,
-                    Out,
-                ),
-                at(REST, Linear),
-            ],
-            900,
-        ),
-        NodeMotion::Tracking => spec(
-            vec![
-                at(REST, InOut),
-                at_offset(
-                    Pose {
-                        sx: 1.6,
-                        blur: 3.0,
-                        opacity: 0.3,
-                        ..REST
-                    },
-                    0.35,
-                    Back,
-                ),
-                at(REST, Linear),
-            ],
-            900,
-        ),
-        NodeMotion::Snap => spec(
-            vec![
-                at(REST, InOut),
-                at_offset(
-                    Pose {
-                        blur: 3.0,
-                        ..scaled(1.5)
-                    },
-                    0.5,
-                    Step,
-                ),
-                at_offset(REST, 0.51, Step),
-                at(REST, Linear),
-            ],
-            800,
-        ),
         NodeMotion::FadeThrough => out_and_back(
             Pose {
                 opacity: 0.1,
@@ -526,60 +276,6 @@ pub fn motion_spec(motion: NodeMotion) -> MotionSpec {
             },
             800,
             InOut,
-        ),
-        NodeMotion::Dissolve => out_and_back(
-            Pose {
-                opacity: 0.0,
-                blur: 4.0,
-                ..scaled(1.2)
-            },
-            900,
-            InOut,
-        ),
-        NodeMotion::Glitch => {
-            let split = |x: f64, y: f64, rgb: f64| Pose {
-                split_x: x / 100.0,
-                split_y: y / 100.0,
-                rgb,
-                ..REST
-            };
-            spec(
-                vec![
-                    at(split(0.0, 0.0, 0.0), Step),
-                    at(split(3.0, -2.0, 2.0), Step),
-                    at(split(-4.0, 1.0, -2.0), Step),
-                    at(split(2.0, 3.0, 2.0), Step),
-                    at(split(-3.0, -1.0, -2.0), Step),
-                    at(split(4.0, 2.0, 2.0), Step),
-                    at(split(0.0, 0.0, 0.0), Linear),
-                ],
-                520,
-            )
-        }
-        NodeMotion::Flicker => spec(
-            [
-                (1.0, 0.0),
-                (0.1, 0.08),
-                (1.0, 0.16),
-                (0.15, 0.3),
-                (0.9, 0.38),
-                (0.05, 0.5),
-                (1.0, 0.62),
-                (1.0, 1.0),
-            ]
-            .iter()
-            .map(|(opacity, offset)| {
-                at_offset(
-                    Pose {
-                        opacity: *opacity,
-                        ..REST
-                    },
-                    *offset,
-                    Step,
-                )
-            })
-            .collect(),
-            1000,
         ),
         NodeMotion::HardCut => spec(
             [1.0, 1.35, 0.75, 1.15, 1.0]
@@ -609,38 +305,6 @@ pub fn motion_spec(motion: NodeMotion) -> MotionSpec {
                     ),
                 ],
                 800,
-            )
-        },
-        NodeMotion::Flare => MotionSpec {
-            part: Part::Flare,
-            ..spec(
-                vec![
-                    at(
-                        Pose {
-                            tx: -0.9,
-                            opacity: 0.0,
-                            ..REST
-                        },
-                        InOut,
-                    ),
-                    at(
-                        Pose {
-                            tx: 0.0,
-                            opacity: 1.0,
-                            ..REST
-                        },
-                        InOut,
-                    ),
-                    at(
-                        Pose {
-                            tx: 0.9,
-                            opacity: 0.0,
-                            ..REST
-                        },
-                        Linear,
-                    ),
-                ],
-                1000,
             )
         },
     }
@@ -725,18 +389,9 @@ fn blend(a: &Pose, b: &Pose, t: f64) -> Pose {
         sx: mix(a.sx, b.sx, t),
         sy: mix(a.sy, b.sy, t),
         rotate: mix(a.rotate, b.rotate, t),
-        tilt_x: mix(a.tilt_x, b.tilt_x, t),
-        tilt_y: mix(a.tilt_y, b.tilt_y, t),
         opacity: mix(a.opacity, b.opacity, t),
         blur: mix(a.blur, b.blur, t),
-        clip_top: mix(a.clip_top, b.clip_top, t),
-        iris: mix(a.iris, b.iris, t),
-        sweep: mix(a.sweep, b.sweep, t),
-        mask: mix(a.mask, b.mask, t),
         dash: mix(a.dash, b.dash, t),
-        split_x: mix(a.split_x, b.split_x, t),
-        split_y: mix(a.split_y, b.split_y, t),
-        rgb: mix(a.rgb, b.rgb, t),
         smear: mix(a.smear, b.smear, t),
     }
 }

@@ -1,5 +1,5 @@
 use opsis_macros::settings;
-use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::looks::NodeLook;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::Direction;
@@ -30,8 +30,8 @@ pub fn definition() -> ElementMeta {
             ElementCategory::Transition,
             24,
         )
-        .look(
-            NodeLook::of("lucide:triangles-centerline-dashed-horizontal").moves(NodeMotion::Flip),
-        ),
+        .look(NodeLook::of(
+            "lucide:triangles-centerline-dashed-horizontal",
+        )),
     )
 }

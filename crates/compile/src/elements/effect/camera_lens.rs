@@ -1,5 +1,5 @@
 use opsis_macros::settings;
-use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::looks::NodeLook;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
@@ -43,6 +43,6 @@ pub fn definition() -> ElementMeta {
                 ElementCategory::Effect,
                 90,
             )
-                .look(NodeLook::of("lucide:aperture").moves(NodeMotion::RackFocus)),
+                .look(NodeLook::of("lucide:aperture")),
         )
 }

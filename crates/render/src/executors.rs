@@ -5,6 +5,10 @@ use std::sync::Arc;
 use opsis_capture::film::{Capture, DriverOptions, FilmPage};
 use opsis_compile::asset_ref::{FILM_FOLDER, project_ref};
 use opsis_compile::hosted::hosted;
+use opsis_compile::nodes::image::IMAGE_PORT;
+use opsis_compile::nodes::image_frame::{
+    FRAME_IMAGE_TYPE, FRAMED_AT_FRAME, FrameImage, framed_image_spec,
+};
 use opsis_compile::nodes::media::Codec;
 use opsis_compile::nodes::output::{
     ExportImages, ExportVideo, Gl, RENDER_TYPE, SAVE_TAKE_TYPE, SAVED_TAKE_PORT, STILL_TYPE,
@@ -474,6 +478,68 @@ async fn export_images(
     })
 }
 
+async fn frame_image(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+    engine: Arc<RenderEngine>,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: FrameImage = ctx.params()?;
+    let src = inputs
+        .get(IMAGE_PORT)
+        .and_then(CompileValue::as_media)
+        .and_then(|m| m.src.clone())
+        .ok_or_else(|| ExecError::new("Connect an image to frame."))?;
+    let path = ctx.ref_to_path(&src)?;
+    let probe = opsis_probe::probe(&path).map_err(|e| ExecError::new(e.to_string()))?;
+    let picture = probe
+        .video
+        .ok_or_else(|| ExecError::new("The connected file isn't a picture."))?;
+    let source = (f64::from(picture.width), f64::from(picture.height));
+    let spec = framed_image_spec(&p, &src, source);
+    ctx.progress(0.0, Some("Preparing render engine"));
+    let server = asset_server(&ctx, &engine, &spec).await?;
+    let film = hosted_film(
+        &sized(
+            &spec,
+            spec.width,
+            spec.height,
+            ReframeMode::default(),
+            &server.url,
+        ),
+        &server.url,
+    )?;
+    std::fs::create_dir_all(&ctx.dir).map_err(|e| ExecError::new(e.to_string()))?;
+    let out = ctx.dir.join("framed.png");
+    render_still(&StillRender {
+        driver: driver(&ctx, Gl::Angle)?,
+        page: film.page(1.0),
+        frame: FRAMED_AT_FRAME,
+        format: StillFormat::Png,
+        jpeg_quality: None,
+        output: &out,
+    })
+    .await
+    .map_err(film_error)?;
+    drop(server);
+    let image = ImageValue {
+        src: Some(project_ref(&project_path(&ctx, &out)?)),
+        width: Some(spec.width),
+        height: Some(spec.height),
+        scale: None,
+        body: None,
+    };
+    Ok(ExecutorOutput {
+        outputs: PortValues::from([(IMAGE_PORT.to_owned(), CompileValue::Image(image))]),
+        artifacts: vec![Artifact::labelled(
+            ArtifactKind::Image,
+            project_path(&ctx, &out)?,
+            "Framed image",
+        )],
+        trace_id: None,
+        measured: Vec::new(),
+    })
+}
+
 async fn save_take(
     ctx: Arc<ExecutorContext>,
     inputs: PortValues,
@@ -534,5 +600,6 @@ pub fn output_executors(engine: &Arc<RenderEngine>) -> Vec<(&'static str, Execut
         (RENDER_TYPE, bind(engine, export_video)),
         (STILL_TYPE, bind(engine, export_images)),
         (SAVE_TAKE_TYPE, executor(save_take)),
+        (FRAME_IMAGE_TYPE, bind(engine, frame_image)),
     ]
 }

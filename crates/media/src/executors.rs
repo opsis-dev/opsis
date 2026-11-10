@@ -5,21 +5,22 @@ use std::sync::Arc;
 use futures::future::try_join_all;
 use opsis_compile::asset_ref::{kind_from_path, project_ref};
 use opsis_compile::nodes::audio::{
-    END_HIT_FILE, GENERATE_TYPE, GenerateSound, RISER_FILE, RISER_TYPE, ROOM_TONE_TYPE, Riser,
-    RoomTone, TONES_TYPE, TRANSITION_SOUNDS_TYPE, Tones, TransitionSoundFrom, TransitionSounds,
-    sound_shape, transition_cues, transition_sound_file,
+    END_HIT_FILE, MADE_SOUND_FILE, ROOM_TONE_TYPE, RoomTone, SOUND_EFFECT_TYPE,
+    TRANSITION_SOUNDS_TYPE, TransitionSoundFrom, TransitionSounds, transition_cues,
+    transition_sound_file,
 };
 use opsis_compile::nodes::grade::{LOOK_TYPE, LookFile, grade_needs_video};
 use opsis_compile::nodes::media::{
-    APPLY_GRADE_TYPE, CLEAN_SPEECH_TYPE, CONCAT_TYPE, CONVERT_TYPE, ChangePitch, ChangeSpeed,
-    CleanSpeech, EXTRACT_AUDIO_TYPE, Encoding, EvenOutVolume, ExtractSound, FASTSTART_TYPE,
-    FIT_MUSIC_TYPE, FitMusic, FitPlan, FixClicks, GIF_TYPE, GrabFrame, HUM_TYPE, IMPORT_TYPE,
+    APPLY_GRADE_TYPE, CONCAT_TYPE, CONVERT_TYPE, ChangePitch, ChangeSpeed, EXTRACT_AUDIO_TYPE,
+    Encoding, EvenOutVolume, ExtractSound, FIT_MUSIC_TYPE, FIX_CLICKS_TYPE, FIX_CLIPPING_TYPE,
+    FitMusic, FitPlan, FixClicks, FixClipping, GIF_TYPE, GrabFrame, HUM_TYPE, IMPORT_TYPE,
     JoinFiles, JoinSizeFrom, LOUDNORM_TYPE, MakeGif, MediaFile, NoiseMethod, PAUSES_TYPE,
-    PITCH_TYPE, REPAIR_TYPE, REVERSE_TYPE, RemoveHum, Resize, ReverseFile, SCALE_PAD_TYPE,
-    SOUND_PICTURE_PORT, SOUND_PICTURE_TYPE, SPEED_TYPE, ShortenPauses, SoundPicture,
-    THUMBNAIL_TYPE, TRIM_TYPE, TrimFile, VOICE_TYPE, VoiceEffects, fit_plan, joined_files,
-    kept_parts,
+    PITCH_TYPE, REMOVE_NOISE_TYPE, REVERSE_TYPE, RemoveHum, RemoveNoise, Resize, ReverseFile,
+    SCALE_PAD_TYPE, SOFTEN_S_TYPE, SOUND_PICTURE_PORT, SOUND_PICTURE_TYPE, SPEED_TYPE,
+    ShortenPauses, SoftenS, SoundPicture, THUMBNAIL_TYPE, TRIM_TYPE, TrimFile, VOICE_TYPE,
+    VoiceEffects, fit_plan, joined_files, kept_parts,
 };
+use opsis_compile::nodes::sound_effect::{SoundEffect, SoundSource};
 use opsis_compile::registry::{node_def, node_name};
 use opsis_compile::text::{format_duration, single_quoted};
 use opsis_probe::Probe;
@@ -34,17 +35,17 @@ use opsis_types::values::{
 use crate::codecs::{
     EVEN_FRAME, EditedFile, FASTSTART, FrameGrab, PCM_16, audio_format_args, audio_format_for,
     codec_info, convert_args, convert_codec, edit_audio, edit_video, edited_file, even_down,
-    extract_args, ffmpeg_seconds, frame_grab_args, grade_sound_args, grade_video_args, serde_name,
-    sound_file, strings,
+    extract_args, ffmpeg_seconds, frame_grab_args, graded_sound_args, serde_name, sound_file,
+    strings,
 };
 use crate::denoise::{DENOISE_RATE, denoised};
 use crate::ffmpeg::{MediaTools, OnProgress, RunOptions, ToolError, can_stream_copy};
 use crate::filters::{
-    GifLook, JoinPart, JoinSize, fit_filter, fit_graph, fit_inputs, gif_filter, hum_filter,
-    hum_listen_filter, join_filter, joined_parts_graph, loudnorm_filter, noise_level,
-    noise_level_listen_filter, pitch_filter, repair_filter, rms_level, silence_listen_filter,
-    silences, sound_picture_graph, spectral_floor, speech_filter, speed_args, speed_sound_args,
-    voice_filter,
+    GifLook, JoinPart, JoinSize, declick_filter, declip_filter, even_out_filter, fit_filter,
+    fit_graph, fit_inputs, gif_filter, hum_filter, hum_listen_filter, join_filter,
+    joined_parts_graph, noise_filter, noise_level, noise_level_listen_filter, pitch_filter,
+    rms_level, silence_listen_filter, silences, soften_s_filter, sound_picture_graph,
+    spectral_floor, speed_args, speed_sound_args, voice_filter,
 };
 use crate::generate::{
     Beeps, beeps, length_ms, room_response, room_tone, write_stereo_wav, write_wav,
@@ -191,7 +192,7 @@ const fn artifact_kind(kind: MediaKind) -> ArtifactKind {
         MediaKind::Video => ArtifactKind::Video,
         MediaKind::Image => ArtifactKind::Image,
         MediaKind::Audio => ArtifactKind::Audio,
-        MediaKind::TerminalTake => ArtifactKind::File,
+        MediaKind::TerminalTake | MediaKind::Animation => ArtifactKind::File,
     }
 }
 
@@ -205,9 +206,20 @@ async fn media_result(
     file: &str,
     label: &str,
 ) -> Result<ExecutorOutput, ExecError> {
-    let probe = tools.probe(&ctx.dir.join(file)).await.map_err(tool_error)?;
     let src = ctx.project_file_ref(file);
-    let media = media_value_from(&probe, &src, media_kind(&probe, &src));
+    let media = if kind_from_path(file) == MediaKind::Animation {
+        MediaValue {
+            src: Some(src),
+            kind: MediaKind::Animation,
+            duration_ms: None,
+            width: None,
+            height: None,
+            has_audio: Some(false),
+        }
+    } else {
+        let probe = tools.probe(&ctx.dir.join(file)).await.map_err(tool_error)?;
+        media_value_from(&probe, &src, media_kind(&probe, &src))
+    };
     let artifacts = vec![ctx.artifact(artifact_kind(media.kind), file, label)];
     Ok(ExecutorOutput {
         outputs: output(MEDIA_PORT, CompileValue::Media(media)),
@@ -793,6 +805,20 @@ async fn convert(
 ) -> Result<ExecutorOutput, ExecError> {
     let p: Encoding = ctx.params()?;
     let input = require_media(inputs.get(MEDIA_PORT))?;
+    if p.keep_format {
+        let job = Transcode {
+            file: format!("web-ready{}", ext_of(&input.src)),
+            label: "Web-ready",
+            duration_ms: None,
+        };
+        return transcode(&ctx, &*tools, &input, job, |i, o| {
+            let mut args = strings(&["-i", i, "-c", "copy"]);
+            args.extend(strings(&FASTSTART));
+            args.push(o.to_owned());
+            args
+        })
+        .await;
+    }
     let label = serde_name(&p.codec);
     let job = Transcode {
         file: format!("converted.{}", codec_info(convert_codec(p.codec)).ext),
@@ -838,7 +864,6 @@ async fn apply_grade(
     inputs: PortValues,
     tools: Tools,
 ) -> Result<ExecutorOutput, ExecError> {
-    let p: Encoding = ctx.params()?;
     let input = require_media(inputs.get(MEDIA_PORT))?;
     let entries = inputs
         .get("grade")
@@ -874,12 +899,7 @@ async fn apply_grade(
             "Motion trails and film grain are left out of a still image.",
         );
     }
-    let codec = codec_info(convert_codec(p.codec));
-    let file = if still {
-        "graded.png".to_owned()
-    } else {
-        format!("graded.{}", codec.ext)
-    };
+    let file = if still { "graded.png" } else { "graded.mp4" }.to_owned();
     let sound = probe.audio.as_ref().map(|a| a.codec.as_str());
     let job = Transcode {
         file,
@@ -903,11 +923,9 @@ async fn apply_grade(
             if sound.is_some() {
                 args.extend(strings(&["-map", "0:a?"]));
             }
-            args.extend(grade_video_args(&p, encode_speed(&ctx)));
-            args.extend(grade_sound_args(&p, sound));
-            if codec.faststart {
-                args.extend(strings(&FASTSTART));
-            }
+            args.extend(edit_video(encode_speed(&ctx)));
+            args.extend(graded_sound_args(sound));
+            args.extend(strings(&FASTSTART));
         }
         args.push(o.to_owned());
         args
@@ -1042,7 +1060,7 @@ async fn loudnorm(
         stem: "loudnorm",
         label: "Loudness normalised",
         silent: "This file has no sound to even out.",
-        filter: loudnorm_filter(p.integrated, p.true_peak, p.lra),
+        filter: even_out_filter(&p),
         sound: None,
     };
     filter_sound(&ctx, &inputs, &*tools, job).await
@@ -1184,25 +1202,6 @@ async fn make_room_tone(
     made_sound(&ctx, "room-tone.wav", "Room tone", &samples)
 }
 
-async fn make_tones(
-    ctx: Arc<ExecutorContext>,
-    _inputs: PortValues,
-    _tools: Tools,
-) -> Result<ExecutorOutput, ExecError> {
-    let p: Tones = ctx.params()?;
-    let samples = beeps(&Beeps {
-        kind: p.kind,
-        pitch_hz: p.pitch_hz,
-        length_ms: f64::from(p.length_ms),
-        count: p.count,
-        spacing_ms: f64::from(p.spacing_ms),
-        wave: p.wave,
-        final_length: p.final_length,
-        final_pitch: p.final_pitch,
-    });
-    made_sound(&ctx, "tones.wav", "Tones", &samples)
-}
-
 const NO_SPEECH: &str = "This file has no sound to clean.";
 
 async fn noise_level_of(
@@ -1256,12 +1255,12 @@ fn denoise_file(from: &Path, to: &Path, strength: f64) -> Result<(), ExecError> 
     writer.finalize().map_err(|e| wav_error(&e))
 }
 
-async fn clean_speech(
+async fn remove_noise(
     ctx: Arc<ExecutorContext>,
     inputs: PortValues,
     tools: Tools,
 ) -> Result<ExecutorOutput, ExecError> {
-    let p: CleanSpeech = ctx.params()?;
+    let p: RemoveNoise = ctx.params()?;
     let input = require_media(inputs.get(MEDIA_PORT))?;
     let source = ctx.ref_to_path(&input.src)?;
     let probe = tools.probe(&source).await.map_err(tool_error)?;
@@ -1288,11 +1287,13 @@ async fn clean_speech(
             log::debug!("kept {}: {error}", decoded.display());
         }
     }
+    let filter = noise_filter(&p, (!learned).then(|| spectral_floor(before)))
+        .unwrap_or_else(|| "anull".to_owned());
     let job = SoundFilter {
-        stem: "speech",
-        label: "Speech cleaned",
+        stem: "denoised",
+        label: "Noise removed",
         silent: NO_SPEECH,
-        filter: speech_filter(&p, (!learned).then(|| spectral_floor(before))),
+        filter,
         sound: learned.then_some(voice.as_path()),
     };
     let mut out = filter_sound(&ctx, &inputs, &*tools, job).await?;
@@ -1317,33 +1318,77 @@ async fn clean_speech(
     Ok(out)
 }
 
-async fn make_generated(
+async fn soften_s(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+    tools: Tools,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: SoftenS = ctx.params()?;
+    let job = SoundFilter {
+        stem: "softened",
+        label: "“S” sounds softened",
+        silent: NO_SPEECH,
+        filter: soften_s_filter(p.strength),
+        sound: None,
+    };
+    filter_sound(&ctx, &inputs, &*tools, job).await
+}
+
+fn made_channels(p: &SoundEffect) -> Option<[Vec<f32>; 2]> {
+    if let Some(shape) = p.shape() {
+        return Some(crate::sound_maker::make(&shape));
+    }
+    let kind = p.sound.tone()?;
+    let mono = beeps(&Beeps {
+        kind,
+        pitch_hz: p.pitch_hz,
+        length_ms: f64::from(p.tone_ms),
+        count: p.count,
+        spacing_ms: f64::from(p.spacing_ms),
+        wave: p.wave,
+        final_length: p.final_length,
+        final_pitch: p.final_pitch,
+    });
+    Some([mono.clone(), mono])
+}
+
+async fn make_sound_effect(
     ctx: Arc<ExecutorContext>,
     _inputs: PortValues,
     _tools: Tools,
 ) -> Result<ExecutorOutput, ExecError> {
-    let p: GenerateSound = ctx.params()?;
-    let shape = sound_shape(&p);
-    let channels = tokio::task::spawn_blocking(move || crate::sound_maker::make(&shape))
-        .await
-        .map_err(|e| ExecError::new(e.to_string()))?;
-    let file = "generated.wav";
-    crate::generate::write_stereo_pcm(&ctx.dir.join(file), &channels)
-        .map_err(|e| ExecError::new(e.to_string()))?;
-    let value = MediaValue {
-        src: Some(ctx.project_file_ref(file)),
-        kind: MediaKind::Audio,
-        duration_ms: Some(length_ms(&channels[0])),
-        width: None,
-        height: None,
-        has_audio: Some(true),
-    };
-    Ok(ExecutorOutput {
-        outputs: output(SOUND_PORT, CompileValue::Media(value)),
-        artifacts: vec![ctx.artifact(ArtifactKind::Audio, file, "Generated sound")],
-        trace_id: None,
-        measured: Vec::new(),
-    })
+    let p: SoundEffect = ctx.params()?;
+    let mut out = ExecutorOutput::default();
+    if p.source == SoundSource::Made {
+        let recipe = p.clone();
+        let channels = tokio::task::spawn_blocking(move || made_channels(&recipe))
+            .await
+            .map_err(|e| ExecError::new(e.to_string()))?
+            .ok_or_else(|| ExecError::new("This sound can't be made."))?;
+        crate::generate::write_stereo_pcm(&ctx.dir.join(MADE_SOUND_FILE), &channels)
+            .map_err(|e| ExecError::new(e.to_string()))?;
+        let value = MediaValue {
+            src: Some(ctx.project_file_ref(MADE_SOUND_FILE)),
+            kind: MediaKind::Audio,
+            duration_ms: Some(length_ms(&channels[0])),
+            width: None,
+            height: None,
+            has_audio: Some(true),
+        };
+        out.outputs = output(SOUND_PORT, CompileValue::Media(value));
+        out.artifacts
+            .push(ctx.artifact(ArtifactKind::Audio, MADE_SOUND_FILE, "Sound effect"));
+    }
+    if let Some(shape) = p.hit_shape() {
+        let channels = tokio::task::spawn_blocking(move || crate::sound_maker::make(&shape))
+            .await
+            .map_err(|e| ExecError::new(e.to_string()))?;
+        crate::generate::write_stereo_pcm(&ctx.dir.join(END_HIT_FILE), &channels)
+            .map_err(|e| ExecError::new(e.to_string()))?;
+        out.artifacts
+            .push(ctx.artifact(ArtifactKind::Audio, END_HIT_FILE, "Hit at the end"));
+    }
+    Ok(out)
 }
 
 async fn make_transition_sounds(
@@ -1378,30 +1423,6 @@ async fn make_transition_sounds(
         crate::generate::write_stereo_pcm(&ctx.dir.join(&file), &channels)
             .map_err(|e| ExecError::new(e.to_string()))?;
         artifacts.push(ctx.artifact(ArtifactKind::Audio, &file, "Transition sound"));
-    }
-    Ok(ExecutorOutput {
-        artifacts,
-        ..ExecutorOutput::default()
-    })
-}
-
-async fn make_riser(
-    ctx: Arc<ExecutorContext>,
-    _inputs: PortValues,
-    _tools: Tools,
-) -> Result<ExecutorOutput, ExecError> {
-    let p: Riser = ctx.params()?;
-    let mut artifacts = Vec::new();
-    for (file, shape) in [(RISER_FILE, Some(p.shape())), (END_HIT_FILE, p.hit_shape())] {
-        let Some(shape) = shape else {
-            continue;
-        };
-        let channels = tokio::task::spawn_blocking(move || crate::sound_maker::make(&shape))
-            .await
-            .map_err(|e| ExecError::new(e.to_string()))?;
-        crate::generate::write_stereo_pcm(&ctx.dir.join(file), &channels)
-            .map_err(|e| ExecError::new(e.to_string()))?;
-        artifacts.push(ctx.artifact(ArtifactKind::Audio, file, "Riser"));
     }
     Ok(ExecutorOutput {
         artifacts,
@@ -1586,19 +1607,33 @@ async fn shorten_pauses(
     .await
 }
 
-async fn repair(
+async fn fix_clicks(
     ctx: Arc<ExecutorContext>,
     inputs: PortValues,
     tools: Tools,
 ) -> Result<ExecutorOutput, ExecError> {
     let p: FixClicks = ctx.params()?;
-    let filter = repair_filter(p.clicks, p.clipping, p.strength)
-        .ok_or_else(|| ExecError::new("Turn on clicks or clipping to fix."))?;
     let job = SoundFilter {
-        stem: "repaired",
-        label: "Clicks and clipping fixed",
+        stem: "declicked",
+        label: "Clicks fixed",
         silent: "This file has no sound to fix.",
-        filter,
+        filter: declick_filter(p.strength),
+        sound: None,
+    };
+    filter_sound(&ctx, &inputs, &*tools, job).await
+}
+
+async fn fix_clipping(
+    ctx: Arc<ExecutorContext>,
+    inputs: PortValues,
+    tools: Tools,
+) -> Result<ExecutorOutput, ExecError> {
+    let p: FixClipping = ctx.params()?;
+    let job = SoundFilter {
+        stem: "declipped",
+        label: "Clipping fixed",
+        silent: "This file has no sound to fix.",
+        filter: declip_filter(p.strength),
         sound: None,
     };
     filter_sound(&ctx, &inputs, &*tools, job).await
@@ -1661,26 +1696,6 @@ async fn thumbnail(
     })
 }
 
-async fn faststart(
-    ctx: Arc<ExecutorContext>,
-    inputs: PortValues,
-    tools: Tools,
-) -> Result<ExecutorOutput, ExecError> {
-    let input = require_media(inputs.get(MEDIA_PORT))?;
-    let job = Transcode {
-        file: format!("faststart{}", ext_of(&input.src)),
-        label: "Web-ready",
-        duration_ms: None,
-    };
-    transcode(&ctx, &*tools, &input, job, |i, o| {
-        let mut args = strings(&["-i", i, "-c", "copy"]);
-        args.extend(strings(&FASTSTART));
-        args.push(o.to_owned());
-        args
-    })
-    .await
-}
-
 fn bind<F, Fut>(tools: &Tools, run: F) -> Executor
 where
     F: Fn(Arc<ExecutorContext>, PortValues, Tools) -> Fut + Send + Sync + 'static,
@@ -1703,20 +1718,19 @@ pub fn media_executors(tools: &Tools) -> Vec<(&'static str, Executor)> {
         (GIF_TYPE, bind(tools, gif)),
         (EXTRACT_AUDIO_TYPE, bind(tools, extract_audio)),
         (LOUDNORM_TYPE, bind(tools, loudnorm)),
-        (REPAIR_TYPE, bind(tools, repair)),
+        (FIX_CLICKS_TYPE, bind(tools, fix_clicks)),
+        (FIX_CLIPPING_TYPE, bind(tools, fix_clipping)),
         (HUM_TYPE, bind(tools, hum)),
         (PAUSES_TYPE, bind(tools, shorten_pauses)),
         (PITCH_TYPE, bind(tools, change_pitch)),
         (VOICE_TYPE, bind(tools, voice_effects)),
         (FIT_MUSIC_TYPE, bind(tools, fit_music)),
-        (CLEAN_SPEECH_TYPE, bind(tools, clean_speech)),
+        (REMOVE_NOISE_TYPE, bind(tools, remove_noise)),
+        (SOFTEN_S_TYPE, bind(tools, soften_s)),
         (SOUND_PICTURE_TYPE, bind(tools, sound_picture)),
         (THUMBNAIL_TYPE, bind(tools, thumbnail)),
-        (FASTSTART_TYPE, bind(tools, faststart)),
         (ROOM_TONE_TYPE, bind(tools, make_room_tone)),
-        (TONES_TYPE, bind(tools, make_tones)),
-        (GENERATE_TYPE, bind(tools, make_generated)),
+        (SOUND_EFFECT_TYPE, bind(tools, make_sound_effect)),
         (TRANSITION_SOUNDS_TYPE, bind(tools, make_transition_sounds)),
-        (RISER_TYPE, bind(tools, make_riser)),
     ]
 }

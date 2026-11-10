@@ -1,6 +1,6 @@
 import type React from "react";
 import type { ElementProps } from "#video/common/spec.ts";
-import type { Size } from "#video/core/still-layout.ts";
+import type { Size } from "#video/core/size.ts";
 import type { TransitionPresentation } from "#video/lib/transitions/presentation.ts";
 import type {
   ElementComponent,

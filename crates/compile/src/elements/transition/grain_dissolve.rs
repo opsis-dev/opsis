@@ -1,5 +1,5 @@
 use opsis_macros::{choice, settings};
-use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::looks::NodeLook;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::Colour;
@@ -73,8 +73,8 @@ pub fn definition() -> ElementMeta {
                 "Grain dissolve",
                 "A grain-gradient shader transition that disintegrates the outgoing scene into soft grainy shapes and condenses the next scene out of the noise.",
                 ElementCategory::Transition,
-                116,
+                76,
             )
-                .look(NodeLook::of("tabler:grain").moves(NodeMotion::Dissolve)),
+                .look(NodeLook::of("tabler:grain")),
         )
 }

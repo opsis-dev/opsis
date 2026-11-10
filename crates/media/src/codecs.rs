@@ -299,34 +299,13 @@ pub fn convert_args(p: &Encoding, preset: EncodePreset) -> Vec<String> {
     args
 }
 
-pub fn grade_video_args(p: &Encoding, preset: EncodePreset) -> Vec<String> {
-    let mut args = convert_video(p, preset);
-    if let Some(at) = args.iter().position(|a| a == "-vf") {
-        args.drain(at..at + 2);
-    }
-    if p.codec == ConvertCodec::Vp9 {
-        args.extend(strings(&["-pix_fmt", "yuv420p"]));
-    }
-    args
-}
-
 const MP4_SOUNDS: [&str; 7] = ["aac", "mp3", "ac3", "eac3", "opus", "flac", "alac"];
-const WEBM_SOUNDS: [&str; 2] = ["opus", "vorbis"];
 
-pub fn grade_sound_args(p: &Encoding, sound: Option<&str>) -> Vec<String> {
-    let Some(sound) = sound.filter(|s| !s.is_empty()) else {
-        return Vec::new();
-    };
-    let info = codec_info(convert_codec(p.codec));
-    let keeps = match info.ext {
-        "webm" => WEBM_SOUNDS.contains(&sound),
-        "mov" => true,
-        _ => MP4_SOUNDS.contains(&sound),
-    };
-    if keeps {
-        strings(&["-c:a", "copy"])
-    } else {
-        sound_args(p.codec, p.sound_quality)
+pub fn graded_sound_args(sound: Option<&str>) -> Vec<String> {
+    match sound.filter(|s| !s.is_empty()) {
+        None => Vec::new(),
+        Some(sound) if MP4_SOUNDS.contains(&sound) => strings(&["-c:a", "copy"]),
+        Some(_) => edit_audio(),
     }
 }
 

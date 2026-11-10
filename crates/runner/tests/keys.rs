@@ -51,7 +51,7 @@ fn key_of(wf: &Workflow, dir: &Path, id: &str) -> String {
 fn changes_every_key_after_a_node_when_skip_is_turned_on_or_off() {
     let mut wf = workflow(
         serde_json::json!([
-            node("bg", "fx.solid", serde_json::json!({})),
+            node("bg", "fx.background", serde_json::json!({})),
             node("spot", "camera.crop", serde_json::json!({})),
             node("out", "output.render", serde_json::json!({}))
         ]),

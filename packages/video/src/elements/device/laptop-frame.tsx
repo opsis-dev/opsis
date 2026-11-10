@@ -5,12 +5,11 @@ import type { CSSProperties, ReactNode } from "react";
 import { themeColors } from "#video/common/theme.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
-import type { FootageUrls } from "#video/core/footage.tsx";
-import type { ElementSettings, MediaKind } from "#video/generated/spec.ts";
+import type { ElementSettings } from "#video/generated/spec.ts";
 import { mixOklch, withAlpha } from "#video/lib/ui-kit/color.ts";
 import { resolveFont, type WarmTheme, useWarmTheme } from "#video/lib/warm-ui/index.ts";
 import { WarmUIProvider } from "#video/lib/warm-ui/theme.ts";
-import { floatOffset, ScreenMedia } from "#video/parts/device-screen.tsx";
+import { floatOffset } from "#video/parts/device-screen.tsx";
 
 type LaptopFrameEntrance = "rise" | "open" | "none";
 type LaptopFrameFinale = "none" | "zoom-to-screen";
@@ -18,8 +17,6 @@ type NotchPhase = "idle" | "loading" | "done";
 
 type LaptopFrameProps = Omit<ElementSettings["laptop-frame"], "theme"> & {
   children?: ReactNode;
-  screenKind?: MediaKind;
-  footageUrls?: FootageUrls;
   theme: Partial<WarmTheme>;
   mode: "light" | "dark";
 };
@@ -294,9 +291,6 @@ function Notch({
 
 function LaptopFrameView({
   children,
-  screenSrc,
-  screenKind,
-  footageUrls,
   entrance,
   finale,
   bezelColor,
@@ -344,16 +338,7 @@ function LaptopFrameView({
       ? interpolate(frame, [zoom.start, zoom.start + 10], [1, 0], CLAMPED)
       : 1;
 
-  const screenContent =
-    children ??
-    (screenSrc ? (
-      <ScreenMedia
-        src={screenSrc}
-        kind={screenKind}
-        frame={frame}
-        footage={footageUrls?.screenSrc}
-      />
-    ) : null);
+  const screenContent = children ?? null;
 
   return (
     <div
@@ -471,8 +456,6 @@ export function LaptopFrame({
   ...settings
 }: ElementSettings["laptop-frame"] & {
   children?: ReactNode;
-  screenKind?: MediaKind;
-  footageUrls?: FootageUrls;
 }) {
   return (
     <WarmUIProvider mode={theme.mode}>

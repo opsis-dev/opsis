@@ -14,7 +14,7 @@ import { remapFrame } from "#video/common/remap.ts";
 import type { ElementItem } from "#video/common/spec.ts";
 import { CLAMP_RIGHT } from "#video/core/anim.ts";
 import { RecordingClip } from "#video/core/recording-clip.tsx";
-import type { Size } from "#video/core/still-layout.ts";
+import type { Size } from "#video/core/size.ts";
 import { CutBoardProvider, useCutBoard } from "#video/core/transition-cuts.tsx";
 import { FontProvider } from "#video/fonts/font-provider.tsx";
 import type {

@@ -382,9 +382,10 @@ void Scenario::BuildPorts() {
       QStringLiteral("inspector-plays-a-made-sound"),
       [made] {
         auto& session = App::Get().session();
-        *made = ToQ(session.add_node(ToRust(QStringLiteral("audio.generate")),
-                                     0, 1600));
-        Patch(*made, {{QStringLiteral("preset"), QStringLiteral("ding")}});
+        *made =
+            ToQ(session.add_node(ToRust(QStringLiteral("audio.sfx")), 0, 1600));
+        Patch(*made, {{QStringLiteral("source"), QStringLiteral("made")},
+                      {QStringLiteral("sound"), QStringLiteral("ding")}});
         session.run_node(ToRust(*made), false);
       },
       kRunMs,

@@ -1,5 +1,6 @@
 use opsis_compile::catalog::{EditorCatalog, EditorNode};
 use opsis_compile::inspector::InspectorContext;
+use opsis_compile::nodes::groups::KIND_OBJECT;
 use opsis_compile::text::format_duration;
 use opsis_qt::{Choice, FieldKind, FieldView, PresetView};
 use opsis_types::timeline::EnvelopeKey;
@@ -47,6 +48,28 @@ fn form(
             continue;
         }
         let path = format!("{prefix}{key}");
+        if flag(schema, KIND_OBJECT) {
+            let kind_props = schema
+                .get("properties")
+                .and_then(Value::as_object)
+                .cloned()
+                .unwrap_or_default();
+            let own = values
+                .get(key)
+                .cloned()
+                .unwrap_or_else(|| Value::Object(Map::new()));
+            let kind_values = with_defaults(&kind_props, &own);
+            form(
+                &kind_props,
+                &kind_values,
+                &format!("{path}/"),
+                group,
+                ctx,
+                depth,
+                out,
+            );
+            continue;
+        }
         let mut view = field(&path, schema, values.get(key), ctx);
         group.clone_into(&mut view.group);
         if view.kind == FieldKind::Spot {
@@ -120,24 +143,14 @@ fn new_item(item: &Value) -> Value {
     Value::Object(with_defaults(&props, &Value::Object(Map::new())))
 }
 
-pub fn row_summary(item: &Value, entry: &Value, index: usize, ctx: &FormCtx<'_>) -> String {
+pub fn row_summary(item: &Value, entry: &Value, index: usize) -> String {
     let props = item
         .get("properties")
         .and_then(Value::as_object)
         .cloned()
         .unwrap_or_default();
-    let ports = ctx.inspector.map_or_default(|i| i.ports.as_slice());
-    let text_of = |key: &str, schema: &Value| -> Option<String> {
+    let text_of = |key: &str| -> Option<String> {
         let value = entry.get(key)?.as_str()?;
-        let widget = text(schema, "x-widget");
-        if widget == "cut" || widget == "port" {
-            return Some(
-                ports
-                    .iter()
-                    .find(|p| p.port == value)
-                    .map_or_else(|| "Not connected".to_owned(), |p| p.label.clone()),
-            );
-        }
         value.lines().next().map(|line| line.trim().to_owned())
     };
     let string_field = |schema: &Value| {
@@ -148,12 +161,12 @@ pub fn row_summary(item: &Value, entry: &Value, index: usize, ctx: &FormCtx<'_>)
     let shown = props
         .iter()
         .filter(|(_, s)| string_field(s))
-        .find_map(|(k, s)| text_of(k, s).filter(|t| !t.is_empty()))
+        .find_map(|(k, _)| text_of(k).filter(|t| !t.is_empty()))
         .or_else(|| {
             props
                 .iter()
                 .filter(|(_, s)| text(s, "x-widget") == "asset")
-                .find_map(|(k, s)| text_of(k, s).filter(|t| !t.is_empty()))
+                .find_map(|(k, _)| text_of(k).filter(|t| !t.is_empty()))
                 .map(|file| file.rsplit('/').next().unwrap_or(&file).to_owned())
         })
         .or_else(|| {
@@ -335,14 +348,6 @@ fn select(view: &mut FieldView, value: Option<&Value>, choices: Vec<Choice>, non
     none.clone_into(&mut view.none_label);
 }
 
-fn humanize(id: &str) -> String {
-    let spaced = id.replace(['-', '_'], " ");
-    let mut chars = spaced.chars();
-    chars.next().map_or_else(String::new, |first| {
-        first.to_uppercase().chain(chars).collect()
-    })
-}
-
 fn marker_label(label: &str, at_ms: f64) -> String {
     if label.is_empty() {
         format!("Marker at {}", format_duration(at_ms))
@@ -373,38 +378,12 @@ fn select_choices(widget: &str, ctx: &FormCtx<'_>) -> Option<(Vec<Choice>, &'sta
             ),
             "None",
         ),
-        "port" => (
-            pairs(
-                inspector
-                    .into_iter()
-                    .flat_map(|i| &i.ports)
-                    .map(|p| (p.port.as_str(), p.label.clone())),
-            ),
-            "",
-        ),
-        "cut" => (
-            pairs(
-                inspector
-                    .into_iter()
-                    .flat_map(|i| i.ports.iter().skip(1))
-                    .map(|p| (p.port.as_str(), p.label.clone())),
-            ),
-            "",
-        ),
         "variable" => (
             pairs(
                 inspector
                     .into_iter()
                     .flat_map(|i| &i.vars)
                     .map(|v| (v.name.as_str(), v.name.clone())),
-            ),
-            "",
-        ),
-        "backdrop" => (
-            pairs(
-                opsis_compile::backdrops::Backdrop::ALL
-                    .iter()
-                    .map(|b| (b.id(), humanize(b.id()))),
             ),
             "",
         ),
@@ -731,7 +710,7 @@ fn field(key: &str, schema: &Value, value: Option<&Value>, ctx: &FormCtx<'_>) ->
     } else if kinds.contains(&"array")
         && let Some(item) = schema.get("items")
     {
-        list_field(&mut view, item, value, ctx);
+        list_field(&mut view, item, value);
     } else if kinds.contains(&"boolean") {
         view.kind = FieldKind::Switch;
         view.checked = value.and_then(Value::as_bool).unwrap_or(false);
@@ -751,7 +730,7 @@ pub fn is_color(schema: &Value) -> bool {
         || schema.pointer("/x-check/rule").and_then(Value::as_str) == Some(COLOUR_RULE)
 }
 
-fn list_field(view: &mut FieldView, item: &Value, value: Option<&Value>, ctx: &FormCtx<'_>) {
+fn list_field(view: &mut FieldView, item: &Value, value: Option<&Value>) {
     let item_types = types(item);
     let color = is_color(item);
     view.kind = if item_types.contains(&"object") {
@@ -783,7 +762,7 @@ fn list_field(view: &mut FieldView, item: &Value, value: Option<&Value>, ctx: &F
             .enumerate()
             .map(|(index, entry)| Choice {
                 value: index.to_string(),
-                label: row_summary(item, entry, index, ctx),
+                label: row_summary(item, entry, index),
             })
             .collect();
     }

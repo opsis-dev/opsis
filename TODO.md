@@ -20,7 +20,7 @@ Wrong behaviour found in the session transcripts and confirmed in the current co
 - [ ] `clear_stale_child_temps` (`crates/engine/src/temp.rs`) never deletes a stray file in `<data folder>/tmp`: `remove_child_temp` uses `std::fs::remove_dir_all`, which fails on a plain file with `NotADirectory`, so the file stays while its name is still returned and counted as removed.
 - [ ] Child temp folder names keep only the first 8 characters of the id (`child_temp_name`), so the file players `player10` and `player100` share `<pid>-analysis-player10`, and closing one deletes the other's files.
 - [ ] A clip length field shows "Usual length" even with a clip connected: `blank` (`crates/ui/src/inspector.rs`) looks for the setting's own key (`clipDuration`) in `InspectorContext.connected_inputs`, which holds the connected port names (`clip`), so `x-unconnected-zero-label` always wins.
-- [ ] `x-zero-label` on a file (`asset`) or select field is never shown: the asset field always reads "Choose a file" and a select shows its `none_label`, so labels such as Launch anything's "Built-in photo" and Terminal look's "The take's own" never appear.
+- [ ] `x-zero-label` on a file (`asset`) or select field is never shown: the asset field always reads "Choose a file" and a select shows its `none_label`, so labels such as Text mask's "Gradient" and Terminal look's "The take's own" never appear.
 - [ ] Card rows and the Inspector disagree on `x-show-if` with `"*"`: the Inspector treats `"*"` as any non-empty value (`ANY_VALUE`, `crates/ui/src/inspector.rs`), while `shown` in `crates/compile/src/nodes/elements.rs` compares it as text.
 - [ ] `documents_every_route_it_serves` (`crates/api/tests/routes.rs`) leaves out `/openapi.json`, `/status`, `/nodes` and `/nodes/{type}`, so those routes could lose their OpenAPI entry without a failing test.
 
@@ -73,7 +73,6 @@ Ideas that were discussed but never finalized or planned.
 - [ ] Settings the audit left out because the code under them can't take them yet:
   - the transitions our presentations draw with fixed values: the clock wipe's direction and start angle, the iris's centre and direction, a fade through a colour and the lens zoom's centre;
   - which side a tooltip or callout sits on (needs placement that keeps the box on screen, `packages/video/src/camera/annotations.tsx`);
-  - each transition's own settings in a Sequence's cuts (a nested form per cut from the chosen transition's schema);
   - the agent-run panel's width and text size (they feed its whole layout and length model).
 
 ## Unverified

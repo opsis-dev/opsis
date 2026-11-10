@@ -6,7 +6,7 @@ use serde_json::{Value, json};
 
 use crate::clip::{ItemExtra, clip_to_spec, recording_clip};
 use crate::errors::SettingsError;
-use crate::nodes::camera::{CAMERA_TYPE, MOTION_BLUR_TYPE, SHOT_TYPE, clip_from_take_props};
+use crate::nodes::camera::{CAMERA_TYPE, FRAME_TYPE, MOTION_BLUR_TYPE, clip_from_take_props};
 use crate::terminal::{default_look, grid, screen_size};
 use crate::time::ms_to_frames;
 
@@ -53,8 +53,8 @@ pub fn preview_spec(take: &RecordingValue) -> Result<Option<TimelineSpec>, Setti
         plain(id, CAMERA_TYPE, json!({ "zoom": false })),
         plain(
             id,
-            SHOT_TYPE,
-            json!({ "windowSize": 100, "cornerRadius": 0, "shadow": 0, "liftColours": false }),
+            FRAME_TYPE,
+            json!({ "windowStyle": "none", "windowSize": 100, "cornerRadius": 0, "shadow": 0, "liftColours": false }),
         ),
         plain(id, MOTION_BLUR_TYPE, json!({ "enabled": false })),
     ];

@@ -1,5 +1,5 @@
 use opsis_macros::settings;
-use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::looks::NodeLook;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
@@ -99,8 +99,8 @@ pub fn definition() -> ElementMeta {
                 "Lens zoom",
                 "A hard cut disguised as a lens punch-in: barrel distortion, zoom blur, chromatic split and camera shake around the splice.",
                 ElementCategory::Transition,
-                112,
+                28,
             )
-                .look(NodeLook::of("lucide:zoom-in").moves(NodeMotion::ZoomThrough)),
+                .look(NodeLook::of("lucide:zoom-in")),
         )
 }

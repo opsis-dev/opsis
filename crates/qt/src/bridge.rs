@@ -578,18 +578,9 @@ pub mod ffi {
         sx: f64,
         sy: f64,
         rotate: f64,
-        tilt_x: f64,
-        tilt_y: f64,
         opacity: f64,
         blur: f64,
-        clip_top: f64,
-        iris: f64,
-        sweep: f64,
-        mask: f64,
         dash: f64,
-        split_x: f64,
-        split_y: f64,
-        rgb: f64,
         smear: f64,
     }
 
@@ -613,7 +604,6 @@ pub mod ffi {
         origin_y: f64,
         part: String,
         clip: bool,
-        mask: String,
     }
 
     #[derive(Debug, Clone)]

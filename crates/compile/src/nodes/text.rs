@@ -514,6 +514,7 @@ fn show_captions() -> NodeDef {
                 let stacked = stack_clips(ctx.node_id, &[under.clone(), layer], &[], None, None);
                 opsis_types::values::ClipValue {
                     duration_in_frames: under.duration_in_frames,
+                    enter: under.enter.clone(),
                     ..stacked
                 }
             }

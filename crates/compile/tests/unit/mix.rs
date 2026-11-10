@@ -13,11 +13,7 @@ use crate::helpers::{Graph, TITLE, export_film, film, film_spec};
 fn project(mix: Option<Mix>) -> (Workflow, TimelineSpec) {
     let mut g = Graph::default();
     g.node("t", TITLE, json!({ "clipDuration": 300 }));
-    g.node(
-        "clipfile",
-        "media.import",
-        json!({ "path": "assets/clip.mp4" }),
-    );
+    g.file_clip("clipfile", "assets/clip.mp4");
     g.node(
         "music",
         "audio.music",
@@ -162,11 +158,7 @@ fn ducks_only_for_clips_whose_sound_plays() {
             "audio.music",
             json!({ "src": "assets/song.mp3", "fadeInMs": 0, "fadeOutMs": 0 }),
         );
-        g.node(
-            "clipfile",
-            "media.import",
-            json!({ "path": "assets/clip.mp4" }),
-        );
+        g.file_clip("clipfile", "assets/clip.mp4");
         g.node("fast", "timeline.speed", json!({ "rate": rate }));
         g.node("mix", "audio.mix", json!({}));
         g.node("out", "output.render", json!({}));
@@ -387,7 +379,7 @@ fn sounding_element(id: &str, component: &str, props: Value) -> Value {
 }
 
 #[test]
-fn plays_video_and_captured_video_sound_at_their_speed_from_their_trim() {
+fn plays_video_sound_at_its_speed_from_its_trim_and_leaves_muted_video_out() {
     let spec: TimelineSpec = serde_json::from_value(json!({
         "width": 1920,
         "height": 1080,
@@ -395,9 +387,8 @@ fn plays_video_and_captured_video_sound_at_their_speed_from_their_trim() {
         "durationInFrames": 90,
         "tracks": [
             { "id": "a", "items": [sounding_element("v", "video", json!({ "src": "project:a.mp4", "muted": false, "playbackRate": 1.5, "trimBeforeMs": 1000 }))] },
-            { "id": "b", "items": [sounding_element("c", "captured-video", json!({ "src": "project:b.mp4", "srcKind": "video", "audio": true, "speed": 2.0, "trimBefore": 30 }))] },
-            { "id": "c", "items": [sounding_element("q", "captured-video", json!({ "src": "project:c.mp4", "srcKind": "video", "audio": false, "speed": 1.0, "trimBefore": 0 }))] },
-            { "id": "d", "items": [sounding_element("i", "captured-video", json!({ "src": "project:d.png", "srcKind": "image", "audio": true, "speed": 1.0, "trimBefore": 0 }))] },
+            { "id": "b", "items": [sounding_element("c", "video", json!({ "src": "project:b.mp4", "muted": false, "playbackRate": 2.0, "trimBeforeMs": 1000 }))] },
+            { "id": "c", "items": [sounding_element("q", "video", json!({ "src": "project:c.mp4", "muted": true, "playbackRate": 1.0, "trimBeforeMs": 0 }))] },
         ],
         "audio": [],
     }))

@@ -103,9 +103,7 @@
         "x": 1200.0,
         "y": 200.0
       },
-      "params": {
-        "speed": 1.25
-      }
+      "params": {}
     },
     {
       "id": "spotlight",
@@ -116,30 +114,30 @@
       },
       "params": {
         "match": "Get started",
-        "text": "",
         "color": "rgba(0,0,0,0.55)",
         "padding": 10,
         "leadMs": 250,
-        "holdMs": 1400,
-        "look": "clean",
-        "roughness": 1
+        "holdMs": 1400
       }
     },
     {
       "id": "headline",
-      "type": "fx.kinetic-headline",
+      "type": "fx.animated-text",
       "position": {
         "x": 300.0,
         "y": 340.0
       },
       "params": {
-        "text": "Introducing *{{Product name}}*",
-        "color": "#fafafa",
-        "emphasisColor": "#facc15",
-        "background": "#09090b",
-        "fontSize": 104,
-        "wordStagger": 4,
-        "fontFamily": "",
+        "kind": "headline",
+        "headline": {
+          "text": "Introducing *{{Product name}}*",
+          "color": "#fafafa",
+          "emphasisColor": "#facc15",
+          "background": "#09090b",
+          "fontSize": 104,
+          "wordStagger": 4,
+          "fontFamily": ""
+        },
         "clipDuration": 90,
         "envelope": {}
       }
@@ -155,9 +153,6 @@
         "eyebrow": "",
         "title": "Try {{Product name}} today",
         "subtitle": "{{Site address}}",
-        "mark": "",
-        "markLook": "underline",
-        "markColor": "#facc15",
         "align": "center",
         "entrance": "rise",
         "color": "#fafafa",
@@ -177,12 +172,7 @@
         "x": 1200.0,
         "y": 422.0
       },
-      "params": {
-        "transition": "zoom-blur",
-        "transitionDuration": 15,
-        "keepWhole": false,
-        "cuts": []
-      }
+      "params": {}
     },
     {
       "id": "render",
@@ -203,6 +193,18 @@
         "chapters": true,
         "chapterList": false,
         "gl": "angle"
+      }
+    },
+    {
+      "id": "sequence-transition",
+      "type": "timeline.transition",
+      "position": {
+        "x": 900.0,
+        "y": 262.0
+      },
+      "params": {
+        "kind": "zoom-blur",
+        "durationInFrames": 15
       }
     }
   ],
@@ -276,6 +278,13 @@
       "sourceHandle": "clip",
       "target": "render",
       "targetHandle": "clip"
+    },
+    {
+      "id": "sequence-transition.transition->sequence.transition",
+      "source": "sequence-transition",
+      "sourceHandle": "transition",
+      "target": "sequence",
+      "targetHandle": "transition"
     }
   ],
   "markers": []

@@ -1700,7 +1700,7 @@
   "type": "capture.still",
   "title": "Screenshot",
   "category": "Capture",
-  "description": "Plays the connected actions, then takes a sharp screenshot of the page or one element.",
+  "description": "Plays the connected actions, then takes a sharp screenshot of the page or one element. Frame image frames it; Use as clip shows it in the video.",
   "phase": "capture",
   "inputs": [
    {
@@ -1719,13 +1719,6 @@
     "label": "Image",
     "optional": false,
     "many": false
-   },
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
    }
   ],
   "virtual": false,
@@ -1735,7 +1728,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
-  "estimatedHeight": 190.0,
+  "estimatedHeight": 168.0,
   "compiles": true,
   "hasCard": true,
   "mutates": null,
@@ -1743,25 +1736,14 @@
   "defaults": {
    "region": "viewport",
    "target": "",
-   "padding": 24,
-   "look": "window",
-   "backdrop": "glaze",
-   "durationMs": 3000,
-   "envelope": {},
-   "windowFit": 86,
-   "cutoutFit": 80,
-   "shadow": 45,
-   "frame": "none",
-   "pushIn": 2.0,
-   "pushInMs": 4000,
-   "align": "top"
+   "padding": 24
   }
  },
  {
   "type": "camera.take",
   "title": "Clip from take",
   "category": "Camera",
-  "description": "Turns a take into a clip, shot the way its style says: the window, the backdrop and the camera moves.",
+  "description": "Turns a take into a clip, shot the way its style says: the frame, the background and the camera moves. Browser takes play at 1.25×, terminal takes at their own speed; Speed changes it.",
   "phase": "compile",
   "inputs": [
    {
@@ -1807,7 +1789,7 @@
   "type": "camera.camera",
   "title": "Camera",
   "category": "Camera",
-  "description": "How the camera follows the take: when it zooms to the actions, how close and how fast it moves.",
+  "description": "How the camera follows the take: zooming to each action or keeping the cursor in view, how close and how fast it moves.",
   "phase": "compile",
   "inputs": [
    {
@@ -1841,6 +1823,7 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
+   "follows": "actions",
    "zoom": true,
    "maxScale": 1.74,
    "hold": 1300,
@@ -1853,16 +1836,19 @@
    "stayZoomedWithinMs": 2800,
    "holdAfterTypingMs": 400,
    "restAtEndMs": 600,
+   "cursorScale": 1.35,
+   "everyMs": 700,
+   "zoomOutOnJumps": true,
    "longestPan": 500,
    "cameraEasing": "smooth",
    "cameraPace": 1.0
   }
  },
  {
-  "type": "camera.shot",
-  "title": "Shot",
+  "type": "camera.frame",
+  "title": "Frame",
   "category": "Camera",
-  "description": "How the take sits in the frame: a floating window, the whole page, or a window on a plain ground.",
+  "description": "How the take sits in the frame: a window with its title bar on a background, the whole page, or the screen of a laptop or phone.",
   "phase": "compile",
   "inputs": [
    {
@@ -1894,14 +1880,37 @@
   "compiles": true,
   "hasCard": true,
   "mutates": null,
-  "hostDefaults": null,
+  "hostDefaults": {
+   "linux": {
+    "windowStyle": "linux"
+   },
+   "darwin": {
+    "windowStyle": "macos"
+   },
+   "win32": {
+    "windowStyle": "windows"
+   }
+  },
   "defaults": {
-   "style": "classic",
-   "ground": "#faf6f1",
+   "kind": "window",
+   "device": "laptop",
+   "windowShot": "classic",
+   "pageShot": "proof",
+   "windowStyle": "macos",
+   "frameTheme": "light",
+   "titleBar": true,
+   "title": "",
+   "addressMode": "fixed",
+   "font": "",
    "shadow": 1.0,
-   "liftColours": true,
+   "background": "own",
+   "backdrop": "glaze",
+   "color": "#faf6f1",
+   "gradient": "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)",
+   "asset": "",
    "bleedBlur": 48,
-   "bleedDim": 0.55
+   "bleedDim": 0.55,
+   "liftColours": true
   }
  },
  {
@@ -1951,10 +1960,10 @@
   "defaults": {}
  },
  {
-  "type": "camera.manualZoom",
-  "title": "Zoom here",
+  "type": "camera.move",
+  "title": "Camera move",
   "category": "Camera",
-  "description": "Zooms to a spot of your choice at a set time.",
+  "description": "Moves the camera to a spot of your choice at a set time, from wherever it is or from another spot, and holds there.",
   "phase": "compile",
   "inputs": [
    {
@@ -1989,102 +1998,16 @@
   "hostDefaults": null,
   "defaults": {
    "atMs": 1000,
-   "holdMs": 1500,
+   "fromSpot": false,
+   "fromX": 0.3,
+   "fromY": 0.4,
+   "moveMs": 1500,
    "x": 0.5,
    "y": 0.5,
    "scale": 1.5,
-   "leadMs": 400
-  }
- },
- {
-  "type": "camera.pan",
-  "title": "Pan",
-  "category": "Camera",
-  "description": "Moves the camera from one spot to another.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "recording",
-    "type": "recording",
-    "label": "Recording",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "recording",
-    "type": "recording",
-    "label": "Recording",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": null,
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "atMs": 1000,
-   "durationMs": 1500,
-   "fromX": 0.3,
-   "fromY": 0.4,
-   "toX": 0.7,
-   "toY": 0.6,
-   "scale": 1.4,
+   "holdMs": 1500,
+   "leadMs": 400,
    "zoomOutWhenFar": true
-  }
- },
- {
-  "type": "camera.followCursor",
-  "title": "Follow cursor",
-  "category": "Camera",
-  "description": "Keeps the camera on the cursor, good for tall formats.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "style",
-    "type": "recording-style",
-    "label": "Style",
-    "optional": true,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "style",
-    "type": "recording-style",
-    "label": "Style",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": null,
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "scale": 1.35,
-   "everyMs": 700,
-   "zoomOutOnJumps": true
   }
  },
  {
@@ -2228,7 +2151,7 @@
   "type": "camera.deviceFrame",
   "title": "Device frame",
   "category": "Camera",
-  "description": "Puts the video inside a laptop or phone.",
+  "description": "Puts the clip on a device's screen: a laptop or phone, a 3D screen, a pull back from a device, or a lineup of devices.",
   "phase": "compile",
   "inputs": [
    {
@@ -2262,126 +2185,15 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
+   "angle": "flat",
    "device": "laptop",
-   "entrance": "open",
-   "phoneEntrance": "rise",
-   "variant": "flat",
-   "theme": {
-    "mode": "dark",
-    "colors": {}
-   },
-   "bezelColor": "",
-   "showNotch": true,
-   "notchLabel": "Recording started",
-   "batteryLevel": 85,
-   "indicatorColor": "#30D158",
-   "floatLoop": true,
-   "restTilt": 18,
-   "finale": "none",
-   "shadow": "",
-   "tiltAngle": -12,
-   "showDynamicIsland": true
-  }
- },
- {
-  "type": "camera.windowFrame",
-  "title": "Window frame",
-  "category": "Camera",
-  "description": "Draws a browser window's title bar around the recording.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "style",
-    "type": "recording-style",
-    "label": "Style",
-    "optional": true,
-    "many": false
+   "screenDevice": "laptop",
+   "pullDevice": "laptop",
+   "tilt": 18,
+   "move": "push-in",
+   "camera": {
+    "keys": []
    }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "style",
-    "type": "recording-style",
-    "label": "Style",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": null,
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": {
-   "linux": {
-    "windowStyle": "linux"
-   },
-   "darwin": {
-    "windowStyle": "macos"
-   },
-   "win32": {
-    "windowStyle": "windows"
-   }
-  },
-  "defaults": {
-   "windowStyle": "macos",
-   "frameTheme": "light",
-   "titleBar": true,
-   "title": "",
-   "addressMode": "fixed",
-   "font": ""
-  }
- },
- {
-  "type": "camera.backdrop",
-  "title": "Backdrop",
-  "category": "Camera",
-  "description": "The background behind the floating window: a studio image, colour or gradient.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "style",
-    "type": "recording-style",
-    "label": "Style",
-    "optional": true,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "style",
-    "type": "recording-style",
-    "label": "Style",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": null,
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "kind": "image",
-   "name": "glaze",
-   "color": "#0b0b10",
-   "gradient": "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)",
-   "asset": ""
   }
  },
  {
@@ -3042,7 +2854,8 @@
    "midtonesAmount": 0.0,
    "highlights": "#ffd9a0",
    "highlightsAmount": 0.0,
-   "curve": "none"
+   "curve": "none",
+   "invert": false
   }
  },
  {
@@ -3306,9 +3119,6 @@
    "eyebrow": "",
    "title": "Sign up in 10 seconds",
    "subtitle": "",
-   "mark": "",
-   "markLook": "underline",
-   "markColor": "#facc15",
    "align": "center",
    "entrance": "rise",
    "color": "#fafafa",
@@ -3324,63 +3134,9 @@
    "subtitleSize": 0.34,
    "letterSpacing": -0.035,
    "lineStagger": 1.0,
-   "markThickness": 0.045,
-   "markerOpacity": 55.0,
-   "markSeed": 1,
-   "markDrawTime": 0.45,
    "fadeOut": 0.3333,
    "subtitleColor": "",
    "clipDuration": 75,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.kinetic-headline",
-  "title": "Animated headline",
-  "category": "Text & overlays",
-  "description": "A headline that animates in word by word.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "kinetic-headline",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "text": "Ship *faster* with demos that *move*",
-   "color": "#fafafa",
-   "emphasisColor": "#facc15",
-   "background": "transparent",
-   "fontSize": 104,
-   "wordStagger": 4,
-   "fontFamily": "",
-   "fontWeight": 780,
-   "letterSpacing": -0.04,
-   "lineHeight": 1.05,
-   "sideMargin": 8.0,
-   "wordGap": 0.28,
-   "rise": 0.5,
-   "tilt": 4.0,
-   "underlineEmphasis": true,
-   "fadeOutInFrames": 10,
-   "clipDuration": 90,
    "envelope": {}
   }
  },
@@ -3436,101 +3192,10 @@
   }
  },
  {
-  "type": "fx.callout",
-  "title": "Callout",
-  "category": "Text & overlays",
-  "description": "A short note that points something out.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "callout",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "text": "Click here",
-   "x": 0.5,
-   "y": 0.5,
-   "side": "top",
-   "color": "#fafafa",
-   "accent": "#f43f5e",
-   "fontFamily": "",
-   "drawTime": 0.6,
-   "labelDistance": 170,
-   "bend": 40,
-   "arrowWidth": 7,
-   "dotSize": 14,
-   "labelRadius": 14,
-   "fontSize": 34,
-   "fontWeight": 700,
-   "slant": 19.29,
-   "fadeOut": 0.3333,
-   "labelBackground": "",
-   "clipDuration": 75,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.image",
-  "title": "Image",
-  "category": "Elements",
-  "description": "Shows an image from your project.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "image",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "src": "",
-   "fit": "contain",
-   "background": "",
-   "kenBurns": false,
-   "kenBurnsZoom": 1.06,
-   "clipDuration": 90,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.mosaic",
-  "title": "Mosaic",
+  "type": "fx.redact",
+  "title": "Redact",
   "category": "Effects",
-  "description": "Covers parts of the screen with coarse blocks, to hide keys, emails and personal details.",
+  "description": "Hides parts of the screen with large pixels, a blur or a solid colour, to keep keys, emails and personal details out of the film.",
   "phase": "compile",
   "inputs": [
    {
@@ -3555,7 +3220,7 @@
   "action": false,
   "executes": false,
   "usesProjectSize": false,
-  "element": "mosaic",
+  "element": "redact",
   "hidden": false,
   "cardHeight": null,
   "estimatedHeight": 168.0,
@@ -3573,365 +3238,12 @@
     }
    ],
    "frameMs": 0,
+   "style": "pixelate",
    "blockSize": 24,
+   "blur": 16.0,
+   "color": "#000000",
+   "radius": 0.0,
    "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.lottie",
-  "title": "Animation",
-  "category": "Text & overlays",
-  "description": "Plays an animation file from your project, looped or once, at any speed.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "lottie",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "src": "",
-   "loop": true,
-   "speed": 1.0,
-   "backwards": false,
-   "fit": "contain",
-   "background": "transparent",
-   "align": "center",
-   "clipDuration": 90,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.video",
-  "title": "Video",
-  "category": "Elements",
-  "description": "Plays a video from your project.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "video",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "src": "",
-   "fit": "cover",
-   "loop": false,
-   "muted": true,
-   "volume": 1.0,
-   "playbackRate": 1.0,
-   "trimBeforeMs": 0,
-   "background": "",
-   "clipDuration": 150,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.solid",
-  "title": "Solid colour",
-  "category": "Backgrounds",
-  "description": "A plain colour background.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "solid",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "color": "#09090b",
-   "clipDuration": 90,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.gradient",
-  "title": "Gradient",
-  "category": "Backgrounds",
-  "description": "A gradient background.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "gradient",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "from": "#1e1b4b",
-   "to": "#0f172a",
-   "angle": 135,
-   "grain": 0.08,
-   "shape": "linear",
-   "grainSize": 1.0,
-   "clipDuration": 90,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.noise",
-  "title": "Noise",
-  "category": "Backgrounds",
-  "description": "A soft moving noise background.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "noise",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "color1": "#0b1020",
-   "color2": "#4f46e5",
-   "scale": 0.004,
-   "speed": 0.004,
-   "blobs": 5,
-   "wander": 40.0,
-   "blobSize": 30.0,
-   "intensity": 0.55,
-   "softness": 40,
-   "seed": 0,
-   "grain": 0.08,
-   "grainSize": 1.0,
-   "clipDuration": 150,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.starburst",
-  "title": "Starburst",
-  "category": "Backgrounds",
-  "description": "Rays spreading from the centre.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "starburst",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "color1": "#18181b",
-   "color2": "#27272a",
-   "rays": 24,
-   "rotationSpeed": 0.15,
-   "edgeFade": 75.0,
-   "rayWidth": 50.0,
-   "centerX": 50.0,
-   "clipDuration": 150,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.paper",
-  "title": "Paper",
-  "category": "Backgrounds",
-  "description": "A paper texture background.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "paper",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "color": "#f5f1e8",
-   "grain": 0.18,
-   "grainSize": 1.0,
-   "clipDuration": 150,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.backdrop",
-  "title": "Studio backdrop",
-  "category": "Backgrounds",
-  "description": "A ready-made studio background image.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "backdrop",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "name": "glaze",
-   "clipDuration": 150,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.video-loop",
-  "title": "Looping video",
-  "category": "Backgrounds",
-  "description": "A video that loops for as long as needed.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "video-loop",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "src": "",
-   "dim": 0.3,
-   "dimColor": "#000000",
-   "fit": "cover",
-   "playbackRate": 1.0,
-   "trimBeforeMs": 0,
-   "clipDuration": 150,
    "envelope": {}
   }
  },
@@ -3974,1099 +3286,6 @@
    "strength": 100.0,
    "blend": "normal",
    "clipDuration": 45,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.logo-3d",
-  "title": "3D logo",
-  "category": "Elements",
-  "description": "Your logo in 3D, spinning, tilting in or floating, with studio lighting.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "logo-3d",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "src": "",
-   "depth": 0.25,
-   "color": "",
-   "metalness": 0.3,
-   "motion": "spin",
-   "camera": {
-    "keys": []
-   },
-   "speed": 1.0,
-   "lighting": "studio",
-   "background": "",
-   "zoom": 1.0,
-   "roughness": 0.35,
-   "bevel": 0.08,
-   "cornerRadius": 0.12,
-   "tilt": 52,
-   "growIn": true,
-   "endFacing": false,
-   "motionAmount": 1.0,
-   "reverse": false,
-   "lens": 30.0,
-   "clipDuration": 150,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.card-3d",
-  "title": "3D card",
-  "category": "Elements",
-  "description": "An image on a card with rounded corners and a soft shadow that tilts into place.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "card-3d",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "src": "",
-   "cornerRadius": 0.04,
-   "depth": 0.04,
-   "tilt": 40,
-   "motion": "tilt-in",
-   "camera": {
-    "keys": []
-   },
-   "speed": 1.0,
-   "lighting": "soft",
-   "background": "",
-   "zoom": 1.0,
-   "edgeColor": "#ffffff",
-   "roughness": 0.6,
-   "shadow": 0.55,
-   "growIn": true,
-   "endFacing": false,
-   "motionAmount": 1.0,
-   "reverse": false,
-   "lens": 30.0,
-   "clipDuration": 120,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.text-3d",
-  "title": "3D text",
-  "category": "Text & overlays",
-  "description": "Words in solid 3D letters with rounded edges, in any project font.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "text-3d",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "text": "Ship faster",
-   "fontFamily": "",
-   "fontWeight": 800,
-   "italic": false,
-   "depth": 0.35,
-   "bevel": 0.4,
-   "color": "#fafafa",
-   "metalness": 0.2,
-   "align": "center",
-   "lineWidth": 16,
-   "motion": "tilt-in",
-   "camera": {
-    "keys": []
-   },
-   "speed": 1.0,
-   "lighting": "studio",
-   "background": "transparent",
-   "size": 1.0,
-   "lineHeight": 1.15,
-   "roughness": 0.3,
-   "lens": 30.0,
-   "tilt": 52,
-   "endFacing": false,
-   "motionAmount": 1.0,
-   "growIn": true,
-   "reverse": false,
-   "clipDuration": 120,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.model-3d",
-  "title": "3D model",
-  "category": "Elements",
-  "description": "A 3D model from your project on a turntable, with studio lighting and its own animation.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "model-3d",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "src": "",
-   "motion": "spin",
-   "camera": {
-    "keys": []
-   },
-   "speed": 1.0,
-   "animation": "",
-   "animationSpeed": 1.0,
-   "loop": true,
-   "zoom": 1.0,
-   "lighting": "studio",
-   "shadow": true,
-   "background": "",
-   "shadowOpacity": 0.55,
-   "growIn": true,
-   "motionAmount": 1.0,
-   "tilt": 52,
-   "endFacing": false,
-   "reverse": false,
-   "lens": 30.0,
-   "clipDuration": 150,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.screen-3d",
-  "title": "3D screen",
-  "category": "Elements",
-  "description": "Shows a clip on a laptop, monitor, phone or floating screen in 3D, with a camera move.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "screen-3d",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "device": "laptop",
-   "deviceColor": "#c9ced6",
-   "move": "push-in",
-   "camera": {
-    "keys": []
-   },
-   "endFaceOn": true,
-   "lighting": "studio",
-   "background": "#0b0b10",
-   "bezelColor": "#0a0a0c",
-   "metalness": 0.6,
-   "roughness": 0.35,
-   "glare": 0.16,
-   "moveEndsAt": 0.85,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.shapes-3d",
-  "title": "Floating shapes",
-  "category": "Backgrounds",
-  "description": "Soft 3D spheres, rings and rounded boxes drifting slowly.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "shapes-3d",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "count": 14,
-   "palette": [
-    "#6366f1",
-    "#a78bfa",
-    "#f472b6",
-    "#38bdf8"
-   ],
-   "seed": 1,
-   "speed": 1.0,
-   "camera": {
-    "keys": []
-   },
-   "lighting": "studio",
-   "background": "#0b1020",
-   "depth": 1.0,
-   "size": 1.0,
-   "drift": 0.45,
-   "spin": 1.0,
-   "roughness": 0.4,
-   "metalness": 0.1,
-   "kinds": [
-    "sphere",
-    "ring",
-    "box"
-   ],
-   "clipDuration": 150,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.soft-blur-in",
-  "title": "Soft blur in",
-  "category": "Text & overlays",
-  "description": "Per-character fade-in with a gentle blur and upward motion.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "soft-blur-in",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "text": "Made for every take.",
-   "blur": 12,
-   "fontSize": 72,
-   "color": "#171717",
-   "fontWeight": "600",
-   "background": "white",
-   "fontFamily": "",
-   "speed": 1.0,
-   "stagger": 0.0333,
-   "distance": 16,
-   "letterSpacing": -0.05,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.typewriter",
-  "title": "Typewriter",
-  "category": "Text & overlays",
-  "description": "Types the text out letter by letter with a blinking cursor.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "typewriter",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "text": "console.log('hello, world')",
-   "cursor": true,
-   "charsPerSecond": 22,
-   "fontSize": 72,
-   "color": "#171717",
-   "cursorColor": "#171717",
-   "fontWeight": "600",
-   "background": "white",
-   "fontFamily": "",
-   "speed": 1.0,
-   "cursorWidth": 0.08,
-   "blinkRate": 1.0,
-   "align": "center",
-   "letterSpacing": -0.03,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.shimmer-sweep",
-  "title": "Shimmer sweep",
-  "category": "Text & overlays",
-  "description": "A band of light sweeps across the text.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "shimmer-sweep",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "text": "Generating",
-   "baseColor": "#3f3f46",
-   "shineColor": "#fafafa",
-   "fontSize": 96,
-   "fontWeight": "700",
-   "background": "white",
-   "fontFamily": "",
-   "speed": 1.0,
-   "sweeps": 1,
-   "bandAngle": 110.0,
-   "bandWidth": 40.0,
-   "letterSpacing": -0.03,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.matrix-decode",
-  "title": "Matrix decode",
-  "category": "Text & overlays",
-  "description": "Random scramble resolves left-to-right into the target text.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "matrix-decode",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "text": "DECRYPTED",
-   "charset": "!@#$%^&*()_+-=<>?/\\|",
-   "fontSize": 72,
-   "color": "#22c55e",
-   "fontWeight": "600",
-   "revealDuration": 2.0,
-   "background": "white",
-   "fontFamily": "",
-   "speed": 1.0,
-   "scrambleEvery": 0.0667,
-   "seed": 0,
-   "letterSpacing": 0.05,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.slot-machine-roll",
-  "title": "Slot machine roll",
-  "category": "Text & overlays",
-  "description": "Vertical reel scrolls characters from one value to another.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "slot-machine-roll",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "from": "$99",
-   "to": "$199",
-   "fontSize": 120,
-   "color": "#171717",
-   "fontWeight": "700",
-   "background": "white",
-   "fontFamily": "",
-   "speed": 1.0,
-   "columnStagger": 0.1333,
-   "direction": "up",
-   "letterSpacing": -0.03,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.staggered-fade-up",
-  "title": "Staggered fade up",
-  "category": "Text & overlays",
-  "description": "Words fade in and slide up one after another with a configurable delay.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "staggered-fade-up",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "text": "Ship your demo in minutes",
-   "staggerDelay": 0.1333,
-   "distance": 20,
-   "fontSize": 72,
-   "color": "#171717",
-   "fontWeight": "600",
-   "background": "white",
-   "fontFamily": "",
-   "speed": 1.0,
-   "wordDuration": 0.4,
-   "letterSpacing": -0.03,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.kinetic-center-build",
-  "title": "Kinetic center build",
-  "category": "Text & overlays",
-  "description": "A word appears in the center; each new word enters from the right and pushes the line until the full phrase locks centered.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "kinetic-center-build",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "text": "Words push left.",
-   "entryOffset": 88,
-   "fontSize": 72,
-   "color": "#171717",
-   "fontWeight": "600",
-   "background": "white",
-   "fontFamily": "",
-   "speed": 1.0,
-   "wordGap": 10,
-   "wordTime": 0.4333,
-   "entryBlur": 3.5,
-   "letterSpacing": -0.03,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.mask-reveal-up",
-  "title": "Mask reveal up",
-  "category": "Text & overlays",
-  "description": "Lines reveal upward with a soft masked feel and compact stagger.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "mask-reveal-up",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "text": "Designed to move.\nBuilt to focus.",
-   "distance": 30,
-   "fontSize": 72,
-   "color": "#171717",
-   "fontWeight": "600",
-   "background": "white",
-   "fontFamily": "",
-   "speed": 1.0,
-   "align": "center",
-   "lineStagger": 0.1,
-   "exitDistance": 22,
-   "blur": 6,
-   "lineHeight": 1.1,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.tracking-in",
-  "title": "Tracking in",
-  "category": "Text & overlays",
-  "description": "Letter-spacing collapses and blur clears with a springy motion.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "tracking-in",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "text": "tracking in",
-   "startTracking": 0.5,
-   "startBlur": 12,
-   "fontSize": 96,
-   "color": "#171717",
-   "fontWeight": "700",
-   "background": "white",
-   "fontFamily": "",
-   "speed": 1.0,
-   "endTracking": -0.03,
-   "fadeIn": 0.5,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.word-push",
-  "title": "Word push",
-  "category": "Text & overlays",
-  "description": "A phrase builds from its first word centered: each next word drives in from the right and pushes the line left, easing into the new center.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "word-push",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "text": "move at your own pace",
-   "fontSize": 72,
-   "wordGap": 10,
-   "accel": 0.8,
-   "color": "#171717",
-   "fontWeight": "400",
-   "background": "white",
-   "fontFamily": "",
-   "speed": 1.0,
-   "pushTime": 0.4,
-   "driveDistance": 0.5,
-   "letterSpacing": -0.02,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.rgb-glitch-text",
-  "title": "RGB glitch text",
-  "category": "Text & overlays",
-  "description": "Three RGB-offset text copies jitter for a brief glitch window.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "rgb-glitch-text",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "text": "GLITCH",
-   "fontSize": 96,
-   "color": "#171717",
-   "fontWeight": "700",
-   "glitchAt": 0.6667,
-   "glitchDuration": 0.2667,
-   "intensity": 6,
-   "seed": "glitch",
-   "glitchColors": [
-    "#ff0040",
-    "#00ff80",
-    "#0080ff"
-   ],
-   "blend": "multiply",
-   "background": "#fafafa",
-   "fontFamily": "",
-   "speed": 1.0,
-   "letterSpacing": -0.03,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.gradient-scale-cut-text",
-  "title": "Gradient scale cut text",
-  "category": "Text & overlays",
-  "description": "An oversized gradient reveal snaps to a separate compact blurred line that settles left while the reveal continues.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "gradient-scale-cut-text",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "text": "Introducing",
-   "giantFontSize": 520,
-   "compactFontSize": 132,
-   "anchorOffsetX": -16,
-   "giantTravel": 400,
-   "settleTravel": 160,
-   "cutFrame": 0.4333,
-   "revealSoftness": 14,
-   "compactBlur": 12,
-   "gradientStart": "#f04a14",
-   "gradientEnd": "#f3f1f1",
-   "ghostColor": "#170b0a",
-   "backgroundColor": "#000000",
-   "fontWeight": "700",
-   "fontFamily": "",
-   "speed": 1.0,
-   "revealEnd": 1.1,
-   "compactWidth": 87.0,
-   "gradientSpread": 26.0,
-   "letterSpacing": 0.0,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.strikethrough-replace",
-  "title": "Strikethrough replace",
-  "category": "Text & overlays",
-  "description": "Draws a strike line across old text then reveals new text in its place.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "strikethrough-replace",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "from": "$49/mo",
-   "to": "Free",
-   "lineColor": "#ff5e3a",
-   "fontSize": 96,
-   "color": "#171717",
-   "fontWeight": "700",
-   "background": "white",
-   "fontFamily": "",
-   "speed": 1.0,
-   "strikeEnd": 0.4,
-   "swapLength": 0.2,
-   "letterSpacing": -0.03,
-   "toColor": "",
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.line-by-line-slide",
-  "title": "Line by line slide",
-  "category": "Text & overlays",
-  "description": "Each line enters from the left with a staggered slide and exits to the right for a flowing paragraph reveal.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "line-by-line-slide",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "text": "Record once.\nShare everywhere.",
-   "distance": 48,
-   "fontSize": 72,
-   "color": "#171717",
-   "fontWeight": "600",
-   "background": "white",
-   "fontFamily": "",
-   "speed": 1.0,
-   "align": "left",
-   "lineStagger": 0.1333,
-   "exit": true,
-   "letterSpacing": -0.03,
-   "lineHeight": 1.1,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.marker-highlight",
-  "title": "Marker highlight",
-  "category": "Text & overlays",
-  "description": "Colored marker block draws behind a phrase as the text color shifts.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "marker-highlight",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "before": "Made for ",
-   "highlight": "builders",
-   "after": ".",
-   "markerColor": "#facc15",
-   "baseColor": "#171717",
-   "highlightedTextColor": "#171717",
-   "fontSize": 72,
-   "fontWeight": "600",
-   "background": "white",
-   "fontFamily": "",
-   "speed": 1.0,
-   "markerAt": 0.5,
-   "markerHeight": 1.0,
-   "x": 0.5,
-   "y": 0.5,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.inline-highlight",
-  "title": "Inline highlight",
-  "category": "Text & overlays",
-  "description": "Animates one word inside a sentence from a base color to a brand color.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "inline-highlight",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "before": "Ship faster with ",
-   "highlight": "Acme",
-   "after": ".",
-   "baseColor": "#171717",
-   "highlightColor": "#ff5e3a",
-   "fontSize": 72,
-   "fontWeight": "600",
-   "background": "white",
-   "fontFamily": "",
-   "speed": 1.0,
-   "changeStart": 0.2,
-   "changeEnd": 0.7,
-   "letterSpacing": -0.03,
-   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -5164,58 +3383,6 @@
    "wobble": 0.035,
    "startAngle": 0.0,
    "clockwise": true,
-   "opacity": 0.85,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.ink-arrow",
-  "title": "Ink arrow",
-  "category": "Text & overlays",
-  "description": "A hand-drawn brush arrow that sweeps itself from one point to another, thickening into the head that pops on the final poses.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "ink-arrow",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "curvature": 0.35,
-   "strokeWidth": 8,
-   "pressure": 0.2,
-   "release": 1.0,
-   "grain": 1.0,
-   "headSize": 24,
-   "drawDur": 1.2,
-   "headDur": 0.4,
-   "color": "#26242c",
-   "seed": "arrow",
-   "step": 0.1,
-   "fromX": 0.3,
-   "fromY": 0.72,
-   "toX": 0.48,
-   "toY": 0.5,
-   "headAngle": 41.25,
-   "wobble": 0.06,
    "opacity": 0.85,
    "clipDuration": 0,
    "envelope": {}
@@ -5384,530 +3551,6 @@
    "echoOpacity": 0.36,
    "x": 0.5,
    "y": 0.5,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.shader-mesh-gradient",
-  "title": "Shader mesh gradient",
-  "category": "Backgrounds",
-  "description": "Soft colour blobs that drift and blend into each other.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "shader-mesh-gradient",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "speed": 1.0,
-   "distortion": 0.6,
-   "swirl": 0.1,
-   "colors": [
-    "#12121a",
-    "#232338",
-    "#3a3a5c",
-    "#52527a"
-   ],
-   "grainOverlay": 0.0,
-   "grainMixer": 0.0,
-   "scale": 1.0,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.shader-grain-gradient",
-  "title": "Shader grain gradient",
-  "category": "Backgrounds",
-  "description": "Grainy multi-stop gradient that drifts slowly with film-grain texture over the blend.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "shader-grain-gradient",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "speed": 1.0,
-   "softness": 0.6,
-   "intensity": 0.2,
-   "noise": 0.15,
-   "colorBack": "#12121a",
-   "colors": [
-    "#3a3a52",
-    "#4a4a68",
-    "#5a5a7e"
-   ],
-   "shape": "corners",
-   "scale": 1.0,
-   "rotation": 0,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.shader-warp",
-  "title": "Shader warp",
-  "category": "Backgrounds",
-  "description": "Domain-warped color field that folds and stretches like liquid.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "shader-warp",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "speed": 1.0,
-   "distortion": 0.2,
-   "swirl": 0.4,
-   "softness": 1.0,
-   "proportion": 0.5,
-   "colors": [
-    "#12121a",
-    "#3a3a5c",
-    "#12121a",
-    "#52527a"
-   ],
-   "shape": "checks",
-   "shapeScale": 0.1,
-   "swirlIterations": 10,
-   "scale": 1.0,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.shader-swirl",
-  "title": "Shader swirl",
-  "category": "Backgrounds",
-  "description": "Concentric bands swirling around a center point.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "shader-swirl",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "speed": 1.0,
-   "bandCount": 4,
-   "twist": 0.1,
-   "softness": 0.2,
-   "colorBack": "#12121a",
-   "colors": [
-    "#52527a",
-    "#3a3a5c",
-    "#232338"
-   ],
-   "center": 0.2,
-   "proportion": 0.5,
-   "noise": 0.2,
-   "noiseFrequency": 0.4,
-   "scale": 1.0,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.shader-god-rays",
-  "title": "Shader god rays",
-  "category": "Backgrounds",
-  "description": "Volumetric light rays radiating from an off-screen source.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "shader-god-rays",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "speed": 1.0,
-   "intensity": 0.8,
-   "density": 0.3,
-   "bloom": 0.4,
-   "colorBack": "#12121a",
-   "colors": [
-    "#5a5a7e",
-    "#8a8a95",
-    "#ffffff",
-    "#3a3a5c"
-   ],
-   "colorBloom": "#3a3a5c",
-   "offsetY": -0.55,
-   "offsetX": 0.0,
-   "spotty": 0.3,
-   "midIntensity": 0.4,
-   "midSize": 0.2,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.shader-perlin-noise",
-  "title": "Shader perlin noise",
-  "category": "Backgrounds",
-  "description": "Classic Perlin noise clouds drifting across the frame.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "shader-perlin-noise",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "speed": 1.0,
-   "proportion": 0.35,
-   "softness": 0.1,
-   "colorBack": "#12121a",
-   "colorFront": "#6a6a85",
-   "octaveCount": 1,
-   "persistence": 1.0,
-   "lacunarity": 1.5,
-   "scale": 1.0,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.shader-dithering",
-  "title": "Shader dithering",
-  "category": "Backgrounds",
-  "description": "Ordered-dither shading over an animated gradient field.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "shader-dithering",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "speed": 1.0,
-   "size": 2,
-   "colorBack": "#12121a",
-   "colorFront": "#6a6a85",
-   "shape": "wave",
-   "type": "4x4",
-   "scale": 0.6,
-   "rotation": 0.0,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.crt-screen",
-  "title": "CRT screen",
-  "category": "Effects",
-  "description": "Put a scene behind curved glass: the picture bulges out to the corners, an RGB phosphor mask and scanlines ride the curve, bright areas flood the mask, and the tube falls away into darkness at the rim.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "crt-screen",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "curvature": 1.0,
-   "scanlines": 1.0,
-   "maskScale": 2,
-   "vignette": 1.0,
-   "scanlineCount": 240,
-   "mask": 0.66,
-   "glow": 0.75,
-   "flicker": 0.012,
-   "bezelColor": "#000000",
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.vhs-filter",
-  "title": "VHS filter",
-  "category": "Effects",
-  "description": "Hold a scene under analog tape: chroma bleeds sideways off every edge, rows wobble out of line, the bottom of the frame tears on the head switch, and luma noise settles over all of it.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "vhs-filter",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "bleed": 1.0,
-   "wobble": 1.0,
-   "noise": 1.0,
-   "intensity": 1.0,
-   "headSwitch": 1.0,
-   "scanlines": 1.0,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.halftone-print",
-  "title": "Halftone print",
-  "category": "Effects",
-  "description": "Print a scene onto paper: each colour separates onto its own rotated screen of dots sized by the ink under them, slightly out of register the way a real press runs.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "halftone-print",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "dotSize": 10,
-   "angle": 0,
-   "misregistration": 1.2,
-   "paperTint": "#f4efe4",
-   "cyanInk": "#14e0fa",
-   "magentaInk": "#e61ff0",
-   "yellowInk": "#f7e61a",
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.camera-lens",
-  "title": "Camera lens",
-  "category": "Effects",
-  "description": "Put a scene behind real glass: resolution falls off toward the corners, highlights bloom through the optics, colour fringes at the edges — a screencast that reads as filmed rather than rendered.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "camera-lens",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "softness": 0.5,
-   "bloom": 0.5,
-   "aberration": 0.5,
-   "vignette": 0.5,
-   "distortion": 0.05,
-   "sharpCentre": 0.22,
-   "bloomThreshold": 0.62,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -6159,190 +3802,6 @@
   }
  },
  {
-  "type": "fx.glass-code-block",
-  "title": "Glass code block",
-  "category": "Elements",
-  "description": "A frosted-glass code editor that reveals the code line by line.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "glass-code-block",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "title": "hero.tsx",
-   "width": 760,
-   "height": 460,
-   "fontSize": 16,
-   "glassColor": "rgba(10, 10, 10, 0.6)",
-   "staggerFrames": 0.1333,
-   "showTrafficLights": true,
-   "code": "export async function publish(draft: Draft) {\n  const page = await render(draft);\n  await upload(page, { public: true });\n  return page.url;\n}",
-   "aura": false,
-   "speed": 1.0,
-   "frost": 16,
-   "cornerRadius": 16,
-   "lineHeight": 1.55,
-   "font": "",
-   "codeColor": "#e4e4e7",
-   "commentColor": "#52525b",
-   "stringColor": "#86efac",
-   "keywordColor": "#c4b5fd",
-   "numberColor": "#fcd34d",
-   "titleColor": "#a1a1aa",
-   "lineNumberColor": "#3f3f46",
-   "auraColors": [
-    "rgba(56,189,248,0.22)",
-    "rgba(168,85,247,0.18)"
-   ],
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.code-morph",
-  "title": "Code morph",
-  "category": "Elements",
-  "description": "A flat code editor that morphs between versions of a file, gliding each surviving token to its new line and column while removed code dissolves and new code fades in.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "code-morph",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "filename": "invoices.tsx",
-   "theme": {
-    "mode": "dark",
-    "colors": {}
-   },
-   "accentColor": "#0ea5e9",
-   "morphDuration": 1.2,
-   "fontSize": 20,
-   "highlight": true,
-   "lineNumbers": true,
-   "windowDots": true,
-   "steps": [
-    {
-     "code": "import { loadInvoices } from \"./api\";\n\nexport async function showInvoices(list: HTMLElement) {\n  list.textContent = \"Loading…\";\n  const invoices = await loadInvoices();\n  list.textContent = \"\";\n  for (const invoice of invoices) {\n    const row = document.createElement(\"li\");\n    row.textContent = invoice.title;\n    list.append(row);\n  }\n}",
-     "at": 0.0
-    },
-    {
-     "code": "import { loadInvoices } from \"./api\";\nimport { renderRows } from \"./rows\";\n\nexport async function showInvoices(list: HTMLElement) {\n  list.textContent = \"Loading…\";\n  renderRows(list, await loadInvoices());\n}",
-     "at": 1.6
-    }
-   ],
-   "speed": 1.0,
-   "lineHeight": 1.55,
-   "cornerRadius": 14,
-   "maxSize": 0.9,
-   "highlightHold": 0.8,
-   "font": "",
-   "backgroundColor": "",
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.logo-enter",
-  "title": "Logo enter",
-  "category": "Elements",
-  "description": "A stacked group of round brand chips that spring in one-by-one, then hold. Swap the logos to feature any set of marks.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "logo-enter",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "diameter": 118,
-   "overlap": 38,
-   "ringColor": "#fff",
-   "orientation": "horizontal",
-   "stagger": 0.2333,
-   "logos": [
-    {
-     "image": "app:placeholders/logo-mark.svg",
-     "background": "#2563eb"
-    },
-    {
-     "image": "app:placeholders/logo-mark.svg",
-     "background": "#0f766e"
-    },
-    {
-     "image": "app:placeholders/logo-mark.svg",
-     "background": "#b45309"
-    },
-    {
-     "image": "app:placeholders/logo-mark.svg",
-     "background": "#7c3aed"
-    }
-   ],
-   "speed": 1.0,
-   "bounce": 13,
-   "ringWidth": 5,
-   "shadow": 0.5,
-   "logoScale": 52,
-   "firstOnTop": true,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
   "type": "fx.check-list",
   "title": "Check list",
   "category": "Elements",
@@ -6551,250 +4010,6 @@
   }
  },
  {
-  "type": "fx.animated-bar-chart",
-  "title": "Animated bar chart",
-  "category": "Elements",
-  "description": "Bars spring up from the baseline in a staggered cascade.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "animated-bar-chart",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "barColor": "#0ea5e9",
-   "gap": 16,
-   "staggerFrames": 0.2,
-   "bars": [
-    {
-     "label": "",
-     "value": 35
-    },
-    {
-     "label": "",
-     "value": 60
-    },
-    {
-     "label": "",
-     "value": 45
-    },
-    {
-     "label": "",
-     "value": 80
-    },
-    {
-     "label": "",
-     "value": 55
-    },
-    {
-     "label": "",
-     "value": 70
-    },
-    {
-     "label": "",
-     "value": 90
-    },
-    {
-     "label": "",
-     "value": 65
-    }
-   ],
-   "width": 1000,
-   "height": 500,
-   "baselineColor": "#27272a",
-   "labelColor": "#a1a1aa",
-   "speed": 1.0,
-   "cornerRadius": 6,
-   "glow": 33.0,
-   "labelSize": 16,
-   "fontFamily": "",
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.animated-line-chart",
-  "title": "Animated line chart",
-  "category": "Elements",
-  "description": "Line chart whose SVG path draws on from left to right with a leading dot.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "animated-line-chart",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "strokeColor": "#22c55e",
-   "strokeWidth": 4,
-   "gridColor": "#27272a",
-   "showDot": true,
-   "data": [
-    12.0,
-    19.0,
-    8.0,
-    15.0,
-    22.0,
-    18.0,
-    28.0,
-    25.0,
-    32.0
-   ],
-   "width": 1000,
-   "height": 500,
-   "speed": 1.0,
-   "startAtZero": false,
-   "finishAt": 85.0,
-   "gridRows": 4,
-   "showColumns": true,
-   "glow": 33.0,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.rolling-number",
-  "title": "Rolling number",
-  "category": "Elements",
-  "description": "Odometer where every place rolls at its own speed, new places rising into view, settling exactly on the target value.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "rolling-number",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "from": 0,
-   "to": 24813,
-   "fontSize": 120,
-   "color": "#171717",
-   "background": "white",
-   "speed": 1.0,
-   "finishAt": 80.0,
-   "groupSeparator": "space",
-   "fontWeight": 800,
-   "prefix": "",
-   "suffix": "",
-   "fontFamily": "",
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.spring-settle",
-  "title": "Spring settle",
-  "category": "Timeline",
-  "description": "Plays clips as scenes: each scene shrinks away, the stage holds empty for a beat, and the next one lands. Connect Layers to make a scene whose layers land one after another.",
-  "phase": "compile",
-  "inputs": [],
-  "family": {
-   "prefix": "in",
-   "type": "clip",
-   "required": 0,
-   "shown": 2,
-   "refs": [
-    [
-     "backgrounds",
-     "scene"
-    ]
-   ],
-   "labels": [
-    "Scene 1",
-    "Scene 2",
-    "Scene 3"
-   ]
-  },
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "spring-settle",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "enterScale": 1.24,
-   "enterStagger": 3.0,
-   "exitScale": 0.84,
-   "exitFrames": 6,
-   "enterFadeFrames": 5,
-   "springDamping": 30,
-   "springStiffness": 320,
-   "bgFadeFrames": 4,
-   "loop": false,
-   "enterStaggerJitter": 1,
-   "gapFrames": 1,
-   "backgrounds": [],
-   "envelope": {}
-  }
- },
- {
   "type": "fx.signup-flow",
   "title": "Signup flow",
   "category": "Elements",
@@ -6989,396 +4204,6 @@
   }
  },
  {
-  "type": "fx.release-teaser",
-  "title": "Release teaser",
-  "category": "Elements",
-  "description": "A 16-second cinematic release teaser with center-out typography, a procedural dimensional mark, moving edge light, and an independent fictional identity.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "release-teaser",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "brandName": "Orvio",
-   "release": "2",
-   "tagline": "Your next chapter starts here.",
-   "accentColor": "#9BC8DD",
-   "reducedMotion": false,
-   "statements": [
-    "Start with an idea",
-    "Make room\nfor better work",
-    "Bring every detail to life",
-    "Move together.\nGo further.",
-    "A fresh chapter.\nNo starting over."
-   ],
-   "logoSrc": "",
-   "themeBackground": "#050709",
-   "themeSurface": "#151C22",
-   "themeForeground": "#F2F5F7",
-   "themeMuted": "#A4ADB5",
-   "lightIntensity": 1.0,
-   "music": "",
-   "musicVolume": 1.0,
-   "fontFamily": "",
-   "textSize": 1.0,
-   "statementWeight": 500,
-   "logoSize": 34,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.launch-anything",
-  "title": "Launch anything",
-  "category": "Elements",
-  "description": "An independent 26.7-second editorial product film with forest-green accents, original photography, seven editable demos, and geometric marks.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "launch-anything",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "opening": "Good",
-   "subject": "ideas",
-   "brandUrl": "yourproduct.example",
-   "accentColor": "#245744",
-   "copyReady": "deserve a stage",
-   "copyNext": "Let’s make",
-   "copyAction": "them real",
-   "copyProof": "Your work.\nA clearer view.",
-   "copyIndustry": "Built around you",
-   "copyPromise": "Made to be yours.",
-   "copyLaunch": "Begin",
-   "copyShoppers": "Small things. Well made.",
-   "copyShopName": "Object Study",
-   "copyShopHeadline": "Everyday, considered.",
-   "copyShopDetail": "Useful objects. Quiet details.",
-   "copyShopAction": "Explore the objects",
-   "copyBuilder": "Turn a brief into a workspace",
-   "copyBuilderPrompt": "Create a workspace for our next product release",
-   "copyTrading": "Review once.\nMove forward.",
-   "copyLoyalty": "A place for every idea",
-   "copyLoyaltyPayoff": "Room for the next one",
-   "copyIntegration": "Bring your work together",
-   "copyConnections": "Connect your tools.\nKeep work moving.",
-   "copyIntegrations": [
-    "Files",
-    "Messages",
-    "Calendar"
-   ],
-   "screenDashboard": "",
-   "screenShoppers": "",
-   "screenExchange": "",
-   "screenBuilder": "",
-   "screenTrading": "",
-   "screenLoyalty": "",
-   "screenIntegrations": "",
-   "photoDesk": "",
-   "photoHorizon": "",
-   "photoRocket": "",
-   "photoEarth": "",
-   "logoImages": [],
-   "logoSrc": "",
-   "music": "",
-   "musicVolume": 1.0,
-   "fontFamily": "Manrope",
-   "nightColor": "#122d24",
-   "paperColor": "#faf6ec",
-   "lightTextColor": "#fff9f3",
-   "inkColor": "#17392b",
-   "sageColor": "#497761",
-   "openingShimmer": 1.0,
-   "openingSize": 430,
-   "headlineWeight": 500,
-   "textSize": 1.0,
-   "photoDimming": 0.66,
-   "logoSize": 64,
-   "copyAppName": "Workroom",
-   "copyDashboardMenu": [
-    "Workspace",
-    "Overview",
-    "Milestones",
-    "Projects",
-    "Teammates",
-    "Reports",
-    "Settings"
-   ],
-   "copyDashboard": "Your week, in focus",
-   "copyDashboardPeriod": "This month",
-   "copyDashboardNote": "Demo workspace · this month",
-   "dashboardStats": [
-    {
-     "label": "Tasks closed",
-     "value": "128"
-    },
-    {
-     "label": "Active projects",
-     "value": "12"
-    },
-    {
-     "label": "On track",
-     "value": "92%"
-    }
-   ],
-   "copyMomentum": "Project momentum",
-   "copyActivityTitle": "Recent activity",
-   "dashboardActivity": [
-    "Brief approved",
-    "Review completed",
-    "Project completed",
-    "Files organized",
-    "Milestone reached"
-   ],
-   "copyShopNote": "A collection for slower mornings.",
-   "copyReviewTitle": "Review activity",
-   "copyReviewProject": "Autumn release",
-   "copyReviewButtons": [
-    "Approve",
-    "Revise"
-   ],
-   "reviewRows": [
-    {
-     "label": "Files reviewed",
-     "value": "12 files"
-    },
-    {
-     "label": "Comments resolved",
-     "value": "28 / 28"
-    },
-    {
-     "label": "Contributors",
-     "value": "4 people"
-    },
-    {
-     "label": "Next milestone",
-     "value": "Ready to share"
-    }
-   ],
-   "copyIdeasCard": "Project notes",
-   "copyIdeasNote": "Collect ideas. Connect the details.",
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.laptop-frame",
-  "title": "Laptop frame",
-  "category": "Elements",
-  "description": "A laptop that opens, shows a notification in its notch, then moves the camera into the screen until your clip fills the frame.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "laptop-frame",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "screenSrc": "app:placeholders/screen-wide.svg",
-   "entrance": "open",
-   "finale": "zoom-to-screen",
-   "notchLabel": "Recording started",
-   "showNotch": true,
-   "batteryLevel": 85,
-   "bezelColor": "#1D1D1F",
-   "screenColor": "#FFFFFF",
-   "restTilt": 18,
-   "radius": 22,
-   "scale": 0.85,
-   "floatLoop": true,
-   "floatAmplitude": 4,
-   "shadow": "0 40px 80px rgba(10,12,20,0.45)",
-   "theme": {
-    "mode": "dark",
-    "colors": {}
-   },
-   "indicatorColor": "#30D158",
-   "fontFamily": "",
-   "speed": 1.0,
-   "notchAt": 4.0,
-   "zoomAt": 4.6667,
-   "zoomLength": 1.5,
-   "floatPeriod": 5.0,
-   "notchLabelSize": 12,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.phone-frame",
-  "title": "Phone frame",
-  "category": "Elements",
-  "description": "A phone frame with a notch and a screen slot for your clip, flat or tilted, with rise, rotate-in or float entrances.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "phone-frame",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "variant": "showcase",
-   "entrance": "float",
-   "screenSrc": "app:placeholders/screen-tall.svg",
-   "bezelColor": "#C7C9CE",
-   "screenColor": "#0A0A0B",
-   "radius": 53,
-   "screenRadius": 41,
-   "scale": 0.92,
-   "tiltAngle": -12,
-   "showDynamicIsland": true,
-   "floatLoop": false,
-   "floatAmplitude": 6,
-   "shadow": "0 30px 70px rgba(16,24,40,0.28)",
-   "theme": {
-    "mode": "dark",
-    "colors": {}
-   },
-   "fontFamily": "",
-   "speed": 1.0,
-   "floatPeriod": 4.5,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.captured-video",
-  "title": "Captured video",
-  "category": "Elements",
-  "description": "Shows a video or still you captured elsewhere, cropped and framed on a screen, with camera keys that zoom and pan across it.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "captured-video",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "src": "app:placeholders/screen-wide.svg",
-   "cropTop": 0.0,
-   "cropRight": 0.0,
-   "cropBottom": 0.0,
-   "cropLeft": 0.0,
-   "fit": "cover",
-   "backdropColor": "",
-   "entrance": "fade",
-   "radius": 0,
-   "trimBefore": 0,
-   "audio": false,
-   "theme": {
-    "mode": "dark",
-    "colors": {}
-   },
-   "camera": [
-    {
-     "at": 1.1333,
-     "duration": 0.8333,
-     "zoom": 1.6,
-     "x": 0.36,
-     "y": 0.42
-    },
-    {
-     "at": 3.2,
-     "duration": 0.8333,
-     "zoom": 1.0,
-     "x": 0.5,
-     "y": 0.5
-    }
-   ],
-   "speed": 1.0,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
   "type": "fx.announce-title",
   "title": "Announce title",
   "category": "Text & overlays",
@@ -7515,7 +4340,7 @@
   "type": "fx.text-highlight",
   "title": "Text highlight",
   "category": "Text & overlays",
-  "description": "Text highlight animation: marker highlighter, underline, strikethrough and shimmer on a word. Animated emphasis on one span inside a static sentence — marker sweep, color shift, underline, strikethrough-replace, or shimmer.",
+  "description": "Brings attention to one word in a sentence: a marker sweeps behind it, its colour changes, a line draws under it, it is struck out and replaced, or a shine passes over it.",
   "phase": "compile",
   "inputs": [],
   "family": null,
@@ -7541,27 +4366,24 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "before": "Powered by ",
-   "highlight": "Northwind",
-   "after": "",
-   "preset": "logo-wipe",
+   "preset": "marker",
+   "before": "Made for ",
+   "highlight": "builders",
+   "after": ".",
+   "replaceWith": "Free",
    "baseColor": "",
    "accentColor": "#266DF0",
    "highlightedTextColor": "",
-   "replaceWith": "Acme",
    "startAt": 0.2,
    "drawDuration": 0.4667,
+   "swapLength": 0.2333,
    "thickness": 4,
+   "markerOpacity": 16.0,
+   "markerHeight": 1.0,
    "shineColor": "",
-   "logoSrc": "app:placeholders/logo-mark.svg",
-   "logoScale": 1.05,
-   "spinTurns": 1.0,
-   "holdDuration": 0.4,
-   "rushDuration": 0.8,
-   "rushScale": 42,
-   "rushDrift": 0.55,
-   "swingOut": 0.25,
-   "coverColor": "",
+   "shineWidth": 40.0,
+   "sweeps": 1,
+   "bandAngle": 110.0,
    "fontSize": 56,
    "fontWeight": "600",
    "theme": {
@@ -7571,12 +4393,11 @@
    "background": "",
    "fontFamily": "",
    "speed": 1.0,
+   "x": 0.5,
+   "y": 0.5,
    "letterSpacing": -0.02,
    "lineHeight": 1.25,
    "textWidth": 80.0,
-   "markerOpacity": 16.0,
-   "shineWidth": 40.0,
-   "markGap": 0.3,
    "clipDuration": 0,
    "envelope": {}
   }
@@ -7653,218 +4474,6 @@
   }
  },
  {
-  "type": "fx.logo-assemble",
-  "title": "Logo assemble",
-  "category": "Elements",
-  "description": "Logo reveal animation: image cards orbit and collapse into your logo and brand name. A single ring of image cards revolves around a centred title, then spins inward and drains to the middle — giving birth to a simple logo that slides left as the brand name reveals to its right.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "logo-assemble",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "brandName": "Acme",
-   "middleText": "Product demos, made simple",
-   "logoSrc": "app:placeholders/logo-mark.svg",
-   "count": 10,
-   "background": "",
-   "theme": {
-    "mode": "dark",
-    "colors": {}
-   },
-   "images": [
-    {
-     "image": "app:backdrops/aurora.jpg"
-    },
-    {
-     "image": "app:backdrops/bloom.jpg"
-    },
-    {
-     "image": "app:backdrops/canyon.jpg"
-    },
-    {
-     "image": "app:backdrops/chalk.jpg"
-    },
-    {
-     "image": "app:backdrops/cobalt.jpg"
-    },
-    {
-     "image": "app:backdrops/dusk.jpg"
-    },
-    {
-     "image": "app:backdrops/ember.jpg"
-    },
-    {
-     "image": "app:backdrops/flare.jpg"
-    }
-   ],
-   "fontFamily": "",
-   "speed": 1.0,
-   "orbitSeconds": 1.67,
-   "orbitSpeed": 1.0,
-   "cardRatio": 1.22,
-   "cardShadow": 0.4,
-   "cardRadius": 4,
-   "ringSize": 36.0,
-   "cardSize": 15.0,
-   "logoSize": 12.5,
-   "logoGap": 3.5,
-   "nameSize": 5.5,
-   "middleTextSize": 4.0,
-   "fontWeight": 600,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.logo-drift",
-  "title": "Logo drift",
-  "category": "Elements",
-  "description": "Logo wall animation: a logo cloud of integrations drifting behind a headline. A field of tiles drifting past a headline while the camera pulls steadily back, so the wall of things-it-works-with keeps arriving from every edge.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "logo-drift",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "headline": "Built for the stack you already use.",
-   "pullback": 0.1762,
-   "tileSpeed": 1.0,
-   "tileScale": 1.0,
-   "tileFade": 0.4,
-   "tileRadius": 0.02,
-   "glyphScale": 0.34,
-   "wordStagger": 0.15,
-   "wordDuration": 0.14,
-   "wordScale": 1.216,
-   "wordBlur": 4.3,
-   "exitAt": 3.13,
-   "exitDuration": 0.34,
-   "fontSize": 20.0,
-   "glow": true,
-   "glowOpacity": 0.07,
-   "accentColor": "",
-   "theme": {
-    "mode": "light",
-    "colors": {}
-   },
-   "fontWeight": "500",
-   "glowColor": "",
-   "tiles": [
-    {
-     "glyph": "Rc",
-     "label": "Record",
-     "background": "#1f2430",
-     "color": "#ffffff",
-     "x": 163,
-     "y": 232,
-     "vx": -54,
-     "vy": 12,
-     "size": 109,
-     "at": 0.28
-    },
-    {
-     "glyph": "Ed",
-     "label": "Edit",
-     "background": "#f2f4f7",
-     "color": "#16181d",
-     "x": 128,
-     "y": -209,
-     "vx": 81,
-     "vy": 32,
-     "size": 122,
-     "at": 0.48
-    },
-    {
-     "glyph": "Zm",
-     "label": "Zoom",
-     "background": "#10131a",
-     "color": "#7dd3fc",
-     "x": -384,
-     "y": 344,
-     "vx": -27,
-     "vy": -68,
-     "size": 200,
-     "at": 0.95
-    },
-    {
-     "glyph": "Cc",
-     "label": "Captions",
-     "background": "#e7e8ea",
-     "color": "#16181d",
-     "x": 519,
-     "y": 45,
-     "vx": -31,
-     "vy": 64,
-     "size": 144,
-     "at": 1.51
-    },
-    {
-     "glyph": "Mx",
-     "label": "Mix",
-     "background": "#f1ece2",
-     "color": "#8a5a2b",
-     "x": -692,
-     "y": -125,
-     "vx": 41,
-     "vy": -71,
-     "size": 214,
-     "at": 1.55
-    }
-   ],
-   "fontFamily": "",
-   "speed": 1.0,
-   "wordAt": 0.017,
-   "exitScale": 0.8,
-   "exitBlur": 6.5,
-   "glowSize": 1.0,
-   "glyphWeight": 600,
-   "labelScale": 0.1,
-   "labelOpacity": 0.72,
-   "headlineWidth": 88,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
   "type": "fx.hero-launch",
   "title": "Hero launch",
   "category": "Elements",
@@ -7914,10 +4523,10 @@
   }
  },
  {
-  "type": "fx.stat-card",
-  "title": "Stat card",
+  "type": "fx.steps-timeline",
+  "title": "Steps timeline",
   "category": "Elements",
-  "description": "One big number counts up while a ring fills, then its label and the change since last period appear.",
+  "description": "A row of steps that check off one after another along a line, each with its title and a short description.",
   "phase": "compile",
   "inputs": [],
   "family": null,
@@ -7934,7 +4543,7 @@
   "action": false,
   "executes": false,
   "usesProjectSize": false,
-  "element": "stat-card",
+  "element": "steps-timeline",
   "hidden": false,
   "cardHeight": null,
   "estimatedHeight": 168.0,
@@ -7943,637 +4552,8 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "value": 98.0,
-   "suffix": "%",
-   "prefix": "",
-   "decimals": 0,
-   "label": "Satisfaction",
-   "caption": "Customer survey, last 30 days",
-   "delta": 4,
-   "deltaSuffix": "%",
-   "accentColor": "#2DD4BF",
-   "theme": {
-    "mode": "dark",
-    "colors": {}
-   },
-   "speed": 1.0,
-   "showDelta": true,
-   "backgroundColor": "",
-   "glow": 10.0,
-   "ringThickness": 9,
-   "groupSeparator": "none",
-   "fontFamily": "",
-   "downColor": "",
-   "ringGlow": 10,
-   "clipDuration": 123,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.metric-ticker",
-  "title": "Metric cards",
-  "category": "Elements",
-  "description": "Key numbers on cards that count up, each with its change and a small trend line.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "metric-ticker",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "metrics": [
-    {
-     "label": "Sign-ups",
-     "value": 12400.0,
-     "delta": "+18%",
-     "trend": [
-      62.0,
-      71.0,
-      68.0,
-      84.0,
-      96.0,
-      112.0,
-      124.0
-     ]
-    },
-    {
-     "label": "Avg. session",
-     "value": 48.0,
-     "delta": "+6%",
-     "trend": [
-      39.0,
-      41.0,
-      40.0,
-      43.0,
-      45.0,
-      44.0,
-      48.0
-     ],
-     "suffix": "min"
-    },
-    {
-     "label": "Support tickets",
-     "value": 320.0,
-     "delta": "-4%",
-     "trend": [
-      36.0,
-      35.0,
-      37.0,
-      34.0,
-      33.0,
-      33.5,
-      32.0
-     ]
-    }
-   ],
-   "title": "Growth this quarter",
-   "eyebrow": "Quarter recap",
-   "maxCards": 4,
-   "accentColor": "",
-   "backgroundColor": "",
-   "theme": {
-    "mode": "dark",
-    "colors": {}
-   },
-   "showArrows": true,
-   "numberFormat": "compact",
-   "glow": 7.0,
-   "uppercaseEyebrow": true,
-   "cornerRadius": 18,
-   "trendFill": true,
-   "fontFamily": "",
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.funnel-chart",
-  "title": "Funnel chart",
-  "category": "Elements",
-  "description": "A bar for each step of a funnel, narrowing to show how many people drop off.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "funnel-chart",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "stages": [
-    {
-     "label": "Visited the site",
-     "value": 42800
-    },
-    {
-     "label": "Signed up",
-     "value": 18600
-    },
-    {
-     "label": "Created a project",
-     "value": 9400
-    },
-    {
-     "label": "Invited a teammate",
-     "value": 4100
-    },
-    {
-     "label": "Upgraded",
-     "value": 1750
-    }
-   ],
-   "width": 1100.0,
-   "height": 560.0,
-   "gap": 10.0,
-   "tailOpacity": 0.5,
-   "showDropoff": true,
-   "showConversion": false,
-   "durationInFrames": 22,
-   "staggerInFrames": 12,
-   "color": "#e8b86d",
-   "inkColor": "#fafafa",
-   "labelColor": "rgba(250,250,250,0.55)",
-   "dropoffColor": "#f472b6",
-   "numberFormat": "compact",
-   "dropoffHeading": "Drop-off",
-   "fontFamily": "",
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.donut-chart",
-  "title": "Donut chart",
-  "category": "Elements",
-  "description": "A ring chart that fills segment by segment, with a legend and a total.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "donut-chart",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "segments": [
-    {
-     "label": "Direct",
-     "value": 4820.0
-    },
-    {
-     "label": "Search",
-     "value": 3140.0
-    },
-    {
-     "label": "Social",
-     "value": 1960.0
-    },
-    {
-     "label": "Referral",
-     "value": 880.0
-    }
-   ],
-   "size": 520.0,
-   "thickness": 46.0,
-   "colors": [
-    "#e8b86d",
-    "#2dd4bf",
-    "#f472b6",
-    "#8b8bf5"
-   ],
-   "showLegend": true,
-   "showTotal": true,
-   "totalLabel": "Sessions",
-   "durationInFrames": 26,
-   "staggerInFrames": 9,
-   "trackColor": "rgba(250,250,250,0.08)",
-   "labelColor": "rgba(250,250,250,0.58)",
-   "inkColor": "#fafafa",
-   "upColor": "#2dd4bf",
-   "downColor": "#f87171",
-   "numberFormat": "compact",
-   "segmentGap": 1.2,
-   "roundEnds": false,
-   "startAngle": 0.0,
-   "uppercaseLabel": true,
-   "legendShows": "percent",
-   "fontFamily": "",
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.comparison-bars",
-  "title": "Before and after bars",
-  "category": "Elements",
-  "description": "Pairs of bars comparing before and after, with the change called out.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "comparison-bars",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "rows": [
-    {
-     "label": "Setup time (min)",
-     "before": 240.0,
-     "after": 96.0
-    },
-    {
-     "label": "Tickets closed / week",
-     "before": 120.0,
-     "after": 310.0
-    },
-    {
-     "label": "Active teams",
-     "before": 34.0,
-     "after": 88.0
-    },
-    {
-     "label": "Manual steps",
-     "before": 62.0,
-     "after": 18.0
-    }
-   ],
-   "width": 1100.0,
-   "rowHeight": 84.0,
-   "gap": 26.0,
-   "labelWidth": 280.0,
-   "beforeColor": "rgba(250,250,250,0.22)",
-   "afterColor": "#e8b86d",
-   "downColor": "#f472b6",
-   "seriesLabels": [
-    "Before",
-    "After"
-   ],
-   "showDelta": true,
-   "durationInFrames": 30,
-   "staggerInFrames": 12,
-   "pairOffsetInFrames": 6,
-   "barInkColor": "#0b0b10",
-   "labelColor": "rgba(250,250,250,0.55)",
-   "numberFormat": "compact",
-   "cornerRadius": 28.0,
-   "showBeforeValue": false,
-   "fontFamily": "",
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.bar-chart-race",
-  "title": "Bar chart race",
-  "category": "Elements",
-  "description": "Ranked bars that grow and swap places as the values change over time.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "bar-chart-race",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "series": [
-    {
-     "label": "Mobile",
-     "values": [
-      42.0,
-      58.0,
-      66.0,
-      72.0,
-      78.0,
-      84.0
-     ]
-    },
-    {
-     "label": "Web",
-     "values": [
-      18.0,
-      34.0,
-      57.0,
-      76.0,
-      92.0,
-      108.0
-     ]
-    },
-    {
-     "label": "Desktop",
-     "values": [
-      30.0,
-      40.0,
-      47.0,
-      52.0,
-      57.0,
-      61.0
-     ]
-    },
-    {
-     "label": "API",
-     "values": [
-      12.0,
-      22.0,
-      36.0,
-      50.0,
-      63.0,
-      79.0
-     ]
-    },
-    {
-     "label": "Email",
-     "values": [
-      24.0,
-      28.0,
-      31.0,
-      35.0,
-      38.0,
-      42.0
-     ]
-    },
-    {
-     "label": "Partners",
-     "values": [
-      8.0,
-      12.0,
-      17.0,
-      21.0,
-      26.0,
-      30.0
-     ]
-    }
-   ],
-   "steps": [
-    "Q1",
-    "Q2",
-    "Q3",
-    "Q4",
-    "Q5",
-    "Q6"
-   ],
-   "framesPerStep": 18,
-   "visibleRows": 6,
-   "width": 1200.0,
-   "rowHeight": 76.0,
-   "gap": 14.0,
-   "labelWidth": 240.0,
-   "showStepLabel": true,
-   "colors": [
-    "#e8b86d",
-    "#2dd4bf",
-    "#f472b6",
-    "#8b8bf5",
-    "#f59e0b",
-    "#5eead4"
-   ],
-   "inkColor": "#fafafa",
-   "barInkColor": "#0b0b10",
-   "labelColor": "rgba(250,250,250,0.55)",
-   "numberFormat": "compact",
-   "cornerRadius": 22.0,
-   "stepLabelPosition": "bottom-right",
-   "stepLabelSize": 90.0,
-   "stepLabelOpacity": 22.0,
-   "fontFamily": "",
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.gauge-dial",
-  "title": "Gauge",
-  "category": "Elements",
-  "description": "A dial whose needle sweeps up to a value.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "gauge-dial",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "value": 78.0,
-   "min": 0.0,
-   "max": 100.0,
-   "size": 480.0,
-   "thickness": 26.0,
-   "sweepInDegrees": 250,
-   "label": "Weekly goal",
-   "unit": "%",
-   "tickCount": 9,
-   "durationInFrames": 44,
-   "color": "#e8b86d",
-   "trackColor": "rgba(250,250,250,0.10)",
-   "inkColor": "#fafafa",
-   "labelColor": "rgba(250,250,250,0.58)",
-   "roundEnds": true,
-   "showNeedle": true,
-   "uppercaseLabel": true,
-   "fontFamily": "",
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.data-story",
-  "title": "Data story",
-  "category": "Elements",
-  "description": "A whole data story: title, bar chart, key numbers, timeline, takeaway and a closing call to action.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "data-story",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "title": "Quarterly reach by channel",
-   "subtitle": "Short-form climbed while long-form held attention",
-   "barData": [
-    {
-     "label": "Mobile",
-     "value": 124000.0,
-     "delta": "+32%"
-    },
-    {
-     "label": "Web",
-     "value": 82000.0,
-     "delta": "+11%"
-    },
-    {
-     "label": "Desktop",
-     "value": 64000.0,
-     "delta": "+4%"
-    },
-    {
-     "label": "API",
-     "value": 48000.0,
-     "delta": "-6%"
-    }
-   ],
-   "metrics": [
-    {
-     "label": "Sign-ups",
-     "value": 12400.0,
-     "delta": "+18%",
-     "trend": [
-      62.0,
-      71.0,
-      68.0,
-      84.0,
-      96.0,
-      112.0,
-      124.0
-     ]
-    },
-    {
-     "label": "Avg. session",
-     "value": 48.0,
-     "delta": "+6%",
-     "trend": [
-      39.0,
-      41.0,
-      40.0,
-      43.0,
-      45.0,
-      44.0,
-      48.0
-     ],
-     "suffix": "min"
-    },
-    {
-     "label": "Support tickets",
-     "value": 320.0,
-     "delta": "-4%",
-     "trend": [
-      36.0,
-      35.0,
-      37.0,
-      34.0,
-      33.0,
-      33.5,
-      32.0
-     ]
-    }
-   ],
+   "title": "How we read the quarter",
+   "eyebrow": "",
    "steps": [
     {
      "title": "Hook",
@@ -8588,86 +4568,18 @@
      "description": "Close with one clear call to action."
     }
    ],
-   "chartTitle": "Views by format",
-   "metricsTitle": "Signals that mattered",
-   "timelineTitle": "How we read the quarter",
-   "insight": "Short-form drove reach; long-form kept attention.",
-   "insightEyebrow": "Takeaway",
-   "ctaTitle": "Turn your data into motion",
-   "ctaLabel": "Get started",
    "theme": {
     "mode": "dark",
     "colors": {}
    },
-   "accentColor": "#e8b86d",
-   "dataColor": "#2dd4bf",
-   "timelineColor": "#f59e0b",
+   "accentColor": "#f59e0b",
    "backgroundColor": "",
-   "showScale": true,
-   "highlightBar": "",
-   "chartSubtitle": "",
-   "numberFormat": "compact",
+   "speed": 1.5,
    "textSize": 1.0,
-   "logoSrc": "",
-   "ctaUrl": "",
-   "ctaSubtitle": "",
    "eyebrowCaps": true,
    "glow": 1.0,
    "fontFamily": "",
-   "clipDuration": 420,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.logo-reveal",
-  "title": "Logo reveal",
-  "category": "Elements",
-  "description": "Draws your logo outline, then brings in the name and a tagline.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "logo-reveal",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "pathD": "M 100 20 L 170 60 L 170 140 L 100 180 L 30 140 L 30 60 Z M 100 64 L 138 86 L 138 130 L 100 152 L 62 130 L 62 86 Z",
-   "wordmark": "Acme",
-   "tagline": "Ship your next release faster",
-   "stroke": "#e8b86d",
-   "backgroundColor": "#080810",
-   "textColor": "#f4f4f5",
-   "viewBox": "",
-   "fill": "",
-   "fontFamily": "",
-   "speed": 1.0,
-   "drawSeconds": 2.4,
-   "pathStagger": 0.27,
-   "nameAt": 1.37,
-   "glow": true,
-   "penTip": true,
-   "nameSize": 84,
-   "fontWeight": 600,
-   "taglineSize": 40,
-   "taglineColor": "",
-   "clipDuration": 120,
+   "clipDuration": 0,
    "envelope": {}
   }
  },
@@ -8919,100 +4831,6 @@
   }
  },
  {
-  "type": "fx.logo-wall",
-  "title": "Logo wall",
-  "category": "Elements",
-  "description": "A grid of customer logos that light up from grey to colour.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "logo-wall",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "logos": [
-    {
-     "name": "Northstar",
-     "color": "#E8B86D"
-    },
-    {
-     "name": "Halcyon",
-     "color": "#7DD3E8"
-    },
-    {
-     "name": "Fernweh",
-     "color": "#9BD4A0"
-    },
-    {
-     "name": "Orbital",
-     "color": "#C99BE8"
-    },
-    {
-     "name": "Lumen",
-     "color": "#8FB8F0"
-    },
-    {
-     "name": "Tidewater",
-     "color": "#E89B9B"
-    },
-    {
-     "name": "Kestrel",
-     "color": "#E8B86D"
-    },
-    {
-     "name": "Marrow",
-     "color": "#7DD3E8"
-    }
-   ],
-   "eyebrow": "Trusted by",
-   "title": "Teams that ship with us",
-   "columns": 4,
-   "startAtSeconds": 0.32,
-   "arriveStaggerSeconds": 0.06,
-   "staggerSeconds": 0.24,
-   "warmSeconds": 0.6,
-   "accentColor": "#E8B86D",
-   "theme": {
-    "mode": "dark",
-    "colors": {}
-   },
-   "speed": 1.0,
-   "backgroundColor": "",
-   "glyphColor": "",
-   "fontFamily": "",
-   "wallWidth": 900,
-   "gap": 14,
-   "tileHeight": 88,
-   "tileRadius": 14,
-   "titleSize": 30,
-   "eyebrowUppercase": true,
-   "nameSize": 19,
-   "imageSize": 46,
-   "showMark": true,
-   "startBrightness": 0.72,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
   "type": "fx.end-card",
   "title": "End card",
   "category": "Elements",
@@ -9066,127 +4884,6 @@
    "eyebrowCaps": true,
    "buttonRadius": 999,
    "buttonArrow": true,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.code-reveal",
-  "title": "Code reveal",
-  "category": "Elements",
-  "description": "A code editor that types out a file, then highlights the lines that matter.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "code-reveal",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "code": "export async function checkout(cart: Cart) {\n  const total = cart.items.reduce((sum, item) => sum + item.price, 0);\n  const order = await api.orders.create({ items: cart.items, total });\n\n  return order.id;\n}",
-   "highlightedLines": [
-    3.0
-   ],
-   "title": "checkout.ts",
-   "language": "tsx",
-   "startLine": 1,
-   "showLineNumbers": true,
-   "accentColor": "#E8B86D",
-   "theme": {
-    "mode": "dark",
-    "colors": {}
-   },
-   "speed": 1.0,
-   "backgroundColor": "",
-   "fontSize": 21,
-   "windowWidth": 940,
-   "lineHeight": 1.62,
-   "visibleLines": 10,
-   "typingSpeed": 55.0,
-   "linePause": 0.07,
-   "startAt": 0.4,
-   "highlightAfter": 0.34,
-   "dimOthers": 0.34,
-   "glow": true,
-   "vignette": true,
-   "cornerRadius": 16,
-   "windowDots": true,
-   "font": "",
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.code-diff-wipe",
-  "title": "Code diff",
-  "category": "Elements",
-  "description": "A code editor that applies a change line by line: removed lines collapse and new lines type in.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "code-diff-wipe",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "before": "export function render(scene) {\n  const frames = scene.frames;\n  return frames.map(draw);\n}",
-   "after": "export function render(scene, options) {\n  const frames = scene.frames;\n  const scale = options.scale ?? 1;\n  return frames.map((frame) => draw(frame, scale));\n}",
-   "title": "render.ts",
-   "wipeSeconds": 1.7,
-   "accentColor": "#E8B86D",
-   "theme": {
-    "mode": "dark",
-    "colors": {}
-   },
-   "speed": 1.0,
-   "backgroundColor": "",
-   "fontSize": 20,
-   "windowWidth": 940,
-   "lineHeight": 1.7,
-   "startAt": 0.7,
-   "collapseRemoved": true,
-   "showCounts": true,
-   "dimUnchanged": true,
-   "strikeRemoved": true,
-   "glow": true,
-   "vignette": true,
-   "cornerRadius": 16,
-   "windowDots": true,
-   "font": "",
    "clipDuration": 0,
    "envelope": {}
   }
@@ -9569,234 +5266,6 @@
   }
  },
  {
-  "type": "fx.device-mockup-zoom",
-  "title": "Device mockup",
-  "category": "Elements",
-  "description": "Shows the clip on a laptop, phone or browser screen while the camera slowly pulls back.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": true,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "device-mockup-zoom",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "src": "",
-   "title": "",
-   "subtitle": "",
-   "eyebrow": "",
-   "device": "laptop",
-   "backgroundColor": "#080810",
-   "accentColor": "#e8b86d",
-   "textColor": "#f8fafc",
-   "deviceColor": "#171b26",
-   "deviceEdgeColor": "#242a3a",
-   "bezelColor": "#0d111b",
-   "buttonColor": "#0c0e15",
-   "cameraColor": "#05060a",
-   "islandColor": "#000000",
-   "lensColor": "#1e2230",
-   "baseGradient": "linear-gradient(180deg, #30384b 0%, #171b26 60%, #0b0d14 100%)",
-   "secondAccent": "#2dd4bf",
-   "thirdAccent": "#f472b6",
-   "screenColor": "#f6f1e8",
-   "screenTextColor": "#111827",
-   "screenMutedColor": "#6b7280",
-   "backgroundTint": "#5b6b9a",
-   "shadow": 0.42,
-   "glow": 0.2,
-   "showGrid": true,
-   "pullBackFrom": 1.18,
-   "scale": 1.0,
-   "titleSize": 64,
-   "titleWeight": 800,
-   "subtitleSize": 24,
-   "fontFamily": "",
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.multi-device-lineup",
-  "title": "Device lineup",
-  "category": "Elements",
-  "description": "Shows the clip on a phone, a tablet and a laptop side by side.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "multi-device-lineup",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "scale": 1.6,
-   "staggerInFrames": 9,
-   "bezelColor": "#15171D",
-   "screenColor": "#0B0C11",
-   "labelColor": "#7A828F",
-   "phoneLabel": "Phone",
-   "tabletLabel": "Tablet",
-   "laptopLabel": "Laptop",
-   "baseGradient": "linear-gradient(180deg, #23262E 0%, #14161B 100%)",
-   "islandColor": "#05060A",
-   "cameraColor": "rgba(255,255,255,0.28)",
-   "edgeColor": "rgba(255,255,255,0.10)",
-   "shadow": 0.55,
-   "gap": 26,
-   "labelSize": 12,
-   "labelUppercase": true,
-   "fontFamily": "",
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.handwriting-text",
-  "title": "Handwriting",
-  "category": "Text & overlays",
-  "description": "Writes the text out by hand, stroke by stroke.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "handwriting-text",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "text": "Signed by hand",
-   "penSize": 0.14,
-   "penColor": "#e8b86d",
-   "inkSoftness": 0.18,
-   "wobble": 1.6,
-   "staggerInFrames": 3,
-   "fontFamily": "",
-   "seed": "handwriting",
-   "color": "#f4f4f5",
-   "fontWeight": "600",
-   "durationInFrames": 10,
-   "wordSpacing": 0.26,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
-  "type": "fx.neon-flicker-text",
-  "title": "Neon sign",
-  "category": "Text & overlays",
-  "description": "Text that flickers on like a neon sign, then hums gently.",
-  "phase": "compile",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "neon-flicker-text",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "text": "Open all night",
-   "glowColor": "#f472b6",
-   "glowSize": 26.0,
-   "offLevel": 0.14,
-   "hum": 0.12,
-   "buzz": 0.06,
-   "flickerOnExit": true,
-   "order": "start",
-   "staggerInFrames": 2,
-   "seed": 1,
-   "color": "#fdf2f8",
-   "fontWeight": "600",
-   "offColor": "",
-   "durationInFrames": 20,
-   "humRate": 2.0,
-   "wordSpacing": 0.26,
-   "clipDuration": 0,
-   "envelope": {}
-  }
- },
- {
   "type": "fx.text-mask-video",
   "title": "Text mask",
   "category": "Text & overlays",
@@ -9845,10 +5314,10 @@
   }
  },
  {
-  "type": "fx.aurora-bg",
-  "title": "Aurora",
-  "category": "Backgrounds",
-  "description": "Soft ribbons of light drifting across a dark sky.",
+  "type": "fx.animated-text",
+  "title": "Animated text",
+  "category": "Text & overlays",
+  "description": "A line of text that comes in with the animation you pick.",
   "phase": "compile",
   "inputs": [],
   "family": null,
@@ -9865,7 +5334,7 @@
   "action": false,
   "executes": false,
   "usesProjectSize": false,
-  "element": "aurora-bg",
+  "element": null,
   "hidden": false,
   "cardHeight": null,
   "estimatedHeight": 168.0,
@@ -9874,37 +5343,16 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "backgroundColor": "#050505",
-   "colors": [
-    "#e4ac59",
-    "#e07a5f",
-    "#c2557a"
-   ],
-   "ribbonCount": 4,
-   "amplitude": 9.0,
-   "thickness": 15.0,
-   "centerY": 46.0,
-   "spread": 34.0,
-   "speed": 1.0,
-   "blur": 14.0,
-   "intensity": 1.3,
-   "horizonGlow": 0.5,
-   "striation": 0.55,
-   "seed": 1,
-   "folds": 2.0,
-   "sidewaysDrift": 13.0,
-   "raySpacing": 72,
-   "vignette": 0.55,
-   "horizonGlowColor": "",
-   "clipDuration": 120,
+   "kind": "soft-blur",
+   "clipDuration": 0,
    "envelope": {}
   }
  },
  {
-  "type": "fx.particle-field",
-  "title": "Particle field",
-  "category": "Backgrounds",
-  "description": "Glowing particles drifting at different depths.",
+  "type": "fx.arrow",
+  "title": "Arrow",
+  "category": "Text & overlays",
+  "description": "An arrow that draws itself to point at something, clean with a label or hand-drawn with a brush.",
   "phase": "compile",
   "inputs": [],
   "family": null,
@@ -9921,7 +5369,7 @@
   "action": false,
   "executes": false,
   "usesProjectSize": false,
-  "element": "particle-field",
+  "element": null,
   "hidden": false,
   "cardHeight": null,
   "estimatedHeight": 168.0,
@@ -9930,45 +5378,123 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "backgroundColor": "#05070f",
-   "color": "#e8b86d",
-   "count": 70,
-   "angle": 8.0,
-   "speed": 1.0,
-   "size": 14.0,
-   "minSize": 2.0,
-   "depthBlur": 3.0,
-   "drift": 4.0,
-   "intensity": 1.0,
-   "glow": 1.6,
-   "seed": 1,
-   "twinkle": 0.3,
+   "kind": "clean",
+   "clipDuration": 75,
+   "envelope": {}
+  }
+ },
+ {
+  "type": "fx.background",
+  "title": "Background",
+  "category": "Backgrounds",
+  "description": "A background to put behind other layers: a colour, a gradient, a texture or a moving pattern.",
+  "phase": "compile",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "kind": "solid",
+   "clipDuration": 90,
+   "envelope": {}
+  }
+ },
+ {
+  "type": "fx.logo-set",
+  "title": "Logo set",
+  "category": "Elements",
+  "description": "A set of logos shown together: a grid that lights up, a field drifting past a headline, or a stack of chips.",
+  "phase": "compile",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "kind": "grid",
+   "clipDuration": 0,
+   "envelope": {}
+  }
+ },
+ {
+  "type": "fx.logo-reveal",
+  "title": "Logo reveal",
+  "category": "Elements",
+  "description": "Brings in your logo and name: drawn as an outline, assembled from orbiting cards, or wiped in behind a spinning mark.",
+  "phase": "compile",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "kind": "outline",
    "clipDuration": 120,
    "envelope": {}
   }
  },
  {
-  "type": "transition.fade",
-  "title": "Fade",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a fade transition. Tip: cut where the picture is still.",
+  "type": "fx.code-reveal",
+  "title": "Code reveal",
+  "category": "Elements",
+  "description": "A code editor that writes out a file, then highlights the lines that matter.",
   "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
+  "inputs": [],
   "family": null,
   "outputs": [
    {
@@ -9983,42 +5509,27 @@
   "action": false,
   "executes": false,
   "usesProjectSize": false,
-  "element": "fade",
+  "element": null,
   "hidden": false,
   "cardHeight": null,
-  "estimatedHeight": 190.0,
+  "estimatedHeight": 168.0,
   "compiles": true,
   "hasCard": true,
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "durationInFrames": 15,
-   "keepWhole": false,
-   "easing": "linear"
+   "kind": "plain",
+   "clipDuration": 0,
+   "envelope": {}
   }
  },
  {
-  "type": "transition.slide",
-  "title": "Slide",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a slide transition. Tip: cut where the picture is still.",
+  "type": "fx.code-diff-wipe",
+  "title": "Code diff",
+  "category": "Elements",
+  "description": "A code editor that changes one version of a file into another.",
   "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
+  "inputs": [],
   "family": null,
   "outputs": [
    {
@@ -10033,43 +5544,27 @@
   "action": false,
   "executes": false,
   "usesProjectSize": false,
-  "element": "slide",
+  "element": null,
   "hidden": false,
   "cardHeight": null,
-  "estimatedHeight": 190.0,
+  "estimatedHeight": 168.0,
   "compiles": true,
   "hasCard": true,
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "direction": "from-right",
-   "durationInFrames": 20,
-   "keepWhole": false,
-   "easing": "linear"
+   "kind": "line-wipe",
+   "clipDuration": 0,
+   "envelope": {}
   }
  },
  {
-  "type": "transition.wipe",
-  "title": "Wipe",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a wipe transition. Tip: cut where the picture is still.",
+  "type": "fx.chart",
+  "title": "Chart",
+  "category": "Elements",
+  "description": "A chart that animates in from your numbers.",
   "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
+  "inputs": [],
   "family": null,
   "outputs": [
    {
@@ -10084,43 +5579,27 @@
   "action": false,
   "executes": false,
   "usesProjectSize": false,
-  "element": "wipe",
+  "element": null,
   "hidden": false,
   "cardHeight": null,
-  "estimatedHeight": 190.0,
+  "estimatedHeight": 168.0,
   "compiles": true,
   "hasCard": true,
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "direction": "from-left",
-   "durationInFrames": 20,
-   "keepWhole": false,
-   "easing": "linear"
+   "kind": "bar",
+   "clipDuration": 0,
+   "envelope": {}
   }
  },
  {
-  "type": "transition.flip",
-  "title": "Flip",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a flip transition. Tip: cut where the picture is still.",
+  "type": "fx.metric-ticker",
+  "title": "Metric cards",
+  "category": "Elements",
+  "description": "Key numbers that count up: several on cards with their trends, or one in a filling ring.",
   "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
+  "inputs": [],
   "family": null,
   "outputs": [
    {
@@ -10135,44 +5614,27 @@
   "action": false,
   "executes": false,
   "usesProjectSize": false,
-  "element": "flip",
+  "element": null,
   "hidden": false,
   "cardHeight": null,
-  "estimatedHeight": 190.0,
+  "estimatedHeight": 168.0,
   "compiles": true,
   "hasCard": true,
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "direction": "from-right",
-   "perspective": 1000,
-   "durationInFrames": 24,
-   "keepWhole": false,
-   "easing": "linear"
+   "kind": "cards",
+   "clipDuration": 0,
+   "envelope": {}
   }
  },
  {
-  "type": "transition.clock-wipe",
-  "title": "Clock wipe",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a clock wipe transition. Tip: cut where the picture is still.",
+  "type": "fx.rolling-number",
+  "title": "Rolling number",
+  "category": "Elements",
+  "description": "A value that rolls to its target: digits like an odometer, or a reel that rolls any characters.",
   "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
+  "inputs": [],
   "family": null,
   "outputs": [
    {
@@ -10187,1171 +5649,31 @@
   "action": false,
   "executes": false,
   "usesProjectSize": false,
-  "element": "clock-wipe",
+  "element": null,
   "hidden": false,
   "cardHeight": null,
-  "estimatedHeight": 190.0,
+  "estimatedHeight": 168.0,
   "compiles": true,
   "hasCard": true,
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "durationInFrames": 24,
-   "keepWhole": false,
-   "easing": "linear"
+   "kind": "odometer",
+   "clipDuration": 0,
+   "envelope": {}
   }
  },
  {
-  "type": "transition.iris",
-  "title": "Iris",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a iris transition. Tip: cut where the picture is still.",
+  "type": "fx.film-look",
+  "title": "Film look",
+  "category": "Effects",
+  "description": "Shows a clip as if seen through something: an old screen, a tape, a printed page or a camera lens.",
   "phase": "compile",
   "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
    {
     "id": "clip",
     "type": "clip",
     "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "iris",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "durationInFrames": 24,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.whip-pan",
-  "title": "Whip pan",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a whip pan transition. Tip: cut where the picture is still.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "whip-pan",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "direction": "left",
-   "blur": 24,
-   "stretch": 12.0,
-   "durationInFrames": 114,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.push-through",
-  "title": "Push through",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a push through transition. Tip: cut where the picture is still.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "push-through",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "zoom": 2.4,
-   "blur": 14,
-   "approachFrom": 0.68,
-   "durationInFrames": 112,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.zoom-blur",
-  "title": "Zoom blur",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a zoom blur transition. Tip: cut where the picture is still.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "zoom-blur",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "blur": 16,
-   "rise": 0,
-   "zoom": 1.12,
-   "durationInFrames": 114,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.focus-pull",
-  "title": "Focus pull",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a focus pull transition. Tip: cut where the picture is still.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "focus-pull",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "blur": 16,
-   "glow": 30.0,
-   "zoom": 5.0,
-   "durationInFrames": 114,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.lens-zoom",
-  "title": "Lens zoom",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a lens zoom transition. Tip: cut where the picture is still.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "lens-zoom",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "lensSteps": 9,
-   "blurSamples": 7,
-   "shakeAmount": 50,
-   "shakeTranslatePx": 73,
-   "colorSplit": true,
-   "zoom": 150.0,
-   "zoomBlur": 60.0,
-   "distortion": 160.0,
-   "twist": -15.0,
-   "pullBack": 100.0,
-   "shakeSpeed": 11.2,
-   "shakeRotation": 1.1,
-   "fringe": 1.0,
-   "letterbox": 0.0,
-   "background": "#000000",
-   "durationInFrames": 112,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.ripple-zoom",
-  "title": "Ripple zoom",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a ripple zoom transition. Tip: cut where the picture is still.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "ripple-zoom",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "zoom": 4.0,
-   "intensity": 0.5,
-   "softness": 0.5,
-   "colorBack": "#141318",
-   "colors": [
-    "#3a3a52",
-    "#4a4a68",
-    "#8f88ae"
-   ],
-   "speed": 1.0,
-   "noise": 0.5,
-   "originX": 0.5,
-   "durationInFrames": 116,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.wave-wipe",
-  "title": "Wave wipe",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a wave wipe transition. Tip: cut where the picture is still.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "wave-wipe",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "intensity": 0.2,
-   "softness": 0.7,
-   "noise": 0.4,
-   "colorBack": "#141318",
-   "colors": [
-    "#3a3a52",
-    "#4a4a68",
-    "#8f88ae"
-   ],
-   "speed": 1.0,
-   "zoom": 1.16,
-   "direction": "up",
-   "durationInFrames": 116,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.smoke-dissolve",
-  "title": "Smoke dissolve",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a smoke dissolve transition. Tip: cut where the picture is still.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "smoke-dissolve",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "colorBack": "#141318",
-   "colors": [
-    "#8f88ae"
-   ],
-   "speed": 1.0,
-   "detail": 3.0,
-   "originX": 0.5,
-   "durationInFrames": 116,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.glitch-cut",
-  "title": "Glitch cut",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a glitch cut transition. Tip: cut where the picture is still.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "glitch-cut",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "intensity": 1.0,
-   "slices": 24,
-   "rgbSplit": 1.0,
-   "blockNoise": 0.6,
-   "flicker": 22,
-   "blockColumns": 16,
-   "tint": "#0d0417",
-   "durationInFrames": 78,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.page-turn",
-  "title": "Page turn",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a page turn transition. Tip: cut where the picture is still.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "page-turn",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "angle": -7,
-   "poses": 8,
-   "hingeX": 0.18,
-   "durationInFrames": 128,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.grain-dissolve",
-  "title": "Grain dissolve",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a grain dissolve transition. Tip: cut where the picture is still.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "grain-dissolve",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "shape": "blob",
-   "noise": 0.3,
-   "zoom": 2.0,
-   "colorBack": "#141318",
-   "colors": [
-    "#3a3a52",
-    "#4a4a68",
-    "#8f88ae"
-   ],
-   "speed": 1.0,
-   "sceneBlur": 10,
-   "rotation": 0.0,
-   "durationInFrames": 116,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.dither-dissolve",
-  "title": "Dither dissolve",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a dither dissolve transition. Tip: cut where the picture is still.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "dither-dissolve",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "shape": "simplex",
-   "colorBack": "#141318",
-   "colorFront": "#8f88ae",
-   "speed": 1.5,
-   "dotSize": 1.6,
-   "pattern": "4x4",
-   "durationInFrames": 100,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.swirl-dissolve",
-  "title": "Swirl dissolve",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a swirl dissolve transition. Tip: cut where the picture is still.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "swirl-dissolve",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "bandCount": 10,
-   "softness": 0.35,
-   "colorBack": "#141318",
-   "colors": [
-    "#1f1d29",
-    "#413d56",
-    "#8f88ae"
-   ],
-   "speed": 1.0,
-   "noise": 0.2,
-   "durationInFrames": 116,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.particle-dissolve",
-  "title": "Particle dissolve",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a particle dissolve transition. Tip: cut where the picture is still.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "particle-dissolve",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "particleSize": 4,
-   "scatter": 0.08,
-   "shimmer": 0.6,
-   "aberration": 0.5,
-   "direction": "reveal",
-   "stagger": 0.55,
-   "dustColor": 0.0,
-   "raggedness": 0.45,
-   "durationInFrames": 84,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.grid-pixelate-wipe",
-  "title": "Pixel grid wipe",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a pixel grid wipe transition. Tip: cut where the picture is still.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "grid-pixelate-wipe",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "cols": 12,
-   "rows": 8,
-   "order": "from-left",
-   "shape": "square",
-   "stagger": 0.82,
-   "reverse": false,
-   "durationInFrames": 26,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.frosted-glass-wipe",
-  "title": "Frosted glass wipe",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a frosted glass wipe transition. Tip: cut where the picture is still.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "frosted-glass-wipe",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "blur": 20.0,
-   "panelWidth": 0.14,
-   "direction": "from-left",
-   "frostColor": "rgba(255,255,255,0.12)",
-   "edgeColor": "rgba(255,255,255,0.22)",
-   "glow": 28,
-   "durationInFrames": 24,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.chromatic-aberration-wipe",
-  "title": "Colour split slide",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a colour split slide transition. Tip: cut where the picture is still.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "chromatic-aberration-wipe",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "intensity": 12.0,
-   "axis": "horizontal",
-   "slide": 1.0,
-   "fade": false,
-   "durationInFrames": 14,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.transition-blinds",
-  "title": "Blinds",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a blinds transition. Tip: cut where the picture is still.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "transition-blinds",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "orientation": "horizontal",
-   "slats": 12,
-   "stagger": 0.45,
-   "alternate": false,
-   "edgeSoftness": 0.06,
-   "reverse": false,
-   "durationInFrames": 24,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.transition-morph-shape",
-  "title": "Shape morph",
-  "category": "Transitions",
-  "description": "Plays the first clip, then the second, joined with a shape morph transition. Tip: cut where the picture is still.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": false,
-  "usesProjectSize": false,
-  "element": "transition-morph-shape",
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 190.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "from": "circle",
-   "to": "squircle",
-   "originX": 0.5,
-   "originY": 0.5,
-   "warp": 0.0,
-   "warpDetail": 0.008,
-   "seed": 7,
-   "durationInFrames": 24,
-   "keepWhole": false,
-   "easing": "linear"
-  }
- },
- {
-  "type": "transition.lightLeak",
-  "title": "Light leak cut",
-  "category": "Transitions",
-  "description": "Cuts between two clips under a warm light flare.",
-  "phase": "compile",
-  "inputs": [
-   {
-    "id": "a",
-    "type": "clip",
-    "label": "First",
-    "optional": false,
-    "many": false
-   },
-   {
-    "id": "b",
-    "type": "clip",
-    "label": "Then",
     "optional": false,
     "many": false
    }
@@ -11373,21 +5695,115 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "kind": "crt",
+   "clipDuration": 0,
+   "envelope": {}
+  }
+ },
+ {
+  "type": "fx.object-3d",
+  "title": "3D object",
+  "category": "Elements",
+  "description": "A logo, an image card, text or a model in 3D, turning under studio lights.",
+  "phase": "compile",
+  "inputs": [],
+  "family": null,
+  "outputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "kind": "logo",
+   "motion": "spin",
+   "camera": {
+    "keys": []
+   },
+   "speed": 1.0,
+   "lighting": "studio",
+   "background": "",
+   "zoom": 1.0,
+   "tilt": 52,
+   "growIn": true,
+   "endFacing": false,
+   "motionAmount": 1.0,
+   "reverse": false,
+   "lens": 30.0,
+   "clipDuration": 150,
+   "envelope": {}
+  }
+ },
+ {
+  "type": "timeline.transition",
+  "title": "Transition",
+  "category": "Transitions",
+  "description": "Brings a clip in with a transition wherever it is joined after another clip in a Sequence. Its Transition output sets the joins of a whole Sequence or Repeat.",
+  "phase": "compile",
+  "inputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": true,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": false,
+    "many": false
+   },
+   {
+    "id": "transition",
+    "type": "transition",
+    "label": "Transition",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
   "estimatedHeight": 190.0,
   "compiles": true,
   "hasCard": true,
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "durationInFrames": 30,
-   "seed": 3,
-   "colors": [
-    "#ff8a3d",
-    "#ffd166",
-    "#ff4f7b"
-   ],
-   "offset": 0,
-   "strength": 100.0
+   "kind": "fade",
+   "durationInFrames": 0,
+   "keepWhole": false,
+   "easing": "linear"
   }
  },
  {
@@ -11444,8 +5860,8 @@
   "type": "audio.sfx",
   "title": "Sound effect",
   "category": "Audio",
-  "description": "A sound at a set time.",
-  "phase": "compile",
+  "description": "A sound from a file or made from settings, at a set time, on a browser action, or building up to end exactly on an action, a marker or the end of a clip.",
+  "phase": "media",
   "inputs": [
    {
     "id": "media",
@@ -11467,7 +5883,7 @@
   ],
   "virtual": false,
   "action": false,
-  "executes": false,
+  "executes": true,
   "usesProjectSize": false,
   "element": null,
   "hidden": false,
@@ -11478,14 +5894,33 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
+   "source": "file",
    "src": "",
-   "atAction": "",
+   "sound": "whoosh",
+   "variation": "picked",
+   "customMs": 0,
+   "pitch": 0.0,
+   "brightness": 0.5,
+   "take": 1,
+   "pitchHz": 880.0,
+   "toneMs": 150,
+   "count": 3,
+   "spacingMs": 1000,
+   "timing": "at-time",
    "atMs": 0,
+   "atAction": "",
    "offsetMs": 0,
+   "marker": "",
+   "endHit": "off",
    "volume": 1.0,
+   "peakAt": 75,
+   "pan": "left-to-right",
+   "wave": "sine",
+   "finalLength": 3.0,
+   "finalPitch": 0.0,
    "keepMusic": false,
    "envelope": {},
-   "lengthMs": 0,
+   "playMs": 0,
    "beforeClipStart": "later"
   }
  },
@@ -11624,95 +6059,6 @@
   }
  },
  {
-  "type": "audio.tones",
-  "title": "Tones and countdown beeps",
-  "category": "Audio",
-  "description": "A tone, a beep or a countdown at a set time or on a browser action, for timers and go moments.",
-  "phase": "media",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "audio",
-    "type": "audio",
-    "label": "Sound",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": true,
-  "usesProjectSize": false,
-  "element": null,
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "kind": "beep",
-   "pitchHz": 880.0,
-   "lengthMs": 150,
-   "count": 3,
-   "spacingMs": 1000,
-   "atAction": "",
-   "atMs": 0,
-   "offsetMs": 0,
-   "volume": 0.8,
-   "keepMusic": false,
-   "wave": "sine",
-   "finalLength": 3.0,
-   "finalPitch": 0.0
-  }
- },
- {
-  "type": "audio.generate",
-  "title": "Generated sound",
-  "category": "Audio",
-  "description": "A whoosh, riser, pop, ding, tap, swell or click made from settings, at a set time or on a browser action. No file to find.",
-  "phase": "media",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "audio",
-    "type": "audio",
-    "label": "Sound",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": true,
-  "usesProjectSize": false,
-  "element": null,
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "preset": "whoosh",
-   "variation": "picked",
-   "lengthMs": 0,
-   "pitch": 0.0,
-   "brightness": 0.5,
-   "take": 1,
-   "atAction": "",
-   "atMs": 0,
-   "offsetMs": 0,
-   "volume": 0.8,
-   "keepMusic": false,
-   "pan": "left-to-right"
-  }
- },
- {
   "type": "audio.transitionSounds",
   "title": "Transition sounds",
   "category": "Audio",
@@ -11768,68 +6114,25 @@
   }
  },
  {
-  "type": "audio.riser",
-  "title": "Riser to a mark",
-  "category": "Audio",
-  "description": "A build-up that ends exactly on an action, a marker or the end of a clip, for reveals and launches.",
-  "phase": "media",
-  "inputs": [],
-  "family": null,
-  "outputs": [
-   {
-    "id": "audio",
-    "type": "audio",
-    "label": "Sound",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": true,
-  "usesProjectSize": false,
-  "element": null,
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "endsOn": "action",
-   "atAction": "",
-   "marker": "",
-   "lengthMs": 3000,
-   "sound": "riser",
-   "variation": "picked",
-   "pitch": 0.0,
-   "brightness": 0.5,
-   "take": 1,
-   "endHit": "off",
-   "volume": 0.8,
-   "peakAt": 75,
-   "keepMusic": false
-  }
- },
- {
   "type": "timeline.sequence",
   "title": "Sequence",
   "category": "Timeline",
-  "description": "Plays clips one after another, with a transition between each.",
+  "description": "Plays clips one after another. Each join uses the transition its clip comes in with, else the one on the Transition input, else a plain cut.",
   "phase": "compile",
-  "inputs": [],
+  "inputs": [
+   {
+    "id": "transition",
+    "type": "transition",
+    "label": "Transition",
+    "optional": true,
+    "many": false
+   }
+  ],
   "family": {
    "prefix": "in",
    "type": "clip",
    "required": 0,
    "shown": 2,
-   "refs": [
-    [
-     "cuts",
-     "before"
-    ]
-   ],
    "labels": [
     "Clip 1",
     "Clip 2",
@@ -11852,18 +6155,12 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
-  "estimatedHeight": 190.0,
+  "estimatedHeight": 212.0,
   "compiles": true,
   "hasCard": true,
   "mutates": null,
   "hostDefaults": null,
-  "defaults": {
-   "transition": "fade",
-   "transitionDuration": 15,
-   "keepWhole": false,
-   "easing": "linear",
-   "cuts": []
-  }
+  "defaults": {}
  },
  {
   "type": "timeline.stack",
@@ -11877,7 +6174,6 @@
    "type": "clip",
    "required": 0,
    "shown": 2,
-   "refs": [],
    "labels": [
     "Layer 1 (back)",
     "Layer 2",
@@ -11957,7 +6253,7 @@
   "type": "timeline.loop",
   "title": "Repeat",
   "category": "Timeline",
-  "description": "Plays a clip several times.",
+  "description": "Plays a clip several times, with the transition on its Transition input at each seam.",
   "phase": "compile",
   "inputs": [
    {
@@ -11965,6 +6261,13 @@
     "type": "clip",
     "label": "Clip",
     "optional": false,
+    "many": false
+   },
+   {
+    "id": "transition",
+    "type": "transition",
+    "label": "Transition",
+    "optional": true,
     "many": false
    }
   ],
@@ -11985,7 +6288,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
-  "estimatedHeight": 168.0,
+  "estimatedHeight": 190.0,
   "compiles": true,
   "hasCard": true,
   "mutates": null,
@@ -12190,13 +6493,6 @@
     "label": "File",
     "optional": false,
     "many": false
-   },
-   {
-    "id": "clip",
-    "type": "clip",
-    "label": "Clip",
-    "optional": false,
-    "many": false
    }
   ],
   "virtual": false,
@@ -12206,24 +6502,20 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
-  "estimatedHeight": 190.0,
+  "estimatedHeight": 168.0,
   "compiles": true,
   "hasCard": true,
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "path": "",
-   "fit": "contain",
-   "stillMs": 3000,
-   "envelope": {},
-   "background": ""
+   "path": ""
   }
  },
  {
   "type": "media.toClip",
   "title": "Use as clip",
   "category": "Media",
-  "description": "Turns a file into a clip you can place in the video.",
+  "description": "Turns a file into a clip you can place in the video: an image, a video or an animation.",
   "phase": "compile",
   "inputs": [
    {
@@ -12258,10 +6550,19 @@
   "hostDefaults": null,
   "defaults": {
    "fit": "contain",
+   "background": "",
+   "lengthMs": 3000,
+   "kenBurns": false,
+   "kenBurnsZoom": 1.06,
+   "loop": false,
+   "speed": 1.0,
+   "backwards": false,
+   "trimMs": 0,
    "muted": false,
-   "stillMs": 3000,
-   "envelope": {},
-   "background": ""
+   "volume": 1.0,
+   "dim": 0.0,
+   "dimColor": "#000000",
+   "envelope": {}
   }
  },
  {
@@ -12318,7 +6619,6 @@
    "type": "media",
    "required": 2,
    "shown": 2,
-   "refs": [],
    "labels": [
     "File 1",
     "File 2",
@@ -12520,6 +6820,7 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
+   "keepFormat": false,
    "codec": "h264",
    "crf": 18,
    "proresProfile": "hq",
@@ -12570,12 +6871,7 @@
   "hasCard": true,
   "mutates": null,
   "hostDefaults": null,
-  "defaults": {
-   "codec": "h264",
-   "crf": 18,
-   "proresProfile": "hq",
-   "soundQuality": "high"
-  }
+  "defaults": {}
  },
  {
   "type": "media.gif",
@@ -12705,14 +7001,16 @@
   "defaults": {
    "integrated": -16.0,
    "truePeak": -1.5,
-   "lra": 11.0
+   "lra": 11.0,
+   "liftQuiet": false,
+   "mostLift": 16.0
   }
  },
  {
-  "type": "media.repair",
-  "title": "Fix clicks and clipping",
+  "type": "media.fixClicks",
+  "title": "Fix clicks",
   "category": "Media",
-  "description": "Removes clicks and pops and rebuilds peaks that were cut off when recording too loud. Makes a new file.",
+  "description": "Removes clicks and pops from a recording. Makes a new file.",
   "phase": "media",
   "inputs": [
    {
@@ -12746,8 +7044,47 @@
   "mutates": null,
   "hostDefaults": null,
   "defaults": {
-   "clicks": true,
-   "clipping": true,
+   "strength": 0.5
+  }
+ },
+ {
+  "type": "media.fixClipping",
+  "title": "Fix clipping",
+  "category": "Media",
+  "description": "Rebuilds peaks that were cut off when the sound was recorded too loud. Makes a new file.",
+  "phase": "media",
+  "inputs": [
+   {
+    "id": "media",
+    "type": "media",
+    "label": "File",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "media",
+    "type": "media",
+    "label": "File",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
    "strength": 0.5
   }
  },
@@ -12845,10 +7182,10 @@
   }
  },
  {
-  "type": "media.cleanSpeech",
-  "title": "Clean speech",
+  "type": "media.removeNoise",
+  "title": "Remove noise",
   "category": "Media",
-  "description": "Cleans a voice recording in one step: background noise and rumble out, harsh “s” sounds softened, the level evened. Makes a new file.",
+  "description": "Takes background noise and low rumble out of a voice recording. Makes a new file.",
   "phase": "media",
   "inputs": [
    {
@@ -12883,11 +7220,49 @@
   "hostDefaults": null,
   "defaults": {
    "noise": 0.8,
-   "softenS": 0.5,
-   "evenLevel": true,
    "method": "learned",
-   "rumbleHz": 80,
-   "evenLift": 16.0
+   "rumbleHz": 80
+  }
+ },
+ {
+  "type": "media.softenS",
+  "title": "Soften “s” sounds",
+  "category": "Media",
+  "description": "Softens harsh “s” sounds in a voice recording. Makes a new file.",
+  "phase": "media",
+  "inputs": [
+   {
+    "id": "media",
+    "type": "media",
+    "label": "File",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "media",
+    "type": "media",
+    "label": "File",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": true,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "strength": 0.5
   }
  },
  {
@@ -13119,45 +7494,6 @@
   }
  },
  {
-  "type": "media.faststart",
-  "title": "Web-ready",
-  "category": "Media",
-  "description": "Prepares a video to start playing instantly on the web. Makes a new file.",
-  "phase": "media",
-  "inputs": [
-   {
-    "id": "media",
-    "type": "media",
-    "label": "File",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "media",
-    "type": "media",
-    "label": "File",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": true,
-  "usesProjectSize": false,
-  "element": null,
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {}
- },
- {
   "type": "image.resize",
   "title": "Resize image",
   "category": "Image",
@@ -13303,96 +7639,6 @@
    "angle": 0.0,
    "cropCorners": false,
    "background": "#00000000"
-  }
- },
- {
-  "type": "image.adjust",
-  "title": "Adjust image",
-  "category": "Image",
-  "description": "Changes an image's brightness, contrast, colour and hue. Makes a new file.",
-  "phase": "media",
-  "inputs": [
-   {
-    "id": "image",
-    "type": "media",
-    "label": "Image",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "image",
-    "type": "image",
-    "label": "Image",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": true,
-  "usesProjectSize": false,
-  "element": null,
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "brightness": 0.0,
-   "contrast": 0.0,
-   "saturation": 0.0,
-   "hue": 0.0,
-   "grayscale": false,
-   "invert": false
-  }
- },
- {
-  "type": "image.blur",
-  "title": "Blur and sharpen",
-  "category": "Image",
-  "description": "Softens an image or makes its edges crisper. Makes a new file.",
-  "phase": "media",
-  "inputs": [
-   {
-    "id": "image",
-    "type": "media",
-    "label": "Image",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "image",
-    "type": "image",
-    "label": "Image",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": true,
-  "usesProjectSize": false,
-  "element": null,
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "blur": 0.0,
-   "sharpen": 1.0,
-   "threshold": 4,
-   "sharpenAmount": 100
   }
  },
  {
@@ -13730,100 +7976,6 @@
   }
  },
  {
-  "type": "image.tilt",
-  "title": "Tilt",
-  "category": "Image",
-  "description": "Shows an image on a turned and tilted plane, for a quick mock-up. Makes a new file.",
-  "phase": "media",
-  "inputs": [
-   {
-    "id": "image",
-    "type": "media",
-    "label": "Image",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "image",
-    "type": "image",
-    "label": "Image",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": true,
-  "usesProjectSize": false,
-  "element": null,
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "turn": 18.0,
-   "tilt": 8.0,
-   "lean": 0.0,
-   "background": "#00000000",
-   "shadow": true,
-   "perspective": 2.0,
-   "shadowOpacity": 0.35,
-   "shadowSoftness": 2.0,
-   "shadowDrop": 2.0,
-   "shadowColor": "#000000"
-  }
- },
- {
-  "type": "image.levels",
-  "title": "Auto levels",
-  "category": "Image",
-  "description": "Stretches a dull or washed-out image's levels from black to white. Makes a new file.",
-  "phase": "media",
-  "inputs": [
-   {
-    "id": "image",
-    "type": "media",
-    "label": "Image",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "family": null,
-  "outputs": [
-   {
-    "id": "image",
-    "type": "image",
-    "label": "Image",
-    "optional": false,
-    "many": false
-   }
-  ],
-  "virtual": false,
-  "action": false,
-  "executes": true,
-  "usesProjectSize": false,
-  "element": null,
-  "hidden": false,
-  "cardHeight": null,
-  "estimatedHeight": 168.0,
-  "compiles": true,
-  "hasCard": true,
-  "mutates": null,
-  "hostDefaults": null,
-  "defaults": {
-   "method": "stretch",
-   "strength": 1.0,
-   "clip": 0.5,
-   "perChannel": false
-  }
- },
- {
   "type": "image.grid",
   "title": "Grid",
   "category": "Image",
@@ -13835,7 +7987,6 @@
    "type": "media",
    "required": 2,
    "shown": 2,
-   "refs": [],
    "labels": [
     "Image 1",
     "Image 2",
@@ -13876,10 +8027,10 @@
  },
  {
   "type": "image.frame",
-  "title": "Frame screenshot",
+  "title": "Frame image",
   "category": "Image",
-  "description": "Gives a screenshot rounded corners and a soft shadow on a padded background, ready for a post. Makes a new file.",
-  "phase": "media",
+  "description": "Frames an image for a post: plain with rounded corners and a soft shadow, in a window with its title bar, or on a laptop or phone, flat or tilted, on a padded background.",
+  "phase": "render",
   "inputs": [
    {
     "id": "image",
@@ -13910,20 +8061,39 @@
   "compiles": true,
   "hasCard": true,
   "mutates": null,
-  "hostDefaults": null,
+  "hostDefaults": {
+   "linux": {
+    "windowStyle": "linux"
+   },
+   "darwin": {
+    "windowStyle": "macos"
+   },
+   "win32": {
+    "windowStyle": "windows"
+   }
+  },
   "defaults": {
-   "kind": "image",
-   "name": "glaze",
+   "kind": "plain",
+   "device": "laptop",
+   "windowStyle": "macos",
+   "frameTheme": "light",
+   "angle": "flat",
+   "turn": 18.0,
+   "tilt": 8.0,
+   "lean": 0.0,
+   "perspective": 2.0,
+   "background": "image",
+   "backdrop": "glaze",
    "color": "#0b0b10",
    "gradient": "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)",
    "asset": "",
    "padding": 8.0,
+   "shape": "keep",
+   "align": "center",
    "radius": 16.0,
    "shadowDrop": 16.0,
    "shadowSoftness": 40.0,
    "shadowOpacity": 0.35,
-   "shape": "keep",
-   "align": "center",
    "shadowColor": "#000000"
   }
  },

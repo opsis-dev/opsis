@@ -107,10 +107,9 @@ fn marks_transitions_between_sequenced_clips() {
     let wf = film(|g| {
         g.node("a", TITLE, json!({ "clipDuration": 60 }));
         g.node("b", TITLE, json!({ "clipDuration": 60 }));
-        g.node(
+        g.sequence(
             "seq",
-            "timeline.sequence",
-            json!({ "transition": "fade", "transitionDuration": 15 }),
+            Some(json!({ "kind": "fade", "durationInFrames": 15 })),
         );
         g.link_ports("a", "seq", "clip", "in1")
             .link_ports("b", "seq", "clip", "in2");

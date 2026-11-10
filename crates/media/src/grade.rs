@@ -208,6 +208,11 @@ fn colour_filters(p: &Colour) -> Vec<String> {
                 when(p.curve != ToneCurve::None, serde_name(&p.curve)),
             )],
         ),
+        if p.invert {
+            vec!["negate".to_owned()]
+        } else {
+            Vec::new()
+        },
     ]
     .concat()
 }

@@ -1,0 +1,258 @@
+{
+  "version": 1,
+  "id": "example_data_story",
+  "name": "Data story",
+  "settings": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "theme": "dark",
+    "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+    }
+  },
+  "variables": {},
+  "nodes": [
+    {
+      "id": "hook",
+      "type": "fx.title",
+      "position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "params": {
+        "title": "Quarterly reach by channel",
+        "subtitle": "Short-form climbed while long-form held attention",
+        "entrance": "soft-blur"
+      }
+    },
+    {
+      "id": "chart",
+      "type": "fx.chart",
+      "position": {
+        "x": 0.0,
+        "y": 200.0
+      },
+      "params": {
+        "kind": "bar",
+        "bar": {
+          "barColor": "#2dd4bf",
+          "bars": [
+            {
+              "label": "Mobile",
+              "value": 124000
+            },
+            {
+              "label": "Web",
+              "value": 82000
+            },
+            {
+              "label": "Desktop",
+              "value": 64000
+            },
+            {
+              "label": "API",
+              "value": 48000
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "numbers",
+      "type": "fx.metric-ticker",
+      "position": {
+        "x": 0.0,
+        "y": 400.0
+      },
+      "params": {
+        "kind": "cards",
+        "cards": {
+          "title": "Signals that mattered",
+          "eyebrow": "Quarter recap"
+        }
+      }
+    },
+    {
+      "id": "steps",
+      "type": "fx.steps-timeline",
+      "position": {
+        "x": 0.0,
+        "y": 600.0
+      },
+      "params": {
+        "title": "How we read the quarter"
+      }
+    },
+    {
+      "id": "takeaway",
+      "type": "fx.title",
+      "position": {
+        "x": 0.0,
+        "y": 800.0
+      },
+      "params": {
+        "eyebrow": "Takeaway",
+        "title": "Short-form drove reach; long-form kept attention.",
+        "fontSize": 84,
+        "entrance": "fade-up"
+      }
+    },
+    {
+      "id": "close",
+      "type": "fx.end-card",
+      "position": {
+        "x": 0.0,
+        "y": 1000.0
+      },
+      "params": {
+        "title": "Turn your data into motion",
+        "subtitle": "",
+        "cta": "Get started",
+        "url": "",
+        "handles": []
+      }
+    },
+    {
+      "id": "transition",
+      "type": "timeline.transition",
+      "position": {
+        "x": 300.0,
+        "y": -200.0
+      },
+      "params": {
+        "kind": "fade",
+        "durationInFrames": 18
+      }
+    },
+    {
+      "id": "sequence",
+      "type": "timeline.sequence",
+      "position": {
+        "x": 600.0,
+        "y": 500.0
+      },
+      "params": {}
+    },
+    {
+      "id": "music",
+      "type": "audio.music",
+      "position": {
+        "x": 600.0,
+        "y": 760.0
+      },
+      "params": {
+        "src": "app:music/calm-ambient.m4a",
+        "volume": 0.4,
+        "loop": true
+      }
+    },
+    {
+      "id": "mix",
+      "type": "audio.mix",
+      "position": {
+        "x": 900.0,
+        "y": 500.0
+      },
+      "params": {}
+    },
+    {
+      "id": "render",
+      "type": "output.render",
+      "position": {
+        "x": 1200.0,
+        "y": 500.0
+      },
+      "params": {
+        "fileName": "{{Project name}}",
+        "codec": "h264",
+        "crf": 18,
+        "variants": [
+          "16:9",
+          "9:16"
+        ],
+        "reframe": "follow",
+        "scale": 1,
+        "chapters": true,
+        "chapterList": false,
+        "gl": "angle"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "hook.clip->sequence.in1",
+      "source": "hook",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in1"
+    },
+    {
+      "id": "chart.clip->sequence.in2",
+      "source": "chart",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in2"
+    },
+    {
+      "id": "numbers.clip->sequence.in3",
+      "source": "numbers",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in3"
+    },
+    {
+      "id": "steps.clip->sequence.in4",
+      "source": "steps",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in4"
+    },
+    {
+      "id": "takeaway.clip->sequence.in5",
+      "source": "takeaway",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in5"
+    },
+    {
+      "id": "close.clip->sequence.in6",
+      "source": "close",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in6"
+    },
+    {
+      "id": "transition.transition->sequence.transition",
+      "source": "transition",
+      "sourceHandle": "transition",
+      "target": "sequence",
+      "targetHandle": "transition"
+    },
+    {
+      "id": "sequence.clip->mix.clip",
+      "source": "sequence",
+      "sourceHandle": "clip",
+      "target": "mix",
+      "targetHandle": "clip"
+    },
+    {
+      "id": "music.audio->mix.sounds",
+      "source": "music",
+      "sourceHandle": "audio",
+      "target": "mix",
+      "targetHandle": "sounds"
+    },
+    {
+      "id": "mix.clip->render.clip",
+      "source": "mix",
+      "sourceHandle": "clip",
+      "target": "render",
+      "targetHandle": "clip"
+    }
+  ],
+  "markers": []
+}

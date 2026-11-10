@@ -335,8 +335,6 @@ async fn apply_grade_writes_one_pass_with_the_grade_graph_the_picture_format_and
         "0:a?",
         "-c:v",
         "libx264",
-        "-preset",
-        "medium",
         "-crf",
         "18",
         "-pix_fmt",
@@ -527,9 +525,9 @@ async fn media_has_sound_trusts_the_value_when_it_says() {
 }
 
 #[tokio::test]
-async fn fixes_clicks_and_clipping_in_one_pass_keeping_the_sound_format() {
+async fn fixes_clicks_and_clipping_each_in_one_pass_keeping_the_sound_format() {
     let (result, ran) = run(
-        sound_setup("media.repair", json!({ "strength": 1 })),
+        sound_setup("media.fixClicks", json!({ "strength": 1 })),
         sound_probe(),
         voice(),
     )
@@ -540,17 +538,24 @@ async fn fixes_clicks_and_clipping_in_one_pass_keeping_the_sound_format() {
             "-i",
             "/p/assets/voice.wav",
             "-af",
-            "adeclick=t=1.00,adeclip=t=5.00",
+            "adeclick=t=1.00",
             "-ar",
             "48000",
             "-c:a",
             "pcm_s16le",
-            "/p/.opsis/cache/h/repaired.wav"
+            "/p/.opsis/cache/h/declicked.wav"
         ]
     );
     assert_eq!(result.unwrap().artifacts[0].kind, ArtifactKind::Audio);
     let (_, ran) = run(
-        sound_setup("media.repair", json!({ "clipping": false })),
+        sound_setup("media.fixClipping", json!({ "strength": 1 })),
+        sound_probe(),
+        voice(),
+    )
+    .await;
+    assert_eq!(ran[0][3], "adeclip=t=5.00");
+    let (_, ran) = run(
+        sound_setup("media.fixClicks", json!({})),
         film_probe(Some("aac")),
         json!({ "media": film("video") }),
     )
@@ -558,16 +563,6 @@ async fn fixes_clicks_and_clipping_in_one_pass_keeping_the_sound_format() {
     let args = ran[0].join(" ");
     assert!(args.contains("-af adeclick=t=2.50 "), "{args}");
     assert!(args.contains("-c:v copy"), "the picture is copied: {args}");
-    let (result, _) = run(
-        sound_setup(
-            "media.repair",
-            json!({ "clicks": false, "clipping": false }),
-        ),
-        sound_probe(),
-        voice(),
-    )
-    .await;
-    assert_eq!(message(result), "Turn on clicks or clipping to fix.");
 }
 
 #[tokio::test]
@@ -724,8 +719,8 @@ async fn makes_a_ten_second_loop_of_room_tone_at_its_level() {
 #[tokio::test]
 async fn makes_a_countdown_of_beeps_then_a_long_one() {
     let (out, samples, _) = made_sound(
-        "audio.tones",
-        json!({ "kind": "countdown", "count": 2, "spacingMs": 500, "lengthMs": 100 }),
+        "audio.sfx",
+        json!({ "source": "made", "sound": "countdown", "count": 2, "spacingMs": 500, "toneMs": 100 }),
     )
     .await;
     assert_eq!(samples.len(), 2 * (48 * 1300));
@@ -733,16 +728,19 @@ async fn makes_a_countdown_of_beeps_then_a_long_one() {
         serde_json::to_value(&out.outputs["audio"]).unwrap()["durationMs"],
         1300
     );
-    let (_, single, _) =
-        made_sound("audio.tones", json!({ "kind": "tone", "lengthMs": 2000 })).await;
+    let (_, single, _) = made_sound(
+        "audio.sfx",
+        json!({ "source": "made", "sound": "tone", "toneMs": 2000 }),
+    )
+    .await;
     assert_eq!(single.len(), 2 * 96_000);
 }
 
 #[tokio::test]
-async fn cleans_speech_with_the_spectral_way_in_one_pass_between_two_listens() {
+async fn removes_noise_the_spectral_way_in_one_pass_between_two_listens() {
     let (result, ran) = run(
         sound_setup(
-            "media.cleanSpeech",
+            "media.removeNoise",
             json!({ "method": "spectral", "noise": 0.5 }),
         ),
         sound_probe(),
@@ -766,19 +764,19 @@ async fn cleans_speech_with_the_spectral_way_in_one_pass_between_two_listens() {
             "-i",
             "/p/assets/voice.wav",
             "-af",
-            "afftdn=nr=20:nf=-50,highpass=f=80,deesser=i=0.5,speechnorm=e=6.31:r=0.00001:l=1:t=0.01",
+            "afftdn=nr=20:nf=-50,highpass=f=80",
             "-ar",
             "48000",
             "-c:a",
             "pcm_s16le",
-            "/p/.opsis/cache/h/speech.wav"
+            "/p/.opsis/cache/h/denoised.wav"
         ]
     );
-    assert_eq!(ran[2][1], "/p/.opsis/cache/h/speech.wav");
+    assert_eq!(ran[2][1], "/p/.opsis/cache/h/denoised.wav");
     let (_, ran) = run(
         sound_setup(
-            "media.cleanSpeech",
-            json!({ "method": "spectral", "noise": 0, "softenS": 0, "evenLevel": false }),
+            "media.removeNoise",
+            json!({ "method": "spectral", "noise": 0 }),
         ),
         sound_probe(),
         voice(),
@@ -788,7 +786,7 @@ async fn cleans_speech_with_the_spectral_way_in_one_pass_between_two_listens() {
 }
 
 #[tokio::test]
-async fn cleans_speech_the_learned_way_and_puts_the_cleaned_voice_back_under_the_picture() {
+async fn removes_noise_the_learned_way_and_puts_the_cleaned_voice_back_under_the_picture() {
     let dir = tempfile::tempdir().unwrap();
     let cache = dir.path().join(".opsis/cache/h");
     std::fs::create_dir_all(&cache).unwrap();
@@ -806,7 +804,7 @@ async fn cleans_speech_the_learned_way_and_puts_the_cleaned_voice_back_under_the
     }
     writer.finalize().unwrap();
     let setup = Setup {
-        kind: "media.cleanSpeech",
+        kind: "media.removeNoise",
         params: json!({}),
         project_dir: dir.path(),
         names: &[],
@@ -849,7 +847,7 @@ async fn cleans_speech_the_learned_way_and_puts_the_cleaned_voice_back_under_the
             "-ac",
             "2",
             "-af",
-            "highpass=f=80,deesser=i=0.5,speechnorm=e=6.31:r=0.00001:l=1:t=0.01"
+            "highpass=f=80"
         ]
     );
     assert!(ran[2].windows(2).any(|w| w == ["-c:v", "copy"]));
@@ -1103,16 +1101,16 @@ async fn fits_a_song_to_the_films_length_by_stretching_or_looping_it() {
 }
 
 #[tokio::test]
-async fn generates_each_variation_at_its_own_length() {
-    let (out, samples, rate) = made_sound("audio.generate", json!({})).await;
+async fn makes_each_variation_at_its_own_length() {
+    let (out, samples, rate) = made_sound("audio.sfx", json!({ "source": "made" })).await;
     assert_eq!((rate, samples.len()), (48000, 2 * 38_400));
     assert_eq!(
         serde_json::to_value(&out.outputs["audio"]).unwrap()["durationMs"],
         800
     );
     let (_, longer, _) = made_sound(
-        "audio.generate",
-        json!({ "preset": "swell", "variation": "longer" }),
+        "audio.sfx",
+        json!({ "source": "made", "sound": "swell", "variation": "longer" }),
     )
     .await;
     assert_eq!(longer.len(), 2 * 288_000);
@@ -1127,12 +1125,17 @@ fn sequence_with_two_fades() -> Value {
             node("a", "fx.title", json!({ "clipDuration": 60 })),
             node("b", "fx.title", json!({ "clipDuration": 60 })),
             node("c", "fx.title", json!({ "clipDuration": 60 })),
-            node("seq", "timeline.sequence", json!({
-                "transition": "fade", "transitionDuration": 15,
-                "cuts": [{ "before": "in3", "transition": "fade", "transitionDuration": 30 }]
-            }))
+            node("short", "timeline.transition", json!({ "kind": "fade", "durationInFrames": 15 })),
+            node("long", "timeline.transition", json!({ "kind": "fade", "durationInFrames": 30 })),
+            node("seq", "timeline.sequence", json!({}))
         ],
-        "edges": [edge("a", "seq", "in1"), edge("b", "seq", "in2"), edge("c", "seq", "in3")]
+        "edges": [
+            edge("a", "seq", "in1"),
+            edge("b", "short", "clip"),
+            edge("short", "seq", "in2"),
+            edge("c", "long", "clip"),
+            edge("long", "seq", "in3")
+        ]
     }))
     .unwrap();
     let compiled = opsis_compile::compile::compile_workflow(&wf, None);
@@ -1172,14 +1175,26 @@ async fn makes_one_sound_for_each_transition_length() {
 }
 
 #[tokio::test]
-async fn makes_the_riser_at_its_length_and_the_end_hit_only_when_asked() {
-    let (out, samples, _) = made_sound("audio.riser", json!({ "lengthMs": 2000 })).await;
+async fn makes_the_riser_at_its_length_and_the_end_hit_only_when_it_ends_on_something() {
+    let riser =
+        json!({ "source": "made", "sound": "riser", "variation": "custom", "customMs": 2000 });
+    let (out, samples, _) = made_sound("audio.sfx", riser.clone()).await;
     assert_eq!((out.artifacts.len(), samples.len()), (1, 2 * 96_000));
-    let (out, _, _) = made_sound("audio.riser", json!({ "endHit": "ding" })).await;
+    let (out, _, _) = made_sound(
+        "audio.sfx",
+        json!({ "source": "made", "sound": "riser", "timing": "ends-on-action", "endHit": "ding" }),
+    )
+    .await;
     let files: Vec<&str> = out
         .artifacts
         .iter()
         .map(|a| a.path.rsplit('/').next().unwrap())
         .collect();
-    assert_eq!(files, ["riser.wav", "end-hit.wav"]);
+    assert_eq!(files, ["made.wav", "end-hit.wav"]);
+    let (out, _, _) = made_sound(
+        "audio.sfx",
+        json!({ "source": "made", "sound": "riser", "endHit": "ding" }),
+    )
+    .await;
+    assert_eq!(out.artifacts.len(), 1);
 }

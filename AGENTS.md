@@ -198,6 +198,7 @@ agent-docs/            the domain docs (§8)
   - Randomness uses `random(seed)`; async work holds the frame with `holdRender()` and calls the release it returns; colours between stops mix in OKLCH (`interpolateColors`, `lib/ui-kit/color.ts`); `app:` files reach the page through `assetUrl`.
   - The rest of the film page's contract is in [film.md](agent-docs/film.md).
 - **Nodes never generate film code.** A node has ports, settings and an optional pure `compile`; compile produces a `TimelineSpec` and the film page's one `DemoTimeline` draws it ([nodes.md](agent-docs/nodes.md)).
+- **A node does one thing on one kind of input, and variants of that thing are one node with a Kind**: every new or changed node follows the rules in [nodes.md](agent-docs/nodes.md), What a node is.
 - **Element metadata (`crates/compile/src/elements`) never names a component**; implementations are keyed separately (`ELEMENTS`, `packages/video/src/elements/index.ts`) ([elements.md](agent-docs/elements.md)).
 - **Every value a user would want to change is a setting** in the Inspector; only timing the Timeline owns, animation tuning, functions and React nodes stay in code ([inspector.md](agent-docs/inspector.md)).
 - **Never load fonts, images, scripts or sounds from a remote URL at render time.** Element defaults use neutral copy and `app:` placeholders (`public/placeholders`, `public/backdrops`).
@@ -225,32 +226,32 @@ agent-docs/            the domain docs (§8)
 
 ## 8. Domain docs
 
-| Doc                                     | Domain                                                                                                                                        |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| [toolchain.md](agent-docs/toolchain.md) | moving the Rust nightly, Zig and the Ghostty build, Qt and KDDockWidgets, the C++ checks, the Clippy workspace allows, the Opsis oxlint rules |
-| [nodes.md](agent-docs/nodes.md)         | node definitions, ports and resources, conversions, file needs, claims, executors, growing inputs, cards, looks and glyphs                    |
-| [inspector.md](agent-docs/inspector.md) | `#[settings]` and `#[choice]`, schema keywords, widgets, `InspectorContext`, form behaviour, what is a setting                                |
-| [elements.md](agent-docs/elements.md)   | element files in Rust and TS, themes, props, element sounds, lengths and the 30 fps clock, design size, stills, 3D elements                   |
-| [film.md](agent-docs/film.md)           | the film page and `window.opsis`, the frame driver, paint traps, canvas transitions, transitions, other shapes, window frames                 |
-| [capture.md](agent-docs/capture.md)     | browser sessions, takes, recording style, click and drag, the screencast, smooth takes, streamed views and sign-in, traces, screenshots       |
-| [terminal.md](agent-docs/terminal.md)   | `opsis-vt`, terminal takes, tapes and casts, the live tape window, previews, live pictures, terminal grading, `TerminalView`                  |
-| [footage.md](agent-docs/footage.md)     | footage uses, the colour grade list, Apply grade, Grade footage, Redact take, the Mac cursor                                                  |
-| [assets.md](agent-docs/assets.md)       | asset refs and `hosted`, the file servers, prepared files, model import, followed project files                                               |
-| [audio.md](agent-docs/audio.md)         | built-in sounds and music, the Mixer, stems and ducking, sound nodes and their filter traps, action and transition sounds                     |
-| [images.md](agent-docs/images.md)       | the image nodes: loading, depth, areas, size planning, text drawing                                                                           |
-| [timeline.md](agent-docs/timeline.md)   | the flattener, handles and timeline edits, keyframes, the Timeline clock, chapters in exports                                                 |
-| [editor.md](agent-docs/editor.md)       | windows, docks and panels, the title bar and menus, canvas, look and motion, starting and closing, Settings, view state                       |
-| [ui.md](agent-docs/ui.md)               | the native editor's bridge: Rust and C++ sides, views, events, frames, gestures, C++ rules                                                    |
-| [document.md](agent-docs/document.md)   | the document in Rust, edits and gestures, compiles, shared state, live frames, autosave and disk changes                                      |
-| [app-state.md](agent-docs/app-state.md) | the app database, settings, the keyring, projects folder                                                                                      |
-| [api.md](agent-docs/api.md)             | the Local API: socket, routes, `ApiHost`, OpenAPI                                                                                             |
-| [runs.md](agent-docs/runs.md)           | run state, results following keys, media file checks, cache keys and version constants                                                        |
-| [engine.md](agent-docs/engine.md)       | the recording browser, the bundled FFmpeg, probing, child temp folders and processes                                                          |
-| [fonts.md](agent-docs/fonts.md)         | bundled and terminal fonts, the library, project fonts and roles, `family_for`                                                                |
-| [packaging.md](agent-docs/packaging.md) | `bun run make`, staging, the static Qt, `opsis-packager` and the installers, update signing and the feed, icons, licences and notices         |
-| [updates.md](agent-docs/updates.md)     | the updater: installer marker, feed, signed downloads, install at exit, the About page                                                        |
-| [e2e.md](agent-docs/e2e.md)             | the e2e scenarios, their virtual display and headless Wayland, data folders, the offscreen view tests                                         |
-| [profiling.md](agent-docs/profiling.md) | the profiling build, `bun run profile` in Docker, per-node CPU and memory, the size tools                                                     |
+| Doc                                     | Domain                                                                                                                                                      |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [toolchain.md](agent-docs/toolchain.md) | moving the Rust nightly, Zig and the Ghostty build, Qt and KDDockWidgets, the C++ checks, the Clippy workspace allows, the Opsis oxlint rules               |
+| [nodes.md](agent-docs/nodes.md)         | what a node may be, node definitions, kind groups, ports and resources, conversions, file needs, claims, executors, growing inputs, cards, looks and glyphs |
+| [inspector.md](agent-docs/inspector.md) | `#[settings]` and `#[choice]`, schema keywords, widgets, `InspectorContext`, form behaviour, what is a setting                                              |
+| [elements.md](agent-docs/elements.md)   | element files in Rust and TS, which node draws an element, themes, props, lengths and the 30 fps clock, design size, stills, 3D elements                    |
+| [film.md](agent-docs/film.md)           | the film page and `window.opsis`, the frame driver, paint traps, canvas transitions, transitions, other shapes, window frames                               |
+| [capture.md](agent-docs/capture.md)     | browser sessions, takes, recording style, click and drag, the screencast, smooth takes, streamed views and sign-in, traces, screenshots                     |
+| [terminal.md](agent-docs/terminal.md)   | `opsis-vt`, terminal takes, tapes and casts, the live tape window, previews, live pictures, terminal grading, `TerminalView`                                |
+| [footage.md](agent-docs/footage.md)     | footage uses, the colour grade list, Apply grade, Grade footage, Redact take, the Mac cursor                                                                |
+| [assets.md](agent-docs/assets.md)       | asset refs and `hosted`, the file servers, prepared files, model import, followed project files                                                             |
+| [audio.md](agent-docs/audio.md)         | built-in sounds and music, the Mixer, stems and ducking, sound nodes and their filter traps, action and transition sounds                                   |
+| [images.md](agent-docs/images.md)       | the image nodes: loading, depth, areas, size planning, text drawing                                                                                         |
+| [timeline.md](agent-docs/timeline.md)   | the flattener, handles and timeline edits, keyframes, the Timeline clock, chapters in exports                                                               |
+| [editor.md](agent-docs/editor.md)       | windows, docks and panels, the title bar and menus, canvas, look and motion, starting and closing, Settings, view state                                     |
+| [ui.md](agent-docs/ui.md)               | the native editor's bridge: Rust and C++ sides, views, events, frames, gestures, C++ rules                                                                  |
+| [document.md](agent-docs/document.md)   | the document in Rust, edits and gestures, compiles, shared state, live frames, autosave and disk changes                                                    |
+| [app-state.md](agent-docs/app-state.md) | the app database, settings, the keyring, projects folder                                                                                                    |
+| [api.md](agent-docs/api.md)             | the Local API: socket, routes, `ApiHost`, OpenAPI                                                                                                           |
+| [runs.md](agent-docs/runs.md)           | run state, results following keys, media file checks, cache keys and version constants                                                                      |
+| [engine.md](agent-docs/engine.md)       | the recording browser, the bundled FFmpeg, probing, child temp folders and processes                                                                        |
+| [fonts.md](agent-docs/fonts.md)         | bundled and terminal fonts, the library, project fonts and roles, `family_for`                                                                              |
+| [packaging.md](agent-docs/packaging.md) | `bun run make`, staging, the static Qt, `opsis-packager` and the installers, update signing and the feed, icons, licences and notices                       |
+| [updates.md](agent-docs/updates.md)     | the updater: installer marker, feed, signed downloads, install at exit, the About page                                                                      |
+| [e2e.md](agent-docs/e2e.md)             | the e2e scenarios, their virtual display and headless Wayland, data folders, the offscreen view tests                                                       |
+| [profiling.md](agent-docs/profiling.md) | the profiling build, `bun run profile` in Docker, per-node CPU and memory, the size tools                                                                   |
 
 ### Writing AGENTS.md and agent-docs
 

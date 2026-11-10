@@ -15,10 +15,9 @@ use serde_json::Value;
 
 use crate::asset_ref::is_project_ref;
 use crate::audio::{audio_kind, channel_of, sound_length};
-use crate::clip::{IMAGE, STILL, item_has_sound, video_of, video_props};
+use crate::clip::{IMAGE, item_has_sound, video_of, video_props};
 use crate::elements::media::image::Image;
 use crate::limits::MAX_REPEATS;
-use crate::nodes::capture::StillProps;
 use crate::params::typed_values;
 use crate::recording::recording_speed;
 use crate::remap::{Remap, RemapSide, inverse_remap, remap_frame};
@@ -353,9 +352,6 @@ fn thumbnail_of(item: &TimelineItem) -> Option<BarThumbnail> {
             }
             let src = match component.as_str() {
                 IMAGE => typed_values::<Image>(props).ok().map(|image| image.src),
-                STILL => typed_values::<StillProps>(props)
-                    .ok()
-                    .map(|still| still.src),
                 _ => None,
             };
             src.filter(|src| is_project_ref(src))

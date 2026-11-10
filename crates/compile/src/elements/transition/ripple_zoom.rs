@@ -49,7 +49,7 @@ pub fn definition() -> ElementMeta {
                 "Ripple zoom",
                 "A grain-gradient ripple transition that flies the camera through the center of the rings while the next scene approaches from the depth.",
                 ElementCategory::Transition,
-                116,
+                88,
             )
                 .look(NodeLook::of("tabler:ripple").moves(NodeMotion::Ripple)),
         )

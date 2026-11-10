@@ -1,27 +1,20 @@
 use opsis_macros::{choice, settings};
-use opsis_types::actions::Bounds;
 use opsis_types::cards::{Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::numbers;
-use opsis_types::recording::WindowStyle;
-use opsis_types::timeline::{EditHandles, ParamRef, ParamUnit, VisualEnvelope};
 use opsis_types::values::{
     BrowserAction, BrowserSource, CompileValue, ImageValue, RecordingValue, TakeSource,
 };
 use opsis_types::workflow::{DEFAULT_TAKE_MS, DEFAULT_VIEWPORT, PortType};
-use serde::{Deserialize, Serialize};
 
 use crate::card_rows::element_row;
-use crate::clip::{ItemExtra, STILL, item_clip, placeholder_clip};
 use crate::errors::SettingsError;
 use crate::node::{
-    CLIP_PORT, CardCtx, Category, Ctx, NodeDef, Phase, RECORDING_PORT, RowExt, SESSION_PORT,
-    outputs, port, row,
+    CardCtx, Category, Ctx, NodeDef, Phase, RECORDING_PORT, RowExt, SESSION_PORT, outputs, port,
+    row,
 };
-use crate::nodes::camera::FrameChoice;
-use crate::params::{Params, to_values};
+use crate::params::Params;
 use crate::text::{format_duration, plural};
-use crate::time::ms_to_frames;
 
 pub const STILL_TYPE: &str = "capture.still";
 
@@ -161,26 +154,7 @@ pub enum Region {
     Element,
 }
 
-#[choice(export)]
-pub enum StillLook {
-    #[label("Window")]
-    Window,
-    #[label("Cut-out")]
-    Cutout,
-    #[label("Full bleed")]
-    Bleed,
-}
-
-#[choice(export)]
-pub enum StillAlign {
-    #[default]
-    #[label("The top")]
-    Top,
-    #[label("The middle")]
-    Middle,
-}
-
-#[settings(check)]
+#[settings(check, eq)]
 pub struct Still {
     #[setting(
         "Capture",
@@ -201,93 +175,6 @@ pub struct Still {
         advanced
     )]
     pub padding: u32,
-    #[setting(
-        "Style",
-        default = StillLook::Window
-    )]
-    pub look: StillLook,
-    #[setting("Backdrop", default = "glaze", widget = "backdrop")]
-    pub backdrop: String,
-    #[setting(
-        "Length",
-        default = 3000,
-        range(min = 100, max = 600_000),
-        step = 50,
-        unit = "ms"
-    )]
-    pub duration_ms: u32,
-    #[setting(
-        "Keyframes",
-        help = "Change opacity, position and size over time. Edit them here or on the timeline.",
-        widget = "envelope",
-        advanced
-    )]
-    pub envelope: VisualEnvelope,
-    #[setting(
-        "Window size",
-        default = 86,
-        range(min = 30, max = 100),
-        unit = "%",
-        help = "How much of the frame the window fills.",
-        show_if = { "look": ["window"] },
-        advanced
-    )]
-    pub window_fit: u32,
-    #[setting(
-        "Cut-out size",
-        default = 80,
-        range(min = 30, max = 100),
-        unit = "%",
-        help = "How much of the frame the element fills.",
-        show_if = { "look": ["cutout"] },
-        advanced
-    )]
-    pub cutout_fit: u32,
-    #[setting("Shadow", default = 45, range(min = 0, max = 100), unit = "%", show_if = { "look": ["cutout"] }, advanced)]
-    pub shadow: u32,
-    #[setting(
-        "Title bar",
-        show_if = { "look": ["window"] },
-        advanced
-    )]
-    pub frame: FrameChoice,
-    #[setting(
-        "Push in",
-        default = 2.0,
-        range(min = 0, max = 30),
-        step = 0.5,
-        unit = "%",
-        help = "How much closer the picture slowly moves.",
-        advanced
-    )]
-    pub push_in: f64,
-    #[setting(
-        "Push-in time",
-        default = 4000,
-        range(min = 100, max = 600_000),
-        step = 50,
-        unit = "ms",
-        advanced
-    )]
-    pub push_in_ms: u32,
-    #[setting(
-        "Keep in view",
-        help = "Which part of a tall picture shows.",
-        show_if = { "look": ["bleed"] },
-        advanced
-    )]
-    pub align: StillAlign,
-}
-
-impl Still {
-    pub fn fit(&self) -> f64 {
-        let percent = if self.look == StillLook::Cutout {
-            self.cutout_fit
-        } else {
-            self.window_fit
-        };
-        f64::from(percent) / 100.0
-    }
 }
 
 impl Params for Still {
@@ -309,45 +196,6 @@ fn image_of(result: Option<&opsis_types::values::NodeResult>) -> Option<&ImageVa
     result
         .and_then(|r| r.output("image"))
         .and_then(CompileValue::as_image)
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
-pub struct StillShot {
-    pub width: u32,
-    pub height: u32,
-    pub scale: f64,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub body: Option<Bounds>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
-#[serde(rename_all = "camelCase")]
-pub struct StillProps {
-    pub src: String,
-    pub look: StillLook,
-    pub backdrop: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub shot: Option<StillShot>,
-    pub fit: f64,
-    pub shadow: f64,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub frame: Option<WindowStyle>,
-    pub push_in: f64,
-    pub push_in_frames: u32,
-    pub align: StillAlign,
-}
-
-fn shot_of(image: &ImageValue) -> Option<StillShot> {
-    let (width, height) = (
-        image.width.filter(|w| *w != 0)?,
-        image.height.filter(|h| *h != 0)?,
-    );
-    Some(StillShot {
-        width,
-        height,
-        scale: image.scale.unwrap_or(1.0),
-        body: image.body,
-    })
 }
 
 fn session_port() -> crate::node::PortSpec {
@@ -424,32 +272,26 @@ fn still() -> NodeDef {
         Phase::Capture,
     )
     .describe(
-        "Plays the connected actions, then takes a sharp screenshot of the page or one element.",
+        "Plays the connected actions, then takes a sharp screenshot of the page or one element. Frame image frames it; Use as clip shows it in the video.",
     )
     .executes()
     .uses_project_size()
     .inputs(vec![(SESSION_PORT, session_port())])
-    .outputs(vec![
-        ("image", port(PortType::Image, "Image")),
-        (CLIP_PORT, port(PortType::Clip, "Clip")),
-    ])
+    .outputs(vec![("image", port(PortType::Image, "Image"))])
     .card(|ctx: &CardCtx<'_, Still>| {
         let p = &ctx.params;
-        let shot = image_of(ctx.result).and_then(shot_of);
+        let image = image_of(ctx.result);
         vec![
             Some(match p.region {
                 Region::Element => element_row(Icon::Scan, &p.target, p.target_role.as_deref()),
                 region => row(Icon::Scan, region.label()),
             }),
-            shot.map(|s| row(Icon::Image, format!("{} × {}", s.width, s.height))),
-            Some(row(
-                Icon::Clock,
-                format_duration(f64::from(ctx.params.duration_ms)),
-            )),
+            image
+                .and_then(|i| Some((i.width.filter(|w| *w != 0)?, i.height.filter(|h| *h != 0)?)))
+                .map(|(w, h)| row(Icon::Image, format!("{w} × {h}"))),
         ]
     })
     .compiles(|ctx: &Ctx<'_, Still>| {
-        let p = &ctx.params;
         let image = image_of(ctx.result).cloned().unwrap_or(ImageValue {
             src: None,
             width: None,
@@ -457,43 +299,7 @@ fn still() -> NodeDef {
             scale: None,
             body: None,
         });
-        let frames = ms_to_frames(f64::from(p.duration_ms), ctx.settings.fps);
-        let extra = ItemExtra {
-            handles: Some(EditHandles {
-                trim_end: Some(ParamRef::new(ctx.node_id, "durationMs", ParamUnit::Ms)),
-                ..EditHandles::default()
-            }),
-            envelope: Some(p.envelope.clone()),
-            ..ItemExtra::default()
-        };
-        let clip = match &image.src {
-            Some(src) => {
-                let props = to_values(&StillProps {
-                    src: src.clone(),
-                    look: p.look,
-                    backdrop: p.backdrop.clone(),
-                    shot: shot_of(&image),
-                    fit: p.fit(),
-                    shadow: f64::from(p.shadow) / 100.0,
-                    frame: p.frame.style(),
-                    push_in: 1.0 + p.push_in / 100.0,
-                    push_in_frames: ms_to_frames(f64::from(p.push_in_ms), ctx.settings.fps),
-                    align: p.align,
-                });
-                item_clip(ctx.node_id, STILL, props, frames, extra)
-            }
-            None => placeholder_clip(
-                ctx.node_id,
-                "Screenshot not taken yet",
-                "Run to take it",
-                frames,
-                extra,
-            ),
-        };
-        outputs([
-            ("image", CompileValue::Image(image)),
-            (CLIP_PORT, CompileValue::Clip(clip)),
-        ])
+        outputs([("image", CompileValue::Image(image))])
     })
 }
 

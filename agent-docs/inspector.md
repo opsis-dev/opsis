@@ -11,6 +11,7 @@ How node and element settings are declared in Rust, how their JSON Schema carrie
 | Widget names                        | `elements/introspect.rs` → `FieldWidget` (exported to `packages/video/src/generated/spec.ts`)                                                                                                                                                               |
 | Form context for the inspected node | `inspector.rs` → `InspectorContext`                                                                                                                                                                                                                         |
 | `x-show-if`                         | the form: `crates/ui/src/inspector.rs` → `shown`, `ANY_VALUE`; card rows: `nodes/elements.rs` → `shown`; the value check `crates/compile/tests/unit/nodes_c.rs`                                                                                             |
+| Kind objects (`x-kind`)             | `crates/compile/src/nodes/groups.rs` → `kind_properties`, `kind_object_shown`; the form `crates/ui/src/inspector.rs` → `form`; paths `crates/compile/src/edits/timeline.rs` → `param_value`, `put_param`                                                    |
 | Fields from the schema              | `crates/ui/src/inspector.rs` → `fields`; `inspector_panel.cc` → `InspectorPanel`, `list_fields.cc`, `visual_fields.cc`, `keyframe_fields.cc`                                                                                                                |
 | Typing as one undo step             | `var_text.h` → `VarSurface::SetLive`; `inspector_panel.cc` with `FormHold`                                                                                                                                                                                  |
 | Variable chips                      | `var_text.cc` → `VarText`, `VarSurface`; tokens from `crates/ui/src/project.rs` → `text_tokens`, `join_tokens` (over `opsis_compile::vars`)                                                                                                                 |
@@ -59,7 +60,10 @@ How node and element settings are declared in Rust, how their JSON Schema carrie
 - **`x-unconnected-zero-label` takes the zero label's place while none of the node's inputs is connected** (a wrapper whose clip is optional plays its usual length alone).
 - **`x-show-if` values are text (`["true"]` for a switch, never `[true]`)**, because the form compares the setting's value as text; `nodes_c.rs` fails on any other.
   - `"*"` matches any value that isn't empty (`ANY_VALUE`).
-- **`x-show-if-file: { path: ["image"] }` shows a field only when that setting holds a file of that kind**; Rust sends each file setting's kind (`InspectorContext.file_kinds`, `kind_from_path`), so the editor never reads extensions; only top-level `asset` settings have a kind, so it doesn't work inside list rows.
+- **`x-show-if-file: { path: ["image"] }` shows a field only when that setting, or the `media` input of that name, holds a file of that kind**; Rust sends the kinds (`InspectorContext.file_kinds`), so the editor never reads extensions.
+  - A file setting's kind comes from its path (`kind_from_path`, `file_kinds`), a top-level `asset` setting or one in the picked kind's object; a connected input's from the value on it (`connected_file_kinds`), which is how Use as clip shows each kind of file its own settings.
+  - List rows have no kind, so it doesn't work inside them.
+- **A kind group's object (`x-kind`) is drawn as the node's own fields, not as a nested form** (`form`), each field keyed `kind/prop` and in Basic or Advanced by its own `x-advanced`; only the picked kind's object shows, through its `x-show-if` on `kind` ([nodes.md](nodes.md), Kind groups).
 - **`x-show-if-take: ["browser"]` shows a field only for that kind of take**; Rust sends the kind of take the node reaches on its own inputs or a later node's (`InspectorContext.take_kind`), and the field shows while no take is connected.
 
 ### Widgets with a contract
@@ -70,7 +74,6 @@ How node and element settings are declared in Rust, how their JSON Schema carrie
 - **`marks` draws on the inspected picture, and each drag is written once when it ends**; the selected mark's other settings are its nested form.
 - **`gradient` only draws what Rust sends**: Rust parses the CSS gradient and applies each edit (`gradient_view`, `edit_gradient`).
 - **`theme` is `{ mode, colors }` over the preset in `x-themes`, storing only changed tokens**; `terminal-theme` names a theme from the catalogue's `terminalThemes`, and empty keeps the take's own.
-- **`cut` and `port` pick one of the node's connected numbered inputs over `InspectorContext.ports`**; `cut` leaves out the first ([film.md](film.md), Transitions).
 - **`font` lists project, built-in and library fonts; picking a library font copies it into the project** ([fonts.md](fonts.md)).
 - **`sound` and `music` are a list of the catalogue's built-in sounds or songs, and None** ([audio.md](audio.md)).
 - **`envelope` and `camera` edit keys that Rust applies** ([timeline.md](timeline.md)).

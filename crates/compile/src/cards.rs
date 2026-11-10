@@ -132,6 +132,9 @@ pub fn card_inputs(
                     inputs.pixels.insert(port, (w, h));
                 }
             }
+            CompileValue::Transition(t) => {
+                inputs.enters.insert(port, t.clone());
+            }
             CompileValue::Captions(c) => {
                 inputs
                     .captions_ms
@@ -146,9 +149,7 @@ pub fn card_inputs(
                 inputs.terminal_steps.insert(port, s.steps.len());
             }
             CompileValue::RecordingStyle(s) => {
-                inputs
-                    .style
-                    .insert(port, s.entries.iter().map(|s| s.kind.clone()).collect());
+                inputs.style.insert(port, s.entries.clone());
             }
             CompileValue::Grade(g) => {
                 inputs.grade.insert(port, g.entries.clone());
@@ -159,6 +160,9 @@ pub fn card_inputs(
                 }
             }
             CompileValue::Clip(c) => {
+                if let Some(enter) = &c.enter {
+                    inputs.enters.insert(port.clone(), enter.clone());
+                }
                 inputs.frames.insert(port.clone(), c.duration_in_frames);
                 inputs.items.insert(port.clone(), scene_item_count(c));
                 if let Some(take) = input_take(c) {

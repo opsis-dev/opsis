@@ -1,4 +1,4 @@
-import type { Size } from "#video/core/still-layout.ts";
+import type { Size } from "#video/core/size.ts";
 import { ELEMENTS } from "#video/elements/index.ts";
 import {
   isPresentation,

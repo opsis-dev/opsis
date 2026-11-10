@@ -1,5 +1,5 @@
 use opsis_macros::settings;
-use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::looks::NodeLook;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
@@ -42,8 +42,8 @@ pub fn definition() -> ElementMeta {
                 "Glitch cut",
                 "A broadcast-glitch hard cut: the frame tears into displaced slices with channel split and corrupted blocks, and the incoming scene takes over slice by slice at the peak.",
                 ElementCategory::Transition,
-                78,
+                12,
             )
-                .look(NodeLook::of("lucide:zap").moves(NodeMotion::Glitch)),
+                .look(NodeLook::of("lucide:zap")),
         )
 }

@@ -16,7 +16,7 @@ import { RimLight, Stage } from "#video/camera/stage.tsx";
 import { CHROME_H, WindowFrame } from "#video/camera/window-frame.tsx";
 import { percent } from "#video/common/format.ts";
 import { Screen } from "#video/core/screen.tsx";
-import type { Size } from "#video/core/still-layout.ts";
+import type { Size } from "#video/core/size.ts";
 import { Backdrop } from "#video/elements/background/backdrop.tsx";
 import type { PointerProps, ScreenProps, ShotProps, WindowProps } from "#video/generated/spec.ts";
 
@@ -228,8 +228,9 @@ export function DemoClip(props: DemoClipProps) {
   if (shot.framing !== "window")
     return props.box ? <NarrowBleedClip clip={props} /> : <FullBleedClip clip={props} />;
 
-  const ground = shot.ground && (props.shot.ground ?? shot.ground);
-  const backdrop = props.shot.backdropChosen ? props.shot.backdrop : ground || props.shot.backdrop;
+  const backdrop = props.shot.backdropChosen
+    ? props.shot.backdrop
+    : shot.ground || props.shot.backdrop;
   return (
     <AbsoluteFill>
       <Backdrop name={backdrop} />

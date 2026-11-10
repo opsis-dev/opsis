@@ -11,21 +11,17 @@ use image::{
 };
 use imageproc::distance_transform::{Norm, euclidean_squared_distance_transform};
 use imageproc::filter::gaussian_blur_f32;
-use imageproc::geometric_transformations::{
-    Border, Interpolation, Projection, rotate_about_center, warp_into,
-};
+use imageproc::geometric_transformations::{Border, Interpolation, rotate_about_center};
 use imageproc::morphology::dilate;
 use imageproc::region_labelling::{Connectivity, connected_components};
 use num_traits::ToPrimitive;
-use opsis_compile::gradient::{Gradient, GradientKind};
 use opsis_compile::nodes::image::{
-    AdjustImage, AutoLevels, BeforeAfter, BeforeAfterLayout, BeforeAfterPlan, BlurImage,
-    ClearColour, CompareScreenshots, CropImage, FrameScreenshot, ImageFormat, ImageGrid, LabelEdge,
-    LevelsMethod, Magnify, MagnifyShape, OutlineImage, PlaceImage, Rect, RedactImage, RedactStyle,
-    Resample, ResizeBy, ResizeFit, ResizeImage, RotateImage, SpotlightImage, StillFileFormat,
-    TiltImage, TrimEdges, Turn, area_rect, before_after_plan, compare_threshold, crop_rect,
-    framed_placement, grid_plan, label_size, magnify_plan, outline_padding, resized_size,
-    rotated_size, tilt_corners, tilted_canvas, tilted_size,
+    BeforeAfter, BeforeAfterLayout, BeforeAfterPlan, ClearColour, CompareScreenshots, CropImage,
+    ImageFormat, ImageGrid, LabelEdge, Magnify, MagnifyShape, OutlineImage, PlaceImage, Rect,
+    RedactImage, RedactStyle, Resample, ResizeBy, ResizeFit, ResizeImage, RotateImage,
+    SpotlightImage, StillFileFormat, TrimEdges, Turn, area_rect, before_after_plan,
+    compare_threshold, crop_rect, grid_plan, label_size, magnify_plan, outline_padding,
+    resized_size, rotated_size, tilted_canvas,
 };
 use opsis_types::numbers;
 use opsis_types::numbers::whole;
@@ -160,114 +156,6 @@ pub fn rotate(image: &DynamicImage, p: &RotateImage) -> DynamicImage {
         numbers::truncate::<u32>(w),
         numbers::truncate::<u32>(h),
     )
-}
-
-const LUMA: [f32; 3] = [0.2126, 0.7152, 0.0722];
-const BRIGHTNESS_SPAN: f32 = 0.4;
-const CONTRAST_GAIN: f32 = 3.0;
-
-fn hue_matrix(degrees: f32) -> [[f32; 3]; 3] {
-    let (sin, cos) = degrees.to_radians().sin_cos();
-    [
-        [
-            f32::mul_add(sin, -0.213, f32::mul_add(cos, 0.787, 0.213)),
-            f32::mul_add(sin, -0.715, f32::mul_add(cos, -0.715, 0.715)),
-            f32::mul_add(sin, 0.928, f32::mul_add(cos, -0.072, 0.072)),
-        ],
-        [
-            f32::mul_add(sin, 0.143, f32::mul_add(cos, -0.213, 0.213)),
-            f32::mul_add(sin, 0.140, f32::mul_add(cos, 0.285, 0.715)),
-            f32::mul_add(sin, -0.283, f32::mul_add(cos, -0.072, 0.072)),
-        ],
-        [
-            f32::mul_add(sin, -0.787, f32::mul_add(cos, -0.213, 0.213)),
-            f32::mul_add(sin, 0.715, f32::mul_add(cos, -0.715, 0.715)),
-            f32::mul_add(sin, 0.072, f32::mul_add(cos, 0.928, 0.072)),
-        ],
-    ]
-}
-
-fn adjust_pixel(rgb: [f32; 3], p: &AdjustImage, hue: &[[f32; 3]; 3]) -> [f32; 3] {
-    let contrast = if p.contrast >= 0.0 {
-        numbers::narrow(p.contrast).mul_add(CONTRAST_GAIN, 1.0)
-    } else {
-        1.0 + numbers::narrow(p.contrast)
-    };
-    let mut c = rgb.map(|v| {
-        numbers::narrow(p.brightness).mul_add(BRIGHTNESS_SPAN, f32::mul_add(v - 0.5, contrast, 0.5))
-    });
-    if p.hue != 0.0 {
-        c = [0, 1, 2].map(|i| hue[i][2].mul_add(c[2], hue[i][1].mul_add(c[1], hue[i][0] * c[0])));
-    }
-    let luma = LUMA[2].mul_add(c[2], LUMA[1].mul_add(c[1], LUMA[0] * c[0]));
-    let saturation = if p.grayscale {
-        0.0
-    } else {
-        1.0 + numbers::narrow(p.saturation)
-    };
-    c = c.map(|v| (v - luma).mul_add(saturation, luma));
-    if p.invert {
-        c = c.map(|v| 1.0 - v);
-    }
-    c.map(|v| v.clamp(0.0, 1.0))
-}
-
-#[expect(
-    clippy::many_single_char_names,
-    reason = "r, g, b, a are colour channels and w, h, x, y the picture's geometry"
-)]
-pub fn adjust(image: &DynamicImage, p: &AdjustImage) -> DynamicImage {
-    let hue = hue_matrix(numbers::narrow(p.hue));
-    let deep = is_deep(image);
-    let mut pixels = image.to_rgba32f();
-    for pixel in pixels.pixels_mut() {
-        let [r, g, b, a] = pixel.0;
-        let [r, g, b] = adjust_pixel([r, g, b], p, &hue);
-        pixel.0 = [r, g, b, a];
-    }
-    let adjusted = DynamicImage::ImageRgba32F(pixels);
-    match (deep, image.color().has_alpha()) {
-        (true, _) => DynamicImage::ImageRgba16(adjusted.to_rgba16()),
-        (false, true) => DynamicImage::ImageRgba8(adjusted.to_rgba8()),
-        (false, false) => DynamicImage::ImageRgb8(adjusted.to_rgb8()),
-    }
-}
-
-pub fn blur(image: &DynamicImage, p: &BlurImage) -> DynamicImage {
-    let mut out = if p.blur > 0.0 {
-        image.fast_blur(numbers::narrow(p.blur))
-    } else {
-        image.clone()
-    };
-    if p.sharpen > 0.0 && p.sharpen_amount > 0 {
-        let sharpened = out.unsharpen(numbers::narrow(p.sharpen), numbers::signed(p.threshold));
-        out = if p.sharpen_amount == 100 {
-            sharpened
-        } else {
-            toward(
-                &out,
-                &sharpened,
-                numbers::narrow(f64::from(p.sharpen_amount) / 100.0),
-            )
-        };
-    }
-    out
-}
-
-fn toward(base: &DynamicImage, target: &DynamicImage, amount: f32) -> DynamicImage {
-    let mut pixels = base.to_rgba32f();
-    let goal = target.to_rgba32f();
-    for (pixel, aim) in pixels.pixels_mut().zip(goal.pixels()) {
-        for (v, t) in pixel.0.iter_mut().zip(aim.0) {
-            *v = f32::mul_add(t - *v, amount, *v).clamp(0.0, 1.0);
-        }
-    }
-    let mixed = DynamicImage::ImageRgba32F(pixels);
-    match (is_deep(base), base.color().has_alpha()) {
-        (true, _) => DynamicImage::ImageRgba16(mixed.to_rgba16()),
-        (false, true) => DynamicImage::ImageRgba8(mixed.to_rgba8()),
-        (false, false) => DynamicImage::ImageRgb8(mixed.to_rgb8()),
-    }
 }
 
 pub fn place(
@@ -772,134 +660,6 @@ pub fn outline(image: &DynamicImage, p: &OutlineImage) -> DynamicImage {
     }
 }
 
-pub fn tilt(image: &DynamicImage, p: &TiltImage) -> Result<DynamicImage, ImageError> {
-    let size = size_of(image);
-    let (w, h) = tilted_size(size, p);
-    let from = [(0.0, 0.0), (size.0, 0.0), size, (0.0, size.1)]
-        .map(|(x, y)| (numbers::narrow(x), numbers::narrow(y)));
-    let to = tilt_corners(size, p).map(|(x, y)| (numbers::narrow(x), numbers::narrow(y)));
-    let projection = Projection::from_control_points(from, to)
-        .ok_or_else(|| ImageError::Failed("That angle folds the picture away.".to_owned()))?;
-    let mut warped = ImageBuffer::new(numbers::truncate::<u32>(w), numbers::truncate::<u32>(h));
-    warp_into(
-        &image.to_rgba16(),
-        projection,
-        Interpolation::Bilinear,
-        Border::Constant(Rgba([0, 0, 0, 0])),
-        &mut warped,
-    );
-    let warped = DynamicImage::ImageRgba16(warped).to_rgba32f();
-    let long = size.0.max(size.1);
-    let soft = p.shadow_softness / 100.0 * long;
-    let shadow = p.shadow.then(|| {
-        let alpha = ImageBuffer::from_fn(warped.width(), warped.height(), |x, y| {
-            Luma([warped.get_pixel(x, y).0[3]])
-        });
-        soften(alpha, soft)
-    });
-    let drop = numbers::whole(p.shadow_drop / 100.0 * long);
-    let shade = background_rgba(&p.shadow_color).map(|v| f32::from(v) / 255.0);
-    let shadow_alpha = numbers::narrow(p.shadow_opacity);
-    let background = background_rgba(&p.background).map(|v| f32::from(v) / 255.0);
-    let out = ImageBuffer::from_fn(warped.width(), warped.height(), |x, y| {
-        let mut pixel = background;
-        if let Some(shadow) = &shadow
-            && y >= drop
-        {
-            let a = shadow.get_pixel(x, y - drop).0[0] * shadow_alpha * shade[3];
-            pixel = over([shade[0], shade[1], shade[2], a], pixel);
-        }
-        Rgba(over(warped.get_pixel(x, y).0, pixel))
-    });
-    let out = DynamicImage::ImageRgba32F(out);
-    Ok(if is_deep(image) {
-        DynamicImage::ImageRgba16(out.to_rgba16())
-    } else {
-        DynamicImage::ImageRgba8(out.to_rgba8())
-    })
-}
-
-const LEVEL_BINS: usize = 1024;
-
-fn bin(v: f32) -> usize {
-    numbers::truncate::<usize>(f64::from(
-        (v.clamp(0.0, 1.0) * numbers::narrow(numbers::float(LEVEL_BINS - 1))).round(),
-    ))
-}
-
-fn histogram(values: impl Iterator<Item = f32>) -> Vec<f64> {
-    let mut counts = vec![0.0; LEVEL_BINS];
-    for v in values {
-        counts[bin(v)] += 1.0;
-    }
-    counts
-}
-
-fn level_at(counts: &[f64], reached: impl Fn(f64) -> bool) -> f32 {
-    let mut seen = 0.0;
-    for (i, count) in counts.iter().enumerate() {
-        seen += count;
-        if reached(seen) {
-            return numbers::narrow(numbers::float(i))
-                / numbers::narrow(numbers::float(LEVEL_BINS - 1));
-        }
-    }
-    1.0
-}
-
-fn stretch_map(counts: &[f64], clip: f64) -> impl Fn(f32) -> f32 + use<> {
-    let share = clip.clamp(0.0, 5.0) / 100.0;
-    let total: f64 = counts.iter().sum();
-    let low = level_at(counts, |seen| seen > total * share);
-    let high = level_at(counts, |seen| seen >= total * (1.0 - share));
-    let span = (high - low).max(1.0 / 255.0);
-    move |v| ((v - low) / span).clamp(0.0, 1.0)
-}
-
-fn equalize_map(counts: &[f64]) -> impl Fn(f32) -> f32 + use<> {
-    let total: f64 = counts.iter().sum::<f64>().max(1.0);
-    let mut running = 0.0;
-    let cdf: Vec<f32> = counts
-        .iter()
-        .map(|c| {
-            running += c;
-            numbers::narrow(running / total)
-        })
-        .collect();
-    move |v| cdf[bin(v)]
-}
-
-pub fn auto_levels(image: &DynamicImage, p: &AutoLevels) -> DynamicImage {
-    let mut pixels = image.to_rgba32f();
-    let strength = numbers::narrow(p.strength.clamp(0.0, 1.0));
-    let maps: Vec<Box<dyn Fn(f32) -> f32>> = (0..3)
-        .map(|channel| {
-            let values: Vec<f32> = if p.per_channel {
-                pixels.pixels().map(|px| px.0[channel]).collect()
-            } else {
-                pixels
-                    .pixels()
-                    .flat_map(|px| [px.0[0], px.0[1], px.0[2]])
-                    .collect()
-            };
-            let counts = histogram(values.into_iter());
-            match p.method {
-                LevelsMethod::Stretch => {
-                    Box::new(stretch_map(&counts, p.clip)) as Box<dyn Fn(f32) -> f32>
-                }
-                LevelsMethod::Equalize => Box::new(equalize_map(&counts)),
-            }
-        })
-        .collect();
-    for pixel in pixels.pixels_mut() {
-        for (channel, map) in maps.iter().enumerate() {
-            let v = pixel.0[channel];
-            pixel.0[channel] = f32::mul_add(map(v) - v, strength, v);
-        }
-    }
-    from_float(image, pixels)
-}
-
 #[expect(
     clippy::many_single_char_names,
     reason = "r, g, b, a are colour channels and w, h, x, y the picture's geometry"
@@ -956,61 +716,6 @@ pub fn grid(images: &[DynamicImage], p: &ImageGrid) -> Result<DynamicImage, Imag
     })
 }
 
-#[derive(Debug)]
-pub enum Paint {
-    Colour([u8; 4]),
-    Gradient(Gradient),
-    Picture(DynamicImage),
-}
-
-fn stop_colour(colour: &str) -> [f32; 4] {
-    background_rgba(colour).map(|v| f32::from(v) / 255.0)
-}
-
-fn along(gradient: &Gradient, t: f64) -> [f32; 4] {
-    let stops: Vec<(f64, [f32; 4])> = gradient
-        .stops
-        .iter()
-        .map(|s| (s.at / 100.0, stop_colour(&s.color)))
-        .collect();
-    let first = stops.first().map_or([0.0; 4], |s| s.1);
-    if t <= stops.first().map_or(0.0, |s| s.0) {
-        return first;
-    }
-    for pair in stops.windows(2) {
-        let ((a, ca), (b, cb)) = (pair[0], pair[1]);
-        if t <= b {
-            let k = if b > a {
-                numbers::narrow((t - a) / (b - a))
-            } else {
-                1.0
-            };
-            return [0, 1, 2, 3].map(|i| f32::mul_add(cb[i] - ca[i], k, ca[i]));
-        }
-    }
-    stops.last().map_or(first, |s| s.1)
-}
-
-pub fn paint_gradient(size: (u32, u32), gradient: &Gradient) -> Rgba32FImage {
-    let (w, h) = (f64::from(size.0), f64::from(size.1));
-    let (sin, cos) = gradient.angle.to_radians().sin_cos();
-    let length = (w * sin).abs() + (h * cos).abs();
-    ImageBuffer::from_fn(size.0, size.1, |x, y| {
-        let (dx, dy) = (f64::from(x) + 0.5 - w / 2.0, f64::from(y) + 0.5 - h / 2.0);
-        let t = match gradient.kind {
-            GradientKind::Linear => f64::mul_add(dy, -cos, dx * sin) / length.max(1.0) + 0.5,
-            GradientKind::Radial => {
-                let (rx, ry) = (
-                    w / 2.0 * std::f64::consts::SQRT_2,
-                    h / 2.0 * std::f64::consts::SQRT_2,
-                );
-                (dx / rx).hypot(dy / ry)
-            }
-        };
-        Rgba(along(gradient, t))
-    })
-}
-
 fn covering(picture: &DynamicImage, size: (u32, u32)) -> Result<Rgba32FImage, ImageError> {
     let options = ResizeOptions::new()
         .resize_alg(algorithm(Resample::Smooth))
@@ -1035,74 +740,6 @@ fn rounded_distance(px: f64, py: f64, rect: Rect, radius: f64) -> f64 {
 
 fn rounded_cover(px: f64, py: f64, rect: Rect, radius: f64) -> f32 {
     numbers::narrow((0.5 - rounded_distance(px, py, rect, radius)).clamp(0.0, 1.0))
-}
-
-pub fn frame(
-    image: &DynamicImage,
-    paint: &Paint,
-    p: &FrameScreenshot,
-) -> Result<DynamicImage, ImageError> {
-    let source = size_of(image);
-    let ((w, h), (x0, y0)) = framed_placement(source, p);
-    let size = (numbers::truncate::<u32>(w), numbers::truncate::<u32>(h));
-    let base = match paint {
-        Paint::Colour(rgba) => {
-            ImageBuffer::from_pixel(size.0, size.1, Rgba(rgba.map(|v| f32::from(v) / 255.0)))
-        }
-        Paint::Gradient(gradient) => paint_gradient(size, gradient),
-        Paint::Picture(picture) => covering(picture, size)?,
-    };
-    let picture = image.to_rgba32f();
-    let rect = Rect {
-        x: x0,
-        y: y0,
-        width: source.0,
-        height: source.1,
-    };
-    let drop = p.shadow_drop.max(0.0);
-    let shadow = (p.shadow_opacity > 0.0).then(|| {
-        let mask = ImageBuffer::from_fn(size.0, size.1, |x, y| {
-            let (px, py) = (f64::from(x) + 0.5, f64::from(y) + 0.5 - drop);
-            Luma([rounded_cover(px, py, rect, p.radius)])
-        });
-        soften(mask, p.shadow_softness / 2.0)
-    });
-    let opacity = numbers::narrow(p.shadow_opacity.clamp(0.0, 1.0));
-    let shade = background_rgba(&p.shadow_color).map(|v| f32::from(v) / 255.0);
-    let out = ImageBuffer::from_fn(size.0, size.1, |x, y| {
-        let mut pixel = base.get_pixel(x, y).0;
-        if let Some(shadow) = &shadow {
-            pixel = over(
-                [
-                    shade[0],
-                    shade[1],
-                    shade[2],
-                    shadow.get_pixel(x, y).0[0] * opacity * shade[3],
-                ],
-                pixel,
-            );
-        }
-        let (px, py) = (f64::from(x) + 0.5, f64::from(y) + 0.5);
-        let cover = rounded_cover(px, py, rect, p.radius);
-        if cover > 0.0 {
-            let (ix, iy) = (
-                numbers::truncate::<u32>(f64::from(x) - x0),
-                numbers::truncate::<u32>(f64::from(y) - y0),
-            );
-            if ix < picture.width() && iy < picture.height() {
-                let mut top = picture.get_pixel(ix, iy).0;
-                top[3] *= cover;
-                pixel = over(top, pixel);
-            }
-        }
-        Rgba(pixel)
-    });
-    let out = DynamicImage::ImageRgba32F(out);
-    Ok(if is_deep(image) {
-        DynamicImage::ImageRgba16(out.to_rgba16())
-    } else {
-        DynamicImage::ImageRgba8(out.to_rgba8())
-    })
 }
 
 fn unit_colour(rgba: [u8; 4]) -> [f32; 4] {

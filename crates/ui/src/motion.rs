@@ -1,4 +1,4 @@
-use opsis_compile::motions::{Mask, MotionSpec, Part, Pose, motion_spec, sample};
+use opsis_compile::motions::{MotionSpec, Part, Pose, motion_spec, sample};
 use opsis_qt::{MotionInfo, PoseView};
 use opsis_types::looks::NodeMotion;
 use serde_json::Value;
@@ -17,7 +17,6 @@ pub fn info(name: &str) -> MotionInfo {
             origin_y: 0.5,
             part: String::new(),
             clip: false,
-            mask: String::new(),
         };
     };
     let part = match spec.part {
@@ -25,13 +24,6 @@ pub fn info(name: &str) -> MotionInfo {
         Part::Shapes => "shapes",
         Part::March => "march",
         Part::Ring => "ring",
-        Part::Flare => "flare",
-    };
-    let mask = match spec.mask {
-        Mask::None => "",
-        Mask::Wipe => "wipe",
-        Mask::Clock => "clock",
-        Mask::Shimmer => "shimmer",
     };
     MotionInfo {
         ms: spec.ms,
@@ -39,7 +31,6 @@ pub fn info(name: &str) -> MotionInfo {
         origin_y: spec.origin.1,
         part: part.to_owned(),
         clip: spec.clip,
-        mask: mask.to_owned(),
     }
 }
 
@@ -53,18 +44,9 @@ pub fn pose(name: &str, elapsed_ms: f64) -> PoseView {
         sx: p.sx,
         sy: p.sy,
         rotate: p.rotate,
-        tilt_x: p.tilt_x,
-        tilt_y: p.tilt_y,
         opacity: p.opacity,
         blur: p.blur,
-        clip_top: p.clip_top,
-        iris: p.iris,
-        sweep: p.sweep,
-        mask: p.mask,
         dash: p.dash,
-        split_x: p.split_x,
-        split_y: p.split_y,
-        rgb: p.rgb,
         smear: p.smear,
     }
 }

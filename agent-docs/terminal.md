@@ -48,7 +48,7 @@ Ghostty behind `opsis-vt`, terminal sessions and takes, tapes and cast files, th
 - **A reader thread feeds Ghostty and writes its replies straight back to the program** (`session.rs`).
 - **A take is a `.cast` v3 file (written to the millisecond) and a log in cells**; cast files v1, v2 and v3 are read.
 - **Clip from take turns a terminal take into `ScreenProps::Terminal` and scales the log into pixels of its Terminal look's cell grid** (`regrid_log`), so a later Terminal look moves every mark with its cells.
-- **Follow cursor follows the text cursor (`caret_track`) when the take has no pointer.**
+- **A Camera that follows the cursor follows the text cursor (`caret_track`) when the take has no pointer.**
 - **Terminal look is `only_for` terminal takes.**
 
 ### Tapes

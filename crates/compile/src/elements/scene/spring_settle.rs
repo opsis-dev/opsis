@@ -91,7 +91,7 @@ pub fn definition() -> ElementMeta {
                 "Spring settle",
                 "Plays clips as scenes: each scene shrinks away, the stage holds empty for a beat, and the next one lands. Connect Layers to make a scene whose layers land one after another.",
                 ElementCategory::Scene,
-                213,
+                20,
             )
                 .look(NodeLook::of("tabler:carousel-vertical")),
         )

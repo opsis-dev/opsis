@@ -8,12 +8,10 @@ use image::{
 };
 use opsis_compile::nodes::effects::Area;
 use opsis_compile::nodes::image::{
-    AdjustImage, AutoLevels, BeforeAfter, BeforeAfterLayout, BlurImage, ClearColour,
-    CompareScreenshots, CropImage, CropMode, FrameScreenshot, FrameShape, GridFit, GridLayout,
-    ImageFormat, ImageGrid, LevelsMethod, Magnify, MagnifyShape, MagnifySize, OutlineImage,
+    BeforeAfter, BeforeAfterLayout, ClearColour, CompareScreenshots, CropImage, CropMode, GridFit,
+    GridLayout, ImageFormat, ImageGrid, Magnify, MagnifyShape, MagnifySize, OutlineImage,
     PlaceImage, RedactImage, RedactStyle, ResizeFit, ResizeImage, RotateImage, SpotlightImage,
-    StillFileFormat, TiltImage, TrimEdges, Turn, framed_placement, grid_plan, tilt_corners,
-    tilted_size,
+    StillFileFormat, TrimEdges, Turn, grid_plan,
 };
 use opsis_image::load::load_image;
 use opsis_image::ops;
@@ -271,70 +269,6 @@ fn turns_flips_and_straightens_onto_a_larger_canvas() {
 }
 
 #[test]
-fn adjusts_colour_and_leaves_it_alone_at_zero() {
-    let image = sample();
-    assert_eq!(
-        ops::adjust(&image, &AdjustImage::default()).to_rgb8(),
-        image.to_rgb8()
-    );
-    let grey = ops::adjust(
-        &image,
-        &AdjustImage {
-            grayscale: true,
-            ..AdjustImage::default()
-        },
-    )
-    .to_rgb8();
-    let [r, g, b] = grey.get_pixel(0, 0).0;
-    assert!(r == g && g == b);
-    let inverted = ops::adjust(
-        &image,
-        &AdjustImage {
-            invert: true,
-            ..AdjustImage::default()
-        },
-    )
-    .to_rgb8();
-    assert_eq!(inverted.get_pixel(0, 0).0, COLOURS[0].map(|v| 255 - v));
-    let brighter = ops::adjust(
-        &image,
-        &AdjustImage {
-            brightness: 0.5,
-            ..AdjustImage::default()
-        },
-    )
-    .to_rgb8();
-    assert!(brighter.get_pixel(0, 0).0[1] > COLOURS[0][1]);
-}
-
-#[test]
-fn blurs_and_sharpens_without_changing_size() {
-    let image = sample();
-    let none = BlurImage {
-        blur: 0.0,
-        sharpen: 0.0,
-        threshold: 0,
-        sharpen_amount: 100,
-    };
-    assert_eq!(ops::blur(&image, &none).to_rgb8(), image.to_rgb8());
-    let soft = ops::blur(
-        &image,
-        &BlurImage {
-            blur: 6.0,
-            sharpen: 0.0,
-            threshold: 0,
-            sharpen_amount: 100,
-        },
-    )
-    .to_rgb8();
-    assert_eq!(soft.dimensions(), image.to_rgb8().dimensions());
-    assert_ne!(
-        soft.get_pixel(CELL, CELL / 2).0,
-        image.to_rgb8().get_pixel(CELL, CELL / 2).0
-    );
-}
-
-#[test]
 fn places_an_image_centred_on_the_spot_at_its_size_and_opacity() {
     let base = DynamicImage::ImageRgba8(RgbaImage::from_pixel(100, 50, Rgba([0, 0, 0, 255])));
     let mark = DynamicImage::ImageRgba8(RgbaImage::from_pixel(10, 10, Rgba([255, 255, 255, 255])));
@@ -494,48 +428,6 @@ fn keeps_lit_areas_and_darkens_the_rest_in_every_depth() {
 }
 
 #[test]
-fn sharpens_by_the_amount_asked() {
-    let image = DynamicImage::ImageRgb8(
-        ops::blur(
-            &sample(),
-            &BlurImage {
-                blur: 3.0,
-                sharpen: 0.0,
-                threshold: 0,
-                sharpen_amount: 100,
-            },
-        )
-        .to_rgb8(),
-    );
-    let sharpen = |amount| {
-        ops::blur(
-            &image,
-            &BlurImage {
-                blur: 0.0,
-                sharpen: 2.0,
-                threshold: 0,
-                sharpen_amount: amount,
-            },
-        )
-        .to_rgb8()
-    };
-    assert_eq!(sharpen(0), image.to_rgb8());
-    let change = |amount| {
-        sharpen(amount)
-            .pixels()
-            .zip(image.to_rgb8().pixels())
-            .map(|(a, b)| {
-                a.0.iter()
-                    .zip(b.0)
-                    .map(|(x, y)| u64::from(x.abs_diff(y)))
-                    .sum::<u64>()
-            })
-            .sum::<u64>()
-    };
-    assert!(change(50) < change(100) && change(100) < change(200));
-}
-
-#[test]
 fn trims_even_margins_within_the_tolerance_and_keeps_padding() {
     let framed = RgbaImage::from_fn(64, 48, |x, y| {
         if (10..54).contains(&x) && (12..40).contains(&y) {
@@ -689,101 +581,6 @@ fn draws_an_outline_only_where_the_picture_was_see_through() {
     assert!(!ops::has_see_through(&opaque));
 }
 
-#[test]
-fn tilts_the_corners_to_where_the_plan_puts_them() {
-    let red = DynamicImage::ImageRgba8(RgbaImage::from_pixel(100, 60, Rgba([220, 20, 20, 255])));
-    let p = TiltImage {
-        turn: 25.0,
-        tilt: 10.0,
-        lean: 0.0,
-        background: "#00000000".into(),
-        shadow: false,
-        ..TiltImage::default()
-    };
-    let out = ops::tilt(&red, &p).unwrap().to_rgba8();
-    let (w, h) = tilted_size((100.0, 60.0), &p);
-    assert_eq!(
-        out.dimensions(),
-        (numbers::truncate::<u32>(w), numbers::truncate::<u32>(h))
-    );
-    let corners = tilt_corners((100.0, 60.0), &p);
-    let centre = corners
-        .iter()
-        .fold((0.0, 0.0), |a, c| (a.0 + c.0 / 4.0, a.1 + c.1 / 4.0));
-    let at = |x: f64, y: f64| {
-        out.get_pixel(numbers::truncate::<u32>(x), numbers::truncate::<u32>(y))
-            .0
-    };
-    assert_eq!(at(centre.0, centre.1), [220, 20, 20, 255]);
-    for (x, y) in corners {
-        let inside = (
-            f64::mul_add(centre.0 - x, 0.08, x),
-            f64::mul_add(centre.1 - y, 0.08, y),
-        );
-        assert_eq!(
-            at(inside.0, inside.1)[3],
-            255,
-            "inside the corner at {x}, {y}"
-        );
-    }
-    let right_height = corners[2].1 - corners[1].1;
-    let left_height = corners[3].1 - corners[0].1;
-    assert!(right_height < left_height, "the right side turns away");
-    let top_width = corners[1].0 - corners[0].0;
-    let bottom_width = corners[2].0 - corners[3].0;
-    assert!(top_width < bottom_width, "the top leans back");
-    let shadowed = ops::tilt(&red, &TiltImage { shadow: true, ..p }).unwrap();
-    assert!(shadowed.width() > out.width());
-}
-
-#[test]
-fn stretches_dull_levels_to_black_and_white() {
-    let dull = RgbImage::from_fn(64, 16, |x, _| {
-        let v = 80 + u8::try_from(x * 2).unwrap();
-        Rgb([v, v, v + 10])
-    });
-    let image = DynamicImage::ImageRgb8(dull);
-    let range = |out: &DynamicImage| {
-        let values: Vec<u8> = out.to_rgb8().pixels().flat_map(|p| p.0).collect();
-        (*values.iter().min().unwrap(), *values.iter().max().unwrap())
-    };
-    for method in [LevelsMethod::Stretch, LevelsMethod::Equalize] {
-        let out = ops::auto_levels(
-            &image,
-            &AutoLevels {
-                method,
-                clip: 0.0,
-                ..AutoLevels::default()
-            },
-        );
-        assert_eq!(out.color(), image.color());
-        let (low, high) = range(&out);
-        assert!(low < 8 && high > 247, "{method:?} spans {low}..{high}");
-    }
-    let untouched = ops::auto_levels(
-        &image,
-        &AutoLevels {
-            strength: 0.0,
-            ..AutoLevels::default()
-        },
-    );
-    assert_eq!(range(&untouched), (80, 216));
-    let cast = ops::auto_levels(
-        &image,
-        &AutoLevels {
-            clip: 0.0,
-            per_channel: true,
-            ..AutoLevels::default()
-        },
-    )
-    .to_rgb8();
-    let last = cast.get_pixel(63, 0).0;
-    assert!(
-        last[0] > 250 && last[2] > 250,
-        "each colour reaches white: {last:?}"
-    );
-}
-
 fn block(width: u32, height: u32, colour: [u8; 3]) -> DynamicImage {
     DynamicImage::ImageRgb8(RgbImage::from_pixel(width, height, Rgb(colour)))
 }
@@ -845,66 +642,6 @@ fn lays_images_out_in_rows_columns_and_cells() {
         [0, 0, 0],
         "the padding is the background"
     );
-}
-
-#[test]
-#[expect(
-    clippy::many_single_char_names,
-    reason = "w, h, x, y are the framed picture's size and position"
-)]
-fn frames_a_picture_with_round_corners_and_a_shadow_on_a_background() {
-    let shot = block(100, 50, [250, 250, 250]);
-    let p = FrameScreenshot {
-        padding: 20.0,
-        radius: 10.0,
-        shadow_drop: 6.0,
-        shadow_softness: 4.0,
-        shadow_opacity: 0.5,
-        ..FrameScreenshot::default()
-    };
-    let paint = ops::Paint::Colour([40, 80, 160, 255]);
-    let out = ops::frame(&shot, &paint, &p).unwrap().to_rgba8();
-    let ((w, h), (x, y)) = framed_placement((100.0, 50.0), &p);
-    assert_eq!(
-        out.dimensions(),
-        (numbers::truncate::<u32>(w), numbers::truncate::<u32>(h))
-    );
-    assert_eq!((w, h, x, y), (120.0, 70.0, 10.0, 10.0));
-    assert_eq!(
-        out.get_pixel(10, 10).0,
-        [40, 80, 160, 255],
-        "the corner is rounded off"
-    );
-    assert_eq!(
-        out.get_pixel(60, 35).0,
-        [250, 250, 250, 255],
-        "the picture is in the middle"
-    );
-    assert_eq!(
-        out.get_pixel(2, 2).0,
-        [40, 80, 160, 255],
-        "far corners are the background"
-    );
-    let below = out.get_pixel(60, 63).0;
-    assert!(
-        below[2] < 160,
-        "the shadow darkens below the picture: {below:?}"
-    );
-    for (shape, ratio) in [
-        (FrameShape::Wide, 16.0 / 9.0),
-        (FrameShape::Square, 1.0),
-        (FrameShape::Portrait, 0.8),
-        (FrameShape::Story, 9.0 / 16.0),
-    ] {
-        let ((w, h), _) = framed_placement((100.0, 50.0), &FrameScreenshot { shape, ..p.clone() });
-        assert!((w / h - ratio).abs() < 0.02, "{shape:?} is {w} × {h}");
-        assert!(w >= 120.0 && h >= 70.0, "{shape:?} never cuts the picture");
-    }
-    let gradient =
-        opsis_compile::gradient::parse_gradient("linear-gradient(90deg, #000000 0%, #ffffff 100%)")
-            .unwrap();
-    let painted = ops::paint_gradient((100, 10), &gradient);
-    assert!(painted.get_pixel(1, 5).0[0] < 0.05 && painted.get_pixel(98, 5).0[0] > 0.95);
 }
 
 fn split(position: f64, angle: f64, divider: u32) -> BeforeAfter {

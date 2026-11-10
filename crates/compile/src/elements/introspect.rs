@@ -11,12 +11,10 @@ pub const ANY_VALUE: &str = "*";
 pub enum FieldWidget {
     Action,
     Asset,
-    Backdrop,
     Boxes,
     Camera,
     Code,
     Color,
-    Cut,
     Datetime,
     Envelope,
     Font,
@@ -28,7 +26,6 @@ pub enum FieldWidget {
     Multiselect,
     Music,
     Offsets,
-    Port,
     Quality,
     Sound,
     Spot,
@@ -38,7 +35,6 @@ pub enum FieldWidget {
     Textarea,
     Theme,
     Timezone,
-    Transition,
     Variable,
 }
 

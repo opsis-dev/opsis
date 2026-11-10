@@ -1,6 +1,6 @@
 import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import type { ElementProps } from "#video/common/spec.ts";
-import type { Size } from "#video/core/still-layout.ts";
+import type { Size } from "#video/core/size.ts";
 import type { TransitionPresentationComponentProps } from "#video/lib/transitions/presentation.ts";
 import { presentation } from "#video/registry/framing.tsx";
 

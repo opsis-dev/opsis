@@ -1,6 +1,7 @@
 mod action_sounds;
 mod areas;
 mod canvas;
+mod catalogue;
 mod checks;
 mod clip;
 mod compile;

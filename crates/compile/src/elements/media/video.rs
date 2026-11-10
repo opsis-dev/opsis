@@ -36,6 +36,15 @@ pub struct Video {
         advanced
     )]
     pub background: String,
+    #[setting(
+        "Dim",
+        range(min = 0, max = 1),
+        step = 0.05,
+        help = "Darkens the video, so text laid over it reads."
+    )]
+    pub dim: f64,
+    #[setting("Dim colour", default = "#000000", widget = "color", check = colour, advanced)]
+    pub dim_color: String,
 }
 
 pub fn definition() -> ElementMeta {

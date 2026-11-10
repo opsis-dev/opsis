@@ -104,9 +104,7 @@
      "x": 1200,
      "y": 200
     },
-    "params": {
-     "speed": 1.25
-    }
+    "params": {}
    },
    {
     "id": "spotlight",
@@ -117,30 +115,30 @@
     },
     "params": {
      "match": "Get started",
-     "text": "",
      "color": "rgba(0,0,0,0.55)",
      "padding": 10,
      "leadMs": 250,
-     "holdMs": 1400,
-     "look": "clean",
-     "roughness": 1
+     "holdMs": 1400
     }
    },
    {
     "id": "headline",
-    "type": "fx.kinetic-headline",
+    "type": "fx.animated-text",
     "position": {
      "x": 300,
      "y": 340
     },
     "params": {
-     "text": "Introducing *{{Product name}}*",
-     "color": "#fafafa",
-     "emphasisColor": "#facc15",
-     "background": "#09090b",
-     "fontSize": 104,
-     "wordStagger": 4,
-     "fontFamily": "",
+     "kind": "headline",
+     "headline": {
+      "text": "Introducing *{{Product name}}*",
+      "color": "#fafafa",
+      "emphasisColor": "#facc15",
+      "background": "#09090b",
+      "fontSize": 104,
+      "wordStagger": 4,
+      "fontFamily": ""
+     },
      "clipDuration": 90,
      "envelope": {}
     }
@@ -156,9 +154,6 @@
      "eyebrow": "",
      "title": "Try {{Product name}} today",
      "subtitle": "{{Site address}}",
-     "mark": "",
-     "markLook": "underline",
-     "markColor": "#facc15",
      "align": "center",
      "entrance": "rise",
      "color": "#fafafa",
@@ -178,12 +173,7 @@
      "x": 1200,
      "y": 422
     },
-    "params": {
-     "transition": "zoom-blur",
-     "transitionDuration": 15,
-     "keepWhole": false,
-     "cuts": []
-    }
+    "params": {}
    },
    {
     "id": "render",
@@ -204,6 +194,18 @@
      "chapters": true,
      "chapterList": false,
      "gl": "angle"
+    }
+   },
+   {
+    "id": "sequence-transition",
+    "type": "timeline.transition",
+    "position": {
+     "x": 900,
+     "y": 262
+    },
+    "params": {
+     "kind": "zoom-blur",
+     "durationInFrames": 15
     }
    }
   ],
@@ -277,6 +279,13 @@
     "sourceHandle": "clip",
     "target": "render",
     "targetHandle": "clip"
+   },
+   {
+    "id": "sequence-transition.transition->sequence.transition",
+    "source": "sequence-transition",
+    "sourceHandle": "transition",
+    "target": "sequence",
+    "targetHandle": "transition"
    }
   ],
   "markers": []
@@ -450,9 +459,6 @@
           "eyebrow": "",
           "title": "Try Acme today",
           "subtitle": "https://example.com",
-          "mark": "",
-          "markLook": "underline",
-          "markColor": "#facc15",
           "align": "center",
           "entrance": "rise",
           "color": "#fafafa",
@@ -467,11 +473,7 @@
           "eyebrowUppercase": true,
           "subtitleSize": 0.34,
           "letterSpacing": -0.035,
-          "lineStagger": 1.0,
-          "markThickness": 0.045,
-          "markerOpacity": 55.0,
-          "markSeed": 1,
-          "markDrawTime": 0.45
+          "lineStagger": 1.0
          }
         }
        ]
@@ -558,6 +560,18 @@
        }
       }
      ]
+    }
+   },
+   "sequence-transition": {
+    "transition": {
+     "type": "transition",
+     "kind": "zoom-blur",
+     "durationInFrames": 15,
+     "params": {
+      "blur": 16,
+      "rise": 0,
+      "zoom": 1.12
+     }
     }
    },
    "record": {
@@ -761,9 +775,6 @@
                "eyebrow": "",
                "title": "Try Acme today",
                "subtitle": "https://example.com",
-               "mark": "",
-               "markLook": "underline",
-               "markColor": "#facc15",
                "align": "center",
                "entrance": "rise",
                "color": "#fafafa",
@@ -778,11 +789,7 @@
                "eyebrowUppercase": true,
                "subtitleSize": 0.34,
                "letterSpacing": -0.035,
-               "lineStagger": 1.0,
-               "markThickness": 0.045,
-               "markerOpacity": 55.0,
-               "markSeed": 1,
-               "markDrawTime": 0.45
+               "lineStagger": 1.0
               }
              }
             ]
@@ -807,6 +814,7 @@
    "outro",
    "cta",
    "spotlight",
+   "sequence-transition",
    "record",
    "camera",
    "sequence",
@@ -874,10 +882,6 @@
     {
      "icon": "palette",
      "text": "1 style setting"
-    },
-    {
-     "icon": "gauge",
-     "text": "1.25× speed"
     }
    ]
   },
@@ -891,6 +895,10 @@
   },
   "headline": {
    "rows": [
+    {
+     "icon": "shapes",
+     "text": "Animated headline"
+    },
     {
      "icon": "type",
      "text": "“Introducing *Acme*”"
@@ -921,7 +929,7 @@
     },
     {
      "icon": "arrow-right-left",
-     "text": "Zoom blur · 0.5 s"
+     "text": "2 joins with zoom blur"
     }
    ]
   },
@@ -934,6 +942,14 @@
     {
      "icon": "film",
      "text": "MP4 · 1080p · 30 fps"
+    }
+   ]
+  },
+  "sequence-transition": {
+   "rows": [
+    {
+     "icon": "arrow-right-left",
+     "text": "Zoom blur · 0.5 s"
     }
    ]
   }
@@ -1099,9 +1115,6 @@
              "eyebrow": "",
              "title": "Try Acme today",
              "subtitle": "https://example.com",
-             "mark": "",
-             "markLook": "underline",
-             "markColor": "#facc15",
              "align": "center",
              "entrance": "rise",
              "color": "#fafafa",
@@ -1116,11 +1129,7 @@
              "eyebrowUppercase": true,
              "subtitleSize": 0.34,
              "letterSpacing": -0.035,
-             "lineStagger": 1.0,
-             "markThickness": 0.045,
-             "markerOpacity": 55.0,
-             "markSeed": 1,
-             "markDrawTime": 0.45
+             "lineStagger": 1.0
             }
            }
           ]
@@ -1725,9 +1734,6 @@
              "eyebrow": "",
              "title": "Try Acme today",
              "subtitle": "https://example.com",
-             "mark": "",
-             "markLook": "underline",
-             "markColor": "#facc15",
              "align": "center",
              "entrance": "rise",
              "color": "#fafafa",
@@ -1742,11 +1748,7 @@
              "eyebrowUppercase": true,
              "subtitleSize": 0.34,
              "letterSpacing": -0.035,
-             "lineStagger": 1.0,
-             "markThickness": 0.045,
-             "markerOpacity": 55.0,
-             "markSeed": 1,
-             "markDrawTime": 0.45
+             "lineStagger": 1.0
             }
            }
           ]
@@ -2304,9 +2306,6 @@
        "eyebrow": "",
        "title": "Try Acme today",
        "subtitle": "https://example.com",
-       "mark": "",
-       "markLook": "underline",
-       "markColor": "#facc15",
        "align": "center",
        "entrance": "rise",
        "color": "#fafafa",
@@ -2321,11 +2320,7 @@
        "eyebrowUppercase": true,
        "subtitleSize": 0.34,
        "letterSpacing": -0.035,
-       "lineStagger": 1.0,
-       "markThickness": 0.045,
-       "markerOpacity": 55.0,
-       "markSeed": 1,
-       "markDrawTime": 0.45
+       "lineStagger": 1.0
       },
       "thumbnail": null,
       "from": 204.0,
@@ -2880,9 +2875,6 @@
            "eyebrow": "",
            "title": "Try Acme today",
            "subtitle": "https://example.com",
-           "mark": "",
-           "markLook": "underline",
-           "markColor": "#facc15",
            "align": "center",
            "entrance": "rise",
            "color": "#fafafa",
@@ -2897,11 +2889,7 @@
            "eyebrowUppercase": true,
            "subtitleSize": 0.34,
            "letterSpacing": -0.035,
-           "lineStagger": 1.0,
-           "markThickness": 0.045,
-           "markerOpacity": 55.0,
-           "markSeed": 1,
-           "markDrawTime": 0.45
+           "lineStagger": 1.0
           }
          }
         ]
@@ -2988,6 +2976,18 @@
         }
        }
       ]
+     }
+    },
+    "sequence-transition": {
+     "transition": {
+      "type": "transition",
+      "kind": "zoom-blur",
+      "durationInFrames": 15,
+      "params": {
+       "blur": 16,
+       "rise": 0,
+       "zoom": 1.12
+      }
      }
     },
     "record": {
@@ -3153,7 +3153,6 @@
            "shot": {
             "style": "classic",
             "backdrop": "glaze",
-            "ground": "#faf6f1",
             "rimGlow": 1.0,
             "liftColours": true,
             "bleedBlur": 48.0,
@@ -3462,7 +3461,6 @@
                 "shot": {
                  "style": "classic",
                  "backdrop": "glaze",
-                 "ground": "#faf6f1",
                  "rimGlow": 1.0,
                  "liftColours": true,
                  "bleedBlur": 48.0,
@@ -3558,9 +3556,6 @@
                 "eyebrow": "",
                 "title": "Try Acme today",
                 "subtitle": "https://example.com",
-                "mark": "",
-                "markLook": "underline",
-                "markColor": "#facc15",
                 "align": "center",
                 "entrance": "rise",
                 "color": "#fafafa",
@@ -3575,11 +3570,7 @@
                 "eyebrowUppercase": true,
                 "subtitleSize": 0.34,
                 "letterSpacing": -0.035,
-                "lineStagger": 1.0,
-                "markThickness": 0.045,
-                "markerOpacity": 55.0,
-                "markSeed": 1,
-                "markDrawTime": 0.45
+                "lineStagger": 1.0
                }
               }
              ]
@@ -3682,6 +3673,7 @@
     "outro",
     "cta",
     "spotlight",
+    "sequence-transition",
     "record",
     "camera",
     "sequence",
@@ -3757,10 +3749,6 @@
      {
       "icon": "palette",
       "text": "1 style setting"
-     },
-     {
-      "icon": "gauge",
-      "text": "1.25× speed"
      }
     ]
    },
@@ -3774,6 +3762,10 @@
    },
    "headline": {
     "rows": [
+     {
+      "icon": "shapes",
+      "text": "Animated headline"
+     },
      {
       "icon": "type",
       "text": "“Introducing *Acme*”"
@@ -3804,7 +3796,7 @@
      },
      {
       "icon": "arrow-right-left",
-      "text": "Zoom blur · 0.5 s"
+      "text": "2 joins with zoom blur"
      }
     ]
    },
@@ -3821,6 +3813,14 @@
      {
       "icon": "clock",
       "text": "4 s"
+     }
+    ]
+   },
+   "sequence-transition": {
+    "rows": [
+     {
+      "icon": "arrow-right-left",
+      "text": "Zoom blur · 0.5 s"
      }
     ]
    }
@@ -4013,7 +4013,6 @@
               "shot": {
                "style": "classic",
                "backdrop": "glaze",
-               "ground": "#faf6f1",
                "rimGlow": 1.0,
                "liftColours": true,
                "bleedBlur": 48.0,
@@ -4109,9 +4108,6 @@
               "eyebrow": "",
               "title": "Try Acme today",
               "subtitle": "https://example.com",
-              "mark": "",
-              "markLook": "underline",
-              "markColor": "#facc15",
               "align": "center",
               "entrance": "rise",
               "color": "#fafafa",
@@ -4126,11 +4122,7 @@
               "eyebrowUppercase": true,
               "subtitleSize": 0.34,
               "letterSpacing": -0.035,
-              "lineStagger": 1.0,
-              "markThickness": 0.045,
-              "markerOpacity": 55.0,
-              "markSeed": 1,
-              "markDrawTime": 0.45
+              "lineStagger": 1.0
              }
             }
            ]
@@ -4762,7 +4754,6 @@
               "shot": {
                "style": "classic",
                "backdrop": "glaze",
-               "ground": "#faf6f1",
                "rimGlow": 1.0,
                "liftColours": true,
                "bleedBlur": 48.0,
@@ -4858,9 +4849,6 @@
               "eyebrow": "",
               "title": "Try Acme today",
               "subtitle": "https://example.com",
-              "mark": "",
-              "markLook": "underline",
-              "markColor": "#facc15",
               "align": "center",
               "entrance": "rise",
               "color": "#fafafa",
@@ -4875,11 +4863,7 @@
               "eyebrowUppercase": true,
               "subtitleSize": 0.34,
               "letterSpacing": -0.035,
-              "lineStagger": 1.0,
-              "markThickness": 0.045,
-              "markerOpacity": 55.0,
-              "markSeed": 1,
-              "markDrawTime": 0.45
+              "lineStagger": 1.0
              }
             }
            ]
@@ -5465,7 +5449,6 @@
         "shot": {
          "style": "classic",
          "backdrop": "glaze",
-         "ground": "#faf6f1",
          "rimGlow": 1.0,
          "liftColours": true,
          "bleedBlur": 48.0,
@@ -5565,9 +5548,6 @@
         "eyebrow": "",
         "title": "Try Acme today",
         "subtitle": "https://example.com",
-        "mark": "",
-        "markLook": "underline",
-        "markColor": "#facc15",
         "align": "center",
         "entrance": "rise",
         "color": "#fafafa",
@@ -5582,11 +5562,7 @@
         "eyebrowUppercase": true,
         "subtitleSize": 0.34,
         "letterSpacing": -0.035,
-        "lineStagger": 1.0,
-        "markThickness": 0.045,
-        "markerOpacity": 55.0,
-        "markSeed": 1,
-        "markDrawTime": 0.45
+        "lineStagger": 1.0
        },
        "thumbnail": null,
        "from": 158.0,

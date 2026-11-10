@@ -4,17 +4,16 @@ use opsis_types::actions::{Action, ActionKind, ActionLog, Point, Rect};
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::numbers;
-use opsis_types::numbers::exact_eq;
 use opsis_types::recording::{
     AddressMode, CameraEasing, CameraProps, CameraStyle, CameraTuning, FootageChain, FrameTheme,
-    RecordingProps, ScreenProps, ShotProps, WindowProps, WindowStyle,
+    RecordingDevice, RecordingProps, ScreenProps, ShotProps, WindowProps, WindowStyle,
 };
 use opsis_types::timeline::{ElementRef, GroupProps};
 use opsis_types::values::{
     ClipValue, CompileValue, RecordingValue, StyleEntry, TaggedRecording, TakeKind, TakeSource,
 };
 use opsis_types::workflow::{DEFAULT_TAKE_MS, PortType};
-use serde_json::{Map, Value};
+use serde_json::Value;
 
 use crate::asset_ref::base_name;
 use crate::backdrops::Backdrop;
@@ -24,10 +23,7 @@ use crate::clip::{
     wrap_clip,
 };
 use crate::color::is_color;
-use crate::elements::device::laptop_frame::LaptopFinale;
-use crate::elements::device::phone_frame::{PhoneEntrance, PhoneVariant};
 use crate::elements::element_meta;
-use crate::elements::theme::{Theme, ThemeMode, warm_themes};
 use crate::errors::SettingsError;
 use crate::node::{
     CLIP_PORT, CardCtx, Category, Ctx, InputTake, NodeDef, Phase, Platform, RECORDING_PORT, RowExt,
@@ -37,9 +33,8 @@ use crate::nodes::elements::element_props;
 use crate::nodes::terminal::with_look;
 use crate::params::{Params, Values};
 use crate::recording::{
-    DEFAULT_ADDRESS_BAR, DEFAULT_FRAME_THEME, DEFAULT_TAKE_SPEED, DEFAULT_WINDOW_STYLE,
-    default_recording_props, follow_cursor_beats, host_window_style, idle_spans, point_rect,
-    recording_speed,
+    DEFAULT_ADDRESS_BAR, DEFAULT_FRAME_THEME, DEFAULT_TAKE_SPEED, default_recording_props,
+    follow_cursor_beats, host_window_style, idle_spans, point_rect, recording_speed,
 };
 use crate::registry::node_def;
 use crate::remap::{RemapSegment, eased_segments, remap_duration, remap_from_segments};
@@ -50,12 +45,11 @@ use crate::style::{restyle_with, retime_with};
 use crate::text::{display_address, format_duration, humanize, percent_text, plural};
 use crate::time::{EPSILON, ms_to_frames, recording_ms_to_frames, whole_frames};
 
-pub const FOLLOW_CURSOR_TYPE: &str = "camera.followCursor";
 pub const CLIP_FROM_TAKE_TYPE: &str = "camera.take";
 pub const CAMERA_TYPE: &str = "camera.camera";
-pub const SHOT_TYPE: &str = "camera.shot";
+pub const FRAME_TYPE: &str = "camera.frame";
+pub const CAMERA_MOVE_TYPE: &str = "camera.move";
 pub const MOTION_BLUR_TYPE: &str = "camera.motionBlur";
-pub const WINDOW_FRAME_TYPE: &str = "camera.windowFrame";
 pub const SPEED_RAMP_TYPE: &str = "camera.speedRamp";
 const CURSOR_STYLE_TYPE: &str = crate::nodes::cursor::CURSOR_STYLE_TYPE;
 
@@ -83,19 +77,8 @@ impl FrameChoice {
     }
 }
 
-#[settings]
-pub struct ClipFromTake {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[setting(
-        "Playback speed",
-        range(min = 0.25, max = 4),
-        step = 0.05,
-        unit = "×",
-        zero_label = "The take's usual",
-        help = "Browser takes usually play at 1.25×, terminal takes at 1×."
-    )]
-    pub speed: Option<f64>,
-}
+#[settings(eq)]
+pub struct ClipFromTake {}
 
 pub const fn usual_speed(kind: TakeKind) -> f64 {
     match kind {
@@ -104,15 +87,23 @@ pub const fn usual_speed(kind: TakeKind) -> f64 {
     }
 }
 
-impl ClipFromTake {
-    pub fn speed_for(&self, kind: TakeKind) -> f64 {
-        self.speed.unwrap_or_else(|| usual_speed(kind))
-    }
+#[choice]
+pub enum Follows {
+    #[default]
+    #[label("The actions")]
+    Actions,
+    #[label("The cursor")]
+    Cursor,
 }
 
 #[settings]
 pub struct Camera {
-    #[setting("Zoom to the actions", default = true)]
+    #[setting(
+        "Follows",
+        help = "The actions zooms to each action in turn. The cursor keeps the cursor in view, good for tall shapes."
+    )]
+    pub follows: Follows,
+    #[setting("Zoom to the actions", default = true, show_if = { "follows": ["actions"] })]
     pub zoom: bool,
     #[setting(
         "Maximum zoom",
@@ -121,7 +112,7 @@ pub struct Camera {
         step = 0.02,
         unit = "×",
         help = "Higher zooms closer but can look soft.",
-        show_if = { "zoom": ["true"] }
+        show_if = { "follows": ["actions"], "zoom": ["true"] }
     )]
     pub max_scale: f64,
     #[setting(
@@ -130,7 +121,7 @@ pub struct Camera {
         range(min = 0, max = 10000),
         step = 50,
         unit = "ms",
-        show_if = { "zoom": ["true"] }
+        show_if = { "follows": ["actions"], "zoom": ["true"] }
     )]
     pub hold: u32,
     #[setting(
@@ -139,7 +130,7 @@ pub struct Camera {
         range(min = 1, max = 2),
         step = 0.02,
         unit = "×",
-        show_if = { "zoom": ["true"] },
+        show_if = { "follows": ["actions"], "zoom": ["true"] },
         advanced
     )]
     pub min_scale: f64,
@@ -150,7 +141,7 @@ pub struct Camera {
         step = 0.02,
         unit = "×",
         help = "The first shot stays wider so the page is seen first.",
-        show_if = { "zoom": ["true"] },
+        show_if = { "follows": ["actions"], "zoom": ["true"] },
         advanced
     )]
     pub first_max_scale: f64,
@@ -160,7 +151,7 @@ pub struct Camera {
         range(min = 0, max = 400),
         step = 5,
         unit = "px",
-        show_if = { "zoom": ["true"] },
+        show_if = { "follows": ["actions"], "zoom": ["true"] },
         advanced
     )]
     pub room: u32,
@@ -171,7 +162,7 @@ pub struct Camera {
         step = 1,
         unit = "%",
         help = "How much of the frame the target and its room fill.",
-        show_if = { "zoom": ["true"] },
+        show_if = { "follows": ["actions"], "zoom": ["true"] },
         advanced
     )]
     pub target_share: u32,
@@ -181,7 +172,7 @@ pub struct Camera {
         range(min = 0, max = 0.5),
         step = 0.01,
         help = "How far a target sits from the middle, leaving room on the side it faces.",
-        show_if = { "zoom": ["true"] },
+        show_if = { "follows": ["actions"], "zoom": ["true"] },
         advanced
     )]
     pub off_centre: f64,
@@ -192,7 +183,7 @@ pub struct Camera {
         step = 100,
         unit = "ms",
         help = "Actions this close share one zoom.",
-        show_if = { "zoom": ["true"] },
+        show_if = { "follows": ["actions"], "zoom": ["true"] },
         advanced
     )]
     pub join_within_ms: u32,
@@ -203,7 +194,7 @@ pub struct Camera {
         step = 100,
         unit = "ms",
         help = "Shots this close stay zoomed in between.",
-        show_if = { "zoom": ["true"] },
+        show_if = { "follows": ["actions"], "zoom": ["true"] },
         advanced
     )]
     pub stay_zoomed_within_ms: u32,
@@ -213,7 +204,7 @@ pub struct Camera {
         range(min = 0, max = 5000),
         step = 50,
         unit = "ms",
-        show_if = { "zoom": ["true"] },
+        show_if = { "follows": ["actions"], "zoom": ["true"] },
         advanced
     )]
     pub hold_after_typing_ms: u32,
@@ -224,10 +215,37 @@ pub struct Camera {
         step = 50,
         unit = "ms",
         help = "Time zoomed out before the take ends.",
-        show_if = { "zoom": ["true"] },
+        show_if = { "follows": ["actions"], "zoom": ["true"] },
         advanced
     )]
     pub rest_at_end_ms: u32,
+    #[setting(
+        "Cursor zoom",
+        default = 1.35,
+        range(min = 1.1, max = 2.5),
+        step = 0.05,
+        unit = "×",
+        show_if = { "follows": ["cursor"] }
+    )]
+    pub cursor_scale: f64,
+    #[setting(
+        "Re-aim every",
+        default = 700,
+        range(min = 200, max = 5000),
+        step = 50,
+        unit = "ms",
+        show_if = { "follows": ["cursor"] },
+        advanced
+    )]
+    pub every_ms: u32,
+    #[setting(
+        "Zoom out on big jumps",
+        default = true,
+        help = "When the cursor jumps far, the camera zooms out and back in instead of sliding.",
+        show_if = { "follows": ["cursor"] },
+        advanced
+    )]
+    pub zoom_out_on_jumps: bool,
     #[setting(
         "Longest pan",
         default = 500,
@@ -272,244 +290,6 @@ impl Camera {
             easing: Some(self.camera_easing),
         }
     }
-}
-
-#[settings]
-pub struct Shot {
-    #[setting("Camera style", default = CameraStyle::Classic)]
-    pub style: CameraStyle,
-    #[setting("Ground colour", default = "#faf6f1", widget = "color", check = colour, show_if = { "style": ["stage"] })]
-    pub ground: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[setting(
-        "Window size",
-        range(min = 40, max = 100),
-        unit = "%",
-        zero_label = "The style's own",
-        help = "How much of the frame the window fills.",
-        show_if = { "style": ["classic", "stage"] },
-        "type" = "integer",
-        advanced
-    )]
-    pub window_size: Option<u32>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[setting(
-        "Window corners",
-        range(min = 0, max = 60),
-        unit = "px",
-        zero_label = "The frame's own",
-        show_if = { "style": ["classic", "stage"] },
-        "type" = "integer",
-        advanced
-    )]
-    pub corner_radius: Option<u32>,
-    #[setting(
-        "Window shadow",
-        default = 1.0,
-        range(min = 0, max = 1),
-        step = 0.05,
-        show_if = { "style": ["classic", "stage"] },
-        advanced
-    )]
-    pub shadow: f64,
-    #[setting(
-        "Lift the colours",
-        default = true,
-        help = "A touch more saturation, contrast and brightness on the screen.",
-        advanced
-    )]
-    pub lift_colours: bool,
-    #[setting(
-        "Background blur",
-        default = 48,
-        range(min = 0, max = 200),
-        step = 1,
-        unit = "px",
-        help = "Behind a full-page style in another shape.",
-        show_if = { "style": ["proof", "ledger"] },
-        advanced
-    )]
-    pub bleed_blur: u32,
-    #[setting(
-        "Background brightness",
-        default = 0.55,
-        range(min = 0, max = 1.5),
-        step = 0.05,
-        show_if = { "style": ["proof", "ledger"] },
-        advanced
-    )]
-    pub bleed_dim: f64,
-}
-
-impl Shot {
-    fn apply(&self, shot: ShotProps) -> ShotProps {
-        ShotProps {
-            style: self.style,
-            window_fit: self.window_size.map(|percent| f64::from(percent) / 100.0),
-            ground: Some(self.ground.clone()),
-            radius: self.corner_radius.map(f64::from),
-            rim_glow: Some(self.shadow),
-            lift_colours: Some(self.lift_colours),
-            bleed_blur: Some(f64::from(self.bleed_blur)),
-            bleed_dim: Some(self.bleed_dim),
-            ..shot
-        }
-    }
-}
-
-#[settings]
-pub struct ManualZoom {
-    #[setting(
-        "At",
-        default = 1000,
-        range(min = 0, max = 600_000),
-        step = 50,
-        unit = "ms"
-    )]
-    pub at_ms: u32,
-    #[setting(
-        "Hold",
-        default = 1500,
-        range(min = 100, max = 600_000),
-        step = 50,
-        unit = "ms"
-    )]
-    pub hold_ms: u32,
-    #[setting(
-        "Spot",
-        default = 0.5,
-        range(min = 0, max = 1),
-        step = 0.01,
-        widget = "spot",
-        time_key = "atMs",
-        help = "Click the frame to choose where to zoom."
-    )]
-    pub x: f64,
-    #[setting(
-        "Spot vertical",
-        default = 0.5,
-        range(min = 0, max = 1),
-        step = 0.01,
-        hidden
-    )]
-    pub y: f64,
-    #[setting(
-        "Zoom",
-        default = 1.5,
-        range(min = 1.1, max = 2.5),
-        step = 0.05,
-        unit = "×"
-    )]
-    pub scale: f64,
-    #[setting(
-        "Start moving before",
-        default = 400,
-        range(min = 0, max = 5000),
-        step = 50,
-        unit = "ms",
-        help = "How long before the moment the camera starts to move.",
-        advanced
-    )]
-    pub lead_ms: u32,
-}
-
-#[settings]
-pub struct Pan {
-    #[setting(
-        "Start at",
-        default = 1000,
-        range(min = 0, max = 600_000),
-        step = 50,
-        unit = "ms"
-    )]
-    pub at_ms: u32,
-    #[setting(
-        "Pan for",
-        default = 1500,
-        range(min = 100, max = 600_000),
-        step = 50,
-        unit = "ms"
-    )]
-    pub duration_ms: u32,
-    #[setting(
-        "From",
-        default = 0.3,
-        range(min = 0, max = 1),
-        step = 0.01,
-        widget = "spot",
-        time_key = "atMs",
-        help = "Click the frame to choose where to start."
-    )]
-    pub from_x: f64,
-    #[setting(
-        "From vertical",
-        default = 0.4,
-        range(min = 0, max = 1),
-        step = 0.01,
-        hidden
-    )]
-    pub from_y: f64,
-    #[setting(
-        "To",
-        default = 0.7,
-        range(min = 0, max = 1),
-        step = 0.01,
-        widget = "spot",
-        time_key = "atMs",
-        help = "Click the frame to choose where to end."
-    )]
-    pub to_x: f64,
-    #[setting(
-        "To vertical",
-        default = 0.6,
-        range(min = 0, max = 1),
-        step = 0.01,
-        hidden
-    )]
-    pub to_y: f64,
-    #[setting(
-        "Zoom",
-        default = 1.4,
-        range(min = 1.1, max = 2.5),
-        step = 0.05,
-        unit = "×"
-    )]
-    pub scale: f64,
-    #[setting(
-        "Zoom out for far moves",
-        default = true,
-        help = "When the spots are far apart, the camera zooms out and back in instead of sliding.",
-        advanced
-    )]
-    pub zoom_out_when_far: bool,
-}
-
-#[settings]
-pub struct FollowCursor {
-    #[setting(
-        "Zoom",
-        default = 1.35,
-        range(min = 1.1, max = 2.5),
-        step = 0.05,
-        unit = "×"
-    )]
-    pub scale: f64,
-    #[setting(
-        "Re-aim every",
-        default = 700,
-        range(min = 200, max = 5000),
-        step = 50,
-        unit = "ms",
-        advanced
-    )]
-    pub every_ms: u32,
-    #[setting(
-        "Zoom out on big jumps",
-        default = true,
-        help = "When the cursor jumps far, the camera zooms out and back in instead of sliding.",
-        advanced
-    )]
-    pub zoom_out_on_jumps: bool,
 }
 
 #[settings]
@@ -611,246 +391,6 @@ impl Params for Crop {
     }
 }
 
-#[choice]
-pub enum Device {
-    #[label("Laptop")]
-    Laptop,
-    #[label("Phone")]
-    Phone,
-}
-
-impl Device {
-    const fn icon(self) -> Icon {
-        match self {
-            Self::Laptop => Icon::Laptop,
-            Self::Phone => Icon::Smartphone,
-        }
-    }
-
-    const fn component(self) -> &'static str {
-        match self {
-            Self::Laptop => "laptop-frame",
-            Self::Phone => "phone-frame",
-        }
-    }
-}
-
-#[choice]
-pub enum DeviceEntrance {
-    #[label("Slide in")]
-    Rise,
-    #[label("Open up")]
-    Open,
-    #[label("None")]
-    None,
-}
-
-#[settings]
-pub struct DeviceFrame {
-    #[setting(
-        "Device",
-        default = Device::Laptop
-    )]
-    pub device: Device,
-    #[setting(
-        "Entrance",
-        default = DeviceEntrance::Open,
-        show_if = { "device": ["laptop"] }
-    )]
-    pub entrance: DeviceEntrance,
-    #[setting(
-        "Entrance",
-        default = PhoneEntrance::Rise,
-        show_if = { "device": ["phone"] }
-    )]
-    pub phone_entrance: PhoneEntrance,
-    #[setting(
-        "Angle",
-        default = PhoneVariant::Flat,
-        show_if = { "device": ["phone"] }
-    )]
-    pub variant: PhoneVariant,
-    #[setting(
-        "Theme",
-        default = Theme::of(ThemeMode::Dark),
-        transform = warm_themes,
-        widget = "theme"
-    )]
-    pub theme: Theme,
-    #[setting("Body colour", widget = "color", zero_label = "Theme", check = colour_or_empty, advanced)]
-    pub bezel_color: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[setting(
-        "Size",
-        range(min = 0.3, max = 1.5),
-        step = 0.05,
-        zero_label = "The device's usual"
-    )]
-    pub scale: Option<f64>,
-    #[setting("Notch", default = true, show_if = { "device": ["laptop"] }, advanced)]
-    pub show_notch: bool,
-    #[setting("Notch label", default = "Recording started", show_if = { "device": ["laptop"], "showNotch": ["true"] }, advanced)]
-    pub notch_label: String,
-    #[setting("Battery level", default = 85, range(min = 0, max = 100), unit = "%", show_if = { "device": ["laptop"], "showNotch": ["true"] }, advanced)]
-    pub battery_level: u32,
-    #[setting("Recording light", default = "#30D158", widget = "color", check = colour, show_if = { "device": ["laptop"], "showNotch": ["true"] }, advanced)]
-    pub indicator_color: String,
-    #[setting("Float", default = true, advanced)]
-    pub float_loop: bool,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[setting("Float amplitude", range(min = 0, max = 30), step = 1, zero_label = "The device's usual", show_if = { "floatLoop": ["true"] }, "type" = "integer", advanced)]
-    pub float_amplitude: Option<u32>,
-    #[setting("Lid tilt", default = 18, range(min = 0, max = 45), unit = "°", show_if = { "device": ["laptop"] }, advanced)]
-    pub rest_tilt: u32,
-    #[setting(
-        "Finale",
-        default = LaptopFinale::None,
-        show_if = { "device": ["laptop"] },
-        advanced
-    )]
-    pub finale: LaptopFinale,
-    #[setting("Shadow", zero_label = "The device's usual", advanced)]
-    pub shadow: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[setting("Corner radius", range(min = 0, max = 90), unit = "px", zero_label = "The device's usual", "type" = "integer", advanced)]
-    pub radius: Option<u32>,
-    #[setting("Turn", default = -12, range(min = -30, max = 30), unit = "°", show_if = { "device": ["phone"], "variant": ["tilt"] }, advanced)]
-    pub tilt_angle: i32,
-    #[setting("Dynamic island", default = true, show_if = { "device": ["phone"] }, advanced)]
-    pub show_dynamic_island: bool,
-}
-
-impl DeviceFrame {
-    fn element_values(&self) -> Values {
-        let laptop = self.device == Device::Laptop;
-        let mut values = Values::new();
-        let mut set = |key: &str, value: Value| {
-            values.insert(key.to_owned(), value);
-        };
-        set(
-            "theme",
-            serde_json::to_value(&self.theme).unwrap_or(Value::Null),
-        );
-        set("bezelColor", Value::from(self.bezel_color.clone()));
-        set(
-            "scale",
-            Value::from(self.scale.unwrap_or(if laptop { 0.95 } else { 1.0 })),
-        );
-        set("floatLoop", Value::from(self.float_loop));
-        set(
-            "floatAmplitude",
-            Value::from(self.float_amplitude.unwrap_or(if laptop { 4 } else { 6 })),
-        );
-        if !self.shadow.trim().is_empty() {
-            set("shadow", Value::from(self.shadow.clone()));
-        }
-        if let Some(radius) = self.radius {
-            set("radius", Value::from(radius));
-        } else if laptop {
-            set("radius", Value::from(22));
-        }
-        if laptop {
-            set(
-                "entrance",
-                serde_json::to_value(self.entrance).unwrap_or(Value::Null),
-            );
-            set("showNotch", Value::from(self.show_notch));
-            set("notchLabel", Value::from(self.notch_label.clone()));
-            set("batteryLevel", Value::from(self.battery_level));
-            set("indicatorColor", Value::from(self.indicator_color.clone()));
-            set("restTilt", Value::from(self.rest_tilt));
-            set(
-                "finale",
-                serde_json::to_value(self.finale).unwrap_or(Value::Null),
-            );
-        } else {
-            set(
-                "entrance",
-                serde_json::to_value(self.phone_entrance).unwrap_or(Value::Null),
-            );
-            set(
-                "variant",
-                serde_json::to_value(self.variant).unwrap_or(Value::Null),
-            );
-            set("tiltAngle", Value::from(self.tilt_angle));
-            set("showDynamicIsland", Value::from(self.show_dynamic_island));
-        }
-        values
-    }
-}
-
-#[choice]
-pub enum BackdropKind {
-    #[label("Studio image")]
-    Image,
-    #[label("Colour")]
-    Solid,
-    #[label("Gradient")]
-    Gradient,
-    #[label("Your image")]
-    Asset,
-}
-
-#[settings(check, eq)]
-pub struct BackdropStyle {
-    #[setting(
-        "Kind",
-        default = BackdropKind::Image
-    )]
-    pub kind: BackdropKind,
-    #[setting("Studio image", default = Backdrop::Glaze, show_if = { "kind": ["image"] })]
-    pub name: Backdrop,
-    #[setting("Colour", default = "#0b0b10", widget = "color", show_if = { "kind": ["solid"] })]
-    pub color: String,
-    #[setting(
-        "Gradient",
-        default = "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)",
-        widget = "gradient",
-        show_if = { "kind": ["gradient"] }
-    )]
-    pub gradient: String,
-    #[setting("Image", widget = "asset", accept = "image/*", show_if = { "kind": ["asset"] })]
-    pub asset: String,
-}
-
-impl Params for BackdropStyle {
-    fn check(&self) -> Result<(), SettingsError> {
-        match self.kind {
-            BackdropKind::Solid if !is_color(&self.color) => {
-                Err(SettingsError::rule("Pick a colour"))
-            }
-            BackdropKind::Gradient if self.gradient.trim().is_empty() => {
-                Err(SettingsError::rule("Pick a gradient"))
-            }
-            BackdropKind::Asset if self.asset.trim().is_empty() => {
-                Err(SettingsError::rule("Choose an image"))
-            }
-            _ => Ok(()),
-        }
-    }
-}
-
-impl BackdropStyle {
-    pub fn card_row(&self) -> CardRow {
-        match self.kind {
-            BackdropKind::Image => row(Icon::Image, humanize(self.name.id())),
-            BackdropKind::Solid => row(Icon::Palette, self.color.clone()),
-            BackdropKind::Gradient => row(Icon::Blend, "Gradient").titled(self.gradient.clone()),
-            BackdropKind::Asset if self.asset.is_empty() => missing(Icon::Image, "Choose an image"),
-            BackdropKind::Asset => row(Icon::Image, base_name(&self.asset)),
-        }
-    }
-
-    fn chosen(&self) -> Option<String> {
-        match self.kind {
-            BackdropKind::Image => Some(self.name.id().to_owned()),
-            BackdropKind::Solid => Some(self.color.clone()),
-            BackdropKind::Gradient => Some(self.gradient.clone()),
-            BackdropKind::Asset => (!self.asset.is_empty()).then(|| self.asset.clone()),
-        }
-    }
-}
-
 #[settings(eq)]
 pub struct MotionBlur {
     #[setting("Motion blur", default = true)]
@@ -867,32 +407,109 @@ pub struct MotionBlur {
     pub shutter_angle: u32,
 }
 
-#[settings(eq)]
-pub struct WindowFrame {
+#[choice]
+pub enum FrameKind {
+    #[default]
+    #[label("Window")]
+    Window,
+    #[label("Whole page")]
+    Page,
+    #[label("Device")]
+    Device,
+}
+
+#[choice]
+pub enum WindowShot {
+    #[default]
+    #[label("Floating")]
+    Classic,
+    #[label("On a stage")]
+    Stage,
+}
+
+impl WindowShot {
+    const fn style(self) -> CameraStyle {
+        match self {
+            Self::Classic => CameraStyle::Classic,
+            Self::Stage => CameraStyle::Stage,
+        }
+    }
+}
+
+#[choice]
+pub enum PageShot {
+    #[default]
+    #[label("Proof")]
+    Proof,
+    #[label("Ledger")]
+    Ledger,
+}
+
+impl PageShot {
+    const fn style(self) -> CameraStyle {
+        match self {
+            Self::Proof => CameraStyle::Proof,
+            Self::Ledger => CameraStyle::Ledger,
+        }
+    }
+}
+
+#[choice]
+pub enum BackgroundKind {
+    #[default]
+    #[label("The style's own")]
+    Own,
+    #[label("Studio image")]
+    Image,
+    #[label("Colour")]
+    Solid,
+    #[label("Gradient")]
+    Gradient,
+    #[label("Your image")]
+    Asset,
+}
+
+#[settings(check)]
+pub struct Frame {
+    #[setting("Kind")]
+    pub kind: FrameKind,
+    #[setting("Device", default = RecordingDevice::Laptop, show_if = { "kind": ["device"] })]
+    pub device: RecordingDevice,
+    #[setting("Camera style", show_if = { "kind": ["window"] })]
+    pub window_shot: WindowShot,
+    #[setting("Camera style", show_if = { "kind": ["page"] })]
+    pub page_shot: PageShot,
     #[setting(
         "Window style",
-        default = DEFAULT_WINDOW_STYLE
+        default = FrameChoice::Macos,
+        help = "None leaves the window without a frame or title bar.",
+        show_if = { "kind": ["window"] }
     )]
-    pub window_style: WindowStyle,
-    #[setting("Frame colour", default = DEFAULT_FRAME_THEME)]
+    pub window_style: FrameChoice,
+    #[setting(
+        "Frame colour",
+        default = DEFAULT_FRAME_THEME,
+        show_if = { "kind": ["window"], "windowStyle": ["macos", "windows", "linux"] }
+    )]
     pub frame_theme: FrameTheme,
     #[setting(
         "Title bar",
         default = DEFAULT_ADDRESS_BAR,
-        help = "Shows the page's address or the program's title in the title bar."
+        help = "Shows the page's address or the program's title in the title bar.",
+        show_if = { "kind": ["window"], "windowStyle": ["macos", "windows", "linux"] }
     )]
     pub title_bar: bool,
     #[setting(
         "Title bar text",
         zero_label = "The take's own",
         help = "Shown instead of the page's address or the program's title, such as app.example.com.",
-        show_if = { "titleBar": ["true"] }
+        show_if = { "kind": ["window"], "windowStyle": ["macos", "windows", "linux"], "titleBar": ["true"] }
     )]
     pub title: String,
     #[setting(
         "Show",
         default = AddressMode::Fixed,
-        show_if = { "titleBar": ["true"], "title": ["*"] },
+        show_if = { "kind": ["window"], "windowStyle": ["macos", "windows", "linux"], "titleBar": ["true"], "title": ["*"] },
         show_if_take = ["browser"],
         advanced
     )]
@@ -901,18 +518,361 @@ pub struct WindowFrame {
         "Title bar font",
         widget = "font",
         zero_label = "The computer's",
+        show_if = { "kind": ["window"], "windowStyle": ["macos", "windows", "linux"] },
         advanced
     )]
     pub font: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[setting(
+        "Window size",
+        range(min = 40, max = 100),
+        unit = "%",
+        zero_label = "The style's own",
+        help = "How much of the frame the window fills.",
+        show_if = { "kind": ["window"] },
+        "type" = "integer",
+        advanced
+    )]
+    pub window_size: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[setting(
+        "Window corners",
+        range(min = 0, max = 60),
+        unit = "px",
+        zero_label = "The frame's own",
+        show_if = { "kind": ["window"] },
+        "type" = "integer",
+        advanced
+    )]
+    pub corner_radius: Option<u32>,
+    #[setting(
+        "Window shadow",
+        default = 1.0,
+        range(min = 0, max = 1),
+        step = 0.05,
+        show_if = { "kind": ["window"] },
+        advanced
+    )]
+    pub shadow: f64,
+    #[setting("Background", show_if = { "kind": ["window"] })]
+    pub background: BackgroundKind,
+    #[setting("Studio image", default = Backdrop::Glaze, show_if = { "kind": ["window"], "background": ["image"] })]
+    pub backdrop: Backdrop,
+    #[setting("Colour", default = "#faf6f1", widget = "color", show_if = { "kind": ["window"], "background": ["solid"] })]
+    pub color: String,
+    #[setting(
+        "Gradient",
+        default = "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)",
+        widget = "gradient",
+        show_if = { "kind": ["window"], "background": ["gradient"] }
+    )]
+    pub gradient: String,
+    #[setting("Image", widget = "asset", accept = "image/*", show_if = { "kind": ["window"], "background": ["asset"] })]
+    pub asset: String,
+    #[setting(
+        "Background blur",
+        default = 48,
+        range(min = 0, max = 200),
+        step = 1,
+        unit = "px",
+        help = "Behind the whole page in another shape.",
+        show_if = { "kind": ["page"] },
+        advanced
+    )]
+    pub bleed_blur: u32,
+    #[setting(
+        "Background brightness",
+        default = 0.55,
+        range(min = 0, max = 1.5),
+        step = 0.05,
+        show_if = { "kind": ["page"] },
+        advanced
+    )]
+    pub bleed_dim: f64,
+    #[setting(
+        "Lift the colours",
+        default = true,
+        help = "A touch more saturation, contrast and brightness on the screen.",
+        advanced
+    )]
+    pub lift_colours: bool,
 }
 
-impl WindowFrame {
+impl Params for Frame {
+    fn check(&self) -> Result<(), SettingsError> {
+        if self.kind != FrameKind::Window {
+            return Ok(());
+        }
+        match self.background {
+            BackgroundKind::Solid if !is_color(&self.color) => {
+                Err(SettingsError::rule("Pick a colour"))
+            }
+            BackgroundKind::Gradient if self.gradient.trim().is_empty() => {
+                Err(SettingsError::rule("Pick a gradient"))
+            }
+            BackgroundKind::Asset if self.asset.trim().is_empty() => {
+                Err(SettingsError::rule("Choose an image"))
+            }
+            _ => Ok(()),
+        }
+    }
+}
+
+impl Frame {
     fn bar(&self) -> Bar<'_> {
         Bar {
             shown: self.title_bar,
             text: &self.title,
             mode: self.address_mode,
         }
+    }
+
+    fn chosen_background(&self) -> Option<String> {
+        match self.background {
+            BackgroundKind::Own => None,
+            BackgroundKind::Image => Some(self.backdrop.id().to_owned()),
+            BackgroundKind::Solid => Some(self.color.clone()),
+            BackgroundKind::Gradient => Some(self.gradient.clone()),
+            BackgroundKind::Asset => (!self.asset.is_empty()).then(|| self.asset.clone()),
+        }
+    }
+
+    fn background_row(&self) -> Option<CardRow> {
+        match self.background {
+            BackgroundKind::Own => None,
+            BackgroundKind::Image => Some(row(Icon::Image, humanize(self.backdrop.id()))),
+            BackgroundKind::Solid => Some(row(Icon::Palette, self.color.clone())),
+            BackgroundKind::Gradient => {
+                Some(row(Icon::Blend, "Gradient").titled(self.gradient.clone()))
+            }
+            BackgroundKind::Asset if self.asset.is_empty() => {
+                Some(missing(Icon::Image, "Choose an image"))
+            }
+            BackgroundKind::Asset => Some(row(Icon::Image, base_name(&self.asset))),
+        }
+    }
+
+    fn kind_row(&self) -> CardRow {
+        match self.kind {
+            FrameKind::Window if self.window_style == FrameChoice::None => row(
+                Icon::AppWindow,
+                format!("{} · no window frame", self.window_shot.label()),
+            ),
+            FrameKind::Window => row(
+                Icon::AppWindow,
+                format!(
+                    "{} · {} · {}",
+                    self.window_shot.label(),
+                    self.window_style.label(),
+                    humanize(frame_theme_name(self.frame_theme))
+                ),
+            ),
+            FrameKind::Page => row(
+                Icon::AppWindow,
+                format!("Whole page · {}", self.page_shot.label()),
+            ),
+            FrameKind::Device => row(
+                match self.device {
+                    RecordingDevice::Laptop => Icon::Laptop,
+                    RecordingDevice::Phone => Icon::Smartphone,
+                },
+                self.device.label(),
+            ),
+        }
+    }
+}
+
+fn framed(props: RecordingProps, p: &Frame) -> RecordingProps {
+    let style = match p.kind {
+        FrameKind::Window => p.window_shot.style(),
+        FrameKind::Page => p.page_shot.style(),
+        FrameKind::Device => props.shot.style,
+    };
+    let background = (p.kind == FrameKind::Window)
+        .then(|| p.chosen_background())
+        .flatten();
+    let shot = ShotProps {
+        style,
+        device: (p.kind == FrameKind::Device).then_some(p.device),
+        window_fit: p.window_size.map(|percent| f64::from(percent) / 100.0),
+        radius: p.corner_radius.map(f64::from),
+        rim_glow: Some(p.shadow),
+        lift_colours: Some(p.lift_colours),
+        bleed_blur: Some(f64::from(p.bleed_blur)),
+        bleed_dim: Some(p.bleed_dim),
+        backdrop_chosen: background.as_ref().map(|_| true),
+        backdrop: background.unwrap_or_else(|| props.shot.backdrop.clone()),
+        ..props.shot
+    };
+    let window = if p.kind == FrameKind::Window {
+        let bar = p.bar();
+        let text = bar.typed().map(str::to_owned);
+        WindowProps {
+            chrome: p.window_style.style().is_some(),
+            style: p.window_style.style(),
+            theme: Some(p.frame_theme),
+            font: crate::fonts::font_prop(&p.font),
+            bar: Some(bar.shown),
+            mode: text.as_ref().map(|_| bar.mode),
+            text,
+        }
+    } else {
+        props.window.clone()
+    };
+    RecordingProps {
+        shot,
+        window,
+        ..props
+    }
+}
+
+#[settings]
+pub struct CameraMove {
+    #[setting(
+        "At",
+        default = 1000,
+        range(min = 0, max = 600_000),
+        step = 50,
+        unit = "ms"
+    )]
+    pub at_ms: u32,
+    #[setting(
+        "Start from a spot",
+        help = "The camera starts on one spot and moves to the other. Off, it moves to the spot from wherever it is."
+    )]
+    pub from_spot: bool,
+    #[setting(
+        "From",
+        default = 0.3,
+        range(min = 0, max = 1),
+        step = 0.01,
+        widget = "spot",
+        time_key = "atMs",
+        help = "Click the frame to choose where to start.",
+        show_if = { "fromSpot": ["true"] }
+    )]
+    pub from_x: f64,
+    #[setting(
+        "From vertical",
+        default = 0.4,
+        range(min = 0, max = 1),
+        step = 0.01,
+        hidden
+    )]
+    pub from_y: f64,
+    #[setting(
+        "Move for",
+        default = 1500,
+        range(min = 100, max = 600_000),
+        step = 50,
+        unit = "ms",
+        show_if = { "fromSpot": ["true"] }
+    )]
+    pub move_ms: u32,
+    #[setting(
+        "To",
+        default = 0.5,
+        range(min = 0, max = 1),
+        step = 0.01,
+        widget = "spot",
+        time_key = "atMs",
+        help = "Click the frame to choose where the camera ends up."
+    )]
+    pub x: f64,
+    #[setting(
+        "To vertical",
+        default = 0.5,
+        range(min = 0, max = 1),
+        step = 0.01,
+        hidden
+    )]
+    pub y: f64,
+    #[setting(
+        "Zoom",
+        default = 1.5,
+        range(min = 1.1, max = 2.5),
+        step = 0.05,
+        unit = "×"
+    )]
+    pub scale: f64,
+    #[setting(
+        "Hold",
+        default = 1500,
+        range(min = 0, max = 600_000),
+        step = 50,
+        unit = "ms",
+        help = "How long the camera stays on the spot it ends on."
+    )]
+    pub hold_ms: u32,
+    #[setting(
+        "Start moving before",
+        default = 400,
+        range(min = 0, max = 5000),
+        step = 50,
+        unit = "ms",
+        help = "How long before the moment the camera starts to move.",
+        show_if = { "fromSpot": ["false"] },
+        advanced
+    )]
+    pub lead_ms: u32,
+    #[setting(
+        "Zoom out for far moves",
+        default = true,
+        help = "When the spots are far apart, the camera zooms out and back in instead of sliding.",
+        show_if = { "fromSpot": ["true"] },
+        advanced
+    )]
+    pub zoom_out_when_far: bool,
+}
+
+impl CameraMove {
+    fn spots(&self) -> Vec<FocusSpot> {
+        let at = f64::from(self.at_ms);
+        if !self.from_spot {
+            return vec![
+                FocusSpot {
+                    id: "a",
+                    t: at,
+                    x: self.x,
+                    y: self.y,
+                    t_depart: Some((at - f64::from(self.lead_ms)).max(0.0)),
+                },
+                FocusSpot {
+                    id: "b",
+                    t: at + f64::from(self.hold_ms),
+                    x: self.x,
+                    y: self.y,
+                    t_depart: None,
+                },
+            ];
+        }
+        let arrive = at + f64::from(self.move_ms);
+        let mut spots = vec![
+            FocusSpot {
+                id: "a",
+                t: at,
+                x: self.from_x,
+                y: self.from_y,
+                t_depart: None,
+            },
+            FocusSpot {
+                id: "b",
+                t: arrive,
+                x: self.x,
+                y: self.y,
+                t_depart: None,
+            },
+        ];
+        if self.hold_ms > 0 {
+            spots.push(FocusSpot {
+                id: "c",
+                t: arrive + f64::from(self.hold_ms),
+                x: self.x,
+                y: self.y,
+                t_depart: None,
+            });
+        }
+        spots
     }
 }
 
@@ -942,23 +902,6 @@ impl Bar<'_> {
             ),
             Some(address) => row(Icon::Link, display_address(address, false)),
         }
-    }
-}
-
-fn with_window_frame(props: RecordingProps, p: &WindowFrame) -> RecordingProps {
-    let bar = p.bar();
-    let text = bar.typed().map(str::to_owned);
-    RecordingProps {
-        window: WindowProps {
-            chrome: true,
-            style: Some(p.window_style),
-            theme: Some(p.frame_theme),
-            font: crate::fonts::font_prop(&p.font),
-            bar: Some(bar.shown),
-            mode: text.as_ref().map(|_| bar.mode),
-            text,
-        },
-        ..props
     }
 }
 
@@ -1082,7 +1025,15 @@ fn base_props(rec: &RecordingValue, log: ActionLog, speed: f64) -> Option<Record
         zoom: Camera::default().zoom,
         tuning: Camera::default().tuning(),
     };
-    props.shot = Shot::default().apply(props.shot);
+    let frame = Frame::default();
+    props.shot = ShotProps {
+        style: frame.window_shot.style(),
+        rim_glow: Some(frame.shadow),
+        lift_colours: Some(frame.lift_colours),
+        bleed_blur: Some(f64::from(frame.bleed_blur)),
+        bleed_dim: Some(frame.bleed_dim),
+        ..props.shot
+    };
     let blur = MotionBlur::default();
     props.shot.motion_blur = blur.enabled;
     props.shot.shutter_angle = Some(f64::from(blur.shutter_angle));
@@ -1102,20 +1053,30 @@ pub fn clip_from_take_props(
     restyle_with(props, &all).map(Some)
 }
 
+fn follows_cursor(entries: &[StyleEntry]) -> bool {
+    entries
+        .iter()
+        .rev()
+        .find(|e| e.kind == CAMERA_TYPE)
+        .and_then(|e| e.params.get("follows"))
+        .and_then(Value::as_str)
+        == Some("cursor")
+}
+
 fn style_warnings(ctx: &CardCtx<'_, ClipFromTake>) -> [Option<CardRow>; 2] {
     let no_track = ctx
         .inputs
         .takes
         .get(RECORDING_PORT)
         .is_some_and(|t| t.is_some_and(|t| t.kind == TakeKind::Browser && !t.cursor_track));
-    let styled = |kind: &str| {
-        ctx.inputs
-            .style
-            .get(STYLE_PORT)
-            .is_some_and(|s| s.iter().any(|t| t == kind))
-    };
+    let entries = ctx
+        .inputs
+        .style
+        .get(STYLE_PORT)
+        .map_or(&[][..], Vec::as_slice);
+    let styled = |kind: &str| entries.iter().any(|e| e.kind == kind);
     [
-        (no_track && styled(FOLLOW_CURSOR_TYPE)).then(|| {
+        (no_track && follows_cursor(entries)).then(|| {
             row(Icon::TriangleAlert, "The take has no cursor to follow")
                 .tone(Tone::Warn)
                 .titled("Set Cursor to Smooth on the Record take node.")
@@ -1142,7 +1103,8 @@ fn unused_styles(ctx: &CardCtx<'_, ClipFromTake>, kind: TakeKind) -> Vec<Option<
         .get(STYLE_PORT)
         .into_iter()
         .flatten()
-        .filter_map(|t| {
+        .filter_map(|e| {
+            let t = &e.kind;
             let def = node_def(t)?;
             let only = def.only_for?;
             (only != kind && !seen.contains(&t.as_str())).then(|| {
@@ -1163,16 +1125,42 @@ fn unused_styles(ctx: &CardCtx<'_, ClipFromTake>, kind: TakeKind) -> Vec<Option<
         .collect()
 }
 
+fn in_device(clip: ClipValue, node_id: &str, device: RecordingDevice) -> ClipValue {
+    let Some(meta) = element_meta(device.element()) else {
+        return clip;
+    };
+    let screened = patch_recordings(&clip, &|r| RecordingProps {
+        shot: ShotProps {
+            in_device: Some(true),
+            ..r.shot
+        },
+        ..r
+    });
+    let props = element_props(meta, &meta.default_props);
+    let group = GroupProps {
+        wrapper: Some(ElementRef {
+            component: meta.key.clone(),
+            props,
+        }),
+        ..GroupProps::default()
+    };
+    wrap_clip(
+        &screened,
+        &format!("{node_id}:device"),
+        group,
+        Some(clip.duration_in_frames),
+    )
+}
+
 fn clip_from_take() -> NodeDef {
     NodeDef::of::<ClipFromTake>(CLIP_FROM_TAKE_TYPE, "Clip from take", Category::Camera, Phase::Compile)
-        .describe("Turns a take into a clip, shot the way its style says: the window, the backdrop and the camera moves.")
+        .describe("Turns a take into a clip, shot the way its style says: the frame, the background and the camera moves. Browser takes play at 1.25×, terminal takes at their own speed; Speed changes it.")
         .inputs(vec![(RECORDING_PORT, port(PortType::Recording, "Recording")), (STYLE_PORT, opt(PortType::RecordingStyle, "Style"))])
         .outputs(vec![(CLIP_PORT, port(PortType::Clip, "Clip"))])
         .card(|ctx: &CardCtx<'_, ClipFromTake>| {
-            let p = &ctx.params;
             let take = ctx.inputs.takes.get(RECORDING_PORT).copied().flatten();
             let kind = take.map_or(TakeKind::Browser, |t| t.kind);
-            let speed = p.speed_for(kind);
+            let speed = usual_speed(kind);
             let styles = ctx.inputs.style.get(STYLE_PORT).map_or(0, Vec::len);
             let [follow, cursor] = style_warnings(ctx);
             let mut rows = vec![
@@ -1182,13 +1170,11 @@ fn clip_from_take() -> NodeDef {
             ];
             rows.extend(unused_styles(ctx, kind));
             rows.push(Some(row(Icon::Palette, if styles == 0 { "The usual style".to_owned() } else { plural(numbers::float(styles), "style setting") }).muted_if(styles == 0)));
-            rows.push((!exact_eq(speed, 1.0)).then(|| row(Icon::Gauge, format!("{speed}× speed"))));
             rows
         })
         .compile(|ctx: &Ctx<'_, ClipFromTake>| {
-            let p = &ctx.params;
             let rec = ctx.input(RECORDING_PORT).and_then(CompileValue::as_recording);
-            let speed = p.speed_for(rec.map_or(TakeKind::Browser, RecordingValue::kind));
+            let speed = usual_speed(rec.map_or(TakeKind::Browser, RecordingValue::kind));
             let mut entries = entries_of(ctx.input(STYLE_PORT));
             entries.extend(rec.map_or_default(|r| r.edits.clone()));
             let duration_ms = rec.map_or(DEFAULT_TAKE_MS, |r| r.duration_ms);
@@ -1208,16 +1194,32 @@ fn clip_from_take() -> NodeDef {
                 );
                 return Ok(Some(outputs([(CLIP_PORT, CompileValue::Clip(retime_with(placeholder, &entries, ctx.settings.fps)?))])));
             };
+            let device = props.shot.device;
             let clip = recording_clip(ctx.node_id, props, frames, ItemExtra { recording: Some(rec.clone()), ..ItemExtra::default() });
-            Ok(Some(outputs([(CLIP_PORT, CompileValue::Clip(retime_with(clip, &entries, ctx.settings.fps)?))])))
+            let clip = retime_with(clip, &entries, ctx.settings.fps)?;
+            let clip = match device {
+                Some(device) => in_device(clip, ctx.node_id, device),
+                None => clip,
+            };
+            Ok(Some(outputs([(CLIP_PORT, CompileValue::Clip(clip))])))
         })
 }
 
 fn camera_node() -> NodeDef {
     NodeDef::style_modifier::<Camera>(CAMERA_TYPE, "Camera", Category::Camera)
-        .describe("How the camera follows the take: when it zooms to the actions, how close and how fast it moves.")
+        .describe("How the camera follows the take: zooming to each action or keeping the cursor in view, how close and how fast it moves.")
         .card(|ctx: &CardCtx<'_, Camera>| {
             let p = &ctx.params;
+            if p.follows == Follows::Cursor {
+                return vec![Some(row(
+                    Icon::LocateFixed,
+                    format!(
+                        "Follows the cursor · {}× · re-aim every {}",
+                        p.cursor_scale,
+                        format_duration(f64::from(p.every_ms))
+                    ),
+                ))];
+            }
             vec![
                 Some(if p.zoom {
                     row(Icon::ZoomIn, format!("Up to {}×", p.max_scale))
@@ -1227,28 +1229,22 @@ fn camera_node() -> NodeDef {
                 p.zoom.then(|| row(Icon::Hourglass, format!("Hold {}", format_duration(f64::from(p.hold))))),
             ]
         })
-        .restyle(|props: RecordingProps, p: &Camera, _| RecordingProps {
-            camera: CameraProps {
-                zoom: p.zoom,
-                tuning: p.tuning(),
-            },
-            ..props
-        })
-}
-
-fn shot_node() -> NodeDef {
-    NodeDef::style_modifier::<Shot>(SHOT_TYPE, "Shot", Category::Camera)
-        .describe("How the take sits in the frame: a floating window, the whole page, or a window on a plain ground.")
-        .card(|ctx: &CardCtx<'_, Shot>| {
-            let p = &ctx.params;
-            vec![
-                Some(row(Icon::AppWindow, p.style.label())),
-                p.window_size.map(|size| row(Icon::Maximize, format!("{size}% of the frame"))),
-            ]
-        })
-        .restyle(|props: RecordingProps, p: &Shot, _| RecordingProps {
-            shot: p.apply(props.shot.clone()),
-            ..props
+        .restyle(|props: RecordingProps, p: &Camera, node_id| {
+            let mut props = RecordingProps {
+                camera: CameraProps {
+                    zoom: p.zoom && p.follows == Follows::Actions,
+                    tuning: p.tuning(),
+                },
+                ..props
+            };
+            if p.follows == Follows::Cursor {
+                if !p.zoom_out_on_jumps {
+                    props.camera.tuning.longest_pan_px = Some(NO_PAN_LIMIT_PX);
+                }
+                let beats = follow_cursor_beats(&props.log, p.cursor_scale, f64::from(p.every_ms), node_id);
+                props.extra_beats.extend(beats);
+            }
+            props
         })
 }
 
@@ -1307,125 +1303,42 @@ fn apply_style() -> NodeDef {
     })
 }
 
-fn manual_zoom() -> NodeDef {
-    NodeDef::recording_modifier::<ManualZoom>("camera.manualZoom", "Zoom here", Category::Camera)
-        .describe("Zooms to a spot of your choice at a set time.")
-        .card(|ctx: &CardCtx<'_, ManualZoom>| {
+fn camera_move() -> NodeDef {
+    NodeDef::recording_modifier::<CameraMove>(CAMERA_MOVE_TYPE, "Camera move", Category::Camera)
+        .describe("Moves the camera to a spot of your choice at a set time, from wherever it is or from another spot, and holds there.")
+        .card(|ctx: &CardCtx<'_, CameraMove>| {
             let p = &ctx.params;
+            let at = format_duration(f64::from(p.at_ms));
             vec![
-                Some(row(
-                    Icon::ZoomIn,
-                    format!("{}× at {}", p.scale, format_duration(f64::from(p.at_ms))),
-                )),
-                Some(row(
-                    Icon::Hourglass,
-                    format!("Hold {}", format_duration(f64::from(p.hold_ms))),
-                )),
+                Some(if p.from_spot {
+                    row(
+                        Icon::Move,
+                        format!(
+                            "{at} → {} · {}×",
+                            format_duration(f64::from(p.at_ms + p.move_ms)),
+                            p.scale
+                        ),
+                    )
+                } else {
+                    row(Icon::ZoomIn, format!("{}× at {at}", p.scale))
+                }),
+                (p.hold_ms > 0).then(|| {
+                    row(
+                        Icon::Hourglass,
+                        format!("Hold {}", format_duration(f64::from(p.hold_ms))),
+                    )
+                }),
                 take_row(
                     ctx.inputs.takes.get(RECORDING_PORT).copied().flatten(),
                     p.at_ms,
                 ),
             ]
         })
-        .restyle(|props: RecordingProps, p: &ManualZoom, node_id| {
-            let (at, hold) = (f64::from(p.at_ms), f64::from(p.hold_ms));
-            focus_beats(
-                props,
-                node_id,
-                "zoom",
-                p.scale,
-                &[
-                    FocusSpot {
-                        id: "a",
-                        t: at,
-                        x: p.x,
-                        y: p.y,
-                        t_depart: Some((at - f64::from(p.lead_ms)).max(0.0)),
-                    },
-                    FocusSpot {
-                        id: "b",
-                        t: at + hold,
-                        x: p.x,
-                        y: p.y,
-                        t_depart: None,
-                    },
-                ],
-            )
-        })
-}
-
-fn pan() -> NodeDef {
-    NodeDef::recording_modifier::<Pan>("camera.pan", "Pan", Category::Camera)
-        .describe("Moves the camera from one spot to another.")
-        .card(|ctx: &CardCtx<'_, Pan>| {
-            let p = &ctx.params;
-            vec![
-                Some(row(
-                    Icon::Move,
-                    format!(
-                        "{} → {}",
-                        format_duration(f64::from(p.at_ms)),
-                        format_duration(f64::from(p.at_ms + p.duration_ms))
-                    ),
-                )),
-                Some(row(Icon::ZoomIn, format!("{}×", p.scale))),
-                take_row(
-                    ctx.inputs.takes.get(RECORDING_PORT).copied().flatten(),
-                    p.at_ms,
-                ),
-            ]
-        })
-        .restyle(|mut props: RecordingProps, p: &Pan, node_id| {
-            if !p.zoom_out_when_far {
+        .restyle(|mut props: RecordingProps, p: &CameraMove, node_id| {
+            if p.from_spot && !p.zoom_out_when_far {
                 props.camera.tuning.longest_pan_px = Some(NO_PAN_LIMIT_PX);
             }
-            let at = f64::from(p.at_ms);
-            focus_beats(
-                props,
-                node_id,
-                "pan",
-                p.scale,
-                &[
-                    FocusSpot {
-                        id: "a",
-                        t: at,
-                        x: p.from_x,
-                        y: p.from_y,
-                        t_depart: None,
-                    },
-                    FocusSpot {
-                        id: "b",
-                        t: at + f64::from(p.duration_ms),
-                        x: p.to_x,
-                        y: p.to_y,
-                        t_depart: None,
-                    },
-                ],
-            )
-        })
-}
-
-fn follow_cursor() -> NodeDef {
-    NodeDef::style_modifier::<FollowCursor>(FOLLOW_CURSOR_TYPE, "Follow cursor", Category::Camera)
-        .describe("Keeps the camera on the cursor, good for tall formats.")
-        .card(|ctx: &CardCtx<'_, FollowCursor>| {
-            let p = &ctx.params;
-            vec![Some(row(
-                Icon::LocateFixed,
-                format!(
-                    "{}× · re-aim every {}",
-                    p.scale,
-                    format_duration(f64::from(p.every_ms))
-                ),
-            ))]
-        })
-        .restyle(|mut props: RecordingProps, p: &FollowCursor, node_id| {
-            if !p.zoom_out_on_jumps {
-                props.camera.tuning.longest_pan_px = Some(NO_PAN_LIMIT_PX);
-            }
-            let beats = follow_cursor_beats(&props.log, p.scale, f64::from(p.every_ms), node_id);
-            props.extra_beats.extend(beats);
-            props
+            focus_beats(props, node_id, "move", p.scale, &p.spots())
         })
 }
 
@@ -1534,67 +1447,21 @@ fn crop() -> NodeDef {
         })
 }
 
-fn device_frame() -> NodeDef {
-    NodeDef::clip_modifier::<DeviceFrame>("camera.deviceFrame", "Device frame", Category::Camera)
-        .describe("Puts the video inside a laptop or phone.")
-        .card(|ctx: &CardCtx<'_, DeviceFrame>| {
+fn frame_node() -> NodeDef {
+    NodeDef::style_modifier::<Frame>(FRAME_TYPE, "Frame", Category::Camera)
+        .describe("How the take sits in the frame: a window with its title bar on a background, the whole page, or the screen of a laptop or phone.")
+        .card(|ctx: &CardCtx<'_, Frame>| {
             let p = &ctx.params;
             vec![
-                Some(row(p.device.icon(), p.device.label())),
-                (p.device == Device::Laptop && p.entrance != DeviceEntrance::None)
-                    .then(|| row(Icon::Sparkles, p.entrance.label())),
+                Some(p.kind_row()),
+                (p.kind == FrameKind::Window && p.window_style != FrameChoice::None).then(|| p.bar().row()),
+                (p.kind == FrameKind::Window).then(|| p.background_row()).flatten(),
+                (p.kind == FrameKind::Window)
+                    .then(|| p.window_size.map(|size| row(Icon::Maximize, format!("{size}% of the frame"))))
+                    .flatten(),
             ]
         })
-        .compiles(|ctx: &Ctx<'_, DeviceFrame>| {
-            let p = &ctx.params;
-            with_clip(ctx, |clip| {
-                let props = element_meta(p.device.component()).map_or_else(Map::new, |meta| {
-                    let mut values = meta.default_props.clone();
-                    values.extend(p.element_values());
-                    element_props(meta, &values)
-                });
-                let screened = patch_recordings(clip, &|r| RecordingProps {
-                    shot: ShotProps {
-                        in_device: Some(true),
-                        ..r.shot
-                    },
-                    ..r
-                });
-                let wrapper = ElementRef {
-                    component: p.device.component().to_owned(),
-                    props,
-                };
-                wrap_clip(
-                    &screened,
-                    ctx.node_id,
-                    GroupProps {
-                        wrapper: Some(wrapper),
-                        ..GroupProps::default()
-                    },
-                    Some(clip.duration_in_frames),
-                )
-            })
-        })
-}
-
-fn window_frame() -> NodeDef {
-    NodeDef::style_modifier::<WindowFrame>(WINDOW_FRAME_TYPE, "Window frame", Category::Camera)
-        .describe("Draws a browser window's title bar around the recording.")
-        .card(|ctx: &CardCtx<'_, WindowFrame>| {
-            let p = &ctx.params;
-            vec![
-                Some(row(
-                    Icon::AppWindow,
-                    format!(
-                        "{} · {}",
-                        p.window_style.label(),
-                        humanize(frame_theme_name(p.frame_theme))
-                    ),
-                )),
-                Some(p.bar().row()),
-            ]
-        })
-        .restyle(|props: RecordingProps, p: &WindowFrame, _| with_window_frame(props, p))
+        .restyle(|props: RecordingProps, p: &Frame, _| framed(props, p))
         .host_defaults(|platform: Platform| {
             let mut values = Values::new();
             values.insert(
@@ -1603,25 +1470,6 @@ fn window_frame() -> NodeDef {
             );
             values
         })
-}
-
-fn backdrop() -> NodeDef {
-    NodeDef::style_modifier::<BackdropStyle>("camera.backdrop", "Backdrop", Category::Camera)
-        .describe("The background behind the floating window: a studio image, colour or gradient.")
-        .card(|ctx: &CardCtx<'_, BackdropStyle>| vec![Some(ctx.params.card_row())])
-        .restyle(
-            |props: RecordingProps, p: &BackdropStyle, _| match p.chosen() {
-                Some(chosen) => RecordingProps {
-                    shot: ShotProps {
-                        backdrop: chosen,
-                        backdrop_chosen: Some(true),
-                        ..props.shot
-                    },
-                    ..props
-                },
-                None => props,
-            },
-        )
 }
 
 fn motion_blur() -> NodeDef {
@@ -1644,17 +1492,13 @@ pub fn nodes() -> Vec<NodeDef> {
     vec![
         clip_from_take().look(NodeLook::of("tabler:movie")),
         camera_node().look(NodeLook::of("lucide:scan-search")),
-        shot_node().look(NodeLook::of("lucide:frame")),
+        frame_node().look(NodeLook::of("lucide:app-window-mac")),
         apply_style().look(NodeLook::of("lucide:paint-roller")),
-        manual_zoom().look(NodeLook::of("lucide:zoom-in")),
-        pan().look(NodeLook::of("lucide:move").moves(NodeMotion::Pan)),
-        follow_cursor().look(NodeLook::of("lucide:crosshair").moves(NodeMotion::Track)),
+        camera_move().look(NodeLook::of("lucide:move").moves(NodeMotion::Pan)),
         idle_speedup().look(NodeLook::of("lucide:skip-forward").moves(NodeMotion::NudgeRight)),
         speed_ramp().look(NodeLook::of("lucide:chart-spline")),
         crop().look(NodeLook::of("lucide:crop")),
-        device_frame().look(NodeLook::of("lucide:laptop").morphs("lucide:smartphone")),
-        window_frame().look(NodeLook::of("lucide:app-window-mac")),
-        backdrop().look(NodeLook::of("tabler:background")),
+        crate::nodes::device_frame::device_frame(),
         motion_blur().look(NodeLook::of("lucide:wind").moves(NodeMotion::Smear)),
     ]
 }

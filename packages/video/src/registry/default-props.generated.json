@@ -3,9 +3,6 @@
     "eyebrow": "",
     "title": "Sign up in 10 seconds",
     "subtitle": "",
-    "mark": "",
-    "markLook": "underline",
-    "markColor": "#facc15",
     "align": "center",
     "entrance": "rise",
     "color": "#fafafa",
@@ -20,11 +17,7 @@
     "eyebrowUppercase": true,
     "subtitleSize": 0.34,
     "letterSpacing": -0.035,
-    "lineStagger": 1.0,
-    "markThickness": 0.045,
-    "markerOpacity": 55.0,
-    "markSeed": 1,
-    "markDrawTime": 0.45
+    "lineStagger": 1.0
   },
   "kinetic-headline": {
     "text": "Ship *faster* with demos that *move*",
@@ -102,7 +95,7 @@
     "kenBurnsZoom": 1.06,
     "kenBurns": false
   },
-  "mosaic": {
+  "redact": {
     "boxes": [
       {
         "x": 0.62,
@@ -112,7 +105,11 @@
       }
     ],
     "frameMs": 0,
-    "blockSize": 24
+    "style": "pixelate",
+    "blockSize": 24,
+    "blur": 16.0,
+    "color": "#000000",
+    "radius": 0.0
   },
   "lottie": {
     "src": "",
@@ -130,7 +127,9 @@
     "muted": true,
     "volume": 1.0,
     "playbackRate": 1.0,
-    "trimBeforeMs": 0
+    "trimBeforeMs": 0,
+    "dimColor": "#000000",
+    "dim": 0.0
   },
   "solid": {
     "color": "#09090b"
@@ -173,14 +172,6 @@
   },
   "backdrop": {
     "name": "glaze"
-  },
-  "video-loop": {
-    "src": "",
-    "dim": 0.3,
-    "dimColor": "#000000",
-    "fit": "cover",
-    "playbackRate": 1.0,
-    "trimBeforeMs": 0
   },
   "light-leak": {
     "seed": 3,
@@ -363,19 +354,6 @@
     "blinkRate": 1.0,
     "align": "center"
   },
-  "shimmer-sweep": {
-    "text": "Generating",
-    "baseColor": "#3f3f46",
-    "shineColor": "#fafafa",
-    "fontSize": 96,
-    "fontWeight": "700",
-    "background": "white",
-    "letterSpacing": -0.03,
-    "speed": 1.0,
-    "sweeps": 1,
-    "bandAngle": 110.0,
-    "bandWidth": 40.0
-  },
   "matrix-decode": {
     "text": "DECRYPTED",
     "charset": "!@#$%^&*()_+-=<>?/\\|",
@@ -412,19 +390,6 @@
     "letterSpacing": -0.03,
     "speed": 1.0,
     "wordDuration": 12.0
-  },
-  "kinetic-center-build": {
-    "text": "Words push left.",
-    "entryOffset": 88,
-    "fontSize": 72,
-    "color": "#171717",
-    "fontWeight": "600",
-    "background": "white",
-    "letterSpacing": -0.03,
-    "speed": 1.0,
-    "wordGap": 10,
-    "wordTime": 13.0,
-    "entryBlur": 3.5
   },
   "mask-reveal-up": {
     "text": "Designed to move.\nBuilt to focus.",
@@ -505,19 +470,6 @@
     "compactWidth": 87.0,
     "gradientSpread": 26.0
   },
-  "strikethrough-replace": {
-    "from": "$49/mo",
-    "to": "Free",
-    "lineColor": "#ff5e3a",
-    "fontSize": 96,
-    "color": "#171717",
-    "fontWeight": "700",
-    "background": "white",
-    "letterSpacing": -0.03,
-    "speed": 1.0,
-    "strikeEnd": 0.4,
-    "swapLength": 0.2
-  },
   "line-by-line-slide": {
     "text": "Record once.\nShare everywhere.",
     "distance": 48,
@@ -531,36 +483,6 @@
     "lineStagger": 4.0,
     "exit": true,
     "letterSpacing": -0.03
-  },
-  "marker-highlight": {
-    "before": "Made for ",
-    "highlight": "builders",
-    "after": ".",
-    "markerColor": "#facc15",
-    "baseColor": "#171717",
-    "highlightedTextColor": "#171717",
-    "fontSize": 72,
-    "fontWeight": "600",
-    "background": "white",
-    "y": 0.5,
-    "speed": 1.0,
-    "markerAt": 15.0,
-    "markerHeight": 1.0,
-    "x": 0.5
-  },
-  "inline-highlight": {
-    "before": "Ship faster with ",
-    "highlight": "Acme",
-    "after": ".",
-    "baseColor": "#171717",
-    "highlightColor": "#ff5e3a",
-    "fontSize": 72,
-    "fontWeight": "600",
-    "background": "white",
-    "letterSpacing": -0.03,
-    "speed": 1.0,
-    "changeStart": 0.2,
-    "changeEnd": 0.7
   },
   "ink-underline": {
     "width": 420,
@@ -1437,138 +1359,7 @@
     "top": 18.0,
     "radius": 10
   },
-  "release-teaser": {
-    "brandName": "Orvio",
-    "release": "2",
-    "tagline": "Your next chapter starts here.",
-    "accentColor": "#9BC8DD",
-    "reducedMotion": false,
-    "statements": [
-      "Start with an idea",
-      "Make room\nfor better work",
-      "Bring every detail to life",
-      "Move together.\nGo further.",
-      "A fresh chapter.\nNo starting over."
-    ],
-    "logoSize": 34,
-    "themeBackground": "#050709",
-    "themeSurface": "#151C22",
-    "themeForeground": "#F2F5F7",
-    "themeMuted": "#A4ADB5",
-    "lightIntensity": 1.0,
-    "statementWeight": 500,
-    "musicVolume": 1.0,
-    "textSize": 1.0
-  },
-  "launch-anything": {
-    "opening": "Good",
-    "subject": "ideas",
-    "brandUrl": "yourproduct.example",
-    "accentColor": "#245744",
-    "copyReady": "deserve a stage",
-    "copyNext": "Let’s make",
-    "copyAction": "them real",
-    "copyProof": "Your work.\nA clearer view.",
-    "copyIndustry": "Built around you",
-    "copyPromise": "Made to be yours.",
-    "copyLaunch": "Begin",
-    "copyShoppers": "Small things. Well made.",
-    "copyShopName": "Object Study",
-    "copyShopHeadline": "Everyday, considered.",
-    "copyShopDetail": "Useful objects. Quiet details.",
-    "copyShopAction": "Explore the objects",
-    "copyBuilder": "Turn a brief into a workspace",
-    "copyBuilderPrompt": "Create a workspace for our next product release",
-    "copyTrading": "Review once.\nMove forward.",
-    "copyLoyalty": "A place for every idea",
-    "copyLoyaltyPayoff": "Room for the next one",
-    "copyIntegration": "Bring your work together",
-    "copyConnections": "Connect your tools.\nKeep work moving.",
-    "copyIntegrations": [
-      "Files",
-      "Messages",
-      "Calendar"
-    ],
-    "copyIdeasNote": "Collect ideas. Connect the details.",
-    "copyIdeasCard": "Project notes",
-    "reviewRows": [
-      {
-        "label": "Files reviewed",
-        "value": "12 files"
-      },
-      {
-        "label": "Comments resolved",
-        "value": "28 / 28"
-      },
-      {
-        "label": "Contributors",
-        "value": "4 people"
-      },
-      {
-        "label": "Next milestone",
-        "value": "Ready to share"
-      }
-    ],
-    "copyReviewButtons": [
-      "Approve",
-      "Revise"
-    ],
-    "copyReviewProject": "Autumn release",
-    "copyReviewTitle": "Review activity",
-    "copyShopNote": "A collection for slower mornings.",
-    "dashboardActivity": [
-      "Brief approved",
-      "Review completed",
-      "Project completed",
-      "Files organized",
-      "Milestone reached"
-    ],
-    "copyActivityTitle": "Recent activity",
-    "copyMomentum": "Project momentum",
-    "dashboardStats": [
-      {
-        "label": "Tasks closed",
-        "value": "128"
-      },
-      {
-        "label": "Active projects",
-        "value": "12"
-      },
-      {
-        "label": "On track",
-        "value": "92%"
-      }
-    ],
-    "logoImages": [],
-    "copyDashboardNote": "Demo workspace · this month",
-    "copyDashboardPeriod": "This month",
-    "musicVolume": 1.0,
-    "fontFamily": "\"Manrope\", sans-serif",
-    "nightColor": "#122d24",
-    "paperColor": "#faf6ec",
-    "lightTextColor": "#fff9f3",
-    "inkColor": "#17392b",
-    "sageColor": "#497761",
-    "openingShimmer": 1.0,
-    "openingSize": 430,
-    "headlineWeight": 500,
-    "textSize": 1.0,
-    "photoDimming": 0.66,
-    "logoSize": 64,
-    "copyAppName": "Workroom",
-    "copyDashboardMenu": [
-      "Workspace",
-      "Overview",
-      "Milestones",
-      "Projects",
-      "Teammates",
-      "Reports",
-      "Settings"
-    ],
-    "copyDashboard": "Your week, in focus"
-  },
   "laptop-frame": {
-    "screenSrc": "app:placeholders/screen-wide.svg",
     "entrance": "open",
     "finale": "zoom-to-screen",
     "notchLabel": "Recording started",
@@ -1587,18 +1378,16 @@
       "colors": {}
     },
     "indicatorColor": "#30D158",
-    "screenKind": "image",
+    "notchLabelSize": 12,
     "speed": 1.0,
     "notchAt": 120.0,
     "zoomAt": 140.0,
     "zoomLength": 45.0,
-    "floatPeriod": 5.0,
-    "notchLabelSize": 12
+    "floatPeriod": 5.0
   },
   "phone-frame": {
-    "variant": "showcase",
+    "variant": "flat",
     "entrance": "float",
-    "screenSrc": "app:placeholders/screen-tall.svg",
     "bezelColor": "#C7C9CE",
     "screenColor": "#0A0A0B",
     "radius": 53,
@@ -1613,43 +1402,8 @@
       "mode": "dark",
       "colors": {}
     },
-    "screenKind": "image",
-    "speed": 1.0,
-    "floatPeriod": 4.5
-  },
-  "captured-video": {
-    "src": "app:placeholders/screen-wide.svg",
-    "cropTop": 0.0,
-    "cropRight": 0.0,
-    "cropBottom": 0.0,
-    "cropLeft": 0.0,
-    "fit": "cover",
-    "speed": 1.0,
-    "entrance": "fade",
-    "radius": 0,
-    "trimBefore": 0,
-    "audio": false,
-    "theme": {
-      "mode": "dark",
-      "colors": {}
-    },
-    "camera": [
-      {
-        "at": 34.0,
-        "duration": 25.0,
-        "zoom": 1.6,
-        "x": 0.36,
-        "y": 0.42
-      },
-      {
-        "at": 96.0,
-        "duration": 25.0,
-        "zoom": 1.0,
-        "x": 0.5,
-        "y": 0.5
-      }
-    ],
-    "srcKind": "image"
+    "floatPeriod": 4.5,
+    "speed": 1.0
   },
   "announce-title": {
     "eyebrow": "Introducing",
@@ -1717,35 +1471,32 @@
     "fit": 0.92
   },
   "text-highlight": {
-    "before": "Powered by ",
-    "highlight": "Northwind",
-    "after": "",
-    "preset": "logo-wipe",
-    "markGap": 0.3,
+    "preset": "marker",
+    "before": "Made for ",
+    "highlight": "builders",
+    "after": ".",
+    "replaceWith": "Free",
+    "textWidth": 80.0,
     "accentColor": "#266DF0",
-    "shineWidth": 40.0,
-    "replaceWith": "Acme",
+    "lineHeight": 1.25,
     "startAt": 6.0,
     "drawDuration": 14.0,
+    "swapLength": 7.0,
     "thickness": 4,
     "markerOpacity": 16.0,
-    "logoSrc": "app:placeholders/logo-mark.svg",
-    "logoScale": 1.05,
-    "spinTurns": 1.0,
-    "holdDuration": 12.0,
-    "rushDuration": 24.0,
-    "rushScale": 42,
-    "rushDrift": 0.55,
-    "swingOut": 0.25,
-    "textWidth": 80.0,
+    "markerHeight": 1.0,
+    "letterSpacing": -0.02,
+    "shineWidth": 40.0,
+    "sweeps": 1,
+    "bandAngle": 110.0,
     "fontSize": 56,
     "fontWeight": "600",
     "theme": {
       "mode": "dark",
       "colors": {}
     },
-    "lineHeight": 1.25,
-    "letterSpacing": -0.02,
+    "y": 0.5,
+    "x": 0.5,
     "speed": 1.0
   },
   "status-cycle": {
@@ -2306,111 +2057,6 @@
     "showNeedle": true,
     "uppercaseLabel": true
   },
-  "data-story": {
-    "title": "Quarterly reach by channel",
-    "subtitle": "Short-form climbed while long-form held attention",
-    "barData": [
-      {
-        "label": "Mobile",
-        "value": 124000.0,
-        "delta": "+32%"
-      },
-      {
-        "label": "Web",
-        "value": 82000.0,
-        "delta": "+11%"
-      },
-      {
-        "label": "Desktop",
-        "value": 64000.0,
-        "delta": "+4%"
-      },
-      {
-        "label": "API",
-        "value": 48000.0,
-        "delta": "-6%"
-      }
-    ],
-    "metrics": [
-      {
-        "label": "Sign-ups",
-        "value": 12400.0,
-        "delta": "+18%",
-        "trend": [
-          62.0,
-          71.0,
-          68.0,
-          84.0,
-          96.0,
-          112.0,
-          124.0
-        ]
-      },
-      {
-        "label": "Avg. session",
-        "value": 48.0,
-        "delta": "+6%",
-        "trend": [
-          39.0,
-          41.0,
-          40.0,
-          43.0,
-          45.0,
-          44.0,
-          48.0
-        ],
-        "suffix": "min"
-      },
-      {
-        "label": "Support tickets",
-        "value": 320.0,
-        "delta": "-4%",
-        "trend": [
-          36.0,
-          35.0,
-          37.0,
-          34.0,
-          33.0,
-          33.5,
-          32.0
-        ]
-      }
-    ],
-    "steps": [
-      {
-        "title": "Hook",
-        "description": "Lead with the sharpest insight."
-      },
-      {
-        "title": "Proof",
-        "description": "Show the chart and the numbers."
-      },
-      {
-        "title": "Next step",
-        "description": "Close with one clear call to action."
-      }
-    ],
-    "chartTitle": "Views by format",
-    "metricsTitle": "Signals that mattered",
-    "timelineTitle": "How we read the quarter",
-    "insight": "Short-form drove reach; long-form kept attention.",
-    "insightEyebrow": "Takeaway",
-    "ctaTitle": "Turn your data into motion",
-    "ctaLabel": "Get started",
-    "theme": {
-      "mode": "dark",
-      "colors": {}
-    },
-    "accentColor": "#e8b86d",
-    "dataColor": "#2dd4bf",
-    "timelineColor": "#f59e0b",
-    "eyebrowCaps": true,
-    "showScale": true,
-    "glow": 1.0,
-    "chartSubtitle": "",
-    "numberFormat": "compact",
-    "textSize": 1.0
-  },
   "logo-reveal": {
     "pathD": "M 100 20 L 170 60 L 170 140 L 100 180 L 30 140 L 30 60 Z M 100 64 L 138 86 L 138 130 L 100 152 L 62 130 L 62 86 Z",
     "wordmark": "Acme",
@@ -2427,6 +2073,56 @@
     "nameAt": 1.37,
     "glow": true,
     "penTip": true
+  },
+  "logo-wipe": {
+    "wordmark": "Northwind",
+    "logoSrc": "app:placeholders/logo-mark.svg",
+    "markGap": 0.3,
+    "accentColor": "#266DF0",
+    "letterSpacing": -0.02,
+    "startAt": 6.0,
+    "drawDuration": 14.0,
+    "logoScale": 1.05,
+    "spinTurns": 1.0,
+    "holdDuration": 12.0,
+    "rushDuration": 24.0,
+    "rushScale": 42,
+    "rushDrift": 0.55,
+    "swingOut": 0.25,
+    "speed": 1.0,
+    "fontSize": 56,
+    "fontWeight": "600",
+    "theme": {
+      "mode": "dark",
+      "colors": {}
+    }
+  },
+  "steps-timeline": {
+    "title": "How we read the quarter",
+    "eyebrow": "",
+    "steps": [
+      {
+        "title": "Hook",
+        "description": "Lead with the sharpest insight."
+      },
+      {
+        "title": "Proof",
+        "description": "Show the chart and the numbers."
+      },
+      {
+        "title": "Next step",
+        "description": "Close with one clear call to action."
+      }
+    ],
+    "theme": {
+      "mode": "dark",
+      "colors": {}
+    },
+    "accentColor": "#f59e0b",
+    "glow": 1.0,
+    "speed": 1.5,
+    "textSize": 1.0,
+    "eyebrowCaps": true
   },
   "pricing-card": {
     "tier": "Studio",
@@ -2911,14 +2607,9 @@
     "cornerRadius": 14
   },
   "device-mockup-zoom": {
-    "subtitleSize": 24,
-    "title": "",
-    "subtitle": "",
-    "eyebrow": "",
     "device": "laptop",
     "backgroundColor": "#080810",
     "accentColor": "#e8b86d",
-    "textColor": "#f8fafc",
     "deviceColor": "#171b26",
     "deviceEdgeColor": "#242a3a",
     "bezelColor": "#0d111b",
@@ -2929,17 +2620,12 @@
     "baseGradient": "linear-gradient(180deg, #30384b 0%, #171b26 60%, #0b0d14 100%)",
     "secondAccent": "#2dd4bf",
     "thirdAccent": "#f472b6",
-    "screenColor": "#f6f1e8",
-    "screenTextColor": "#111827",
-    "screenMutedColor": "#6b7280",
     "backgroundTint": "#5b6b9a",
     "shadow": 0.42,
     "glow": 0.2,
     "showGrid": true,
     "pullBackFrom": 1.18,
-    "scale": 1.0,
-    "titleSize": 64,
-    "titleWeight": 800
+    "scale": 1.0
   },
   "multi-device-lineup": {
     "scale": 1.6,

@@ -1,5 +1,5 @@
+import { FramedImage } from "#video/core/framed-image.tsx";
 import { Placeholder } from "#video/core/placeholder.tsx";
-import { StillElement } from "#video/core/still.tsx";
 import { AuroraBg } from "#video/elements/background/aurora-bg.tsx";
 import { Backdrop } from "#video/elements/background/backdrop.tsx";
 import { Gradient } from "#video/elements/background/gradient.tsx";
@@ -16,7 +16,6 @@ import { ShaderWarp } from "#video/elements/background/shader-warp.tsx";
 import { Shapes3D } from "#video/elements/background/shapes-3d.tsx";
 import { Solid } from "#video/elements/background/solid.tsx";
 import { Starburst } from "#video/elements/background/starburst.tsx";
-import { VideoLoop } from "#video/elements/background/video-loop.tsx";
 import { AnimatedBarChart } from "#video/elements/data/animated-bar-chart.tsx";
 import { AnimatedLineChart } from "#video/elements/data/animated-line-chart.tsx";
 import { BarChartRace } from "#video/elements/data/bar-chart-race.tsx";
@@ -27,7 +26,6 @@ import { GaugeDial } from "#video/elements/data/gauge-dial.tsx";
 import { MetricTicker } from "#video/elements/data/metric-ticker/index.tsx";
 import { RollingNumber } from "#video/elements/data/rolling-number.tsx";
 import { StatCard } from "#video/elements/data/stat-card/index.tsx";
-import { CapturedVideo } from "#video/elements/device/captured-video.tsx";
 import { DeviceMockupZoom } from "#video/elements/device/device-mockup-zoom/index.tsx";
 import { LaptopFrame } from "#video/elements/device/laptop-frame.tsx";
 import { MultiDeviceLineup } from "#video/elements/device/multi-device-lineup.tsx";
@@ -36,8 +34,8 @@ import { Screen3D } from "#video/elements/device/screen-3d.tsx";
 import { CameraLens } from "#video/elements/effect/camera-lens.tsx";
 import { CrtScreen } from "#video/elements/effect/crt-screen.tsx";
 import { HalftonePrint } from "#video/elements/effect/halftone-print.tsx";
-import { Mosaic } from "#video/elements/effect/mosaic/index.tsx";
 import { Polaroid } from "#video/elements/effect/polaroid.tsx";
+import { Redact } from "#video/elements/effect/redact/index.tsx";
 import { SpeedLines } from "#video/elements/effect/speed-lines.tsx";
 import { TvPowerOff } from "#video/elements/effect/tv-power-off.tsx";
 import { VhsFilter } from "#video/elements/effect/vhs-filter.tsx";
@@ -48,12 +46,10 @@ import { Captions } from "#video/elements/overlay/captions.tsx";
 import { Confetti } from "#video/elements/overlay/confetti.tsx";
 import { InkArrow } from "#video/elements/overlay/ink-arrow.tsx";
 import { InkUnderline } from "#video/elements/overlay/ink-underline.tsx";
-import { InlineHighlight } from "#video/elements/overlay/inline-highlight.tsx";
 import { Keystroke } from "#video/elements/overlay/keystroke.tsx";
 import { LightLeakElement } from "#video/elements/overlay/light-leak.tsx";
 import { LottieElement } from "#video/elements/overlay/lottie.tsx";
 import { LowerThird } from "#video/elements/overlay/lower-third.tsx";
-import { MarkerHighlight } from "#video/elements/overlay/marker-highlight.tsx";
 import { NotificationStack } from "#video/elements/overlay/notification-stack/index.tsx";
 import { RadialBurst } from "#video/elements/overlay/radial-burst.tsx";
 import { ScribbleCircle } from "#video/elements/overlay/scribble-circle.tsx";
@@ -62,27 +58,25 @@ import { Card3D } from "#video/elements/scene/card-3d.tsx";
 import { ChangelogEntry } from "#video/elements/scene/changelog-entry/index.tsx";
 import { CommandMenu } from "#video/elements/scene/command-menu/index.tsx";
 import { ComparisonTable } from "#video/elements/scene/comparison-table/index.tsx";
-import { DataStory } from "#video/elements/scene/data-story/index.tsx";
 import { EndCard } from "#video/elements/scene/end-card/index.tsx";
 import { HeroLaunch } from "#video/elements/scene/hero-launch.tsx";
-import { LaunchAnything } from "#video/elements/scene/launch-anything/index.tsx";
 import { Logo3D } from "#video/elements/scene/logo-3d.tsx";
 import { LogoAssemble } from "#video/elements/scene/logo-assemble.tsx";
 import { LogoDrift } from "#video/elements/scene/logo-drift.tsx";
 import { LogoReveal } from "#video/elements/scene/logo-reveal/index.tsx";
 import { LogoWall } from "#video/elements/scene/logo-wall/index.tsx";
+import { LogoWipe } from "#video/elements/scene/logo-wipe.tsx";
 import { Model3D } from "#video/elements/scene/model-3d.tsx";
 import { PricingCard } from "#video/elements/scene/pricing-card/index.tsx";
-import { ReleaseTeaser } from "#video/elements/scene/release-teaser/index.tsx";
 import { SignupFlow } from "#video/elements/scene/signup-flow/index.tsx";
 import {
   SpringSettleItem,
   SpringSettleScenes,
 } from "#video/elements/scene/spring-settle/index.tsx";
+import { StepsTimeline } from "#video/elements/scene/steps-timeline/index.tsx";
 import { AnnounceTitle } from "#video/elements/text/announce-title.tsx";
 import { GradientScaleCutText } from "#video/elements/text/gradient-scale-cut-text.tsx";
 import { HandwritingText } from "#video/elements/text/handwriting-text.tsx";
-import { KineticCenterBuild } from "#video/elements/text/kinetic-center-build.tsx";
 import { KineticHeadline } from "#video/elements/text/kinetic-headline.tsx";
 import { LineByLineSlide } from "#video/elements/text/line-by-line-slide.tsx";
 import { MaskRevealUp } from "#video/elements/text/mask-reveal-up.tsx";
@@ -90,12 +84,10 @@ import { MatrixDecode } from "#video/elements/text/matrix-decode.tsx";
 import { NeonFlickerText } from "#video/elements/text/neon-flicker-text.tsx";
 import { PunchLines } from "#video/elements/text/punch-lines.tsx";
 import { RGBGlitchText } from "#video/elements/text/rgb-glitch-text.tsx";
-import { ShimmerSweep } from "#video/elements/text/shimmer-sweep.tsx";
 import { SlotMachineRoll } from "#video/elements/text/slot-machine-roll.tsx";
 import { SoftBlurIn } from "#video/elements/text/soft-blur-in.tsx";
 import { StaggeredFadeUp } from "#video/elements/text/staggered-fade-up.tsx";
 import { StatusCycle } from "#video/elements/text/status-cycle.tsx";
-import { StrikethroughReplace } from "#video/elements/text/strikethrough-replace.tsx";
 import { Text3D } from "#video/elements/text/text-3d.tsx";
 import { TextHighlight } from "#video/elements/text/text-highlight.tsx";
 import { TextMaskVideo } from "#video/elements/text/text-mask-video.tsx";
@@ -147,20 +139,15 @@ import type { ElementImpl } from "#video/registry/types.ts";
 export const ELEMENTS: Readonly<Record<string, ElementImpl>> = {
   "soft-blur-in": component(SoftBlurIn),
   typewriter: component(Typewriter),
-  "shimmer-sweep": component(ShimmerSweep),
   "matrix-decode": component(MatrixDecode),
   "slot-machine-roll": component(SlotMachineRoll),
   "staggered-fade-up": component(StaggeredFadeUp),
-  "kinetic-center-build": component(KineticCenterBuild),
   "mask-reveal-up": component(MaskRevealUp),
   "tracking-in": component(TrackingIn),
   "word-push": component(WordPush),
   "rgb-glitch-text": component(RGBGlitchText),
   "gradient-scale-cut-text": component(GradientScaleCutText),
-  "strikethrough-replace": component(StrikethroughReplace),
   "line-by-line-slide": component(LineByLineSlide),
-  "marker-highlight": component(MarkerHighlight),
-  "inline-highlight": component(InlineHighlight),
   "ink-underline": component(InkUnderline),
   "scribble-circle": component(ScribbleCircle),
   "ink-arrow": component(InkArrow),
@@ -209,14 +196,13 @@ export const ELEMENTS: Readonly<Record<string, ElementImpl>> = {
   "signup-flow": component(SignupFlow),
   "ai-prompt-flow": component(AiPromptFlow),
   "command-menu": component(CommandMenu),
-  "release-teaser": component(ReleaseTeaser),
-  "launch-anything": component(LaunchAnything),
   "laptop-frame": component(LaptopFrame),
   "phone-frame": component(PhoneFrame),
-  "captured-video": component(CapturedVideo),
   "announce-title": component(AnnounceTitle),
   "punch-lines": component(PunchLines),
   "text-highlight": component(TextHighlight),
+  "steps-timeline": component(StepsTimeline),
+  "logo-wipe": component(LogoWipe),
   "status-cycle": component(StatusCycle),
   "logo-assemble": component(LogoAssemble),
   "logo-drift": component(LogoDrift),
@@ -233,7 +219,6 @@ export const ELEMENTS: Readonly<Record<string, ElementImpl>> = {
   "comparison-bars": component(ComparisonBars),
   "bar-chart-race": component(BarChartRace),
   "gauge-dial": component(GaugeDial),
-  "data-story": component(DataStory),
   "logo-reveal": component(LogoReveal),
   "pricing-card": component(PricingCard),
   "comparison-table": component(ComparisonTable),
@@ -255,7 +240,7 @@ export const ELEMENTS: Readonly<Record<string, ElementImpl>> = {
   "aurora-bg": component(AuroraBg),
   "particle-field": component(ParticleField),
   placeholder: component(Placeholder),
-  still: component(StillElement),
+  "framed-image": component(FramedImage),
   title: component(Title),
   "kinetic-headline": component(KineticHeadline),
   "lower-third": component(LowerThird),
@@ -263,9 +248,8 @@ export const ELEMENTS: Readonly<Record<string, ElementImpl>> = {
   captions: component(Captions),
   image: component(ImageElement),
   lottie: component(LottieElement),
-  mosaic: component(Mosaic),
+  redact: component(Redact),
   video: component(VideoElement),
-  "video-loop": component(VideoLoop),
   solid: component(Solid),
   gradient: component(Gradient),
   noise: component(NoiseField),

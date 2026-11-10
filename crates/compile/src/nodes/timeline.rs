@@ -4,19 +4,16 @@ use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::numbers;
 use opsis_types::timeline::{
     EditHandles, GroupProps, ItemBase, LinkedParam, ParamRef, ParamUnit, Sign, TimelineTrack,
-    TransitionEase, TransitionRef,
+    TransitionRef,
 };
 use opsis_types::values::{ClipValue, CompileValue};
 use opsis_types::workflow::{PortType, WorkflowSettings};
-use schemars::Schema;
-use serde_json::{Value, json};
 
 use crate::card_rows::{
-    Cover, TAG_TEXT_MAX, cover, cover_row, frame_secs, quote, range_row, transition_length_text,
+    Cover, TAG_TEXT_MAX, cover, cover_row, frame_secs, quote, range_row, truncate_card,
 };
 use crate::clip::{
-    EMPTY_CLIP_FRAMES, SequenceSlots, empty_clip, group_item, mark_layers, sequence_clips,
-    stack_clips, with_handles, wrap_clip,
+    EMPTY_CLIP_FRAMES, empty_clip, group_item, mark_layers, stack_clips, with_handles, wrap_clip,
 };
 use crate::errors::CompileError;
 use crate::limits::{MAX_FRAMES, MAX_REPEATS};
@@ -24,9 +21,7 @@ use crate::node::{
     CLIP_PORT, CardCtx, Category, Ctx, Inputs, NodeDef, Outputs, Phase, RowExt, missing, opt,
     outputs, port, row, with_clip,
 };
-use crate::nodes::transitions::{
-    NO_TRANSITION, default_transition_params, transition_kinds, transition_ref, transition_title,
-};
+use crate::nodes::transitions::{TRANSITION_PORT, join_clips, join_names, joins_for};
 use crate::ports::{clip_family, clip_label, connected_clips, in_index, layer_label};
 use crate::remap::{Remap, speed_remap};
 use crate::text::{format_duration, parse_number_text, plural};
@@ -50,139 +45,29 @@ fn with_connected_clips(
     outputs([(CLIP_PORT, CompileValue::Clip(clip))])
 }
 
-fn transition_choices(schema: &mut Schema) {
-    let kinds = transition_kinds();
-    let cut_kinds: Vec<&String> = kinds.iter().filter(|k| *k != NO_TRANSITION).collect();
-    if let Some(properties) = schema.get_mut("properties").and_then(Value::as_object_mut) {
-        if let Some(transition) = properties.get_mut("transition") {
-            transition["enum"] = json!(kinds);
-        }
-        if let Some(keep_whole) = properties.get_mut("keepWhole") {
-            keep_whole["x-show-if"] = json!({ "transition": cut_kinds });
-        }
-    }
-}
+pub const SEQUENCE_TYPE: &str = "timeline.sequence";
+pub const LAYERS_TYPE: &str = "timeline.stack";
 
 #[settings(eq)]
-#[schemars(transform = transition_choices)]
-pub struct Cut {
-    #[setting("Before", default = "in2", widget = "cut")]
-    pub before: String,
-    #[setting("Transition", default = "fade", widget = "transition")]
-    pub transition: String,
-    #[setting(
-        "Length",
-        default = 15,
-        range(min = 1, max = 108_000),
-        step = 1,
-        unit = "frames"
-    )]
-    pub transition_duration: u32,
-    #[setting(
-        "Keep both clips whole",
-        help = "The transition plays over a still of the two clips' last and first frames.",
-        advanced
-    )]
-    pub keep_whole: bool,
-    #[setting(
-        "Easing",
-        default = TransitionEase::Linear,
-        advanced
-    )]
-    pub easing: TransitionEase,
-}
+pub struct Sequence {}
 
-#[settings(eq)]
-#[schemars(transform = transition_choices)]
-pub struct Sequence {
-    #[setting("Transition", default = "fade", widget = "transition")]
-    pub transition: String,
-    #[setting(
-        "Transition length",
-        default = 15,
-        range(min = 1, max = 108_000),
-        step = 1,
-        unit = "frames"
-    )]
-    pub transition_duration: u32,
-    #[setting(
-        "Keep every clip whole",
-        help = "The transition plays over a still of the last and first frames, so no clip loses screen time. The sequence gets longer by each transition.",
-        advanced
-    )]
-    pub keep_whole: bool,
-    #[setting(
-        "Easing",
-        default = TransitionEase::Linear,
-        advanced
-    )]
-    pub easing: TransitionEase,
-    #[setting(
-        "Different transitions",
-        help = "Use another transition before some clips. The others use the transition above.",
-        advanced
-    )]
-    pub cuts: Vec<Cut>,
-}
-
-struct CutPlan {
-    transition: String,
-    transition_duration: u32,
-    keep_whole: bool,
-    easing: TransitionEase,
-    before: String,
-    after: String,
-    own: bool,
-}
-
-fn cuts_for(p: &Sequence, ports: &[String]) -> Vec<CutPlan> {
-    ports
-        .iter()
-        .enumerate()
-        .skip(1)
-        .map(|(i, handle)| {
-            let own = p.cuts.iter().rev().find(|c| c.before == *handle);
-            let (transition, duration, keep_whole, easing) = match own {
-                Some(c) => (
-                    c.transition.clone(),
-                    c.transition_duration,
-                    c.keep_whole,
-                    c.easing,
-                ),
-                None => (
-                    p.transition.clone(),
-                    p.transition_duration,
-                    p.keep_whole,
-                    p.easing,
-                ),
-            };
-            CutPlan {
-                transition,
-                transition_duration: duration,
-                keep_whole,
-                easing,
-                before: handle.clone(),
-                after: ports[i - 1].clone(),
-                own: own.is_some(),
-            }
-        })
-        .collect()
-}
-
-fn worst_cover(
-    cuts: &[CutPlan],
+fn cover_of(
+    ports: &[String],
+    joins: &[Option<TransitionRef>],
     frames: &indexmap::IndexMap<String, u32>,
     fps: u32,
 ) -> Option<CardRow> {
-    let worst = cuts
+    let worst = joins
         .iter()
-        .filter(|c| c.transition != NO_TRANSITION && !c.keep_whole)
-        .filter_map(|c| {
+        .enumerate()
+        .skip(1)
+        .filter_map(|(i, join)| {
+            let join = join.as_ref().filter(|j| j.hold != Some(true))?;
             cover(
-                c.transition_duration,
+                join.duration_in_frames,
                 &[
-                    frames.get(&c.after).copied(),
-                    frames.get(&c.before).copied(),
+                    frames.get(&ports[i - 1]).copied(),
+                    frames.get(&ports[i]).copied(),
                 ],
             )
         })
@@ -203,27 +88,44 @@ fn connected_ports(ctx_connected: &[String]) -> Vec<String> {
     ports.into_iter().map(|(_, c)| c.clone()).collect()
 }
 
+fn card_joins(
+    ctx_inputs: &crate::node::CardInputs,
+    ports: &[String],
+) -> Vec<Option<TransitionRef>> {
+    let shared = ctx_inputs.enters.get(TRANSITION_PORT);
+    ports
+        .iter()
+        .enumerate()
+        .map(|(i, port)| {
+            if i == 0 {
+                return None;
+            }
+            ctx_inputs.enters.get(port).or(shared).cloned()
+        })
+        .collect()
+}
+
 fn sequence() -> NodeDef {
     NodeDef::of::<Sequence>(
-        "timeline.sequence",
+        SEQUENCE_TYPE,
         "Sequence",
         Category::Timeline,
         Phase::Compile,
     )
-    .describe("Plays clips one after another, with a transition between each.")
-    .family(clip_family(clip_label).with_refs(&[("cuts", "before")]))
+    .describe("Plays clips one after another. Each join uses the transition its clip comes in with, else the one on the Transition input, else a plain cut.")
+    .family(clip_family(clip_label))
+    .inputs(vec![(TRANSITION_PORT, opt(PortType::Transition, "Transition"))])
     .outputs(vec![(CLIP_PORT, port(PortType::Clip, "Clip"))])
     .card(|ctx: &CardCtx<'_, Sequence>| {
-        let p = &ctx.params;
         let fps = ctx.fps();
         let ports = connected_ports(&ctx.inputs.connected);
-        let cuts = cuts_for(p, &ports);
-        let own = cuts.iter().filter(|c| c.own).count();
+        let joins = card_joins(ctx.inputs, &ports);
         let length = ctx
             .inputs
             .clip_frames
             .filter(|f| *f != 0)
             .map_or_default(|f| format!(" · {}", frame_secs(f, fps)));
+        let kinds: Vec<Option<String>> = joins.iter().skip(1).map(|j| j.as_ref().map(|t| t.kind.clone())).collect();
         vec![
             Some(
                 row(
@@ -232,55 +134,15 @@ fn sequence() -> NodeDef {
                 )
                 .warn_if(ports.is_empty()),
             ),
-            (p.transition != NO_TRANSITION).then(|| {
-                row(
-                    Icon::ArrowRightLeft,
-                    format!(
-                        "{} · {}",
-                        transition_title(&p.transition),
-                        transition_length_text(p.transition_duration, fps, p.keep_whole)
-                    ),
-                )
-            }),
-            (own > 0).then(|| {
-                row(
-                    Icon::ArrowRightLeft,
-                    format!(
-                        "{} {} own transition",
-                        plural(numbers::float(own), "cut"),
-                        if own == 1 { "uses its" } else { "use their" }
-                    ),
-                )
-            }),
-            worst_cover(&cuts, &ctx.inputs.frames, fps),
+            (!kinds.is_empty()).then(|| row(Icon::ArrowRightLeft, truncate_card(&join_names(&kinds)))),
+            cover_of(&ports, &joins, &ctx.inputs.frames, fps),
         ]
     })
     .compiles(|ctx: &Ctx<'_, Sequence>| {
+        let shared = ctx.input(TRANSITION_PORT).and_then(CompileValue::as_transition);
         with_connected_clips(ctx.inputs, |clips, ports| {
-            let cuts = cuts_for(&ctx.params, &ports);
-            let transitions: Vec<Option<TransitionRef>> = (0..clips.len())
-                .map(|i| {
-                    let cut = if i > 0 { cuts.get(i - 1) } else { None }?;
-                    (cut.transition != NO_TRANSITION).then(|| {
-                        transition_ref(
-                            &cut.transition,
-                            cut.transition_duration,
-                            cut.keep_whole,
-                            cut.easing,
-                            default_transition_params(&cut.transition),
-                        )
-                    })
-                })
-                .collect();
-            sequence_clips(
-                ctx.node_id,
-                &clips,
-                &transitions,
-                SequenceSlots {
-                    ports: Some(&ports),
-                    slot_node: None,
-                },
-            )
+            let joins = joins_for(&clips, shared);
+            join_clips(ctx.node_id, &clips, &joins, &ports)
         })
     })
 }
@@ -370,7 +232,15 @@ fn layers() -> NodeDef {
     .outputs(vec![(CLIP_PORT, port(PortType::Clip, "Clip"))])
     .card(|ctx: &CardCtx<'_, Layers>| {
         let layers = connected_ports(&ctx.inputs.connected).len();
+        let marked = connected_ports(&ctx.inputs.connected)
+            .iter()
+            .any(|p| ctx.inputs.enters.contains_key(p));
         vec![
+            marked.then(|| {
+                row(Icon::TriangleAlert, "Layers stack clips; this transition is ignored")
+                    .tone(Tone::Warn)
+                    .titled("A transition brings a clip in after another in a Sequence. Put it after Layers instead.")
+            }),
             Some(row(Icon::Layers, plural(numbers::float(layers), "layer")).warn_if(layers == 0)),
             Some(row(Icon::Clock, ctx.params.duration.row())),
             ctx.inputs
@@ -408,11 +278,12 @@ fn layers() -> NodeDef {
                 },
                 None => stacked,
             };
-            if p.keep_layout {
+            let clip = if p.keep_layout {
                 keep_layout(node_id, clip, ctx.settings)
             } else {
                 clip
-            }
+            };
+            ClipValue { enter: None, ..clip }
         })
     })
 }
@@ -494,10 +365,16 @@ fn trim() -> NodeDef {
                 },
                 Some(duration),
             );
-            Ok(Some(outputs([(
-                CLIP_PORT,
-                CompileValue::Clip(with_handles(wrapped, handles, None, None)),
-            )])))
+            let trimmed = with_handles(wrapped, handles, None, None);
+            let trimmed = if start > 0 {
+                ClipValue {
+                    enter: None,
+                    ..trimmed
+                }
+            } else {
+                trimmed
+            };
+            Ok(Some(outputs([(CLIP_PORT, CompileValue::Clip(trimmed))])))
         })
 }
 
@@ -509,7 +386,13 @@ pub struct Repeat {
 
 fn repeat() -> NodeDef {
     NodeDef::clip_modifier::<Repeat>("timeline.loop", "Repeat", Category::Timeline)
-        .describe("Plays a clip several times.")
+        .describe(
+            "Plays a clip several times, with the transition on its Transition input at each seam.",
+        )
+        .inputs(vec![
+            (CLIP_PORT, port(PortType::Clip, "Clip")),
+            (TRANSITION_PORT, opt(PortType::Transition, "Transition")),
+        ])
         .card(|ctx: &CardCtx<'_, Repeat>| {
             vec![Some(row(Icon::Repeat, format!("{}×", ctx.params.times)))]
         })
@@ -531,6 +414,21 @@ fn repeat() -> NodeDef {
                     limit: format_duration(frames_to_ms(MAX_FRAMES, fps)),
                 });
             };
+            if let Some(seam) = ctx
+                .input(TRANSITION_PORT)
+                .and_then(CompileValue::as_transition)
+            {
+                let copies: Vec<ClipValue> = (0..p.times)
+                    .map(|_| ClipValue {
+                        enter: None,
+                        ..clip.clone()
+                    })
+                    .collect();
+                let joins = joins_for(&copies, Some(seam));
+                let mut joined = join_clips(ctx.node_id, &copies, &joins, &[]);
+                joined.enter.clone_from(&clip.enter);
+                return Ok(Some(outputs([(CLIP_PORT, CompileValue::Clip(joined))])));
+            }
             let props = GroupProps {
                 loop_every: Some(clip.duration_in_frames),
                 ..GroupProps::default()
@@ -568,13 +466,16 @@ fn delay() -> NodeDef {
                 let offset = ms_to_frames_from(f64::from(ctx.params.ms), ctx.settings.fps, 0);
                 let node_id = ctx.node_id;
                 let move_for = |_: usize| Some(ParamRef::new(node_id, "ms", ParamUnit::Ms));
-                stack_clips(
-                    node_id,
-                    std::slice::from_ref(clip),
-                    &[offset],
-                    None,
-                    Some(&move_for),
-                )
+                ClipValue {
+                    enter: clip.enter.clone(),
+                    ..stack_clips(
+                        node_id,
+                        std::slice::from_ref(clip),
+                        &[offset],
+                        None,
+                        Some(&move_for),
+                    )
+                }
             })
         })
 }

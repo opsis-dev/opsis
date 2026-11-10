@@ -1,5 +1,5 @@
 use opsis_macros::settings;
-use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::looks::NodeLook;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::{FontWeight, TextAlign};
@@ -90,6 +90,6 @@ pub fn definition() -> ElementMeta {
             90,
         )
         .authored_clock()
-        .look(NodeLook::of("lucide:type").moves(NodeMotion::MaskUp)),
+        .look(NodeLook::of("lucide:type")),
     )
 }

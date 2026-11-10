@@ -225,9 +225,7 @@
             "x": 2400,
             "y": 200
           },
-          "params": {
-            "speed": 1.25
-          }
+          "params": {}
         },
         {
           "id": "chips",
@@ -247,36 +245,42 @@
         },
         {
           "id": "intro-bg",
-          "type": "fx.shader-mesh-gradient",
+          "type": "fx.background",
           "position": {
             "x": 1200,
             "y": 340
           },
           "params": {
-            "speed": 1,
-            "distortion": 0.6,
-            "swirl": 0.1,
-            "colors": ["#12121a", "#232338", "#3a3a5c", "#52527a"],
+            "kind": "mesh",
+            "mesh": {
+              "speed": 1,
+              "distortion": 0.6,
+              "swirl": 0.1,
+              "colors": ["#12121a", "#232338", "#3a3a5c", "#52527a"]
+            },
             "clipDuration": 75,
             "envelope": {}
           }
         },
         {
           "id": "intro-title",
-          "type": "fx.soft-blur-in",
+          "type": "fx.animated-text",
           "position": {
             "x": 1200,
             "y": 540
           },
           "params": {
-            "text": "TodoMVC in 20 seconds",
-            "blur": 12,
-            "fontSize": 104,
-            "color": "#fafafa",
-            "fontWeight": "600",
-            "background": "white",
-            "fontFamily": "",
-            "speed": 1,
+            "kind": "soft-blur",
+            "soft-blur": {
+              "text": "TodoMVC in 20 seconds",
+              "blur": 12,
+              "fontSize": 104,
+              "color": "#fafafa",
+              "fontWeight": "600",
+              "background": "white",
+              "fontFamily": "",
+              "speed": 1
+            },
             "clipDuration": 75,
             "envelope": {}
           }
@@ -305,9 +309,6 @@
             "eyebrow": "Made with",
             "title": "Opsis",
             "subtitle": "{{Site address}}",
-            "mark": "",
-            "markLook": "underline",
-            "markColor": "#facc15",
             "align": "center",
             "entrance": "rise",
             "color": "#fafafa",
@@ -327,12 +328,7 @@
             "x": 2400,
             "y": 422
           },
-          "params": {
-            "transition": "whip-pan",
-            "transitionDuration": 18,
-            "keepWhole": false,
-            "cuts": []
-          }
+          "params": {}
         },
         {
           "id": "render",
@@ -362,6 +358,18 @@
           },
           "params": {
             "text": "Sample project.\n\n1. Press Run. Opsis records the flow in a hidden browser.\n2. The Timeline fills with the real footage and its actions.\n3. Finished videos appear in Outputs."
+          }
+        },
+        {
+          "id": "sequence-transition",
+          "type": "timeline.transition",
+          "position": {
+            "x": 2100,
+            "y": 262
+          },
+          "params": {
+            "kind": "whip-pan",
+            "durationInFrames": 18
           }
         }
       ],
@@ -477,6 +485,13 @@
           "sourceHandle": "clip",
           "target": "render",
           "targetHandle": "clip"
+        },
+        {
+          "id": "sequence-transition.transition->sequence.transition",
+          "source": "sequence-transition",
+          "sourceHandle": "transition",
+          "target": "sequence",
+          "targetHandle": "transition"
         }
       ],
       "markers": []
@@ -592,9 +607,7 @@
             "x": 1200,
             "y": 200
           },
-          "params": {
-            "speed": 1.25
-          }
+          "params": {}
         },
         {
           "id": "spotlight",
@@ -605,30 +618,30 @@
           },
           "params": {
             "match": "Get started",
-            "text": "",
             "color": "rgba(0,0,0,0.55)",
             "padding": 10,
             "leadMs": 250,
-            "holdMs": 1400,
-            "look": "clean",
-            "roughness": 1
+            "holdMs": 1400
           }
         },
         {
           "id": "headline",
-          "type": "fx.kinetic-headline",
+          "type": "fx.animated-text",
           "position": {
             "x": 300,
             "y": 340
           },
           "params": {
-            "text": "Introducing *{{Product name}}*",
-            "color": "#fafafa",
-            "emphasisColor": "#facc15",
-            "background": "#09090b",
-            "fontSize": 104,
-            "wordStagger": 4,
-            "fontFamily": "",
+            "kind": "headline",
+            "headline": {
+              "text": "Introducing *{{Product name}}*",
+              "color": "#fafafa",
+              "emphasisColor": "#facc15",
+              "background": "#09090b",
+              "fontSize": 104,
+              "wordStagger": 4,
+              "fontFamily": ""
+            },
             "clipDuration": 90,
             "envelope": {}
           }
@@ -644,9 +657,6 @@
             "eyebrow": "",
             "title": "Try {{Product name}} today",
             "subtitle": "{{Site address}}",
-            "mark": "",
-            "markLook": "underline",
-            "markColor": "#facc15",
             "align": "center",
             "entrance": "rise",
             "color": "#fafafa",
@@ -666,12 +676,7 @@
             "x": 1200,
             "y": 422
           },
-          "params": {
-            "transition": "zoom-blur",
-            "transitionDuration": 15,
-            "keepWhole": false,
-            "cuts": []
-          }
+          "params": {}
         },
         {
           "id": "render",
@@ -690,6 +695,18 @@
             "chapters": true,
             "chapterList": false,
             "gl": "angle"
+          }
+        },
+        {
+          "id": "sequence-transition",
+          "type": "timeline.transition",
+          "position": {
+            "x": 900,
+            "y": 262
+          },
+          "params": {
+            "kind": "zoom-blur",
+            "durationInFrames": 15
           }
         }
       ],
@@ -763,6 +780,13 @@
           "sourceHandle": "clip",
           "target": "render",
           "targetHandle": "clip"
+        },
+        {
+          "id": "sequence-transition.transition->sequence.transition",
+          "source": "sequence-transition",
+          "sourceHandle": "transition",
+          "target": "sequence",
+          "targetHandle": "transition"
         }
       ],
       "markers": []
@@ -805,9 +829,6 @@
             "eyebrow": "Changelog",
             "title": "What's new in {{Version}}",
             "subtitle": "",
-            "mark": "",
-            "markLook": "underline",
-            "markColor": "#facc15",
             "align": "center",
             "entrance": "rise",
             "color": "#fafafa",
@@ -879,54 +900,57 @@
         },
         {
           "id": "chart",
-          "type": "fx.animated-bar-chart",
+          "type": "fx.chart",
           "position": {
             "x": 0,
             "y": 400
           },
           "params": {
-            "barColor": "#0ea5e9",
-            "gap": 16,
-            "staggerFrames": 0.2,
-            "bars": [
-              {
-                "label": "",
-                "value": 35
-              },
-              {
-                "label": "",
-                "value": 60
-              },
-              {
-                "label": "",
-                "value": 45
-              },
-              {
-                "label": "",
-                "value": 80
-              },
-              {
-                "label": "",
-                "value": 55
-              },
-              {
-                "label": "",
-                "value": 70
-              },
-              {
-                "label": "",
-                "value": 90
-              },
-              {
-                "label": "",
-                "value": 65
-              }
-            ],
-            "width": 1000,
-            "height": 500,
-            "baselineColor": "#27272a",
-            "labelColor": "#a1a1aa",
-            "speed": 1,
+            "kind": "bar",
+            "bar": {
+              "barColor": "#0ea5e9",
+              "gap": 16,
+              "staggerFrames": 0.2,
+              "bars": [
+                {
+                  "label": "",
+                  "value": 35
+                },
+                {
+                  "label": "",
+                  "value": 60
+                },
+                {
+                  "label": "",
+                  "value": 45
+                },
+                {
+                  "label": "",
+                  "value": 80
+                },
+                {
+                  "label": "",
+                  "value": 55
+                },
+                {
+                  "label": "",
+                  "value": 70
+                },
+                {
+                  "label": "",
+                  "value": 90
+                },
+                {
+                  "label": "",
+                  "value": 65
+                }
+              ],
+              "width": 1000,
+              "height": 500,
+              "baselineColor": "#27272a",
+              "labelColor": "#a1a1aa",
+              "speed": 1
+            },
             "clipDuration": 120,
             "envelope": {}
           }
@@ -952,16 +976,19 @@
         },
         {
           "id": "bg",
-          "type": "fx.gradient",
+          "type": "fx.background",
           "position": {
             "x": 300,
             "y": 340
           },
           "params": {
-            "from": "#1e1b4b",
-            "to": "#0f172a",
-            "angle": 135,
-            "grain": 0.08,
+            "kind": "gradient",
+            "gradient": {
+              "from": "#1e1b4b",
+              "to": "#0f172a",
+              "angle": 135,
+              "grain": 0.08
+            },
             "clipDuration": 90,
             "envelope": {}
           }
@@ -986,12 +1013,7 @@
             "x": 900,
             "y": 170
           },
-          "params": {
-            "transition": "slide",
-            "transitionDuration": 15,
-            "keepWhole": false,
-            "cuts": []
-          }
+          "params": {}
         },
         {
           "id": "render",
@@ -1010,6 +1032,18 @@
             "chapters": true,
             "chapterList": false,
             "gl": "angle"
+          }
+        },
+        {
+          "id": "sequence-transition",
+          "type": "timeline.transition",
+          "position": {
+            "x": 600,
+            "y": 10
+          },
+          "params": {
+            "kind": "slide",
+            "durationInFrames": 15
           }
         }
       ],
@@ -1062,6 +1096,13 @@
           "sourceHandle": "clip",
           "target": "render",
           "targetHandle": "clip"
+        },
+        {
+          "id": "sequence-transition.transition->sequence.transition",
+          "source": "sequence-transition",
+          "sourceHandle": "transition",
+          "target": "sequence",
+          "targetHandle": "transition"
         }
       ],
       "markers": []
@@ -1223,9 +1264,7 @@
             "x": 2100,
             "y": 200
           },
-          "params": {
-            "speed": 1.25
-          }
+          "params": {}
         },
         {
           "id": "highlight",
@@ -1236,7 +1275,6 @@
           },
           "params": {
             "match": "",
-            "text": "",
             "color": "#a78bfa",
             "padding": 10,
             "leadMs": 250,
@@ -1522,26 +1560,26 @@
             "x": 1200,
             "y": 200
           },
-          "params": {
-            "speed": 1.5
-          }
+          "params": {}
         },
         {
           "id": "hook",
-          "type": "fx.kinetic-center-build",
+          "type": "fx.animated-text",
           "position": {
             "x": 300,
             "y": 340
           },
           "params": {
-            "text": "Words push left.",
-            "entryOffset": 88,
-            "fontSize": 72,
-            "color": "#171717",
-            "fontWeight": "600",
-            "background": "white",
-            "fontFamily": "",
-            "speed": 1,
+            "kind": "word-push",
+            "word-push": {
+              "text": "Words push left.",
+              "fontSize": 72,
+              "color": "#171717",
+              "fontWeight": "600",
+              "background": "white",
+              "fontFamily": "",
+              "speed": 1
+            },
             "clipDuration": 60,
             "envelope": {}
           }
@@ -1553,12 +1591,7 @@
             "x": 1200,
             "y": 422
           },
-          "params": {
-            "transition": "push-through",
-            "transitionDuration": 15,
-            "keepWhole": false,
-            "cuts": []
-          }
+          "params": {}
         },
         {
           "id": "music",
@@ -1606,6 +1639,29 @@
             "chapterList": false,
             "gl": "angle"
           }
+        },
+        {
+          "id": "camera-speed",
+          "type": "timeline.speed",
+          "position": {
+            "x": 1200,
+            "y": 340
+          },
+          "params": {
+            "rate": 1.2
+          }
+        },
+        {
+          "id": "sequence-transition",
+          "type": "timeline.transition",
+          "position": {
+            "x": 900,
+            "y": 262
+          },
+          "params": {
+            "kind": "push-through",
+            "durationInFrames": 16
+          }
         }
       ],
       "edges": [
@@ -1652,8 +1708,8 @@
           "targetHandle": "in1"
         },
         {
-          "id": "camera.clip->sequence.in2",
-          "source": "camera",
+          "id": "camera-speed.clip->sequence.in2",
+          "source": "camera-speed",
           "sourceHandle": "clip",
           "target": "sequence",
           "targetHandle": "in2"
@@ -1678,6 +1734,20 @@
           "sourceHandle": "clip",
           "target": "render",
           "targetHandle": "clip"
+        },
+        {
+          "id": "camera.clip->camera-speed.clip",
+          "source": "camera",
+          "sourceHandle": "clip",
+          "target": "camera-speed",
+          "targetHandle": "clip"
+        },
+        {
+          "id": "sequence-transition.transition->sequence.transition",
+          "source": "sequence-transition",
+          "sourceHandle": "transition",
+          "target": "sequence",
+          "targetHandle": "transition"
         }
       ],
       "markers": []
@@ -1774,9 +1844,7 @@
             "x": 900,
             "y": 200
           },
-          "params": {
-            "speed": 1.25
-          }
+          "params": {}
         },
         {
           "id": "before-label",
@@ -1875,9 +1943,7 @@
             "x": 900,
             "y": 1050
           },
-          "params": {
-            "speed": 1.25
-          }
+          "params": {}
         },
         {
           "id": "after-label",
@@ -1913,15 +1979,17 @@
         },
         {
           "id": "wipe",
-          "type": "transition.wipe",
+          "type": "timeline.transition",
           "position": {
             "x": 1500,
             "y": 510
           },
           "params": {
-            "direction": "from-left",
+            "kind": "wipe",
             "durationInFrames": 24,
-            "keepWhole": false
+            "wipe": {
+              "direction": "from-left"
+            }
           }
         },
         {
@@ -1964,6 +2032,15 @@
           "params": {
             "zoom": false
           }
+        },
+        {
+          "id": "wipe-join",
+          "type": "timeline.sequence",
+          "position": {
+            "x": 1650,
+            "y": 710
+          },
+          "params": {}
         }
       ],
       "edges": [
@@ -2052,22 +2129,22 @@
           "targetHandle": "in2"
         },
         {
-          "id": "before-stack.clip->wipe.a",
+          "id": "before-stack.clip->wipe-join.in1",
           "source": "before-stack",
           "sourceHandle": "clip",
-          "target": "wipe",
-          "targetHandle": "a"
+          "target": "wipe-join",
+          "targetHandle": "in1"
         },
         {
-          "id": "after-stack.clip->wipe.b",
+          "id": "after-stack.clip->wipe.clip",
           "source": "after-stack",
           "sourceHandle": "clip",
           "target": "wipe",
-          "targetHandle": "b"
+          "targetHandle": "clip"
         },
         {
-          "id": "wipe.clip->render.clip",
-          "source": "wipe",
+          "id": "wipe-join.clip->render.clip",
+          "source": "wipe-join",
           "sourceHandle": "clip",
           "target": "render",
           "targetHandle": "clip"
@@ -2085,6 +2162,13 @@
           "sourceHandle": "style",
           "target": "after-camera",
           "targetHandle": "style"
+        },
+        {
+          "id": "wipe.clip->wipe-join.in2",
+          "source": "wipe",
+          "sourceHandle": "clip",
+          "target": "wipe-join",
+          "targetHandle": "in2"
         }
       ],
       "markers": []
@@ -2193,12 +2277,13 @@
         },
         {
           "id": "frame",
-          "type": "camera.windowFrame",
+          "type": "camera.frame",
           "position": {
             "x": 1200,
             "y": 300
           },
           "params": {
+            "kind": "window",
             "windowStyle": "macos",
             "frameTheme": "dark",
             "title": "Terminal"
@@ -2286,6 +2371,738 @@
         {
           "id": "take.clip->render.clip",
           "source": "take",
+          "sourceHandle": "clip",
+          "target": "render",
+          "targetHandle": "clip"
+        }
+      ],
+      "markers": []
+    }
+  },
+  {
+    "id": "data-story",
+    "title": "Data story",
+    "description": "A title, a chart, key numbers, the steps behind them, a takeaway and a closing call to action.",
+    "icon": "gauge",
+    "workflow": {
+      "version": 1,
+      "id": "template_data-story",
+      "name": "Data story",
+      "settings": {
+        "width": 1920,
+        "height": 1080,
+        "fps": 30,
+        "theme": "dark",
+        "fonts": {
+          "main": "Inter",
+          "heading": "",
+          "code": "JetBrains Mono",
+          "families": []
+        }
+      },
+      "variables": {},
+      "nodes": [
+        {
+          "id": "hook",
+          "type": "fx.title",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "params": {
+            "title": "Quarterly reach by channel",
+            "subtitle": "Short-form climbed while long-form held attention",
+            "entrance": "soft-blur"
+          }
+        },
+        {
+          "id": "chart",
+          "type": "fx.chart",
+          "position": {
+            "x": 0,
+            "y": 200
+          },
+          "params": {
+            "kind": "bar",
+            "bar": {
+              "barColor": "#2dd4bf",
+              "bars": [
+                {
+                  "label": "Mobile",
+                  "value": 124000
+                },
+                {
+                  "label": "Web",
+                  "value": 82000
+                },
+                {
+                  "label": "Desktop",
+                  "value": 64000
+                },
+                {
+                  "label": "API",
+                  "value": 48000
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "numbers",
+          "type": "fx.metric-ticker",
+          "position": {
+            "x": 0,
+            "y": 400
+          },
+          "params": {
+            "kind": "cards",
+            "cards": {
+              "title": "Signals that mattered",
+              "eyebrow": "Quarter recap"
+            }
+          }
+        },
+        {
+          "id": "steps",
+          "type": "fx.steps-timeline",
+          "position": {
+            "x": 0,
+            "y": 600
+          },
+          "params": {
+            "title": "How we read the quarter"
+          }
+        },
+        {
+          "id": "takeaway",
+          "type": "fx.title",
+          "position": {
+            "x": 0,
+            "y": 800
+          },
+          "params": {
+            "eyebrow": "Takeaway",
+            "title": "Short-form drove reach; long-form kept attention.",
+            "fontSize": 84,
+            "entrance": "fade-up"
+          }
+        },
+        {
+          "id": "close",
+          "type": "fx.end-card",
+          "position": {
+            "x": 0,
+            "y": 1000
+          },
+          "params": {
+            "title": "Turn your data into motion",
+            "subtitle": "",
+            "cta": "Get started",
+            "url": "",
+            "handles": []
+          }
+        },
+        {
+          "id": "transition",
+          "type": "timeline.transition",
+          "position": {
+            "x": 300,
+            "y": -200
+          },
+          "params": {
+            "kind": "fade",
+            "durationInFrames": 18
+          }
+        },
+        {
+          "id": "sequence",
+          "type": "timeline.sequence",
+          "position": {
+            "x": 600,
+            "y": 500
+          },
+          "params": {}
+        },
+        {
+          "id": "music",
+          "type": "audio.music",
+          "position": {
+            "x": 600,
+            "y": 760
+          },
+          "params": {
+            "src": "app:music/calm-ambient.m4a",
+            "volume": 0.4,
+            "loop": true
+          }
+        },
+        {
+          "id": "mix",
+          "type": "audio.mix",
+          "position": {
+            "x": 900,
+            "y": 500
+          },
+          "params": {}
+        },
+        {
+          "id": "render",
+          "type": "output.render",
+          "position": {
+            "x": 1200,
+            "y": 500
+          },
+          "params": {
+            "fileName": "{{Project name}}",
+            "codec": "h264",
+            "crf": 18,
+            "variants": ["16:9", "9:16"],
+            "reframe": "follow",
+            "scale": 1,
+            "chapters": true,
+            "chapterList": false,
+            "gl": "angle"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "hook.clip->sequence.in1",
+          "source": "hook",
+          "sourceHandle": "clip",
+          "target": "sequence",
+          "targetHandle": "in1"
+        },
+        {
+          "id": "chart.clip->sequence.in2",
+          "source": "chart",
+          "sourceHandle": "clip",
+          "target": "sequence",
+          "targetHandle": "in2"
+        },
+        {
+          "id": "numbers.clip->sequence.in3",
+          "source": "numbers",
+          "sourceHandle": "clip",
+          "target": "sequence",
+          "targetHandle": "in3"
+        },
+        {
+          "id": "steps.clip->sequence.in4",
+          "source": "steps",
+          "sourceHandle": "clip",
+          "target": "sequence",
+          "targetHandle": "in4"
+        },
+        {
+          "id": "takeaway.clip->sequence.in5",
+          "source": "takeaway",
+          "sourceHandle": "clip",
+          "target": "sequence",
+          "targetHandle": "in5"
+        },
+        {
+          "id": "close.clip->sequence.in6",
+          "source": "close",
+          "sourceHandle": "clip",
+          "target": "sequence",
+          "targetHandle": "in6"
+        },
+        {
+          "id": "transition.transition->sequence.transition",
+          "source": "transition",
+          "sourceHandle": "transition",
+          "target": "sequence",
+          "targetHandle": "transition"
+        },
+        {
+          "id": "sequence.clip->mix.clip",
+          "source": "sequence",
+          "sourceHandle": "clip",
+          "target": "mix",
+          "targetHandle": "clip"
+        },
+        {
+          "id": "music.audio->mix.sounds",
+          "source": "music",
+          "sourceHandle": "audio",
+          "target": "mix",
+          "targetHandle": "sounds"
+        },
+        {
+          "id": "mix.clip->render.clip",
+          "source": "mix",
+          "sourceHandle": "clip",
+          "target": "render",
+          "targetHandle": "clip"
+        }
+      ],
+      "markers": []
+    }
+  },
+  {
+    "id": "launch-anything",
+    "title": "Launch anything",
+    "description": "An opening line, a reveal of what you made, the proof and a closing call to action.",
+    "icon": "sparkles",
+    "workflow": {
+      "version": 1,
+      "id": "template_launch-anything",
+      "name": "Launch anything",
+      "settings": {
+        "width": 1920,
+        "height": 1080,
+        "fps": 30,
+        "theme": "dark",
+        "fonts": {
+          "main": "Inter",
+          "heading": "",
+          "code": "JetBrains Mono",
+          "families": []
+        }
+      },
+      "variables": {
+        "Product name": "Acme"
+      },
+      "nodes": [
+        {
+          "id": "opening",
+          "type": "fx.animated-text",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "params": {
+            "kind": "word-push",
+            "word-push": {
+              "text": "Good ideas deserve a stage",
+              "color": "#fafafa",
+              "background": "#0b0b10",
+              "fontSize": 96
+            }
+          }
+        },
+        {
+          "id": "reveal",
+          "type": "fx.title",
+          "position": {
+            "x": 0,
+            "y": 200
+          },
+          "params": {
+            "eyebrow": "Let's make",
+            "title": "{{Product name}}",
+            "subtitle": "Built around you. Made to be yours.",
+            "entrance": "scale-cut"
+          }
+        },
+        {
+          "id": "proof",
+          "type": "fx.animated-text",
+          "position": {
+            "x": 0,
+            "y": 400
+          },
+          "params": {
+            "kind": "headline",
+            "headline": {
+              "text": "Your work. *A clearer view.*",
+              "background": "#0b0b10"
+            }
+          }
+        },
+        {
+          "id": "close",
+          "type": "fx.end-card",
+          "position": {
+            "x": 0,
+            "y": 600
+          },
+          "params": {
+            "title": "Begin with {{Product name}}",
+            "subtitle": "Small things. Well made.",
+            "cta": "Begin",
+            "url": "yourproduct.example",
+            "handles": []
+          }
+        },
+        {
+          "id": "transition",
+          "type": "timeline.transition",
+          "position": {
+            "x": 300,
+            "y": -200
+          },
+          "params": {
+            "kind": "push-through",
+            "durationInFrames": 18
+          }
+        },
+        {
+          "id": "sequence",
+          "type": "timeline.sequence",
+          "position": {
+            "x": 600,
+            "y": 300
+          },
+          "params": {}
+        },
+        {
+          "id": "music",
+          "type": "audio.music",
+          "position": {
+            "x": 600,
+            "y": 560
+          },
+          "params": {
+            "src": "app:music/elevate.m4a",
+            "volume": 0.4,
+            "loop": true
+          }
+        },
+        {
+          "id": "mix",
+          "type": "audio.mix",
+          "position": {
+            "x": 900,
+            "y": 300
+          },
+          "params": {}
+        },
+        {
+          "id": "render",
+          "type": "output.render",
+          "position": {
+            "x": 1200,
+            "y": 300
+          },
+          "params": {
+            "fileName": "{{Project name}}",
+            "codec": "h264",
+            "crf": 18,
+            "variants": ["16:9", "9:16"],
+            "reframe": "follow",
+            "scale": 1,
+            "chapters": true,
+            "chapterList": false,
+            "gl": "angle"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "opening.clip->sequence.in1",
+          "source": "opening",
+          "sourceHandle": "clip",
+          "target": "sequence",
+          "targetHandle": "in1"
+        },
+        {
+          "id": "reveal.clip->sequence.in2",
+          "source": "reveal",
+          "sourceHandle": "clip",
+          "target": "sequence",
+          "targetHandle": "in2"
+        },
+        {
+          "id": "proof.clip->sequence.in3",
+          "source": "proof",
+          "sourceHandle": "clip",
+          "target": "sequence",
+          "targetHandle": "in3"
+        },
+        {
+          "id": "close.clip->sequence.in4",
+          "source": "close",
+          "sourceHandle": "clip",
+          "target": "sequence",
+          "targetHandle": "in4"
+        },
+        {
+          "id": "transition.transition->sequence.transition",
+          "source": "transition",
+          "sourceHandle": "transition",
+          "target": "sequence",
+          "targetHandle": "transition"
+        },
+        {
+          "id": "sequence.clip->mix.clip",
+          "source": "sequence",
+          "sourceHandle": "clip",
+          "target": "mix",
+          "targetHandle": "clip"
+        },
+        {
+          "id": "music.audio->mix.sounds",
+          "source": "music",
+          "sourceHandle": "audio",
+          "target": "mix",
+          "targetHandle": "sounds"
+        },
+        {
+          "id": "mix.clip->render.clip",
+          "source": "mix",
+          "sourceHandle": "clip",
+          "target": "render",
+          "targetHandle": "clip"
+        }
+      ],
+      "markers": []
+    }
+  },
+  {
+    "id": "release-teaser",
+    "title": "Release teaser",
+    "description": "Five short statements, then the name and the release they lead up to.",
+    "icon": "presentation",
+    "workflow": {
+      "version": 1,
+      "id": "template_release-teaser",
+      "name": "Release teaser",
+      "settings": {
+        "width": 1920,
+        "height": 1080,
+        "fps": 30,
+        "theme": "dark",
+        "fonts": {
+          "main": "Inter",
+          "heading": "",
+          "code": "JetBrains Mono",
+          "families": []
+        }
+      },
+      "variables": {
+        "Product name": "Orvio",
+        "Version": "2"
+      },
+      "nodes": [
+        {
+          "id": "start",
+          "type": "fx.animated-text",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "params": {
+            "kind": "soft-blur",
+            "soft-blur": {
+              "text": "Start with an idea",
+              "color": "#F2F5F7",
+              "background": "#050709",
+              "fontSize": 96
+            }
+          }
+        },
+        {
+          "id": "room",
+          "type": "fx.animated-text",
+          "position": {
+            "x": 0,
+            "y": 200
+          },
+          "params": {
+            "kind": "line-by-line",
+            "line-by-line": {
+              "text": "Make room\nfor better work",
+              "color": "#F2F5F7",
+              "background": "#050709"
+            }
+          }
+        },
+        {
+          "id": "detail",
+          "type": "fx.animated-text",
+          "position": {
+            "x": 0,
+            "y": 400
+          },
+          "params": {
+            "kind": "tracking",
+            "tracking": {
+              "text": "Bring every detail to life",
+              "color": "#F2F5F7",
+              "background": "#050709"
+            }
+          }
+        },
+        {
+          "id": "together",
+          "type": "fx.animated-text",
+          "position": {
+            "x": 0,
+            "y": 600
+          },
+          "params": {
+            "kind": "mask-reveal",
+            "mask-reveal": {
+              "text": "Move together.\nGo further.",
+              "color": "#F2F5F7",
+              "background": "#050709"
+            }
+          }
+        },
+        {
+          "id": "chapter",
+          "type": "fx.animated-text",
+          "position": {
+            "x": 0,
+            "y": 800
+          },
+          "params": {
+            "kind": "fade-up",
+            "fade-up": {
+              "text": "A fresh chapter. No starting over.",
+              "color": "#F2F5F7",
+              "background": "#050709"
+            }
+          }
+        },
+        {
+          "id": "lockup",
+          "type": "fx.logo-reveal",
+          "position": {
+            "x": 0,
+            "y": 1000
+          },
+          "params": {
+            "kind": "wipe",
+            "wipe": {
+              "wordmark": "{{Product name}} {{Version}}",
+              "accentColor": "#9BC8DD",
+              "background": "#050709"
+            }
+          }
+        },
+        {
+          "id": "transition",
+          "type": "timeline.transition",
+          "position": {
+            "x": 300,
+            "y": -200
+          },
+          "params": {
+            "kind": "dither-dissolve",
+            "durationInFrames": 20
+          }
+        },
+        {
+          "id": "sequence",
+          "type": "timeline.sequence",
+          "position": {
+            "x": 600,
+            "y": 500
+          },
+          "params": {}
+        },
+        {
+          "id": "music",
+          "type": "audio.music",
+          "position": {
+            "x": 600,
+            "y": 760
+          },
+          "params": {
+            "src": "app:music/calm-piano.m4a",
+            "volume": 0.4,
+            "loop": true
+          }
+        },
+        {
+          "id": "mix",
+          "type": "audio.mix",
+          "position": {
+            "x": 900,
+            "y": 500
+          },
+          "params": {}
+        },
+        {
+          "id": "render",
+          "type": "output.render",
+          "position": {
+            "x": 1200,
+            "y": 500
+          },
+          "params": {
+            "fileName": "{{Project name}}",
+            "codec": "h264",
+            "crf": 18,
+            "variants": ["16:9", "9:16"],
+            "reframe": "follow",
+            "scale": 1,
+            "chapters": true,
+            "chapterList": false,
+            "gl": "angle"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "start.clip->sequence.in1",
+          "source": "start",
+          "sourceHandle": "clip",
+          "target": "sequence",
+          "targetHandle": "in1"
+        },
+        {
+          "id": "room.clip->sequence.in2",
+          "source": "room",
+          "sourceHandle": "clip",
+          "target": "sequence",
+          "targetHandle": "in2"
+        },
+        {
+          "id": "detail.clip->sequence.in3",
+          "source": "detail",
+          "sourceHandle": "clip",
+          "target": "sequence",
+          "targetHandle": "in3"
+        },
+        {
+          "id": "together.clip->sequence.in4",
+          "source": "together",
+          "sourceHandle": "clip",
+          "target": "sequence",
+          "targetHandle": "in4"
+        },
+        {
+          "id": "chapter.clip->sequence.in5",
+          "source": "chapter",
+          "sourceHandle": "clip",
+          "target": "sequence",
+          "targetHandle": "in5"
+        },
+        {
+          "id": "lockup.clip->sequence.in6",
+          "source": "lockup",
+          "sourceHandle": "clip",
+          "target": "sequence",
+          "targetHandle": "in6"
+        },
+        {
+          "id": "transition.transition->sequence.transition",
+          "source": "transition",
+          "sourceHandle": "transition",
+          "target": "sequence",
+          "targetHandle": "transition"
+        },
+        {
+          "id": "sequence.clip->mix.clip",
+          "source": "sequence",
+          "sourceHandle": "clip",
+          "target": "mix",
+          "targetHandle": "clip"
+        },
+        {
+          "id": "music.audio->mix.sounds",
+          "source": "music",
+          "sourceHandle": "audio",
+          "target": "mix",
+          "targetHandle": "sounds"
+        },
+        {
+          "id": "mix.clip->render.clip",
+          "source": "mix",
           "sourceHandle": "clip",
           "target": "render",
           "targetHandle": "clip"

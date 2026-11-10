@@ -1,19 +1,24 @@
 import { useFilm, useFrame } from "@opsis/runtime/clock.tsx";
 import { AbsoluteFill } from "@opsis/runtime/parts.tsx";
 import React from "react";
-import { faded } from "#video/camera/lib/style.ts";
 import { fontOr } from "#video/common/fonts.ts";
-import {
-  drawOn,
-  ENTRANCE_FADE_FRAMES,
-  entranceStyle,
-  exitOpacity,
-  type Entrance,
-} from "#video/core/anim.ts";
-import type { MarkLook } from "#video/core/hand-drawn-marks.ts";
-import { HandDrawnMark } from "#video/core/hand-drawn.tsx";
-import type { ElementSettings } from "#video/generated/spec.ts";
+import { entranceStyle, exitOpacity, type Entrance } from "#video/core/anim.ts";
+import { GradientScaleCutText } from "#video/elements/text/gradient-scale-cut-text.tsx";
+import { HandwritingText } from "#video/elements/text/handwriting-text.tsx";
+import { KineticHeadline } from "#video/elements/text/kinetic-headline.tsx";
+import { LineByLineSlide } from "#video/elements/text/line-by-line-slide.tsx";
+import { MaskRevealUp } from "#video/elements/text/mask-reveal-up.tsx";
+import { MatrixDecode } from "#video/elements/text/matrix-decode.tsx";
+import { NeonFlickerText } from "#video/elements/text/neon-flicker-text.tsx";
+import { RGBGlitchText } from "#video/elements/text/rgb-glitch-text.tsx";
+import { SoftBlurIn } from "#video/elements/text/soft-blur-in.tsx";
+import { StaggeredFadeUp } from "#video/elements/text/staggered-fade-up.tsx";
+import { TrackingIn } from "#video/elements/text/tracking-in.tsx";
+import { Typewriter } from "#video/elements/text/typewriter.tsx";
+import { WordPush } from "#video/elements/text/word-push.tsx";
+import type { ElementSettings, Entrance as TitleEntrance } from "#video/generated/spec.ts";
 import { Backgrounded } from "#video/lib/backgrounds/backgrounded.tsx";
+import DEFAULT_PROPS from "#video/registry/default-props.generated.json";
 
 const SUBTITLE_FADE = 0.7;
 
@@ -37,56 +42,80 @@ const LINES = {
   },
 } satisfies Record<string, LineLook>;
 
+type AnimatedText = { key: keyof typeof DEFAULT_PROPS; draw: (props: never) => React.ReactNode };
+
+const ANIMATED: Partial<Record<TitleEntrance, AnimatedText>> = {
+  "soft-blur": { key: "soft-blur-in", draw: SoftBlurIn },
+  typewriter: { key: "typewriter", draw: Typewriter },
+  "fade-up": { key: "staggered-fade-up", draw: StaggeredFadeUp },
+  "word-push": { key: "word-push", draw: WordPush },
+  "mask-reveal": { key: "mask-reveal-up", draw: MaskRevealUp },
+  tracking: { key: "tracking-in", draw: TrackingIn },
+  glitch: { key: "rgb-glitch-text", draw: RGBGlitchText },
+  decode: { key: "matrix-decode", draw: MatrixDecode },
+  "line-by-line": { key: "line-by-line-slide", draw: LineByLineSlide },
+  headline: { key: "kinetic-headline", draw: KineticHeadline },
+  handwriting: { key: "handwriting-text", draw: HandwritingText },
+  neon: { key: "neon-flicker-text", draw: NeonFlickerText },
+  "scale-cut": { key: "gradient-scale-cut-text", draw: GradientScaleCutText },
+};
+
+const LINE_HEIGHT = 1.15;
+
+function weightFor(usual: unknown, weight: number): string | number {
+  if (typeof usual !== "string") return weight;
+  return String(Math.min(700, Math.max(400, Math.round(weight / 100) * 100)));
+}
+
+type AnimatedLineProps = {
+  animated: AnimatedText;
+  text: string;
+  color: string;
+  fontSize: number;
+  fontWeight: number;
+  fontFamily: string;
+  letterSpacing: number;
+};
+
+function AnimatedLine({
+  animated,
+  text,
+  color,
+  fontSize,
+  fontWeight,
+  fontFamily,
+  letterSpacing,
+}: AnimatedLineProps) {
+  const usual: Record<string, unknown> = DEFAULT_PROPS[animated.key];
+  const lines = Math.max(1, text.split("\n").length);
+  const Draw = animated.draw as (props: Record<string, unknown>) => React.ReactNode;
+  return (
+    <div style={{ position: "relative", width: "100%", height: fontSize * LINE_HEIGHT * lines }}>
+      <Draw
+        {...usual}
+        text={text}
+        color={color}
+        fontSize={fontSize}
+        fontWeight={weightFor(usual.fontWeight, fontWeight)}
+        fontFamily={fontFamily}
+        letterSpacing={letterSpacing}
+        background="transparent"
+      />
+    </div>
+  );
+}
+
 type TitleLineProps = {
   look: LineLook;
   text: React.ReactNode;
   color: string;
   fontSize: number;
-  entrance: Entrance;
+  entrance: TitleEntrance;
   stagger: number;
 };
 
-export function splitMark(text: string, mark: string): [string, string, string] | null {
-  const wanted = mark.trim();
-  if (!wanted) return null;
-  const at = text.toLowerCase().indexOf(wanted.toLowerCase());
-  if (at < 0) return null;
-  return [text.slice(0, at), text.slice(at, at + wanted.length), text.slice(at + wanted.length)];
-}
-
-type MarkStyle = { thickness: number; markerOpacity: number; seed: number; drawTime: number };
-
-type MarkedTextProps = {
-  text: string;
-  mark: string;
-  look: MarkLook;
-  color: string;
-  fontSize: number;
-  delay: number;
-  style: MarkStyle;
-};
-
-function MarkedText({ text, mark, look, color, fontSize, delay, style }: MarkedTextProps) {
-  const frame = useFrame();
-  const { fps } = useFilm();
-  const parts = splitMark(text, mark);
-  if (!parts) return text;
-  const [before, marked, after] = parts;
-  return (
-    <>
-      {before}
-      <HandDrawnMark
-        look={look}
-        progress={drawOn(frame / fps, (delay + ENTRANCE_FADE_FRAMES) / fps, style.drawTime)}
-        color={look === "marker" ? faded(color, `${style.markerOpacity}%`) : color}
-        strokeWidth={fontSize * style.thickness}
-        seed={style.seed}
-      >
-        {marked}
-      </HandDrawnMark>
-      {after}
-    </>
-  );
+function lineEntrance(entrance: TitleEntrance): Entrance {
+  return ANIMATED[entrance] ? "fade" : (entrance as Entrance);
 }
 
 function TitleLine({ look, text, color, fontSize, entrance, stagger }: TitleLineProps) {
@@ -95,7 +124,7 @@ function TitleLine({ look, text, color, fontSize, entrance, stagger }: TitleLine
   return (
     <div
       style={{
-        ...entranceStyle(entrance, frame, fps, look.delay * stagger),
+        ...entranceStyle(lineEntrance(entrance), frame, fps, look.delay * stagger),
         color,
         fontSize: fontSize * look.sizeEm,
         ...look.style,
@@ -110,9 +139,6 @@ export function Title({
   eyebrow,
   title,
   subtitle,
-  mark,
-  markLook,
-  markColor,
   align,
   entrance,
   color,
@@ -128,10 +154,6 @@ export function Title({
   subtitleSize,
   letterSpacing,
   lineStagger,
-  markThickness,
-  markerOpacity,
-  markSeed,
-  markDrawTime,
   fadeOut,
   subtitleColor,
 }: ElementSettings["title"]) {
@@ -139,12 +161,7 @@ export function Title({
   const { durationInFrames, fps } = useFilm();
   const out = exitOpacity(frame, durationInFrames, Math.round(fadeOut * fps));
   const line = { fontSize, entrance, stagger: lineStagger };
-  const markStyle = {
-    thickness: markThickness,
-    markerOpacity,
-    seed: markSeed,
-    drawTime: markDrawTime,
-  };
+  const animated = ANIMATED[entrance];
   return (
     <AbsoluteFill>
       <Backgrounded background={background} />
@@ -174,25 +191,27 @@ export function Title({
             {...line}
           />
         ) : null}
-        <TitleLine
-          look={{
-            ...LINES.title,
-            style: { ...LINES.title.style, fontWeight, letterSpacing: `${letterSpacing}em` },
-          }}
-          text={
-            <MarkedText
-              text={title}
-              mark={mark}
-              look={markLook}
-              color={markColor}
-              fontSize={fontSize}
-              delay={LINES.title.delay * lineStagger}
-              style={markStyle}
-            />
-          }
-          color={color}
-          {...line}
-        />
+        {animated ? (
+          <AnimatedLine
+            animated={animated}
+            text={title}
+            color={color}
+            fontSize={fontSize}
+            fontWeight={fontWeight}
+            fontFamily={fontOr(fontFamily, "heading")}
+            letterSpacing={letterSpacing}
+          />
+        ) : (
+          <TitleLine
+            look={{
+              ...LINES.title,
+              style: { ...LINES.title.style, fontWeight, letterSpacing: `${letterSpacing}em` },
+            }}
+            text={title}
+            color={color}
+            {...line}
+          />
+        )}
         {subtitle ? (
           <TitleLine
             look={{

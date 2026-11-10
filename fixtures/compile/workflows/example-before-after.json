@@ -85,9 +85,7 @@
      "x": 900,
      "y": 200
     },
-    "params": {
-     "speed": 1.25
-    }
+    "params": {}
    },
    {
     "id": "before-label",
@@ -186,9 +184,7 @@
      "x": 900,
      "y": 1050
     },
-    "params": {
-     "speed": 1.25
-    }
+    "params": {}
    },
    {
     "id": "after-label",
@@ -224,15 +220,17 @@
    },
    {
     "id": "wipe",
-    "type": "transition.wipe",
+    "type": "timeline.transition",
     "position": {
      "x": 1500,
      "y": 510
     },
     "params": {
-     "direction": "from-left",
+     "kind": "wipe",
      "durationInFrames": 24,
-     "keepWhole": false
+     "wipe": {
+      "direction": "from-left"
+     }
     }
    },
    {
@@ -277,6 +275,15 @@
     "params": {
      "zoom": false
     }
+   },
+   {
+    "id": "wipe-join",
+    "type": "timeline.sequence",
+    "position": {
+     "x": 1650,
+     "y": 710
+    },
+    "params": {}
    }
   ],
   "edges": [
@@ -365,22 +372,22 @@
     "targetHandle": "in2"
    },
    {
-    "id": "before-stack.clip->wipe.a",
+    "id": "before-stack.clip->wipe-join.in1",
     "source": "before-stack",
     "sourceHandle": "clip",
-    "target": "wipe",
-    "targetHandle": "a"
+    "target": "wipe-join",
+    "targetHandle": "in1"
    },
    {
-    "id": "after-stack.clip->wipe.b",
+    "id": "after-stack.clip->wipe.clip",
     "source": "after-stack",
     "sourceHandle": "clip",
     "target": "wipe",
-    "targetHandle": "b"
+    "targetHandle": "clip"
    },
    {
-    "id": "wipe.clip->render.clip",
-    "source": "wipe",
+    "id": "wipe-join.clip->render.clip",
+    "source": "wipe-join",
     "sourceHandle": "clip",
     "target": "render",
     "targetHandle": "clip"
@@ -398,6 +405,13 @@
     "sourceHandle": "style",
     "target": "after-camera",
     "targetHandle": "style"
+   },
+   {
+    "id": "wipe.clip->wipe-join.in2",
+    "source": "wipe",
+    "sourceHandle": "clip",
+    "target": "wipe-join",
+    "targetHandle": "in2"
    }
   ],
   "markers": []
@@ -563,6 +577,7 @@
        "nodeId": "before-camera-moves",
        "type": "camera.camera",
        "params": {
+        "follows": "actions",
         "zoom": false,
         "maxScale": 1.74,
         "hold": 1300,
@@ -575,6 +590,9 @@
         "stayZoomedWithinMs": 2800,
         "holdAfterTypingMs": 400,
         "restAtEndMs": 600,
+        "cursorScale": 1.35,
+        "everyMs": 700,
+        "zoomOutOnJumps": true,
         "longestPan": 500,
         "cameraEasing": "smooth",
         "cameraPace": 1.0
@@ -630,6 +648,7 @@
        "nodeId": "after-camera-moves",
        "type": "camera.camera",
        "params": {
+        "follows": "actions",
         "zoom": false,
         "maxScale": 1.74,
         "hold": 1300,
@@ -642,6 +661,9 @@
         "stayZoomedWithinMs": 2800,
         "holdAfterTypingMs": 400,
         "restAtEndMs": 600,
+        "cursorScale": 1.35,
+        "everyMs": 700,
+        "zoomOutOnJumps": true,
         "longestPan": 500,
         "cameraEasing": "smooth",
         "cameraPace": 1.0
@@ -1071,16 +1093,151 @@
     }
    },
    "wipe": {
+    "transition": {
+     "type": "transition",
+     "kind": "wipe",
+     "durationInFrames": 24,
+     "params": {
+      "direction": "from-left"
+     }
+    },
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 144,
+     "tracks": [
+      {
+       "id": "after-stack:l0",
+       "items": [
+        {
+         "kind": "group",
+         "id": "after-stack:l0:g",
+         "from": 0,
+         "durationInFrames": 144,
+         "handles": {
+          "move": {
+           "nodeId": "after-stack",
+           "param": "offsetsMs",
+           "unit": "ms",
+           "index": 0
+          }
+         },
+         "slot": {
+          "nodeId": "after-stack",
+          "port": "in1"
+         },
+         "props": {
+          "tracks": [
+           {
+            "id": "after-camera:t",
+            "items": [
+             {
+              "kind": "element",
+              "id": "after-camera:i",
+              "from": 0,
+              "durationInFrames": 144,
+              "nodeId": "after-camera",
+              "component": "placeholder",
+              "props": {
+               "title": "Not recorded yet",
+               "subtitle": "Run to record the take. The camera moves appear here afterwards."
+              }
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ],
+       "layer": true
+      },
+      {
+       "id": "after-stack:l1",
+       "items": [
+        {
+         "kind": "group",
+         "id": "after-stack:l1:g",
+         "from": 0,
+         "durationInFrames": 120,
+         "handles": {
+          "move": {
+           "nodeId": "after-stack",
+           "param": "offsetsMs",
+           "unit": "ms",
+           "index": 1
+          }
+         },
+         "slot": {
+          "nodeId": "after-stack",
+          "port": "in2"
+         },
+         "props": {
+          "tracks": [
+           {
+            "id": "after-label:t",
+            "items": [
+             {
+              "kind": "element",
+              "id": "after-label:i",
+              "from": 0,
+              "durationInFrames": 120,
+              "nodeId": "after-label",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "after-label",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
+              "component": "lower-third",
+              "props": {
+               "title": "After",
+               "subtitle": "https://example.org",
+               "position": "bottom-left",
+               "accent": "#a78bfa",
+               "color": "#fafafa",
+               "panel": "rgba(10,10,12,0.72)",
+               "subtitleOpacity": 0.7,
+               "exitTime": 0.4667,
+               "slide": 120,
+               "margin": 80,
+               "barWidth": 8,
+               "cornerRadius": 18,
+               "panelBlur": 12,
+               "titleSize": 44,
+               "titleWeight": 720,
+               "subtitleSize": 28
+              }
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ],
+       "layer": true
+      }
+     ],
+     "audio": [],
+     "enter": {
+      "kind": "wipe",
+      "durationInFrames": 24,
+      "params": {
+       "direction": "from-left"
+      }
+     }
+    }
+   },
+   "wipe-join": {
     "clip": {
      "type": "clip",
      "durationInFrames": 264,
      "tracks": [
       {
-       "id": "wipe:seq",
+       "id": "wipe-join:seq",
        "items": [
         {
          "kind": "group",
-         "id": "wipe:s0",
+         "id": "wipe-join:s0",
          "from": 0,
          "durationInFrames": 144,
          "exit": {
@@ -1091,8 +1248,8 @@
           }
          },
          "slot": {
-          "nodeId": "wipe",
-          "port": "a"
+          "nodeId": "wipe-join",
+          "port": "in1"
          },
          "props": {
           "tracks": [
@@ -1212,7 +1369,7 @@
         },
         {
          "kind": "group",
-         "id": "wipe:s1",
+         "id": "wipe-join:s1",
          "from": 120,
          "durationInFrames": 144,
          "enter": {
@@ -1223,8 +1380,8 @@
           }
          },
          "slot": {
-          "nodeId": "wipe",
-          "port": "b"
+          "nodeId": "wipe-join",
+          "port": "in2"
          },
          "props": {
           "tracks": [
@@ -1369,6 +1526,7 @@
    "before-stack",
    "after-stack",
    "wipe",
+   "wipe-join",
    "render"
   ]
  },
@@ -1420,10 +1578,6 @@
     {
      "icon": "palette",
      "text": "1 style setting"
-    },
-    {
-     "icon": "gauge",
-     "text": "1.25× speed"
     }
    ]
   },
@@ -1501,10 +1655,6 @@
     {
      "icon": "palette",
      "text": "1 style setting"
-    },
-    {
-     "icon": "gauge",
-     "text": "1.25× speed"
     }
    ]
   },
@@ -1540,7 +1690,7 @@
    "rows": [
     {
      "icon": "arrow-right-left",
-     "text": "0.8 s"
+     "text": "Wipe · 0.8 s"
     }
    ]
   },
@@ -1573,6 +1723,18 @@
      "tone": "muted"
     }
    ]
+  },
+  "wipe-join": {
+   "rows": [
+    {
+     "icon": "list-video",
+     "text": "2 clips · 8.8 s"
+    },
+    {
+     "icon": "arrow-right-left",
+     "text": "1 join with wipe"
+    }
+   ]
   }
  },
  "film": {
@@ -1584,11 +1746,11 @@
    "background": "#09090b",
    "tracks": [
     {
-     "id": "wipe:seq",
+     "id": "wipe-join:seq",
      "items": [
       {
        "kind": "group",
-       "id": "wipe:s0",
+       "id": "wipe-join:s0",
        "from": 0,
        "durationInFrames": 144,
        "exit": {
@@ -1599,8 +1761,8 @@
         }
        },
        "slot": {
-        "nodeId": "wipe",
-        "port": "a"
+        "nodeId": "wipe-join",
+        "port": "in1"
        },
        "props": {
         "tracks": [
@@ -1720,7 +1882,7 @@
       },
       {
        "kind": "group",
-       "id": "wipe:s1",
+       "id": "wipe-join:s1",
        "from": 120,
        "durationInFrames": 144,
        "enter": {
@@ -1731,8 +1893,8 @@
         }
        },
        "slot": {
-        "nodeId": "wipe",
-        "port": "b"
+        "nodeId": "wipe-join",
+        "port": "in2"
        },
        "props": {
         "tracks": [
@@ -2299,11 +2461,11 @@
    "background": "#09090b",
    "tracks": [
     {
-     "id": "wipe:seq",
+     "id": "wipe-join:seq",
      "items": [
       {
        "kind": "group",
-       "id": "wipe:s0",
+       "id": "wipe-join:s0",
        "from": 0,
        "durationInFrames": 144,
        "exit": {
@@ -2314,8 +2476,8 @@
         }
        },
        "slot": {
-        "nodeId": "wipe",
-        "port": "a"
+        "nodeId": "wipe-join",
+        "port": "in1"
        },
        "props": {
         "tracks": [
@@ -2435,7 +2597,7 @@
       },
       {
        "kind": "group",
-       "id": "wipe:s1",
+       "id": "wipe-join:s1",
        "from": 120,
        "durationInFrames": 144,
        "enter": {
@@ -2446,8 +2608,8 @@
         }
        },
        "slot": {
-        "nodeId": "wipe",
-        "port": "b"
+        "nodeId": "wipe-join",
+        "port": "in2"
        },
        "props": {
         "tracks": [
@@ -2994,7 +3156,7 @@
     "bars": [
      {
       "type": "video",
-      "key": "/0:wipe:s0/0:before-stack:l0:g/0:before-camera:i",
+      "key": "/0:wipe-join:s0/0:before-stack:l0:g/0:before-camera:i",
       "itemId": "before-camera:i",
       "nodeId": "before-camera",
       "kind": "element",
@@ -3039,10 +3201,10 @@
         "to": 144.0
        },
        {
-        "itemId": "wipe:s0",
+        "itemId": "wipe-join:s0",
         "slot": {
-         "nodeId": "wipe",
-         "port": "a"
+         "nodeId": "wipe-join",
+         "port": "in1"
         },
         "rate": 1.0,
         "rateEnd": 1.0,
@@ -3060,7 +3222,7 @@
      },
      {
       "type": "video",
-      "key": "/0:wipe:s0/1:before-stack:l1:g/0:before-label:i",
+      "key": "/0:wipe-join:s0/1:before-stack:l1:g/0:before-label:i",
       "itemId": "before-label:i",
       "nodeId": "before-label",
       "kind": "element",
@@ -3126,10 +3288,10 @@
         "to": 120.0
        },
        {
-        "itemId": "wipe:s0",
+        "itemId": "wipe-join:s0",
         "slot": {
-         "nodeId": "wipe",
-         "port": "a"
+         "nodeId": "wipe-join",
+         "port": "in1"
         },
         "rate": 1.0,
         "rateEnd": 1.0,
@@ -3147,7 +3309,7 @@
      },
      {
       "type": "video",
-      "key": "/0:wipe:s1/0:after-stack:l0:g/0:after-camera:i",
+      "key": "/0:wipe-join:s1/0:after-stack:l0:g/0:after-camera:i",
       "itemId": "after-camera:i",
       "nodeId": "after-camera",
       "kind": "element",
@@ -3192,10 +3354,10 @@
         "to": 264.0
        },
        {
-        "itemId": "wipe:s1",
+        "itemId": "wipe-join:s1",
         "slot": {
-         "nodeId": "wipe",
-         "port": "b"
+         "nodeId": "wipe-join",
+         "port": "in2"
         },
         "rate": 1.0,
         "rateEnd": 1.0,
@@ -3213,7 +3375,7 @@
      },
      {
       "type": "video",
-      "key": "/0:wipe:s1/1:after-stack:l1:g/0:after-label:i",
+      "key": "/0:wipe-join:s1/1:after-stack:l1:g/0:after-label:i",
       "itemId": "after-label:i",
       "nodeId": "after-label",
       "kind": "element",
@@ -3279,10 +3441,10 @@
         "to": 240.0
        },
        {
-        "itemId": "wipe:s1",
+        "itemId": "wipe-join:s1",
         "slot": {
-         "nodeId": "wipe",
-         "port": "b"
+         "nodeId": "wipe-join",
+         "port": "in2"
         },
         "rate": 1.0,
         "rateEnd": 1.0,
@@ -3304,8 +3466,8 @@
     "audioLanes": 0,
     "transitions": [
      {
-      "key": "/0:wipe:s1:enter",
-      "itemKey": "/0:wipe:s1",
+      "key": "/0:wipe-join:s1:enter",
+      "itemKey": "/0:wipe-join:s1",
       "from": 120.0,
       "to": 144.0,
       "kind": "wipe",
@@ -3316,8 +3478,8 @@
       ],
       "covers": 0.16666666666666666,
       "slot": {
-       "nodeId": "wipe",
-       "port": "b"
+       "nodeId": "wipe-join",
+       "port": "in2"
       }
      }
     ],
@@ -3826,6 +3988,7 @@
         "nodeId": "before-camera-moves",
         "type": "camera.camera",
         "params": {
+         "follows": "actions",
          "zoom": false,
          "maxScale": 1.74,
          "hold": 1300,
@@ -3838,6 +4001,9 @@
          "stayZoomedWithinMs": 2800,
          "holdAfterTypingMs": 400,
          "restAtEndMs": 600,
+         "cursorScale": 1.35,
+         "everyMs": 700,
+         "zoomOutOnJumps": true,
          "longestPan": 500,
          "cameraEasing": "smooth",
          "cameraPace": 1.0
@@ -3893,6 +4059,7 @@
         "nodeId": "after-camera-moves",
         "type": "camera.camera",
         "params": {
+         "follows": "actions",
          "zoom": false,
          "maxScale": 1.74,
          "hold": 1300,
@@ -3905,6 +4072,9 @@
          "stayZoomedWithinMs": 2800,
          "holdAfterTypingMs": 400,
          "restAtEndMs": 600,
+         "cursorScale": 1.35,
+         "everyMs": 700,
+         "zoomOutOnJumps": true,
          "longestPan": 500,
          "cameraEasing": "smooth",
          "cameraPace": 1.0
@@ -4040,7 +4210,6 @@
            "shot": {
             "style": "classic",
             "backdrop": "glaze",
-            "ground": "#faf6f1",
             "rimGlow": 1.0,
             "liftColours": true,
             "bleedBlur": 48.0,
@@ -4303,7 +4472,6 @@
            "shot": {
             "style": "classic",
             "backdrop": "glaze",
-            "ground": "#faf6f1",
             "rimGlow": 1.0,
             "liftColours": true,
             "bleedBlur": 48.0,
@@ -4536,7 +4704,6 @@
                 "shot": {
                  "style": "classic",
                  "backdrop": "glaze",
-                 "ground": "#faf6f1",
                  "rimGlow": 1.0,
                  "liftColours": true,
                  "bleedBlur": 48.0,
@@ -4794,7 +4961,6 @@
                 "shot": {
                  "style": "classic",
                  "backdrop": "glaze",
-                 "ground": "#faf6f1",
                  "rimGlow": 1.0,
                  "liftColours": true,
                  "bleedBlur": 48.0,
@@ -4956,16 +5122,288 @@
      }
     },
     "wipe": {
+     "transition": {
+      "type": "transition",
+      "kind": "wipe",
+      "durationInFrames": 24,
+      "params": {
+       "direction": "from-left"
+      }
+     },
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 77,
+      "tracks": [
+       {
+        "id": "after-stack:l0",
+        "items": [
+         {
+          "kind": "group",
+          "id": "after-stack:l0:g",
+          "from": 0,
+          "durationInFrames": 77,
+          "handles": {
+           "move": {
+            "nodeId": "after-stack",
+            "param": "offsetsMs",
+            "unit": "ms",
+            "index": 0
+           }
+          },
+          "slot": {
+           "nodeId": "after-stack",
+           "port": "in1"
+          },
+          "props": {
+           "tracks": [
+            {
+             "id": "after-camera:t",
+             "items": [
+              {
+               "kind": "recording",
+               "id": "after-camera:i",
+               "from": 0,
+               "durationInFrames": 77,
+               "nodeId": "after-camera",
+               "props": {
+                "log": {
+                 "viewport": {
+                  "width": 1920,
+                  "height": 1080
+                 },
+                 "dpr": 1.0,
+                 "t0": 0.0,
+                 "durationMs": 3200.0,
+                 "actions": [
+                  {
+                   "id": "after-open:navigate",
+                   "kind": "navigate",
+                   "t": 600.0,
+                   "tEnd": 1000.0,
+                   "point": {
+                    "x": 200.0,
+                    "y": 150.0
+                   },
+                   "rect": {
+                    "x": 140.0,
+                    "y": 130.0,
+                    "w": 120.0,
+                    "h": 40.0
+                   },
+                   "label": "browser.navigate",
+                   "nodeId": "after-open"
+                  }
+                 ],
+                 "cursorTrack": [
+                  {
+                   "t": 0.0,
+                   "x": 960.0,
+                   "y": 540.0
+                  }
+                 ]
+                },
+                "name": "after-record",
+                "speed": 1.25,
+                "camera": {
+                 "zoom": false,
+                 "tuning": {
+                  "sMax": 1.74,
+                  "holdMinS": 1.3,
+                  "minScale": 1.18,
+                  "firstMaxScale": 1.54,
+                  "roomPx": 80.0,
+                  "targetShare": 0.55,
+                  "offCentre": 0.26,
+                  "joinWithinS": 2.2,
+                  "stayZoomedWithinS": 2.8,
+                  "holdAfterTypingS": 0.4,
+                  "restAtEndS": 0.6,
+                  "longestPanPx": 500.0,
+                  "pace": 1.0,
+                  "easing": "smooth"
+                 }
+                },
+                "shot": {
+                 "style": "classic",
+                 "backdrop": "glaze",
+                 "rimGlow": 1.0,
+                 "liftColours": true,
+                 "bleedBlur": 48.0,
+                 "bleedDim": 0.55,
+                 "motionBlur": true,
+                 "shutterAngle": 180.0
+                },
+                "window": {
+                 "chrome": false
+                },
+                "pointer": {
+                 "shown": true,
+                 "scale": 1.0,
+                 "look": {
+                  "shape": "arrow",
+                  "fill": "#111418",
+                  "edge": "#ffffff"
+                 },
+                 "ripple": {
+                  "color": "#0f172a",
+                  "size": 1.0,
+                  "width": 2.0
+                 }
+                },
+                "annotations": [],
+                "extraBeats": [],
+                "screen": {
+                 "kind": "footage",
+                 "src": "project:.opsis/cache/after-record/recording.mp4"
+                }
+               }
+              }
+             ]
+            }
+           ]
+          }
+         }
+        ],
+        "layer": true
+       },
+       {
+        "id": "after-stack:l1",
+        "items": [
+         {
+          "kind": "group",
+          "id": "after-stack:l1:g",
+          "from": 0,
+          "durationInFrames": 120,
+          "handles": {
+           "move": {
+            "nodeId": "after-stack",
+            "param": "offsetsMs",
+            "unit": "ms",
+            "index": 1
+           }
+          },
+          "slot": {
+           "nodeId": "after-stack",
+           "port": "in2"
+          },
+          "props": {
+           "tracks": [
+            {
+             "id": "after-label:t",
+             "items": [
+              {
+               "kind": "element",
+               "id": "after-label:i",
+               "from": 0,
+               "durationInFrames": 120,
+               "nodeId": "after-label",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "after-label",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               },
+               "component": "lower-third",
+               "props": {
+                "title": "After",
+                "subtitle": "https://example.org",
+                "position": "bottom-left",
+                "accent": "#a78bfa",
+                "color": "#fafafa",
+                "panel": "rgba(10,10,12,0.72)",
+                "subtitleOpacity": 0.7,
+                "exitTime": 0.4667,
+                "slide": 120,
+                "margin": 80,
+                "barWidth": 8,
+                "cornerRadius": 18,
+                "panelBlur": 12,
+                "titleSize": 44,
+                "titleWeight": 720,
+                "subtitleSize": 28
+               }
+              }
+             ]
+            }
+           ]
+          }
+         }
+        ],
+        "layer": true
+       }
+      ],
+      "audio": [],
+      "recording": {
+       "type": "recording",
+       "log": {
+        "viewport": {
+         "width": 1920,
+         "height": 1080
+        },
+        "dpr": 1.0,
+        "t0": 0.0,
+        "durationMs": 3200.0,
+        "actions": [
+         {
+          "id": "after-open:navigate",
+          "kind": "navigate",
+          "t": 600.0,
+          "tEnd": 1000.0,
+          "point": {
+           "x": 200.0,
+           "y": 150.0
+          },
+          "rect": {
+           "x": 140.0,
+           "y": 130.0,
+           "w": 120.0,
+           "h": 40.0
+          },
+          "label": "browser.navigate",
+          "nodeId": "after-open"
+         }
+        ],
+        "cursorTrack": [
+         {
+          "t": 0.0,
+          "x": 960.0,
+          "y": 540.0
+         }
+        ]
+       },
+       "durationMs": 3200.0,
+       "nodeId": "after-record",
+       "edits": [],
+       "source": {
+        "kind": "browser",
+        "video": "project:.opsis/cache/after-record/recording.mp4",
+        "viewport": {
+         "width": 1920,
+         "height": 1080
+        }
+       }
+      },
+      "enter": {
+       "kind": "wipe",
+       "durationInFrames": 24,
+       "params": {
+        "direction": "from-left"
+       }
+      }
+     }
+    },
+    "wipe-join": {
      "clip": {
       "type": "clip",
       "durationInFrames": 130,
       "tracks": [
        {
-        "id": "wipe:seq",
+        "id": "wipe-join:seq",
         "items": [
          {
           "kind": "group",
-          "id": "wipe:s0",
+          "id": "wipe-join:s0",
           "from": 0,
           "durationInFrames": 77,
           "exit": {
@@ -4976,8 +5414,8 @@
            }
           },
           "slot": {
-           "nodeId": "wipe",
-           "port": "a"
+           "nodeId": "wipe-join",
+           "port": "in1"
           },
           "props": {
            "tracks": [
@@ -5073,7 +5511,6 @@
                      "shot": {
                       "style": "classic",
                       "backdrop": "glaze",
-                      "ground": "#faf6f1",
                       "rimGlow": 1.0,
                       "liftColours": true,
                       "bleedBlur": 48.0,
@@ -5185,7 +5622,7 @@
          },
          {
           "kind": "group",
-          "id": "wipe:s1",
+          "id": "wipe-join:s1",
           "from": 53,
           "durationInFrames": 77,
           "enter": {
@@ -5196,8 +5633,8 @@
            }
           },
           "slot": {
-           "nodeId": "wipe",
-           "port": "b"
+           "nodeId": "wipe-join",
+           "port": "in2"
           },
           "props": {
            "tracks": [
@@ -5293,7 +5730,6 @@
                      "shot": {
                       "style": "classic",
                       "backdrop": "glaze",
-                      "ground": "#faf6f1",
                       "rimGlow": 1.0,
                       "liftColours": true,
                       "bleedBlur": 48.0,
@@ -5490,6 +5926,7 @@
     "before-stack",
     "after-stack",
     "wipe",
+    "wipe-join",
     "render"
    ]
   },
@@ -5549,10 +5986,6 @@
      {
       "icon": "palette",
       "text": "1 style setting"
-     },
-     {
-      "icon": "gauge",
-      "text": "1.25× speed"
      }
     ]
    },
@@ -5638,10 +6071,6 @@
      {
       "icon": "palette",
       "text": "1 style setting"
-     },
-     {
-      "icon": "gauge",
-      "text": "1.25× speed"
      }
     ]
    },
@@ -5677,7 +6106,7 @@
     "rows": [
      {
       "icon": "arrow-right-left",
-      "text": "0.8 s"
+      "text": "Wipe · 0.8 s"
      }
     ]
    },
@@ -5714,6 +6143,18 @@
       "tone": "muted"
      }
     ]
+   },
+   "wipe-join": {
+    "rows": [
+     {
+      "icon": "list-video",
+      "text": "2 clips · 4.33 s"
+     },
+     {
+      "icon": "arrow-right-left",
+      "text": "1 join with wipe"
+     }
+    ]
    }
   },
   "film": {
@@ -5725,11 +6166,11 @@
     "background": "#09090b",
     "tracks": [
      {
-      "id": "wipe:seq",
+      "id": "wipe-join:seq",
       "items": [
        {
         "kind": "group",
-        "id": "wipe:s0",
+        "id": "wipe-join:s0",
         "from": 0,
         "durationInFrames": 77,
         "exit": {
@@ -5740,8 +6181,8 @@
          }
         },
         "slot": {
-         "nodeId": "wipe",
-         "port": "a"
+         "nodeId": "wipe-join",
+         "port": "in1"
         },
         "props": {
          "tracks": [
@@ -5837,7 +6278,6 @@
                    "shot": {
                     "style": "classic",
                     "backdrop": "glaze",
-                    "ground": "#faf6f1",
                     "rimGlow": 1.0,
                     "liftColours": true,
                     "bleedBlur": 48.0,
@@ -5949,7 +6389,7 @@
        },
        {
         "kind": "group",
-        "id": "wipe:s1",
+        "id": "wipe-join:s1",
         "from": 53,
         "durationInFrames": 77,
         "enter": {
@@ -5960,8 +6400,8 @@
          }
         },
         "slot": {
-         "nodeId": "wipe",
-         "port": "b"
+         "nodeId": "wipe-join",
+         "port": "in2"
         },
         "props": {
          "tracks": [
@@ -6057,7 +6497,6 @@
                    "shot": {
                     "style": "classic",
                     "backdrop": "glaze",
-                    "ground": "#faf6f1",
                     "rimGlow": 1.0,
                     "liftColours": true,
                     "bleedBlur": 48.0,
@@ -6616,11 +7055,11 @@
     "background": "#09090b",
     "tracks": [
      {
-      "id": "wipe:seq",
+      "id": "wipe-join:seq",
       "items": [
        {
         "kind": "group",
-        "id": "wipe:s0",
+        "id": "wipe-join:s0",
         "from": 0,
         "durationInFrames": 77,
         "exit": {
@@ -6631,8 +7070,8 @@
          }
         },
         "slot": {
-         "nodeId": "wipe",
-         "port": "a"
+         "nodeId": "wipe-join",
+         "port": "in1"
         },
         "props": {
          "tracks": [
@@ -6728,7 +7167,6 @@
                    "shot": {
                     "style": "classic",
                     "backdrop": "glaze",
-                    "ground": "#faf6f1",
                     "rimGlow": 1.0,
                     "liftColours": true,
                     "bleedBlur": 48.0,
@@ -6840,7 +7278,7 @@
        },
        {
         "kind": "group",
-        "id": "wipe:s1",
+        "id": "wipe-join:s1",
         "from": 53,
         "durationInFrames": 77,
         "enter": {
@@ -6851,8 +7289,8 @@
          }
         },
         "slot": {
-         "nodeId": "wipe",
-         "port": "b"
+         "nodeId": "wipe-join",
+         "port": "in2"
         },
         "props": {
          "tracks": [
@@ -6948,7 +7386,6 @@
                    "shot": {
                     "style": "classic",
                     "backdrop": "glaze",
-                    "ground": "#faf6f1",
                     "rimGlow": 1.0,
                     "liftColours": true,
                     "bleedBlur": 48.0,
@@ -7487,7 +7924,7 @@
      "bars": [
       {
        "type": "video",
-       "key": "/0:wipe:s0/0:before-stack:l0:g/0:before-camera:i",
+       "key": "/0:wipe-join:s0/0:before-stack:l0:g/0:before-camera:i",
        "itemId": "before-camera:i",
        "nodeId": "before-camera",
        "kind": "recording",
@@ -7552,7 +7989,6 @@
         "shot": {
          "style": "classic",
          "backdrop": "glaze",
-         "ground": "#faf6f1",
          "rimGlow": 1.0,
          "liftColours": true,
          "bleedBlur": 48.0,
@@ -7625,10 +8061,10 @@
          "to": 77.0
         },
         {
-         "itemId": "wipe:s0",
+         "itemId": "wipe-join:s0",
          "slot": {
-          "nodeId": "wipe",
-          "port": "a"
+          "nodeId": "wipe-join",
+          "port": "in1"
          },
          "rate": 1.0,
          "rateEnd": 1.0,
@@ -7646,7 +8082,7 @@
       },
       {
        "type": "video",
-       "key": "/0:wipe:s0/1:before-stack:l1:g/0:before-label:i",
+       "key": "/0:wipe-join:s0/1:before-stack:l1:g/0:before-label:i",
        "itemId": "before-label:i",
        "nodeId": "before-label",
        "kind": "element",
@@ -7712,10 +8148,10 @@
          "to": 77.0
         },
         {
-         "itemId": "wipe:s0",
+         "itemId": "wipe-join:s0",
          "slot": {
-          "nodeId": "wipe",
-          "port": "a"
+          "nodeId": "wipe-join",
+          "port": "in1"
          },
          "rate": 1.0,
          "rateEnd": 1.0,
@@ -7733,7 +8169,7 @@
       },
       {
        "type": "video",
-       "key": "/0:wipe:s1/0:after-stack:l0:g/0:after-camera:i",
+       "key": "/0:wipe-join:s1/0:after-stack:l0:g/0:after-camera:i",
        "itemId": "after-camera:i",
        "nodeId": "after-camera",
        "kind": "recording",
@@ -7798,7 +8234,6 @@
         "shot": {
          "style": "classic",
          "backdrop": "glaze",
-         "ground": "#faf6f1",
          "rimGlow": 1.0,
          "liftColours": true,
          "bleedBlur": 48.0,
@@ -7871,10 +8306,10 @@
          "to": 130.0
         },
         {
-         "itemId": "wipe:s1",
+         "itemId": "wipe-join:s1",
          "slot": {
-          "nodeId": "wipe",
-          "port": "b"
+          "nodeId": "wipe-join",
+          "port": "in2"
          },
          "rate": 1.0,
          "rateEnd": 1.0,
@@ -7892,7 +8327,7 @@
       },
       {
        "type": "video",
-       "key": "/0:wipe:s1/1:after-stack:l1:g/0:after-label:i",
+       "key": "/0:wipe-join:s1/1:after-stack:l1:g/0:after-label:i",
        "itemId": "after-label:i",
        "nodeId": "after-label",
        "kind": "element",
@@ -7958,10 +8393,10 @@
          "to": 130.0
         },
         {
-         "itemId": "wipe:s1",
+         "itemId": "wipe-join:s1",
          "slot": {
-          "nodeId": "wipe",
-          "port": "b"
+          "nodeId": "wipe-join",
+          "port": "in2"
          },
          "rate": 1.0,
          "rateEnd": 1.0,
@@ -7983,8 +8418,8 @@
      "audioLanes": 0,
      "transitions": [
       {
-       "key": "/0:wipe:s1:enter",
-       "itemKey": "/0:wipe:s1",
+       "key": "/0:wipe-join:s1:enter",
+       "itemKey": "/0:wipe-join:s1",
        "from": 53.0,
        "to": 77.0,
        "kind": "wipe",
@@ -7996,27 +8431,27 @@
        ],
        "covers": 0.3116883116883117,
        "slot": {
-        "nodeId": "wipe",
-        "port": "b"
+        "nodeId": "wipe-join",
+        "port": "in2"
        }
       }
      ],
      "marks": [
       {
-       "key": "/0:wipe:s0/0:before-stack:l0:g/0:before-camera:i:before-open:navigate",
+       "key": "/0:wipe-join:s0/0:before-stack:l0:g/0:before-camera:i:before-open:navigate",
        "frame": 14.399999999999999,
        "kind": "navigate",
        "label": "Go to browser.navigate",
        "nodeId": "before-open",
-       "barKey": "/0:wipe:s0/0:before-stack:l0:g/0:before-camera:i"
+       "barKey": "/0:wipe-join:s0/0:before-stack:l0:g/0:before-camera:i"
       },
       {
-       "key": "/0:wipe:s1/0:after-stack:l0:g/0:after-camera:i:after-open:navigate",
+       "key": "/0:wipe-join:s1/0:after-stack:l0:g/0:after-camera:i:after-open:navigate",
        "frame": 67.4,
        "kind": "navigate",
        "label": "Go to browser.navigate",
        "nodeId": "after-open",
-       "barKey": "/0:wipe:s1/0:after-stack:l0:g/0:after-camera:i"
+       "barKey": "/0:wipe-join:s1/0:after-stack:l0:g/0:after-camera:i"
       }
      ],
      "cameraKeys": []

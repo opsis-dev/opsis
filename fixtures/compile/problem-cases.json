@@ -832,7 +832,9 @@
      "nodeId": "fx"
     }
    ],
-   "runTargets": []
+   "runTargets": [
+    "fx"
+   ]
   },
   "exportClash": {
    "workflow": {

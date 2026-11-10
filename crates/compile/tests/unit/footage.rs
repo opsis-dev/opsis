@@ -52,8 +52,6 @@ fn a_video_plays_as_footage_and_an_image_only_when_graded() {
     );
     assert_eq!(element_footage("image", &graded).len(), 1);
     assert_eq!(element_footage("video", &props(json!({ "src": "" }))), []);
-    let looping = element_footage("video-loop", &props(json!({ "src": "project:b.mp4" })));
-    assert!(looping[0].used.looping);
 }
 
 #[test]
@@ -89,8 +87,8 @@ fn hosting_gives_every_use_its_footage_address_and_lists_each_once() {
         element("b", "video", json!({ "src": "project:a.mp4" })),
         element(
             "c",
-            "laptop-frame",
-            json!({ "screenSrc": "project:c.mp4", "screenKind": "video" }),
+            "hero-launch",
+            json!({ "image1": "project:c.mp4", "image1Kind": "video" }),
         ),
     ]);
     let uses = footage_uses(&spec.tracks);
@@ -110,7 +108,7 @@ fn hosting_gives_every_use_its_footage_address_and_lists_each_once() {
         [
             json!({ "src": url(&uses[0].id) }),
             json!({ "src": url(&uses[0].id) }),
-            json!({ "screenSrc": url(&uses[1].id) }),
+            json!({ "image1": url(&uses[1].id) }),
         ]
     );
 }

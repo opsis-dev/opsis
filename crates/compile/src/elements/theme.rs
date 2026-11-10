@@ -382,45 +382,25 @@ pub fn agent_run_themes(schema: &mut Schema) {
     );
 }
 
-pub fn data_story_themes(schema: &mut Schema) {
+pub fn steps_timeline_themes(schema: &mut Schema) {
     with_themes(
         schema,
         json!({
             "light": {
                 "page": "#F4F4F2",
-                "hookBg": "#F4F4F2",
-                "tickerBg": "#F4F4F2",
-                "timelineBg": "#F4F4F2",
                 "window": "#FFFFFF",
                 "border": "rgba(0,0,0,0.10)",
                 "fg": "#22252B",
                 "dim": "#6B7280",
-                "faint": "#A0A6B0",
-                "ink": "#22252B",
-                "label": "rgba(34,37,43,0.66)",
-                "axis": "rgba(34,37,43,0.48)",
-                "grid": "rgba(34,37,43,0.10)",
-                "track": "rgba(34,37,43,0.06)",
-                "up": "#0f766e",
-                "down": "#dc2626"
+                "faint": "#A0A6B0"
             },
             "dark": {
-                "page": "#080810",
-                "hookBg": "#0c0c14",
-                "tickerBg": "#0a1014",
-                "timelineBg": "#0c0c14",
+                "page": "#0c0c14",
                 "window": "#0B0C11",
                 "border": "rgba(255,255,255,0.09)",
                 "fg": "#D8DCE4",
                 "dim": "#7A828F",
-                "faint": "#4A5160",
-                "ink": "#fafafa",
-                "label": "rgba(250,250,250,0.62)",
-                "axis": "rgba(250,250,250,0.42)",
-                "grid": "rgba(250,250,250,0.08)",
-                "track": "rgba(250,250,250,0.05)",
-                "up": "#2dd4bf",
-                "down": "#f87171"
+                "faint": "#4A5160"
             }
         }),
     );

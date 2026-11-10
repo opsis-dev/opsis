@@ -6,42 +6,26 @@ use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[choice(export)]
 pub enum MockupDevice {
+    #[label("Phone")]
     Phone,
+    #[label("Browser")]
     Browser,
+    #[label("Laptop")]
     Laptop,
 }
 
 #[settings(export)]
 pub struct DeviceMockupZoom {
     #[setting(
-        "Media",
-        widget = "asset",
-        accept = "image/*",
-        zero_label = "Built-in screen",
-        help = "Shown on the screen when no clip is connected. Leave empty for a built-in demo screen."
-    )]
-    pub src: String,
-    #[setting(
-        "Title",
-        help = "Optional headline. When omitted, the device remains the sole focal point."
-    )]
-    pub title: String,
-    #[setting("Subtitle", help = "Optional supporting line under the headline.")]
-    pub subtitle: String,
-    #[setting("Small heading", help = "Optional accent label above the headline.")]
-    pub eyebrow: String,
-    #[setting(
         "Device",
         default = MockupDevice::Laptop,
-        help = "Mockup shell. Laptop includes a physical base, browser renders chrome only, phone renders a handheld frame."
+        help = "A laptop has a base, a browser is only its window, and a phone is held upright."
     )]
     pub device: MockupDevice,
     #[setting("Background color", default = "#080810", check = colour)]
     pub background_color: String,
     #[setting("Accent color", default = "#e8b86d", check = colour)]
     pub accent_color: String,
-    #[setting("Text color", default = "#f8fafc", check = colour)]
-    pub text_color: String,
     #[setting("Device color", default = "#171b26", check = colour, advanced)]
     pub device_color: String,
     #[setting("Device edge color", default = "#242a3a", check = colour, advanced)]
@@ -67,12 +51,6 @@ pub struct DeviceMockupZoom {
     pub second_accent: String,
     #[setting("Third accent", default = "#f472b6", check = colour, advanced)]
     pub third_accent: String,
-    #[setting("Built-in screen color", default = "#f6f1e8", check = colour, advanced)]
-    pub screen_color: String,
-    #[setting("Built-in screen text", default = "#111827", check = colour, advanced)]
-    pub screen_text_color: String,
-    #[setting("Built-in screen soft text", default = "#6b7280", check = colour, advanced)]
-    pub screen_muted_color: String,
     #[setting("Background tint", default = "#5b6b9a", check = colour, advanced)]
     pub background_tint: String,
     #[setting(
@@ -110,39 +88,6 @@ pub struct DeviceMockupZoom {
         advanced
     )]
     pub scale: f64,
-    #[setting(
-        "Title size",
-        default = 64,
-        range(min = 24, max = 120),
-        step = 1,
-        unit = "px",
-        advanced
-    )]
-    pub title_size: u32,
-    #[setting(
-        "Title weight",
-        default = 800,
-        range(min = 100, max = 900),
-        step = 100,
-        advanced
-    )]
-    pub title_weight: u32,
-    #[setting(
-        "Subtitle size",
-        default = 24,
-        range(min = 12, max = 60),
-        step = 1,
-        unit = "px",
-        advanced
-    )]
-    pub subtitle_size: u32,
-    #[setting(
-        "Font",
-        widget = "font",
-        help = "Project font follows the fonts set for the whole project.",
-        advanced
-    )]
-    pub font_family: String,
 }
 
 pub fn definition() -> ElementMeta {

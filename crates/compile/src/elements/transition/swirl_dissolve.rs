@@ -1,5 +1,5 @@
 use opsis_macros::settings;
-use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::looks::NodeLook;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::Colour;
@@ -45,8 +45,8 @@ pub fn definition() -> ElementMeta {
             "Swirl dissolve",
             "A swirl shader transition that unwinds open and winds shut to reveal the next scene.",
             ElementCategory::Transition,
-            116,
+            104,
         )
-        .look(NodeLook::of("tabler:spiral").moves(NodeMotion::Dissolve)),
+        .look(NodeLook::of("tabler:spiral")),
     )
 }

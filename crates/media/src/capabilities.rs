@@ -40,7 +40,7 @@ pub const REQUIRED_FORMATS: [&str; 10] = [
     "webm",
 ];
 
-pub const REQUIRED_FILTERS: [&str; 87] = [
+pub const REQUIRED_FILTERS: [&str; 88] = [
     "acompressor",
     "acrossfade",
     "acrusher",
@@ -103,6 +103,7 @@ pub const REQUIRED_FILTERS: [&str; 87] = [
     "lowshelf",
     "lut3d",
     "monochrome",
+    "negate",
     "noise",
     "normalize",
     "null",

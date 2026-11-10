@@ -40,7 +40,6 @@ fn node_metadata(def: &NodeDef) -> Value {
             "type": f.kind(),
             "required": f.required,
             "shown": f.shown,
-            "refs": f.refs,
             "labels": (0..3).map(|i| f.label(i, Some(2))).collect::<Vec<_>>(),
         })),
         "outputs": ports(&def.outputs),

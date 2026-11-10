@@ -149,9 +149,7 @@
         "x": 2100.0,
         "y": 200.0
       },
-      "params": {
-        "speed": 1.25
-      }
+      "params": {}
     },
     {
       "id": "highlight",
@@ -162,7 +160,6 @@
       },
       "params": {
         "match": "",
-        "text": "",
         "color": "#a78bfa",
         "padding": 10,
         "leadMs": 250,

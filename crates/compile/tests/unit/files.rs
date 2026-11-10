@@ -113,11 +113,11 @@ fn shows_what_the_check_read_and_says_when_a_file_is_missing_or_not_read_yet() {
     );
     assert_eq!(
         texts(
-            json!({ "path": "assets/shot.png", "stillMs": 4000 }),
+            json!({ "path": "assets/shot.png" }),
             CardInputs::default(),
             None
         ),
-        ["shot.png", "Not read yet", "4 s"]
+        ["shot.png", "Not read yet"]
     );
     let gone = CardInputs {
         missing_files: vec!["assets/a.mp4".to_owned()],
@@ -252,7 +252,7 @@ fn warns_before_resizing_or_animating_a_sound_and_before_speeding_up_a_still() {
         ("fast", "media.speed", "shot"),
         ("back", "media.reverse", "shot"),
         ("faster-voice", "media.speed", "voice"),
-        ("web", "media.faststart", "voice"),
+        ("web", "media.convert", "voice"),
     ] {
         g.node(id, kind, json!({}));
         g.link_ports(from, id, "media", "media");

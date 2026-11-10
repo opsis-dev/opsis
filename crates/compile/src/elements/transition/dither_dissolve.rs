@@ -1,5 +1,5 @@
 use opsis_macros::settings;
-use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::looks::NodeLook;
 
 use crate::elements::background::shader_dithering::DitherPattern;
 use crate::elements::entry::{element, meta};
@@ -46,8 +46,8 @@ pub fn definition() -> ElementMeta {
             "Dither dissolve",
             "A dithering shader transition that dissolves one scene into the next.",
             ElementCategory::Transition,
-            100,
+            40,
         )
-        .look(NodeLook::of("lucide:grip").moves(NodeMotion::Dissolve)),
+        .look(NodeLook::of("lucide:grip")),
     )
 }

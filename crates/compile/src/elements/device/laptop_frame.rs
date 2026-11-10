@@ -1,5 +1,5 @@
 use opsis_macros::{choice, settings};
-use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::looks::NodeLook;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::theme::{Theme, ThemeMode, warm_themes};
@@ -22,12 +22,6 @@ pub enum LaptopFinale {
 
 #[settings(export)]
 pub struct LaptopFrame {
-    #[setting(
-        "Screen (image or video)",
-        default = "app:placeholders/screen-wide.svg",
-        widget = "asset"
-    )]
-    pub screen_src: String,
     #[setting("Entrance", default = LaptopEntrance::Open)]
     pub entrance: LaptopEntrance,
     #[setting("Finale", default = LaptopFinale::ZoomToScreen)]
@@ -168,7 +162,6 @@ pub fn definition() -> ElementMeta {
                 .authored_clock()
                 .design(1920, 1080)
                 .fonts(&["Geist", "Instrument Serif", "Inter", "Montserrat", "Outfit", "Space Grotesk"])
-                .kind_prop("screenKind", "screenSrc")
-                .look(NodeLook::of("lucide:laptop").moves(NodeMotion::Open)),
+                .look(NodeLook::of("lucide:laptop")),
         )
 }

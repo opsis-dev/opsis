@@ -5,6 +5,7 @@ use indexmap::IndexMap;
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::NodeLook;
 use opsis_types::recording::RecordingProps;
+use opsis_types::timeline::TransitionRef;
 use opsis_types::values::{
     BrowserAction, ClipValue, CompileValue, EntriesValue, Hits, MediaKind, MediaValue, NodeResult,
     PortValues, StyleEntry, TakeKind,
@@ -117,6 +118,7 @@ pub enum Phase {
 }
 
 pub const TERMINAL_TAKE_FILE: &str = "The connected file is a terminal take, which has no picture or sound of its own. Make a clip of it with Clip from take.";
+pub const ANIMATION_FILE: &str = "The connected file is an animation, which plays only in the film. Make a clip of it with Use as clip.";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FileNeed {
@@ -129,7 +131,7 @@ pub enum FileNeed {
 
 impl FileNeed {
     pub fn refuses(self, media: &MediaValue) -> bool {
-        if media.kind == MediaKind::TerminalTake {
+        if matches!(media.kind, MediaKind::TerminalTake | MediaKind::Animation) {
             return true;
         }
         match self {
@@ -141,11 +143,12 @@ impl FileNeed {
         }
     }
 
-    pub fn message_for(self, media: &MediaValue) -> &'static str {
-        if media.kind == MediaKind::TerminalTake {
-            return TERMINAL_TAKE_FILE;
+    pub const fn message_for(self, media: &MediaValue) -> &'static str {
+        match media.kind {
+            MediaKind::TerminalTake => TERMINAL_TAKE_FILE,
+            MediaKind::Animation => ANIMATION_FILE,
+            _ => self.message(),
         }
-        self.message()
     }
 
     pub const fn message(self) -> &'static str {
@@ -236,7 +239,6 @@ pub struct PortFamily {
     pub prefix: &'static str,
     pub required: usize,
     pub shown: usize,
-    pub refs: &'static [(&'static str, &'static str)],
     label: FamilyLabel,
     required_spec: PortSpec,
     optional_spec: PortSpec,
@@ -255,17 +257,10 @@ impl PortFamily {
             prefix,
             required,
             shown: required.max(2),
-            refs: &[],
             label,
             optional_spec: spec.clone().optional(),
             required_spec: spec,
         }
-    }
-
-    #[must_use]
-    pub const fn with_refs(mut self, refs: &'static [(&'static str, &'static str)]) -> Self {
-        self.refs = refs;
-        self
     }
 
     pub const fn kind(&self) -> PortType {
@@ -366,7 +361,8 @@ pub struct CardInputs {
     pub captions_ms: IndexMap<String, f64>,
     pub steps: IndexMap<String, Vec<BrowserAction>>,
     pub terminal_steps: IndexMap<String, usize>,
-    pub style: IndexMap<String, Vec<String>>,
+    pub style: IndexMap<String, Vec<StyleEntry>>,
+    pub enters: IndexMap<String, TransitionRef>,
     pub grade: IndexMap<String, Vec<StyleEntry>>,
     pub missing_files: Vec<String>,
     pub hits: Option<Hits>,

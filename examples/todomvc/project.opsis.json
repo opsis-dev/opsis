@@ -180,9 +180,7 @@
         "x": 2400.0,
         "y": 200.0
       },
-      "params": {
-        "speed": 1.25
-      }
+      "params": {}
     },
     {
       "id": "chips",
@@ -202,41 +200,47 @@
     },
     {
       "id": "intro-bg",
-      "type": "fx.shader-mesh-gradient",
+      "type": "fx.background",
       "position": {
         "x": 1200.0,
         "y": 340.0
       },
       "params": {
-        "speed": 1,
-        "distortion": 0.6,
-        "swirl": 0.1,
-        "colors": [
-          "#12121a",
-          "#232338",
-          "#3a3a5c",
-          "#52527a"
-        ],
+        "kind": "mesh",
+        "mesh": {
+          "speed": 1,
+          "distortion": 0.6,
+          "swirl": 0.1,
+          "colors": [
+            "#12121a",
+            "#232338",
+            "#3a3a5c",
+            "#52527a"
+          ]
+        },
         "clipDuration": 75,
         "envelope": {}
       }
     },
     {
       "id": "intro-title",
-      "type": "fx.soft-blur-in",
+      "type": "fx.animated-text",
       "position": {
         "x": 1200.0,
         "y": 540.0
       },
       "params": {
-        "text": "TodoMVC in 20 seconds",
-        "blur": 12,
-        "fontSize": 104,
-        "color": "#fafafa",
-        "fontWeight": "600",
-        "background": "white",
-        "fontFamily": "",
-        "speed": 1,
+        "kind": "soft-blur",
+        "soft-blur": {
+          "text": "TodoMVC in 20 seconds",
+          "blur": 12,
+          "fontSize": 104,
+          "color": "#fafafa",
+          "fontWeight": "600",
+          "background": "white",
+          "fontFamily": "",
+          "speed": 1
+        },
         "clipDuration": 75,
         "envelope": {}
       }
@@ -265,9 +269,6 @@
         "eyebrow": "Made with",
         "title": "Opsis",
         "subtitle": "{{Site address}}",
-        "mark": "",
-        "markLook": "underline",
-        "markColor": "#facc15",
         "align": "center",
         "entrance": "rise",
         "color": "#fafafa",
@@ -287,12 +288,7 @@
         "x": 2400.0,
         "y": 422.0
       },
-      "params": {
-        "transition": "whip-pan",
-        "transitionDuration": 18,
-        "keepWhole": false,
-        "cuts": []
-      }
+      "params": {}
     },
     {
       "id": "render",
@@ -325,6 +321,18 @@
       },
       "params": {
         "text": "Sample project.\n\n1. Press Run. Opsis records the flow in a hidden browser.\n2. The Timeline fills with the real footage and its actions.\n3. Finished videos appear in Outputs."
+      }
+    },
+    {
+      "id": "sequence-transition",
+      "type": "timeline.transition",
+      "position": {
+        "x": 2100.0,
+        "y": 262.0
+      },
+      "params": {
+        "kind": "whip-pan",
+        "durationInFrames": 18
       }
     }
   ],
@@ -440,6 +448,13 @@
       "sourceHandle": "clip",
       "target": "render",
       "targetHandle": "clip"
+    },
+    {
+      "id": "sequence-transition.transition->sequence.transition",
+      "source": "sequence-transition",
+      "sourceHandle": "transition",
+      "target": "sequence",
+      "targetHandle": "transition"
     }
   ],
   "markers": []

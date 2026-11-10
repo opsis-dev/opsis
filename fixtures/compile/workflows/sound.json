@@ -181,9 +181,7 @@
      "x": 2400,
      "y": 200
     },
-    "params": {
-     "speed": 1.25
-    }
+    "params": {}
    },
    {
     "id": "chips",
@@ -203,41 +201,47 @@
    },
    {
     "id": "intro-bg",
-    "type": "fx.shader-mesh-gradient",
+    "type": "fx.background",
     "position": {
      "x": 1200,
      "y": 340
     },
     "params": {
-     "speed": 1,
-     "distortion": 0.6,
-     "swirl": 0.1,
-     "colors": [
-      "#12121a",
-      "#232338",
-      "#3a3a5c",
-      "#52527a"
-     ],
+     "kind": "mesh",
+     "mesh": {
+      "speed": 1,
+      "distortion": 0.6,
+      "swirl": 0.1,
+      "colors": [
+       "#12121a",
+       "#232338",
+       "#3a3a5c",
+       "#52527a"
+      ]
+     },
      "clipDuration": 75,
      "envelope": {}
     }
    },
    {
     "id": "intro-title",
-    "type": "fx.soft-blur-in",
+    "type": "fx.animated-text",
     "position": {
      "x": 1200,
      "y": 540
     },
     "params": {
-     "text": "TodoMVC in 20 seconds",
-     "blur": 12,
-     "fontSize": 104,
-     "color": "#fafafa",
-     "fontWeight": "600",
-     "background": "white",
-     "fontFamily": "",
-     "speed": 1,
+     "kind": "soft-blur",
+     "soft-blur": {
+      "text": "TodoMVC in 20 seconds",
+      "blur": 12,
+      "fontSize": 104,
+      "color": "#fafafa",
+      "fontWeight": "600",
+      "background": "white",
+      "fontFamily": "",
+      "speed": 1
+     },
      "clipDuration": 75,
      "envelope": {}
     }
@@ -266,9 +270,6 @@
      "eyebrow": "Made with",
      "title": "Opsis",
      "subtitle": "{{Site address}}",
-     "mark": "",
-     "markLook": "underline",
-     "markColor": "#facc15",
      "align": "center",
      "entrance": "rise",
      "color": "#fafafa",
@@ -288,12 +289,7 @@
      "x": 2400,
      "y": 422
     },
-    "params": {
-     "transition": "whip-pan",
-     "transitionDuration": 18,
-     "keepWhole": false,
-     "cuts": []
-    }
+    "params": {}
    },
    {
     "id": "render",
@@ -421,6 +417,18 @@
      "y": 900
     },
     "params": {}
+   },
+   {
+    "id": "sequence-transition",
+    "type": "timeline.transition",
+    "position": {
+     "x": 2100,
+     "y": 262
+    },
+    "params": {
+     "kind": "whip-pan",
+     "durationInFrames": 18
+    }
    }
   ],
   "edges": [
@@ -591,6 +599,13 @@
     "sourceHandle": "clip",
     "target": "render",
     "targetHandle": "clip"
+   },
+   {
+    "id": "sequence-transition.transition->sequence.transition",
+    "source": "sequence-transition",
+    "sourceHandle": "transition",
+    "target": "sequence",
+    "targetHandle": "transition"
    }
   ],
   "mix": {
@@ -991,36 +1006,6 @@
      "type": "media",
      "src": "project:clips/talk.mp4",
      "kind": "video"
-    },
-    "clip": {
-     "type": "clip",
-     "durationInFrames": 150,
-     "tracks": [
-      {
-       "id": "talk:t",
-       "items": [
-        {
-         "kind": "element",
-         "id": "talk:i",
-         "from": 0,
-         "durationInFrames": 150,
-         "nodeId": "talk",
-         "component": "video",
-         "props": {
-          "src": "project:clips/talk.mp4",
-          "fit": "contain",
-          "loop": false,
-          "muted": false,
-          "volume": 1.0,
-          "playbackRate": 1.0,
-          "trimBeforeMs": 0,
-          "background": ""
-         }
-        }
-       ]
-      }
-     ],
-     "audio": []
     }
    },
    "talk-clip": {
@@ -1046,7 +1031,9 @@
           "volume": 1.0,
           "playbackRate": 1.0,
           "trimBeforeMs": 0,
-          "background": ""
+          "background": "",
+          "dim": 0.0,
+          "dimColor": "#000000"
          }
         }
        ]
@@ -1149,7 +1136,7 @@
       {
        "id": "whoosh",
        "src": "app:sfx/whoosh.wav",
-       "from": -6,
+       "from": 0,
        "volume": 1.0,
        "nodeId": "whoosh",
        "channel": "whoosh",
@@ -1158,7 +1145,7 @@
        "handles": {
         "move": {
          "nodeId": "whoosh",
-         "param": "offsetMs",
+         "param": "atMs",
          "unit": "ms"
         },
         "volume": {
@@ -1166,9 +1153,6 @@
          "param": "volume",
          "unit": "number"
         }
-       },
-       "anchor": {
-        "nodeId": "complete"
        }
       }
      ]
@@ -1780,9 +1764,6 @@
           "eyebrow": "Made with",
           "title": "Opsis",
           "subtitle": "https://demo.playwright.dev/todomvc",
-          "mark": "",
-          "markLook": "underline",
-          "markColor": "#facc15",
           "align": "center",
           "entrance": "rise",
           "color": "#fafafa",
@@ -1797,11 +1778,7 @@
           "eyebrowUppercase": true,
           "subtitleSize": 0.34,
           "letterSpacing": -0.035,
-          "lineStagger": 1.0,
-          "markThickness": 0.045,
-          "markerOpacity": 55.0,
-          "markSeed": 1,
-          "markDrawTime": 0.45
+          "lineStagger": 1.0
          }
         }
        ]
@@ -2104,6 +2081,18 @@
      ]
     }
    },
+   "sequence-transition": {
+    "transition": {
+     "type": "transition",
+     "kind": "whip-pan",
+     "durationInFrames": 18,
+     "params": {
+      "direction": "left",
+      "blur": 24,
+      "stretch": 12.0
+     }
+    }
+   },
    "record": {
     "recording": {
      "type": "recording",
@@ -2390,9 +2379,6 @@
                "eyebrow": "Made with",
                "title": "Opsis",
                "subtitle": "https://demo.playwright.dev/todomvc",
-               "mark": "",
-               "markLook": "underline",
-               "markColor": "#facc15",
                "align": "center",
                "entrance": "rise",
                "color": "#fafafa",
@@ -2407,11 +2393,7 @@
                "eyebrowUppercase": true,
                "subtitleSize": 0.34,
                "letterSpacing": -0.035,
-               "lineStagger": 1.0,
-               "markThickness": 0.045,
-               "markerOpacity": 55.0,
-               "markSeed": 1,
-               "markDrawTime": 0.45
+               "lineStagger": 1.0
               }
              }
             ]
@@ -2690,9 +2672,6 @@
                     "eyebrow": "Made with",
                     "title": "Opsis",
                     "subtitle": "https://demo.playwright.dev/todomvc",
-                    "mark": "",
-                    "markLook": "underline",
-                    "markColor": "#facc15",
                     "align": "center",
                     "entrance": "rise",
                     "color": "#fafafa",
@@ -2707,11 +2686,7 @@
                     "eyebrowUppercase": true,
                     "subtitleSize": 0.34,
                     "letterSpacing": -0.035,
-                    "lineStagger": 1.0,
-                    "markThickness": 0.045,
-                    "markerOpacity": 55.0,
-                    "markSeed": 1,
-                    "markDrawTime": 0.45
+                    "lineStagger": 1.0
                    }
                   }
                  ]
@@ -2767,7 +2742,9 @@
                "volume": 1.0,
                "playbackRate": 1.0,
                "trimBeforeMs": 0,
-               "background": ""
+               "background": "",
+               "dim": 0.0,
+               "dimColor": "#000000"
               }
              }
             ]
@@ -3047,9 +3024,6 @@
                     "eyebrow": "Made with",
                     "title": "Opsis",
                     "subtitle": "https://demo.playwright.dev/todomvc",
-                    "mark": "",
-                    "markLook": "underline",
-                    "markColor": "#facc15",
                     "align": "center",
                     "entrance": "rise",
                     "color": "#fafafa",
@@ -3064,11 +3038,7 @@
                     "eyebrowUppercase": true,
                     "subtitleSize": 0.34,
                     "letterSpacing": -0.035,
-                    "lineStagger": 1.0,
-                    "markThickness": 0.045,
-                    "markerOpacity": 55.0,
-                    "markSeed": 1,
-                    "markDrawTime": 0.45
+                    "lineStagger": 1.0
                    }
                   }
                  ]
@@ -3124,7 +3094,9 @@
                "volume": 1.0,
                "playbackRate": 1.0,
                "trimBeforeMs": 0,
-               "background": ""
+               "background": "",
+               "dim": 0.0,
+               "dimColor": "#000000"
               }
              }
             ]
@@ -3179,6 +3151,29 @@
         },
         "volume": {
          "nodeId": "song",
+         "param": "volume",
+         "unit": "number"
+        }
+       }
+      },
+      {
+       "id": "whoosh",
+       "src": "app:sfx/whoosh.wav",
+       "from": 0,
+       "durationInFrames": 258,
+       "volume": 1.0,
+       "nodeId": "whoosh",
+       "channel": "whoosh",
+       "role": "effect",
+       "lengthFrames": 14,
+       "handles": {
+        "move": {
+         "nodeId": "whoosh",
+         "param": "atMs",
+         "unit": "ms"
+        },
+        "volume": {
+         "nodeId": "whoosh",
          "param": "volume",
          "unit": "number"
         }
@@ -3280,6 +3275,7 @@
    "complete",
    "filter",
    "chips",
+   "sequence-transition",
    "record",
    "camera",
    "sequence",
@@ -3436,10 +3432,6 @@
     {
      "icon": "palette",
      "text": "1 style setting"
-    },
-    {
-     "icon": "gauge",
-     "text": "1.25× speed"
     }
    ]
   },
@@ -3453,6 +3445,10 @@
   },
   "intro-bg": {
    "rows": [
+    {
+     "icon": "shapes",
+     "text": "Mesh gradient"
+    },
     {
      "icon": "palette",
      "text": "4 colours",
@@ -3474,6 +3470,10 @@
   },
   "intro-title": {
    "rows": [
+    {
+     "icon": "shapes",
+     "text": "Soft blur in"
+    },
     {
      "icon": "type",
      "text": "“TodoMVC in 20 seconds”"
@@ -3520,7 +3520,7 @@
     },
     {
      "icon": "arrow-right-left",
-     "text": "Whip pan · 0.6 s"
+     "text": "2 joins with whip pan"
     }
    ]
   },
@@ -3607,8 +3607,8 @@
      "title": "app:sfx/whoosh.wav"
     },
     {
-     "icon": "mouse-pointer-click",
-     "text": "On “Complete” −0.2 s"
+     "icon": "clock",
+     "text": "At 0 s"
     }
    ]
   },
@@ -3655,6 +3655,14 @@
     {
      "icon": "volume-2",
      "text": "4 sounds"
+    }
+   ]
+  },
+  "sequence-transition": {
+   "rows": [
+    {
+     "icon": "arrow-right-left",
+     "text": "Whip pan · 0.6 s"
     }
    ]
   }
@@ -3927,9 +3935,6 @@
                   "eyebrow": "Made with",
                   "title": "Opsis",
                   "subtitle": "https://demo.playwright.dev/todomvc",
-                  "mark": "",
-                  "markLook": "underline",
-                  "markColor": "#facc15",
                   "align": "center",
                   "entrance": "rise",
                   "color": "#fafafa",
@@ -3944,11 +3949,7 @@
                   "eyebrowUppercase": true,
                   "subtitleSize": 0.34,
                   "letterSpacing": -0.035,
-                  "lineStagger": 1.0,
-                  "markThickness": 0.045,
-                  "markerOpacity": 55.0,
-                  "markSeed": 1,
-                  "markDrawTime": 0.45
+                  "lineStagger": 1.0
                  }
                 }
                ]
@@ -4004,7 +4005,9 @@
              "volume": 1.0,
              "playbackRate": 1.0,
              "trimBeforeMs": 0,
-             "background": ""
+             "background": "",
+             "dim": 0.0,
+             "dimColor": "#000000"
             }
            }
           ]
@@ -4059,6 +4062,29 @@
       },
       "volume": {
        "nodeId": "song",
+       "param": "volume",
+       "unit": "number"
+      }
+     }
+    },
+    {
+     "id": "whoosh",
+     "src": "app:sfx/whoosh.wav",
+     "from": 0,
+     "durationInFrames": 258,
+     "volume": 1.0,
+     "nodeId": "whoosh",
+     "channel": "whoosh",
+     "role": "effect",
+     "lengthFrames": 14,
+     "handles": {
+      "move": {
+       "nodeId": "whoosh",
+       "param": "atMs",
+       "unit": "ms"
+      },
+      "volume": {
+       "nodeId": "whoosh",
        "param": "volume",
        "unit": "number"
       }
@@ -4843,9 +4869,6 @@
                   "eyebrow": "Made with",
                   "title": "Opsis",
                   "subtitle": "https://demo.playwright.dev/todomvc",
-                  "mark": "",
-                  "markLook": "underline",
-                  "markColor": "#facc15",
                   "align": "center",
                   "entrance": "rise",
                   "color": "#fafafa",
@@ -4860,11 +4883,7 @@
                   "eyebrowUppercase": true,
                   "subtitleSize": 0.34,
                   "letterSpacing": -0.035,
-                  "lineStagger": 1.0,
-                  "markThickness": 0.045,
-                  "markerOpacity": 55.0,
-                  "markSeed": 1,
-                  "markDrawTime": 0.45
+                  "lineStagger": 1.0
                  }
                 }
                ]
@@ -4920,7 +4939,9 @@
              "volume": 1.0,
              "playbackRate": 1.0,
              "trimBeforeMs": 0,
-             "background": ""
+             "background": "",
+             "dim": 0.0,
+             "dimColor": "#000000"
             }
            }
           ]
@@ -4975,6 +4996,29 @@
       },
       "volume": {
        "nodeId": "song",
+       "param": "volume",
+       "unit": "number"
+      }
+     }
+    },
+    {
+     "id": "whoosh",
+     "src": "app:sfx/whoosh.wav",
+     "from": 0,
+     "durationInFrames": 258,
+     "volume": 1.0,
+     "nodeId": "whoosh",
+     "channel": "whoosh",
+     "role": "effect",
+     "lengthFrames": 14,
+     "handles": {
+      "move": {
+       "nodeId": "whoosh",
+       "param": "atMs",
+       "unit": "ms"
+      },
+      "volume": {
+       "nodeId": "whoosh",
        "param": "volume",
        "unit": "number"
       }
@@ -5755,9 +5799,6 @@
        "eyebrow": "Made with",
        "title": "Opsis",
        "subtitle": "https://demo.playwright.dev/todomvc",
-       "mark": "",
-       "markLook": "underline",
-       "markColor": "#facc15",
        "align": "center",
        "entrance": "rise",
        "color": "#fafafa",
@@ -5772,11 +5813,7 @@
        "eyebrowUppercase": true,
        "subtitleSize": 0.34,
        "letterSpacing": -0.035,
-       "lineStagger": 1.0,
-       "markThickness": 0.045,
-       "markerOpacity": 55.0,
-       "markSeed": 1,
-       "markDrawTime": 0.45
+       "lineStagger": 1.0
       },
       "thumbnail": null,
       "from": 183.0,
@@ -5855,7 +5892,9 @@
        "volume": 1.0,
        "playbackRate": 1.0,
        "trimBeforeMs": 0,
-       "background": ""
+       "background": "",
+       "dim": 0.0,
+       "dimColor": "#000000"
       },
       "thumbnail": {
        "kind": "filmstrip",
@@ -6103,6 +6142,56 @@
      },
      {
       "type": "audio",
+      "key": "audio:whoosh",
+      "id": "whoosh",
+      "nodeId": "whoosh",
+      "channel": "whoosh",
+      "src": "app:sfx/whoosh.wav",
+      "role": "effect",
+      "from": 0.0,
+      "to": 14.0,
+      "lane": 2,
+      "trimBefore": 0.0,
+      "loop": false,
+      "volume": 1.0,
+      "handles": {
+       "move": {
+        "nodeId": "whoosh",
+        "param": "atMs",
+        "unit": "ms"
+       },
+       "volume": {
+        "nodeId": "whoosh",
+        "param": "volume",
+        "unit": "number"
+       }
+      },
+      "item": {
+       "id": "whoosh",
+       "src": "app:sfx/whoosh.wav",
+       "from": 0,
+       "durationInFrames": 258,
+       "volume": 1.0,
+       "nodeId": "whoosh",
+       "channel": "whoosh",
+       "role": "effect",
+       "lengthFrames": 14,
+       "handles": {
+        "move": {
+         "nodeId": "whoosh",
+         "param": "atMs",
+         "unit": "ms"
+        },
+        "volume": {
+         "nodeId": "whoosh",
+         "param": "volume",
+         "unit": "number"
+        }
+       }
+      }
+     },
+     {
+      "type": "audio",
       "key": "audio:whip",
       "id": "whip",
       "nodeId": "whip",
@@ -6181,7 +6270,9 @@
         "volume": 1.0,
         "playbackRate": 1.0,
         "trimBeforeMs": 0,
-        "background": ""
+        "background": "",
+        "dim": 0.0,
+        "dimColor": "#000000"
        },
        "thumbnail": {
         "kind": "filmstrip",
@@ -6344,6 +6435,73 @@
         "volume": 0.5,
         "fadeIn": 12,
         "fadeOut": 45
+       }
+      ],
+      "audible": true
+     },
+     {
+      "id": "whoosh",
+      "kind": "effect",
+      "bus": "effects",
+      "strip": {
+       "trim": 0.0,
+       "highpass": {
+        "on": false,
+        "freq": 80.0
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120.0,
+          "gain": 0.0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500.0,
+          "gain": 0.0,
+          "q": 1.0
+         },
+         {
+          "type": "peak",
+          "freq": 2500.0,
+          "gain": 0.0,
+          "q": 1.0
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000.0,
+          "gain": 0.0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18.0,
+        "ratio": 3.0,
+        "attack": 10.0,
+        "release": 150.0,
+        "makeup": 0.0
+       },
+       "fader": 0.0,
+       "pan": 0.0,
+       "mute": false,
+       "solo": false
+      },
+      "sounds": [
+       {
+        "src": "app:sfx/whoosh.wav",
+        "at": 0,
+        "offset": 0,
+        "length": 14,
+        "loop": false,
+        "rate": 1.0,
+        "volume": 1.0,
+        "fadeIn": 0,
+        "fadeOut": 0
        }
       ],
       "audible": true
@@ -6605,6 +6763,7 @@
       ],
       "duck": {
        "keys": [
+        "whoosh",
         "talk-clip"
        ],
        "amount": 10.0,
@@ -6659,7 +6818,9 @@
        }
       },
       "fader": 0.0,
-      "channels": [],
+      "channels": [
+       "whoosh"
+      ],
       "duck": null
      },
      {
@@ -7024,36 +7185,6 @@
       "width": 1920,
       "height": 1080,
       "hasAudio": true
-     },
-     "clip": {
-      "type": "clip",
-      "durationInFrames": 120,
-      "tracks": [
-       {
-        "id": "talk:t",
-        "items": [
-         {
-          "kind": "element",
-          "id": "talk:i",
-          "from": 0,
-          "durationInFrames": 120,
-          "nodeId": "talk",
-          "component": "video",
-          "props": {
-           "src": "project:clips/talk.mp4",
-           "fit": "contain",
-           "loop": false,
-           "muted": false,
-           "volume": 1.0,
-           "playbackRate": 1.0,
-           "trimBeforeMs": 0,
-           "background": ""
-          }
-         }
-        ]
-       }
-      ],
-      "audio": []
      }
     },
     "talk-clip": {
@@ -7079,7 +7210,9 @@
            "volume": 1.0,
            "playbackRate": 1.0,
            "trimBeforeMs": 0,
-           "background": ""
+           "background": "",
+           "dim": 0.0,
+           "dimColor": "#000000"
           }
          }
         ]
@@ -7182,7 +7315,7 @@
        {
         "id": "whoosh",
         "src": "app:sfx/whoosh.wav",
-        "from": -6,
+        "from": 0,
         "volume": 1.0,
         "nodeId": "whoosh",
         "channel": "whoosh",
@@ -7191,7 +7324,7 @@
         "handles": {
          "move": {
           "nodeId": "whoosh",
-          "param": "offsetMs",
+          "param": "atMs",
           "unit": "ms"
          },
          "volume": {
@@ -7199,9 +7332,6 @@
           "param": "volume",
           "unit": "number"
          }
-        },
-        "anchor": {
-         "nodeId": "complete"
         }
        }
       ]
@@ -7813,9 +7943,6 @@
            "eyebrow": "Made with",
            "title": "Opsis",
            "subtitle": "https://demo.playwright.dev/todomvc",
-           "mark": "",
-           "markLook": "underline",
-           "markColor": "#facc15",
            "align": "center",
            "entrance": "rise",
            "color": "#fafafa",
@@ -7830,11 +7957,7 @@
            "eyebrowUppercase": true,
            "subtitleSize": 0.34,
            "letterSpacing": -0.035,
-           "lineStagger": 1.0,
-           "markThickness": 0.045,
-           "markerOpacity": 55.0,
-           "markSeed": 1,
-           "markDrawTime": 0.45
+           "lineStagger": 1.0
           }
          }
         ]
@@ -8135,6 +8258,18 @@
         }
        }
       ]
+     }
+    },
+    "sequence-transition": {
+     "transition": {
+      "type": "transition",
+      "kind": "whip-pan",
+      "durationInFrames": 18,
+      "params": {
+       "direction": "left",
+       "blur": 24,
+       "stretch": 12.0
+      }
      }
     },
     "record": {
@@ -8444,7 +8579,6 @@
            "shot": {
             "style": "classic",
             "backdrop": "glaze",
-            "ground": "#faf6f1",
             "rimGlow": 1.0,
             "liftColours": true,
             "bleedBlur": 48.0,
@@ -8980,7 +9114,6 @@
                 "shot": {
                  "style": "classic",
                  "backdrop": "glaze",
-                 "ground": "#faf6f1",
                  "rimGlow": 1.0,
                  "liftColours": true,
                  "bleedBlur": 48.0,
@@ -9074,9 +9207,6 @@
                 "eyebrow": "Made with",
                 "title": "Opsis",
                 "subtitle": "https://demo.playwright.dev/todomvc",
-                "mark": "",
-                "markLook": "underline",
-                "markColor": "#facc15",
                 "align": "center",
                 "entrance": "rise",
                 "color": "#fafafa",
@@ -9091,11 +9221,7 @@
                 "eyebrowUppercase": true,
                 "subtitleSize": 0.34,
                 "letterSpacing": -0.035,
-                "lineStagger": 1.0,
-                "markThickness": 0.045,
-                "markerOpacity": 55.0,
-                "markSeed": 1,
-                "markDrawTime": 0.45
+                "lineStagger": 1.0
                }
               }
              ]
@@ -9613,7 +9739,6 @@
                      "shot": {
                       "style": "classic",
                       "backdrop": "glaze",
-                      "ground": "#faf6f1",
                       "rimGlow": 1.0,
                       "liftColours": true,
                       "bleedBlur": 48.0,
@@ -9707,9 +9832,6 @@
                      "eyebrow": "Made with",
                      "title": "Opsis",
                      "subtitle": "https://demo.playwright.dev/todomvc",
-                     "mark": "",
-                     "markLook": "underline",
-                     "markColor": "#facc15",
                      "align": "center",
                      "entrance": "rise",
                      "color": "#fafafa",
@@ -9724,11 +9846,7 @@
                      "eyebrowUppercase": true,
                      "subtitleSize": 0.34,
                      "letterSpacing": -0.035,
-                     "lineStagger": 1.0,
-                     "markThickness": 0.045,
-                     "markerOpacity": 55.0,
-                     "markSeed": 1,
-                     "markDrawTime": 0.45
+                     "lineStagger": 1.0
                     }
                    }
                   ]
@@ -9784,7 +9902,9 @@
                 "volume": 1.0,
                 "playbackRate": 1.0,
                 "trimBeforeMs": 0,
-                "background": ""
+                "background": "",
+                "dim": 0.0,
+                "dimColor": "#000000"
                }
               }
              ]
@@ -10303,7 +10423,6 @@
                      "shot": {
                       "style": "classic",
                       "backdrop": "glaze",
-                      "ground": "#faf6f1",
                       "rimGlow": 1.0,
                       "liftColours": true,
                       "bleedBlur": 48.0,
@@ -10397,9 +10516,6 @@
                      "eyebrow": "Made with",
                      "title": "Opsis",
                      "subtitle": "https://demo.playwright.dev/todomvc",
-                     "mark": "",
-                     "markLook": "underline",
-                     "markColor": "#facc15",
                      "align": "center",
                      "entrance": "rise",
                      "color": "#fafafa",
@@ -10414,11 +10530,7 @@
                      "eyebrowUppercase": true,
                      "subtitleSize": 0.34,
                      "letterSpacing": -0.035,
-                     "lineStagger": 1.0,
-                     "markThickness": 0.045,
-                     "markerOpacity": 55.0,
-                     "markSeed": 1,
-                     "markDrawTime": 0.45
+                     "lineStagger": 1.0
                     }
                    }
                   ]
@@ -10474,7 +10586,9 @@
                 "volume": 1.0,
                 "playbackRate": 1.0,
                 "trimBeforeMs": 0,
-                "background": ""
+                "background": "",
+                "dim": 0.0,
+                "dimColor": "#000000"
                }
               }
              ]
@@ -10537,8 +10651,8 @@
        {
         "id": "whoosh",
         "src": "app:sfx/whoosh.wav",
-        "from": 173,
-        "durationInFrames": 126,
+        "from": 0,
+        "durationInFrames": 299,
         "volume": 1.0,
         "nodeId": "whoosh",
         "channel": "whoosh",
@@ -10547,7 +10661,7 @@
         "handles": {
          "move": {
           "nodeId": "whoosh",
-          "param": "offsetMs",
+          "param": "atMs",
           "unit": "ms"
          },
          "volume": {
@@ -10555,9 +10669,6 @@
           "param": "volume",
           "unit": "number"
          }
-        },
-        "anchor": {
-         "nodeId": "complete"
         }
        },
        {
@@ -10806,6 +10917,7 @@
     "complete",
     "filter",
     "chips",
+    "sequence-transition",
     "record",
     "camera",
     "sequence",
@@ -10970,10 +11082,6 @@
      {
       "icon": "palette",
       "text": "1 style setting"
-     },
-     {
-      "icon": "gauge",
-      "text": "1.25× speed"
      }
     ]
    },
@@ -10987,6 +11095,10 @@
    },
    "intro-bg": {
     "rows": [
+     {
+      "icon": "shapes",
+      "text": "Mesh gradient"
+     },
      {
       "icon": "palette",
       "text": "4 colours",
@@ -11008,6 +11120,10 @@
    },
    "intro-title": {
     "rows": [
+     {
+      "icon": "shapes",
+      "text": "Soft blur in"
+     },
      {
       "icon": "type",
       "text": "“TodoMVC in 20 seconds”"
@@ -11054,7 +11170,7 @@
      },
      {
       "icon": "arrow-right-left",
-      "text": "Whip pan · 0.6 s"
+      "text": "2 joins with whip pan"
      }
     ]
    },
@@ -11148,8 +11264,8 @@
       "title": "app:sfx/whoosh.wav"
      },
      {
-      "icon": "mouse-pointer-click",
-      "text": "On “Complete” −0.2 s"
+      "icon": "clock",
+      "text": "At 0 s"
      }
     ]
    },
@@ -11196,6 +11312,14 @@
      {
       "icon": "volume-2",
       "text": "4 sounds"
+     }
+    ]
+   },
+   "sequence-transition": {
+    "rows": [
+     {
+      "icon": "arrow-right-left",
+      "text": "Whip pan · 0.6 s"
      }
     ]
    }
@@ -11567,7 +11691,6 @@
                    "shot": {
                     "style": "classic",
                     "backdrop": "glaze",
-                    "ground": "#faf6f1",
                     "rimGlow": 1.0,
                     "liftColours": true,
                     "bleedBlur": 48.0,
@@ -11661,9 +11784,6 @@
                    "eyebrow": "Made with",
                    "title": "Opsis",
                    "subtitle": "https://demo.playwright.dev/todomvc",
-                   "mark": "",
-                   "markLook": "underline",
-                   "markColor": "#facc15",
                    "align": "center",
                    "entrance": "rise",
                    "color": "#fafafa",
@@ -11678,11 +11798,7 @@
                    "eyebrowUppercase": true,
                    "subtitleSize": 0.34,
                    "letterSpacing": -0.035,
-                   "lineStagger": 1.0,
-                   "markThickness": 0.045,
-                   "markerOpacity": 55.0,
-                   "markSeed": 1,
-                   "markDrawTime": 0.45
+                   "lineStagger": 1.0
                   }
                  }
                 ]
@@ -11738,7 +11854,9 @@
               "volume": 1.0,
               "playbackRate": 1.0,
               "trimBeforeMs": 0,
-              "background": ""
+              "background": "",
+              "dim": 0.0,
+              "dimColor": "#000000"
              }
             }
            ]
@@ -11801,8 +11919,8 @@
      {
       "id": "whoosh",
       "src": "app:sfx/whoosh.wav",
-      "from": 173,
-      "durationInFrames": 126,
+      "from": 0,
+      "durationInFrames": 299,
       "volume": 1.0,
       "nodeId": "whoosh",
       "channel": "whoosh",
@@ -11811,7 +11929,7 @@
       "handles": {
        "move": {
         "nodeId": "whoosh",
-        "param": "offsetMs",
+        "param": "atMs",
         "unit": "ms"
        },
        "volume": {
@@ -11819,9 +11937,6 @@
         "param": "volume",
         "unit": "number"
        }
-      },
-      "anchor": {
-       "nodeId": "complete"
       }
      },
      {
@@ -12702,7 +12817,6 @@
                    "shot": {
                     "style": "classic",
                     "backdrop": "glaze",
-                    "ground": "#faf6f1",
                     "rimGlow": 1.0,
                     "liftColours": true,
                     "bleedBlur": 48.0,
@@ -12796,9 +12910,6 @@
                    "eyebrow": "Made with",
                    "title": "Opsis",
                    "subtitle": "https://demo.playwright.dev/todomvc",
-                   "mark": "",
-                   "markLook": "underline",
-                   "markColor": "#facc15",
                    "align": "center",
                    "entrance": "rise",
                    "color": "#fafafa",
@@ -12813,11 +12924,7 @@
                    "eyebrowUppercase": true,
                    "subtitleSize": 0.34,
                    "letterSpacing": -0.035,
-                   "lineStagger": 1.0,
-                   "markThickness": 0.045,
-                   "markerOpacity": 55.0,
-                   "markSeed": 1,
-                   "markDrawTime": 0.45
+                   "lineStagger": 1.0
                   }
                  }
                 ]
@@ -12873,7 +12980,9 @@
               "volume": 1.0,
               "playbackRate": 1.0,
               "trimBeforeMs": 0,
-              "background": ""
+              "background": "",
+              "dim": 0.0,
+              "dimColor": "#000000"
              }
             }
            ]
@@ -12936,8 +13045,8 @@
      {
       "id": "whoosh",
       "src": "app:sfx/whoosh.wav",
-      "from": 173,
-      "durationInFrames": 126,
+      "from": 0,
+      "durationInFrames": 299,
       "volume": 1.0,
       "nodeId": "whoosh",
       "channel": "whoosh",
@@ -12946,7 +13055,7 @@
       "handles": {
        "move": {
         "nodeId": "whoosh",
-        "param": "offsetMs",
+        "param": "atMs",
         "unit": "ms"
        },
        "volume": {
@@ -12954,9 +13063,6 @@
         "param": "volume",
         "unit": "number"
        }
-      },
-      "anchor": {
-       "nodeId": "complete"
       }
      },
      {
@@ -13814,7 +13920,6 @@
         "shot": {
          "style": "classic",
          "backdrop": "glaze",
-         "ground": "#faf6f1",
          "rimGlow": 1.0,
          "liftColours": true,
          "bleedBlur": 48.0,
@@ -13932,9 +14037,6 @@
         "eyebrow": "Made with",
         "title": "Opsis",
         "subtitle": "https://demo.playwright.dev/todomvc",
-        "mark": "",
-        "markLook": "underline",
-        "markColor": "#facc15",
         "align": "center",
         "entrance": "rise",
         "color": "#fafafa",
@@ -13949,11 +14051,7 @@
         "eyebrowUppercase": true,
         "subtitleSize": 0.34,
         "letterSpacing": -0.035,
-        "lineStagger": 1.0,
-        "markThickness": 0.045,
-        "markerOpacity": 55.0,
-        "markSeed": 1,
-        "markDrawTime": 0.45
+        "lineStagger": 1.0
        },
        "thumbnail": null,
        "from": 224.0,
@@ -14032,7 +14130,9 @@
         "volume": 1.0,
         "playbackRate": 1.0,
         "trimBeforeMs": 0,
-        "background": ""
+        "background": "",
+        "dim": 0.0,
+        "dimColor": "#000000"
        },
        "thumbnail": {
         "kind": "filmstrip",
@@ -14280,6 +14380,56 @@
       },
       {
        "type": "audio",
+       "key": "audio:whoosh",
+       "id": "whoosh",
+       "nodeId": "whoosh",
+       "channel": "whoosh",
+       "src": "app:sfx/whoosh.wav",
+       "role": "effect",
+       "from": 0.0,
+       "to": 14.0,
+       "lane": 2,
+       "trimBefore": 0.0,
+       "loop": false,
+       "volume": 1.0,
+       "handles": {
+        "move": {
+         "nodeId": "whoosh",
+         "param": "atMs",
+         "unit": "ms"
+        },
+        "volume": {
+         "nodeId": "whoosh",
+         "param": "volume",
+         "unit": "number"
+        }
+       },
+       "item": {
+        "id": "whoosh",
+        "src": "app:sfx/whoosh.wav",
+        "from": 0,
+        "durationInFrames": 299,
+        "volume": 1.0,
+        "nodeId": "whoosh",
+        "channel": "whoosh",
+        "role": "effect",
+        "lengthFrames": 14,
+        "handles": {
+         "move": {
+          "nodeId": "whoosh",
+          "param": "atMs",
+          "unit": "ms"
+         },
+         "volume": {
+          "nodeId": "whoosh",
+          "param": "volume",
+          "unit": "number"
+         }
+        }
+       }
+      },
+      {
+       "type": "audio",
        "key": "audio:whip",
        "id": "whip",
        "nodeId": "whip",
@@ -14331,59 +14481,6 @@
       },
       {
        "type": "audio",
-       "key": "audio:whoosh",
-       "id": "whoosh",
-       "nodeId": "whoosh",
-       "channel": "whoosh",
-       "src": "app:sfx/whoosh.wav",
-       "role": "effect",
-       "from": 173.0,
-       "to": 187.0,
-       "lane": 2,
-       "trimBefore": 0.0,
-       "loop": false,
-       "volume": 1.0,
-       "handles": {
-        "move": {
-         "nodeId": "whoosh",
-         "param": "offsetMs",
-         "unit": "ms"
-        },
-        "volume": {
-         "nodeId": "whoosh",
-         "param": "volume",
-         "unit": "number"
-        }
-       },
-       "item": {
-        "id": "whoosh",
-        "src": "app:sfx/whoosh.wav",
-        "from": 173,
-        "durationInFrames": 126,
-        "volume": 1.0,
-        "nodeId": "whoosh",
-        "channel": "whoosh",
-        "role": "effect",
-        "lengthFrames": 14,
-        "handles": {
-         "move": {
-          "nodeId": "whoosh",
-          "param": "offsetMs",
-          "unit": "ms"
-         },
-         "volume": {
-          "nodeId": "whoosh",
-          "param": "volume",
-          "unit": "number"
-         }
-        },
-        "anchor": {
-         "nodeId": "complete"
-        }
-       }
-      },
-      {
-       "type": "audio",
        "key": "clip:/1:layers:l1:g/0:talk-clip:i",
        "id": "/1:layers:l1:g/0:talk-clip:i",
        "nodeId": "talk-clip",
@@ -14411,7 +14508,9 @@
          "volume": 1.0,
          "playbackRate": 1.0,
          "trimBeforeMs": 0,
-         "background": ""
+         "background": "",
+         "dim": 0.0,
+         "dimColor": "#000000"
         },
         "thumbnail": {
          "kind": "filmstrip",
@@ -14682,7 +14781,7 @@
        "sounds": [
         {
          "src": "app:sfx/whoosh.wav",
-         "at": 173,
+         "at": 0,
          "offset": 0,
          "length": 14,
          "loop": false,

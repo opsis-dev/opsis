@@ -250,7 +250,7 @@ fn reports_invalid_params_per_node_and_picks_the_selected_nodes_clip() {
 #[test]
 fn wraps_layers_that_keep_their_layout_in_a_box_at_the_projects_size() {
     let mut g = Graph::default();
-    g.node("bg", "fx.solid", json!({ "clipDuration": 60 }));
+    g.node("bg", "fx.background", json!({ "clipDuration": 60 }));
     g.node("t", TITLE, json!({ "clipDuration": 60 }));
     g.node("stack", "timeline.stack", json!({ "keepLayout": true }));
     g.link_ports("bg", "stack", "clip", "in1")
@@ -317,7 +317,7 @@ fn takes_any_number_of_sounds_and_plays_a_pinned_one_on_its_action() {
     );
     let spec = with_sounds(&[(
         "pinned",
-        json!({ "atAction": "complete", "offsetMs": -200 }),
+        json!({ "timing": "on-action", "atAction": "complete", "offsetMs": -200 }),
     )]);
     let mark = flatten_spec(&spec)
         .marks
@@ -332,15 +332,29 @@ fn takes_any_number_of_sounds_and_plays_a_pinned_one_on_its_action() {
     assert_eq!(f64::from(sound.from), mark.frame.round() - 6.0);
 }
 
-fn sequence(cuts: Value, ports: &[&str]) -> Vec<TimelineItem> {
+fn joined(marks: &[Option<Value>], shared: Option<Value>) -> Vec<TimelineItem> {
     let mut g = Graph::default();
-    for (i, port) in ports.iter().enumerate() {
-        g.node(&format!("c{i}"), TITLE, json!({ "clipDuration": 60 }));
-        g.link_ports(&format!("c{i}"), "seq", "clip", port);
+    for (i, mark) in marks.iter().enumerate() {
+        let id = format!("c{i}");
+        g.node(&id, TITLE, json!({ "clipDuration": 60 }));
+        let port = format!("in{}", i + 1);
+        match mark {
+            Some(params) => {
+                let marked = format!("m{i}");
+                g.node(&marked, "timeline.transition", params.clone());
+                g.link(&id, &marked)
+                    .link_ports(&marked, "seq", "clip", &port);
+            }
+            None => {
+                g.link_ports(&id, "seq", "clip", &port);
+            }
+        }
     }
-    let mut params = json!({ "transition": "fade", "transitionDuration": 10 });
-    params["cuts"] = cuts;
-    g.node("seq", "timeline.sequence", params);
+    g.node("seq", "timeline.sequence", json!({}));
+    if let Some(params) = shared {
+        g.node("shared", "timeline.transition", params);
+        g.link_ports("shared", "seq", "transition", "transition");
+    }
     g.node("out", "output.render", json!({}));
     g.link("seq", "out");
     export_film(&g.build(), None, "out").tracks[0].items.clone()
@@ -363,12 +377,10 @@ fn cut(kind: &str, frames: u32, hold: bool) -> (String, u32, bool) {
 }
 
 #[test]
-fn uses_each_cuts_own_transition_a_plain_cut_for_none_and_the_last_entry_for_a_port() {
-    let three = ["in1", "in2", "in3"];
-    let items = sequence(
-        json!([{ "before": "in3", "transition": "wipe", "transitionDuration": 20, "keepWhole": true }]),
-        &three,
-    );
+fn joins_with_each_clips_own_transition_then_the_sequences_then_a_plain_cut() {
+    let fade = json!({ "kind": "fade", "durationInFrames": 10 });
+    let wipe = json!({ "kind": "wipe", "durationInFrames": 20, "keepWhole": true });
+    let items = joined(&[None, None, Some(wipe.clone())], Some(fade.clone()));
     assert_eq!(
         enters(&items),
         [
@@ -378,26 +390,20 @@ fn uses_each_cuts_own_transition_a_plain_cut_for_none_and_the_last_entry_for_a_p
         ]
     );
     assert_eq!(items[1].base().exit.as_ref().unwrap().kind, "wipe");
-    let items = sequence(
-        json!([{ "before": "in2", "transition": "none", "transitionDuration": 15 }]),
-        &three,
+    assert_eq!(
+        enters(&joined(&[None, Some(wipe.clone()), None], None)),
+        [None, Some(cut("wipe", 20, true)), None]
     );
-    assert_eq!(enters(&items), [None, None, Some(cut("fade", 10, false))]);
-    let items = sequence(
-        json!([
-            { "before": "in5", "transition": "wipe", "transitionDuration": 20 },
-            { "before": "in2", "transition": "slide", "transitionDuration": 12 },
-            { "before": "in2", "transition": "iris", "transitionDuration": 8 }
-        ]),
-        &["in1", "in2"],
+    assert_eq!(
+        enters(&joined(&[Some(wipe), None], Some(fade))),
+        [None, Some(cut("fade", 10, false))]
     );
-    assert_eq!(enters(&items), [None, Some(cut("iris", 8, false))]);
 }
 
 #[test]
 fn joins_sound_effects_on_one_port_and_wont_take_a_file_as_a_sound() {
     let mut g = Graph::default();
-    g.node("bg", "fx.solid", json!({ "clipDuration": 90 }));
+    g.node("bg", "fx.background", json!({ "clipDuration": 90 }));
     g.node(
         "click",
         "audio.sfx",
@@ -493,8 +499,16 @@ fn an_export_takes_its_film_from_the_connected_clip_and_a_skipped_node_passes_it
     assert!(film_of(&wf, &out, "loose").is_none());
     assert!(out.values["film"].is_empty());
     let mut g = Graph::default();
-    g.node("red", "fx.solid", json!({ "color": "#ff0000" }));
-    g.node("blue", "fx.solid", json!({ "color": "#0000ff" }));
+    g.node(
+        "red",
+        "fx.background",
+        json!({ "solid": { "color": "#ff0000" } }),
+    );
+    g.node(
+        "blue",
+        "fx.background",
+        json!({ "solid": { "color": "#0000ff" } }),
+    );
     g.node("seq", "timeline.sequence", json!({}));
     g.link_ports("blue", "seq", "clip", "in2")
         .link_ports("red", "seq", "clip", "in1");

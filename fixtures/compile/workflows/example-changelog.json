@@ -31,9 +31,6 @@
      "eyebrow": "Changelog",
      "title": "What's new in {{Version}}",
      "subtitle": "",
-     "mark": "",
-     "markLook": "underline",
-     "markColor": "#facc15",
      "align": "center",
      "entrance": "rise",
      "color": "#fafafa",
@@ -105,54 +102,57 @@
    },
    {
     "id": "chart",
-    "type": "fx.animated-bar-chart",
+    "type": "fx.chart",
     "position": {
      "x": 0,
      "y": 400
     },
     "params": {
-     "barColor": "#0ea5e9",
-     "gap": 16,
-     "staggerFrames": 0.2,
-     "bars": [
-      {
-       "label": "",
-       "value": 35
-      },
-      {
-       "label": "",
-       "value": 60
-      },
-      {
-       "label": "",
-       "value": 45
-      },
-      {
-       "label": "",
-       "value": 80
-      },
-      {
-       "label": "",
-       "value": 55
-      },
-      {
-       "label": "",
-       "value": 70
-      },
-      {
-       "label": "",
-       "value": 90
-      },
-      {
-       "label": "",
-       "value": 65
-      }
-     ],
-     "width": 1000,
-     "height": 500,
-     "baselineColor": "#27272a",
-     "labelColor": "#a1a1aa",
-     "speed": 1,
+     "kind": "bar",
+     "bar": {
+      "barColor": "#0ea5e9",
+      "gap": 16,
+      "staggerFrames": 0.2,
+      "bars": [
+       {
+        "label": "",
+        "value": 35
+       },
+       {
+        "label": "",
+        "value": 60
+       },
+       {
+        "label": "",
+        "value": 45
+       },
+       {
+        "label": "",
+        "value": 80
+       },
+       {
+        "label": "",
+        "value": 55
+       },
+       {
+        "label": "",
+        "value": 70
+       },
+       {
+        "label": "",
+        "value": 90
+       },
+       {
+        "label": "",
+        "value": 65
+       }
+      ],
+      "width": 1000,
+      "height": 500,
+      "baselineColor": "#27272a",
+      "labelColor": "#a1a1aa",
+      "speed": 1
+     },
      "clipDuration": 120,
      "envelope": {}
     }
@@ -178,16 +178,19 @@
    },
    {
     "id": "bg",
-    "type": "fx.gradient",
+    "type": "fx.background",
     "position": {
      "x": 300,
      "y": 340
     },
     "params": {
-     "from": "#1e1b4b",
-     "to": "#0f172a",
-     "angle": 135,
-     "grain": 0.08,
+     "kind": "gradient",
+     "gradient": {
+      "from": "#1e1b4b",
+      "to": "#0f172a",
+      "angle": 135,
+      "grain": 0.08
+     },
      "clipDuration": 90,
      "envelope": {}
     }
@@ -212,12 +215,7 @@
      "x": 900,
      "y": 170
     },
-    "params": {
-     "transition": "slide",
-     "transitionDuration": 15,
-     "keepWhole": false,
-     "cuts": []
-    }
+    "params": {}
    },
    {
     "id": "render",
@@ -239,6 +237,18 @@
      "chapters": true,
      "chapterList": false,
      "gl": "angle"
+    }
+   },
+   {
+    "id": "sequence-transition",
+    "type": "timeline.transition",
+    "position": {
+     "x": 600,
+     "y": 10
+    },
+    "params": {
+     "kind": "slide",
+     "durationInFrames": 15
     }
    }
   ],
@@ -291,6 +301,13 @@
     "sourceHandle": "clip",
     "target": "render",
     "targetHandle": "clip"
+   },
+   {
+    "id": "sequence-transition.transition->sequence.transition",
+    "source": "sequence-transition",
+    "sourceHandle": "transition",
+    "target": "sequence",
+    "targetHandle": "transition"
    }
   ],
   "markers": []
@@ -323,9 +340,6 @@
           "eyebrow": "Changelog",
           "title": "What's new in v2.4",
           "subtitle": "",
-          "mark": "",
-          "markLook": "underline",
-          "markColor": "#facc15",
           "align": "center",
           "entrance": "rise",
           "color": "#fafafa",
@@ -340,11 +354,7 @@
           "eyebrowUppercase": true,
           "subtitleSize": 0.34,
           "letterSpacing": -0.035,
-          "lineStagger": 1.0,
-          "markThickness": 0.045,
-          "markerOpacity": 55.0,
-          "markSeed": 1,
-          "markDrawTime": 0.45
+          "lineStagger": 1.0
          }
         }
        ]
@@ -599,6 +609,16 @@
       }
      ],
      "audio": []
+    }
+   },
+   "sequence-transition": {
+    "transition": {
+     "type": "transition",
+     "kind": "slide",
+     "durationInFrames": 15,
+     "params": {
+      "direction": "from-right"
+     }
     }
    },
    "chart-scene": {
@@ -878,9 +898,6 @@
                "eyebrow": "Changelog",
                "title": "What's new in v2.4",
                "subtitle": "",
-               "mark": "",
-               "markLook": "underline",
-               "markColor": "#facc15",
                "align": "center",
                "entrance": "rise",
                "color": "#fafafa",
@@ -895,11 +912,7 @@
                "eyebrowUppercase": true,
                "subtitleSize": 0.34,
                "letterSpacing": -0.035,
-               "lineStagger": 1.0,
-               "markThickness": 0.045,
-               "markerOpacity": 55.0,
-               "markSeed": 1,
-               "markDrawTime": 0.45
+               "lineStagger": 1.0
               }
              }
             ]
@@ -1267,6 +1280,7 @@
    "chart",
    "bg",
    "credit",
+   "sequence-transition",
    "chart-scene",
    "sequence",
    "render"
@@ -1303,6 +1317,10 @@
   "chart": {
    "rows": [
     {
+     "icon": "shapes",
+     "text": "Bar chart"
+    },
+    {
      "icon": "clock",
      "text": "4 s"
     }
@@ -1322,6 +1340,10 @@
   },
   "bg": {
    "rows": [
+    {
+     "icon": "shapes",
+     "text": "Gradient"
+    },
     {
      "icon": "clock",
      "text": "3 s"
@@ -1352,7 +1374,7 @@
     },
     {
      "icon": "arrow-right-left",
-     "text": "Slide · 0.5 s"
+     "text": "2 joins with slide"
     }
    ]
   },
@@ -1365,6 +1387,14 @@
     {
      "icon": "film",
      "text": "MP4 · 1080p / 1920p · 30 fps"
+    }
+   ]
+  },
+  "sequence-transition": {
+   "rows": [
+    {
+     "icon": "arrow-right-left",
+     "text": "Slide · 0.5 s"
     }
    ]
   }
@@ -1419,9 +1449,6 @@
              "eyebrow": "Changelog",
              "title": "What's new in v2.4",
              "subtitle": "",
-             "mark": "",
-             "markLook": "underline",
-             "markColor": "#facc15",
              "align": "center",
              "entrance": "rise",
              "color": "#fafafa",
@@ -1436,11 +1463,7 @@
              "eyebrowUppercase": true,
              "subtitleSize": 0.34,
              "letterSpacing": -0.035,
-             "lineStagger": 1.0,
-             "markThickness": 0.045,
-             "markerOpacity": 55.0,
-             "markSeed": 1,
-             "markDrawTime": 0.45
+             "lineStagger": 1.0
             }
            }
           ]
@@ -2287,9 +2310,6 @@
              "eyebrow": "Changelog",
              "title": "What's new in v2.4",
              "subtitle": "",
-             "mark": "",
-             "markLook": "underline",
-             "markColor": "#facc15",
              "align": "center",
              "entrance": "rise",
              "color": "#fafafa",
@@ -2304,11 +2324,7 @@
              "eyebrowUppercase": true,
              "subtitleSize": 0.34,
              "letterSpacing": -0.035,
-             "lineStagger": 1.0,
-             "markThickness": 0.045,
-             "markerOpacity": 55.0,
-             "markSeed": 1,
-             "markDrawTime": 0.45
+             "lineStagger": 1.0
             }
            }
           ]
@@ -3099,9 +3115,6 @@
        "eyebrow": "Changelog",
        "title": "What's new in v2.4",
        "subtitle": "",
-       "mark": "",
-       "markLook": "underline",
-       "markColor": "#facc15",
        "align": "center",
        "entrance": "rise",
        "color": "#fafafa",
@@ -3116,11 +3129,7 @@
        "eyebrowUppercase": true,
        "subtitleSize": 0.34,
        "letterSpacing": -0.035,
-       "lineStagger": 1.0,
-       "markThickness": 0.045,
-       "markerOpacity": 55.0,
-       "markSeed": 1,
-       "markDrawTime": 0.45
+       "lineStagger": 1.0
       },
       "thumbnail": null,
       "from": 0.0,
@@ -3844,9 +3853,6 @@
            "eyebrow": "Changelog",
            "title": "What's new in v2.4",
            "subtitle": "",
-           "mark": "",
-           "markLook": "underline",
-           "markColor": "#facc15",
            "align": "center",
            "entrance": "rise",
            "color": "#fafafa",
@@ -3861,11 +3867,7 @@
            "eyebrowUppercase": true,
            "subtitleSize": 0.34,
            "letterSpacing": -0.035,
-           "lineStagger": 1.0,
-           "markThickness": 0.045,
-           "markerOpacity": 55.0,
-           "markSeed": 1,
-           "markDrawTime": 0.45
+           "lineStagger": 1.0
           }
          }
         ]
@@ -4120,6 +4122,16 @@
        }
       ],
       "audio": []
+     }
+    },
+    "sequence-transition": {
+     "transition": {
+      "type": "transition",
+      "kind": "slide",
+      "durationInFrames": 15,
+      "params": {
+       "direction": "from-right"
+      }
      }
     },
     "chart-scene": {
@@ -4399,9 +4411,6 @@
                 "eyebrow": "Changelog",
                 "title": "What's new in v2.4",
                 "subtitle": "",
-                "mark": "",
-                "markLook": "underline",
-                "markColor": "#facc15",
                 "align": "center",
                 "entrance": "rise",
                 "color": "#fafafa",
@@ -4416,11 +4425,7 @@
                 "eyebrowUppercase": true,
                 "subtitleSize": 0.34,
                 "letterSpacing": -0.035,
-                "lineStagger": 1.0,
-                "markThickness": 0.045,
-                "markerOpacity": 55.0,
-                "markSeed": 1,
-                "markDrawTime": 0.45
+                "lineStagger": 1.0
                }
               }
              ]
@@ -4798,6 +4803,7 @@
     "chart",
     "bg",
     "credit",
+    "sequence-transition",
     "chart-scene",
     "sequence",
     "render"
@@ -4834,6 +4840,10 @@
    "chart": {
     "rows": [
      {
+      "icon": "shapes",
+      "text": "Bar chart"
+     },
+     {
       "icon": "clock",
       "text": "4 s"
      }
@@ -4853,6 +4863,10 @@
    },
    "bg": {
     "rows": [
+     {
+      "icon": "shapes",
+      "text": "Gradient"
+     },
      {
       "icon": "clock",
       "text": "3 s"
@@ -4883,7 +4897,7 @@
      },
      {
       "icon": "arrow-right-left",
-      "text": "Slide · 0.5 s"
+      "text": "2 joins with slide"
      }
     ]
    },
@@ -4900,6 +4914,14 @@
      {
       "icon": "clock",
       "text": "4 s"
+     }
+    ]
+   },
+   "sequence-transition": {
+    "rows": [
+     {
+      "icon": "arrow-right-left",
+      "text": "Slide · 0.5 s"
      }
     ]
    }
@@ -4954,9 +4976,6 @@
               "eyebrow": "Changelog",
               "title": "What's new in v2.4",
               "subtitle": "",
-              "mark": "",
-              "markLook": "underline",
-              "markColor": "#facc15",
               "align": "center",
               "entrance": "rise",
               "color": "#fafafa",
@@ -4971,11 +4990,7 @@
               "eyebrowUppercase": true,
               "subtitleSize": 0.34,
               "letterSpacing": -0.035,
-              "lineStagger": 1.0,
-              "markThickness": 0.045,
-              "markerOpacity": 55.0,
-              "markSeed": 1,
-              "markDrawTime": 0.45
+              "lineStagger": 1.0
              }
             }
            ]
@@ -5822,9 +5837,6 @@
               "eyebrow": "Changelog",
               "title": "What's new in v2.4",
               "subtitle": "",
-              "mark": "",
-              "markLook": "underline",
-              "markColor": "#facc15",
               "align": "center",
               "entrance": "rise",
               "color": "#fafafa",
@@ -5839,11 +5851,7 @@
               "eyebrowUppercase": true,
               "subtitleSize": 0.34,
               "letterSpacing": -0.035,
-              "lineStagger": 1.0,
-              "markThickness": 0.045,
-              "markerOpacity": 55.0,
-              "markSeed": 1,
-              "markDrawTime": 0.45
+              "lineStagger": 1.0
              }
             }
            ]
@@ -6634,9 +6642,6 @@
         "eyebrow": "Changelog",
         "title": "What's new in v2.4",
         "subtitle": "",
-        "mark": "",
-        "markLook": "underline",
-        "markColor": "#facc15",
         "align": "center",
         "entrance": "rise",
         "color": "#fafafa",
@@ -6651,11 +6656,7 @@
         "eyebrowUppercase": true,
         "subtitleSize": 0.34,
         "letterSpacing": -0.035,
-        "lineStagger": 1.0,
-        "markThickness": 0.045,
-        "markerOpacity": 55.0,
-        "markSeed": 1,
-        "markDrawTime": 0.45
+        "lineStagger": 1.0
        },
        "thumbnail": null,
        "from": 0.0,

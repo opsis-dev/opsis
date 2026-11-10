@@ -1,12 +1,13 @@
 # Nodes
 
-How a node is defined, what its ports carry, how values convert between ports, how executors attach, how numbered inputs grow, and how cards and looks are made. Paths are relative to `crates/compile/src/` unless they name another folder. Settings and the Inspector are in [inspector.md](inspector.md), elements in [elements.md](elements.md), the run in [runs.md](runs.md); see also [AGENTS.md](../AGENTS.md).
+What a node may be, how a node is defined, how kind groups put several elements under one node, what its ports carry, how values convert between ports, how executors attach, how numbered inputs grow, and how cards and looks are made. Paths are relative to `crates/compile/src/` unless they name another folder. Settings and the Inspector are in [inspector.md](inspector.md), elements in [elements.md](elements.md), the run in [runs.md](runs.md); see also [AGENTS.md](../AGENTS.md).
 
 ## Code map
 
 | Concern                                  | Where                                                                                                                                                                                                      |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Node definition builder                  | `node.rs` → `NodeDef`, `PortFamily`, `Claim`, `CardInputs`, `MAX_CARD_ROWS`, `style_modifier`, `recording_modifier`, `grade_modifier`, `clip_modifier`, `with_clip`, `Category::label`                     |
+| Kind groups                              | `nodes/groups.rs` → `KindGroup`, `GroupKind`, `group_node`, `kind_values`, `kind_properties`, `saved_workflow`, `groups`, `grouped_elements`                                                               |
 | Groups and notes                         | `graph.rs` → `GROUP_TYPE`, `NOTE_TYPE`, `is_structural`, `topo_sort`                                                                                                                                       |
 | Node definitions                         | `nodes/<area>.rs`, each with its `nodes()`, gathered in `nodes/mod.rs` → `all()`; `registry.rs` (`Registry::new` refuses a duplicate type, `is_output_type`)                                               |
 | Card row helpers                         | `card_rows.rs`                                                                                                                                                                                             |
@@ -27,6 +28,19 @@ How a node is defined, what its ports carry, how values convert between ports, h
 
 ## Rules
 
+### What a node is
+
+- **A node does one thing: one action on one kind of input.** Its settings tune that thing and never add a second one, so a node's title says all it does and two jobs never share one set of settings.
+- **The same thing on the same kind of input is one node.** Variants are a dropdown (Kind, Style, Type, Animation) and each variant shows only its own settings, so the catalogue never holds two nodes one dropdown apart.
+  - `crates/compile/tests/unit/catalogue.rs` → `no_two_nodes_do_the_same_thing` fails when two visible nodes have the same input and output port types and the same first title word; a real exception is listed there with its reason.
+- **Different kinds of input may each have their own node for the same thing** (Trim and Trim file, Frame for recordings and Frame for images). Nodes are never merged across port types, because conversions are lossless and settings-free only.
+- **What must happen while recording stays on the recording node or the action.** What is drawn into the page during the take can't move to a later node: Record take's "As on screen" cursor and quick-mode labels, the Chapter card, HTML overlay, and an action's "Zoom in on this action" with its zoom group, which tells the automatic Camera about that action ([capture.md](capture.md)).
+- **Something that belongs to one clip or one moment rides on it.** A node with the same type in and out adds it (the style chain, the grade chain, a clip's `enter` transition, [film.md](film.md)); nodes that join (Sequence, Layers) only join, so the setting stays next to what it changes.
+- **A node is not a film.** Several elements in one are a project template built from nodes (`crates/project/src/templates.json`), so every part of it can be changed and reused.
+- **Elements make no sound and never carry another element's job** (a title inside a device, a mark inside a title); Layers combines them, and sound comes from sound nodes ([audio.md](audio.md)).
+- **A file reaches the film one way: Media file → Use as clip** (`media.toClip`, [assets.md](assets.md)), whose settings follow the connected file's kind.
+- **No bundles of fixes.** Each fix is its own node and they chain (Remove noise, Soften "s" sounds, Fix clicks, Fix clipping), so a fix the file doesn't need is never part of the run.
+
 ### Definitions
 
 - **A node definition has ports, settings and an optional pure `compile`; it never generates film code.** Compile produces a `TimelineSpec` ([film.md](film.md) has how its items are read).
@@ -42,7 +56,21 @@ How a node is defined, what its ports carry, how values convert between ports, h
   - style and grade nodes append `{ nodeId, type, params }` to the chain on their optional input (`style_modifier`, `grade_modifier`);
   - take edits (`recording_modifier`) need a connected take and append to its `edits`, giving nothing without one;
   - clip nodes (`clip_modifier`) get only the clip ports and change the clip through `with_clip`.
-- **New nodes take the computer's defaults where a definition has `host_defaults`** (Window frame takes the OS window style), applied when a node is added (`new_node_params`).
+- **New nodes take the computer's defaults where a definition has `host_defaults`** (Frame and Frame for images take the OS window style), applied when a node is added (`new_node_params`).
+
+### Kind groups
+
+- **A kind group is one node over several elements, its Kind picking the element** (`KindGroup`, built by `group_node`; every group is in `groups`). Each element keeps its own metadata and component; only the node over them is shared.
+- **Each kind's settings live in their own object, `params.<kind>.<prop>`**, marked `x-kind` and shown only for its kind (`x-show-if` on `kind`).
+  - One object per kind, not one flat set, because the elements' props collide (`speed`, `color`, `fontSize`) and switching Kind and back keeps each kind's values.
+  - Settings every kind shares (`KindGroup.shared`, such as 3D object's camera and lighting) sit at the top level, shown only for the kinds that have them.
+  - A kind can fix props (`GroupKind::fixed`, such as Code's glass look) and hide others (`GroupKind::hide`).
+- **A group compiles and draws its card from the picked kind only**: `kind_values` lays the element's full defaults, then the fixed props, the shared settings the element takes and the kind's own object (`compile_element`, `element_card`).
+- **Saving keeps only the picked kind's object** (`saved_workflow`, called by `workflow_text` in `crates/project/src/files.rs`), so a file holds no settings for kinds it doesn't use.
+- **Everything that names a setting takes a path into the kind's object**: the Inspector shows the picked object's fields as the node's own ([inspector.md](inspector.md)), and Timeline handles and edits read and write `kind/prop` paths (`param_value`, `put_param` in `edits/timeline.rs`).
+- **An element under a group has no node of its own** (`grouped_elements`, which also lists the elements Device frame and Use as clip draw).
+- **Device frame and the Transition node keep each drawn element's settings in the same objects** (`nodes/device_frame.rs`, `nodes/transitions.rs`); Frame (`camera.frame`) and Frame for images are plain settings switched by `x-show-if`, since they draw no element per kind.
+- `crates/compile/tests/unit/catalogue.rs` → `every_group_compiles_at_every_kind` compiles each group at each of its kinds and checks the picked element is drawn, so a kind path that reads nothing fails there.
 
 ### Ports and values
 
@@ -60,10 +88,10 @@ How a node is defined, what its ports carry, how values convert between ports, h
 
 ### Growing inputs and many connections
 
-- **Numbered inputs (`in1`, `in2`, …) are a `PortFamily` declared with `.family(…)`**: how many are required, a label for each that knows the last connected one, and `refs`, the list settings that name its ports. The nodes that use it call `.family(` in `nodes/`.
+- **Numbered inputs (`in1`, `in2`, …) are a `PortFamily` declared with `.family(…)`**: how many are required and a label for each that knows the last connected one. No setting names a family's ports, so renumbering moves only edges. The nodes that use it call `.family(` in `nodes/`.
 - **A family node shows one empty input after the last connected one, and never fewer than `PortFamily::shown`, its required count but at least two** (`NodeDef::input_ports`, `PortFamily::shown_count`); `NodeDef::input` accepts any member and the catalogue describes the family so the editor and the Local API know any member.
 - **Every family node's inputs come from the edges through one function, `node_inputs`**: each compile sends them (`EditorCompile.inputs`) and before the first compile the canvas works them out itself (`crates/ui/src/graph.rs`), so an edge into `in3` never hangs loose.
-- **Renumbering a family moves the edges and the `refs` settings together** (`renumber_family`), for closing gaps after a removal and shifting ports on a split.
+- **Renumbering a family moves its edges** (`renumber_family`), for closing gaps after a removal and shifting ports on a split.
 - **A `many()` input accepts any number of edges and `gather_inputs` merges their values** (`merge_values`): sounds are concatenated (Add sound's Sounds); for any other type the last edge's value wins.
 
 ### Cards

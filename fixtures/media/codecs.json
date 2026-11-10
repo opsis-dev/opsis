@@ -302,16 +302,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx264",
-    "-preset",
-    "ultrafast",
-    "-crf",
-    "18",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -335,16 +325,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx264",
-    "-preset",
-    "ultrafast",
-    "-crf",
-    "24",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -368,16 +348,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx264",
-    "-preset",
-    "fast",
-    "-crf",
-    "18",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -401,16 +371,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx264",
-    "-preset",
-    "fast",
-    "-crf",
-    "24",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -434,16 +394,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx264",
-    "-preset",
-    "medium",
-    "-crf",
-    "18",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -467,16 +417,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx264",
-    "-preset",
-    "medium",
-    "-crf",
-    "24",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -500,16 +440,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx264",
-    "-preset",
-    "slow",
-    "-crf",
-    "18",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -533,16 +463,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx264",
-    "-preset",
-    "slow",
-    "-crf",
-    "24",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -566,16 +486,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx264",
-    "-preset",
-    "veryslow",
-    "-crf",
-    "18",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -599,16 +509,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx264",
-    "-preset",
-    "veryslow",
-    "-crf",
-    "24",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -634,18 +534,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx265",
-    "-crf",
-    "18",
-    "-preset",
-    "ultrafast",
-    "-tag:v",
-    "hvc1",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -671,18 +559,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx265",
-    "-crf",
-    "24",
-    "-preset",
-    "ultrafast",
-    "-tag:v",
-    "hvc1",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -708,18 +584,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx265",
-    "-crf",
-    "18",
-    "-preset",
-    "fast",
-    "-tag:v",
-    "hvc1",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -745,18 +609,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx265",
-    "-crf",
-    "24",
-    "-preset",
-    "fast",
-    "-tag:v",
-    "hvc1",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -782,18 +634,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx265",
-    "-crf",
-    "18",
-    "-preset",
-    "medium",
-    "-tag:v",
-    "hvc1",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -819,18 +659,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx265",
-    "-crf",
-    "24",
-    "-preset",
-    "medium",
-    "-tag:v",
-    "hvc1",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -856,18 +684,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx265",
-    "-crf",
-    "18",
-    "-preset",
-    "slow",
-    "-tag:v",
-    "hvc1",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -893,18 +709,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx265",
-    "-crf",
-    "24",
-    "-preset",
-    "slow",
-    "-tag:v",
-    "hvc1",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -930,18 +734,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx265",
-    "-crf",
-    "18",
-    "-preset",
-    "veryslow",
-    "-tag:v",
-    "hvc1",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -967,18 +759,6 @@
     "aac",
     "-b:a",
     "320k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libx265",
-    "-crf",
-    "24",
-    "-preset",
-    "veryslow",
-    "-tag:v",
-    "hvc1",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -996,16 +776,6 @@
     "libopus",
     "-b:a",
     "192k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libvpx-vp9",
-    "-crf",
-    "18",
-    "-b:v",
-    "0",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -1023,16 +793,6 @@
     "libopus",
     "-b:a",
     "192k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libvpx-vp9",
-    "-crf",
-    "24",
-    "-b:v",
-    "0",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -1050,16 +810,6 @@
     "libopus",
     "-b:a",
     "192k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libvpx-vp9",
-    "-crf",
-    "18",
-    "-b:v",
-    "0",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -1077,16 +827,6 @@
     "libopus",
     "-b:a",
     "192k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libvpx-vp9",
-    "-crf",
-    "24",
-    "-b:v",
-    "0",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -1104,16 +844,6 @@
     "libopus",
     "-b:a",
     "192k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libvpx-vp9",
-    "-crf",
-    "18",
-    "-b:v",
-    "0",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -1131,16 +861,6 @@
     "libopus",
     "-b:a",
     "192k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libvpx-vp9",
-    "-crf",
-    "24",
-    "-b:v",
-    "0",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -1158,16 +878,6 @@
     "libopus",
     "-b:a",
     "192k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libvpx-vp9",
-    "-crf",
-    "18",
-    "-b:v",
-    "0",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -1185,16 +895,6 @@
     "libopus",
     "-b:a",
     "192k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libvpx-vp9",
-    "-crf",
-    "24",
-    "-b:v",
-    "0",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -1212,16 +912,6 @@
     "libopus",
     "-b:a",
     "192k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libvpx-vp9",
-    "-crf",
-    "18",
-    "-b:v",
-    "0",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -1239,16 +929,6 @@
     "libopus",
     "-b:a",
     "192k"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "libvpx-vp9",
-    "-crf",
-    "24",
-    "-b:v",
-    "0",
-    "-pix_fmt",
-    "yuv420p"
    ]
   },
   {
@@ -1264,14 +944,6 @@
     "yuv422p10le",
     "-c:a",
     "pcm_s16le"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "prores_ks",
-    "-profile:v",
-    "3",
-    "-pix_fmt",
-    "yuv422p10le"
    ]
   },
   {
@@ -1287,14 +959,6 @@
     "yuv422p10le",
     "-c:a",
     "pcm_s16le"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "prores_ks",
-    "-profile:v",
-    "3",
-    "-pix_fmt",
-    "yuv422p10le"
    ]
   },
   {
@@ -1310,14 +974,6 @@
     "yuv422p10le",
     "-c:a",
     "pcm_s16le"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "prores_ks",
-    "-profile:v",
-    "3",
-    "-pix_fmt",
-    "yuv422p10le"
    ]
   },
   {
@@ -1333,14 +989,6 @@
     "yuv422p10le",
     "-c:a",
     "pcm_s16le"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "prores_ks",
-    "-profile:v",
-    "3",
-    "-pix_fmt",
-    "yuv422p10le"
    ]
   },
   {
@@ -1356,14 +1004,6 @@
     "yuv422p10le",
     "-c:a",
     "pcm_s16le"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "prores_ks",
-    "-profile:v",
-    "3",
-    "-pix_fmt",
-    "yuv422p10le"
    ]
   },
   {
@@ -1379,14 +1019,6 @@
     "yuv422p10le",
     "-c:a",
     "pcm_s16le"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "prores_ks",
-    "-profile:v",
-    "3",
-    "-pix_fmt",
-    "yuv422p10le"
    ]
   },
   {
@@ -1402,14 +1034,6 @@
     "yuv422p10le",
     "-c:a",
     "pcm_s16le"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "prores_ks",
-    "-profile:v",
-    "3",
-    "-pix_fmt",
-    "yuv422p10le"
    ]
   },
   {
@@ -1425,14 +1049,6 @@
     "yuv422p10le",
     "-c:a",
     "pcm_s16le"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "prores_ks",
-    "-profile:v",
-    "3",
-    "-pix_fmt",
-    "yuv422p10le"
    ]
   },
   {
@@ -1448,14 +1064,6 @@
     "yuv422p10le",
     "-c:a",
     "pcm_s16le"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "prores_ks",
-    "-profile:v",
-    "3",
-    "-pix_fmt",
-    "yuv422p10le"
    ]
   },
   {
@@ -1471,25 +1079,15 @@
     "yuv422p10le",
     "-c:a",
     "pcm_s16le"
-   ],
-   "gradeVideo": [
-    "-c:v",
-    "prores_ks",
-    "-profile:v",
-    "3",
-    "-pix_fmt",
-    "yuv422p10le"
    ]
   }
  ],
  "gradeSound": [
   {
-   "codec": "h264",
    "sound": null,
    "args": []
   },
   {
-   "codec": "h264",
    "sound": "aac",
    "args": [
     "-c:a",
@@ -1497,7 +1095,6 @@
    ]
   },
   {
-   "codec": "h264",
    "sound": "mp3",
    "args": [
     "-c:a",
@@ -1505,7 +1102,6 @@
    ]
   },
   {
-   "codec": "h264",
    "sound": "opus",
    "args": [
     "-c:a",
@@ -1513,27 +1109,20 @@
    ]
   },
   {
-   "codec": "h264",
    "sound": "vorbis",
    "args": [
     "-c:a",
-    "aac",
-    "-b:a",
-    "320k"
+    "aac"
    ]
   },
   {
-   "codec": "h264",
    "sound": "pcm_s16le",
    "args": [
     "-c:a",
-    "aac",
-    "-b:a",
-    "320k"
+    "aac"
    ]
   },
   {
-   "codec": "h264",
    "sound": "flac",
    "args": [
     "-c:a",
@@ -1541,204 +1130,6 @@
    ]
   },
   {
-   "codec": "h264",
-   "sound": "alac",
-   "args": [
-    "-c:a",
-    "copy"
-   ]
-  },
-  {
-   "codec": "h265",
-   "sound": null,
-   "args": []
-  },
-  {
-   "codec": "h265",
-   "sound": "aac",
-   "args": [
-    "-c:a",
-    "copy"
-   ]
-  },
-  {
-   "codec": "h265",
-   "sound": "mp3",
-   "args": [
-    "-c:a",
-    "copy"
-   ]
-  },
-  {
-   "codec": "h265",
-   "sound": "opus",
-   "args": [
-    "-c:a",
-    "copy"
-   ]
-  },
-  {
-   "codec": "h265",
-   "sound": "vorbis",
-   "args": [
-    "-c:a",
-    "aac",
-    "-b:a",
-    "320k"
-   ]
-  },
-  {
-   "codec": "h265",
-   "sound": "pcm_s16le",
-   "args": [
-    "-c:a",
-    "aac",
-    "-b:a",
-    "320k"
-   ]
-  },
-  {
-   "codec": "h265",
-   "sound": "flac",
-   "args": [
-    "-c:a",
-    "copy"
-   ]
-  },
-  {
-   "codec": "h265",
-   "sound": "alac",
-   "args": [
-    "-c:a",
-    "copy"
-   ]
-  },
-  {
-   "codec": "vp9",
-   "sound": null,
-   "args": []
-  },
-  {
-   "codec": "vp9",
-   "sound": "aac",
-   "args": [
-    "-c:a",
-    "libopus",
-    "-b:a",
-    "192k"
-   ]
-  },
-  {
-   "codec": "vp9",
-   "sound": "mp3",
-   "args": [
-    "-c:a",
-    "libopus",
-    "-b:a",
-    "192k"
-   ]
-  },
-  {
-   "codec": "vp9",
-   "sound": "opus",
-   "args": [
-    "-c:a",
-    "copy"
-   ]
-  },
-  {
-   "codec": "vp9",
-   "sound": "vorbis",
-   "args": [
-    "-c:a",
-    "copy"
-   ]
-  },
-  {
-   "codec": "vp9",
-   "sound": "pcm_s16le",
-   "args": [
-    "-c:a",
-    "libopus",
-    "-b:a",
-    "192k"
-   ]
-  },
-  {
-   "codec": "vp9",
-   "sound": "flac",
-   "args": [
-    "-c:a",
-    "libopus",
-    "-b:a",
-    "192k"
-   ]
-  },
-  {
-   "codec": "vp9",
-   "sound": "alac",
-   "args": [
-    "-c:a",
-    "libopus",
-    "-b:a",
-    "192k"
-   ]
-  },
-  {
-   "codec": "prores",
-   "sound": null,
-   "args": []
-  },
-  {
-   "codec": "prores",
-   "sound": "aac",
-   "args": [
-    "-c:a",
-    "copy"
-   ]
-  },
-  {
-   "codec": "prores",
-   "sound": "mp3",
-   "args": [
-    "-c:a",
-    "copy"
-   ]
-  },
-  {
-   "codec": "prores",
-   "sound": "opus",
-   "args": [
-    "-c:a",
-    "copy"
-   ]
-  },
-  {
-   "codec": "prores",
-   "sound": "vorbis",
-   "args": [
-    "-c:a",
-    "copy"
-   ]
-  },
-  {
-   "codec": "prores",
-   "sound": "pcm_s16le",
-   "args": [
-    "-c:a",
-    "copy"
-   ]
-  },
-  {
-   "codec": "prores",
-   "sound": "flac",
-   "args": [
-    "-c:a",
-    "copy"
-   ]
-  },
-  {
-   "codec": "prores",
    "sound": "alac",
    "args": [
     "-c:a",

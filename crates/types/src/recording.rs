@@ -19,6 +19,23 @@ pub enum CameraStyle {
 }
 
 #[choice(export)]
+pub enum RecordingDevice {
+    #[label("Laptop")]
+    Laptop,
+    #[label("Phone")]
+    Phone,
+}
+
+impl RecordingDevice {
+    pub const fn element(self) -> &'static str {
+        match self {
+            Self::Laptop => "laptop-frame",
+            Self::Phone => "phone-frame",
+        }
+    }
+}
+
+#[choice(export)]
 pub enum AddressMode {
     #[label("This address")]
     Fixed,
@@ -298,9 +315,9 @@ pub struct ShotProps {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub in_device: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub window_fit: Option<f64>,
+    pub device: Option<RecordingDevice>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub ground: Option<String>,
+    pub window_fit: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub radius: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

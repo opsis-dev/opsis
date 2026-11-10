@@ -1,5 +1,5 @@
 use opsis_macros::{choice, settings};
-use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::looks::NodeLook;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
@@ -71,6 +71,6 @@ pub fn definition() -> ElementMeta {
             ElementCategory::Transition,
             26,
         )
-        .look(NodeLook::of("lucide:grid-2x2").moves(NodeMotion::WipeReveal)),
+        .look(NodeLook::of("lucide:grid-2x2")),
     )
 }

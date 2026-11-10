@@ -2,7 +2,7 @@ use opsis_compile::nodes::media::{Codec, Encoding, SoundFormat};
 use opsis_media::codecs::{
     FilmEncoding, FrameGrab, H264, audio_format_args, audio_format_for, codec_info, codec_video,
     convert_args, edited_file, ffmpeg_seconds, film_encode_args, finish_args, frame_grab_args,
-    grade_sound_args, grade_video_args, h264_args, mux_args, sound_file, strings,
+    graded_sound_args, h264_args, mux_args, sound_file, strings,
 };
 use opsis_types::numbers;
 use opsis_types::settings::EncodePreset;
@@ -68,17 +68,10 @@ fn codec_and_file_arguments_are_as_recorded() {
             "crf": numbers::whole(number(&case["crf"])),
         }));
         let preset: EncodePreset = typed(&case["preset"]);
-        with(
-            case,
-            &[
-                ("convert", json(convert_args(&p, preset))),
-                ("gradeVideo", json(grade_video_args(&p, preset))),
-            ],
-        )
+        with(case, &[("convert", json(convert_args(&p, preset)))])
     });
     let grade_sound = cases(&f["gradeSound"], |case| {
-        let p: Encoding = typed(&serde_json::json!({ "codec": case["codec"] }));
-        let made = grade_sound_args(&p, case["sound"].as_str());
+        let made = graded_sound_args(case["sound"].as_str());
         with(case, &[("args", json(made))])
     });
     let h264 = cases(&f["h264"], |case| {

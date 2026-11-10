@@ -1,0 +1,207 @@
+{
+  "version": 1,
+  "id": "example_launch_anything",
+  "name": "Launch anything",
+  "settings": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "theme": "dark",
+    "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+    }
+  },
+  "variables": {
+    "Product name": "Acme"
+  },
+  "nodes": [
+    {
+      "id": "opening",
+      "type": "fx.animated-text",
+      "position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "params": {
+        "kind": "word-push",
+        "word-push": {
+          "text": "Good ideas deserve a stage",
+          "color": "#fafafa",
+          "background": "#0b0b10",
+          "fontSize": 96
+        }
+      }
+    },
+    {
+      "id": "reveal",
+      "type": "fx.title",
+      "position": {
+        "x": 0.0,
+        "y": 200.0
+      },
+      "params": {
+        "eyebrow": "Let's make",
+        "title": "{{Product name}}",
+        "subtitle": "Built around you. Made to be yours.",
+        "entrance": "scale-cut"
+      }
+    },
+    {
+      "id": "proof",
+      "type": "fx.animated-text",
+      "position": {
+        "x": 0.0,
+        "y": 400.0
+      },
+      "params": {
+        "kind": "headline",
+        "headline": {
+          "text": "Your work. *A clearer view.*",
+          "background": "#0b0b10"
+        }
+      }
+    },
+    {
+      "id": "close",
+      "type": "fx.end-card",
+      "position": {
+        "x": 0.0,
+        "y": 600.0
+      },
+      "params": {
+        "title": "Begin with {{Product name}}",
+        "subtitle": "Small things. Well made.",
+        "cta": "Begin",
+        "url": "yourproduct.example",
+        "handles": []
+      }
+    },
+    {
+      "id": "transition",
+      "type": "timeline.transition",
+      "position": {
+        "x": 300.0,
+        "y": -200.0
+      },
+      "params": {
+        "kind": "push-through",
+        "durationInFrames": 18
+      }
+    },
+    {
+      "id": "sequence",
+      "type": "timeline.sequence",
+      "position": {
+        "x": 600.0,
+        "y": 300.0
+      },
+      "params": {}
+    },
+    {
+      "id": "music",
+      "type": "audio.music",
+      "position": {
+        "x": 600.0,
+        "y": 560.0
+      },
+      "params": {
+        "src": "app:music/elevate.m4a",
+        "volume": 0.4,
+        "loop": true
+      }
+    },
+    {
+      "id": "mix",
+      "type": "audio.mix",
+      "position": {
+        "x": 900.0,
+        "y": 300.0
+      },
+      "params": {}
+    },
+    {
+      "id": "render",
+      "type": "output.render",
+      "position": {
+        "x": 1200.0,
+        "y": 300.0
+      },
+      "params": {
+        "fileName": "{{Project name}}",
+        "codec": "h264",
+        "crf": 18,
+        "variants": [
+          "16:9",
+          "9:16"
+        ],
+        "reframe": "follow",
+        "scale": 1,
+        "chapters": true,
+        "chapterList": false,
+        "gl": "angle"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "opening.clip->sequence.in1",
+      "source": "opening",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in1"
+    },
+    {
+      "id": "reveal.clip->sequence.in2",
+      "source": "reveal",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in2"
+    },
+    {
+      "id": "proof.clip->sequence.in3",
+      "source": "proof",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in3"
+    },
+    {
+      "id": "close.clip->sequence.in4",
+      "source": "close",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in4"
+    },
+    {
+      "id": "transition.transition->sequence.transition",
+      "source": "transition",
+      "sourceHandle": "transition",
+      "target": "sequence",
+      "targetHandle": "transition"
+    },
+    {
+      "id": "sequence.clip->mix.clip",
+      "source": "sequence",
+      "sourceHandle": "clip",
+      "target": "mix",
+      "targetHandle": "clip"
+    },
+    {
+      "id": "music.audio->mix.sounds",
+      "source": "music",
+      "sourceHandle": "audio",
+      "target": "mix",
+      "targetHandle": "sounds"
+    },
+    {
+      "id": "mix.clip->render.clip",
+      "source": "mix",
+      "sourceHandle": "clip",
+      "target": "render",
+      "targetHandle": "clip"
+    }
+  ],
+  "markers": []
+}

@@ -273,6 +273,7 @@ fn scene(port: &str, clip: ClipValue) -> (String, ClipValue) {
 fn plays_scenes_one_after_another_with_the_pause_between_them() {
     let clip = scene_sequence(
         "s",
+        "s",
         &[scene("in1", solid("a", 30)), scene("in3", solid("b", 45))],
         5,
         sequencer(),
@@ -324,6 +325,7 @@ fn counts_scene_items_and_gives_each_layer_its_own_item() {
     );
     let clip = scene_sequence(
         "s",
+        "s",
         &[scene("in1", solid("p", 30)), scene("in2", layers)],
         0,
         sequencer(),
@@ -338,6 +340,7 @@ fn counts_scene_items_and_gives_each_layer_its_own_item() {
 #[test]
 fn starts_a_scenes_layers_together_and_keeps_a_length_that_follows_one_layer() {
     let clip = scene_sequence(
+        "s",
         "s",
         &[scene("in1", layered(&[0, 12], solid("y", 30)))],
         0,
@@ -375,7 +378,7 @@ fn starts_a_scenes_layers_together_and_keeps_a_length_that_follows_one_layer() {
         ..layered(&[0, 12], solid("y", 30))
     };
     assert_eq!(
-        scene_sequence("s", &[scene("in1", short)], 0, sequencer()).duration_in_frames,
+        scene_sequence("s", "s", &[scene("in1", short)], 0, sequencer()).duration_in_frames,
         20
     );
 }
@@ -384,6 +387,7 @@ fn starts_a_scenes_layers_together_and_keeps_a_length_that_follows_one_layer() {
 fn moves_a_layers_sound_back_with_it_and_every_scenes_sound_to_its_start() {
     let front = with_sound(solid("y", 30), "y");
     let clip = scene_sequence(
+        "s",
         "s",
         &[
             scene("in1", with_sound(solid("p", 40), "p")),

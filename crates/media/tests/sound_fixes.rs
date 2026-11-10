@@ -2,14 +2,14 @@ use std::path::Path;
 use std::process::Command;
 
 use opsis_compile::nodes::media::{
-    ChangePitch, CleanSpeech, FitMusic, FitWay, NoiseMethod, Pause, SoundPicture, SoundPictureKind,
+    ChangePitch, FitMusic, FitWay, NoiseMethod, Pause, RemoveNoise, SoundPicture, SoundPictureKind,
     VoiceEffect, VoiceEffects, fit_plan, kept_parts,
 };
 use opsis_media::denoise::denoised;
 use opsis_media::filters::{
-    fit_graph, fit_inputs, hum_filter, hum_listen_filter, joined_parts_graph, noise_level,
-    noise_level_listen_filter, pitch_filter, repair_filter, rms_level, silence_listen_filter,
-    silences, sound_picture_graph, spectral_floor, speech_filter, voice_filter,
+    declick_filter, fit_graph, fit_inputs, hum_filter, hum_listen_filter, joined_parts_graph,
+    noise_filter, noise_level, noise_level_listen_filter, pitch_filter, rms_level,
+    silence_listen_filter, silences, sound_picture_graph, spectral_floor, voice_filter,
 };
 use opsis_types::numbers;
 
@@ -77,7 +77,7 @@ fn takes_a_click_out_of_a_tone() {
     write(&dir.path().join("in.wav"), &samples);
     filtered(
         &dir.path().join("in.wav"),
-        &repair_filter(true, false, 0.5).unwrap(),
+        &declick_filter(0.5),
         &dir.path().join("out.wav"),
     );
     let out = read(&dir.path().join("out.wav"));
@@ -347,7 +347,7 @@ fn cleans_hiss_out_of_speech_both_ways() {
     let level = noise_of(&noisy_path);
     assert!((level + 41.4).abs() < 1.0, "{level}");
 
-    let p = CleanSpeech::default();
+    let p = RemoveNoise::default();
     assert_eq!(p.method, NoiseMethod::Learned);
     let whole: Vec<i16> = noisy
         .iter()
@@ -360,7 +360,7 @@ fn cleans_hiss_out_of_speech_both_ways() {
     write(&dir.path().join("voice.wav"), &cleaned);
     filtered(
         &dir.path().join("voice.wav"),
-        &speech_filter(&p, None),
+        &noise_filter(&p, None).unwrap(),
         &dir.path().join("learned.wav"),
     );
     let learned = read(&dir.path().join("learned.wav"));
@@ -370,13 +370,13 @@ fn cleans_hiss_out_of_speech_both_ways() {
         "learned took {learned_drop:.1} dB of hiss out"
     );
 
-    let spectral = CleanSpeech {
+    let spectral = RemoveNoise {
         method: NoiseMethod::Spectral,
-        ..CleanSpeech::default()
+        ..RemoveNoise::default()
     };
     filtered(
         &noisy_path,
-        &speech_filter(&spectral, Some(spectral_floor(Some(level)))),
+        &noise_filter(&spectral, Some(spectral_floor(Some(level)))).unwrap(),
         &dir.path().join("spectral.wav"),
     );
     let spectral_out = read(&dir.path().join("spectral.wav"));

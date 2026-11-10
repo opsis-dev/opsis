@@ -15,8 +15,10 @@ use serde::Serialize;
 
 use crate::asset_ref::{extension_of, kind_from_path, project_ref};
 use crate::card_rows::{file_row, range_row, truncate_card};
-use crate::clip::{IMAGE, ItemExtra, VIDEO, item_clip, placeholder_clip};
+use crate::clip::{ANIMATION, IMAGE, ItemExtra, VIDEO, item_clip, placeholder_clip};
 use crate::elements::element_meta;
+use crate::elements::overlay::lottie::AnimationFit;
+use crate::elements::shared::Fit;
 use crate::errors::SettingsError;
 use crate::node::{
     CardCtx, Category, Ctx, FileNeed, GRADE_PORT, Inputs, NodeDef, Outputs, Phase, PortFamily,
@@ -28,14 +30,14 @@ use crate::ports::{IN_PREFIX, in_index};
 use crate::text::{format_duration, grouped, percent_text, plural, signed_text};
 use crate::time::ms_to_frames;
 
-pub const FASTSTART_TYPE: &str = "media.faststart";
-
 pub const THUMBNAIL_TYPE: &str = "media.thumbnail";
 
 pub const LOUDNORM_TYPE: &str = "media.loudnorm";
-pub const REPAIR_TYPE: &str = "media.repair";
+pub const FIX_CLICKS_TYPE: &str = "media.fixClicks";
+pub const FIX_CLIPPING_TYPE: &str = "media.fixClipping";
 pub const HUM_TYPE: &str = "media.hum";
-pub const CLEAN_SPEECH_TYPE: &str = "media.cleanSpeech";
+pub const REMOVE_NOISE_TYPE: &str = "media.removeNoise";
+pub const SOFTEN_S_TYPE: &str = "media.softenS";
 pub const PAUSES_TYPE: &str = "media.shortenPauses";
 pub const PITCH_TYPE: &str = "media.pitch";
 pub const VOICE_TYPE: &str = "media.voiceEffect";
@@ -61,10 +63,14 @@ pub const CONCAT_TYPE: &str = "media.concat";
 pub const TRIM_TYPE: &str = "media.trim";
 
 pub const IMPORT_TYPE: &str = "media.import";
+pub const USE_AS_CLIP_TYPE: &str = "media.toClip";
 
 const MEDIA_PORT: &str = "media";
+pub const CLIP_ELEMENTS: [&str; 3] = [IMAGE, VIDEO, ANIMATION];
 const NEW_FILE: &str = " Makes a new file.";
 const MEDIA_MS: f64 = 5000.0;
+const MIN_VIDEO_MS: u32 = 100;
+const MIN_SPEED: f64 = 0.01;
 
 #[choice(export)]
 pub enum Codec {
@@ -182,8 +188,14 @@ pub enum SoundQuality {
 #[settings(eq)]
 pub struct Encoding {
     #[setting(
+        "Keep its format",
+        help = "Only makes a video web-ready, so it starts playing before it fully loads, with nothing converted. A video converted to a web format is web-ready anyway."
+    )]
+    pub keep_format: bool,
+    #[setting(
         "Format",
         default = ConvertCodec::H264,
+        show_if = { "keepFormat": ["false"] },
         advanced
     )]
     pub codec: ConvertCodec,
@@ -192,18 +204,18 @@ pub struct Encoding {
         default = 18,
         range(min = 0, max = 51),
         widget = "quality",
-        show_if = { "codec": ["h264", "h265", "vp9"] }
+        show_if = { "keepFormat": ["false"], "codec": ["h264", "h265", "vp9"] }
     )]
     pub crf: u32,
     #[setting(
         "ProRes kind",
-        show_if = { "codec": ["prores"] },
+        show_if = { "keepFormat": ["false"], "codec": ["prores"] },
         advanced
     )]
     pub prores_profile: ProresProfile,
     #[setting(
         "Sound quality",
-        show_if = { "codec": ["h264", "h265", "vp9"] },
+        show_if = { "keepFormat": ["false"], "codec": ["h264", "h265", "vp9"] },
         advanced
     )]
     pub sound_quality: SoundQuality,
@@ -271,6 +283,10 @@ fn file_details_row(media: &MediaValue, path: &str, fps: Option<f64>) -> CardRow
             parts.push("Terminal take".to_owned());
             Icon::SquareTerminal
         }
+        MediaKind::Animation => {
+            parts.push("Animation".to_owned());
+            Icon::Shapes
+        }
     };
     row(icon, parts.join(" · "))
 }
@@ -304,79 +320,97 @@ fn pass_media(result: Option<&NodeResult>, inputs: &Inputs, fallback_port: &str)
         .collect()
 }
 
-#[choice]
-pub enum Fit {
-    #[label("Fill the frame")]
-    Cover,
-    #[label("Show all")]
-    Contain,
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ImageClipProps<'a> {
+    src: &'a str,
+    fit: Fit,
+    background: &'a str,
+    ken_burns: bool,
+    ken_burns_zoom: f64,
 }
 
 #[derive(Serialize)]
-struct FileClipProps<'a> {
+#[serde(rename_all = "camelCase")]
+struct VideoClipProps<'a> {
     src: &'a str,
     fit: Fit,
-    muted: bool,
-    #[serde(skip_serializing_if = "str::is_empty")]
     background: &'a str,
+    #[serde(rename = "loop")]
+    looped: bool,
+    muted: bool,
+    volume: f64,
+    playback_rate: f64,
+    trim_before_ms: u32,
+    dim: f64,
+    dim_color: &'a str,
 }
 
-fn file_props(component: &str, file: &FileClipProps<'_>) -> Values {
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct AnimationClipProps<'a> {
+    src: &'a str,
+    fit: AnimationFit,
+    background: &'a str,
+    #[serde(rename = "loop")]
+    looped: bool,
+    speed: f64,
+    backwards: bool,
+}
+
+fn file_props(component: &str, file: &impl Serialize) -> Values {
     let mut props = element_meta(component).map_or_default(|meta| meta.default_props.clone());
     props.extend(to_values(file));
     props
 }
 
-struct ClipLook<'a> {
-    fit: Fit,
-    muted: bool,
-    envelope: &'a VisualEnvelope,
-    fps: u32,
-    unlinked: (&'a str, &'a str),
-    sound_label: &'a str,
-    still: Option<(f64, EditHandles)>,
-    image_ms: f64,
-    background: &'a str,
-}
-
-fn clip_ms(media: Option<&MediaValue>, still: Option<f64>, image_ms: f64) -> f64 {
-    match media {
-        Some(m) if m.kind == MediaKind::Image => still
-            .or_else(|| m.duration_ms.map(f64::from))
-            .unwrap_or(image_ms),
-        _ => media
-            .and_then(|m| m.duration_ms)
-            .map_or(MEDIA_MS, f64::from),
+const fn transparent_if_empty(background: &str) -> &str {
+    if background.is_empty() {
+        "transparent"
+    } else {
+        background
     }
 }
 
-fn media_to_clip(node_id: &str, media: Option<&MediaValue>, look: ClipLook<'_>) -> ClipValue {
-    let frames = ms_to_frames(
-        clip_ms(media, look.still.as_ref().map(|s| s.0), look.image_ms),
-        look.fps,
-    );
+fn clip_ms(media: &MediaValue, p: &UseAsClip) -> f64 {
+    match media.kind {
+        MediaKind::Image | MediaKind::Animation => f64::from(p.length_ms),
+        _ => {
+            let whole = media.duration_ms.map_or(MEDIA_MS, f64::from);
+            let left = (whole - f64::from(p.trim_ms)).max(f64::from(MIN_VIDEO_MS));
+            left / p.speed.max(MIN_SPEED)
+        }
+    }
+}
+
+fn media_to_clip(node_id: &str, media: Option<&MediaValue>, p: &UseAsClip, fps: u32) -> ClipValue {
     let extra = ItemExtra {
-        envelope: Some(look.envelope.clone()),
+        envelope: Some(p.envelope.clone()),
         ..ItemExtra::default()
     };
     let Some((media, src)) = media.and_then(|m| m.src.as_ref().map(|s| (m, s))) else {
-        return placeholder_clip(node_id, look.unlinked.0, look.unlinked.1, frames, extra);
+        let frames = ms_to_frames(f64::from(p.length_ms), fps);
+        return placeholder_clip(
+            node_id,
+            "No file connected",
+            "Connect a file to use it as a clip",
+            frames,
+            extra,
+        );
     };
-    let props = |component: &str, muted: bool| {
-        file_props(
-            component,
-            &FileClipProps {
-                src,
-                fit: look.fit,
-                muted,
-                background: look.background,
-            },
-        )
+    let frames = ms_to_frames(clip_ms(media, p), fps);
+    let length = || EditHandles {
+        trim_end: Some(ParamRef::new(node_id, "lengthMs", ParamUnit::Ms)),
+        ..EditHandles::default()
     };
     match media.kind {
-        MediaKind::Audio => {
-            placeholder_clip(node_id, "Sound file", look.sound_label, frames, extra)
-        }
+        MediaKind::Audio => placeholder_clip(
+            node_id,
+            "Sound file",
+            "Sound files can't be shown as a clip",
+            frames,
+            extra,
+        ),
         MediaKind::TerminalTake => placeholder_clip(
             node_id,
             "Terminal take",
@@ -385,15 +419,61 @@ fn media_to_clip(node_id: &str, media: Option<&MediaValue>, look: ClipLook<'_>) 
             extra,
         ),
         MediaKind::Image => {
+            let props = file_props(
+                IMAGE,
+                &ImageClipProps {
+                    src,
+                    fit: p.fit,
+                    background: &p.background,
+                    ken_burns: p.ken_burns,
+                    ken_burns_zoom: p.ken_burns_zoom,
+                },
+            );
             let extra = ItemExtra {
-                handles: look.still.map(|s| s.1),
+                handles: Some(length()),
                 ..extra
             };
-            item_clip(node_id, IMAGE, props(IMAGE, look.muted), frames, extra)
+            item_clip(node_id, IMAGE, props, frames, extra)
+        }
+        MediaKind::Animation => {
+            let props = file_props(
+                ANIMATION,
+                &AnimationClipProps {
+                    src,
+                    fit: if p.fit == Fit::Contain {
+                        AnimationFit::Contain
+                    } else {
+                        AnimationFit::Cover
+                    },
+                    background: transparent_if_empty(&p.background),
+                    looped: p.looped,
+                    speed: p.speed,
+                    backwards: p.backwards,
+                },
+            );
+            let extra = ItemExtra {
+                handles: Some(length()),
+                ..extra
+            };
+            item_clip(node_id, ANIMATION, props, frames, extra)
         }
         MediaKind::Video => {
-            let muted = look.muted || media.has_audio == Some(false);
-            item_clip(node_id, VIDEO, props(VIDEO, muted), frames, extra)
+            let props = file_props(
+                VIDEO,
+                &VideoClipProps {
+                    src,
+                    fit: p.fit,
+                    background: &p.background,
+                    looped: p.looped,
+                    muted: p.muted || media.has_audio == Some(false),
+                    volume: p.volume,
+                    playback_rate: p.speed,
+                    trim_before_ms: p.trim_ms,
+                    dim: p.dim,
+                    dim_color: &p.dim_color,
+                },
+            );
+            item_clip(node_id, VIDEO, props, frames, extra)
         }
     }
 }
@@ -419,42 +499,10 @@ fn one_file_op<P: Params>(kind: &'static str, title: &str, description: &str) ->
         .outputs(outputs)
 }
 
-#[settings]
+#[settings(eq)]
 pub struct MediaFile {
     #[setting("File", widget = "asset", accept = "*/*")]
     pub path: String,
-    #[setting(
-        "Fit",
-        default = Fit::Contain
-    )]
-    pub fit: Fit,
-    #[setting(
-        "Length",
-        default = 3000,
-        range(min = 100, max = 3_600_000),
-        step = 50,
-        unit = "ms",
-        help = "How long the image stays on screen.",
-        show_if_file = { "path": ["image"] }
-    )]
-    pub still_ms: u32,
-    #[setting(
-        "Keyframes",
-        help = "Change opacity, position and size over time. Edit them here or on the timeline.",
-        widget = "envelope",
-        advanced
-    )]
-    pub envelope: VisualEnvelope,
-    #[setting(
-        "Background",
-        widget = "color",
-        zero_label = "None",
-        check = colour_or_empty,
-        help = "Fills the bars Show all leaves.",
-        show_if = { "fit": ["contain"] },
-        advanced
-    )]
-    pub background: String,
 }
 
 fn import() -> NodeDef {
@@ -463,10 +511,7 @@ fn import() -> NodeDef {
         "Media file",
         "A video, image or sound from your project. Drop files on the canvas to add one.",
     )
-    .outputs(vec![
-        (MEDIA_PORT, port(PortType::Media, "File")),
-        (crate::node::CLIP_PORT, port(PortType::Clip, "Clip")),
-    ])
+    .outputs(vec![(MEDIA_PORT, port(PortType::Media, "File"))])
     .card(|ctx: &CardCtx<'_, MediaFile>| {
         let p = &ctx.params;
         if p.path.is_empty() {
@@ -483,15 +528,10 @@ fn import() -> NodeDef {
             return vec![
                 name,
                 Some(row(Icon::Info, "Not read yet").tone(Tone::Muted)),
-                (kind_from_path(&p.path) == MediaKind::Image)
-                    .then(|| row(Icon::Clock, format_duration(f64::from(p.still_ms)))),
             ];
         };
         let measured = file_measured(ctx.result);
-        let length = match media.kind {
-            MediaKind::Image => Some(f64::from(p.still_ms)),
-            _ => media.duration_ms.filter(|d| *d != 0).map(f64::from),
-        };
+        let length = media.duration_ms.filter(|d| *d != 0).map(f64::from);
         vec![
             name,
             Some(file_details_row(
@@ -513,47 +553,94 @@ fn import() -> NodeDef {
             height: None,
             has_audio: None,
         });
-        let handles = EditHandles {
-            trim_end: Some(ParamRef::new(ctx.node_id, "stillMs", ParamUnit::Ms)),
-            ..EditHandles::default()
-        };
-        let look = ClipLook {
-            fit: p.fit,
-            muted: false,
-            envelope: &p.envelope,
-            fps: ctx.settings.fps,
-            unlinked: ("No file chosen", &p.path),
-            sound_label: &p.path,
-            still: Some((f64::from(p.still_ms), handles)),
-            image_ms: f64::from(p.still_ms),
-            background: &p.background,
-        };
-        let clip = media_to_clip(ctx.node_id, Some(&media), look);
-        crate::node::outputs([
-            (MEDIA_PORT, CompileValue::Media(media)),
-            (crate::node::CLIP_PORT, CompileValue::Clip(clip)),
-        ])
+        crate::node::outputs([(MEDIA_PORT, CompileValue::Media(media))])
     })
 }
 
 #[settings]
 pub struct UseAsClip {
-    #[setting(
-        "Fit",
-        default = Fit::Contain
-    )]
+    #[setting("Fit", default = Fit::Contain)]
     pub fit: Fit,
-    #[setting("Muted")]
-    pub muted: bool,
     #[setting(
-        "Picture length",
+        "Background",
+        widget = "color",
+        zero_label = "None",
+        check = colour_or_empty,
+        help = "Fills the room Show all leaves around the picture.",
+        advanced
+    )]
+    pub background: String,
+    #[setting(
+        "Length",
         default = 3000,
         range(min = 100, max = 3_600_000),
         step = 50,
         unit = "ms",
-        help = "How long an image stays on screen."
+        help = "How long the picture or animation stays on screen.",
+        show_if_file = { "media": ["image", "animation"] }
     )]
-    pub still_ms: u32,
+    pub length_ms: u32,
+    #[setting("Slow push-in", show_if_file = { "media": ["image"] })]
+    pub ken_burns: bool,
+    #[setting(
+        "Push-in zoom",
+        default = 1.06,
+        range(min = 1, max = 1.5),
+        step = 0.01,
+        show_if = { "kenBurns": ["true"] },
+        show_if_file = { "media": ["image"] },
+        advanced
+    )]
+    pub ken_burns_zoom: f64,
+    #[serde(rename = "loop")]
+    #[setting("Loop", show_if_file = { "media": ["video", "animation"] })]
+    pub looped: bool,
+    #[setting(
+        "Speed",
+        default = 1.0,
+        range(min = 0.25, max = 4),
+        step = 0.05,
+        show_if_file = { "media": ["video", "animation"] }
+    )]
+    pub speed: f64,
+    #[setting("Play backwards", show_if_file = { "media": ["animation"] })]
+    pub backwards: bool,
+    #[setting(
+        "Start at",
+        range(min = 0, max = 3_600_000),
+        step = 100,
+        unit = "ms",
+        show_if_file = { "media": ["video"] }
+    )]
+    pub trim_ms: u32,
+    #[setting("Muted", show_if_file = { "media": ["video"] })]
+    pub muted: bool,
+    #[setting(
+        "Volume",
+        default = 1.0,
+        range(min = 0, max = 2),
+        step = 0.05,
+        show_if = { "muted": ["false"] },
+        show_if_file = { "media": ["video"] }
+    )]
+    pub volume: f64,
+    #[setting(
+        "Dim",
+        range(min = 0, max = 1),
+        step = 0.05,
+        help = "Darkens the video, so text laid over it reads.",
+        show_if_file = { "media": ["video"] }
+    )]
+    pub dim: f64,
+    #[setting(
+        "Dim colour",
+        default = "#000000",
+        widget = "color",
+        check = colour,
+        show_if_file = { "media": ["video"] },
+        advanced
+    )]
+    pub dim_color: String,
     #[setting(
         "Keyframes",
         help = "Change opacity, position and size over time. Edit them here or on the timeline.",
@@ -561,51 +648,36 @@ pub struct UseAsClip {
         advanced
     )]
     pub envelope: VisualEnvelope,
-    #[setting(
-        "Background",
-        widget = "color",
-        zero_label = "None",
-        check = colour_or_empty,
-        help = "Fills the bars Show all leaves.",
-        show_if = { "fit": ["contain"] },
-        advanced
-    )]
-    pub background: String,
 }
 
 fn use_as_clip() -> NodeDef {
     NodeDef::of::<UseAsClip>(
-        "media.toClip",
+        USE_AS_CLIP_TYPE,
         "Use as clip",
         Category::Media,
         Phase::Compile,
     )
-    .describe("Turns a file into a clip you can place in the video.")
+    .describe(
+        "Turns a file into a clip you can place in the video: an image, a video or an animation.",
+    )
     .inputs(vec![(MEDIA_PORT, port(PortType::Media, "File"))])
     .outputs(vec![(crate::node::CLIP_PORT, port(PortType::Clip, "Clip"))])
     .card(|ctx: &CardCtx<'_, UseAsClip>| {
+        let p = &ctx.params;
         vec![
-            Some(row(Icon::Maximize, ctx.params.fit.label())),
-            ctx.params.muted.then(|| row(Icon::VolumeX, "Muted")),
+            Some(row(Icon::Maximize, p.fit.label())),
+            p.muted.then(|| row(Icon::VolumeX, "Muted")),
+            p.looped.then(|| row(Icon::Repeat, "Loops")),
+            (!exact_eq(p.speed, 1.0))
+                .then(|| row(Icon::FastForward, format!("{}×", grouped(p.speed, 2)))),
         ]
     })
     .compiles(|ctx: &Ctx<'_, UseAsClip>| {
-        let p = &ctx.params;
-        let look = ClipLook {
-            fit: p.fit,
-            muted: p.muted,
-            envelope: &p.envelope,
-            fps: ctx.settings.fps,
-            unlinked: ("No file connected", "Connect a file to use it as a clip"),
-            sound_label: "Sound files can't be shown as a clip",
-            still: None,
-            image_ms: f64::from(p.still_ms),
-            background: &p.background,
-        };
         let clip = media_to_clip(
             ctx.node_id,
             ctx.input(MEDIA_PORT).and_then(CompileValue::as_media),
-            look,
+            &ctx.params,
+            ctx.settings.fps,
         );
         crate::node::outputs([(crate::node::CLIP_PORT, CompileValue::Clip(clip))])
     })
@@ -910,20 +982,44 @@ pub struct EvenOutVolume {
     pub true_peak: f64,
     #[setting("Dynamic range", default = 11.0, range(min = 1, max = 20), advanced)]
     pub lra: f64,
+    #[setting(
+        "Lift quiet words",
+        help = "Lifts quiet words and holds back loud ones before setting the loudness, for a voice that comes and goes."
+    )]
+    pub lift_quiet: bool,
+    #[setting(
+        "Most lift",
+        default = 16.0,
+        range(min = 0, max = 30),
+        step = 1,
+        unit = "dB",
+        help = "How far a quiet word may be lifted.",
+        show_if = { "liftQuiet": ["true"] },
+        advanced
+    )]
+    pub most_lift: f64,
 }
 
 #[settings]
 pub struct FixClicks {
-    #[setting("Remove clicks and pops", default = true)]
-    pub clicks: bool,
-    #[setting("Rebuild clipped peaks", default = true)]
-    pub clipping: bool,
     #[setting(
         "Strength",
         default = 0.5,
         range(min = 0, max = 1),
         step = 0.05,
         help = "Stronger finds more, but can soften sharp sounds that are meant to be there."
+    )]
+    pub strength: f64,
+}
+
+#[settings]
+pub struct FixClipping {
+    #[setting(
+        "Strength",
+        default = 0.5,
+        range(min = 0, max = 1),
+        step = 0.05,
+        help = "Stronger rebuilds more peaks, but can change loud sounds that weren't cut off."
     )]
     pub strength: f64,
 }
@@ -1251,32 +1347,18 @@ pub enum NoiseMethod {
 }
 
 #[settings]
-pub struct CleanSpeech {
+pub struct RemoveNoise {
     #[setting(
-        "Remove noise",
+        "Strength",
         default = 0.8,
         range(min = 0, max = 1),
         step = 0.05,
-        help = "How much of the background noise to take out. At 0 it stays."
+        help = "How much of the background noise to take out. At 0 only the rumble goes."
     )]
     pub noise: f64,
     #[setting(
-        "Soften “s” sounds",
-        default = 0.5,
-        range(min = 0, max = 1),
-        step = 0.05
-    )]
-    pub soften_s: f64,
-    #[setting(
-        "Even out the level",
-        default = true,
-        help = "Lifts quiet words and holds back loud ones."
-    )]
-    pub even_level: bool,
-    #[setting(
-        "Noise removal",
-        help = "The learned way keeps only the voice, so music under it goes too. The spectral way takes out a steady hiss or hum and leaves the rest.",
-        advanced
+        "Way",
+        help = "The learned way keeps only the voice, so music under it goes too. The spectral way takes out a steady hiss or hum and leaves the rest."
     )]
     pub method: NoiseMethod,
     #[setting(
@@ -1289,39 +1371,12 @@ pub struct CleanSpeech {
         advanced
     )]
     pub rumble_hz: u32,
-    #[setting(
-        "Most lift",
-        default = 16.0,
-        range(min = 0, max = 30),
-        step = 1,
-        unit = "dB",
-        help = "How far Even out the level may lift a quiet word.",
-        show_if = { "evenLevel": ["true"] },
-        advanced
-    )]
-    pub even_lift: f64,
 }
 
-fn clean_speech_steps(p: &CleanSpeech) -> String {
-    let mut parts = Vec::new();
-    if p.noise > 0.0 {
-        parts.push("noise");
-    }
-    parts.push("rumble");
-    if p.soften_s > 0.0 {
-        parts.push("harsh “s”");
-    }
-    let removed = match parts.split_last() {
-        Some((last, [])) => (*last).to_owned(),
-        Some((last, rest)) => format!("{} and {last}", rest.join(", ")),
-        None => String::new(),
-    };
-    let text = format!("Removes {removed}");
-    if p.even_level {
-        format!("{text}, evens the level")
-    } else {
-        text
-    }
+#[settings]
+pub struct SoftenS {
+    #[setting("Strength", default = 0.5, range(min = 0, max = 1), step = 0.05)]
+    pub strength: f64,
 }
 
 fn noise_level_row(result: Option<&NodeResult>) -> Option<CardRow> {
@@ -1561,7 +1616,7 @@ pub struct GrabFrame {
 }
 
 fn apply_grade() -> NodeDef {
-    file_op::<Encoding>(
+    file_op::<NoSettings>(
         APPLY_GRADE_TYPE,
         "Apply grade",
         format!(
@@ -1570,8 +1625,7 @@ fn apply_grade() -> NodeDef {
     )
     .inputs(vec![(MEDIA_PORT, port(PortType::Media, "File")), (GRADE_PORT, port(PortType::Grade, "Grade"))])
     .outputs(vec![(MEDIA_PORT, port(PortType::Media, "File"))])
-    .card(|ctx: &CardCtx<'_, Encoding>| {
-        let p = &ctx.params;
+    .card(|ctx: &CardCtx<'_, NoSettings>| {
         let entries = ctx.inputs.grade.get(GRADE_PORT);
         let image = ctx.inputs.media.get(MEDIA_PORT).is_some_and(|m| m.kind == MediaKind::Image);
         let mut seen = BTreeSet::new();
@@ -1585,7 +1639,7 @@ fn apply_grade() -> NodeDef {
                 missing(Icon::Palette, "Connect a grade")
             }),
             (has && entries.is_some_and(|e| grade_changes_nothing(e))).then(|| missing(Icon::TriangleAlert, "The grade changes nothing")),
-            Some(if image { row(Icon::Image, "PNG") } else { format_row(p.codec, p.crf) }),
+            Some(if image { row(Icon::Image, "Image file") } else { row(Icon::FileVideo, "Video file") }),
             if image && entries.is_some_and(|e| grade_needs_video(e)) {
                 Some(missing(Icon::TriangleAlert, "Trails and film grain need a video"))
             } else {
@@ -1706,7 +1760,12 @@ pub fn nodes() -> Vec<NodeDef> {
             "Saves a file in another format or quality.",
         )
         .card(|ctx: &CardCtx<'_, Encoding>| {
-            vec![Some(format_row(ctx.params.codec, ctx.params.crf))]
+            let p = &ctx.params;
+            vec![Some(if p.keep_format {
+                row(Icon::Globe, "Web-ready, nothing converted")
+            } else {
+                format_row(p.codec, p.crf)
+            })]
         })
         .look(NodeLook::of("lucide:file-cog")),
         apply_grade()
@@ -1757,21 +1816,30 @@ pub fn nodes() -> Vec<NodeDef> {
         .look(NodeLook::of("lucide:volume-2"))
         .needs(FileNeed::Sound),
         one_file_op::<FixClicks>(
-            REPAIR_TYPE,
-            "Fix clicks and clipping",
-            "Removes clicks and pops and rebuilds peaks that were cut off when recording too loud.",
+            FIX_CLICKS_TYPE,
+            "Fix clicks",
+            "Removes clicks and pops from a recording.",
         )
         .card(|ctx: &CardCtx<'_, FixClicks>| {
-            let p = &ctx.params;
-            let what = match (p.clicks, p.clipping) {
-                (true, true) => row(Icon::AudioLines, "Clicks and clipping"),
-                (true, false) => row(Icon::AudioLines, "Clicks"),
-                (false, true) => row(Icon::AudioLines, "Clipping"),
-                (false, false) => missing(Icon::AudioLines, "Turn on clicks or clipping"),
-            };
-            vec![Some(what), length_row(ctx.result, Icon::Clock)]
+            vec![
+                Some(row(Icon::AudioLines, format!("Strength {}", percent_text(ctx.params.strength, 100.0)))),
+                length_row(ctx.result, Icon::Clock),
+            ]
         })
         .look(NodeLook::of("lucide:bandage"))
+        .needs(FileNeed::Sound),
+        one_file_op::<FixClipping>(
+            FIX_CLIPPING_TYPE,
+            "Fix clipping",
+            "Rebuilds peaks that were cut off when the sound was recorded too loud.",
+        )
+        .card(|ctx: &CardCtx<'_, FixClipping>| {
+            vec![
+                Some(row(Icon::AudioLines, format!("Strength {}", percent_text(ctx.params.strength, 100.0)))),
+                length_row(ctx.result, Icon::Clock),
+            ]
+        })
+        .look(NodeLook::of("tabler:wave-square"))
         .needs(FileNeed::Sound),
         one_file_op::<RemoveHum>(
             HUM_TYPE,
@@ -1797,15 +1865,15 @@ pub fn nodes() -> Vec<NodeDef> {
         sound_picture()
             .look(NodeLook::of("lucide:chart-no-axes-column"))
             .needs(FileNeed::Sound),
-        one_file_op::<CleanSpeech>(
-            CLEAN_SPEECH_TYPE,
-            "Clean speech",
-            "Cleans a voice recording in one step: background noise and rumble out, harsh “s” sounds softened, the level evened.",
+        one_file_op::<RemoveNoise>(
+            REMOVE_NOISE_TYPE,
+            "Remove noise",
+            "Takes background noise and low rumble out of a voice recording.",
         )
-        .card(|ctx: &CardCtx<'_, CleanSpeech>| {
+        .card(|ctx: &CardCtx<'_, RemoveNoise>| {
             let p = &ctx.params;
             vec![
-                Some(row(Icon::AudioLines, clean_speech_steps(p))),
+                Some(row(Icon::AudioLines, format!("{} · {}", p.method.label(), percent_text(p.noise, 100.0)))),
                 noise_level_row(ctx.result),
                 (p.method == NoiseMethod::Learned && p.noise > 0.0)
                     .then(|| row(Icon::Info, "For speech: music under the voice goes too").muted_if(true)),
@@ -1813,6 +1881,19 @@ pub fn nodes() -> Vec<NodeDef> {
             ]
         })
         .look(NodeLook::of("lucide:mic-vocal"))
+        .needs(FileNeed::Sound),
+        one_file_op::<SoftenS>(
+            SOFTEN_S_TYPE,
+            "Soften “s” sounds",
+            "Softens harsh “s” sounds in a voice recording.",
+        )
+        .card(|ctx: &CardCtx<'_, SoftenS>| {
+            vec![
+                Some(row(Icon::AudioLines, format!("Strength {}", percent_text(ctx.params.strength, 100.0)))),
+                length_row(ctx.result, Icon::Clock),
+            ]
+        })
+        .look(NodeLook::of("tabler:letter-s"))
         .needs(FileNeed::Sound),
         one_file_op::<ChangePitch>(
             PITCH_TYPE,
@@ -1921,18 +2002,5 @@ pub fn nodes() -> Vec<NodeDef> {
         thumbnail()
             .look(NodeLook::of("tabler:photo-scan"))
             .needs(FileNeed::Picture),
-        one_file_op::<NoSettings>(
-            FASTSTART_TYPE,
-            "Web-ready",
-            "Prepares a video to start playing instantly on the web.",
-        )
-        .card(|ctx: &CardCtx<'_, NoSettings>| {
-            vec![
-                Some(row(Icon::Globe, "Starts playing before it fully loads")),
-                length_row(ctx.result, Icon::Clock),
-            ]
-        })
-        .look(NodeLook::of("lucide:zap"))
-        .needs(FileNeed::Moving),
     ]
 }

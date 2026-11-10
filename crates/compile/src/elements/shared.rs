@@ -83,13 +83,13 @@ impl From<&str> for Colour {
     }
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
-)]
-#[serde(rename_all = "lowercase")]
+#[choice(export)]
 pub enum Fit {
+    #[label("Show all")]
     Contain,
+    #[label("Fill the frame")]
     Cover,
+    #[label("Stretch")]
     Fill,
 }
 

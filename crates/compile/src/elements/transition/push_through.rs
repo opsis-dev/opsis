@@ -1,5 +1,5 @@
 use opsis_macros::settings;
-use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::looks::NodeLook;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
@@ -28,8 +28,8 @@ pub fn definition() -> ElementMeta {
                 "Push through",
                 "A dolly transition that blows the outgoing scene past the camera while the next one approaches from the depth.",
                 ElementCategory::Transition,
-                112,
+                40,
             )
-                .look(NodeLook::of("lucide:arrow-right-to-line").moves(NodeMotion::Push)),
+                .look(NodeLook::of("lucide:arrow-right-to-line")),
         )
 }

@@ -1,12 +1,10 @@
 #include "look_glyph.h"
 
-#include <QLinearGradient>
 #include <QPainter>
 #include <QPainterPath>
 #include <QtMath>
 #include <algorithm>
 #include <array>
-#include <cmath>
 #include <utility>
 
 #include "app.h"
@@ -22,15 +20,7 @@ constexpr double kGlyphSize = 14.0;
 constexpr double kViewBox = 24.0;
 constexpr double kStroke = 2.0;
 constexpr double kRingPen = 1.5;
-constexpr double kFlareHalf = 8.0;
-constexpr int kFlareAlpha = 200;
-constexpr double kClockStart = 90.0;
-constexpr double kWipeReach = 1.35;
 constexpr double kBlurAlpha = 0.45;
-constexpr double kShimmerDim = 0.3;
-constexpr double kShimmerFrom = 1.5;
-constexpr double kShimmerTravel = 2.0;
-constexpr double kShimmerHalf = 3.0;
 constexpr std::array<std::pair<double, double>, 3> kSmear = {
     {{-3.0, 0.45}, {-6.0, 0.25}, {-9.0, 0.12}}};
 
@@ -74,51 +64,19 @@ void PaintMorph(QPainter* painter, const Look& look, double position) {
   painter->restore();
 }
 
-void PaintRingOrFlare(QPainter* painter, const QRectF& badge,
-                      const QString& part, const bridge::PoseView& pose,
-                      const QColor& accent) {
+void PaintRing(QPainter* painter, const QRectF& badge,
+               const bridge::PoseView& pose, const QColor& accent) {
   painter->setOpacity(pose.opacity);
-  if (part == QStringLiteral("ring")) {
-    painter->setBrush(Qt::NoBrush);
-    painter->setPen(QPen(accent, kRingPen));
-    const double radius = badge.width() / 2 * pose.sx;
-    painter->drawEllipse(badge.center(), radius, radius);
-    return;
-  }
-  painter->setClipRect(badge);
-  const double x = badge.center().x() + pose.tx * badge.width();
-  QLinearGradient light(x - kFlareHalf, 0, x + kFlareHalf, 0);
-  light.setColorAt(0.0, QColor(255, 255, 255, 0));
-  light.setColorAt(0.5, QColor(255, 255, 255, kFlareAlpha));
-  light.setColorAt(1.0, QColor(255, 255, 255, 0));
-  painter->fillRect(badge, light);
+  painter->setBrush(Qt::NoBrush);
+  painter->setPen(QPen(accent, kRingPen));
+  const double radius = badge.width() / 2 * pose.sx;
+  painter->drawEllipse(badge.center(), radius, radius);
 }
 
 QPainterPath MotionClip(const bridge::MotionInfo& info,
                         const bridge::PoseView& pose) {
-  const QRectF local(0, 0, kGlyphSize, kGlyphSize);
   QPainterPath clip;
-  clip.addRect(QRectF(0, pose.clip_top * kGlyphSize, kGlyphSize,
-                      kGlyphSize * (1 - pose.clip_top)));
-  QPainterPath iris;
-  iris.addEllipse(local.center(), pose.iris * kGlyphSize,
-                  pose.iris * kGlyphSize);
-  clip = clip.intersected(iris);
-  const QString mask = ToQ(info.mask);
-  if (mask == QStringLiteral("clock")) {
-    QPainterPath pie;
-    pie.moveTo(local.center());
-    pie.arcTo(local.adjusted(-kGlyphSize, -kGlyphSize, kGlyphSize, kGlyphSize),
-              kClockStart, -pose.sweep);
-    pie.closeSubpath();
-    clip = clip.intersected(pie);
-  } else if (mask == QStringLiteral("wipe")) {
-    QPainterPath shown;
-    shown.addRect(QRectF(
-        0, 0, kGlyphSize * std::clamp(kWipeReach - 2 * pose.mask, 0.0, 1.0),
-        kGlyphSize));
-    clip = clip.intersected(shown);
-  }
+  clip.addRect(QRectF(0, 0, kGlyphSize, kGlyphSize));
   if (ToQ(info.part) == QStringLiteral("shapes")) {
     QPainterPath drawn;
     drawn.addRect(QRectF(0, 0, kGlyphSize * (1 - pose.dash), kGlyphSize));
@@ -135,29 +93,22 @@ void PaintMotion(QPainter* painter, const QRectF& badge, const Look& look,
       app.session().motion_pose(ToRust(look.motion), elapsed);
   const QPixmap glyph = app.Glyph(look.glyph, Qt::black, glyph_px);
   const QString part = ToQ(info.part);
-  if (part == QStringLiteral("ring") || part == QStringLiteral("flare")) {
+  if (part == QStringLiteral("ring")) {
     DrawGlyph(painter, QPointF(0, 0), glyph);
-    PaintRingOrFlare(painter, badge, part, pose, accent);
+    PaintRing(painter, badge, pose, accent);
     return;
   }
   if (info.clip) painter->setClipRect(badge, Qt::IntersectClip);
   const QPointF origin(info.origin_x * kGlyphSize, info.origin_y * kGlyphSize);
   QTransform transform;
-  transform.translate(origin.x() + (pose.tx + pose.split_x) * kGlyphSize,
-                      origin.y() + (pose.ty + pose.split_y) * kGlyphSize);
+  transform.translate(origin.x() + pose.tx * kGlyphSize,
+                      origin.y() + pose.ty * kGlyphSize);
   transform.rotate(pose.rotate);
-  transform.scale(pose.sx * std::cos(qDegreesToRadians(pose.tilt_y)),
-                  pose.sy * std::cos(qDegreesToRadians(pose.tilt_x)));
+  transform.scale(pose.sx, pose.sy);
   transform.translate(-origin.x(), -origin.y());
   painter->setTransform(transform, true);
   painter->setOpacity(painter->opacity() * pose.opacity);
   painter->setClipPath(MotionClip(info, pose), Qt::IntersectClip);
-  if (pose.rgb != 0) {
-    DrawGlyph(painter, QPointF(-pose.rgb, 0),
-              app.Glyph(look.glyph, QColor(0xff, 0x2d, 0x55), glyph_px));
-    DrawGlyph(painter, QPointF(pose.rgb, 0),
-              app.Glyph(look.glyph, QColor(0x00, 0xe5, 0xff), glyph_px));
-  }
   const double base = painter->opacity();
   for (const auto& [shift, alpha] : kSmear) {
     if (pose.smear <= 0) break;
@@ -173,16 +124,6 @@ void PaintMotion(QPainter* painter, const QRectF& badge, const Look& look,
     }
   }
   painter->setOpacity(base * (pose.blur > 0 ? kBlurAlpha : 1.0));
-  if (ToQ(info.mask) == QStringLiteral("shimmer")) {
-    painter->setOpacity(base * kShimmerDim);
-    DrawGlyph(painter, QPointF(0, 0), glyph);
-    const double centre =
-        kGlyphSize * (kShimmerFrom - kShimmerTravel * pose.mask);
-    painter->setClipRect(
-        QRectF(centre - kShimmerHalf, 0, 2 * kShimmerHalf, kGlyphSize),
-        Qt::IntersectClip);
-    painter->setOpacity(base);
-  }
   DrawGlyph(painter, QPointF(0, 0), glyph);
 }
 

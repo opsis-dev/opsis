@@ -26,8 +26,6 @@ struct Timing {
 pub const AUTHORED_FPS: u32 = 30;
 const CUT_OFF_SECONDS: f64 = 0.5;
 const EXIT_STAGGER: f64 = 2.0;
-const RELEASE_TEASER_SECONDS: f64 = 960.0 * 1001.0 / 60000.0;
-const LAUNCH_ANYTHING_SECONDS: f64 = 1600.0 / 60.0;
 
 fn finite(value: Option<&Value>) -> Option<f64> {
     value.and_then(Value::as_f64).filter(|n| n.is_finite())
@@ -337,6 +335,11 @@ fn punch_lines_end(s: &Settings) -> f64 {
         .sum()
 }
 
+const MAX_TIMELINE_STEPS: usize = 5;
+const STEPS_START: f64 = 0.5;
+const STEP_DWELL: f64 = 0.78;
+const STEP_TRAVEL: f64 = 0.42;
+
 fn authored(end: fn(&Settings) -> f64) -> Timing {
     Timing {
         unit: Unit::Authored,
@@ -388,10 +391,6 @@ fn element_timing(key: &str) -> Option<Timing> {
         "staggered-fade-up" => authored(|s| {
             last_index(spaced(text(s, "text")))
                 .mul_add(num(s, "staggerDelay", 4.0), num(s, "wordDuration", 12.0))
-        }),
-        "kinetic-center-build" => authored(|s| {
-            let word = num(s, "wordTime", 13.0);
-            last_index(spaced(text(s, "text"))).mul_add(word, (word * 10.0 / 13.0).round())
         }),
         "mask-reveal-up" => authored(|s| {
             last_index(lines(text(s, "text"))) * (num(s, "lineStagger", 3.0) + EXIT_STAGGER)
@@ -447,8 +446,6 @@ fn element_timing(key: &str) -> Option<Timing> {
                     + 6.0
             }
         }),
-        "release-teaser" => seconds(|_| RELEASE_TEASER_SECONDS),
-        "launch-anything" => seconds(|_| LAUNCH_ANYTHING_SECONDS),
         "animated-bar-chart" => {
             authored(|s| last_index(list(s, "bars").len()) * num(s, "staggerFrames", 6.0))
         }
@@ -570,19 +567,24 @@ fn element_timing(key: &str) -> Option<Timing> {
             )
         }),
         "text-highlight" => authored(|s| {
+            let swap = if text(s, "preset") == "strikethrough" {
+                num(s, "swapLength", 7.0)
+            } else {
+                0.0
+            };
+            num(s, "startAt", 6.0) + num(s, "drawDuration", 14.0) + swap
+        }),
+        "logo-wipe" => authored(|s| {
             num(s, "startAt", 6.0)
                 + num(s, "drawDuration", 14.0)
                 + num(s, "holdDuration", 12.0)
                 + num(s, "rushDuration", 24.0)
         }),
-        "logo-drift" => seconds(|s| num(s, "exitAt", 3.13) + num(s, "exitDuration", 0.0)),
-        "captured-video" => authored(|s| {
-            max_of(
-                list(s, "camera")
-                    .iter()
-                    .map(|m| field_num(m, "at", 0.0) + field_num(m, "duration", 25.0)),
-            )
+        "steps-timeline" => seconds(|s| {
+            let steps = numbers::float(list(s, "steps").len().clamp(1, MAX_TIMELINE_STEPS));
+            (steps - 1.0).mul_add(STEP_DWELL + STEP_TRAVEL, STEPS_START + STEP_DWELL)
         }),
+        "logo-drift" => seconds(|s| num(s, "exitAt", 3.13) + num(s, "exitDuration", 0.0)),
         _ => return None,
     })
 }

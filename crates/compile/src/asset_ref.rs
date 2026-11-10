@@ -135,12 +135,15 @@ pub const AUDIO_EXTENSIONS: [&str; 14] = [
 ];
 
 pub const TERMINAL_TAKE_EXTENSIONS: [&str; 1] = ["cast"];
+pub const ANIMATION_EXTENSIONS: [&str; 2] = ["lottie", "json"];
 
 pub fn kind_from_path(path: &str) -> opsis_types::values::MediaKind {
     use opsis_types::values::MediaKind;
     let ext = extension_of(path);
     if TERMINAL_TAKE_EXTENSIONS.contains(&ext.as_str()) {
         MediaKind::TerminalTake
+    } else if ANIMATION_EXTENSIONS.contains(&ext.as_str()) {
+        MediaKind::Animation
     } else if IMAGE_EXTENSIONS.contains(&ext.as_str()) {
         MediaKind::Image
     } else if AUDIO_EXTENSIONS.contains(&ext.as_str()) {

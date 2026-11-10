@@ -1,10 +1,10 @@
 use opsis_compile::nodes::camera::{
-    SHOT_TYPE, SPEED_RAMP_TYPE, Shot, SpeedRamp, SpeedSegment, WINDOW_FRAME_TYPE, WindowFrame,
+    FRAME_TYPE, Frame, FrameChoice, SPEED_RAMP_TYPE, SpeedRamp, SpeedSegment,
 };
 use opsis_compile::nodes::terminal::{OpenTerminal, TERMINAL_LOOK_TYPE, TerminalLookSettings};
 use opsis_compile::terminal::{default_theme, theme_named};
 use opsis_types::numbers::{truncate, whole};
-use opsis_types::recording::{FrameTheme, WindowStyle};
+use opsis_types::recording::FrameTheme;
 use opsis_types::terminal::{
     EnvVar, LookIn, ShellChoice, TerminalAction, TerminalSessionValue, TerminalStep, TerminalTheme,
     WaitFor,
@@ -403,7 +403,8 @@ impl Mapping {
         if let Some(look) = &self.look {
             style.push(entry(node_id, TERMINAL_LOOK_TYPE, look));
         }
-        if self.window_bar {
+        let margin = self.size.margin.filter(|m| *m > 0.0);
+        if self.window_bar || self.radius.is_some() || margin.is_some() {
             let bg = self
                 .look
                 .as_ref()
@@ -411,28 +412,25 @@ impl Mapping {
                 .or_else(|| self.theme.clone())
                 .unwrap_or_else(default_theme)
                 .bg;
-            let frame = WindowFrame {
-                window_style: WindowStyle::Macos,
+            let width = self.size.width.unwrap_or(VHS_WIDTH);
+            let frame = Frame {
+                window_style: if self.window_bar {
+                    FrameChoice::Macos
+                } else {
+                    FrameChoice::None
+                },
                 frame_theme: if is_dark(&bg) {
                     FrameTheme::Dark
                 } else {
                     FrameTheme::Light
                 },
                 title_bar: false,
-                ..WindowFrame::default()
-            };
-            style.push(entry(node_id, WINDOW_FRAME_TYPE, &frame));
-        }
-        let margin = self.size.margin.filter(|m| *m > 0.0);
-        if self.radius.is_some() || margin.is_some() {
-            let width = self.size.width.unwrap_or(VHS_WIDTH);
-            let shot = Shot {
                 corner_radius: self.radius,
                 window_size: margin
                     .map(|m| whole((2.0f64.mul_add(-m, width) / width * 100.0).clamp(40.0, 100.0))),
-                ..Shot::default()
+                ..Frame::default()
             };
-            style.push(entry(node_id, SHOT_TYPE, &shot));
+            style.push(entry(node_id, FRAME_TYPE, &frame));
         }
         style
     }

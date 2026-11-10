@@ -101,26 +101,26 @@
         "x": 1200.0,
         "y": 200.0
       },
-      "params": {
-        "speed": 1.5
-      }
+      "params": {}
     },
     {
       "id": "hook",
-      "type": "fx.kinetic-center-build",
+      "type": "fx.animated-text",
       "position": {
         "x": 300.0,
         "y": 340.0
       },
       "params": {
-        "text": "Words push left.",
-        "entryOffset": 88,
-        "fontSize": 72,
-        "color": "#171717",
-        "fontWeight": "600",
-        "background": "white",
-        "fontFamily": "",
-        "speed": 1,
+        "kind": "word-push",
+        "word-push": {
+          "text": "Words push left.",
+          "fontSize": 72,
+          "color": "#171717",
+          "fontWeight": "600",
+          "background": "white",
+          "fontFamily": "",
+          "speed": 1
+        },
         "clipDuration": 60,
         "envelope": {}
       }
@@ -132,12 +132,7 @@
         "x": 1200.0,
         "y": 422.0
       },
-      "params": {
-        "transition": "push-through",
-        "transitionDuration": 15,
-        "keepWhole": false,
-        "cuts": []
-      }
+      "params": {}
     },
     {
       "id": "music",
@@ -187,6 +182,29 @@
         "chapterList": false,
         "gl": "angle"
       }
+    },
+    {
+      "id": "camera-speed",
+      "type": "timeline.speed",
+      "position": {
+        "x": 1200.0,
+        "y": 340.0
+      },
+      "params": {
+        "rate": 1.2
+      }
+    },
+    {
+      "id": "sequence-transition",
+      "type": "timeline.transition",
+      "position": {
+        "x": 900.0,
+        "y": 262.0
+      },
+      "params": {
+        "kind": "push-through",
+        "durationInFrames": 16
+      }
     }
   ],
   "edges": [
@@ -233,8 +251,8 @@
       "targetHandle": "in1"
     },
     {
-      "id": "camera.clip->sequence.in2",
-      "source": "camera",
+      "id": "camera-speed.clip->sequence.in2",
+      "source": "camera-speed",
       "sourceHandle": "clip",
       "target": "sequence",
       "targetHandle": "in2"
@@ -259,6 +277,20 @@
       "sourceHandle": "clip",
       "target": "render",
       "targetHandle": "clip"
+    },
+    {
+      "id": "camera.clip->camera-speed.clip",
+      "source": "camera",
+      "sourceHandle": "clip",
+      "target": "camera-speed",
+      "targetHandle": "clip"
+    },
+    {
+      "id": "sequence-transition.transition->sequence.transition",
+      "source": "sequence-transition",
+      "sourceHandle": "transition",
+      "target": "sequence",
+      "targetHandle": "transition"
     }
   ],
   "markers": []

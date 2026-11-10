@@ -1,5 +1,5 @@
 use opsis_macros::settings;
-use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::looks::NodeLook;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
@@ -28,8 +28,8 @@ pub fn definition() -> ElementMeta {
                 "Focus pull",
                 "A rack-focus transition that defocuses the outgoing scene into a bright blur and resolves the next one into focus.",
                 ElementCategory::Transition,
-                114,
+                46,
             )
-                .look(NodeLook::of("lucide:focus").moves(NodeMotion::RackFocus)),
+                .look(NodeLook::of("lucide:focus")),
         )
 }

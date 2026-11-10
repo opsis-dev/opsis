@@ -142,7 +142,7 @@ fn grid_clip(cell: &Cell) -> ClipValue {
     });
     let style = json!({ "type": "recording-style", "entries": [
         { "nodeId": "camera", "type": "camera.camera", "params": { "zoom": false } },
-        { "nodeId": "shot", "type": "camera.shot", "params": { "windowSize": 100, "cornerRadius": 0, "shadow": 0, "liftColours": false } },
+        { "nodeId": "shot", "type": "camera.frame", "params": { "windowStyle": "none", "windowSize": 100, "cornerRadius": 0, "shadow": 0, "liftColours": false } },
         { "nodeId": "blur", "type": "camera.motionBlur", "params": { "enabled": false } }
     ] });
     let inputs: PortValues =

@@ -1,5 +1,5 @@
 use opsis_macros::settings;
-use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::looks::NodeLook;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
@@ -22,8 +22,8 @@ pub fn definition() -> ElementMeta {
                 "Zoom blur",
                 "A depth punch-in transition that pushes the outgoing scene through the viewer while the incoming one resolves out of blur.",
                 ElementCategory::Transition,
-                114,
+                18,
             )
-                .look(NodeLook::of("lucide:expand").moves(NodeMotion::ZoomBlur)),
+                .look(NodeLook::of("lucide:expand")),
         )
 }

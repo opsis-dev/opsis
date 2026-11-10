@@ -8,7 +8,6 @@ use crate::clip::{IMAGE, VIDEO};
 use crate::elements::element_meta;
 use crate::mix::plan::lookup_key;
 
-const VIDEO_LOOP: &str = "video-loop";
 const VIDEO_KIND: &str = "video";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -74,7 +73,6 @@ fn own_footage(component: &str, props: &Map<String, Value>) -> Option<FootageUse
             let looping = props.get("loop").and_then(Value::as_bool).unwrap_or(false);
             Some(identified(src, chain, trim_of(props), looping))
         }
-        VIDEO_LOOP => Some(identified(src, chain, trim_of(props), true)),
         IMAGE if !chain.is_empty() => Some(identified(src, chain, 0, false)),
         _ => None,
     }

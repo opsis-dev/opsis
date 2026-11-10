@@ -1,5 +1,5 @@
 use opsis_macros::settings;
-use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::looks::NodeLook;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::Direction;
@@ -21,6 +21,6 @@ pub fn definition() -> ElementMeta {
             ElementCategory::Transition,
             20,
         )
-        .look(NodeLook::of("tabler:transition-right").moves(NodeMotion::SlideThrough)),
+        .look(NodeLook::of("tabler:transition-right")),
     )
 }

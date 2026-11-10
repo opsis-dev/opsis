@@ -88,7 +88,7 @@ mod tests {
         [
             ("lucide:film", "lucide:clapperboard"),
             ("lucide:eye", "lucide:eye-off"),
-            ("lucide:square", "lucide:circle"),
+            ("lucide:laptop", "lucide:smartphone"),
         ]
         .into_iter()
         .map(|(glyph, morph)| look::baked_morph(glyph, morph).expect("a baked morph"))

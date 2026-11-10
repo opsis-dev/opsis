@@ -57,13 +57,8 @@ function ref(name: InputName): string {
 }
 
 const FILE_ELEMENTS: Record<string, Record<string, unknown>> = {
-  "fx.video": { src: ref("clip") },
-  "fx.video-loop": { src: ref("clip") },
   "fx.text-mask-video": { src: ref("clip") },
-  "fx.image": { src: ref("picture") },
-  "fx.lottie": { src: ref("lottie") },
-  "fx.model-3d": { src: ref("model") },
-  "fx.logo-3d": { src: "app:placeholders/logo-mark.svg" },
+  "fx.object-3d": { logo: { src: "app:placeholders/logo-mark.svg" } },
 };
 
 function workflowBuilder(catalog: Catalog) {
@@ -212,13 +207,10 @@ function browserTake(builder: Builder): { recording: string; still: string } {
 }
 
 function recordingStyle(builder: Builder): string {
-  const first = builder.add("camera.camera");
+  const first = builder.add("camera.camera", { follows: "cursor" });
   return builder.chain(first, "style", [
-    ["camera.shot"],
-    ["camera.followCursor"],
+    ["camera.frame", { background: "solid", color: "#0b0b10" }],
     ["camera.idleSpeedup"],
-    ["camera.windowFrame"],
-    ["camera.backdrop"],
     ["camera.motionBlur"],
     ["cursor.style"],
     ["cursor.clickRipple"],
@@ -233,8 +225,8 @@ function recordingStyle(builder: Builder): string {
 function takeFilm(builder: Builder, recording: string, sounds: string[]): string {
   builder.section("Camera, cursor, captions and sound on the browser take");
   const edited = builder.chain(recording, "recording", [
-    ["camera.manualZoom"],
-    ["camera.pan"],
+    ["camera.move"],
+    ["camera.move", { fromSpot: true }],
     ["camera.speedRamp"],
     ["effect.redactTake"],
   ]);
@@ -243,7 +235,7 @@ function takeFilm(builder: Builder, recording: string, sounds: string[]): string
   builder.link(edited, "recording", take, "recording");
   builder.link(style, "style", take, "style");
   const framed = builder.chain(take, "clip", [["camera.crop"], ["camera.deviceFrame"]]);
-  const looks = builder.add("camera.shot");
+  const looks = builder.add("camera.frame", { kind: "device", device: "phone" });
   const styled = builder.add("camera.applyStyle");
   builder.link(framed, "clip", styled, "clip");
   builder.link(looks, "style", styled, "style");
@@ -309,14 +301,15 @@ const MEDIA_ONE_INPUT = [
   "media.convert",
   "media.gif",
   "media.loudnorm",
-  "media.repair",
+  "media.fixClicks",
+  "media.fixClipping",
   "media.hum",
   "media.soundPicture",
-  "media.cleanSpeech",
+  "media.removeNoise",
+  "media.softenS",
   "media.pitch",
   "media.voiceEffect",
   "media.thumbnail",
-  "media.faststart",
 ];
 
 function gradeChain(builder: Builder): string {
@@ -350,37 +343,39 @@ function mediaNodes(builder: Builder, grade: string): { clip: string; music: str
   const graded = builder.add("media.applyGrade");
   builder.link(clip, "media", graded, "media");
   builder.link(grade, "grade", graded, "grade");
+  const webReady = builder.add("media.convert", { keepFormat: true });
+  builder.link(clip, "media", webReady, "media");
   const audio = builder.add("media.extractAudio");
   builder.link(clip, "media", audio, "media");
-  const fitted = builder.add("media.fitMusic");
-  builder.link(clip, "clip", fitted, "clip");
-  builder.link(audio, "media", fitted, "media");
-  const shortened = builder.add("media.shortenPauses");
-  builder.link(audio, "media", shortened, "media");
   const asClip = builder.add("media.toClip");
   builder.link(clip, "media", asClip, "media");
   render(builder, asClip);
+  const animation = builder.add("media.import", { path: ref("lottie") });
+  const animationClip = builder.add("media.toClip", { loop: true });
+  builder.link(animation, "media", animationClip, "media");
+  render(builder, animationClip);
+  const fitted = builder.add("media.fitMusic");
+  builder.link(asClip, "clip", fitted, "clip");
+  builder.link(audio, "media", fitted, "media");
+  const shortened = builder.add("media.shortenPauses");
+  builder.link(audio, "media", shortened, "media");
   const gradedFootage = builder.add("effect.gradeFootage");
-  builder.link(clip, "clip", gradedFootage, "clip");
+  builder.link(asClip, "clip", gradedFootage, "clip");
   builder.link(grade, "grade", gradedFootage, "grade");
   render(builder, gradedFootage);
-  return { clip, music: audio };
+  return { clip: asClip, music: audio };
 }
 
 const IMAGE_ONE_INPUT = [
   "image.resize",
   "image.crop",
   "image.rotate",
-  "image.adjust",
-  "image.blur",
   "image.format",
   "image.redact",
   "image.spotlight",
   "image.trim",
   "image.clearColour",
   "image.outline",
-  "image.tilt",
-  "image.levels",
   "image.frame",
   "image.magnify",
   "image.annotate",
@@ -394,7 +389,11 @@ function imageNodes(builder: Builder, still: string): void {
     const node = builder.add(type);
     builder.link(picture, "media", node, "image");
   }
-  const adjusted = builder.nodes.find((node) => node.type === "image.adjust")?.id ?? "";
+  const adjusted = builder.nodes.find((node) => node.type === "image.resize")?.id ?? "";
+  const tilted = builder.add("image.frame", { kind: "window", angle: "tilted" });
+  builder.link(still, "image", tilted, "image");
+  const onPhone = builder.add("image.frame", { kind: "device", device: "phone" });
+  builder.link(picture, "media", onPhone, "image");
   const placed = builder.add("image.place");
   builder.link(still, "image", placed, "image");
   builder.link(overlay, "media", placed, "overlay");
@@ -410,16 +409,24 @@ function imageNodes(builder: Builder, still: string): void {
 
 function soundNodes(builder: Builder, music: string): string[] {
   builder.section("Sounds made for the browser film's mix");
-  const made = ["audio.roomTone", "audio.tones", "audio.generate", "audio.riser", "audio.sfx"].map(
-    (type) => builder.add(type),
-  );
+  const made = [
+    builder.add("audio.roomTone"),
+    builder.add("audio.sfx", { source: "made", sound: "countdown" }),
+    builder.add("audio.sfx", { source: "made", sound: "whoosh", timing: "at-time" }),
+    builder.add("audio.sfx", {
+      source: "made",
+      sound: "riser",
+      timing: "ends-with-clip",
+      endHit: "ding",
+    }),
+  ];
   const track = builder.add("audio.music");
   builder.link(music, "media", track, "media");
   return [...made, track];
 }
 
 const COVERED_ELSEWHERE = new Set([
-  "fx.solid",
+  "fx.background",
   "audio.mix",
   "audio.music",
   "audio.sfx",
@@ -443,10 +450,26 @@ function isFilmNode(node: CatalogNode): boolean {
 
 function filmNodes(builder: Builder, catalog: Catalog, clip: string, music: string): void {
   builder.section("Film nodes: each element, transition and timeline node in a render of its own");
-  const first = builder.add("fx.solid");
+  const first = builder.add("fx.background");
   render(builder, first);
-  const second = builder.add("fx.solid", { color: "#1d4ed8" });
+  const second = builder.add("fx.background", { solid: { color: "#1d4ed8" } });
   const feeds = [first, second];
+  const shared = builder.add("timeline.transition", { kind: "light-leak" });
+  const marked = builder.add("timeline.transition", { kind: "wipe" });
+  builder.link(second, "clip", marked, "clip");
+  const joined = builder.add("timeline.sequence");
+  builder.link(first, "clip", joined, "in1");
+  builder.link(marked, "clip", joined, "in2");
+  const rejoined = builder.add("timeline.sequence");
+  builder.link(joined, "clip", rejoined, "in1");
+  builder.link(first, "clip", rejoined, "in2");
+  builder.link(shared, "transition", rejoined, "transition");
+  render(builder, rejoined);
+  const settled = builder.add("timeline.transition", { kind: "spring-settle" });
+  const repeated = builder.add("timeline.loop", { times: 3 });
+  builder.link(first, "clip", repeated, "clip");
+  builder.link(settled, "transition", repeated, "transition");
+  render(builder, repeated);
   const film = catalog.nodes.filter(isFilmNode).filter((node) => !node.type.startsWith("camera."));
   for (const node of film) {
     const id = builder.add(node.type, FILE_ELEMENTS[node.type] ?? {});

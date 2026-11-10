@@ -11,10 +11,9 @@ fn sequenced(after: Option<(&'static str, Value)>) -> Workflow {
     film(|g| {
         g.node("a", TITLE, json!({ "clipDuration": 60 }));
         g.node("b", TITLE, json!({ "clipDuration": 60 }));
-        g.node(
+        g.sequence(
             "seq",
-            "timeline.sequence",
-            json!({ "transition": "fade", "transitionDuration": 15 }),
+            Some(json!({ "kind": "fade", "durationInFrames": 15 })),
         );
         g.link_ports("a", "seq", "clip", "in1")
             .link_ports("b", "seq", "clip", "in2");
@@ -119,16 +118,14 @@ fn adds_plain_cuts_when_asked_with_the_variations_own_length() {
         for id in ["a", "b", "c"] {
             g.node(id, TITLE, json!({ "clipDuration": 60 }));
         }
-        g.node(
-            "seq",
-            "timeline.sequence",
-            json!({
-                "transition": "fade", "transitionDuration": 15,
-                "cuts": [{ "before": "in3", "transition": "none" }]
-            }),
+        g.sequence("seq", None);
+        g.marked(
+            "b-in",
+            "b",
+            json!({ "kind": "fade", "durationInFrames": 15 }),
         );
         g.link_ports("a", "seq", "clip", "in1")
-            .link_ports("b", "seq", "clip", "in2")
+            .link_ports("b-in", "seq", "clip", "in2")
             .link_ports("c", "seq", "clip", "in3");
         "seq".into()
     });

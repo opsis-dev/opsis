@@ -23,11 +23,11 @@ use crate::text::{format_duration, percent_text, plural, sign_of};
 use crate::time::{ms_to_frames, ms_to_frames_from, ms_to_signed_frames};
 use crate::timeline::flatten::{Hit, HitKind, flatten_spec};
 
-const MEDIA_PORT: &str = "media";
-const AUDIO_PORT: &str = "audio";
+pub(crate) const MEDIA_PORT: &str = "media";
+pub(crate) const AUDIO_PORT: &str = "audio";
 const SOUNDS_PORT: &str = "sounds";
 
-fn silent_audio() -> Outputs {
+pub(crate) fn silent_audio() -> Outputs {
     outputs([(
         AUDIO_PORT,
         CompileValue::Audio(AudioValue {
@@ -42,7 +42,7 @@ fn is_silent(media: &MediaValue) -> bool {
     media.kind == MediaKind::Image || media.has_audio == Some(false)
 }
 
-fn with_source<P>(
+pub(crate) fn with_source<P>(
     ctx: &Ctx<'_, P>,
     path: &str,
     build: impl FnOnce(String, Option<&MediaValue>) -> Outputs,
@@ -58,19 +58,19 @@ fn with_source<P>(
     }
 }
 
-struct Timing {
-    from: i32,
-    duration_in_frames: Option<u32>,
-    looped: Option<bool>,
-    trim_before: Option<u32>,
-    fade_in_frames: Option<u32>,
-    fade_out_frames: Option<u32>,
-    anchor: Option<Anchor>,
-    length_frames: Option<u32>,
-    keep_music: Option<bool>,
+pub(crate) struct Timing {
+    pub from: i32,
+    pub duration_in_frames: Option<u32>,
+    pub looped: Option<bool>,
+    pub trim_before: Option<u32>,
+    pub fade_in_frames: Option<u32>,
+    pub fade_out_frames: Option<u32>,
+    pub anchor: Option<Anchor>,
+    pub length_frames: Option<u32>,
+    pub keep_music: Option<bool>,
 }
 
-fn sound_item(
+pub(crate) fn sound_item(
     node_id: &str,
     src: String,
     role: AudioRole,
@@ -100,11 +100,11 @@ fn sound_item(
     item
 }
 
-fn frames_if_set(duration_ms: f64, fps: u32) -> Option<u32> {
+pub(crate) fn frames_if_set(duration_ms: f64, fps: u32) -> Option<u32> {
     (duration_ms != 0.0).then(|| ms_to_frames(duration_ms, fps))
 }
 
-fn offset_label(offset_ms: i32) -> String {
+pub(crate) fn offset_label(offset_ms: i32) -> String {
     if offset_ms == 0 {
         return String::new();
     }
@@ -115,7 +115,7 @@ fn offset_label(offset_ms: i32) -> String {
     )
 }
 
-fn source_row(icon: Icon, src: &str, inputs: &CardInputs, empty: &str) -> CardRow {
+pub(crate) fn source_row(icon: Icon, src: &str, inputs: &CardInputs, empty: &str) -> CardRow {
     if inputs
         .media
         .get(MEDIA_PORT)
@@ -276,174 +276,10 @@ fn music() -> NodeDef {
         })
 }
 
-#[settings]
-pub struct SoundEffect {
-    #[setting("Sound", widget = "sound", accept = "audio/*", length_key = "srcMs")]
-    pub src: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[setting("Sound length", "exclusiveMinimum" = 0, hidden)]
-    pub src_ms: Option<f64>,
-    #[setting(
-        "On an action",
-        widget = "action",
-        help = "Plays when this browser action happens in the clip the sound is added to, even after you record again or edit the clip."
-    )]
-    pub at_action: String,
-    #[setting(
-        "At",
-        range(min = 0, max = 600_000),
-        step = 50,
-        unit = "ms",
-        show_if = { "atAction": [""] }
-    )]
-    pub at_ms: u32,
-    #[setting(
-        "From the action",
-        range(min = -10000, max = 10000),
-        unit = "ms",
-        step = 50,
-        help = "Negative plays it before the action, for sounds that build up to it.",
-        show_if = { "atAction": ["*"] }
-    )]
-    pub offset_ms: i32,
-    #[setting("Volume", default = 1.0, range(min = 0, max = 2), step = 0.05)]
-    pub volume: f64,
-    #[setting(
-        "Keep music up",
-        help = "Music set to lower under other sounds stays at full volume for this one.",
-        advanced
-    )]
-    pub keep_music: bool,
-    #[setting(
-        "Keyframes",
-        help = "Change volume and left–right balance over time. Edit them here or on the timeline.",
-        widget = "envelope",
-        advanced
-    )]
-    pub envelope: AudioEnvelope,
-    #[setting(
-        "Play for",
-        range(min = 0, max = 600_000),
-        step = 50,
-        unit = "ms",
-        zero_label = "The whole sound",
-        advanced
-    )]
-    pub length_ms: u32,
-    #[setting(
-        "Before the clip starts",
-        help = "When the action comes so early the sound would start before the clip.",
-        show_if = { "atAction": ["*"] },
-        advanced
-    )]
-    pub before_clip_start: BeforeClipStart,
-}
-
-#[choice]
-pub enum BeforeClipStart {
-    #[default]
-    #[label("Start it with the clip")]
-    Later,
-    #[label("Cut its start")]
-    Cut,
-}
-
-fn sound_effect() -> NodeDef {
-    NodeDef::of::<SoundEffect>("audio.sfx", "Sound effect", Category::Audio, Phase::Compile)
-        .describe("A sound at a set time.")
-        .inputs(vec![(MEDIA_PORT, opt(PortType::Media, "File"))])
-        .outputs(vec![(AUDIO_PORT, port(PortType::Audio, "Sound"))])
-        .card(|ctx: &CardCtx<'_, SoundEffect>| {
-            let p = &ctx.params;
-            vec![
-                Some(source_row(
-                    Icon::AudioLines,
-                    &p.src,
-                    ctx.inputs,
-                    "Choose a sound",
-                )),
-                Some(if p.at_action.is_empty() {
-                    row(
-                        Icon::Clock,
-                        format!("At {}", format_duration(f64::from(p.at_ms))),
-                    )
-                } else {
-                    row(
-                        Icon::MousePointerClick,
-                        format!(
-                            "On {}{}",
-                            picked_name(ctx.inputs, &p.at_action, "an action"),
-                            offset_label(p.offset_ms)
-                        ),
-                    )
-                }),
-                p.keep_music.then(|| row(Icon::Music, "Music stays up")),
-            ]
-        })
-        .compiles(|ctx: &Ctx<'_, SoundEffect>| {
-            let p = &ctx.params;
-            let fps = ctx.settings.fps;
-            with_source(ctx, &p.src, |src, media| {
-                let builtin_ms = builtin_sound(&src).map(|s| f64::from(s.duration_ms));
-                let length_ms = match media {
-                    Some(m) => m.duration_ms.map(f64::from).or(builtin_ms),
-                    None => builtin_ms.or(p.src_ms),
-                };
-                let on_action = !p.at_action.is_empty();
-                let timing = Timing {
-                    from: if on_action {
-                        ms_to_signed_frames(f64::from(p.offset_ms), fps)
-                    } else {
-                        signed(ms_to_frames_from(f64::from(p.at_ms), fps, 0))
-                    },
-                    duration_in_frames: frames_if_set(f64::from(p.length_ms), fps),
-                    looped: None,
-                    trim_before: None,
-                    fade_in_frames: None,
-                    fade_out_frames: None,
-                    anchor: on_action.then(|| Anchor {
-                        node_id: p.at_action.clone(),
-                        keep_end: p.before_clip_start == BeforeClipStart::Cut,
-                        ..Anchor::default()
-                    }),
-                    length_frames: length_ms.and_then(|ms| frames_if_set(ms, fps)),
-                    keep_music: p.keep_music.then_some(true),
-                };
-                let handles = EditHandles {
-                    move_to: Some(ParamRef::new(
-                        ctx.node_id,
-                        if on_action { "offsetMs" } else { "atMs" },
-                        ParamUnit::Ms,
-                    )),
-                    ..EditHandles::default()
-                };
-                let item = sound_item(
-                    ctx.node_id,
-                    src,
-                    AudioRole::Effect,
-                    p.volume,
-                    &p.envelope,
-                    timing,
-                    handles,
-                );
-                outputs([(
-                    AUDIO_PORT,
-                    CompileValue::Audio(AudioValue {
-                        items: vec![item],
-                        duration_in_frames: None,
-                        hits: None,
-                    }),
-                )])
-            })
-        })
-}
-
 pub const ROOM_TONE_TYPE: &str = "audio.roomTone";
-pub const TONES_TYPE: &str = "audio.tones";
-pub const GENERATE_TYPE: &str = "audio.generate";
 pub const TRANSITION_SOUNDS_TYPE: &str = "audio.transitionSounds";
-pub const RISER_TYPE: &str = "audio.riser";
-pub const RISER_FILE: &str = "riser.wav";
+pub const SOUND_EFFECT_TYPE: &str = "audio.sfx";
+pub const MADE_SOUND_FILE: &str = "made.wav";
 pub const END_HIT_FILE: &str = "end-hit.wav";
 
 #[choice]
@@ -501,7 +337,7 @@ fn made_sound<P>(ctx: &Ctx<'_, P>) -> Option<(String, Option<u32>)> {
     Some((media.src.clone()?, media.duration_ms))
 }
 
-fn not_made_yet() -> CardRow {
+pub(crate) fn not_made_yet() -> CardRow {
     row(Icon::Timer, "Made when the node runs").muted_if(true)
 }
 
@@ -557,99 +393,6 @@ pub enum ToneKind {
     Countdown,
 }
 
-#[settings]
-pub struct Tones {
-    #[setting(
-        "Sound",
-        help = "A countdown is short beeps a set time apart, then a long one."
-    )]
-    pub kind: ToneKind,
-    #[setting(
-        "Pitch",
-        default = 880.0,
-        range(min = 100, max = 4000),
-        step = 10,
-        unit = "Hz"
-    )]
-    pub pitch_hz: f64,
-    #[setting(
-        "Length",
-        default = 150,
-        range(min = 20, max = 10000),
-        step = 10,
-        unit = "ms"
-    )]
-    pub length_ms: u32,
-    #[setting(
-        "Short beeps",
-        default = 3,
-        range(min = 1, max = 10),
-        show_if = { "kind": ["countdown"] }
-    )]
-    pub count: u32,
-    #[setting(
-        "Apart",
-        default = 1000,
-        range(min = 100, max = 5000),
-        step = 50,
-        unit = "ms",
-        show_if = { "kind": ["countdown"] }
-    )]
-    pub spacing_ms: u32,
-    #[setting(
-        "On an action",
-        widget = "action",
-        help = "Plays when this browser action happens in the clip the sound is added to."
-    )]
-    pub at_action: String,
-    #[setting(
-        "At",
-        range(min = 0, max = 600_000),
-        step = 50,
-        unit = "ms",
-        show_if = { "atAction": [""] }
-    )]
-    pub at_ms: u32,
-    #[setting(
-        "From the action",
-        range(min = -10000, max = 10000),
-        unit = "ms",
-        step = 50,
-        show_if = { "atAction": ["*"] }
-    )]
-    pub offset_ms: i32,
-    #[setting("Volume", default = 0.8, range(min = 0, max = 2), step = 0.05)]
-    pub volume: f64,
-    #[setting(
-        "Keep music up",
-        help = "Music set to lower under other sounds stays at full volume for this one.",
-        advanced
-    )]
-    pub keep_music: bool,
-    #[setting("Wave", advanced)]
-    pub wave: ToneWave,
-    #[setting(
-        "Last beep length",
-        default = 3.0,
-        range(min = 1, max = 10),
-        step = 0.5,
-        unit = "×",
-        help = "How much longer the last beep of a countdown is.",
-        show_if = { "kind": ["countdown"] },
-        advanced
-    )]
-    pub final_length: f64,
-    #[setting(
-        "Last beep pitch",
-        range(min = -24, max = 24),
-        step = 1,
-        help = "Semitones up or down from the others.",
-        show_if = { "kind": ["countdown"] },
-        advanced
-    )]
-    pub final_pitch: f64,
-}
-
 #[choice]
 pub enum ToneWave {
     #[default]
@@ -663,126 +406,11 @@ pub enum ToneWave {
     Saw,
 }
 
-fn tones() -> NodeDef {
-    NodeDef::of::<Tones>(TONES_TYPE, "Tones and countdown beeps", Category::Audio, Phase::Media)
-        .describe("A tone, a beep or a countdown at a set time or on a browser action, for timers and go moments.")
-        .executes()
-        .outputs(vec![(AUDIO_PORT, port(PortType::Audio, "Sound"))])
-        .card(|ctx: &CardCtx<'_, Tones>| {
-            let p = &ctx.params;
-            let what = match p.kind {
-                ToneKind::Tone => format!("Tone · {} Hz", p.pitch_hz),
-                ToneKind::Beep => format!("Beep · {} Hz", p.pitch_hz),
-                ToneKind::Countdown => {
-                    format!("Countdown · {}", plural(f64::from(p.count), "beep"))
-                }
-            };
-            vec![
-                Some(row(Icon::Timer, what)),
-                Some(placing_row(&p.placing(), ctx.inputs)),
-                ctx.result.is_none().then(not_made_yet),
-            ]
-        })
-        .compiles(|ctx: &Ctx<'_, Tones>| {
-            placed_effect(ctx, &ctx.params.placing(), ctx.params.volume, ctx.params.keep_music)
-        })
-}
-
-struct Placing<'a> {
-    at_action: &'a str,
-    at_ms: u32,
-    offset_ms: i32,
-}
-
-impl Tones {
-    fn placing(&self) -> Placing<'_> {
-        Placing {
-            at_action: &self.at_action,
-            at_ms: self.at_ms,
-            offset_ms: self.offset_ms,
-        }
-    }
-}
-
-fn picked_name(inputs: &CardInputs, id: &str, unnamed: &str) -> String {
+pub(crate) fn picked_name(inputs: &CardInputs, id: &str, unnamed: &str) -> String {
     inputs
         .names
         .get(id)
         .map_or_else(|| unnamed.to_owned(), |name| quote(name, LABELLED_TEXT_MAX))
-}
-
-fn placing_row(placing: &Placing<'_>, inputs: &CardInputs) -> CardRow {
-    if placing.at_action.is_empty() {
-        row(
-            Icon::Clock,
-            format!("At {}", format_duration(f64::from(placing.at_ms))),
-        )
-    } else {
-        row(
-            Icon::MousePointerClick,
-            format!(
-                "On {}{}",
-                picked_name(inputs, placing.at_action, "an action"),
-                offset_label(placing.offset_ms)
-            ),
-        )
-    }
-}
-
-fn placed_effect<P>(
-    ctx: &Ctx<'_, P>,
-    placing: &Placing<'_>,
-    volume: f64,
-    keep_music: bool,
-) -> Outputs {
-    let fps = ctx.settings.fps;
-    let Some((src, length_ms)) = made_sound(ctx) else {
-        return silent_audio();
-    };
-    let on_action = !placing.at_action.is_empty();
-    let timing = Timing {
-        from: if on_action {
-            ms_to_signed_frames(f64::from(placing.offset_ms), fps)
-        } else {
-            signed(ms_to_frames_from(f64::from(placing.at_ms), fps, 0))
-        },
-        duration_in_frames: None,
-        looped: None,
-        trim_before: None,
-        fade_in_frames: None,
-        fade_out_frames: None,
-        anchor: on_action.then(|| Anchor {
-            node_id: placing.at_action.to_owned(),
-            ..Anchor::default()
-        }),
-        length_frames: length_ms.and_then(|ms| frames_if_set(f64::from(ms), fps)),
-        keep_music: keep_music.then_some(true),
-    };
-    let handles = EditHandles {
-        move_to: Some(ParamRef::new(
-            ctx.node_id,
-            if on_action { "offsetMs" } else { "atMs" },
-            ParamUnit::Ms,
-        )),
-        ..EditHandles::default()
-    };
-    let item = sound_item(
-        ctx.node_id,
-        src,
-        AudioRole::Effect,
-        volume,
-        &AudioEnvelope::default(),
-        timing,
-        handles,
-    );
-    outputs([(
-        AUDIO_PORT,
-        CompileValue::Audio(AudioValue {
-            items: vec![item],
-            duration_in_frames: None,
-            hits: None,
-        }),
-    )])
 }
 
 #[choice]
@@ -890,86 +518,6 @@ impl SoundVariation {
     }
 }
 
-#[settings]
-pub struct GenerateSound {
-    #[setting("Sound")]
-    pub preset: SoundPreset,
-    #[setting(
-        "Variation",
-        help = "Custom sets the length, pitch, brightness and take yourself. On a click, shorter and longer change the gap between its press and release."
-    )]
-    pub variation: SoundVariation,
-    #[setting(
-        "Length",
-        range(min = 0, max = 20000),
-        step = 10,
-        unit = "ms",
-        zero_label = "The sound's usual length",
-        show_if = { "variation": ["custom"] }
-    )]
-    pub length_ms: u32,
-    #[setting(
-        "Pitch",
-        range(min = -24, max = 24),
-        step = 0.5,
-        help = "Semitones up or down.",
-        show_if = { "variation": ["custom"] }
-    )]
-    pub pitch: f64,
-    #[setting(
-        "Brightness",
-        default = 0.5,
-        range(min = 0, max = 1),
-        step = 0.05,
-        show_if = { "variation": ["custom"] }
-    )]
-    pub brightness: f64,
-    #[setting(
-        "Take",
-        default = 1,
-        range(min = 0, max = 1000),
-        help = "Changes the noisy parts, and a click's gap. The same take always sounds the same.",
-        show_if = { "variation": ["custom"] }
-    )]
-    pub take: u32,
-    #[setting(
-        "On an action",
-        widget = "action",
-        help = "Plays when this browser action happens in the clip the sound is added to."
-    )]
-    pub at_action: String,
-    #[setting(
-        "At",
-        range(min = 0, max = 600_000),
-        step = 50,
-        unit = "ms",
-        show_if = { "atAction": [""] }
-    )]
-    pub at_ms: u32,
-    #[setting(
-        "From the action",
-        range(min = -10000, max = 10000),
-        unit = "ms",
-        step = 50,
-        show_if = { "atAction": ["*"] }
-    )]
-    pub offset_ms: i32,
-    #[setting("Volume", default = 0.8, range(min = 0, max = 2), step = 0.05)]
-    pub volume: f64,
-    #[setting(
-        "Keep music up",
-        help = "Music set to lower under other sounds stays at full volume for this one.",
-        advanced
-    )]
-    pub keep_music: bool,
-    #[setting(
-        "Moves",
-        show_if = { "preset": ["whoosh"] },
-        advanced
-    )]
-    pub pan: SoundPan,
-}
-
 #[choice]
 pub enum SoundPan {
     #[default]
@@ -992,6 +540,31 @@ pub struct SoundShape {
     pub peak_at: f64,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SoundRecipe {
+    pub preset: SoundPreset,
+    pub variation: SoundVariation,
+    pub length_ms: u32,
+    pub pitch: f64,
+    pub brightness: f64,
+    pub take: u32,
+    pub pan: SoundPan,
+}
+
+impl SoundRecipe {
+    pub const fn of(preset: SoundPreset) -> Self {
+        Self {
+            preset,
+            variation: SoundVariation::Picked,
+            length_ms: 0,
+            pitch: 0.0,
+            brightness: 0.5,
+            take: 1,
+            pan: SoundPan::LeftToRight,
+        }
+    }
+}
+
 pub const SWELL_PEAK_AT: f64 = 0.75;
 
 const DARKER: f64 = 0.15;
@@ -1000,7 +573,7 @@ const STEP_SEMITONES: f64 = 5.0;
 const CLICK_SHORT_GAP_TAKE: u64 = 0;
 const CLICK_LONG_GAP_TAKE: u64 = 4;
 
-pub fn sound_shape(p: &GenerateSound) -> SoundShape {
+pub fn sound_shape(p: &SoundRecipe) -> SoundShape {
     let preset = p.preset;
     let base = SoundShape {
         preset,
@@ -1068,43 +641,6 @@ pub fn sound_shape(p: &GenerateSound) -> SoundShape {
             ..base
         },
     }
-}
-
-impl GenerateSound {
-    fn placing(&self) -> Placing<'_> {
-        Placing {
-            at_action: &self.at_action,
-            at_ms: self.at_ms,
-            offset_ms: self.offset_ms,
-        }
-    }
-}
-
-fn generate() -> NodeDef {
-    NodeDef::of::<GenerateSound>(GENERATE_TYPE, "Generated sound", Category::Audio, Phase::Media)
-        .describe("A whoosh, riser, pop, ding, tap, swell or click made from settings, at a set time or on a browser action. No file to find.")
-        .executes()
-        .outputs(vec![(AUDIO_PORT, port(PortType::Audio, "Sound"))])
-        .card(|ctx: &CardCtx<'_, GenerateSound>| {
-            let p = &ctx.params;
-            let shape = sound_shape(p);
-            vec![
-                Some(row(
-                    Icon::Sparkles,
-                    format!(
-                        "{} · {} · {}",
-                        p.preset.label(),
-                        p.variation.word(),
-                        format_duration(shape.seconds * 1000.0)
-                    ),
-                )),
-                Some(placing_row(&p.placing(), ctx.inputs)),
-                ctx.result.is_none().then(not_made_yet),
-            ]
-        })
-        .compiles(|ctx: &Ctx<'_, GenerateSound>| {
-            placed_effect(ctx, &ctx.params.placing(), ctx.params.volume, ctx.params.keep_music)
-        })
 }
 
 fn anchor_sounds(
@@ -1569,13 +1105,12 @@ pub fn transition_cues(
 
 impl TransitionSounds {
     pub fn shape(&self) -> SoundShape {
-        sound_shape(&GenerateSound {
-            preset: self.preset,
+        sound_shape(&SoundRecipe {
             variation: self.variation,
             pitch: self.pitch,
             brightness: self.brightness,
             take: self.take,
-            ..GenerateSound::default()
+            ..SoundRecipe::of(self.preset)
         })
     }
 
@@ -1727,334 +1262,13 @@ fn transition_sounds() -> NodeDef {
         })
 }
 
-#[choice]
-pub enum RiserEnd {
-    #[default]
-    #[label("An action")]
-    Action,
-    #[label("A marker")]
-    Marker,
-    #[label("The end of the clip")]
-    ClipEnd,
-}
-
-#[choice]
-pub enum RiserSound {
-    #[default]
-    #[label("Riser")]
-    Riser,
-    #[label("Swell")]
-    Swell,
-}
-
-#[choice]
-pub enum RiserVariation {
-    #[default]
-    #[label("Default")]
-    Picked,
-    #[label("As first made")]
-    AsMade,
-    #[label("Another take")]
-    AnotherTake,
-    #[label("Darker")]
-    Darker,
-    #[label("Brighter")]
-    Brighter,
-    #[label("5 semitones lower")]
-    Lower,
-    #[label("5 semitones higher")]
-    Higher,
-    #[label("Custom")]
-    Custom,
-}
-
-#[choice]
-pub enum EndHit {
-    #[default]
-    #[label("None")]
-    Off,
-    #[label("Pop")]
-    Pop,
-    #[label("Ding")]
-    Ding,
-    #[label("Tap")]
-    Tap,
-    #[label("Click")]
-    Click,
-}
-
-#[settings]
-pub struct Riser {
-    #[setting("Ends on")]
-    pub ends_on: RiserEnd,
-    #[setting(
-        "Action",
-        widget = "action",
-        help = "The browser action the sound ends on, in the clip it is added to.",
-        show_if = { "endsOn": ["action"] }
-    )]
-    pub at_action: String,
-    #[setting(
-        "Marker",
-        widget = "marker",
-        help = "A Timeline marker. Its time counts from the start of the clip the sound is added to.",
-        show_if = { "endsOn": ["marker"] }
-    )]
-    pub marker: String,
-    #[setting(
-        "Rises for",
-        default = 3000,
-        range(min = 300, max = 30000),
-        step = 100,
-        unit = "ms"
-    )]
-    pub length_ms: u32,
-    #[setting("Sound")]
-    pub sound: RiserSound,
-    #[setting("Variation")]
-    pub variation: RiserVariation,
-    #[setting(
-        "Pitch",
-        range(min = -24, max = 24),
-        step = 0.5,
-        help = "Semitones up or down.",
-        show_if = { "variation": ["custom"] }
-    )]
-    pub pitch: f64,
-    #[setting(
-        "Brightness",
-        default = 0.5,
-        range(min = 0, max = 1),
-        step = 0.05,
-        show_if = { "variation": ["custom"] }
-    )]
-    pub brightness: f64,
-    #[setting(
-        "Take",
-        default = 1,
-        range(min = 0, max = 1000),
-        show_if = { "variation": ["custom"] }
-    )]
-    pub take: u32,
-    #[setting("A hit at the end")]
-    pub end_hit: EndHit,
-    #[setting("Volume", default = 0.8, range(min = 0, max = 2), step = 0.05)]
-    pub volume: f64,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[setting(
-        "Hit volume",
-        range(min = 0, max = 2),
-        step = 0.05,
-        zero_label = "Same as the riser",
-        advanced
-    )]
-    pub hit_volume: Option<f64>,
-    #[setting(
-        "Loudest at",
-        default = 75,
-        range(min = 10, max = 100),
-        unit = "%",
-        help = "How far through the swell it is loudest before it falls away.",
-        show_if = { "sound": ["swell"] },
-        advanced
-    )]
-    pub peak_at: u32,
-    #[setting(
-        "Keep music up",
-        help = "Music set to lower under other sounds stays at full volume for this one.",
-        advanced
-    )]
-    pub keep_music: bool,
-}
-
-impl Riser {
-    pub fn shape(&self) -> SoundShape {
-        let variation = match self.variation {
-            RiserVariation::Picked => SoundVariation::Picked,
-            RiserVariation::AsMade => SoundVariation::AsMade,
-            RiserVariation::AnotherTake => SoundVariation::AnotherTake,
-            RiserVariation::Darker => SoundVariation::Darker,
-            RiserVariation::Brighter => SoundVariation::Brighter,
-            RiserVariation::Lower => SoundVariation::Lower,
-            RiserVariation::Higher => SoundVariation::Higher,
-            RiserVariation::Custom => SoundVariation::Custom,
-        };
-        let preset = match self.sound {
-            RiserSound::Riser => SoundPreset::Riser,
-            RiserSound::Swell => SoundPreset::Swell,
-        };
-        SoundShape {
-            seconds: f64::from(self.length_ms) / 1000.0,
-            peak_at: f64::from(self.peak_at) / 100.0,
-            ..sound_shape(&GenerateSound {
-                preset,
-                variation,
-                pitch: self.pitch,
-                brightness: self.brightness,
-                take: self.take,
-                ..GenerateSound::default()
-            })
-        }
-    }
-
-    pub fn hit_shape(&self) -> Option<SoundShape> {
-        let preset = match self.end_hit {
-            EndHit::Off => return None,
-            EndHit::Pop => SoundPreset::Pop,
-            EndHit::Ding => SoundPreset::Ding,
-            EndHit::Tap => SoundPreset::Tap,
-            EndHit::Click => SoundPreset::Click,
-        };
-        Some(sound_shape(&GenerateSound {
-            preset,
-            ..GenerateSound::default()
-        }))
-    }
-}
-
-fn made_file<P>(ctx: &Ctx<'_, P>, file: &str) -> Option<String> {
-    ctx.result?
-        .artifacts
-        .iter()
-        .find(|a| a.path.ends_with(&format!("/{file}")))
-        .map(|a| project_ref(&a.path))
-}
-
-fn riser_item(
-    ctx: &Ctx<'_, Riser>,
-    src: String,
-    end_frame: Option<i32>,
-    lead_frames: u32,
-    length_frames: u32,
-) -> AudioItem {
-    let p = &ctx.params;
-    let anchor = match p.ends_on {
-        RiserEnd::Action => Some(Anchor {
-            node_id: p.at_action.clone(),
-            keep_end: true,
-            ..Anchor::default()
-        }),
-        RiserEnd::ClipEnd => Some(Anchor {
-            clip_end: true,
-            keep_end: true,
-            ..Anchor::default()
-        }),
-        RiserEnd::Marker => None,
-    };
-    let start = end_frame.unwrap_or(0) - signed(lead_frames);
-    let timing = Timing {
-        from: if anchor.is_some() {
-            -signed(lead_frames)
-        } else {
-            start.max(0)
-        },
-        duration_in_frames: None,
-        looped: None,
-        trim_before: (anchor.is_none() && start < 0).then(|| start.unsigned_abs()),
-        fade_in_frames: None,
-        fade_out_frames: None,
-        anchor,
-        length_frames: Some(length_frames),
-        keep_music: p.keep_music.then_some(true),
-    };
-    sound_item(
-        ctx.node_id,
-        src,
-        AudioRole::Effect,
-        p.volume,
-        &AudioEnvelope::default(),
-        timing,
-        EditHandles::default(),
-    )
-}
-
-fn marker_frame(ctx: &Ctx<'_, Riser>) -> Option<i32> {
-    let marker = ctx
-        .workflow
-        .markers
-        .iter()
-        .find(|m| m.id == ctx.params.marker)?;
-    Some(whole_signed(
-        marker.at_ms * f64::from(ctx.settings.fps) / 1000.0,
-    ))
-}
-
-fn riser() -> NodeDef {
-    NodeDef::of::<Riser>(RISER_TYPE, "Riser to a mark", Category::Audio, Phase::Media)
-        .describe("A build-up that ends exactly on an action, a marker or the end of a clip, for reveals and launches.")
-        .executes()
-        .outputs(vec![(AUDIO_PORT, port(PortType::Audio, "Sound"))])
-        .card(|ctx: &CardCtx<'_, Riser>| {
-            let p = &ctx.params;
-            let into = match p.ends_on {
-                RiserEnd::Action => picked_name(ctx.inputs, &p.at_action, "an action"),
-                RiserEnd::Marker => picked_name(ctx.inputs, &p.marker, "a marker"),
-                RiserEnd::ClipEnd => "the end of the clip".to_owned(),
-            };
-            let unset = match p.ends_on {
-                RiserEnd::Action => p.at_action.is_empty().then_some("Pick the action it ends on"),
-                RiserEnd::Marker => p.marker.is_empty().then_some("Pick the marker it ends on"),
-                RiserEnd::ClipEnd => None,
-            };
-            vec![
-                Some(row(
-                    Icon::Sparkles,
-                    format!(
-                        "Rises {} into {into}",
-                        format_duration(f64::from(p.length_ms))
-                    ),
-                )),
-                unset.map(|text| missing(Icon::TriangleAlert, text)),
-                ctx.result.is_none().then(not_made_yet),
-            ]
-        })
-        .compiles(|ctx: &Ctx<'_, Riser>| {
-            let p = &ctx.params;
-            let fps = ctx.settings.fps;
-            let Some(src) = made_file(ctx, RISER_FILE) else {
-                return silent_audio();
-            };
-            let end_frame = match p.ends_on {
-                RiserEnd::Marker => match marker_frame(ctx) {
-                    Some(frame) => Some(frame),
-                    None => return silent_audio(),
-                },
-                RiserEnd::Action if p.at_action.is_empty() => return silent_audio(),
-                RiserEnd::Action | RiserEnd::ClipEnd => None,
-            };
-            let length = ms_to_frames(f64::from(p.length_ms), fps);
-            let mut items = vec![riser_item(ctx, src, end_frame, length, length)];
-            if let (Some(hit), Some(shape)) = (made_file(ctx, END_HIT_FILE), p.hit_shape()) {
-                let hit_frames = ms_to_frames(shape.seconds * 1000.0, fps).max(1);
-                let mut item = riser_item(ctx, hit, end_frame, 0, hit_frames);
-                item.id = format!("{}:hit", ctx.node_id);
-                item.trim_before = None;
-                if let Some(volume) = p.hit_volume {
-                    item.volume = Some(volume);
-                }
-                items.push(item);
-            }
-            outputs([(
-                AUDIO_PORT,
-                CompileValue::Audio(AudioValue {
-                    items,
-                    duration_in_frames: None,
-                    hits: None,
-                }),
-            )])
-        })
-}
-
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         music().look(NodeLook::of("lucide:eighth-notes")),
-        sound_effect().look(NodeLook::of("lucide:audio-lines")),
+        crate::nodes::sound_effect::sound_effect().look(NodeLook::of("lucide:audio-lines")),
         add_sound().look(NodeLook::of("lucide:audio-waveform")),
         action_sounds().look(NodeLook::of("lucide:keyboard-music")),
         room_tone().look(NodeLook::of("iconoir:sound-low")),
-        tones().look(NodeLook::of("lucide:alarm-clock")),
-        generate().look(NodeLook::of("tabler:music-bolt")),
         transition_sounds().look(NodeLook::of("tabler:arrow-wave-right-up")),
-        riser().look(NodeLook::of("lucide:arrow-up-to-line")),
     ]
 }

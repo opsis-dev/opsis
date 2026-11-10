@@ -54,22 +54,21 @@ fn ports_of(wf: &Workflow, node: &str) -> Vec<(String, String)> {
 
 #[test]
 fn shows_one_empty_input_after_the_last_connected_one() {
-    assert_eq!(names(&shown("timeline.sequence", &[])), ["in1", "in2"]);
+    assert_eq!(
+        names(&shown("timeline.sequence", &[])),
+        ["transition", "in1", "in2"]
+    );
     assert_eq!(
         names(&shown("timeline.sequence", &["in1", "in2", "in3"])),
-        ["in1", "in2", "in3", "in4"]
+        ["transition", "in1", "in2", "in3", "in4"]
     );
     assert_eq!(
         names(&shown("timeline.sequence", &["in1", "in9"])).len(),
-        10
+        11
     );
     assert_eq!(
         labels(&shown("timeline.stack", &["in1", "in2", "in3"])),
         ["Layer 1 (back)", "Layer 2", "Layer 3 (front)", "Layer 4"]
-    );
-    assert_eq!(
-        labels(&shown("fx.spring-settle", &["in1"])),
-        ["Scene 1", "Scene 2"]
     );
     let join = shown("media.concat", &["in1", "in2", "in3"]);
     assert_eq!(names(&join), ["in1", "in2", "in3", "in4"]);
@@ -81,7 +80,7 @@ fn shows_one_empty_input_after_the_last_connected_one() {
     );
     let def = node_def("timeline.sequence").unwrap();
     assert!(def.input("in42").is_some());
-    for odd in ["in0", "in", "in01", "in2a", "clip"] {
+    for odd in ["in0", "in", "in01", "in2a", "clip", "cuts"] {
         assert!(def.input(odd).is_none(), "{odd}");
     }
 }
@@ -114,16 +113,33 @@ fn asks_for_the_files_join_files_needs_and_takes_any_number_more() {
 }
 
 #[test]
-fn plays_a_cuts_own_transition_past_the_sixth_clip() {
-    let wf = clips(
-        9,
-        "timeline.sequence",
-        json!({
-            "transition": "fade",
-            "transitionDuration": 10,
-            "cuts": [{ "before": "in8", "transition": "wipe", "transitionDuration": 20 }]
-        }),
-    );
+fn plays_a_clips_own_transition_past_the_sixth_clip() {
+    let wf = film(|g| {
+        for i in 0..9 {
+            let id = format!("c{i}");
+            g.node(&id, TITLE, json!({ "clipDuration": 60 + i * 5 }));
+            let port = format!("in{}", i + 1);
+            if i == 7 {
+                g.node(
+                    "marked",
+                    "timeline.transition",
+                    json!({ "kind": "wipe", "durationInFrames": 20 }),
+                );
+                g.link(&id, "marked")
+                    .link_ports("marked", "box", "clip", &port);
+            } else {
+                g.link_ports(&id, "box", "clip", &port);
+            }
+        }
+        g.node(
+            "shared",
+            "timeline.transition",
+            json!({ "kind": "fade", "durationInFrames": 10 }),
+        );
+        g.node("box", "timeline.sequence", json!({}));
+        g.link_ports("shared", "box", "transition", "transition");
+        "box".into()
+    });
     let items: Vec<TimelineItem> = export_film(&wf, None, "out").tracks[0].items.clone();
     assert_eq!(items.len(), 9);
     let entered: Vec<Option<String>> = items
@@ -168,21 +184,12 @@ fn splits_a_clip_inside_a_sequence_of_seven_without_a_new_sequence() {
         .map(|(p, _)| p)
         .collect();
     assert_eq!(ports, (1..=8).map(|i| format!("in{i}")).collect::<Vec<_>>());
-    let cuts = split.node("box").unwrap().params["cuts"].clone();
-    assert_eq!(cuts[0]["before"], "in8");
-    assert_eq!(cuts[0]["transition"], "none");
+    assert!(split.node("box").unwrap().params.is_empty());
 }
 
 #[test]
-fn closes_the_gap_when_a_clip_is_removed_and_renumbers_its_cuts() {
-    let wf = clips(
-        5,
-        "timeline.sequence",
-        json!({ "cuts": [
-            { "before": "in2", "transition": "slide" },
-            { "before": "in4", "transition": "wipe" }
-        ] }),
-    );
+fn closes_the_gap_when_a_clip_is_removed() {
+    let wf = clips(5, "timeline.sequence", json!({}));
     let mut removed = wf;
     apply_removal(
         &Removal {
@@ -195,35 +202,5 @@ fn closes_the_gap_when_a_clip_is_removed_and_renumbers_its_cuts() {
         ports_of(&removed, "box"),
         [("in1", "c0"), ("in2", "c2"), ("in3", "c3"), ("in4", "c4")]
             .map(|(p, s)| (p.to_owned(), s.to_owned()))
-    );
-    assert_eq!(
-        removed.node("box").unwrap().params["cuts"],
-        json!([{ "before": "in3", "transition": "wipe" }])
-    );
-
-    let scenes = clips(
-        4,
-        "fx.spring-settle",
-        json!({ "backgrounds": [{ "scene": "in3", "color": "#112233" }] }),
-    );
-    let mut removed = scenes.clone();
-    let edge = scenes
-        .edges
-        .iter()
-        .find(|e| e.target == "box" && e.target_handle == "in2")
-        .unwrap()
-        .id
-        .clone();
-    apply_removal(
-        &Removal {
-            node_ids: Vec::new(),
-            edge_ids: vec![edge],
-        },
-        &mut removed,
-    );
-    assert_eq!(ports_of(&removed, "box").len(), 3);
-    assert_eq!(
-        removed.node("box").unwrap().params["backgrounds"][0]["scene"],
-        "in2"
     );
 }

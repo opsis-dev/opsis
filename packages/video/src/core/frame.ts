@@ -2,7 +2,7 @@ import { useFilm } from "@opsis/runtime/clock.tsx";
 import type React from "react";
 import { designScaleFor } from "#video/camera/lib/design-width.ts";
 import { clamp } from "#video/common/math.ts";
-import { containBox, type Size } from "#video/core/still-layout.ts";
+import { containBox, type Size } from "#video/core/size.ts";
 import type { ReframeMode } from "#video/generated/spec.ts";
 
 type Insets = { top: number; right: number; bottom: number; left: number };

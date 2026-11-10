@@ -114,7 +114,7 @@ proptest! {
     #[test]
     fn keeps_every_mark_on_its_cells_whatever_the_look(size in 10u32..48, spacing in 0u32..4, padding in 0u32..80) {
         let look = json!({ "fontSize": size, "letterSpacing": spacing, "padding": padding });
-        let clip = clip_of(&terminal_take(true), &[("camera.followCursor", json!({})), ("terminal.look", look)], json!({}));
+        let clip = clip_of(&terminal_take(true), &[("camera.camera", json!({ "follows": "cursor" })), ("terminal.look", look)], json!({}));
         let props = recording_props(&clip)[0];
         let cells = props.log.cells.unwrap();
         let rect = props.log.actions[0].rect.unwrap();
@@ -131,7 +131,10 @@ proptest! {
 fn follows_the_text_cursor_when_a_terminal_take_has_no_pointer() {
     let clip = clip_of(
         &terminal_take(false),
-        &[("camera.followCursor", json!({ "everyMs": 200 }))],
+        &[(
+            "camera.camera",
+            json!({ "follows": "cursor", "everyMs": 200 }),
+        )],
         json!({}),
     );
     let props = recording_props(&clip)[0];
@@ -146,11 +149,11 @@ fn follows_the_text_cursor_when_a_terminal_take_has_no_pointer() {
 }
 
 #[test]
-fn plays_each_kind_of_take_at_its_usual_speed_until_set_by_hand() {
+fn plays_each_kind_of_take_at_its_usual_speed() {
     let browser = clip_of(&take_recording(None), &[], json!({}));
     assert!((recording_props(&browser)[0].speed - 1.25).abs() < f64::EPSILON);
-    let set = clip_of(&terminal_take(false), &[], json!({ "speed": 2 }));
-    assert!((recording_props(&set)[0].speed - 2.0).abs() < f64::EPSILON);
+    let terminal = clip_of(&terminal_take(false), &[], json!({}));
+    assert!((recording_props(&terminal)[0].speed - 1.0).abs() < f64::EPSILON);
 }
 
 fn take_card(kind: TakeKind, style: &[&str]) -> Vec<String> {
@@ -168,7 +171,14 @@ fn take_card(kind: TakeKind, style: &[&str]) -> Vec<String> {
             )]),
             style: IndexMap::from([(
                 "style".to_owned(),
-                style.iter().map(|s| (*s).to_owned()).collect(),
+                style
+                    .iter()
+                    .map(|s| opsis_types::values::StyleEntry {
+                        node_id: String::new(),
+                        kind: (*s).to_owned(),
+                        params: serde_json::Map::new(),
+                    })
+                    .collect(),
             )]),
             ..CardInputs::default()
         },

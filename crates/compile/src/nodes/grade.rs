@@ -169,10 +169,12 @@ pub struct Colour {
         default = ToneCurve::None
     )]
     pub curve: ToneCurve,
+    #[setting("Invert colours", advanced)]
+    pub invert: bool,
 }
 
 impl Colour {
-    fn changes(&self) -> [Change; 12] {
+    fn changes(&self) -> [Change; 13] {
         [
             ("Brightness", self.brightness != 0.0),
             ("Contrast", !exact_eq(self.contrast, 1.0)),
@@ -192,6 +194,7 @@ impl Colour {
                 tone_amount(&self.highlights, self.highlights_amount),
             ),
             ("Tone curve", self.curve != ToneCurve::None),
+            ("Invert", self.invert),
         ]
     }
 }

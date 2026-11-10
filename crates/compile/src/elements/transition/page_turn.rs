@@ -1,5 +1,5 @@
 use opsis_macros::settings;
-use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::looks::NodeLook;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
@@ -22,8 +22,8 @@ pub fn definition() -> ElementMeta {
                 "Page turn",
                 "The exiting scene swings up and away like a notebook page in stop-motion poses, staying above the scene it reveals.",
                 ElementCategory::Transition,
-                128,
+                24,
             )
-                .look(NodeLook::of("lucide:book-open").moves(NodeMotion::Flip)),
+                .look(NodeLook::of("lucide:book-open")),
         )
 }

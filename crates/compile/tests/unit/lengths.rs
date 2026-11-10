@@ -38,13 +38,7 @@ fn keeps_the_usual_length_for_the_usual_settings_unless_that_cuts_the_animation_
         .collect();
     assert_eq!(
         longer,
-        [
-            "terminal-simulator",
-            "signup-flow",
-            "release-teaser",
-            "launch-anything",
-            "notification-stack"
-        ]
+        ["terminal-simulator", "signup-flow", "notification-stack"]
     );
 }
 
@@ -59,7 +53,7 @@ fn measures_timing_in_seconds_at_the_projects_frame_rate() {
 
 #[test]
 fn keeps_elements_made_for_30_frames_a_second_as_long_in_seconds_at_60() {
-    for key in ["status-cycle", "laptop-frame", "soft-blur-in"] {
+    for key in ["status-cycle", "announce-title", "soft-blur-in"] {
         let element = meta(key);
         assert_eq!(
             animation_length(element, &element.default_props, 60),
@@ -71,7 +65,7 @@ fn keeps_elements_made_for_30_frames_a_second_as_long_in_seconds_at_60() {
 
 #[test]
 fn runs_an_element_with_no_timing_of_its_own_for_its_usual_length_at_its_speed() {
-    let element = meta("strikethrough-replace");
+    let element = meta("tracking-in");
     assert_eq!(
         animation_length(element, &with(element, json!({ "speed": 0.5 })), 30),
         2 * element.default_duration_in_frames

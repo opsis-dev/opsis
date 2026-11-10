@@ -8,23 +8,15 @@ use opsis_types::numbers::whole;
 use opsis_types::values::{CompileValue, Measured};
 use opsis_types::workflow::PortType;
 
-use crate::errors::SettingsError;
 use crate::node::{
     CardCtx, Category, Ctx, FileNeed, NodeDef, Phase, PortFamily, RowExt, missing, port, row,
 };
-use crate::nodes::camera::BackdropStyle;
 use crate::nodes::effects::Area;
 use crate::params::Params;
 use crate::ports::{IN_PREFIX, in_index};
 use crate::text::{percent_text, plural};
 
-pub const FRAME_TYPE: &str = "image.frame";
-
 pub const GRID_TYPE: &str = "image.grid";
-
-pub const LEVELS_TYPE: &str = "image.levels";
-
-pub const TILT_TYPE: &str = "image.tilt";
 
 pub const OUTLINE_TYPE: &str = "image.outline";
 
@@ -47,10 +39,6 @@ pub const MAGNIFY_TYPE: &str = "image.magnify";
 pub const COMPARE_TYPE: &str = "image.compare";
 
 pub const ANNOTATE_TYPE: &str = "image.annotate";
-
-pub const BLUR_TYPE: &str = "image.blur";
-
-pub const ADJUST_TYPE: &str = "image.adjust";
 
 pub const ROTATE_TYPE: &str = "image.rotate";
 
@@ -294,52 +282,6 @@ pub struct RotateImage {
 }
 
 #[settings]
-pub struct AdjustImage {
-    #[setting("Brightness", range(min = -1, max = 1), step = 0.05)]
-    pub brightness: f64,
-    #[setting("Contrast", range(min = -1, max = 1), step = 0.05)]
-    pub contrast: f64,
-    #[setting(
-        "Saturation",
-        range(min = -1, max = 1),
-        step = 0.05,
-        help = "-1 takes all the colour out."
-    )]
-    pub saturation: f64,
-    #[setting("Hue", range(min = -180, max = 180), step = 1, unit = "°", advanced)]
-    pub hue: f64,
-    #[setting("Black and white")]
-    pub grayscale: bool,
-    #[setting("Invert colours", advanced)]
-    pub invert: bool,
-}
-
-#[settings]
-pub struct BlurImage {
-    #[setting("Blur", range(min = 0, max = 100), step = 0.5, unit = "px")]
-    pub blur: f64,
-    #[setting("Sharpen", default = 1.0, range(min = 0, max = 5), step = 0.1)]
-    pub sharpen: f64,
-    #[setting(
-        "Sharpen threshold",
-        default = 4,
-        range(min = 0, max = 255),
-        advanced,
-        help = "Differences smaller than this stay as they are, so flat areas don't get grainy."
-    )]
-    pub threshold: u32,
-    #[setting(
-        "Sharpen amount",
-        default = 100,
-        range(min = 0, max = 300),
-        unit = "%",
-        help = "How much of the sharpening is added.",
-        advanced
-    )]
-    pub sharpen_amount: u32,
-}
-
-#[settings]
 pub struct PlaceImage {
     #[setting(
         "Place at",
@@ -439,7 +381,7 @@ pub struct ImageFormat {
     pub background: String,
 }
 
-#[choice]
+#[choice(export)]
 pub enum RedactStyle {
     #[default]
     #[label("Large pixels")]
@@ -687,128 +629,6 @@ impl OutlineImage {
     }
 }
 
-#[settings]
-pub struct TiltImage {
-    #[setting(
-        "Turn",
-        default = 18.0,
-        range(min = -60, max = 60),
-        step = 1,
-        unit = "°",
-        help = "Turns the picture away on its right side, or its left with a negative angle."
-    )]
-    pub turn: f64,
-    #[setting(
-        "Tilt",
-        default = 8.0,
-        range(min = -60, max = 60),
-        step = 1,
-        unit = "°",
-        help = "Leans the top back, or the bottom with a negative angle."
-    )]
-    pub tilt: f64,
-    #[setting("Lean", range(min = -45, max = 45), step = 1, unit = "°", advanced)]
-    pub lean: f64,
-    #[setting("Background", default = "#00000000", widget = "color", check = colour, advanced)]
-    pub background: String,
-    #[setting("Shadow", default = true)]
-    pub shadow: bool,
-    #[setting(
-        "Viewing distance",
-        default = 2.0,
-        range(min = 0.5, max = 10),
-        step = 0.1,
-        help = "How far away the picture is seen from, in its long side. Closer looks more three-dimensional.",
-        advanced
-    )]
-    pub perspective: f64,
-    #[setting(
-        "Shadow opacity",
-        default = 0.35,
-        range(min = 0, max = 1),
-        step = 0.05,
-        show_if = { "shadow": ["true"] },
-        advanced
-    )]
-    pub shadow_opacity: f64,
-    #[setting(
-        "Shadow softness",
-        default = 2.0,
-        range(min = 0, max = 10),
-        step = 0.1,
-        unit = "%",
-        help = "Of the picture's long side.",
-        show_if = { "shadow": ["true"] },
-        advanced
-    )]
-    pub shadow_softness: f64,
-    #[setting(
-        "Shadow drop",
-        default = 2.0,
-        range(min = 0, max = 10),
-        step = 0.1,
-        unit = "%",
-        help = "Of the picture's long side.",
-        show_if = { "shadow": ["true"] },
-        advanced
-    )]
-    pub shadow_drop: f64,
-    #[setting(
-        "Shadow colour",
-        default = "#000000",
-        widget = "color",
-        check = colour,
-        show_if = { "shadow": ["true"] },
-        advanced
-    )]
-    pub shadow_color: String,
-}
-
-impl TiltImage {
-    pub fn shadow_space(&self) -> f64 {
-        if self.shadow {
-            SHADOW_SPACE.max(2.0f64.mul_add(self.shadow_softness, self.shadow_drop) / 100.0)
-        } else {
-            0.0
-        }
-    }
-}
-
-#[choice]
-pub enum LevelsMethod {
-    #[default]
-    #[label("Stretch")]
-    Stretch,
-    #[label("Even out")]
-    Equalize,
-}
-
-#[settings]
-pub struct AutoLevels {
-    #[setting(
-        "Method",
-        help = "Stretch spreads the levels from black to white. Even out spreads them evenly, which is stronger."
-    )]
-    pub method: LevelsMethod,
-    #[setting("Strength", default = 1.0, range(min = 0, max = 1), step = 0.05)]
-    pub strength: f64,
-    #[setting(
-        "Ignore the darkest and lightest",
-        default = 0.5,
-        range(min = 0, max = 5),
-        step = 0.1,
-        unit = "%",
-        show_if = { "method": ["stretch"] },
-        advanced
-    )]
-    pub clip: f64,
-    #[setting(
-        "Each colour on its own",
-        help = "Also corrects a colour cast, but can shift colours."
-    )]
-    pub per_channel: bool,
-}
-
 #[choice]
 pub enum GridLayout {
     #[label("One row")]
@@ -886,7 +706,7 @@ pub enum FrameShape {
 }
 
 impl FrameShape {
-    fn ratio(self) -> Option<f64> {
+    pub fn ratio(self) -> Option<f64> {
         match self {
             Self::Keep => None,
             Self::Wide => Some(16.0 / 9.0),
@@ -895,96 +715,6 @@ impl FrameShape {
             Self::Story => Some(9.0 / 16.0),
         }
     }
-}
-
-#[settings(check)]
-pub struct FrameScreenshot {
-    #[serde(flatten)]
-    pub background: BackdropStyle,
-    #[setting(
-        "Padding",
-        default = 8.0,
-        range(min = 0, max = 50),
-        step = 1,
-        unit = "%",
-        help = "Space around the picture, as a share of its shorter side."
-    )]
-    pub padding: f64,
-    #[setting(
-        "Corner radius",
-        default = 16.0,
-        range(min = 0, max = 200),
-        step = 1,
-        unit = "px"
-    )]
-    pub radius: f64,
-    #[setting(
-        "Shadow drop",
-        default = 16.0,
-        range(min = 0, max = 200),
-        step = 1,
-        unit = "px",
-        advanced
-    )]
-    pub shadow_drop: f64,
-    #[setting(
-        "Shadow softness",
-        default = 40.0,
-        range(min = 0, max = 200),
-        step = 1,
-        unit = "px",
-        advanced
-    )]
-    pub shadow_softness: f64,
-    #[setting(
-        "Shadow opacity",
-        default = 0.35,
-        range(min = 0, max = 1),
-        step = 0.05,
-        advanced
-    )]
-    pub shadow_opacity: f64,
-    #[setting(
-        "Shape",
-        help = "Grows the background around the picture to this shape; the picture is never cut."
-    )]
-    pub shape: FrameShape,
-    #[setting(
-        "Place on the shape",
-        labels = { "start": "Top or left", "center": "Centre", "end": "Bottom or right" },
-        help = "Where the picture sits when the shape grows the background.",
-        advanced
-    )]
-    pub align: PlaceAlign,
-    #[setting("Shadow colour", default = "#000000", widget = "color", check = colour, advanced)]
-    pub shadow_color: String,
-}
-
-impl Params for FrameScreenshot {
-    fn check(&self) -> Result<(), SettingsError> {
-        self.background.check()
-    }
-}
-
-pub fn framed_placement(source: (f64, f64), p: &FrameScreenshot) -> ((f64, f64), (f64, f64)) {
-    let pad = (source.0.min(source.1) * p.padding.clamp(0.0, 50.0) / 100.0).round();
-    let (mut w, mut h) = (2.0f64.mul_add(pad, source.0), 2.0f64.mul_add(pad, source.1));
-    if let Some(ratio) = p.shape.ratio() {
-        if w / h > ratio {
-            h = (w / ratio).round();
-        } else {
-            w = (h * ratio).round();
-        }
-    }
-    let free = (
-        2.0f64.mul_add(-pad, w - source.0),
-        2.0f64.mul_add(-pad, h - source.1),
-    );
-    let at = (
-        free.0.mul_add(p.align.share(), pad).round(),
-        free.1.mul_add(p.align.share(), pad).round(),
-    );
-    ((w, h), at)
 }
 
 #[derive(Debug)]
@@ -1100,51 +830,6 @@ pub fn grid_plan(sizes: &[(f64, f64)], p: &ImageGrid) -> GridPlan {
         rows,
         cells,
     }
-}
-
-const SHADOW_SPACE: f64 = 0.06;
-
-#[expect(
-    clippy::many_single_char_names,
-    reason = "w, h are the picture's size and x, y, z a corner's position in 3D"
-)]
-pub fn tilt_corners(size: (f64, f64), p: &TiltImage) -> [(f64, f64); 4] {
-    let (w, h) = size;
-    let distance = p.perspective * w.max(h);
-    let (lean, tilt, turn) = (
-        p.lean.to_radians(),
-        p.tilt.to_radians(),
-        p.turn.to_radians(),
-    );
-    let projected = [(0.0, 0.0), (w, 0.0), (w, h), (0.0, h)].map(|(x, y)| {
-        let (x, y) = (x - w / 2.0, y - h / 2.0);
-        let (x, y) = (
-            f64::mul_add(y, -lean.sin(), x * lean.cos()),
-            f64::mul_add(y, lean.cos(), x * lean.sin()),
-        );
-        let (y, z) = (y * tilt.cos(), -y * tilt.sin());
-        let (x, z) = (
-            f64::mul_add(z, -turn.sin(), x * turn.cos()),
-            f64::mul_add(z, turn.cos(), x * turn.sin()),
-        );
-        let scale = distance / (distance + z);
-        (x * scale, y * scale)
-    });
-    let margin = p.shadow_space() * w.max(h);
-    let left = projected.iter().map(|c| c.0).fold(f64::INFINITY, f64::min);
-    let top = projected.iter().map(|c| c.1).fold(f64::INFINITY, f64::min);
-    projected.map(|(x, y)| (x - left + margin, y - top + margin))
-}
-
-pub fn tilted_size(size: (f64, f64), p: &TiltImage) -> (f64, f64) {
-    let corners = tilt_corners(size, p);
-    let margin = p.shadow_space() * size.0.max(size.1);
-    let right = corners.iter().map(|c| c.0).fold(0.0, f64::max);
-    let bottom = corners.iter().map(|c| c.1).fold(0.0, f64::max);
-    (
-        (right + margin).ceil().max(1.0),
-        (bottom + margin).ceil().max(1.0),
-    )
 }
 
 pub fn outline_padding(p: &OutlineImage) -> f64 {
@@ -1430,73 +1115,6 @@ fn rotate() -> NodeDef {
     })
 }
 
-fn adjust() -> NodeDef {
-    image_node::<AdjustImage>(
-        ADJUST_TYPE,
-        "Adjust image",
-        "Changes an image's brightness, contrast, colour and hue.",
-    )
-    .card(|ctx: &CardCtx<'_, AdjustImage>| {
-        let p = &ctx.params;
-        let signed = |v: f64| {
-            format!(
-                "{}{}",
-                if v > 0.0 { "+" } else { "" },
-                numbers::truncate::<i64>((v * 100.0).round())
-            )
-        };
-        let mut parts = Vec::new();
-        if p.brightness != 0.0 {
-            parts.push(format!("brightness {}", signed(p.brightness)));
-        }
-        if p.contrast != 0.0 {
-            parts.push(format!("contrast {}", signed(p.contrast)));
-        }
-        if p.saturation != 0.0 {
-            parts.push(format!("colour {}", signed(p.saturation)));
-        }
-        if p.hue != 0.0 {
-            parts.push(format!("hue {}°", p.hue));
-        }
-        if p.grayscale {
-            parts.push("black and white".into());
-        }
-        if p.invert {
-            parts.push("inverted".into());
-        }
-        let what = if parts.is_empty() {
-            row(Icon::Sun, "No change").muted_if(true)
-        } else {
-            row(Icon::Sun, crate::card_rows::sentence(&parts.join(", ")))
-        };
-        vec![Some(what), size_row(ctx, |s| s)]
-    })
-}
-
-fn blur() -> NodeDef {
-    image_node::<BlurImage>(
-        BLUR_TYPE,
-        "Blur and sharpen",
-        "Softens an image or makes its edges crisper.",
-    )
-    .card(|ctx: &CardCtx<'_, BlurImage>| {
-        let p = &ctx.params;
-        let mut parts = Vec::new();
-        if p.blur > 0.0 {
-            parts.push(format!("blur {} px", p.blur));
-        }
-        if p.sharpen > 0.0 {
-            parts.push(format!("sharpen {}", p.sharpen));
-        }
-        let what = if parts.is_empty() {
-            row(Icon::Wind, "No change").muted_if(true)
-        } else {
-            row(Icon::Wind, crate::card_rows::sentence(&parts.join(", ")))
-        };
-        vec![Some(what), size_row(ctx, |s| s)]
-    })
-}
-
 fn place() -> NodeDef {
     image_node::<PlaceImage>(
         PLACE_TYPE,
@@ -1661,61 +1279,6 @@ fn outline() -> NodeDef {
     })
 }
 
-fn tilt() -> NodeDef {
-    image_node::<TiltImage>(
-        TILT_TYPE,
-        "Tilt",
-        "Shows an image on a turned and tilted plane, for a quick mock-up.",
-    )
-    .card(|ctx: &CardCtx<'_, TiltImage>| {
-        let p = &ctx.params;
-        let mut parts = Vec::new();
-        if p.turn != 0.0 {
-            parts.push(format!("turned {}°", p.turn));
-        }
-        if p.tilt != 0.0 {
-            parts.push(format!("tilted {}°", p.tilt));
-        }
-        if p.lean != 0.0 {
-            parts.push(format!("leaning {}°", p.lean));
-        }
-        let what = if parts.is_empty() {
-            row(Icon::RefreshCw, "Flat").muted_if(true)
-        } else {
-            row(
-                Icon::RefreshCw,
-                crate::card_rows::sentence(&parts.join(", ")),
-            )
-        };
-        vec![Some(what), size_row(ctx, |s| tilted_size(s, p))]
-    })
-}
-
-fn levels() -> NodeDef {
-    image_node::<AutoLevels>(
-        LEVELS_TYPE,
-        "Auto levels",
-        "Stretches a dull or washed-out image's levels from black to white.",
-    )
-    .card(|ctx: &CardCtx<'_, AutoLevels>| {
-        let p = &ctx.params;
-        let mut text = match p.method {
-            LevelsMethod::Stretch => "Levels stretched".to_owned(),
-            LevelsMethod::Equalize => "Levels evened out".to_owned(),
-        };
-        if p.per_channel {
-            text.push_str(" · each colour");
-        }
-        if p.strength < 1.0 {
-            let _ = write!(text, " · {}", percent_text(p.strength, f64::INFINITY));
-        }
-        vec![
-            Some(row(Icon::Sun, text).muted_if(p.strength <= 0.0)),
-            size_row(ctx, |s| s),
-        ]
-    })
-}
-
 fn picture_label(i: usize, _last: Option<usize>) -> String {
     format!("Image {}", i + 1)
 }
@@ -1772,21 +1335,6 @@ fn grid() -> NodeDef {
         vec![
             Some(count),
             size.map(|(w, h)| row(Icon::Ruler, pixels(w, h))),
-        ]
-    })
-}
-
-fn frame() -> NodeDef {
-    image_node::<FrameScreenshot>(
-        FRAME_TYPE,
-        "Frame screenshot",
-        "Gives a screenshot rounded corners and a soft shadow on a padded background, ready for a post.",
-    )
-    .card(|ctx: &CardCtx<'_, FrameScreenshot>| {
-        let p = &ctx.params;
-        vec![
-            Some(p.background.card_row()),
-            size_row(ctx, |s| framed_placement(s, p).0),
         ]
     })
 }
@@ -2501,8 +2049,6 @@ pub fn nodes() -> Vec<NodeDef> {
         resize().look(NodeLook::of("lucide:image-upscale")),
         crop().look(NodeLook::of("hugeicons:image-crop")),
         rotate().look(NodeLook::of("lucide:rotate-cw-square").moves(NodeMotion::Turn)),
-        adjust().look(NodeLook::of("lucide:sliders-vertical")),
-        blur().look(NodeLook::of("lucide:droplet").moves(NodeMotion::RackFocus)),
         place().look(NodeLook::of("lucide:stamp")),
         format().look(NodeLook::of("lucide:file-image")),
         redact().look(NodeLook::of("lucide:rectangle-ellipsis")),
@@ -2510,10 +2056,8 @@ pub fn nodes() -> Vec<NodeDef> {
         trim().look(NodeLook::of("lucide:shrink")),
         clear_colour().look(NodeLook::of("lucide:eraser")),
         outline().look(NodeLook::of("tabler:sticker")),
-        tilt().look(NodeLook::of("tabler:perspective").moves(NodeMotion::Open)),
-        levels().look(NodeLook::of("tabler:chart-histogram")),
         grid().look(NodeLook::of("tabler:layout-collage")),
-        frame().look(NodeLook::of("hugeicons:image-composition")),
+        crate::nodes::image_frame::frame_image().look(NodeLook::of("hugeicons:image-composition")),
         before_after().look(NodeLook::of("lucide:columns-2")),
         magnify().look(NodeLook::of("tabler:zoom-in-area")),
         compare().look(NodeLook::of("tabler:layers-difference")),

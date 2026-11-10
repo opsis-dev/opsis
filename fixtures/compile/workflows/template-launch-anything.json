@@ -1,0 +1,6622 @@
+{
+ "workflow": {
+  "version": 1,
+  "id": "template_launch-anything",
+  "name": "Launch anything",
+  "settings": {
+   "width": 1920,
+   "height": 1080,
+   "fps": 30,
+   "theme": "dark",
+   "fonts": {
+    "main": "Inter",
+    "heading": "",
+    "code": "JetBrains Mono",
+    "families": []
+   }
+  },
+  "variables": {
+   "Product name": "Acme"
+  },
+  "nodes": [
+   {
+    "id": "opening",
+    "type": "fx.animated-text",
+    "position": {
+     "x": 0,
+     "y": 0
+    },
+    "params": {
+     "kind": "word-push",
+     "word-push": {
+      "text": "Good ideas deserve a stage",
+      "color": "#fafafa",
+      "background": "#0b0b10",
+      "fontSize": 96
+     }
+    }
+   },
+   {
+    "id": "reveal",
+    "type": "fx.title",
+    "position": {
+     "x": 0,
+     "y": 200
+    },
+    "params": {
+     "eyebrow": "Let's make",
+     "title": "{{Product name}}",
+     "subtitle": "Built around you. Made to be yours.",
+     "entrance": "scale-cut"
+    }
+   },
+   {
+    "id": "proof",
+    "type": "fx.animated-text",
+    "position": {
+     "x": 0,
+     "y": 400
+    },
+    "params": {
+     "kind": "headline",
+     "headline": {
+      "text": "Your work. *A clearer view.*",
+      "background": "#0b0b10"
+     }
+    }
+   },
+   {
+    "id": "close",
+    "type": "fx.end-card",
+    "position": {
+     "x": 0,
+     "y": 600
+    },
+    "params": {
+     "title": "Begin with {{Product name}}",
+     "subtitle": "Small things. Well made.",
+     "cta": "Begin",
+     "url": "yourproduct.example",
+     "handles": []
+    }
+   },
+   {
+    "id": "transition",
+    "type": "timeline.transition",
+    "position": {
+     "x": 300,
+     "y": -200
+    },
+    "params": {
+     "kind": "push-through",
+     "durationInFrames": 18
+    }
+   },
+   {
+    "id": "sequence",
+    "type": "timeline.sequence",
+    "position": {
+     "x": 600,
+     "y": 300
+    },
+    "params": {}
+   },
+   {
+    "id": "music",
+    "type": "audio.music",
+    "position": {
+     "x": 600,
+     "y": 560
+    },
+    "params": {
+     "src": "app:music/elevate.m4a",
+     "volume": 0.4,
+     "loop": true
+    }
+   },
+   {
+    "id": "mix",
+    "type": "audio.mix",
+    "position": {
+     "x": 900,
+     "y": 300
+    },
+    "params": {}
+   },
+   {
+    "id": "render",
+    "type": "output.render",
+    "position": {
+     "x": 1200,
+     "y": 300
+    },
+    "params": {
+     "fileName": "{{Project name}}",
+     "codec": "h264",
+     "crf": 18,
+     "variants": [
+      "16:9",
+      "9:16"
+     ],
+     "reframe": "follow",
+     "scale": 1,
+     "chapters": true,
+     "chapterList": false,
+     "gl": "angle"
+    }
+   }
+  ],
+  "edges": [
+   {
+    "id": "opening.clip->sequence.in1",
+    "source": "opening",
+    "sourceHandle": "clip",
+    "target": "sequence",
+    "targetHandle": "in1"
+   },
+   {
+    "id": "reveal.clip->sequence.in2",
+    "source": "reveal",
+    "sourceHandle": "clip",
+    "target": "sequence",
+    "targetHandle": "in2"
+   },
+   {
+    "id": "proof.clip->sequence.in3",
+    "source": "proof",
+    "sourceHandle": "clip",
+    "target": "sequence",
+    "targetHandle": "in3"
+   },
+   {
+    "id": "close.clip->sequence.in4",
+    "source": "close",
+    "sourceHandle": "clip",
+    "target": "sequence",
+    "targetHandle": "in4"
+   },
+   {
+    "id": "transition.transition->sequence.transition",
+    "source": "transition",
+    "sourceHandle": "transition",
+    "target": "sequence",
+    "targetHandle": "transition"
+   },
+   {
+    "id": "sequence.clip->mix.clip",
+    "source": "sequence",
+    "sourceHandle": "clip",
+    "target": "mix",
+    "targetHandle": "clip"
+   },
+   {
+    "id": "music.audio->mix.sounds",
+    "source": "music",
+    "sourceHandle": "audio",
+    "target": "mix",
+    "targetHandle": "sounds"
+   },
+   {
+    "id": "mix.clip->render.clip",
+    "source": "mix",
+    "sourceHandle": "clip",
+    "target": "render",
+    "targetHandle": "clip"
+   }
+  ],
+  "markers": []
+ },
+ "compile": {
+  "values": {
+   "opening": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 90,
+     "tracks": [
+      {
+       "id": "opening:t",
+       "items": [
+        {
+         "kind": "element",
+         "id": "opening:i",
+         "from": 0,
+         "durationInFrames": 90,
+         "nodeId": "opening",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "opening",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "design": {
+          "width": 1920,
+          "height": 1080
+         },
+         "component": "word-push",
+         "props": {
+          "text": "Good ideas deserve a stage",
+          "fontSize": 96,
+          "wordGap": 10,
+          "accel": 0.8,
+          "color": "#fafafa",
+          "fontWeight": "400",
+          "background": "#0b0b10",
+          "letterSpacing": -0.02,
+          "speed": 1.0,
+          "pushTime": 12.0,
+          "driveDistance": 0.5
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "reveal": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 75,
+     "tracks": [
+      {
+       "id": "reveal:t",
+       "items": [
+        {
+         "kind": "element",
+         "id": "reveal:i",
+         "from": 0,
+         "durationInFrames": 75,
+         "nodeId": "reveal",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "reveal",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "component": "title",
+         "props": {
+          "eyebrow": "Let's make",
+          "title": "Acme",
+          "subtitle": "Built around you. Made to be yours.",
+          "align": "center",
+          "entrance": "scale-cut",
+          "color": "#fafafa",
+          "accent": "#a78bfa",
+          "background": "transparent",
+          "fontSize": 112,
+          "fontWeight": 760,
+          "fadeOut": 0.3333,
+          "sideMargin": 9.0,
+          "lineGap": 0.22,
+          "eyebrowSize": 0.26,
+          "eyebrowUppercase": true,
+          "subtitleSize": 0.34,
+          "letterSpacing": -0.035,
+          "lineStagger": 1.0
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "proof": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 90,
+     "tracks": [
+      {
+       "id": "proof:t",
+       "items": [
+        {
+         "kind": "element",
+         "id": "proof:i",
+         "from": 0,
+         "durationInFrames": 90,
+         "nodeId": "proof",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "proof",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "component": "kinetic-headline",
+         "props": {
+          "text": "Your work. *A clearer view.*",
+          "color": "#fafafa",
+          "emphasisColor": "#facc15",
+          "background": "#0b0b10",
+          "fontSize": 104,
+          "wordStagger": 4,
+          "fadeOutInFrames": 10,
+          "fontWeight": 780,
+          "letterSpacing": -0.04,
+          "lineHeight": 1.05,
+          "sideMargin": 8.0,
+          "wordGap": 0.28,
+          "rise": 0.5,
+          "tilt": 4.0,
+          "underlineEmphasis": true
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "close": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 150,
+     "tracks": [
+      {
+       "id": "close:t",
+       "items": [
+        {
+         "kind": "element",
+         "id": "close:i",
+         "from": 0,
+         "durationInFrames": 150,
+         "nodeId": "close",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "close",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "component": "end-card",
+         "props": {
+          "title": "Begin with Acme",
+          "subtitle": "Small things. Well made.",
+          "eyebrow": "",
+          "cta": "Begin",
+          "url": "yourproduct.example",
+          "handles": [],
+          "logoSrc": "",
+          "accentColor": "#E8B86D",
+          "theme": {
+           "mode": "dark",
+           "colors": {}
+          },
+          "speed": 1.0,
+          "buttonArrow": true,
+          "buttonRadius": 999,
+          "glow": 12,
+          "textSize": 1.0,
+          "titleWeight": 700,
+          "eyebrowCaps": true
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "transition": {
+    "transition": {
+     "type": "transition",
+     "kind": "push-through",
+     "durationInFrames": 18,
+     "params": {
+      "zoom": 2.4,
+      "blur": 14,
+      "approachFrom": 0.68
+     }
+    }
+   },
+   "sequence": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 351,
+     "tracks": [
+      {
+       "id": "sequence:seq",
+       "items": [
+        {
+         "kind": "group",
+         "id": "sequence:s0",
+         "from": 0,
+         "durationInFrames": 90,
+         "exit": {
+          "kind": "push-through",
+          "durationInFrames": 18,
+          "params": {
+           "zoom": 2.4,
+           "blur": 14,
+           "approachFrom": 0.68
+          }
+         },
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in1"
+         },
+         "props": {
+          "tracks": [
+           {
+            "id": "opening:t",
+            "items": [
+             {
+              "kind": "element",
+              "id": "opening:i",
+              "from": 0,
+              "durationInFrames": 90,
+              "nodeId": "opening",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "opening",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
+              "design": {
+               "width": 1920,
+               "height": 1080
+              },
+              "component": "word-push",
+              "props": {
+               "text": "Good ideas deserve a stage",
+               "fontSize": 96,
+               "wordGap": 10,
+               "accel": 0.8,
+               "color": "#fafafa",
+               "fontWeight": "400",
+               "background": "#0b0b10",
+               "letterSpacing": -0.02,
+               "speed": 1.0,
+               "pushTime": 12.0,
+               "driveDistance": 0.5
+              }
+             }
+            ]
+           }
+          ]
+         }
+        },
+        {
+         "kind": "group",
+         "id": "sequence:s1",
+         "from": 72,
+         "durationInFrames": 75,
+         "enter": {
+          "kind": "push-through",
+          "durationInFrames": 18,
+          "params": {
+           "zoom": 2.4,
+           "blur": 14,
+           "approachFrom": 0.68
+          }
+         },
+         "exit": {
+          "kind": "push-through",
+          "durationInFrames": 18,
+          "params": {
+           "zoom": 2.4,
+           "blur": 14,
+           "approachFrom": 0.68
+          }
+         },
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in2"
+         },
+         "props": {
+          "tracks": [
+           {
+            "id": "reveal:t",
+            "items": [
+             {
+              "kind": "element",
+              "id": "reveal:i",
+              "from": 0,
+              "durationInFrames": 75,
+              "nodeId": "reveal",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "reveal",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
+              "component": "title",
+              "props": {
+               "eyebrow": "Let's make",
+               "title": "Acme",
+               "subtitle": "Built around you. Made to be yours.",
+               "align": "center",
+               "entrance": "scale-cut",
+               "color": "#fafafa",
+               "accent": "#a78bfa",
+               "background": "transparent",
+               "fontSize": 112,
+               "fontWeight": 760,
+               "fadeOut": 0.3333,
+               "sideMargin": 9.0,
+               "lineGap": 0.22,
+               "eyebrowSize": 0.26,
+               "eyebrowUppercase": true,
+               "subtitleSize": 0.34,
+               "letterSpacing": -0.035,
+               "lineStagger": 1.0
+              }
+             }
+            ]
+           }
+          ]
+         }
+        },
+        {
+         "kind": "group",
+         "id": "sequence:s2",
+         "from": 129,
+         "durationInFrames": 90,
+         "enter": {
+          "kind": "push-through",
+          "durationInFrames": 18,
+          "params": {
+           "zoom": 2.4,
+           "blur": 14,
+           "approachFrom": 0.68
+          }
+         },
+         "exit": {
+          "kind": "push-through",
+          "durationInFrames": 18,
+          "params": {
+           "zoom": 2.4,
+           "blur": 14,
+           "approachFrom": 0.68
+          }
+         },
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in3"
+         },
+         "props": {
+          "tracks": [
+           {
+            "id": "proof:t",
+            "items": [
+             {
+              "kind": "element",
+              "id": "proof:i",
+              "from": 0,
+              "durationInFrames": 90,
+              "nodeId": "proof",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "proof",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
+              "component": "kinetic-headline",
+              "props": {
+               "text": "Your work. *A clearer view.*",
+               "color": "#fafafa",
+               "emphasisColor": "#facc15",
+               "background": "#0b0b10",
+               "fontSize": 104,
+               "wordStagger": 4,
+               "fadeOutInFrames": 10,
+               "fontWeight": 780,
+               "letterSpacing": -0.04,
+               "lineHeight": 1.05,
+               "sideMargin": 8.0,
+               "wordGap": 0.28,
+               "rise": 0.5,
+               "tilt": 4.0,
+               "underlineEmphasis": true
+              }
+             }
+            ]
+           }
+          ]
+         }
+        },
+        {
+         "kind": "group",
+         "id": "sequence:s3",
+         "from": 201,
+         "durationInFrames": 150,
+         "enter": {
+          "kind": "push-through",
+          "durationInFrames": 18,
+          "params": {
+           "zoom": 2.4,
+           "blur": 14,
+           "approachFrom": 0.68
+          }
+         },
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in4"
+         },
+         "props": {
+          "tracks": [
+           {
+            "id": "close:t",
+            "items": [
+             {
+              "kind": "element",
+              "id": "close:i",
+              "from": 0,
+              "durationInFrames": 150,
+              "nodeId": "close",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "close",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
+              "component": "end-card",
+              "props": {
+               "title": "Begin with Acme",
+               "subtitle": "Small things. Well made.",
+               "eyebrow": "",
+               "cta": "Begin",
+               "url": "yourproduct.example",
+               "handles": [],
+               "logoSrc": "",
+               "accentColor": "#E8B86D",
+               "theme": {
+                "mode": "dark",
+                "colors": {}
+               },
+               "speed": 1.0,
+               "buttonArrow": true,
+               "buttonRadius": 999,
+               "glow": 12,
+               "textSize": 1.0,
+               "titleWeight": 700,
+               "eyebrowCaps": true
+              }
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "music": {
+    "audio": {
+     "type": "audio",
+     "items": [
+      {
+       "id": "music",
+       "src": "app:music/elevate.m4a",
+       "from": 0,
+       "volume": 0.4,
+       "loop": true,
+       "fadeInFrames": 24,
+       "fadeOutFrames": 45,
+       "nodeId": "music",
+       "channel": "music",
+       "role": "music",
+       "handles": {
+        "move": {
+         "nodeId": "music",
+         "param": "startMs",
+         "unit": "ms"
+        },
+        "trimStart": {
+         "nodeId": "music",
+         "param": "trimMs",
+         "unit": "ms",
+         "linked": [
+          {
+           "param": "startMs",
+           "sign": 1
+          },
+          {
+           "param": "lengthMs",
+           "sign": -1,
+           "ifNonZero": true
+          }
+         ]
+        },
+        "trimEnd": {
+         "nodeId": "music",
+         "param": "lengthMs",
+         "unit": "ms"
+        },
+        "volume": {
+         "nodeId": "music",
+         "param": "volume",
+         "unit": "number"
+        }
+       }
+      }
+     ],
+     "durationInFrames": 4841
+    }
+   },
+   "mix": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 351,
+     "tracks": [
+      {
+       "id": "sequence:seq",
+       "items": [
+        {
+         "kind": "group",
+         "id": "sequence:s0",
+         "from": 0,
+         "durationInFrames": 90,
+         "exit": {
+          "kind": "push-through",
+          "durationInFrames": 18,
+          "params": {
+           "zoom": 2.4,
+           "blur": 14,
+           "approachFrom": 0.68
+          }
+         },
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in1"
+         },
+         "props": {
+          "tracks": [
+           {
+            "id": "opening:t",
+            "items": [
+             {
+              "kind": "element",
+              "id": "opening:i",
+              "from": 0,
+              "durationInFrames": 90,
+              "nodeId": "opening",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "opening",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
+              "design": {
+               "width": 1920,
+               "height": 1080
+              },
+              "component": "word-push",
+              "props": {
+               "text": "Good ideas deserve a stage",
+               "fontSize": 96,
+               "wordGap": 10,
+               "accel": 0.8,
+               "color": "#fafafa",
+               "fontWeight": "400",
+               "background": "#0b0b10",
+               "letterSpacing": -0.02,
+               "speed": 1.0,
+               "pushTime": 12.0,
+               "driveDistance": 0.5
+              }
+             }
+            ]
+           }
+          ]
+         }
+        },
+        {
+         "kind": "group",
+         "id": "sequence:s1",
+         "from": 72,
+         "durationInFrames": 75,
+         "enter": {
+          "kind": "push-through",
+          "durationInFrames": 18,
+          "params": {
+           "zoom": 2.4,
+           "blur": 14,
+           "approachFrom": 0.68
+          }
+         },
+         "exit": {
+          "kind": "push-through",
+          "durationInFrames": 18,
+          "params": {
+           "zoom": 2.4,
+           "blur": 14,
+           "approachFrom": 0.68
+          }
+         },
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in2"
+         },
+         "props": {
+          "tracks": [
+           {
+            "id": "reveal:t",
+            "items": [
+             {
+              "kind": "element",
+              "id": "reveal:i",
+              "from": 0,
+              "durationInFrames": 75,
+              "nodeId": "reveal",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "reveal",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
+              "component": "title",
+              "props": {
+               "eyebrow": "Let's make",
+               "title": "Acme",
+               "subtitle": "Built around you. Made to be yours.",
+               "align": "center",
+               "entrance": "scale-cut",
+               "color": "#fafafa",
+               "accent": "#a78bfa",
+               "background": "transparent",
+               "fontSize": 112,
+               "fontWeight": 760,
+               "fadeOut": 0.3333,
+               "sideMargin": 9.0,
+               "lineGap": 0.22,
+               "eyebrowSize": 0.26,
+               "eyebrowUppercase": true,
+               "subtitleSize": 0.34,
+               "letterSpacing": -0.035,
+               "lineStagger": 1.0
+              }
+             }
+            ]
+           }
+          ]
+         }
+        },
+        {
+         "kind": "group",
+         "id": "sequence:s2",
+         "from": 129,
+         "durationInFrames": 90,
+         "enter": {
+          "kind": "push-through",
+          "durationInFrames": 18,
+          "params": {
+           "zoom": 2.4,
+           "blur": 14,
+           "approachFrom": 0.68
+          }
+         },
+         "exit": {
+          "kind": "push-through",
+          "durationInFrames": 18,
+          "params": {
+           "zoom": 2.4,
+           "blur": 14,
+           "approachFrom": 0.68
+          }
+         },
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in3"
+         },
+         "props": {
+          "tracks": [
+           {
+            "id": "proof:t",
+            "items": [
+             {
+              "kind": "element",
+              "id": "proof:i",
+              "from": 0,
+              "durationInFrames": 90,
+              "nodeId": "proof",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "proof",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
+              "component": "kinetic-headline",
+              "props": {
+               "text": "Your work. *A clearer view.*",
+               "color": "#fafafa",
+               "emphasisColor": "#facc15",
+               "background": "#0b0b10",
+               "fontSize": 104,
+               "wordStagger": 4,
+               "fadeOutInFrames": 10,
+               "fontWeight": 780,
+               "letterSpacing": -0.04,
+               "lineHeight": 1.05,
+               "sideMargin": 8.0,
+               "wordGap": 0.28,
+               "rise": 0.5,
+               "tilt": 4.0,
+               "underlineEmphasis": true
+              }
+             }
+            ]
+           }
+          ]
+         }
+        },
+        {
+         "kind": "group",
+         "id": "sequence:s3",
+         "from": 201,
+         "durationInFrames": 150,
+         "enter": {
+          "kind": "push-through",
+          "durationInFrames": 18,
+          "params": {
+           "zoom": 2.4,
+           "blur": 14,
+           "approachFrom": 0.68
+          }
+         },
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in4"
+         },
+         "props": {
+          "tracks": [
+           {
+            "id": "close:t",
+            "items": [
+             {
+              "kind": "element",
+              "id": "close:i",
+              "from": 0,
+              "durationInFrames": 150,
+              "nodeId": "close",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "close",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
+              "component": "end-card",
+              "props": {
+               "title": "Begin with Acme",
+               "subtitle": "Small things. Well made.",
+               "eyebrow": "",
+               "cta": "Begin",
+               "url": "yourproduct.example",
+               "handles": [],
+               "logoSrc": "",
+               "accentColor": "#E8B86D",
+               "theme": {
+                "mode": "dark",
+                "colors": {}
+               },
+               "speed": 1.0,
+               "buttonArrow": true,
+               "buttonRadius": 999,
+               "glow": 12,
+               "textSize": 1.0,
+               "titleWeight": 700,
+               "eyebrowCaps": true
+              }
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ]
+      }
+     ],
+     "audio": [
+      {
+       "id": "music",
+       "src": "app:music/elevate.m4a",
+       "from": 0,
+       "durationInFrames": 351,
+       "volume": 0.4,
+       "loop": true,
+       "fadeInFrames": 24,
+       "fadeOutFrames": 45,
+       "nodeId": "music",
+       "channel": "music",
+       "role": "music",
+       "handles": {
+        "move": {
+         "nodeId": "music",
+         "param": "startMs",
+         "unit": "ms"
+        },
+        "trimStart": {
+         "nodeId": "music",
+         "param": "trimMs",
+         "unit": "ms",
+         "linked": [
+          {
+           "param": "startMs",
+           "sign": 1
+          },
+          {
+           "param": "lengthMs",
+           "sign": -1,
+           "ifNonZero": true
+          }
+         ]
+        },
+        "trimEnd": {
+         "nodeId": "music",
+         "param": "lengthMs",
+         "unit": "ms"
+        },
+        "volume": {
+         "nodeId": "music",
+         "param": "volume",
+         "unit": "number"
+        }
+       }
+      }
+     ]
+    }
+   },
+   "render": {}
+  },
+  "errors": {},
+  "order": [
+   "opening",
+   "reveal",
+   "proof",
+   "close",
+   "transition",
+   "sequence",
+   "music",
+   "mix",
+   "render"
+  ]
+ },
+ "problems": [],
+ "cards": {
+  "opening": {
+   "rows": [
+    {
+     "icon": "shapes",
+     "text": "Word push"
+    },
+    {
+     "icon": "type",
+     "text": "“Good ideas deserve a stage”"
+    },
+    {
+     "icon": "clock",
+     "text": "3 s"
+    }
+   ]
+  },
+  "reveal": {
+   "rows": [
+    {
+     "icon": "type",
+     "text": "“Acme”"
+    },
+    {
+     "icon": "clock",
+     "text": "2.5 s"
+    }
+   ]
+  },
+  "proof": {
+   "rows": [
+    {
+     "icon": "shapes",
+     "text": "Animated headline"
+    },
+    {
+     "icon": "type",
+     "text": "“Your work. *A clearer view.*”"
+    },
+    {
+     "icon": "clock",
+     "text": "3 s"
+    }
+   ]
+  },
+  "close": {
+   "rows": [
+    {
+     "icon": "type",
+     "text": "“Begin with Acme”"
+    },
+    {
+     "icon": "moon",
+     "text": "Dark theme"
+    },
+    {
+     "icon": "clock",
+     "text": "5 s"
+    }
+   ]
+  },
+  "transition": {
+   "rows": [
+    {
+     "icon": "arrow-right-left",
+     "text": "Push through · 0.6 s"
+    }
+   ]
+  },
+  "sequence": {
+   "rows": [
+    {
+     "icon": "list-video",
+     "text": "4 clips · 11.7 s"
+    },
+    {
+     "icon": "arrow-right-left",
+     "text": "3 joins with push through"
+    }
+   ]
+  },
+  "music": {
+   "rows": [
+    {
+     "icon": "music",
+     "text": "Elevate",
+     "title": "app:music/elevate.m4a"
+    },
+    {
+     "icon": "volume-2",
+     "text": "40%"
+    },
+    {
+     "icon": "repeat",
+     "text": "Loops"
+    }
+   ]
+  },
+  "mix": {
+   "rows": [
+    {
+     "icon": "volume-2",
+     "text": "1 sound"
+    }
+   ]
+  },
+  "render": {
+   "rows": [
+    {
+     "icon": "ratio",
+     "text": "16:9 + 9:16"
+    },
+    {
+     "icon": "film",
+     "text": "MP4 · 1080p · 30 fps"
+    }
+   ]
+  }
+ },
+ "film": {
+  "spec": {
+   "width": 1920,
+   "height": 1080,
+   "fps": 30,
+   "durationInFrames": 351,
+   "background": "#09090b",
+   "tracks": [
+    {
+     "id": "sequence:seq",
+     "items": [
+      {
+       "kind": "group",
+       "id": "sequence:s0",
+       "from": 0,
+       "durationInFrames": 90,
+       "exit": {
+        "kind": "push-through",
+        "durationInFrames": 18,
+        "params": {
+         "zoom": 2.4,
+         "blur": 14,
+         "approachFrom": 0.68
+        }
+       },
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in1"
+       },
+       "props": {
+        "tracks": [
+         {
+          "id": "opening:t",
+          "items": [
+           {
+            "kind": "element",
+            "id": "opening:i",
+            "from": 0,
+            "durationInFrames": 90,
+            "nodeId": "opening",
+            "handles": {
+             "trimEnd": {
+              "nodeId": "opening",
+              "param": "clipDuration",
+              "unit": "frames"
+             }
+            },
+            "design": {
+             "width": 1920,
+             "height": 1080
+            },
+            "component": "word-push",
+            "props": {
+             "text": "Good ideas deserve a stage",
+             "fontSize": 96,
+             "wordGap": 10,
+             "accel": 0.8,
+             "color": "#fafafa",
+             "fontWeight": "400",
+             "background": "#0b0b10",
+             "letterSpacing": -0.02,
+             "speed": 1.0,
+             "pushTime": 12.0,
+             "driveDistance": 0.5
+            }
+           }
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "kind": "group",
+       "id": "sequence:s1",
+       "from": 72,
+       "durationInFrames": 75,
+       "enter": {
+        "kind": "push-through",
+        "durationInFrames": 18,
+        "params": {
+         "zoom": 2.4,
+         "blur": 14,
+         "approachFrom": 0.68
+        }
+       },
+       "exit": {
+        "kind": "push-through",
+        "durationInFrames": 18,
+        "params": {
+         "zoom": 2.4,
+         "blur": 14,
+         "approachFrom": 0.68
+        }
+       },
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in2"
+       },
+       "props": {
+        "tracks": [
+         {
+          "id": "reveal:t",
+          "items": [
+           {
+            "kind": "element",
+            "id": "reveal:i",
+            "from": 0,
+            "durationInFrames": 75,
+            "nodeId": "reveal",
+            "handles": {
+             "trimEnd": {
+              "nodeId": "reveal",
+              "param": "clipDuration",
+              "unit": "frames"
+             }
+            },
+            "component": "title",
+            "props": {
+             "eyebrow": "Let's make",
+             "title": "Acme",
+             "subtitle": "Built around you. Made to be yours.",
+             "align": "center",
+             "entrance": "scale-cut",
+             "color": "#fafafa",
+             "accent": "#a78bfa",
+             "background": "transparent",
+             "fontSize": 112,
+             "fontWeight": 760,
+             "fadeOut": 0.3333,
+             "sideMargin": 9.0,
+             "lineGap": 0.22,
+             "eyebrowSize": 0.26,
+             "eyebrowUppercase": true,
+             "subtitleSize": 0.34,
+             "letterSpacing": -0.035,
+             "lineStagger": 1.0
+            }
+           }
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "kind": "group",
+       "id": "sequence:s2",
+       "from": 129,
+       "durationInFrames": 90,
+       "enter": {
+        "kind": "push-through",
+        "durationInFrames": 18,
+        "params": {
+         "zoom": 2.4,
+         "blur": 14,
+         "approachFrom": 0.68
+        }
+       },
+       "exit": {
+        "kind": "push-through",
+        "durationInFrames": 18,
+        "params": {
+         "zoom": 2.4,
+         "blur": 14,
+         "approachFrom": 0.68
+        }
+       },
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in3"
+       },
+       "props": {
+        "tracks": [
+         {
+          "id": "proof:t",
+          "items": [
+           {
+            "kind": "element",
+            "id": "proof:i",
+            "from": 0,
+            "durationInFrames": 90,
+            "nodeId": "proof",
+            "handles": {
+             "trimEnd": {
+              "nodeId": "proof",
+              "param": "clipDuration",
+              "unit": "frames"
+             }
+            },
+            "component": "kinetic-headline",
+            "props": {
+             "text": "Your work. *A clearer view.*",
+             "color": "#fafafa",
+             "emphasisColor": "#facc15",
+             "background": "#0b0b10",
+             "fontSize": 104,
+             "wordStagger": 4,
+             "fadeOutInFrames": 10,
+             "fontWeight": 780,
+             "letterSpacing": -0.04,
+             "lineHeight": 1.05,
+             "sideMargin": 8.0,
+             "wordGap": 0.28,
+             "rise": 0.5,
+             "tilt": 4.0,
+             "underlineEmphasis": true
+            }
+           }
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "kind": "group",
+       "id": "sequence:s3",
+       "from": 201,
+       "durationInFrames": 150,
+       "enter": {
+        "kind": "push-through",
+        "durationInFrames": 18,
+        "params": {
+         "zoom": 2.4,
+         "blur": 14,
+         "approachFrom": 0.68
+        }
+       },
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in4"
+       },
+       "props": {
+        "tracks": [
+         {
+          "id": "close:t",
+          "items": [
+           {
+            "kind": "element",
+            "id": "close:i",
+            "from": 0,
+            "durationInFrames": 150,
+            "nodeId": "close",
+            "handles": {
+             "trimEnd": {
+              "nodeId": "close",
+              "param": "clipDuration",
+              "unit": "frames"
+             }
+            },
+            "component": "end-card",
+            "props": {
+             "title": "Begin with Acme",
+             "subtitle": "Small things. Well made.",
+             "eyebrow": "",
+             "cta": "Begin",
+             "url": "yourproduct.example",
+             "handles": [],
+             "logoSrc": "",
+             "accentColor": "#E8B86D",
+             "theme": {
+              "mode": "dark",
+              "colors": {}
+             },
+             "speed": 1.0,
+             "buttonArrow": true,
+             "buttonRadius": 999,
+             "glow": 12,
+             "textSize": 1.0,
+             "titleWeight": 700,
+             "eyebrowCaps": true
+            }
+           }
+          ]
+         }
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "audio": [
+    {
+     "id": "music",
+     "src": "app:music/elevate.m4a",
+     "from": 0,
+     "durationInFrames": 351,
+     "volume": 0.4,
+     "loop": true,
+     "fadeInFrames": 24,
+     "fadeOutFrames": 45,
+     "nodeId": "music",
+     "channel": "music",
+     "role": "music",
+     "handles": {
+      "move": {
+       "nodeId": "music",
+       "param": "startMs",
+       "unit": "ms"
+      },
+      "trimStart": {
+       "nodeId": "music",
+       "param": "trimMs",
+       "unit": "ms",
+       "linked": [
+        {
+         "param": "startMs",
+         "sign": 1
+        },
+        {
+         "param": "lengthMs",
+         "sign": -1,
+         "ifNonZero": true
+        }
+       ]
+      },
+      "trimEnd": {
+       "nodeId": "music",
+       "param": "lengthMs",
+       "unit": "ms"
+      },
+      "volume": {
+       "nodeId": "music",
+       "param": "volume",
+       "unit": "number"
+      }
+     }
+    }
+   ],
+   "fonts": {
+    "families": {
+     "df-main": {
+      "id": "inter",
+      "family": "Inter",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/inter/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "df-heading": {
+      "id": "inter",
+      "family": "Inter",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/inter/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "df-code": {
+      "id": "jetbrains-mono",
+      "family": "JetBrains Mono",
+      "category": "monospace",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+        "weight": "100 800",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+        "weight": "100 800",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "inter": {
+      "id": "inter",
+      "family": "Inter",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/inter/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "jetbrains mono": {
+      "id": "jetbrains-mono",
+      "family": "JetBrains Mono",
+      "category": "monospace",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+        "weight": "100 800",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+        "weight": "100 800",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "google sans": {
+      "id": "google-sans-flex",
+      "family": "Google Sans Flex",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "geist": {
+      "id": "geist",
+      "family": "Geist",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/geist/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/geist/geist-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/geist/geist-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "geist mono": {
+      "id": "geist-mono",
+      "family": "Geist Mono",
+      "category": "monospace",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/geist-mono/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "manrope": {
+      "id": "manrope",
+      "family": "Manrope",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/manrope/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/manrope/manrope-latin-wght-normal.woff2",
+        "weight": "200 800",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "dm sans": {
+      "id": "dm-sans",
+      "family": "DM Sans",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/dm-sans/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "space grotesk": {
+      "id": "space-grotesk",
+      "family": "Space Grotesk",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/space-grotesk/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/space-grotesk/space-grotesk-latin-wght-normal.woff2",
+        "weight": "300 700",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "outfit": {
+      "id": "outfit",
+      "family": "Outfit",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/outfit/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/outfit/outfit-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "montserrat": {
+      "id": "montserrat",
+      "family": "Montserrat",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/montserrat/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "plus jakarta sans": {
+      "id": "plus-jakarta-sans",
+      "family": "Plus Jakarta Sans",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/plus-jakarta-sans/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-normal.woff2",
+        "weight": "200 800",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-italic.woff2",
+        "weight": "200 800",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "ibm plex sans": {
+      "id": "ibm-plex-sans",
+      "family": "IBM Plex Sans",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/ibm-plex-sans/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-normal.woff2",
+        "weight": "100 700",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-italic.woff2",
+        "weight": "100 700",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "playfair display": {
+      "id": "playfair-display",
+      "family": "Playfair Display",
+      "category": "serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/playfair-display/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-normal.woff2",
+        "weight": "400 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-italic.woff2",
+        "weight": "400 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "fraunces": {
+      "id": "fraunces",
+      "family": "Fraunces",
+      "category": "serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/fraunces/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "caveat": {
+      "id": "caveat",
+      "family": "Caveat",
+      "category": "handwriting",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/caveat/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/caveat/caveat-latin-wght-normal.woff2",
+        "weight": "400 700",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "google sans flex": {
+      "id": "google-sans-flex",
+      "family": "Google Sans Flex",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "instrument serif": {
+      "id": "instrument-serif",
+      "family": "Instrument Serif",
+      "category": "serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/instrument-serif/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-normal.woff2",
+        "weight": "400",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-italic.woff2",
+        "weight": "400",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     }
+    },
+    "preload": [
+     "df-main",
+     "df-heading",
+     "df-code",
+     "Inter",
+     "JetBrains Mono"
+    ]
+   }
+  },
+  "spans": {
+   "opening": {
+    "from": 0.0,
+    "to": 90.0
+   },
+   "reveal": {
+    "from": 72.0,
+    "to": 147.0
+   },
+   "proof": {
+    "from": 129.0,
+    "to": 219.0
+   },
+   "close": {
+    "from": 201.0,
+    "to": 351.0
+   }
+  },
+  "sourceNodeId": "render"
+ },
+ "films": {
+  "render": {
+   "width": 1920,
+   "height": 1080,
+   "fps": 30,
+   "durationInFrames": 351,
+   "background": "#09090b",
+   "tracks": [
+    {
+     "id": "sequence:seq",
+     "items": [
+      {
+       "kind": "group",
+       "id": "sequence:s0",
+       "from": 0,
+       "durationInFrames": 90,
+       "exit": {
+        "kind": "push-through",
+        "durationInFrames": 18,
+        "params": {
+         "zoom": 2.4,
+         "blur": 14,
+         "approachFrom": 0.68
+        }
+       },
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in1"
+       },
+       "props": {
+        "tracks": [
+         {
+          "id": "opening:t",
+          "items": [
+           {
+            "kind": "element",
+            "id": "opening:i",
+            "from": 0,
+            "durationInFrames": 90,
+            "nodeId": "opening",
+            "handles": {
+             "trimEnd": {
+              "nodeId": "opening",
+              "param": "clipDuration",
+              "unit": "frames"
+             }
+            },
+            "design": {
+             "width": 1920,
+             "height": 1080
+            },
+            "component": "word-push",
+            "props": {
+             "text": "Good ideas deserve a stage",
+             "fontSize": 96,
+             "wordGap": 10,
+             "accel": 0.8,
+             "color": "#fafafa",
+             "fontWeight": "400",
+             "background": "#0b0b10",
+             "letterSpacing": -0.02,
+             "speed": 1.0,
+             "pushTime": 12.0,
+             "driveDistance": 0.5
+            }
+           }
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "kind": "group",
+       "id": "sequence:s1",
+       "from": 72,
+       "durationInFrames": 75,
+       "enter": {
+        "kind": "push-through",
+        "durationInFrames": 18,
+        "params": {
+         "zoom": 2.4,
+         "blur": 14,
+         "approachFrom": 0.68
+        }
+       },
+       "exit": {
+        "kind": "push-through",
+        "durationInFrames": 18,
+        "params": {
+         "zoom": 2.4,
+         "blur": 14,
+         "approachFrom": 0.68
+        }
+       },
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in2"
+       },
+       "props": {
+        "tracks": [
+         {
+          "id": "reveal:t",
+          "items": [
+           {
+            "kind": "element",
+            "id": "reveal:i",
+            "from": 0,
+            "durationInFrames": 75,
+            "nodeId": "reveal",
+            "handles": {
+             "trimEnd": {
+              "nodeId": "reveal",
+              "param": "clipDuration",
+              "unit": "frames"
+             }
+            },
+            "component": "title",
+            "props": {
+             "eyebrow": "Let's make",
+             "title": "Acme",
+             "subtitle": "Built around you. Made to be yours.",
+             "align": "center",
+             "entrance": "scale-cut",
+             "color": "#fafafa",
+             "accent": "#a78bfa",
+             "background": "transparent",
+             "fontSize": 112,
+             "fontWeight": 760,
+             "fadeOut": 0.3333,
+             "sideMargin": 9.0,
+             "lineGap": 0.22,
+             "eyebrowSize": 0.26,
+             "eyebrowUppercase": true,
+             "subtitleSize": 0.34,
+             "letterSpacing": -0.035,
+             "lineStagger": 1.0
+            }
+           }
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "kind": "group",
+       "id": "sequence:s2",
+       "from": 129,
+       "durationInFrames": 90,
+       "enter": {
+        "kind": "push-through",
+        "durationInFrames": 18,
+        "params": {
+         "zoom": 2.4,
+         "blur": 14,
+         "approachFrom": 0.68
+        }
+       },
+       "exit": {
+        "kind": "push-through",
+        "durationInFrames": 18,
+        "params": {
+         "zoom": 2.4,
+         "blur": 14,
+         "approachFrom": 0.68
+        }
+       },
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in3"
+       },
+       "props": {
+        "tracks": [
+         {
+          "id": "proof:t",
+          "items": [
+           {
+            "kind": "element",
+            "id": "proof:i",
+            "from": 0,
+            "durationInFrames": 90,
+            "nodeId": "proof",
+            "handles": {
+             "trimEnd": {
+              "nodeId": "proof",
+              "param": "clipDuration",
+              "unit": "frames"
+             }
+            },
+            "component": "kinetic-headline",
+            "props": {
+             "text": "Your work. *A clearer view.*",
+             "color": "#fafafa",
+             "emphasisColor": "#facc15",
+             "background": "#0b0b10",
+             "fontSize": 104,
+             "wordStagger": 4,
+             "fadeOutInFrames": 10,
+             "fontWeight": 780,
+             "letterSpacing": -0.04,
+             "lineHeight": 1.05,
+             "sideMargin": 8.0,
+             "wordGap": 0.28,
+             "rise": 0.5,
+             "tilt": 4.0,
+             "underlineEmphasis": true
+            }
+           }
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "kind": "group",
+       "id": "sequence:s3",
+       "from": 201,
+       "durationInFrames": 150,
+       "enter": {
+        "kind": "push-through",
+        "durationInFrames": 18,
+        "params": {
+         "zoom": 2.4,
+         "blur": 14,
+         "approachFrom": 0.68
+        }
+       },
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in4"
+       },
+       "props": {
+        "tracks": [
+         {
+          "id": "close:t",
+          "items": [
+           {
+            "kind": "element",
+            "id": "close:i",
+            "from": 0,
+            "durationInFrames": 150,
+            "nodeId": "close",
+            "handles": {
+             "trimEnd": {
+              "nodeId": "close",
+              "param": "clipDuration",
+              "unit": "frames"
+             }
+            },
+            "component": "end-card",
+            "props": {
+             "title": "Begin with Acme",
+             "subtitle": "Small things. Well made.",
+             "eyebrow": "",
+             "cta": "Begin",
+             "url": "yourproduct.example",
+             "handles": [],
+             "logoSrc": "",
+             "accentColor": "#E8B86D",
+             "theme": {
+              "mode": "dark",
+              "colors": {}
+             },
+             "speed": 1.0,
+             "buttonArrow": true,
+             "buttonRadius": 999,
+             "glow": 12,
+             "textSize": 1.0,
+             "titleWeight": 700,
+             "eyebrowCaps": true
+            }
+           }
+          ]
+         }
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "audio": [
+    {
+     "id": "music",
+     "src": "app:music/elevate.m4a",
+     "from": 0,
+     "durationInFrames": 351,
+     "volume": 0.4,
+     "loop": true,
+     "fadeInFrames": 24,
+     "fadeOutFrames": 45,
+     "nodeId": "music",
+     "channel": "music",
+     "role": "music",
+     "handles": {
+      "move": {
+       "nodeId": "music",
+       "param": "startMs",
+       "unit": "ms"
+      },
+      "trimStart": {
+       "nodeId": "music",
+       "param": "trimMs",
+       "unit": "ms",
+       "linked": [
+        {
+         "param": "startMs",
+         "sign": 1
+        },
+        {
+         "param": "lengthMs",
+         "sign": -1,
+         "ifNonZero": true
+        }
+       ]
+      },
+      "trimEnd": {
+       "nodeId": "music",
+       "param": "lengthMs",
+       "unit": "ms"
+      },
+      "volume": {
+       "nodeId": "music",
+       "param": "volume",
+       "unit": "number"
+      }
+     }
+    }
+   ],
+   "fonts": {
+    "families": {
+     "df-main": {
+      "id": "inter",
+      "family": "Inter",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/inter/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "df-heading": {
+      "id": "inter",
+      "family": "Inter",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/inter/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "df-code": {
+      "id": "jetbrains-mono",
+      "family": "JetBrains Mono",
+      "category": "monospace",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+        "weight": "100 800",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+        "weight": "100 800",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "inter": {
+      "id": "inter",
+      "family": "Inter",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/inter/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "jetbrains mono": {
+      "id": "jetbrains-mono",
+      "family": "JetBrains Mono",
+      "category": "monospace",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+        "weight": "100 800",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+        "weight": "100 800",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "google sans": {
+      "id": "google-sans-flex",
+      "family": "Google Sans Flex",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "geist": {
+      "id": "geist",
+      "family": "Geist",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/geist/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/geist/geist-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/geist/geist-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "geist mono": {
+      "id": "geist-mono",
+      "family": "Geist Mono",
+      "category": "monospace",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/geist-mono/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "manrope": {
+      "id": "manrope",
+      "family": "Manrope",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/manrope/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/manrope/manrope-latin-wght-normal.woff2",
+        "weight": "200 800",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "dm sans": {
+      "id": "dm-sans",
+      "family": "DM Sans",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/dm-sans/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "space grotesk": {
+      "id": "space-grotesk",
+      "family": "Space Grotesk",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/space-grotesk/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/space-grotesk/space-grotesk-latin-wght-normal.woff2",
+        "weight": "300 700",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "outfit": {
+      "id": "outfit",
+      "family": "Outfit",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/outfit/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/outfit/outfit-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "montserrat": {
+      "id": "montserrat",
+      "family": "Montserrat",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/montserrat/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "plus jakarta sans": {
+      "id": "plus-jakarta-sans",
+      "family": "Plus Jakarta Sans",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/plus-jakarta-sans/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-normal.woff2",
+        "weight": "200 800",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-italic.woff2",
+        "weight": "200 800",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "ibm plex sans": {
+      "id": "ibm-plex-sans",
+      "family": "IBM Plex Sans",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/ibm-plex-sans/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-normal.woff2",
+        "weight": "100 700",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-italic.woff2",
+        "weight": "100 700",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "playfair display": {
+      "id": "playfair-display",
+      "family": "Playfair Display",
+      "category": "serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/playfair-display/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-normal.woff2",
+        "weight": "400 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-italic.woff2",
+        "weight": "400 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "fraunces": {
+      "id": "fraunces",
+      "family": "Fraunces",
+      "category": "serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/fraunces/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-italic.woff2",
+        "weight": "100 900",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     },
+     "caveat": {
+      "id": "caveat",
+      "family": "Caveat",
+      "category": "handwriting",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/caveat/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/caveat/caveat-latin-wght-normal.woff2",
+        "weight": "400 700",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "google sans flex": {
+      "id": "google-sans-flex",
+      "family": "Google Sans Flex",
+      "category": "sans-serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+        "weight": "100 900",
+        "style": "normal",
+        "format": "woff2"
+       }
+      ]
+     },
+     "instrument serif": {
+      "id": "instrument-serif",
+      "family": "Instrument Serif",
+      "category": "serif",
+      "source": "bundled",
+      "license": "OFL-1.1",
+      "licenseFile": "app:fonts/bundled/instrument-serif/LICENSE",
+      "faces": [
+       {
+        "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-normal.woff2",
+        "weight": "400",
+        "style": "normal",
+        "format": "woff2"
+       },
+       {
+        "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-italic.woff2",
+        "weight": "400",
+        "style": "italic",
+        "format": "woff2"
+       }
+      ]
+     }
+    },
+    "preload": [
+     "df-main",
+     "df-heading",
+     "df-code",
+     "Inter",
+     "JetBrains Mono"
+    ]
+   }
+  }
+ },
+ "timelines": {
+  "render": {
+   "flat": {
+    "fps": 30,
+    "durationInFrames": 351,
+    "bars": [
+     {
+      "type": "video",
+      "key": "/0:sequence:s0/0:opening:i",
+      "itemId": "opening:i",
+      "nodeId": "opening",
+      "kind": "element",
+      "component": "word-push",
+      "props": {
+       "text": "Good ideas deserve a stage",
+       "fontSize": 96,
+       "wordGap": 10,
+       "accel": 0.8,
+       "color": "#fafafa",
+       "fontWeight": "400",
+       "background": "#0b0b10",
+       "letterSpacing": -0.02,
+       "speed": 1.0,
+       "pushTime": 12.0,
+       "driveDistance": 0.5
+      },
+      "thumbnail": null,
+      "from": 0.0,
+      "to": 90.0,
+      "lane": 0,
+      "order": 0,
+      "chain": [
+       {
+        "itemId": "opening:i",
+        "nodeId": "opening",
+        "handles": {
+         "trimEnd": {
+          "nodeId": "opening",
+          "param": "clipDuration",
+          "unit": "frames"
+         }
+        },
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 90.0,
+        "from": 0.0,
+        "to": 90.0
+       },
+       {
+        "itemId": "sequence:s0",
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in1"
+        },
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 90.0,
+        "from": 0.0,
+        "to": 90.0
+       }
+      ],
+      "rate": 1.0,
+      "contentStart": 0.0,
+      "contentEnd": 90.0,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     },
+     {
+      "type": "video",
+      "key": "/0:sequence:s1/0:reveal:i",
+      "itemId": "reveal:i",
+      "nodeId": "reveal",
+      "kind": "element",
+      "component": "title",
+      "props": {
+       "eyebrow": "Let's make",
+       "title": "Acme",
+       "subtitle": "Built around you. Made to be yours.",
+       "align": "center",
+       "entrance": "scale-cut",
+       "color": "#fafafa",
+       "accent": "#a78bfa",
+       "background": "transparent",
+       "fontSize": 112,
+       "fontWeight": 760,
+       "fadeOut": 0.3333,
+       "sideMargin": 9.0,
+       "lineGap": 0.22,
+       "eyebrowSize": 0.26,
+       "eyebrowUppercase": true,
+       "subtitleSize": 0.34,
+       "letterSpacing": -0.035,
+       "lineStagger": 1.0
+      },
+      "thumbnail": null,
+      "from": 72.0,
+      "to": 147.0,
+      "lane": 1,
+      "order": 1,
+      "chain": [
+       {
+        "itemId": "reveal:i",
+        "nodeId": "reveal",
+        "handles": {
+         "trimEnd": {
+          "nodeId": "reveal",
+          "param": "clipDuration",
+          "unit": "frames"
+         }
+        },
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 75.0,
+        "from": 72.0,
+        "to": 147.0
+       },
+       {
+        "itemId": "sequence:s1",
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in2"
+        },
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 75.0,
+        "from": 72.0,
+        "to": 147.0
+       }
+      ],
+      "rate": 1.0,
+      "contentStart": 0.0,
+      "contentEnd": 75.0,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     },
+     {
+      "type": "video",
+      "key": "/0:sequence:s2/0:proof:i",
+      "itemId": "proof:i",
+      "nodeId": "proof",
+      "kind": "element",
+      "component": "kinetic-headline",
+      "props": {
+       "text": "Your work. *A clearer view.*",
+       "color": "#fafafa",
+       "emphasisColor": "#facc15",
+       "background": "#0b0b10",
+       "fontSize": 104,
+       "wordStagger": 4,
+       "fadeOutInFrames": 10,
+       "fontWeight": 780,
+       "letterSpacing": -0.04,
+       "lineHeight": 1.05,
+       "sideMargin": 8.0,
+       "wordGap": 0.28,
+       "rise": 0.5,
+       "tilt": 4.0,
+       "underlineEmphasis": true
+      },
+      "thumbnail": null,
+      "from": 129.0,
+      "to": 219.0,
+      "lane": 0,
+      "order": 2,
+      "chain": [
+       {
+        "itemId": "proof:i",
+        "nodeId": "proof",
+        "handles": {
+         "trimEnd": {
+          "nodeId": "proof",
+          "param": "clipDuration",
+          "unit": "frames"
+         }
+        },
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 90.0,
+        "from": 129.0,
+        "to": 219.0
+       },
+       {
+        "itemId": "sequence:s2",
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in3"
+        },
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 90.0,
+        "from": 129.0,
+        "to": 219.0
+       }
+      ],
+      "rate": 1.0,
+      "contentStart": 0.0,
+      "contentEnd": 90.0,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     },
+     {
+      "type": "video",
+      "key": "/0:sequence:s3/0:close:i",
+      "itemId": "close:i",
+      "nodeId": "close",
+      "kind": "element",
+      "component": "end-card",
+      "props": {
+       "title": "Begin with Acme",
+       "subtitle": "Small things. Well made.",
+       "eyebrow": "",
+       "cta": "Begin",
+       "url": "yourproduct.example",
+       "handles": [],
+       "logoSrc": "",
+       "accentColor": "#E8B86D",
+       "theme": {
+        "mode": "dark",
+        "colors": {}
+       },
+       "speed": 1.0,
+       "buttonArrow": true,
+       "buttonRadius": 999,
+       "glow": 12,
+       "textSize": 1.0,
+       "titleWeight": 700,
+       "eyebrowCaps": true
+      },
+      "thumbnail": null,
+      "from": 201.0,
+      "to": 351.0,
+      "lane": 1,
+      "order": 3,
+      "chain": [
+       {
+        "itemId": "close:i",
+        "nodeId": "close",
+        "handles": {
+         "trimEnd": {
+          "nodeId": "close",
+          "param": "clipDuration",
+          "unit": "frames"
+         }
+        },
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 150.0,
+        "from": 201.0,
+        "to": 351.0
+       },
+       {
+        "itemId": "sequence:s3",
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in4"
+        },
+        "rate": 1.0,
+        "rateEnd": 1.0,
+        "end": 150.0,
+        "from": 201.0,
+        "to": 351.0
+       }
+      ],
+      "rate": 1.0,
+      "contentStart": 0.0,
+      "contentEnd": 150.0,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     }
+    ],
+    "lanes": 2,
+    "audio": [
+     {
+      "type": "audio",
+      "key": "audio:music",
+      "id": "music",
+      "nodeId": "music",
+      "channel": "music",
+      "src": "app:music/elevate.m4a",
+      "role": "music",
+      "from": 0.0,
+      "to": 351.0,
+      "lane": 0,
+      "trimBefore": 0.0,
+      "loop": true,
+      "volume": 0.4,
+      "handles": {
+       "move": {
+        "nodeId": "music",
+        "param": "startMs",
+        "unit": "ms"
+       },
+       "trimStart": {
+        "nodeId": "music",
+        "param": "trimMs",
+        "unit": "ms",
+        "linked": [
+         {
+          "param": "startMs",
+          "sign": 1
+         },
+         {
+          "param": "lengthMs",
+          "sign": -1,
+          "ifNonZero": true
+         }
+        ]
+       },
+       "trimEnd": {
+        "nodeId": "music",
+        "param": "lengthMs",
+        "unit": "ms"
+       },
+       "volume": {
+        "nodeId": "music",
+        "param": "volume",
+        "unit": "number"
+       }
+      },
+      "item": {
+       "id": "music",
+       "src": "app:music/elevate.m4a",
+       "from": 0,
+       "durationInFrames": 351,
+       "volume": 0.4,
+       "loop": true,
+       "fadeInFrames": 24,
+       "fadeOutFrames": 45,
+       "nodeId": "music",
+       "channel": "music",
+       "role": "music",
+       "handles": {
+        "move": {
+         "nodeId": "music",
+         "param": "startMs",
+         "unit": "ms"
+        },
+        "trimStart": {
+         "nodeId": "music",
+         "param": "trimMs",
+         "unit": "ms",
+         "linked": [
+          {
+           "param": "startMs",
+           "sign": 1
+          },
+          {
+           "param": "lengthMs",
+           "sign": -1,
+           "ifNonZero": true
+          }
+         ]
+        },
+        "trimEnd": {
+         "nodeId": "music",
+         "param": "lengthMs",
+         "unit": "ms"
+        },
+        "volume": {
+         "nodeId": "music",
+         "param": "volume",
+         "unit": "number"
+        }
+       }
+      }
+     }
+    ],
+    "audioLanes": 1,
+    "transitions": [
+     {
+      "key": "/0:sequence:s1:enter",
+      "itemKey": "/0:sequence:s1",
+      "from": 72.0,
+      "to": 90.0,
+      "kind": "push-through",
+      "lanes": [
+       0,
+       1
+      ],
+      "covers": 0.24,
+      "slot": {
+       "nodeId": "sequence",
+       "port": "in2"
+      }
+     },
+     {
+      "key": "/0:sequence:s2:enter",
+      "itemKey": "/0:sequence:s2",
+      "from": 129.0,
+      "to": 147.0,
+      "kind": "push-through",
+      "lanes": [
+       0,
+       1
+      ],
+      "covers": 0.24,
+      "slot": {
+       "nodeId": "sequence",
+       "port": "in3"
+      }
+     },
+     {
+      "key": "/0:sequence:s3:enter",
+      "itemKey": "/0:sequence:s3",
+      "from": 201.0,
+      "to": 219.0,
+      "kind": "push-through",
+      "lanes": [
+       0,
+       1
+      ],
+      "covers": 0.2,
+      "slot": {
+       "nodeId": "sequence",
+       "port": "in4"
+      }
+     }
+    ],
+    "marks": [],
+    "cameraKeys": []
+   },
+   "mix": {
+    "fps": 30,
+    "durationInFrames": 351,
+    "channels": [
+     {
+      "id": "music",
+      "kind": "music",
+      "bus": "music",
+      "strip": {
+       "trim": 0.0,
+       "highpass": {
+        "on": false,
+        "freq": 80.0
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120.0,
+          "gain": 0.0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500.0,
+          "gain": 0.0,
+          "q": 1.0
+         },
+         {
+          "type": "peak",
+          "freq": 2500.0,
+          "gain": 0.0,
+          "q": 1.0
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000.0,
+          "gain": 0.0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18.0,
+        "ratio": 3.0,
+        "attack": 10.0,
+        "release": 150.0,
+        "makeup": 0.0
+       },
+       "fader": 0.0,
+       "pan": 0.0,
+       "mute": false,
+       "solo": false
+      },
+      "sounds": [
+       {
+        "src": "app:music/elevate.m4a",
+        "at": 0,
+        "offset": 0,
+        "length": 351,
+        "loop": true,
+        "rate": 1.0,
+        "volume": 0.4,
+        "fadeIn": 24,
+        "fadeOut": 45
+       }
+      ],
+      "audible": true
+     }
+    ],
+    "buses": [
+     {
+      "id": "music",
+      "name": "Music",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80.0
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120.0,
+          "gain": 0.0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500.0,
+          "gain": 0.0,
+          "q": 1.0
+         },
+         {
+          "type": "peak",
+          "freq": 2500.0,
+          "gain": 0.0,
+          "q": 1.0
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000.0,
+          "gain": 0.0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18.0,
+        "ratio": 3.0,
+        "attack": 10.0,
+        "release": 150.0,
+        "makeup": 0.0
+       }
+      },
+      "fader": 0.0,
+      "channels": [
+       "music"
+      ],
+      "duck": null
+     },
+     {
+      "id": "effects",
+      "name": "Effects",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80.0
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120.0,
+          "gain": 0.0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500.0,
+          "gain": 0.0,
+          "q": 1.0
+         },
+         {
+          "type": "peak",
+          "freq": 2500.0,
+          "gain": 0.0,
+          "q": 1.0
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000.0,
+          "gain": 0.0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18.0,
+        "ratio": 3.0,
+        "attack": 10.0,
+        "release": 150.0,
+        "makeup": 0.0
+       }
+      },
+      "fader": 0.0,
+      "channels": [],
+      "duck": null
+     },
+     {
+      "id": "clips",
+      "name": "Clips",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80.0
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120.0,
+          "gain": 0.0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500.0,
+          "gain": 0.0,
+          "q": 1.0
+         },
+         {
+          "type": "peak",
+          "freq": 2500.0,
+          "gain": 0.0,
+          "q": 1.0
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000.0,
+          "gain": 0.0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18.0,
+        "ratio": 3.0,
+        "attack": 10.0,
+        "release": 150.0,
+        "makeup": 0.0
+       }
+      },
+      "fader": 0.0,
+      "channels": [],
+      "duck": null
+     }
+    ],
+    "master": {
+     "fader": 0.0,
+     "eq": {
+      "on": false,
+      "bands": [
+       {
+        "type": "lowshelf",
+        "freq": 120.0,
+        "gain": 0.0,
+        "q": 0.7
+       },
+       {
+        "type": "peak",
+        "freq": 500.0,
+        "gain": 0.0,
+        "q": 1.0
+       },
+       {
+        "type": "peak",
+        "freq": 2500.0,
+        "gain": 0.0,
+        "q": 1.0
+       },
+       {
+        "type": "highshelf",
+        "freq": 8000.0,
+        "gain": 0.0,
+        "q": 0.7
+       }
+      ]
+     },
+     "comp": {
+      "on": false,
+      "threshold": -12.0,
+      "ratio": 2.0,
+      "attack": 20.0,
+      "release": 250.0,
+      "makeup": 0.0
+     },
+     "limiter": {
+      "on": false,
+      "ceiling": -1.0
+     },
+     "loudness": "off"
+    }
+   },
+   "chapters": []
+  }
+ },
+ "run": {
+  "results": {},
+  "compile": {
+   "values": {
+    "opening": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 90,
+      "tracks": [
+       {
+        "id": "opening:t",
+        "items": [
+         {
+          "kind": "element",
+          "id": "opening:i",
+          "from": 0,
+          "durationInFrames": 90,
+          "nodeId": "opening",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "opening",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          },
+          "design": {
+           "width": 1920,
+           "height": 1080
+          },
+          "component": "word-push",
+          "props": {
+           "text": "Good ideas deserve a stage",
+           "fontSize": 96,
+           "wordGap": 10,
+           "accel": 0.8,
+           "color": "#fafafa",
+           "fontWeight": "400",
+           "background": "#0b0b10",
+           "letterSpacing": -0.02,
+           "speed": 1.0,
+           "pushTime": 12.0,
+           "driveDistance": 0.5
+          }
+         }
+        ]
+       }
+      ],
+      "audio": []
+     }
+    },
+    "reveal": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 75,
+      "tracks": [
+       {
+        "id": "reveal:t",
+        "items": [
+         {
+          "kind": "element",
+          "id": "reveal:i",
+          "from": 0,
+          "durationInFrames": 75,
+          "nodeId": "reveal",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "reveal",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          },
+          "component": "title",
+          "props": {
+           "eyebrow": "Let's make",
+           "title": "Acme",
+           "subtitle": "Built around you. Made to be yours.",
+           "align": "center",
+           "entrance": "scale-cut",
+           "color": "#fafafa",
+           "accent": "#a78bfa",
+           "background": "transparent",
+           "fontSize": 112,
+           "fontWeight": 760,
+           "fadeOut": 0.3333,
+           "sideMargin": 9.0,
+           "lineGap": 0.22,
+           "eyebrowSize": 0.26,
+           "eyebrowUppercase": true,
+           "subtitleSize": 0.34,
+           "letterSpacing": -0.035,
+           "lineStagger": 1.0
+          }
+         }
+        ]
+       }
+      ],
+      "audio": []
+     }
+    },
+    "proof": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 90,
+      "tracks": [
+       {
+        "id": "proof:t",
+        "items": [
+         {
+          "kind": "element",
+          "id": "proof:i",
+          "from": 0,
+          "durationInFrames": 90,
+          "nodeId": "proof",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "proof",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          },
+          "component": "kinetic-headline",
+          "props": {
+           "text": "Your work. *A clearer view.*",
+           "color": "#fafafa",
+           "emphasisColor": "#facc15",
+           "background": "#0b0b10",
+           "fontSize": 104,
+           "wordStagger": 4,
+           "fadeOutInFrames": 10,
+           "fontWeight": 780,
+           "letterSpacing": -0.04,
+           "lineHeight": 1.05,
+           "sideMargin": 8.0,
+           "wordGap": 0.28,
+           "rise": 0.5,
+           "tilt": 4.0,
+           "underlineEmphasis": true
+          }
+         }
+        ]
+       }
+      ],
+      "audio": []
+     }
+    },
+    "close": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 150,
+      "tracks": [
+       {
+        "id": "close:t",
+        "items": [
+         {
+          "kind": "element",
+          "id": "close:i",
+          "from": 0,
+          "durationInFrames": 150,
+          "nodeId": "close",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "close",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          },
+          "component": "end-card",
+          "props": {
+           "title": "Begin with Acme",
+           "subtitle": "Small things. Well made.",
+           "eyebrow": "",
+           "cta": "Begin",
+           "url": "yourproduct.example",
+           "handles": [],
+           "logoSrc": "",
+           "accentColor": "#E8B86D",
+           "theme": {
+            "mode": "dark",
+            "colors": {}
+           },
+           "speed": 1.0,
+           "buttonArrow": true,
+           "buttonRadius": 999,
+           "glow": 12,
+           "textSize": 1.0,
+           "titleWeight": 700,
+           "eyebrowCaps": true
+          }
+         }
+        ]
+       }
+      ],
+      "audio": []
+     }
+    },
+    "transition": {
+     "transition": {
+      "type": "transition",
+      "kind": "push-through",
+      "durationInFrames": 18,
+      "params": {
+       "zoom": 2.4,
+       "blur": 14,
+       "approachFrom": 0.68
+      }
+     }
+    },
+    "sequence": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 351,
+      "tracks": [
+       {
+        "id": "sequence:seq",
+        "items": [
+         {
+          "kind": "group",
+          "id": "sequence:s0",
+          "from": 0,
+          "durationInFrames": 90,
+          "exit": {
+           "kind": "push-through",
+           "durationInFrames": 18,
+           "params": {
+            "zoom": 2.4,
+            "blur": 14,
+            "approachFrom": 0.68
+           }
+          },
+          "slot": {
+           "nodeId": "sequence",
+           "port": "in1"
+          },
+          "props": {
+           "tracks": [
+            {
+             "id": "opening:t",
+             "items": [
+              {
+               "kind": "element",
+               "id": "opening:i",
+               "from": 0,
+               "durationInFrames": 90,
+               "nodeId": "opening",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "opening",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               },
+               "design": {
+                "width": 1920,
+                "height": 1080
+               },
+               "component": "word-push",
+               "props": {
+                "text": "Good ideas deserve a stage",
+                "fontSize": 96,
+                "wordGap": 10,
+                "accel": 0.8,
+                "color": "#fafafa",
+                "fontWeight": "400",
+                "background": "#0b0b10",
+                "letterSpacing": -0.02,
+                "speed": 1.0,
+                "pushTime": 12.0,
+                "driveDistance": 0.5
+               }
+              }
+             ]
+            }
+           ]
+          }
+         },
+         {
+          "kind": "group",
+          "id": "sequence:s1",
+          "from": 72,
+          "durationInFrames": 75,
+          "enter": {
+           "kind": "push-through",
+           "durationInFrames": 18,
+           "params": {
+            "zoom": 2.4,
+            "blur": 14,
+            "approachFrom": 0.68
+           }
+          },
+          "exit": {
+           "kind": "push-through",
+           "durationInFrames": 18,
+           "params": {
+            "zoom": 2.4,
+            "blur": 14,
+            "approachFrom": 0.68
+           }
+          },
+          "slot": {
+           "nodeId": "sequence",
+           "port": "in2"
+          },
+          "props": {
+           "tracks": [
+            {
+             "id": "reveal:t",
+             "items": [
+              {
+               "kind": "element",
+               "id": "reveal:i",
+               "from": 0,
+               "durationInFrames": 75,
+               "nodeId": "reveal",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "reveal",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               },
+               "component": "title",
+               "props": {
+                "eyebrow": "Let's make",
+                "title": "Acme",
+                "subtitle": "Built around you. Made to be yours.",
+                "align": "center",
+                "entrance": "scale-cut",
+                "color": "#fafafa",
+                "accent": "#a78bfa",
+                "background": "transparent",
+                "fontSize": 112,
+                "fontWeight": 760,
+                "fadeOut": 0.3333,
+                "sideMargin": 9.0,
+                "lineGap": 0.22,
+                "eyebrowSize": 0.26,
+                "eyebrowUppercase": true,
+                "subtitleSize": 0.34,
+                "letterSpacing": -0.035,
+                "lineStagger": 1.0
+               }
+              }
+             ]
+            }
+           ]
+          }
+         },
+         {
+          "kind": "group",
+          "id": "sequence:s2",
+          "from": 129,
+          "durationInFrames": 90,
+          "enter": {
+           "kind": "push-through",
+           "durationInFrames": 18,
+           "params": {
+            "zoom": 2.4,
+            "blur": 14,
+            "approachFrom": 0.68
+           }
+          },
+          "exit": {
+           "kind": "push-through",
+           "durationInFrames": 18,
+           "params": {
+            "zoom": 2.4,
+            "blur": 14,
+            "approachFrom": 0.68
+           }
+          },
+          "slot": {
+           "nodeId": "sequence",
+           "port": "in3"
+          },
+          "props": {
+           "tracks": [
+            {
+             "id": "proof:t",
+             "items": [
+              {
+               "kind": "element",
+               "id": "proof:i",
+               "from": 0,
+               "durationInFrames": 90,
+               "nodeId": "proof",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "proof",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               },
+               "component": "kinetic-headline",
+               "props": {
+                "text": "Your work. *A clearer view.*",
+                "color": "#fafafa",
+                "emphasisColor": "#facc15",
+                "background": "#0b0b10",
+                "fontSize": 104,
+                "wordStagger": 4,
+                "fadeOutInFrames": 10,
+                "fontWeight": 780,
+                "letterSpacing": -0.04,
+                "lineHeight": 1.05,
+                "sideMargin": 8.0,
+                "wordGap": 0.28,
+                "rise": 0.5,
+                "tilt": 4.0,
+                "underlineEmphasis": true
+               }
+              }
+             ]
+            }
+           ]
+          }
+         },
+         {
+          "kind": "group",
+          "id": "sequence:s3",
+          "from": 201,
+          "durationInFrames": 150,
+          "enter": {
+           "kind": "push-through",
+           "durationInFrames": 18,
+           "params": {
+            "zoom": 2.4,
+            "blur": 14,
+            "approachFrom": 0.68
+           }
+          },
+          "slot": {
+           "nodeId": "sequence",
+           "port": "in4"
+          },
+          "props": {
+           "tracks": [
+            {
+             "id": "close:t",
+             "items": [
+              {
+               "kind": "element",
+               "id": "close:i",
+               "from": 0,
+               "durationInFrames": 150,
+               "nodeId": "close",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "close",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               },
+               "component": "end-card",
+               "props": {
+                "title": "Begin with Acme",
+                "subtitle": "Small things. Well made.",
+                "eyebrow": "",
+                "cta": "Begin",
+                "url": "yourproduct.example",
+                "handles": [],
+                "logoSrc": "",
+                "accentColor": "#E8B86D",
+                "theme": {
+                 "mode": "dark",
+                 "colors": {}
+                },
+                "speed": 1.0,
+                "buttonArrow": true,
+                "buttonRadius": 999,
+                "glow": 12,
+                "textSize": 1.0,
+                "titleWeight": 700,
+                "eyebrowCaps": true
+               }
+              }
+             ]
+            }
+           ]
+          }
+         }
+        ]
+       }
+      ],
+      "audio": []
+     }
+    },
+    "music": {
+     "audio": {
+      "type": "audio",
+      "items": [
+       {
+        "id": "music",
+        "src": "app:music/elevate.m4a",
+        "from": 0,
+        "volume": 0.4,
+        "loop": true,
+        "fadeInFrames": 24,
+        "fadeOutFrames": 45,
+        "nodeId": "music",
+        "channel": "music",
+        "role": "music",
+        "handles": {
+         "move": {
+          "nodeId": "music",
+          "param": "startMs",
+          "unit": "ms"
+         },
+         "trimStart": {
+          "nodeId": "music",
+          "param": "trimMs",
+          "unit": "ms",
+          "linked": [
+           {
+            "param": "startMs",
+            "sign": 1
+           },
+           {
+            "param": "lengthMs",
+            "sign": -1,
+            "ifNonZero": true
+           }
+          ]
+         },
+         "trimEnd": {
+          "nodeId": "music",
+          "param": "lengthMs",
+          "unit": "ms"
+         },
+         "volume": {
+          "nodeId": "music",
+          "param": "volume",
+          "unit": "number"
+         }
+        }
+       }
+      ],
+      "durationInFrames": 4841
+     }
+    },
+    "mix": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 351,
+      "tracks": [
+       {
+        "id": "sequence:seq",
+        "items": [
+         {
+          "kind": "group",
+          "id": "sequence:s0",
+          "from": 0,
+          "durationInFrames": 90,
+          "exit": {
+           "kind": "push-through",
+           "durationInFrames": 18,
+           "params": {
+            "zoom": 2.4,
+            "blur": 14,
+            "approachFrom": 0.68
+           }
+          },
+          "slot": {
+           "nodeId": "sequence",
+           "port": "in1"
+          },
+          "props": {
+           "tracks": [
+            {
+             "id": "opening:t",
+             "items": [
+              {
+               "kind": "element",
+               "id": "opening:i",
+               "from": 0,
+               "durationInFrames": 90,
+               "nodeId": "opening",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "opening",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               },
+               "design": {
+                "width": 1920,
+                "height": 1080
+               },
+               "component": "word-push",
+               "props": {
+                "text": "Good ideas deserve a stage",
+                "fontSize": 96,
+                "wordGap": 10,
+                "accel": 0.8,
+                "color": "#fafafa",
+                "fontWeight": "400",
+                "background": "#0b0b10",
+                "letterSpacing": -0.02,
+                "speed": 1.0,
+                "pushTime": 12.0,
+                "driveDistance": 0.5
+               }
+              }
+             ]
+            }
+           ]
+          }
+         },
+         {
+          "kind": "group",
+          "id": "sequence:s1",
+          "from": 72,
+          "durationInFrames": 75,
+          "enter": {
+           "kind": "push-through",
+           "durationInFrames": 18,
+           "params": {
+            "zoom": 2.4,
+            "blur": 14,
+            "approachFrom": 0.68
+           }
+          },
+          "exit": {
+           "kind": "push-through",
+           "durationInFrames": 18,
+           "params": {
+            "zoom": 2.4,
+            "blur": 14,
+            "approachFrom": 0.68
+           }
+          },
+          "slot": {
+           "nodeId": "sequence",
+           "port": "in2"
+          },
+          "props": {
+           "tracks": [
+            {
+             "id": "reveal:t",
+             "items": [
+              {
+               "kind": "element",
+               "id": "reveal:i",
+               "from": 0,
+               "durationInFrames": 75,
+               "nodeId": "reveal",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "reveal",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               },
+               "component": "title",
+               "props": {
+                "eyebrow": "Let's make",
+                "title": "Acme",
+                "subtitle": "Built around you. Made to be yours.",
+                "align": "center",
+                "entrance": "scale-cut",
+                "color": "#fafafa",
+                "accent": "#a78bfa",
+                "background": "transparent",
+                "fontSize": 112,
+                "fontWeight": 760,
+                "fadeOut": 0.3333,
+                "sideMargin": 9.0,
+                "lineGap": 0.22,
+                "eyebrowSize": 0.26,
+                "eyebrowUppercase": true,
+                "subtitleSize": 0.34,
+                "letterSpacing": -0.035,
+                "lineStagger": 1.0
+               }
+              }
+             ]
+            }
+           ]
+          }
+         },
+         {
+          "kind": "group",
+          "id": "sequence:s2",
+          "from": 129,
+          "durationInFrames": 90,
+          "enter": {
+           "kind": "push-through",
+           "durationInFrames": 18,
+           "params": {
+            "zoom": 2.4,
+            "blur": 14,
+            "approachFrom": 0.68
+           }
+          },
+          "exit": {
+           "kind": "push-through",
+           "durationInFrames": 18,
+           "params": {
+            "zoom": 2.4,
+            "blur": 14,
+            "approachFrom": 0.68
+           }
+          },
+          "slot": {
+           "nodeId": "sequence",
+           "port": "in3"
+          },
+          "props": {
+           "tracks": [
+            {
+             "id": "proof:t",
+             "items": [
+              {
+               "kind": "element",
+               "id": "proof:i",
+               "from": 0,
+               "durationInFrames": 90,
+               "nodeId": "proof",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "proof",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               },
+               "component": "kinetic-headline",
+               "props": {
+                "text": "Your work. *A clearer view.*",
+                "color": "#fafafa",
+                "emphasisColor": "#facc15",
+                "background": "#0b0b10",
+                "fontSize": 104,
+                "wordStagger": 4,
+                "fadeOutInFrames": 10,
+                "fontWeight": 780,
+                "letterSpacing": -0.04,
+                "lineHeight": 1.05,
+                "sideMargin": 8.0,
+                "wordGap": 0.28,
+                "rise": 0.5,
+                "tilt": 4.0,
+                "underlineEmphasis": true
+               }
+              }
+             ]
+            }
+           ]
+          }
+         },
+         {
+          "kind": "group",
+          "id": "sequence:s3",
+          "from": 201,
+          "durationInFrames": 150,
+          "enter": {
+           "kind": "push-through",
+           "durationInFrames": 18,
+           "params": {
+            "zoom": 2.4,
+            "blur": 14,
+            "approachFrom": 0.68
+           }
+          },
+          "slot": {
+           "nodeId": "sequence",
+           "port": "in4"
+          },
+          "props": {
+           "tracks": [
+            {
+             "id": "close:t",
+             "items": [
+              {
+               "kind": "element",
+               "id": "close:i",
+               "from": 0,
+               "durationInFrames": 150,
+               "nodeId": "close",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "close",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               },
+               "component": "end-card",
+               "props": {
+                "title": "Begin with Acme",
+                "subtitle": "Small things. Well made.",
+                "eyebrow": "",
+                "cta": "Begin",
+                "url": "yourproduct.example",
+                "handles": [],
+                "logoSrc": "",
+                "accentColor": "#E8B86D",
+                "theme": {
+                 "mode": "dark",
+                 "colors": {}
+                },
+                "speed": 1.0,
+                "buttonArrow": true,
+                "buttonRadius": 999,
+                "glow": 12,
+                "textSize": 1.0,
+                "titleWeight": 700,
+                "eyebrowCaps": true
+               }
+              }
+             ]
+            }
+           ]
+          }
+         }
+        ]
+       }
+      ],
+      "audio": [
+       {
+        "id": "music",
+        "src": "app:music/elevate.m4a",
+        "from": 0,
+        "durationInFrames": 351,
+        "volume": 0.4,
+        "loop": true,
+        "fadeInFrames": 24,
+        "fadeOutFrames": 45,
+        "nodeId": "music",
+        "channel": "music",
+        "role": "music",
+        "handles": {
+         "move": {
+          "nodeId": "music",
+          "param": "startMs",
+          "unit": "ms"
+         },
+         "trimStart": {
+          "nodeId": "music",
+          "param": "trimMs",
+          "unit": "ms",
+          "linked": [
+           {
+            "param": "startMs",
+            "sign": 1
+           },
+           {
+            "param": "lengthMs",
+            "sign": -1,
+            "ifNonZero": true
+           }
+          ]
+         },
+         "trimEnd": {
+          "nodeId": "music",
+          "param": "lengthMs",
+          "unit": "ms"
+         },
+         "volume": {
+          "nodeId": "music",
+          "param": "volume",
+          "unit": "number"
+         }
+        }
+       }
+      ]
+     }
+    },
+    "render": {}
+   },
+   "errors": {},
+   "order": [
+    "opening",
+    "reveal",
+    "proof",
+    "close",
+    "transition",
+    "sequence",
+    "music",
+    "mix",
+    "render"
+   ]
+  },
+  "problems": [],
+  "cards": {
+   "opening": {
+    "rows": [
+     {
+      "icon": "shapes",
+      "text": "Word push"
+     },
+     {
+      "icon": "type",
+      "text": "“Good ideas deserve a stage”"
+     },
+     {
+      "icon": "clock",
+      "text": "3 s"
+     }
+    ]
+   },
+   "reveal": {
+    "rows": [
+     {
+      "icon": "type",
+      "text": "“Acme”"
+     },
+     {
+      "icon": "clock",
+      "text": "2.5 s"
+     }
+    ]
+   },
+   "proof": {
+    "rows": [
+     {
+      "icon": "shapes",
+      "text": "Animated headline"
+     },
+     {
+      "icon": "type",
+      "text": "“Your work. *A clearer view.*”"
+     },
+     {
+      "icon": "clock",
+      "text": "3 s"
+     }
+    ]
+   },
+   "close": {
+    "rows": [
+     {
+      "icon": "type",
+      "text": "“Begin with Acme”"
+     },
+     {
+      "icon": "moon",
+      "text": "Dark theme"
+     },
+     {
+      "icon": "clock",
+      "text": "5 s"
+     }
+    ]
+   },
+   "transition": {
+    "rows": [
+     {
+      "icon": "arrow-right-left",
+      "text": "Push through · 0.6 s"
+     }
+    ]
+   },
+   "sequence": {
+    "rows": [
+     {
+      "icon": "list-video",
+      "text": "4 clips · 11.7 s"
+     },
+     {
+      "icon": "arrow-right-left",
+      "text": "3 joins with push through"
+     }
+    ]
+   },
+   "music": {
+    "rows": [
+     {
+      "icon": "music",
+      "text": "Elevate",
+      "title": "app:music/elevate.m4a"
+     },
+     {
+      "icon": "volume-2",
+      "text": "40%"
+     },
+     {
+      "icon": "repeat",
+      "text": "Loops"
+     }
+    ]
+   },
+   "mix": {
+    "rows": [
+     {
+      "icon": "volume-2",
+      "text": "1 sound"
+     }
+    ]
+   },
+   "render": {
+    "rows": [
+     {
+      "icon": "ratio",
+      "text": "16:9 + 9:16"
+     },
+     {
+      "icon": "film",
+      "text": "MP4 · 1080p · 30 fps"
+     }
+    ]
+   }
+  },
+  "film": {
+   "spec": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "durationInFrames": 351,
+    "background": "#09090b",
+    "tracks": [
+     {
+      "id": "sequence:seq",
+      "items": [
+       {
+        "kind": "group",
+        "id": "sequence:s0",
+        "from": 0,
+        "durationInFrames": 90,
+        "exit": {
+         "kind": "push-through",
+         "durationInFrames": 18,
+         "params": {
+          "zoom": 2.4,
+          "blur": 14,
+          "approachFrom": 0.68
+         }
+        },
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in1"
+        },
+        "props": {
+         "tracks": [
+          {
+           "id": "opening:t",
+           "items": [
+            {
+             "kind": "element",
+             "id": "opening:i",
+             "from": 0,
+             "durationInFrames": 90,
+             "nodeId": "opening",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "opening",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             },
+             "design": {
+              "width": 1920,
+              "height": 1080
+             },
+             "component": "word-push",
+             "props": {
+              "text": "Good ideas deserve a stage",
+              "fontSize": 96,
+              "wordGap": 10,
+              "accel": 0.8,
+              "color": "#fafafa",
+              "fontWeight": "400",
+              "background": "#0b0b10",
+              "letterSpacing": -0.02,
+              "speed": 1.0,
+              "pushTime": 12.0,
+              "driveDistance": 0.5
+             }
+            }
+           ]
+          }
+         ]
+        }
+       },
+       {
+        "kind": "group",
+        "id": "sequence:s1",
+        "from": 72,
+        "durationInFrames": 75,
+        "enter": {
+         "kind": "push-through",
+         "durationInFrames": 18,
+         "params": {
+          "zoom": 2.4,
+          "blur": 14,
+          "approachFrom": 0.68
+         }
+        },
+        "exit": {
+         "kind": "push-through",
+         "durationInFrames": 18,
+         "params": {
+          "zoom": 2.4,
+          "blur": 14,
+          "approachFrom": 0.68
+         }
+        },
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in2"
+        },
+        "props": {
+         "tracks": [
+          {
+           "id": "reveal:t",
+           "items": [
+            {
+             "kind": "element",
+             "id": "reveal:i",
+             "from": 0,
+             "durationInFrames": 75,
+             "nodeId": "reveal",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "reveal",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             },
+             "component": "title",
+             "props": {
+              "eyebrow": "Let's make",
+              "title": "Acme",
+              "subtitle": "Built around you. Made to be yours.",
+              "align": "center",
+              "entrance": "scale-cut",
+              "color": "#fafafa",
+              "accent": "#a78bfa",
+              "background": "transparent",
+              "fontSize": 112,
+              "fontWeight": 760,
+              "fadeOut": 0.3333,
+              "sideMargin": 9.0,
+              "lineGap": 0.22,
+              "eyebrowSize": 0.26,
+              "eyebrowUppercase": true,
+              "subtitleSize": 0.34,
+              "letterSpacing": -0.035,
+              "lineStagger": 1.0
+             }
+            }
+           ]
+          }
+         ]
+        }
+       },
+       {
+        "kind": "group",
+        "id": "sequence:s2",
+        "from": 129,
+        "durationInFrames": 90,
+        "enter": {
+         "kind": "push-through",
+         "durationInFrames": 18,
+         "params": {
+          "zoom": 2.4,
+          "blur": 14,
+          "approachFrom": 0.68
+         }
+        },
+        "exit": {
+         "kind": "push-through",
+         "durationInFrames": 18,
+         "params": {
+          "zoom": 2.4,
+          "blur": 14,
+          "approachFrom": 0.68
+         }
+        },
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in3"
+        },
+        "props": {
+         "tracks": [
+          {
+           "id": "proof:t",
+           "items": [
+            {
+             "kind": "element",
+             "id": "proof:i",
+             "from": 0,
+             "durationInFrames": 90,
+             "nodeId": "proof",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "proof",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             },
+             "component": "kinetic-headline",
+             "props": {
+              "text": "Your work. *A clearer view.*",
+              "color": "#fafafa",
+              "emphasisColor": "#facc15",
+              "background": "#0b0b10",
+              "fontSize": 104,
+              "wordStagger": 4,
+              "fadeOutInFrames": 10,
+              "fontWeight": 780,
+              "letterSpacing": -0.04,
+              "lineHeight": 1.05,
+              "sideMargin": 8.0,
+              "wordGap": 0.28,
+              "rise": 0.5,
+              "tilt": 4.0,
+              "underlineEmphasis": true
+             }
+            }
+           ]
+          }
+         ]
+        }
+       },
+       {
+        "kind": "group",
+        "id": "sequence:s3",
+        "from": 201,
+        "durationInFrames": 150,
+        "enter": {
+         "kind": "push-through",
+         "durationInFrames": 18,
+         "params": {
+          "zoom": 2.4,
+          "blur": 14,
+          "approachFrom": 0.68
+         }
+        },
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in4"
+        },
+        "props": {
+         "tracks": [
+          {
+           "id": "close:t",
+           "items": [
+            {
+             "kind": "element",
+             "id": "close:i",
+             "from": 0,
+             "durationInFrames": 150,
+             "nodeId": "close",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "close",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             },
+             "component": "end-card",
+             "props": {
+              "title": "Begin with Acme",
+              "subtitle": "Small things. Well made.",
+              "eyebrow": "",
+              "cta": "Begin",
+              "url": "yourproduct.example",
+              "handles": [],
+              "logoSrc": "",
+              "accentColor": "#E8B86D",
+              "theme": {
+               "mode": "dark",
+               "colors": {}
+              },
+              "speed": 1.0,
+              "buttonArrow": true,
+              "buttonRadius": 999,
+              "glow": 12,
+              "textSize": 1.0,
+              "titleWeight": 700,
+              "eyebrowCaps": true
+             }
+            }
+           ]
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ],
+    "audio": [
+     {
+      "id": "music",
+      "src": "app:music/elevate.m4a",
+      "from": 0,
+      "durationInFrames": 351,
+      "volume": 0.4,
+      "loop": true,
+      "fadeInFrames": 24,
+      "fadeOutFrames": 45,
+      "nodeId": "music",
+      "channel": "music",
+      "role": "music",
+      "handles": {
+       "move": {
+        "nodeId": "music",
+        "param": "startMs",
+        "unit": "ms"
+       },
+       "trimStart": {
+        "nodeId": "music",
+        "param": "trimMs",
+        "unit": "ms",
+        "linked": [
+         {
+          "param": "startMs",
+          "sign": 1
+         },
+         {
+          "param": "lengthMs",
+          "sign": -1,
+          "ifNonZero": true
+         }
+        ]
+       },
+       "trimEnd": {
+        "nodeId": "music",
+        "param": "lengthMs",
+        "unit": "ms"
+       },
+       "volume": {
+        "nodeId": "music",
+        "param": "volume",
+        "unit": "number"
+       }
+      }
+     }
+    ],
+    "fonts": {
+     "families": {
+      "df-main": {
+       "id": "inter",
+       "family": "Inter",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/inter/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "df-heading": {
+       "id": "inter",
+       "family": "Inter",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/inter/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "df-code": {
+       "id": "jetbrains-mono",
+       "family": "JetBrains Mono",
+       "category": "monospace",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+         "weight": "100 800",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+         "weight": "100 800",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "inter": {
+       "id": "inter",
+       "family": "Inter",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/inter/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "jetbrains mono": {
+       "id": "jetbrains-mono",
+       "family": "JetBrains Mono",
+       "category": "monospace",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+         "weight": "100 800",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+         "weight": "100 800",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "google sans": {
+       "id": "google-sans-flex",
+       "family": "Google Sans Flex",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "geist": {
+       "id": "geist",
+       "family": "Geist",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/geist/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/geist/geist-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/geist/geist-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "geist mono": {
+       "id": "geist-mono",
+       "family": "Geist Mono",
+       "category": "monospace",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/geist-mono/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "manrope": {
+       "id": "manrope",
+       "family": "Manrope",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/manrope/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/manrope/manrope-latin-wght-normal.woff2",
+         "weight": "200 800",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "dm sans": {
+       "id": "dm-sans",
+       "family": "DM Sans",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/dm-sans/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "space grotesk": {
+       "id": "space-grotesk",
+       "family": "Space Grotesk",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/space-grotesk/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/space-grotesk/space-grotesk-latin-wght-normal.woff2",
+         "weight": "300 700",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "outfit": {
+       "id": "outfit",
+       "family": "Outfit",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/outfit/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/outfit/outfit-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "montserrat": {
+       "id": "montserrat",
+       "family": "Montserrat",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/montserrat/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "plus jakarta sans": {
+       "id": "plus-jakarta-sans",
+       "family": "Plus Jakarta Sans",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/plus-jakarta-sans/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-normal.woff2",
+         "weight": "200 800",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-italic.woff2",
+         "weight": "200 800",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "ibm plex sans": {
+       "id": "ibm-plex-sans",
+       "family": "IBM Plex Sans",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/ibm-plex-sans/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-normal.woff2",
+         "weight": "100 700",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-italic.woff2",
+         "weight": "100 700",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "playfair display": {
+       "id": "playfair-display",
+       "family": "Playfair Display",
+       "category": "serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/playfair-display/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-normal.woff2",
+         "weight": "400 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-italic.woff2",
+         "weight": "400 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "fraunces": {
+       "id": "fraunces",
+       "family": "Fraunces",
+       "category": "serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/fraunces/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "caveat": {
+       "id": "caveat",
+       "family": "Caveat",
+       "category": "handwriting",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/caveat/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/caveat/caveat-latin-wght-normal.woff2",
+         "weight": "400 700",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "google sans flex": {
+       "id": "google-sans-flex",
+       "family": "Google Sans Flex",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "instrument serif": {
+       "id": "instrument-serif",
+       "family": "Instrument Serif",
+       "category": "serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/instrument-serif/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-normal.woff2",
+         "weight": "400",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-italic.woff2",
+         "weight": "400",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      }
+     },
+     "preload": [
+      "df-main",
+      "df-heading",
+      "df-code",
+      "Inter",
+      "JetBrains Mono"
+     ]
+    }
+   },
+   "spans": {
+    "opening": {
+     "from": 0.0,
+     "to": 90.0
+    },
+    "reveal": {
+     "from": 72.0,
+     "to": 147.0
+    },
+    "proof": {
+     "from": 129.0,
+     "to": 219.0
+    },
+    "close": {
+     "from": 201.0,
+     "to": 351.0
+    }
+   },
+   "sourceNodeId": "render"
+  },
+  "films": {
+   "render": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "durationInFrames": 351,
+    "background": "#09090b",
+    "tracks": [
+     {
+      "id": "sequence:seq",
+      "items": [
+       {
+        "kind": "group",
+        "id": "sequence:s0",
+        "from": 0,
+        "durationInFrames": 90,
+        "exit": {
+         "kind": "push-through",
+         "durationInFrames": 18,
+         "params": {
+          "zoom": 2.4,
+          "blur": 14,
+          "approachFrom": 0.68
+         }
+        },
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in1"
+        },
+        "props": {
+         "tracks": [
+          {
+           "id": "opening:t",
+           "items": [
+            {
+             "kind": "element",
+             "id": "opening:i",
+             "from": 0,
+             "durationInFrames": 90,
+             "nodeId": "opening",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "opening",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             },
+             "design": {
+              "width": 1920,
+              "height": 1080
+             },
+             "component": "word-push",
+             "props": {
+              "text": "Good ideas deserve a stage",
+              "fontSize": 96,
+              "wordGap": 10,
+              "accel": 0.8,
+              "color": "#fafafa",
+              "fontWeight": "400",
+              "background": "#0b0b10",
+              "letterSpacing": -0.02,
+              "speed": 1.0,
+              "pushTime": 12.0,
+              "driveDistance": 0.5
+             }
+            }
+           ]
+          }
+         ]
+        }
+       },
+       {
+        "kind": "group",
+        "id": "sequence:s1",
+        "from": 72,
+        "durationInFrames": 75,
+        "enter": {
+         "kind": "push-through",
+         "durationInFrames": 18,
+         "params": {
+          "zoom": 2.4,
+          "blur": 14,
+          "approachFrom": 0.68
+         }
+        },
+        "exit": {
+         "kind": "push-through",
+         "durationInFrames": 18,
+         "params": {
+          "zoom": 2.4,
+          "blur": 14,
+          "approachFrom": 0.68
+         }
+        },
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in2"
+        },
+        "props": {
+         "tracks": [
+          {
+           "id": "reveal:t",
+           "items": [
+            {
+             "kind": "element",
+             "id": "reveal:i",
+             "from": 0,
+             "durationInFrames": 75,
+             "nodeId": "reveal",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "reveal",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             },
+             "component": "title",
+             "props": {
+              "eyebrow": "Let's make",
+              "title": "Acme",
+              "subtitle": "Built around you. Made to be yours.",
+              "align": "center",
+              "entrance": "scale-cut",
+              "color": "#fafafa",
+              "accent": "#a78bfa",
+              "background": "transparent",
+              "fontSize": 112,
+              "fontWeight": 760,
+              "fadeOut": 0.3333,
+              "sideMargin": 9.0,
+              "lineGap": 0.22,
+              "eyebrowSize": 0.26,
+              "eyebrowUppercase": true,
+              "subtitleSize": 0.34,
+              "letterSpacing": -0.035,
+              "lineStagger": 1.0
+             }
+            }
+           ]
+          }
+         ]
+        }
+       },
+       {
+        "kind": "group",
+        "id": "sequence:s2",
+        "from": 129,
+        "durationInFrames": 90,
+        "enter": {
+         "kind": "push-through",
+         "durationInFrames": 18,
+         "params": {
+          "zoom": 2.4,
+          "blur": 14,
+          "approachFrom": 0.68
+         }
+        },
+        "exit": {
+         "kind": "push-through",
+         "durationInFrames": 18,
+         "params": {
+          "zoom": 2.4,
+          "blur": 14,
+          "approachFrom": 0.68
+         }
+        },
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in3"
+        },
+        "props": {
+         "tracks": [
+          {
+           "id": "proof:t",
+           "items": [
+            {
+             "kind": "element",
+             "id": "proof:i",
+             "from": 0,
+             "durationInFrames": 90,
+             "nodeId": "proof",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "proof",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             },
+             "component": "kinetic-headline",
+             "props": {
+              "text": "Your work. *A clearer view.*",
+              "color": "#fafafa",
+              "emphasisColor": "#facc15",
+              "background": "#0b0b10",
+              "fontSize": 104,
+              "wordStagger": 4,
+              "fadeOutInFrames": 10,
+              "fontWeight": 780,
+              "letterSpacing": -0.04,
+              "lineHeight": 1.05,
+              "sideMargin": 8.0,
+              "wordGap": 0.28,
+              "rise": 0.5,
+              "tilt": 4.0,
+              "underlineEmphasis": true
+             }
+            }
+           ]
+          }
+         ]
+        }
+       },
+       {
+        "kind": "group",
+        "id": "sequence:s3",
+        "from": 201,
+        "durationInFrames": 150,
+        "enter": {
+         "kind": "push-through",
+         "durationInFrames": 18,
+         "params": {
+          "zoom": 2.4,
+          "blur": 14,
+          "approachFrom": 0.68
+         }
+        },
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in4"
+        },
+        "props": {
+         "tracks": [
+          {
+           "id": "close:t",
+           "items": [
+            {
+             "kind": "element",
+             "id": "close:i",
+             "from": 0,
+             "durationInFrames": 150,
+             "nodeId": "close",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "close",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             },
+             "component": "end-card",
+             "props": {
+              "title": "Begin with Acme",
+              "subtitle": "Small things. Well made.",
+              "eyebrow": "",
+              "cta": "Begin",
+              "url": "yourproduct.example",
+              "handles": [],
+              "logoSrc": "",
+              "accentColor": "#E8B86D",
+              "theme": {
+               "mode": "dark",
+               "colors": {}
+              },
+              "speed": 1.0,
+              "buttonArrow": true,
+              "buttonRadius": 999,
+              "glow": 12,
+              "textSize": 1.0,
+              "titleWeight": 700,
+              "eyebrowCaps": true
+             }
+            }
+           ]
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ],
+    "audio": [
+     {
+      "id": "music",
+      "src": "app:music/elevate.m4a",
+      "from": 0,
+      "durationInFrames": 351,
+      "volume": 0.4,
+      "loop": true,
+      "fadeInFrames": 24,
+      "fadeOutFrames": 45,
+      "nodeId": "music",
+      "channel": "music",
+      "role": "music",
+      "handles": {
+       "move": {
+        "nodeId": "music",
+        "param": "startMs",
+        "unit": "ms"
+       },
+       "trimStart": {
+        "nodeId": "music",
+        "param": "trimMs",
+        "unit": "ms",
+        "linked": [
+         {
+          "param": "startMs",
+          "sign": 1
+         },
+         {
+          "param": "lengthMs",
+          "sign": -1,
+          "ifNonZero": true
+         }
+        ]
+       },
+       "trimEnd": {
+        "nodeId": "music",
+        "param": "lengthMs",
+        "unit": "ms"
+       },
+       "volume": {
+        "nodeId": "music",
+        "param": "volume",
+        "unit": "number"
+       }
+      }
+     }
+    ],
+    "fonts": {
+     "families": {
+      "df-main": {
+       "id": "inter",
+       "family": "Inter",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/inter/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "df-heading": {
+       "id": "inter",
+       "family": "Inter",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/inter/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "df-code": {
+       "id": "jetbrains-mono",
+       "family": "JetBrains Mono",
+       "category": "monospace",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+         "weight": "100 800",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+         "weight": "100 800",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "inter": {
+       "id": "inter",
+       "family": "Inter",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/inter/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/inter/inter-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "jetbrains mono": {
+       "id": "jetbrains-mono",
+       "family": "JetBrains Mono",
+       "category": "monospace",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/jetbrains-mono/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+         "weight": "100 800",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+         "weight": "100 800",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "google sans": {
+       "id": "google-sans-flex",
+       "family": "Google Sans Flex",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "geist": {
+       "id": "geist",
+       "family": "Geist",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/geist/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/geist/geist-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/geist/geist-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "geist mono": {
+       "id": "geist-mono",
+       "family": "Geist Mono",
+       "category": "monospace",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/geist-mono/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/geist-mono/geist-mono-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "manrope": {
+       "id": "manrope",
+       "family": "Manrope",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/manrope/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/manrope/manrope-latin-wght-normal.woff2",
+         "weight": "200 800",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "dm sans": {
+       "id": "dm-sans",
+       "family": "DM Sans",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/dm-sans/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/dm-sans/dm-sans-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "space grotesk": {
+       "id": "space-grotesk",
+       "family": "Space Grotesk",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/space-grotesk/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/space-grotesk/space-grotesk-latin-wght-normal.woff2",
+         "weight": "300 700",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "outfit": {
+       "id": "outfit",
+       "family": "Outfit",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/outfit/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/outfit/outfit-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "montserrat": {
+       "id": "montserrat",
+       "family": "Montserrat",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/montserrat/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/montserrat/montserrat-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "plus jakarta sans": {
+       "id": "plus-jakarta-sans",
+       "family": "Plus Jakarta Sans",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/plus-jakarta-sans/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-normal.woff2",
+         "weight": "200 800",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/plus-jakarta-sans/plus-jakarta-sans-latin-wght-italic.woff2",
+         "weight": "200 800",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "ibm plex sans": {
+       "id": "ibm-plex-sans",
+       "family": "IBM Plex Sans",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/ibm-plex-sans/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-normal.woff2",
+         "weight": "100 700",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/ibm-plex-sans/ibm-plex-sans-latin-wght-italic.woff2",
+         "weight": "100 700",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "playfair display": {
+       "id": "playfair-display",
+       "family": "Playfair Display",
+       "category": "serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/playfair-display/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-normal.woff2",
+         "weight": "400 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/playfair-display/playfair-display-latin-wght-italic.woff2",
+         "weight": "400 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "fraunces": {
+       "id": "fraunces",
+       "family": "Fraunces",
+       "category": "serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/fraunces/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/fraunces/fraunces-latin-wght-italic.woff2",
+         "weight": "100 900",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      },
+      "caveat": {
+       "id": "caveat",
+       "family": "Caveat",
+       "category": "handwriting",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/caveat/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/caveat/caveat-latin-wght-normal.woff2",
+         "weight": "400 700",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "google sans flex": {
+       "id": "google-sans-flex",
+       "family": "Google Sans Flex",
+       "category": "sans-serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/google-sans-flex/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/google-sans-flex/google-sans-flex-latin-wght-normal.woff2",
+         "weight": "100 900",
+         "style": "normal",
+         "format": "woff2"
+        }
+       ]
+      },
+      "instrument serif": {
+       "id": "instrument-serif",
+       "family": "Instrument Serif",
+       "category": "serif",
+       "source": "bundled",
+       "license": "OFL-1.1",
+       "licenseFile": "app:fonts/bundled/instrument-serif/LICENSE",
+       "faces": [
+        {
+         "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-normal.woff2",
+         "weight": "400",
+         "style": "normal",
+         "format": "woff2"
+        },
+        {
+         "file": "app:fonts/bundled/instrument-serif/instrument-serif-latin-400-italic.woff2",
+         "weight": "400",
+         "style": "italic",
+         "format": "woff2"
+        }
+       ]
+      }
+     },
+     "preload": [
+      "df-main",
+      "df-heading",
+      "df-code",
+      "Inter",
+      "JetBrains Mono"
+     ]
+    }
+   }
+  },
+  "timelines": {
+   "render": {
+    "flat": {
+     "fps": 30,
+     "durationInFrames": 351,
+     "bars": [
+      {
+       "type": "video",
+       "key": "/0:sequence:s0/0:opening:i",
+       "itemId": "opening:i",
+       "nodeId": "opening",
+       "kind": "element",
+       "component": "word-push",
+       "props": {
+        "text": "Good ideas deserve a stage",
+        "fontSize": 96,
+        "wordGap": 10,
+        "accel": 0.8,
+        "color": "#fafafa",
+        "fontWeight": "400",
+        "background": "#0b0b10",
+        "letterSpacing": -0.02,
+        "speed": 1.0,
+        "pushTime": 12.0,
+        "driveDistance": 0.5
+       },
+       "thumbnail": null,
+       "from": 0.0,
+       "to": 90.0,
+       "lane": 0,
+       "order": 0,
+       "chain": [
+        {
+         "itemId": "opening:i",
+         "nodeId": "opening",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "opening",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 90.0,
+         "from": 0.0,
+         "to": 90.0
+        },
+        {
+         "itemId": "sequence:s0",
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in1"
+         },
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 90.0,
+         "from": 0.0,
+         "to": 90.0
+        }
+       ],
+       "rate": 1.0,
+       "contentStart": 0.0,
+       "contentEnd": 90.0,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      },
+      {
+       "type": "video",
+       "key": "/0:sequence:s1/0:reveal:i",
+       "itemId": "reveal:i",
+       "nodeId": "reveal",
+       "kind": "element",
+       "component": "title",
+       "props": {
+        "eyebrow": "Let's make",
+        "title": "Acme",
+        "subtitle": "Built around you. Made to be yours.",
+        "align": "center",
+        "entrance": "scale-cut",
+        "color": "#fafafa",
+        "accent": "#a78bfa",
+        "background": "transparent",
+        "fontSize": 112,
+        "fontWeight": 760,
+        "fadeOut": 0.3333,
+        "sideMargin": 9.0,
+        "lineGap": 0.22,
+        "eyebrowSize": 0.26,
+        "eyebrowUppercase": true,
+        "subtitleSize": 0.34,
+        "letterSpacing": -0.035,
+        "lineStagger": 1.0
+       },
+       "thumbnail": null,
+       "from": 72.0,
+       "to": 147.0,
+       "lane": 1,
+       "order": 1,
+       "chain": [
+        {
+         "itemId": "reveal:i",
+         "nodeId": "reveal",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "reveal",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 75.0,
+         "from": 72.0,
+         "to": 147.0
+        },
+        {
+         "itemId": "sequence:s1",
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in2"
+         },
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 75.0,
+         "from": 72.0,
+         "to": 147.0
+        }
+       ],
+       "rate": 1.0,
+       "contentStart": 0.0,
+       "contentEnd": 75.0,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      },
+      {
+       "type": "video",
+       "key": "/0:sequence:s2/0:proof:i",
+       "itemId": "proof:i",
+       "nodeId": "proof",
+       "kind": "element",
+       "component": "kinetic-headline",
+       "props": {
+        "text": "Your work. *A clearer view.*",
+        "color": "#fafafa",
+        "emphasisColor": "#facc15",
+        "background": "#0b0b10",
+        "fontSize": 104,
+        "wordStagger": 4,
+        "fadeOutInFrames": 10,
+        "fontWeight": 780,
+        "letterSpacing": -0.04,
+        "lineHeight": 1.05,
+        "sideMargin": 8.0,
+        "wordGap": 0.28,
+        "rise": 0.5,
+        "tilt": 4.0,
+        "underlineEmphasis": true
+       },
+       "thumbnail": null,
+       "from": 129.0,
+       "to": 219.0,
+       "lane": 0,
+       "order": 2,
+       "chain": [
+        {
+         "itemId": "proof:i",
+         "nodeId": "proof",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "proof",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 90.0,
+         "from": 129.0,
+         "to": 219.0
+        },
+        {
+         "itemId": "sequence:s2",
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in3"
+         },
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 90.0,
+         "from": 129.0,
+         "to": 219.0
+        }
+       ],
+       "rate": 1.0,
+       "contentStart": 0.0,
+       "contentEnd": 90.0,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      },
+      {
+       "type": "video",
+       "key": "/0:sequence:s3/0:close:i",
+       "itemId": "close:i",
+       "nodeId": "close",
+       "kind": "element",
+       "component": "end-card",
+       "props": {
+        "title": "Begin with Acme",
+        "subtitle": "Small things. Well made.",
+        "eyebrow": "",
+        "cta": "Begin",
+        "url": "yourproduct.example",
+        "handles": [],
+        "logoSrc": "",
+        "accentColor": "#E8B86D",
+        "theme": {
+         "mode": "dark",
+         "colors": {}
+        },
+        "speed": 1.0,
+        "buttonArrow": true,
+        "buttonRadius": 999,
+        "glow": 12,
+        "textSize": 1.0,
+        "titleWeight": 700,
+        "eyebrowCaps": true
+       },
+       "thumbnail": null,
+       "from": 201.0,
+       "to": 351.0,
+       "lane": 1,
+       "order": 3,
+       "chain": [
+        {
+         "itemId": "close:i",
+         "nodeId": "close",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "close",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 150.0,
+         "from": 201.0,
+         "to": 351.0
+        },
+        {
+         "itemId": "sequence:s3",
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in4"
+         },
+         "rate": 1.0,
+         "rateEnd": 1.0,
+         "end": 150.0,
+         "from": 201.0,
+         "to": 351.0
+        }
+       ],
+       "rate": 1.0,
+       "contentStart": 0.0,
+       "contentEnd": 150.0,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      }
+     ],
+     "lanes": 2,
+     "audio": [
+      {
+       "type": "audio",
+       "key": "audio:music",
+       "id": "music",
+       "nodeId": "music",
+       "channel": "music",
+       "src": "app:music/elevate.m4a",
+       "role": "music",
+       "from": 0.0,
+       "to": 351.0,
+       "lane": 0,
+       "trimBefore": 0.0,
+       "loop": true,
+       "volume": 0.4,
+       "handles": {
+        "move": {
+         "nodeId": "music",
+         "param": "startMs",
+         "unit": "ms"
+        },
+        "trimStart": {
+         "nodeId": "music",
+         "param": "trimMs",
+         "unit": "ms",
+         "linked": [
+          {
+           "param": "startMs",
+           "sign": 1
+          },
+          {
+           "param": "lengthMs",
+           "sign": -1,
+           "ifNonZero": true
+          }
+         ]
+        },
+        "trimEnd": {
+         "nodeId": "music",
+         "param": "lengthMs",
+         "unit": "ms"
+        },
+        "volume": {
+         "nodeId": "music",
+         "param": "volume",
+         "unit": "number"
+        }
+       },
+       "item": {
+        "id": "music",
+        "src": "app:music/elevate.m4a",
+        "from": 0,
+        "durationInFrames": 351,
+        "volume": 0.4,
+        "loop": true,
+        "fadeInFrames": 24,
+        "fadeOutFrames": 45,
+        "nodeId": "music",
+        "channel": "music",
+        "role": "music",
+        "handles": {
+         "move": {
+          "nodeId": "music",
+          "param": "startMs",
+          "unit": "ms"
+         },
+         "trimStart": {
+          "nodeId": "music",
+          "param": "trimMs",
+          "unit": "ms",
+          "linked": [
+           {
+            "param": "startMs",
+            "sign": 1
+           },
+           {
+            "param": "lengthMs",
+            "sign": -1,
+            "ifNonZero": true
+           }
+          ]
+         },
+         "trimEnd": {
+          "nodeId": "music",
+          "param": "lengthMs",
+          "unit": "ms"
+         },
+         "volume": {
+          "nodeId": "music",
+          "param": "volume",
+          "unit": "number"
+         }
+        }
+       }
+      }
+     ],
+     "audioLanes": 1,
+     "transitions": [
+      {
+       "key": "/0:sequence:s1:enter",
+       "itemKey": "/0:sequence:s1",
+       "from": 72.0,
+       "to": 90.0,
+       "kind": "push-through",
+       "lanes": [
+        0,
+        1
+       ],
+       "covers": 0.24,
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in2"
+       }
+      },
+      {
+       "key": "/0:sequence:s2:enter",
+       "itemKey": "/0:sequence:s2",
+       "from": 129.0,
+       "to": 147.0,
+       "kind": "push-through",
+       "lanes": [
+        0,
+        1
+       ],
+       "covers": 0.24,
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in3"
+       }
+      },
+      {
+       "key": "/0:sequence:s3:enter",
+       "itemKey": "/0:sequence:s3",
+       "from": 201.0,
+       "to": 219.0,
+       "kind": "push-through",
+       "lanes": [
+        0,
+        1
+       ],
+       "covers": 0.2,
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in4"
+       }
+      }
+     ],
+     "marks": [],
+     "cameraKeys": []
+    },
+    "mix": {
+     "fps": 30,
+     "durationInFrames": 351,
+     "channels": [
+      {
+       "id": "music",
+       "kind": "music",
+       "bus": "music",
+       "strip": {
+        "trim": 0.0,
+        "highpass": {
+         "on": false,
+         "freq": 80.0
+        },
+        "eq": {
+         "on": false,
+         "bands": [
+          {
+           "type": "lowshelf",
+           "freq": 120.0,
+           "gain": 0.0,
+           "q": 0.7
+          },
+          {
+           "type": "peak",
+           "freq": 500.0,
+           "gain": 0.0,
+           "q": 1.0
+          },
+          {
+           "type": "peak",
+           "freq": 2500.0,
+           "gain": 0.0,
+           "q": 1.0
+          },
+          {
+           "type": "highshelf",
+           "freq": 8000.0,
+           "gain": 0.0,
+           "q": 0.7
+          }
+         ]
+        },
+        "comp": {
+         "on": false,
+         "threshold": -18.0,
+         "ratio": 3.0,
+         "attack": 10.0,
+         "release": 150.0,
+         "makeup": 0.0
+        },
+        "fader": 0.0,
+        "pan": 0.0,
+        "mute": false,
+        "solo": false
+       },
+       "sounds": [
+        {
+         "src": "app:music/elevate.m4a",
+         "at": 0,
+         "offset": 0,
+         "length": 351,
+         "loop": true,
+         "rate": 1.0,
+         "volume": 0.4,
+         "fadeIn": 24,
+         "fadeOut": 45
+        }
+       ],
+       "audible": true
+      }
+     ],
+     "buses": [
+      {
+       "id": "music",
+       "name": "Music",
+       "processing": {
+        "highpass": {
+         "on": false,
+         "freq": 80.0
+        },
+        "eq": {
+         "on": false,
+         "bands": [
+          {
+           "type": "lowshelf",
+           "freq": 120.0,
+           "gain": 0.0,
+           "q": 0.7
+          },
+          {
+           "type": "peak",
+           "freq": 500.0,
+           "gain": 0.0,
+           "q": 1.0
+          },
+          {
+           "type": "peak",
+           "freq": 2500.0,
+           "gain": 0.0,
+           "q": 1.0
+          },
+          {
+           "type": "highshelf",
+           "freq": 8000.0,
+           "gain": 0.0,
+           "q": 0.7
+          }
+         ]
+        },
+        "comp": {
+         "on": false,
+         "threshold": -18.0,
+         "ratio": 3.0,
+         "attack": 10.0,
+         "release": 150.0,
+         "makeup": 0.0
+        }
+       },
+       "fader": 0.0,
+       "channels": [
+        "music"
+       ],
+       "duck": null
+      },
+      {
+       "id": "effects",
+       "name": "Effects",
+       "processing": {
+        "highpass": {
+         "on": false,
+         "freq": 80.0
+        },
+        "eq": {
+         "on": false,
+         "bands": [
+          {
+           "type": "lowshelf",
+           "freq": 120.0,
+           "gain": 0.0,
+           "q": 0.7
+          },
+          {
+           "type": "peak",
+           "freq": 500.0,
+           "gain": 0.0,
+           "q": 1.0
+          },
+          {
+           "type": "peak",
+           "freq": 2500.0,
+           "gain": 0.0,
+           "q": 1.0
+          },
+          {
+           "type": "highshelf",
+           "freq": 8000.0,
+           "gain": 0.0,
+           "q": 0.7
+          }
+         ]
+        },
+        "comp": {
+         "on": false,
+         "threshold": -18.0,
+         "ratio": 3.0,
+         "attack": 10.0,
+         "release": 150.0,
+         "makeup": 0.0
+        }
+       },
+       "fader": 0.0,
+       "channels": [],
+       "duck": null
+      },
+      {
+       "id": "clips",
+       "name": "Clips",
+       "processing": {
+        "highpass": {
+         "on": false,
+         "freq": 80.0
+        },
+        "eq": {
+         "on": false,
+         "bands": [
+          {
+           "type": "lowshelf",
+           "freq": 120.0,
+           "gain": 0.0,
+           "q": 0.7
+          },
+          {
+           "type": "peak",
+           "freq": 500.0,
+           "gain": 0.0,
+           "q": 1.0
+          },
+          {
+           "type": "peak",
+           "freq": 2500.0,
+           "gain": 0.0,
+           "q": 1.0
+          },
+          {
+           "type": "highshelf",
+           "freq": 8000.0,
+           "gain": 0.0,
+           "q": 0.7
+          }
+         ]
+        },
+        "comp": {
+         "on": false,
+         "threshold": -18.0,
+         "ratio": 3.0,
+         "attack": 10.0,
+         "release": 150.0,
+         "makeup": 0.0
+        }
+       },
+       "fader": 0.0,
+       "channels": [],
+       "duck": null
+      }
+     ],
+     "master": {
+      "fader": 0.0,
+      "eq": {
+       "on": false,
+       "bands": [
+        {
+         "type": "lowshelf",
+         "freq": 120.0,
+         "gain": 0.0,
+         "q": 0.7
+        },
+        {
+         "type": "peak",
+         "freq": 500.0,
+         "gain": 0.0,
+         "q": 1.0
+        },
+        {
+         "type": "peak",
+         "freq": 2500.0,
+         "gain": 0.0,
+         "q": 1.0
+        },
+        {
+         "type": "highshelf",
+         "freq": 8000.0,
+         "gain": 0.0,
+         "q": 0.7
+        }
+       ]
+      },
+      "comp": {
+       "on": false,
+       "threshold": -12.0,
+       "ratio": 2.0,
+       "attack": 20.0,
+       "release": 250.0,
+       "makeup": 0.0
+      },
+      "limiter": {
+       "on": false,
+       "ceiling": -1.0
+      },
+      "loudness": "off"
+     }
+    },
+    "chapters": []
+   }
+  }
+ }
+}

@@ -8,8 +8,13 @@ use opsis_compile::elements::overlay::captions::CAPTIONS_ELEMENT;
 use opsis_compile::elements::{ElementKind, ElementMeta, element_node_type, elements};
 use opsis_compile::hosted::hosted;
 use opsis_compile::node::CLIP_PORT;
+use opsis_compile::nodes::device_frame::DEVICE_FRAME_TYPE;
+use opsis_compile::nodes::groups::{KIND, groups};
+use opsis_compile::nodes::media::{CLIP_ELEMENTS, USE_AS_CLIP_TYPE};
 use opsis_compile::nodes::output::{Gl, StillFormat};
 use opsis_compile::nodes::text::{CAPTIONS_FROM_SCRIPT_TYPE, CAPTIONS_PORT, SHOW_CAPTIONS_TYPE};
+use opsis_compile::nodes::timeline::SEQUENCE_TYPE;
+use opsis_compile::nodes::transitions::{TRANSITION_PORT, TRANSITION_TYPE};
 use opsis_engine::http_files::{FileServer, folder_routes};
 use opsis_engine::paths::{ShellPlatform, engine_paths, find_headless_shell};
 use opsis_prepare::serve::{PreparedDirs, prepared_routes};
@@ -63,8 +68,8 @@ fn port_edge(source: &str, source_handle: &str, target: &str, target_handle: &st
 fn solid(id: &str, color: &str) -> Value {
     node(
         id,
-        "fx.solid",
-        json!({ "color": color, "clipDuration": SOLID_FRAMES }),
+        "fx.background",
+        json!({ "solid": { "color": color }, "clipDuration": SOLID_FRAMES }),
     )
 }
 
@@ -74,43 +79,89 @@ struct Host {
     project_base: String,
 }
 
-fn workflow_for(meta: &ElementMeta) -> Workflow {
-    let kind = if meta.kind == ElementKind::Presentation {
-        format!("transition.{}", meta.key)
-    } else if meta.key == CAPTIONS_ELEMENT {
-        SHOW_CAPTIONS_TYPE.to_owned()
-    } else {
-        element_node_type(&meta.key)
-    };
-    let (inputs, links): (Vec<Value>, Vec<Value>) = match meta.kind {
-        _ if meta.key == CAPTIONS_ELEMENT => (
-            vec![node("script", CAPTIONS_FROM_SCRIPT_TYPE, json!({}))],
-            vec![port_edge(
-                "script",
-                CAPTIONS_PORT,
-                ELEMENT_NODE,
-                CAPTIONS_PORT,
-            )],
-        ),
-        ElementKind::Presentation => (
-            vec![solid("a", "#334155"), solid("b", "#7c3aed")],
-            vec![edge("a", ELEMENT_NODE, "a"), edge("b", ELEMENT_NODE, "b")],
-        ),
-        ElementKind::Wrapper => (
+fn device_angle(key: &str) -> Option<Value> {
+    Some(match key {
+        "laptop-frame" => json!({ "angle": "flat", "device": "laptop" }),
+        "phone-frame" => json!({ "angle": "flat", "device": "phone" }),
+        "screen-3d" => json!({ "angle": "three-d" }),
+        "device-mockup-zoom" => json!({ "angle": "pull-back" }),
+        "multi-device-lineup" => json!({ "angle": "lineup" }),
+        _ => return None,
+    })
+}
+
+type Feeds = (Vec<Value>, Vec<Value>);
+
+fn joined(transition: &str) -> Feeds {
+    (
+        vec![
+            solid("a", "#334155"),
+            solid("b", "#7c3aed"),
+            node("join", TRANSITION_TYPE, json!({ "kind": transition })),
+        ],
+        vec![
+            edge("a", ELEMENT_NODE, "in1"),
+            edge("b", ELEMENT_NODE, "in2"),
+            port_edge("join", TRANSITION_PORT, ELEMENT_NODE, TRANSITION_PORT),
+        ],
+    )
+}
+
+fn fed(meta: &ElementMeta) -> Feeds {
+    if meta.kind == ElementKind::Wrapper {
+        (
             vec![solid("in", "#334155")],
-            vec![edge("in", ELEMENT_NODE, "clip")],
-        ),
-        ElementKind::Sequencer => (
-            vec![solid("in1", "#334155"), solid("in2", "#7c3aed")],
-            vec![
-                edge("in1", ELEMENT_NODE, "in1"),
-                edge("in2", ELEMENT_NODE, "in2"),
-            ],
-        ),
-        ElementKind::Component => (Vec::new(), Vec::new()),
-    };
+            vec![edge("in", ELEMENT_NODE, CLIP_PORT)],
+        )
+    } else {
+        (Vec::new(), Vec::new())
+    }
+}
+
+fn node_for(meta: &ElementMeta) -> (String, Value, Feeds) {
+    if meta.key == CAPTIONS_ELEMENT {
+        let script = node("script", CAPTIONS_FROM_SCRIPT_TYPE, json!({}));
+        let link = port_edge("script", CAPTIONS_PORT, ELEMENT_NODE, CAPTIONS_PORT);
+        return (
+            SHOW_CAPTIONS_TYPE.to_owned(),
+            json!({}),
+            (vec![script], vec![link]),
+        );
+    }
+    if matches!(
+        meta.kind,
+        ElementKind::Presentation | ElementKind::Sequencer
+    ) {
+        return (SEQUENCE_TYPE.to_owned(), json!({}), joined(&meta.key));
+    }
+    if let Some(params) = device_angle(&meta.key) {
+        let wrapper = (
+            vec![solid("in", "#334155")],
+            vec![edge("in", ELEMENT_NODE, CLIP_PORT)],
+        );
+        return (DEVICE_FRAME_TYPE.to_owned(), params, wrapper);
+    }
+    if CLIP_ELEMENTS.contains(&meta.key.as_str()) {
+        return (
+            USE_AS_CLIP_TYPE.to_owned(),
+            json!({}),
+            (Vec::new(), Vec::new()),
+        );
+    }
+    let grouped = groups().iter().find_map(|g| {
+        g.kinds
+            .iter()
+            .find(|k| k.element == meta.key)
+            .map(|k| (g.node_type.to_owned(), json!({ KIND: k.id })))
+    });
+    let (kind, params) = grouped.unwrap_or_else(|| (element_node_type(&meta.key), json!({})));
+    (kind, params, fed(meta))
+}
+
+fn workflow_for(meta: &ElementMeta) -> Workflow {
+    let (kind, params, (inputs, links)) = node_for(meta);
     let mut nodes = inputs;
-    nodes.push(node(ELEMENT_NODE, &kind, json!({})));
+    nodes.push(node(ELEMENT_NODE, &kind, params));
     serde_json::from_value(json!({ "version": 1, "id": "elements", "name": "Elements", "nodes": nodes, "edges": links, "markers": [] })).expect("a workflow")
 }
 

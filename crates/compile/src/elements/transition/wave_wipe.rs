@@ -1,5 +1,5 @@
 use opsis_macros::settings;
-use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::looks::NodeLook;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::{Colour, VerticalDirection};
@@ -58,8 +58,8 @@ pub fn definition() -> ElementMeta {
                 "Wave wipe",
                 "A grain-gradient wave that sweeps up across the frame, covering the outgoing scene and revealing the next one from below.",
                 ElementCategory::Transition,
-                116,
+                60,
             )
-                .look(NodeLook::of("lucide:waves-horizontal").moves(NodeMotion::WipeReveal)),
+                .look(NodeLook::of("lucide:waves-horizontal")),
         )
 }

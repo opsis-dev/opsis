@@ -5,20 +5,6 @@ use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[choice(export)]
-pub enum MarkLook {
-    #[label("Underline")]
-    Underline,
-    #[label("Circle")]
-    Circle,
-    #[label("Box")]
-    Box,
-    #[label("Marker")]
-    Marker,
-    #[label("Crossed out")]
-    CrossedOff,
-}
-
-#[choice(export)]
 pub enum TitleAlign {
     Center,
     Left,
@@ -26,11 +12,42 @@ pub enum TitleAlign {
 
 #[choice(export)]
 pub enum Entrance {
+    #[label("Rise")]
     Rise,
+    #[label("Fade")]
     Fade,
+    #[label("Blur")]
     Blur,
+    #[label("Scale")]
     Scale,
+    #[label("None")]
     None,
+    #[label("Soft blur in")]
+    SoftBlur,
+    #[label("Typewriter")]
+    Typewriter,
+    #[label("Staggered fade up")]
+    FadeUp,
+    #[label("Word push")]
+    WordPush,
+    #[label("Mask reveal up")]
+    MaskReveal,
+    #[label("Tracking in")]
+    Tracking,
+    #[label("Colour glitch")]
+    Glitch,
+    #[label("Decode")]
+    Decode,
+    #[label("Line by line slide")]
+    LineByLine,
+    #[label("Animated headline")]
+    Headline,
+    #[label("Handwriting")]
+    Handwriting,
+    #[label("Neon sign")]
+    Neon,
+    #[label("Gradient scale cut")]
+    ScaleCut,
 }
 
 #[settings(export)]
@@ -41,21 +58,13 @@ pub struct Title {
     pub title: String,
     #[setting("Subtitle")]
     pub subtitle: String,
-    #[setting(
-        "Mark a word",
-        help = "Words from the title to draw a hand-drawn mark on, after the title comes in. Leave empty for none."
-    )]
-    pub mark: String,
-    #[setting(
-        "Mark",
-        default = MarkLook::Underline
-    )]
-    pub mark_look: MarkLook,
-    #[setting("Mark colour", default = "#facc15", check = colour)]
-    pub mark_color: String,
     #[setting("Alignment", default = TitleAlign::Center)]
     pub align: TitleAlign,
-    #[setting("Entrance", default = Entrance::Rise)]
+    #[setting(
+        "Entrance",
+        default = Entrance::Rise,
+        help = "Rise, Fade, Blur and Scale bring every line in. The others are Animated text's animations: the title plays it and the other lines fade in."
+    )]
     pub entrance: Entrance,
     #[setting("Text colour", default = "#fafafa", check = colour)]
     pub color: String,
@@ -120,38 +129,6 @@ pub struct Title {
         advanced
     )]
     pub line_stagger: f64,
-    #[setting(
-        "Mark thickness",
-        default = 0.045,
-        range(min = 0.01, max = 0.15),
-        unit = "× font size",
-        advanced
-    )]
-    pub mark_thickness: f64,
-    #[setting(
-        "Marker strength",
-        default = 55.0,
-        range(min = 10, max = 100),
-        unit = "%",
-        advanced
-    )]
-    pub marker_opacity: f64,
-    #[setting(
-        "Mark variation",
-        default = 1,
-        range(min = 1, max = 100),
-        step = 1,
-        advanced
-    )]
-    pub mark_seed: u32,
-    #[setting(
-        "Mark draw time",
-        default = 0.45,
-        range(min = 0.1, max = 2),
-        unit = "s",
-        advanced
-    )]
-    pub mark_draw_time: f64,
     #[setting(
         "Fade out",
         default = 0.3333,

@@ -84,9 +84,7 @@
         "x": 900.0,
         "y": 200.0
       },
-      "params": {
-        "speed": 1.25
-      }
+      "params": {}
     },
     {
       "id": "before-label",
@@ -185,9 +183,7 @@
         "x": 900.0,
         "y": 1050.0
       },
-      "params": {
-        "speed": 1.25
-      }
+      "params": {}
     },
     {
       "id": "after-label",
@@ -223,15 +219,17 @@
     },
     {
       "id": "wipe",
-      "type": "transition.wipe",
+      "type": "timeline.transition",
       "position": {
         "x": 1500.0,
         "y": 510.0
       },
       "params": {
-        "direction": "from-left",
+        "kind": "wipe",
         "durationInFrames": 24,
-        "keepWhole": false
+        "wipe": {
+          "direction": "from-left"
+        }
       }
     },
     {
@@ -276,6 +274,15 @@
       "params": {
         "zoom": false
       }
+    },
+    {
+      "id": "wipe-join",
+      "type": "timeline.sequence",
+      "position": {
+        "x": 1650.0,
+        "y": 710.0
+      },
+      "params": {}
     }
   ],
   "edges": [
@@ -364,22 +371,22 @@
       "targetHandle": "in2"
     },
     {
-      "id": "before-stack.clip->wipe.a",
+      "id": "before-stack.clip->wipe-join.in1",
       "source": "before-stack",
       "sourceHandle": "clip",
-      "target": "wipe",
-      "targetHandle": "a"
+      "target": "wipe-join",
+      "targetHandle": "in1"
     },
     {
-      "id": "after-stack.clip->wipe.b",
+      "id": "after-stack.clip->wipe.clip",
       "source": "after-stack",
       "sourceHandle": "clip",
       "target": "wipe",
-      "targetHandle": "b"
+      "targetHandle": "clip"
     },
     {
-      "id": "wipe.clip->render.clip",
-      "source": "wipe",
+      "id": "wipe-join.clip->render.clip",
+      "source": "wipe-join",
       "sourceHandle": "clip",
       "target": "render",
       "targetHandle": "clip"
@@ -397,6 +404,13 @@
       "sourceHandle": "style",
       "target": "after-camera",
       "targetHandle": "style"
+    },
+    {
+      "id": "wipe.clip->wipe-join.in2",
+      "source": "wipe",
+      "sourceHandle": "clip",
+      "target": "wipe-join",
+      "targetHandle": "in2"
     }
   ],
   "markers": []

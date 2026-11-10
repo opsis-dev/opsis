@@ -1,6 +1,15 @@
-pub use opsis_compile::nodes::capture::StillLook;
 use opsis_compile::time::{clamp, even_px};
 use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum StillLook {
+    Window,
+    Cutout,
+    Bleed,
+}
+
+pub const LOOKS: [StillLook; 3] = [StillLook::Window, StillLook::Cutout, StillLook::Bleed];
 
 const TALL_SHOT: f64 = 1.5;
 const TALLEST_CUTOUT: f64 = 4.0;

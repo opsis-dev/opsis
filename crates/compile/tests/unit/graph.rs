@@ -143,7 +143,7 @@ fn ignores_a_connection_from_a_deleted_node_when_counting_connections() {
 #[test]
 fn warns_a_node_fed_by_a_skipped_node_that_has_nothing_to_pass_on() {
     let mut g = Graph::default();
-    g.node("bg", "fx.solid", json!({}));
+    g.node("bg", "fx.background", json!({}));
     g.node("trim", "timeline.trim", json!({}));
     g.node("speed", "timeline.speed", json!({}));
     g.link("bg", "trim").link("trim", "speed");
@@ -350,17 +350,17 @@ fn runs_every_export_and_the_nodes_after_one_or_everything_without_an_export() {
     g.link("title", "film");
     g.node("gif", "media.gif", json!({}));
     g.link_ports("film", "gif", "media", "media");
-    g.node("web", "media.faststart", json!({}));
+    g.node("web", "media.convert", json!({ "keepFormat": true }));
     g.link_ports("gif", "web", "media", "media");
     g.node("loose", "media.import", json!({ "path": "a.mp4" }));
-    g.node("tidy", "media.faststart", json!({}));
+    g.node("tidy", "media.convert", json!({ "keepFormat": true }));
     let mut wf = g.build();
     assert_eq!(sorted(run_targets(&wf)), ["film", "gif", "web"]);
     disable(&mut wf, "gif", true);
     assert_eq!(sorted(run_targets(&wf)), ["film", "web"]);
     let mut g = Graph::default();
     g.node("a", "media.import", json!({ "path": "a.mp4" }));
-    g.node("b", "media.faststart", json!({}));
+    g.node("b", "media.convert", json!({ "keepFormat": true }));
     assert_eq!(sorted(run_targets(&g.build())), ["a", "b"]);
     let mut g = Graph::default();
     let ids = [

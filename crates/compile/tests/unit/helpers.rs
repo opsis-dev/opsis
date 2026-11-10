@@ -20,6 +20,7 @@ use opsis_types::workflow::Workflow;
 use serde_json::json;
 
 pub const TITLE: &str = "fx.title";
+pub const USUAL_BROWSER_SPEED: f64 = 1.25;
 pub const CLIP: &str = "clip";
 pub const SESSION: &str = "session";
 
@@ -61,6 +62,30 @@ impl Graph {
         self
     }
 
+    pub fn sequence(&mut self, id: &str, transition: Option<Value>) -> String {
+        self.node(id, "timeline.sequence", json!({}));
+        if let Some(params) = transition {
+            let shared = format!("{id}-transition");
+            self.node(&shared, "timeline.transition", params);
+            self.link_ports(&shared, id, "transition", "transition");
+        }
+        id.to_owned()
+    }
+
+    pub fn marked(&mut self, id: &str, source: &str, transition: Value) -> String {
+        self.node(id, "timeline.transition", transition);
+        self.link(source, id);
+        id.to_owned()
+    }
+
+    pub fn file_clip(&mut self, id: &str, path: &str) -> String {
+        let file = format!("{id}-file");
+        self.node(&file, "media.import", json!({ "path": path }));
+        self.node(id, "media.toClip", json!({}));
+        self.link_ports(&file, id, "media", "media");
+        id.to_owned()
+    }
+
     pub fn link(&mut self, source: &str, target: &str) -> &mut Self {
         self.link_ports(source, target, CLIP, CLIP)
     }
@@ -72,7 +97,7 @@ impl Graph {
         self
     }
 
-    pub fn record_take(&mut self, steps: &[(&str, &str, Value)], camera: Value) -> String {
+    pub fn record_take(&mut self, steps: &[(&str, &str, Value)], speed: Option<f64>) -> String {
         let mut steps: Vec<(&str, &str, Value)> = steps.to_vec();
         if let Some(page) = steps.iter().position(|s| s.1 == "browser.navigate") {
             let mut at = page + 1;
@@ -88,9 +113,20 @@ impl Graph {
         let rec = self.node("record", "capture.record", json!({}));
         ids.push(rec.clone());
         self.chain(&ids);
-        let cam = self.node("camera", "camera.take", camera);
+        let cam = self.node("camera", "camera.take", json!({}));
         self.link_ports(&rec, &cam, "recording", "recording");
-        cam
+        match speed {
+            Some(speed) => {
+                let speed_node = self.node(
+                    "camera-speed",
+                    "timeline.speed",
+                    json!({ "rate": speed / USUAL_BROWSER_SPEED }),
+                );
+                self.link(&cam, &speed_node);
+                speed_node
+            }
+            None => cam,
+        }
     }
 
     pub fn recorded_take(&mut self, extra: &[(&str, &str, Value)]) -> String {
@@ -103,7 +139,7 @@ impl Graph {
             ),
         ];
         steps.extend(extra.iter().cloned());
-        self.record_take(&steps, json!({ "speed": 1 }))
+        self.record_take(&steps, Some(1.0))
     }
 
     pub fn build(&self) -> Workflow {
@@ -286,7 +322,7 @@ pub fn zoomed(
     style: Option<&[(&str, Value)]>,
     own: &[(&str, Value)],
     log: Option<ActionLog>,
-    camera: Value,
+    speed: Option<f64>,
 ) -> ClipValue {
     let mut recording = take_recording(log);
     recording["edits"] = style_entries(own, "t");
@@ -295,7 +331,15 @@ pub fn zoomed(
         inputs["style"] =
             json!({ "type": "recording-style", "entries": style_entries(style, "s") });
     }
-    compile_clip("camera.take", camera, inputs)
+    let take = compile_clip("camera.take", json!({}), inputs);
+    match speed {
+        Some(speed) => compile_clip(
+            "timeline.speed",
+            json!({ "rate": speed / USUAL_BROWSER_SPEED }),
+            json!({ "clip": clip_value(&take) }),
+        ),
+        None => take,
+    }
 }
 
 pub fn near(a: f64, b: f64, tolerance: f64) -> bool {

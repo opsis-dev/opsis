@@ -96,7 +96,7 @@ const CATEGORY_ICONS: [(&str, &str); 17] = [
     ("Utility", "sticky-note"),
 ];
 
-const PORT_COLORS: [(&str, &str); 10] = [
+const PORT_COLORS: [(&str, &str); 11] = [
     ("browser-session", "#38bdf8"),
     ("terminal-session", "#4ade80"),
     ("recording", "#f97316"),
@@ -107,6 +107,7 @@ const PORT_COLORS: [(&str, &str); 10] = [
     ("captions", "#facc15"),
     ("image", "#2dd4bf"),
     ("media", "#60a5fa"),
+    ("transition", "#e879f9"),
 ];
 
 pub const NEUTRAL: &str = "#71717a";

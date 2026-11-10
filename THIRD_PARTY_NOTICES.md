@@ -19,7 +19,7 @@ These files in `packages/video/src` started as Remocn components and are maintai
 - `elements/effect/camera-lens.tsx`
 - `elements/effect/crt-screen.tsx`
 - `elements/effect/halftone-print.tsx`
-- `elements/effect/mosaic/pixelate-region.tsx`
+- `elements/effect/redact/pixelate-region.tsx`
 - `elements/effect/polaroid.tsx`
 - `elements/effect/speed-lines.tsx`
 - `elements/effect/tv-power-off.tsx`
@@ -27,9 +27,7 @@ These files in `packages/video/src` started as Remocn components and are maintai
 - `elements/overlay/confetti.tsx`
 - `elements/overlay/ink-arrow.tsx`
 - `elements/overlay/ink-underline.tsx`
-- `elements/overlay/inline-highlight.tsx`
 - `elements/overlay/keystroke.tsx`
-- `elements/overlay/marker-highlight.tsx`
 - `elements/overlay/radial-burst.tsx`
 - `elements/overlay/scribble-circle.tsx`
 - `elements/scene/ai-prompt-flow/index.tsx`
@@ -38,29 +36,6 @@ These files in `packages/video/src` started as Remocn components and are maintai
 - `elements/scene/ai-prompt-flow/use-skeleton-transition.ts`
 - `elements/scene/command-menu/command-menu-item.tsx`
 - `elements/scene/command-menu/index.tsx`
-- `elements/scene/launch-anything/content.ts`
-- `elements/scene/launch-anything/index.tsx`
-- `elements/scene/launch-anything/motion.ts`
-- `elements/scene/launch-anything/scenes/action-frame.tsx`
-- `elements/scene/launch-anything/scenes/action.tsx`
-- `elements/scene/launch-anything/scenes/closing.tsx`
-- `elements/scene/launch-anything/scenes/industry.tsx`
-- `elements/scene/launch-anything/scenes/opening.tsx`
-- `elements/scene/launch-anything/scenes/portal.tsx`
-- `elements/scene/launch-anything/scenes/proof.tsx`
-- `elements/scene/launch-anything/scenes/showcase.tsx`
-- `elements/scene/launch-anything/scenes/space.tsx`
-- `elements/scene/launch-anything/screens.tsx`
-- `elements/scene/launch-anything/shader-text-reveal.tsx`
-- `elements/scene/launch-anything/ui.tsx`
-- `elements/scene/release-teaser/background.tsx`
-- `elements/scene/release-teaser/content.ts`
-- `elements/scene/release-teaser/geometry.ts`
-- `elements/scene/release-teaser/index.tsx`
-- `elements/scene/release-teaser/motion.ts`
-- `elements/scene/release-teaser/scenes/closing.tsx`
-- `elements/scene/release-teaser/scenes/statement.tsx`
-- `elements/scene/release-teaser/ui.tsx`
 - `elements/scene/signup-flow/blur-in.tsx`
 - `elements/scene/signup-flow/cursor.tsx`
 - `elements/scene/signup-flow/field.tsx`
@@ -70,16 +45,13 @@ These files in `packages/video/src` started as Remocn components and are maintai
 - `elements/scene/spring-settle/index.tsx`
 - `elements/scene/spring-settle/scene-motion.ts`
 - `elements/text/gradient-scale-cut-text.tsx`
-- `elements/text/kinetic-center-build.tsx`
 - `elements/text/line-by-line-slide.tsx`
 - `elements/text/mask-reveal-up.tsx`
 - `elements/text/matrix-decode.tsx`
 - `elements/text/rgb-glitch-text.tsx`
-- `elements/text/shimmer-sweep.tsx`
 - `elements/text/slot-machine-roll.tsx`
 - `elements/text/soft-blur-in.tsx`
 - `elements/text/staggered-fade-up.tsx`
-- `elements/text/strikethrough-replace.tsx`
 - `elements/text/tracking-in.tsx`
 - `elements/text/typewriter.tsx`
 - `elements/text/word-push.tsx`
@@ -92,8 +64,7 @@ These files in `packages/video/src` started as Remocn components and are maintai
 - `elements/transition/particle-dissolve.tsx`
 - `elements/transition/push-through.tsx`
 - `elements/transition/ripple-zoom.tsx`
-- `elements/transition/smoke-dissolve/index.tsx`
-- `elements/transition/smoke-dissolve/shader-smoke-ring.tsx`
+- `elements/transition/smoke-dissolve.tsx`
 - `elements/transition/swirl-dissolve.tsx`
 - `elements/transition/wave-wipe.tsx`
 - `elements/transition/whip-pan.tsx`
@@ -106,13 +77,13 @@ These files in `packages/video/src` started as Remocn components and are maintai
 - `elements/ui/search-reveal.tsx`
 - `elements/ui/terminal-simulator.tsx`
 - `lib/motion/stop-motion.ts`
-- `lib/neutral-ui/color.ts`
 - `lib/neutral-ui/index.ts`
-- `lib/neutral-ui/motion.ts`
 - `lib/neutral-ui/theme.ts`
-- `lib/neutral-ui/timeline.ts`
-- `lib/neutral-ui/types.ts`
 - `lib/transitions/canvas-presentation.tsx`
+- `lib/ui-kit/color.ts`
+- `lib/ui-kit/motion.ts`
+- `lib/ui-kit/timeline.ts`
+- `lib/ui-kit/types.ts`
 - `parts/brush.tsx`
 - `parts/button.tsx`
 - `parts/caret.tsx`
@@ -124,12 +95,9 @@ These files in `packages/video/src` started as Remocn components and are maintai
 - `parts/use-input-transition.ts`
 - `parts/use-toast-transition.ts`
 
-These photos in `public/placeholders` came with Remocn's Launch anything component:
+This photo in `public/placeholders` came with Remocn's Launch anything component:
 
-- `launch-desk.jpg`
 - `launch-earth.jpg`
-- `launch-horizon.jpg`
-- `launch-rocket.jpg`
 
 ```
 MIT License
@@ -161,22 +129,22 @@ These files in `packages/video/src` started as snapcn components and are maintai
 
 - `elements/device/laptop-frame.tsx`
 - `elements/device/phone-frame.tsx`
-- `elements/device/captured-video.tsx`
 - `elements/scene/hero-launch.tsx`
 - `elements/scene/logo-assemble.tsx`
 - `elements/scene/logo-drift.tsx`
+- `elements/scene/logo-wipe.tsx`
 - `elements/text/announce-title.tsx`
 - `elements/text/punch-lines.tsx`
 - `elements/text/status-cycle.tsx`
 - `elements/text/text-highlight.tsx`
-- `lib/warm-ui/color.ts`
+- `lib/ui-kit/color.ts`
+- `lib/ui-kit/motion.ts`
+- `lib/ui-kit/timeline.ts`
+- `lib/ui-kit/types.ts`
 - `lib/warm-ui/fonts.ts`
 - `lib/warm-ui/index.ts`
 - `lib/warm-ui/item.tsx`
-- `lib/warm-ui/motion.ts`
 - `lib/warm-ui/theme.ts`
-- `lib/warm-ui/timeline.ts`
-- `lib/warm-ui/types.ts`
 
 ```
 MIT License
@@ -220,17 +188,11 @@ These files in `packages/video/src` started as RemotionUI components and are mai
 - `elements/overlay/notification-stack/index.tsx`
 - `elements/scene/changelog-entry/index.tsx`
 - `elements/scene/comparison-table/index.tsx`
-- `elements/scene/data-story/animated-bar-chart/index.tsx`
-- `elements/scene/data-story/auto-fit-title/index.tsx`
-- `elements/scene/data-story/caption-bumper/index.tsx`
-- `elements/scene/data-story/index.tsx`
-- `elements/scene/data-story/text-fit-utils.ts`
-- `elements/scene/data-story/timeline-steps/index.tsx`
-- `elements/scene/data-story/transition-fade.tsx`
 - `elements/scene/end-card/index.tsx`
 - `elements/scene/logo-reveal/index.tsx`
 - `elements/scene/logo-reveal/path-draw.tsx`
 - `elements/scene/logo-wall/index.tsx`
+- `elements/scene/steps-timeline/timeline-steps.tsx`
 - `elements/scene/pricing-card/index.tsx`
 - `elements/text/handwriting-text.tsx`
 - `elements/text/neon-flicker-text.tsx`

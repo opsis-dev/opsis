@@ -29,7 +29,7 @@ import {
   type Reframe,
 } from "#video/core/frame.ts";
 import { hasScreen } from "#video/core/screen.tsx";
-import type { Size } from "#video/core/still-layout.ts";
+import type { Size } from "#video/core/size.ts";
 import type { KeystrokeLook, RecordingProps } from "#video/generated/spec.ts";
 
 const TYPED_FADE_IN_S = 0.15;

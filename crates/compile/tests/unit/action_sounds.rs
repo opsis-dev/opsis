@@ -36,7 +36,7 @@ fn take_log() -> ActionLog {
 }
 
 fn take(own: &[(&str, Value)]) -> ClipValue {
-    zoomed(None, own, Some(take_log()), json!({ "speed": 1 }))
+    zoomed(None, own, Some(take_log()), Some(1.0))
 }
 
 fn sounds(clip: &ClipValue, params: Value) -> AudioValue {

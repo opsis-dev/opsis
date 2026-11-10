@@ -14,4 +14,3 @@ pub mod shader_warp;
 pub mod shapes_3d;
 pub mod solid;
 pub mod starburst;
-pub mod video_loop;

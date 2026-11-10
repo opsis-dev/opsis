@@ -30,9 +30,6 @@
         "eyebrow": "Changelog",
         "title": "What's new in {{Version}}",
         "subtitle": "",
-        "mark": "",
-        "markLook": "underline",
-        "markColor": "#facc15",
         "align": "center",
         "entrance": "rise",
         "color": "#fafafa",
@@ -104,54 +101,57 @@
     },
     {
       "id": "chart",
-      "type": "fx.animated-bar-chart",
+      "type": "fx.chart",
       "position": {
         "x": 0.0,
         "y": 400.0
       },
       "params": {
-        "barColor": "#0ea5e9",
-        "gap": 16,
-        "staggerFrames": 0.2,
-        "bars": [
-          {
-            "label": "",
-            "value": 35
-          },
-          {
-            "label": "",
-            "value": 60
-          },
-          {
-            "label": "",
-            "value": 45
-          },
-          {
-            "label": "",
-            "value": 80
-          },
-          {
-            "label": "",
-            "value": 55
-          },
-          {
-            "label": "",
-            "value": 70
-          },
-          {
-            "label": "",
-            "value": 90
-          },
-          {
-            "label": "",
-            "value": 65
-          }
-        ],
-        "width": 1000,
-        "height": 500,
-        "baselineColor": "#27272a",
-        "labelColor": "#a1a1aa",
-        "speed": 1,
+        "kind": "bar",
+        "bar": {
+          "barColor": "#0ea5e9",
+          "gap": 16,
+          "staggerFrames": 0.2,
+          "bars": [
+            {
+              "label": "",
+              "value": 35
+            },
+            {
+              "label": "",
+              "value": 60
+            },
+            {
+              "label": "",
+              "value": 45
+            },
+            {
+              "label": "",
+              "value": 80
+            },
+            {
+              "label": "",
+              "value": 55
+            },
+            {
+              "label": "",
+              "value": 70
+            },
+            {
+              "label": "",
+              "value": 90
+            },
+            {
+              "label": "",
+              "value": 65
+            }
+          ],
+          "width": 1000,
+          "height": 500,
+          "baselineColor": "#27272a",
+          "labelColor": "#a1a1aa",
+          "speed": 1
+        },
         "clipDuration": 120,
         "envelope": {}
       }
@@ -177,16 +177,19 @@
     },
     {
       "id": "bg",
-      "type": "fx.gradient",
+      "type": "fx.background",
       "position": {
         "x": 300.0,
         "y": 340.0
       },
       "params": {
-        "from": "#1e1b4b",
-        "to": "#0f172a",
-        "angle": 135,
-        "grain": 0.08,
+        "kind": "gradient",
+        "gradient": {
+          "from": "#1e1b4b",
+          "to": "#0f172a",
+          "angle": 135,
+          "grain": 0.08
+        },
         "clipDuration": 90,
         "envelope": {}
       }
@@ -211,12 +214,7 @@
         "x": 900.0,
         "y": 170.0
       },
-      "params": {
-        "transition": "slide",
-        "transitionDuration": 15,
-        "keepWhole": false,
-        "cuts": []
-      }
+      "params": {}
     },
     {
       "id": "render",
@@ -238,6 +236,18 @@
         "chapters": true,
         "chapterList": false,
         "gl": "angle"
+      }
+    },
+    {
+      "id": "sequence-transition",
+      "type": "timeline.transition",
+      "position": {
+        "x": 600.0,
+        "y": 10.0
+      },
+      "params": {
+        "kind": "slide",
+        "durationInFrames": 15
       }
     }
   ],
@@ -290,6 +300,13 @@
       "sourceHandle": "clip",
       "target": "render",
       "targetHandle": "clip"
+    },
+    {
+      "id": "sequence-transition.transition->sequence.transition",
+      "source": "sequence-transition",
+      "sourceHandle": "transition",
+      "target": "sequence",
+      "targetHandle": "transition"
     }
   ],
   "markers": []

@@ -11,8 +11,6 @@ pub enum PhoneVariant {
     Flat,
     #[label("Turned")]
     Tilt,
-    #[label("Showcase")]
-    Showcase,
 }
 
 #[choice(export)]
@@ -27,16 +25,10 @@ pub enum PhoneEntrance {
 
 #[settings(export)]
 pub struct PhoneFrame {
-    #[setting("Variant", default = PhoneVariant::Showcase)]
+    #[setting("Variant", default = PhoneVariant::Flat)]
     pub variant: PhoneVariant,
     #[setting("Entrance", default = PhoneEntrance::Float)]
     pub entrance: PhoneEntrance,
-    #[setting(
-        "Screen (image or video)",
-        default = "app:placeholders/screen-tall.svg",
-        widget = "asset"
-    )]
-    pub screen_src: String,
     #[setting(
         "Bezel color",
         default = "#C7C9CE",
@@ -133,7 +125,6 @@ pub fn definition() -> ElementMeta {
                 .authored_clock()
                 .design(1920, 1080)
                 .fonts(&["Geist", "Instrument Serif", "Inter", "Montserrat", "Outfit", "Space Grotesk"])
-                .kind_prop("screenKind", "screenSrc")
                 .look(NodeLook::of("lucide:smartphone")),
         )
 }

@@ -11,9 +11,10 @@ use crate::asset_ref::kind_from_path;
 use crate::clip::clip_recording;
 use crate::color::project_swatches;
 use crate::compile::CompileResult;
-use crate::elements::introspect::widget_keys;
+use crate::elements::introspect::{widget_keys, widget_of};
 use crate::graph::{downstream_of, session_into, upstream_of};
 use crate::node::{Category, SESSION_PORT};
+use crate::nodes::groups::{KIND, KIND_OBJECT};
 use crate::nodes::media::APPLY_GRADE_TYPE;
 use crate::params::{ParamSchema, Values};
 use crate::ports::convert_input;
@@ -70,15 +71,8 @@ pub struct InspectorContext {
     pub picker: PickerTarget,
     pub swatches: Vec<String>,
     pub connected_inputs: Vec<String>,
-    pub ports: Vec<PortChoice>,
     pub file_kinds: IndexMap<String, MediaKind>,
     pub take_kind: Option<TakeKind>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
-pub struct PortChoice {
-    pub port: String,
-    pub label: String,
 }
 
 fn value_take_kind(value: &CompileValue) -> Option<TakeKind> {
@@ -101,13 +95,39 @@ pub fn take_kind(wf: &Workflow, compiled: &CompileResult, node_id: &str) -> Opti
 
 fn file_kinds(params: &ParamSchema, values: &Values) -> IndexMap<String, MediaKind> {
     let values = params.with_defaults(values);
-    widget_keys(params, "asset")
+    let mut kinds: IndexMap<String, MediaKind> = widget_keys(params, "asset")
         .into_iter()
         .filter_map(|key| {
             let path = values.get(&key)?.as_str()?.trim();
             (!path.is_empty()).then(|| (key, kind_from_path(path)))
         })
-        .collect()
+        .collect();
+    let picked = values.get(KIND).and_then(Value::as_str).unwrap_or_default();
+    if let Some(object) = params
+        .field(picked)
+        .filter(|f| f.get(KIND_OBJECT).is_some())
+    {
+        let own = values.get(picked).and_then(Value::as_object);
+        for (key, field) in object
+            .get("properties")
+            .and_then(Value::as_object)
+            .into_iter()
+            .flatten()
+        {
+            if widget_of(field) != Some("asset") {
+                continue;
+            }
+            let path = own
+                .and_then(|o| o.get(key))
+                .or_else(|| field.get("default"))
+                .and_then(Value::as_str)
+                .map_or("", str::trim);
+            if !path.is_empty() {
+                kinds.insert(key.clone(), kind_from_path(path));
+            }
+        }
+    }
+    kinds
 }
 
 fn variable_list(wf: &Workflow) -> Vec<VarInfo> {
@@ -178,6 +198,34 @@ fn graded_file(wf: &Workflow, node_id: &str, compiled: &CompileResult) -> Option
                 _ => None,
             }
         })
+}
+
+fn connected_file_kinds(
+    wf: &Workflow,
+    node_id: &str,
+    compiled: &CompileResult,
+) -> IndexMap<String, MediaKind> {
+    let Some(def) = wf.node(node_id).and_then(|n| node_def(&n.kind)) else {
+        return IndexMap::new();
+    };
+    wf.edges
+        .iter()
+        .filter(|e| e.target == node_id)
+        .filter_map(|edge| {
+            let port = def.input(&edge.target_handle)?;
+            if port.kind != opsis_types::workflow::PortType::Media {
+                return None;
+            }
+            let value = compiled
+                .values
+                .get(&edge.source)
+                .and_then(|v| v.get(&edge.source_handle));
+            match convert_input(value, Some(port))? {
+                CompileValue::Media(media) => Some((edge.target_handle.clone(), media.kind)),
+                _ => None,
+            }
+        })
+        .collect()
 }
 
 fn input_picture(wf: &Workflow, node_id: &str, compiled: &CompileResult) -> Option<SpotBackground> {
@@ -274,15 +322,6 @@ pub fn inspector_context(
         f.connected(connected_inputs.iter().map(String::as_str))
     });
     let layers = connected.len().max(1);
-    let ports = family.map_or_else(Vec::new, |f| {
-        connected
-            .iter()
-            .map(|&i| PortChoice {
-                port: f.port(i),
-                label: f.label(i, connected.last().copied()),
-            })
-            .collect()
-    });
     let spot_background = match def.category {
         Category::Grade => graded_file(wf, node_id, compiled),
         Category::Image => input_picture(wf, node_id, compiled),
@@ -312,9 +351,12 @@ pub fn inspector_context(
         spot_background,
         picker: picker_target(wf, compiled, node_id),
         swatches: project_swatches(&params, MAX_SWATCHES),
-        file_kinds: file_kinds(&def.params, &node.params),
+        file_kinds: {
+            let mut kinds = file_kinds(&def.params, &node.params);
+            kinds.extend(connected_file_kinds(wf, node_id, compiled));
+            kinds
+        },
         take_kind: take_kind(wf, compiled, node_id),
         connected_inputs,
-        ports,
     })
 }

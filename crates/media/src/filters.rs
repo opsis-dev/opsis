@@ -232,16 +232,14 @@ pub fn loudnorm_filter(lufs: f64, true_peak: f64, range: f64) -> String {
     format!("loudnorm=I={lufs}:TP={true_peak}:LRA={range}")
 }
 
-pub fn repair_filter(clicks: bool, clipping: bool, strength: f64) -> Option<String> {
+pub fn declick_filter(strength: f64) -> String {
     let s = strength.clamp(0.0, 1.0);
-    let mut chain = Vec::new();
-    if clicks {
-        chain.push(format!("adeclick=t={:.2}", 3.0f64.mul_add(-s, 4.0)));
-    }
-    if clipping {
-        chain.push(format!("adeclip=t={:.2}", 10.0f64.mul_add(-s, 15.0)));
-    }
-    (!chain.is_empty()).then(|| chain.join(","))
+    format!("adeclick=t={:.2}", 3.0f64.mul_add(-s, 4.0))
+}
+
+pub fn declip_filter(strength: f64) -> String {
+    let s = strength.clamp(0.0, 1.0);
+    format!("adeclip=t={:.2}", 10.0f64.mul_add(-s, 15.0))
 }
 
 pub const HUM_LISTEN_WIDTH_HZ: f64 = 4.0;
@@ -449,10 +447,10 @@ pub fn spectral_floor(noise_level_db: Option<f64>) -> f64 {
     })
 }
 
-pub fn speech_filter(
-    p: &opsis_compile::nodes::media::CleanSpeech,
+pub fn noise_filter(
+    p: &opsis_compile::nodes::media::RemoveNoise,
     spectral_floor_db: Option<f64>,
-) -> String {
+) -> Option<String> {
     let mut steps = Vec::new();
     if let Some(floor) = spectral_floor_db.filter(|_| p.noise > 0.0) {
         steps.push(format!(
@@ -463,13 +461,20 @@ pub fn speech_filter(
     if p.rumble_hz > 0 {
         steps.push(format!("highpass=f={}", p.rumble_hz));
     }
-    if p.soften_s > 0.0 {
-        steps.push(format!("deesser=i={}", round_to(p.soften_s, 2)));
+    (!steps.is_empty()).then(|| steps.join(","))
+}
+
+pub fn soften_s_filter(strength: f64) -> String {
+    format!("deesser=i={}", round_to(strength.clamp(0.0, 1.0), 2))
+}
+
+pub fn even_out_filter(p: &opsis_compile::nodes::media::EvenOutVolume) -> String {
+    let level = loudnorm_filter(p.integrated, p.true_peak, p.lra);
+    if p.lift_quiet {
+        format!("{},{level}", speech_level(p.most_lift))
+    } else {
+        level
     }
-    if p.even_level {
-        steps.push(speech_level(p.even_lift));
-    }
-    steps.join(",")
 }
 
 pub const fn noise_level_listen_filter() -> &'static str {

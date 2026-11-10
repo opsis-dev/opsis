@@ -4,8 +4,7 @@ use opsis_compile::clip::{
 };
 use opsis_compile::elements::elements;
 use opsis_compile::node::{CardInputs, InputTake};
-use opsis_compile::registry::node_def;
-use opsis_types::cards::{Icon, Tone};
+use opsis_types::cards::Icon;
 use opsis_types::timeline::TimelineItem;
 use opsis_types::values::{ClipValue, TakeKind};
 use serde_json::{Map, Value, json};
@@ -44,40 +43,47 @@ fn keeps_a_crop_inside_the_recording_and_asks_backdrops_for_what_their_kind_need
         problem("camera.crop", json!({ "x": 0, "y": 0, "w": 0, "h": 0.5 })).as_deref(),
         Some("Width must be at least 0.05")
     );
+    let background = |params: Value| {
+        let mut all = json!({ "kind": "window" });
+        all.as_object_mut()
+            .unwrap()
+            .extend(params.as_object().unwrap().clone());
+        problem("camera.frame", all)
+    };
     assert_eq!(
-        problem("camera.backdrop", json!({ "kind": "solid", "color": "" })).as_deref(),
+        background(json!({ "background": "solid", "color": "" })).as_deref(),
         Some("Pick a colour")
     );
     assert_eq!(
+        background(json!({ "background": "solid", "color": "red" })),
+        None
+    );
+    assert_eq!(
+        background(json!({ "background": "gradient", "gradient": " " })).as_deref(),
+        Some("Pick a gradient")
+    );
+    assert_eq!(
+        background(json!({ "background": "asset", "asset": "" })).as_deref(),
+        Some("Choose an image")
+    );
+    assert_eq!(background(json!({ "background": "image" })), None);
+    assert_eq!(
         problem(
-            "camera.backdrop",
-            json!({ "kind": "solid", "color": "red" })
+            "camera.frame",
+            json!({ "kind": "page", "background": "solid", "color": "" })
         ),
         None
     );
     assert_eq!(
+        problem("camera.move", json!({ "fromSpot": true, "moveMs": 0 })).as_deref(),
+        Some("Move for must be at least 0.1 s")
+    );
+    assert_eq!(
         problem(
-            "camera.backdrop",
-            json!({ "kind": "gradient", "gradient": " " })
+            "camera.camera",
+            json!({ "follows": "cursor", "everyMs": 0 })
         )
         .as_deref(),
-        Some("Pick a gradient")
-    );
-    assert_eq!(
-        problem("camera.backdrop", json!({ "kind": "asset", "asset": "" })).as_deref(),
-        Some("Choose an image")
-    );
-    assert_eq!(problem("camera.backdrop", json!({ "kind": "image" })), None);
-    assert_eq!(
-        problem("camera.manualZoom", json!({ "holdMs": 0 })).as_deref(),
-        Some("Hold must be at least 0.1 s")
-    );
-    assert_eq!(
-        problem("camera.pan", json!({ "durationMs": 0 })).as_deref(),
-        Some("Pan for must be at least 0.1 s")
-    );
-    assert_eq!(
-        problem("camera.followCursor", json!({ "everyMs": 0 })).as_deref(),
         Some("Re-aim every must be at least 0.2 s")
     );
 }
@@ -94,11 +100,12 @@ fn places_a_second_speed_ramp_at_its_own_recording_time() {
         None,
         &[ramp(1000.0, 2000.0), ramp(3000.0, 4000.0)],
         Some(make_log(Vec::new(), 10_000.0)),
-        json!({ "speed": 1 }),
+        None,
     );
-    assert_eq!(both.duration_in_frames, 270);
-    let frame = |ms: f64| clip_frame_of_recording(&both.tracks, &|_| ms / 1000.0 * 30.0).unwrap();
-    for (ms, expected) in [(3000.0, 75.0), (4000.0, 90.0), (6000.0, 150.0)] {
+    assert_eq!(both.duration_in_frames, 216);
+    let frame =
+        |ms: f64| clip_frame_of_recording(&both.tracks, &|p| ms / 1000.0 / p.speed * 30.0).unwrap();
+    for (ms, expected) in [(3000.0, 60.0), (4000.0, 72.0), (6000.0, 120.0)] {
         assert!((frame(ms) - expected).abs() < 0.01, "{ms}: {}", frame(ms));
     }
     let out = compile_node(
@@ -134,7 +141,7 @@ fn frames_any_clip_in_a_device_and_draws_window_title_bars() {
     }
     let phone = compile_clip(
         "camera.deviceFrame",
-        json!({ "device": "phone", "variant": "tilt", "tiltAngle": 20, "scale": 0.7 }),
+        json!({ "angle": "tilt", "device": "phone", "tilt": 20, "phone": { "scale": 0.7 } }),
         json!({ CLIP: clip_value(&empty_clip(60)) }),
     );
     let props = &group_value(&phone)["wrapper"]["props"];
@@ -144,16 +151,38 @@ fn frames_any_clip_in_a_device_and_draws_window_title_bars() {
             props["tiltAngle"].clone(),
             props["scale"].clone()
         ),
-        (json!("tilt"), json!(20), json!(0.7))
+        (json!("tilt"), json!(-20), json!(0.7))
     );
+    let laptop = |angle: &str| {
+        let framed = compile_clip(
+            "camera.deviceFrame",
+            json!({ "angle": angle, "tilt": 30 }),
+            json!({ CLIP: clip_value(&empty_clip(60)) }),
+        );
+        group_value(&framed)["wrapper"]["props"]["restTilt"].clone()
+    };
+    assert_eq!((laptop("flat"), laptop("tilt")), (json!(0), json!(30)));
+    for (angle, component) in [
+        ("three-d", "screen-3d"),
+        ("pull-back", "device-mockup-zoom"),
+        ("lineup", "multi-device-lineup"),
+    ] {
+        let framed = compile_clip(
+            "camera.deviceFrame",
+            json!({ "angle": angle }),
+            json!({ CLIP: clip_value(&empty_clip(45)) }),
+        );
+        assert_eq!(framed.duration_in_frames, 45, "{angle}");
+        assert_eq!(group_value(&framed)["wrapper"]["component"], component);
+    }
     let clip = zoomed(
         Some(&[(
-            "camera.windowFrame",
+            "camera.frame",
             json!({ "windowStyle": "windows", "titleBar": false }),
         )]),
         &[],
         None,
-        json!({ "speed": 1 }),
+        Some(1.0),
     );
     let props = serde_json::to_value(recording_props(&clip)[0]).unwrap();
     assert_eq!(
@@ -175,14 +204,7 @@ fn puts_typed_title_bar_text_in_the_window_frame() {
             props["window"]["mode"].clone(),
         )
     };
-    let framed = |params: Value| {
-        zoomed(
-            Some(&[("camera.windowFrame", params)]),
-            &[],
-            None,
-            json!({ "speed": 1 }),
-        )
-    };
+    let framed = |params: Value| zoomed(Some(&[("camera.frame", params)]), &[], None, Some(1.0));
     let typed = |mode: &str| (json!("app.example.com"), json!(mode));
     let none = (Value::Null, Value::Null);
     assert_eq!(
@@ -205,15 +227,12 @@ fn puts_typed_title_bar_text_in_the_window_frame() {
         )),
         none
     );
-    assert_eq!(
-        address(&zoomed(None, &[], None, json!({ "speed": 1 }))),
-        none
-    );
+    assert_eq!(address(&zoomed(None, &[], None, Some(1.0))), none);
 }
 
 #[test]
 fn shows_the_typed_title_on_the_frame_card() {
-    let frame = |params: Value| card_texts("camera.windowFrame", params, CardInputs::default());
+    let frame = |params: Value| card_texts("camera.frame", params, CardInputs::default());
     assert!(frame(json!({})).contains(&"The take's own title".to_owned()));
     assert!(
         frame(json!({ "title": "https://app.example.com/" }))
@@ -237,12 +256,19 @@ const fn take(duration_ms: f64, cursor_track: bool) -> InputTake {
     }
 }
 
-fn takes(port: &str, take: Option<InputTake>, style: &[&str]) -> CardInputs {
+fn takes(port: &str, take: Option<InputTake>, style: &[(&str, Value)]) -> CardInputs {
     CardInputs {
         takes: IndexMap::from([(port.to_owned(), take)]),
         style: IndexMap::from([(
             "style".to_owned(),
-            style.iter().map(|s| (*s).to_owned()).collect(),
+            style
+                .iter()
+                .map(|(kind, params)| opsis_types::values::StyleEntry {
+                    node_id: String::new(),
+                    kind: (*kind).to_owned(),
+                    params: params.as_object().unwrap().clone(),
+                })
+                .collect(),
         )]),
         ..CardInputs::default()
     }
@@ -251,60 +277,47 @@ fn takes(port: &str, take: Option<InputTake>, style: &[&str]) -> CardInputs {
 #[test]
 fn warns_when_a_camera_move_starts_after_the_take_or_follows_no_cursor() {
     let after = "After the take ends at 6 s".to_owned();
-    assert!(
+    let moved = |params: Value| {
         card_texts(
-            "camera.manualZoom",
-            json!({ "atMs": 60_000 }),
-            takes("recording", Some(take(6000.0, true)), &[])
+            "camera.move",
+            params,
+            takes("recording", Some(take(6000.0, true)), &[]),
         )
-        .contains(&after)
-    );
-    assert!(
-        card_texts(
-            "camera.pan",
-            json!({ "atMs": 7000 }),
-            takes("recording", Some(take(6000.0, true)), &[])
-        )
-        .contains(&after)
-    );
-    assert!(
-        !card_texts(
-            "camera.manualZoom",
-            json!({ "atMs": 1000 }),
-            takes("recording", Some(take(6000.0, true)), &[])
-        )
-        .contains(&after)
-    );
-    let card = |cursor: bool, style: &[&str]| {
+    };
+    assert!(moved(json!({ "atMs": 60_000 })).contains(&after));
+    assert!(moved(json!({ "atMs": 7000, "fromSpot": true })).contains(&after));
+    assert!(!moved(json!({ "atMs": 1000 })).contains(&after));
+    let card = |cursor: bool, style: &[(&str, Value)]| {
         card_texts(
             "camera.take",
             json!({}),
             takes("recording", Some(take(6000.0, cursor)), style),
         )
     };
+    let follows = [("camera.camera", json!({ "follows": "cursor" }))];
     let warning = "The take has no cursor to follow".to_owned();
-    assert!(card(false, &["camera.followCursor"]).contains(&warning));
-    assert!(!card(true, &["camera.followCursor"]).contains(&warning));
-    assert!(!card(false, &["camera.backdrop"]).contains(&warning));
+    assert!(card(false, &follows).contains(&warning));
+    assert!(!card(true, &follows).contains(&warning));
+    assert!(!card(false, &[("camera.camera", json!({}))]).contains(&warning));
     let filmed = "The take films its own cursor".to_owned();
-    assert!(card(false, &["cursor.style"]).contains(&filmed));
-    assert!(!card(true, &["cursor.style"]).contains(&filmed));
+    assert!(card(false, &[("cursor.style", json!({}))]).contains(&filmed));
+    assert!(!card(true, &[("cursor.style", json!({}))]).contains(&filmed));
 }
 
 #[test]
 fn lets_the_takes_own_nodes_come_after_the_style() {
     let style = [
         (
-            "camera.backdrop",
-            json!({ "kind": "solid", "color": "#123456" }),
+            "camera.frame",
+            json!({ "background": "solid", "color": "#123456" }),
         ),
-        ("camera.followCursor", json!({})),
+        ("camera.camera", json!({ "follows": "cursor" })),
     ];
     let clip = zoomed(
         Some(&style),
-        &[("camera.manualZoom", json!({ "atMs": 500 }))],
+        &[("camera.move", json!({ "atMs": 500 }))],
         None,
-        json!({ "speed": 1 }),
+        Some(1.0),
     );
     let props = serde_json::to_value(recording_props(&clip)[0]).unwrap();
     assert_eq!(
@@ -321,7 +334,7 @@ fn lets_the_takes_own_nodes_come_after_the_style() {
         .map(|b| b["nodeId"].clone())
         .collect();
     assert_eq!(beats, [json!("s1"), json!("t0"), json!("t0")]);
-    let plain = zoomed(None, &[], None, json!({ "speed": 1 }));
+    let plain = zoomed(None, &[], None, Some(1.0));
     assert_eq!(
         serde_json::to_value(recording_props(&plain)[0]).unwrap()["shot"]["backdrop"],
         "glaze"
@@ -330,7 +343,7 @@ fn lets_the_takes_own_nodes_come_after_the_style() {
 
 #[test]
 fn styles_every_take_in_a_sequence_and_warns_when_a_clip_has_no_recording() {
-    let take = || zoomed(None, &[], None, json!({ "speed": 1 }));
+    let take = || zoomed(None, &[], None, Some(1.0));
     let sequence = sequence_clips(
         "seq",
         &[take(), take()],
@@ -375,45 +388,51 @@ fn styles_every_take_in_a_sequence_and_warns_when_a_clip_has_no_recording() {
     );
 }
 
-const SPRING_SETTLE: &str = "fx.spring-settle";
+fn sequencers(tracks: &[opsis_types::timeline::TimelineTrack]) -> Vec<Value> {
+    let mut found = Vec::new();
+    opsis_compile::clip::walk_items(tracks, &mut |item| {
+        if let TimelineItem::Group { props, .. } = item
+            && let Some(sequencer) = &props.sequencer
+        {
+            found.push(serde_json::to_value(sequencer).unwrap());
+        }
+    });
+    found
+}
 
 #[test]
-fn plays_connected_clips_as_spring_settle_scenes_and_counts_them_on_its_card() {
+fn plays_clips_joined_by_spring_settle_as_scenes_of_one_run() {
+    let settle = match compile_node(
+        "timeline.transition",
+        json!({ "kind": "spring-settle", "durationInFrames": 4, "spring-settle": { "enterScale": 1.3 } }),
+        json!({}),
+    )
+    .shift_remove("transition")
+    {
+        Some(transition) => serde_json::to_value(transition).unwrap(),
+        None => panic!("no transition"),
+    };
     let clip = compile_clip(
-        SPRING_SETTLE,
-        json!({ "gapFrames": 4, "enterScale": 1.3, "backgrounds": [{ "scene": "in3", "color": "#112233" }] }),
-        json!({ "in1": clip_value(&empty_clip(30)), "in3": clip_value(&empty_clip(20)) }),
+        "timeline.sequence",
+        json!({}),
+        json!({
+            "in1": clip_value(&empty_clip(30)),
+            "in2": clip_value(&empty_clip(20)),
+            "transition": settle
+        }),
     );
     assert_eq!(clip.duration_in_frames, 54);
-    let sequencer = group_value(&clip)["sequencer"].clone();
-    assert_eq!(sequencer["component"], "spring-settle");
+    let found = sequencers(&clip.tracks);
+    assert_eq!(found.len(), 1);
+    assert_eq!(found[0]["component"], "spring-settle");
     assert_eq!(
         (
-            sequencer["props"]["enterScale"].as_f64(),
-            sequencer["props"]["gapFrames"].as_f64()
+            found[0]["props"]["enterScale"].as_f64(),
+            found[0]["props"]["gapFrames"].as_f64()
         ),
         (Some(1.3), Some(4.0))
     );
-    assert_eq!(sequencer["backgrounds"], json!([null, "#112233"]));
-    let inputs = CardInputs {
-        connected: vec!["in1".into(), "in2".into()],
-        items: [("in1".to_owned(), 1), ("in2".to_owned(), 3)]
-            .into_iter()
-            .collect(),
-        clip_frames: Some(90),
-        ..CardInputs::default()
-    };
-    let rows = card_texts(SPRING_SETTLE, json!({ "gapFrames": 15 }), inputs);
-    assert_eq!(
-        (rows[0].as_str(), rows[1].as_str()),
-        ("2 scenes", "Items per scene: 1 · 3")
-    );
-    assert!(rows.iter().any(|t| t.ends_with("between scenes")));
-    let empty = node_card(SPRING_SETTLE, json!({}), CardInputs::default())[0].clone();
-    assert_eq!(
-        (empty.text.as_str(), empty.tone),
-        ("0 scenes", Some(Tone::Warn))
-    );
+    assert_eq!(found[0]["backgrounds"], json!([null, null]));
 }
 
 fn first_item(kind: &str, params: Value) -> (String, Map<String, Value>, Option<Value>) {
@@ -437,20 +456,27 @@ fn first_item(kind: &str, params: Value) -> (String, Map<String, Value>, Option<
 #[test]
 fn makes_files_in_rows_project_files_and_drops_colours_left_on_the_theme() {
     let (_, props, _) = first_item(
-        "fx.logo-enter",
-        json!({ "logos": [{ "image": "assets/a.svg", "background": "#000" }, { "image": "app:placeholders/logo-mark.svg", "background": "#111" }] }),
+        "fx.logo-set",
+        json!({ "kind": "stack", "stack": { "logos": [{ "image": "assets/a.svg", "background": "#000" }, { "image": "app:placeholders/logo-mark.svg", "background": "#111" }] } }),
     );
     assert_eq!(
         props["logos"],
         json!([{ "image": "project:assets/a.svg", "background": "#000" }, { "image": "app:placeholders/logo-mark.svg", "background": "#111" }])
     );
     assert!(
-        !first_item("fx.stat-card", json!({ "backgroundColor": "" }))
-            .1
-            .contains_key("backgroundColor")
+        !first_item(
+            "fx.metric-ticker",
+            json!({ "kind": "ring", "ring": { "backgroundColor": "" } })
+        )
+        .1
+        .contains_key("backgroundColor")
     );
     assert_eq!(
-        first_item("fx.stat-card", json!({ "backgroundColor": "#123456" })).1["backgroundColor"],
+        first_item(
+            "fx.metric-ticker",
+            json!({ "kind": "ring", "ring": { "backgroundColor": "#123456" } })
+        )
+        .1["backgroundColor"],
         "#123456"
     );
 }
@@ -469,8 +495,8 @@ fn row_with(
 #[test]
 fn shows_palettes_gradients_and_themes_on_element_cards() {
     let palette = row_with(
-        "fx.shader-mesh-gradient",
-        json!({}),
+        "fx.background",
+        json!({ "kind": "mesh" }),
         Icon::Palette,
         CardInputs::default(),
     )
@@ -585,42 +611,6 @@ fn no_element_default_loads_from_the_internet_or_names_a_library() {
 }
 
 #[test]
-fn plays_element_music_through_the_mix_as_the_nodes_own_channel() {
-    let clip = compile_clip(
-        "fx.release-teaser",
-        json!({ "music": "assets/song.mp3", "musicVolume": 0.4 }),
-        json!({}),
-    );
-    assert_eq!(clip.audio.len(), 1);
-    let sound = serde_json::to_value(&clip.audio[0]).unwrap();
-    assert_eq!(
-        (
-            sound["src"].clone(),
-            sound["volume"].clone(),
-            sound["channel"].clone(),
-            sound["role"].clone()
-        ),
-        (
-            json!("project:assets/song.mp3"),
-            json!(0.4),
-            json!("n"),
-            json!("music")
-        )
-    );
-    assert_eq!(
-        sound["durationInFrames"].as_u64(),
-        Some(u64::from(clip.duration_in_frames))
-    );
-    if let TimelineItem::Element { props, .. } = &clip.tracks[0].items[0] {
-        assert!(!props.contains_key("music") && !props.contains_key("musicVolume"));
-    }
-    assert_eq!(
-        compile_clip("fx.release-teaser", json!({}), json!({})).audio,
-        []
-    );
-}
-
-#[test]
 fn passes_element_times_in_frames_of_thirty_a_second_and_lays_out_fixed_size_elements() {
     assert_eq!(
         first_item("fx.status-cycle", json!({ "statusHold": 1.5 })).1["statusHold"].as_f64(),
@@ -645,75 +635,12 @@ fn passes_element_times_in_frames_of_thirty_a_second_and_lays_out_fixed_size_ele
         (json!("mod+k"), Some(60.0), Some(15.0))
     );
     assert_eq!(
-        first_item("fx.funnel-chart", json!({})).2,
+        first_item("fx.chart", json!({ "kind": "funnel" })).2,
         Some(json!({ "width": 1920, "height": 1080 }))
     );
     assert_eq!(
-        first_item("fx.soft-blur-in", json!({ "text": "Hi" })).2,
+        first_item("fx.animated-text", json!({ "soft-blur": { "text": "Hi" } })).2,
         None
-    );
-}
-
-const DEVICE_MOCKUP: &str = "fx.device-mockup-zoom";
-
-#[test]
-fn runs_a_device_mockup_with_or_without_a_clip() {
-    assert!(
-        node_def(DEVICE_MOCKUP)
-            .unwrap()
-            .input("clip")
-            .unwrap()
-            .optional
-    );
-    let (component, props, _) =
-        first_item(DEVICE_MOCKUP, json!({ "src": "project:assets/screen.png" }));
-    assert_eq!(
-        (component.as_str(), props["src"].clone()),
-        ("device-mockup-zoom", json!("project:assets/screen.png"))
-    );
-    let field = node_def(DEVICE_MOCKUP)
-        .unwrap()
-        .params
-        .field("clipDuration")
-        .unwrap()
-        .clone();
-    assert_eq!(
-        (
-            field["x-zero-label"].clone(),
-            field["x-unconnected-zero-label"].clone()
-        ),
-        (json!("Match the clip"), json!("Usual length"))
-    );
-    let clock = |kind: &str, connected: &[&str]| {
-        row_with(
-            kind,
-            json!({}),
-            Icon::Clock,
-            CardInputs {
-                connected: connected.iter().map(|c| (*c).to_owned()).collect(),
-                ..CardInputs::default()
-            },
-        )
-        .map(|r| r.text)
-    };
-    assert_eq!(
-        clock(DEVICE_MOCKUP, &["clip"]).as_deref(),
-        Some("Matches the clip")
-    );
-    assert_eq!(clock(DEVICE_MOCKUP, &[]).as_deref(), Some("3 s"));
-    assert_eq!(
-        clock("fx.multi-device-lineup", &[]).as_deref(),
-        Some("Matches the clip")
-    );
-    let clip = compile_clip(
-        DEVICE_MOCKUP,
-        json!({}),
-        json!({ CLIP: clip_value(&empty_clip(45)) }),
-    );
-    assert_eq!(clip.duration_in_frames, 45);
-    assert_eq!(
-        group_value(&clip)["wrapper"]["component"],
-        "device-mockup-zoom"
     );
 }
 

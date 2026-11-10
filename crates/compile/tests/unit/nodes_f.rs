@@ -307,7 +307,7 @@ fn sums_up_the_grade_an_apply_grade_node_applies() {
     ];
     assert_eq!(
         card_texts("media.applyGrade", json!({}), graded(&steps, None)),
-        ["3 steps: Colour and light, Texture", "MP4 · High quality"]
+        ["3 steps: Colour and light, Texture", "Video file"]
     );
     assert!(
         card_texts(
@@ -321,20 +321,12 @@ fn sums_up_the_grade_an_apply_grade_node_applies() {
         .contains(&"The grade changes nothing".to_owned())
     );
     assert_eq!(
-        texts("media.applyGrade", json!({ "codec": "h265" })).join(","),
-        "Connect a grade,MP4 (HEVC) · High quality · may not play in a film"
-    );
-    assert_eq!(
-        texts("media.applyGrade", json!({ "codec": "prores" })).join(","),
-        "Connect a grade,ProRes · can't play in a film"
-    );
-    assert_eq!(
         card_texts(
             "media.applyGrade",
             json!({}),
             graded(&[("grade.mono", json!({}))], Some(MediaKind::Image))
         )[1],
-        "PNG"
+        "Image file"
     );
     let trails = [("grade.lens", json!({ "trails": 0.5 }))];
     let image = node_card(

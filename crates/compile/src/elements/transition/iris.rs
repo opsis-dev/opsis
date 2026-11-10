@@ -1,4 +1,4 @@
-use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::looks::NodeLook;
 
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::NoSettings;
@@ -14,6 +14,6 @@ pub fn definition() -> ElementMeta {
             ElementCategory::Transition,
             24,
         )
-        .look(NodeLook::of("lucide:aperture").moves(NodeMotion::Iris)),
+        .look(NodeLook::of("lucide:aperture")),
     )
 }

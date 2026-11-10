@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use opsis_compile::nodes::camera::{SHOT_TYPE, SPEED_RAMP_TYPE, WINDOW_FRAME_TYPE};
+use opsis_compile::nodes::camera::{FRAME_TYPE, SPEED_RAMP_TYPE};
 use opsis_compile::nodes::terminal::TERMINAL_LOOK_TYPE;
 use opsis_terminal::tape::{
     Command, Key, Tape, WAIT_TIMEOUT_MS, parse, parse_with_sources, session_tape, speed_entry,
@@ -213,15 +213,12 @@ Type "pwd"
         vec!["Set FontFamily", "Set Framerate", "Output"]
     );
     let kinds: Vec<&str> = mapped.style.iter().map(|e| e.kind.as_str()).collect();
-    assert_eq!(
-        kinds,
-        vec![TERMINAL_LOOK_TYPE, WINDOW_FRAME_TYPE, SHOT_TYPE]
-    );
+    assert_eq!(kinds, vec![TERMINAL_LOOK_TYPE, FRAME_TYPE]);
     assert_eq!(mapped.style[0].params["theme"], "Dracula");
     assert_eq!(mapped.style[0].params["fontSize"], 32);
     assert_eq!(mapped.style[1].params["frameTheme"], "dark");
-    assert_eq!(mapped.style[2].params["cornerRadius"], 10);
-    assert_eq!(mapped.style[2].params["windowSize"], 90);
+    assert_eq!(mapped.style[1].params["cornerRadius"], 10);
+    assert_eq!(mapped.style[1].params["windowSize"], 90);
     let types: Vec<&TerminalAction> = mapped.session.steps.iter().map(|s| &s.action).collect();
     assert_eq!(
         types,

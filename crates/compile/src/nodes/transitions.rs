@@ -1,34 +1,37 @@
+use std::sync::LazyLock;
+
 use opsis_macros::settings;
 use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
-use opsis_types::timeline::{TransitionEase, TransitionRef};
+use opsis_types::numbers;
+use opsis_types::timeline::{SequencerProps, TimelineTrack, TransitionEase, TransitionRef};
 use opsis_types::values::{ClipValue, CompileValue};
 use opsis_types::workflow::PortType;
-use serde_json::{Map, Value};
+use serde_json::{Map, Value, json};
 
-use crate::card_rows::{
-    cover, cover_row, frame_secs, sentence, squeezed_too_much, transition_length_text,
+use crate::card_rows::{frame_secs, sentence, squeezed_too_much, transition_length_text};
+use crate::clip::{
+    ItemExtra, SequenceSlots, item_clip, scene_sequence, sequence_clips, sequence_cuts,
 };
-use crate::clip::{ItemExtra, SequenceSlots, item_clip, sequence_clips, stack_clips};
-use crate::elements::overlay::light_leak::leak_colours;
-use crate::elements::shared::Colour;
 use crate::elements::{ElementKind, ElementMeta, element_meta, elements};
 use crate::node::{
-    CLIP_PORT, CardCtx, Category, Ctx, Inputs, NodeDef, Outputs, Phase, Ports, RowExt, outputs,
-    port, row,
+    CLIP_PORT, CardCtx, Category, Ctx, NodeDef, Outputs, Phase, RowExt, opt, outputs, port, row,
 };
-use crate::nodes::elements::extended_schema;
-use crate::params::{Values, schema_of, whole_number};
+use crate::nodes::elements::{element_props, properties_of};
+use crate::nodes::groups::{GroupKind, KIND, kind_properties, kind_values};
+use crate::params::{ParamSchema, Values, schema_of, whole_number};
 
+pub const TRANSITION_TYPE: &str = "timeline.transition";
+pub const TRANSITION_PORT: &str = "transition";
 pub const NO_TRANSITION: &str = "none";
 pub const DEFAULT_TRANSITION: &str = "fade";
-
-pub fn transition_title(key: &str) -> String {
-    if key == NO_TRANSITION {
-        return "Cut".to_owned();
-    }
-    sentence(element_meta(key).map_or(key, |m| m.title.as_str()))
-}
+pub const LIGHT_LEAK_CUT: &str = "light-leak";
+pub const SPRING_SETTLE: &str = "spring-settle";
+const LENGTH: &str = "durationInFrames";
+const KEEP_WHOLE: &str = "keepWhole";
+const EASING: &str = "easing";
+const LEAK_OFFSET: &str = "offset";
+const NODE_ONLY_SETTINGS: [&str; 3] = [LENGTH, KEEP_WHOLE, EASING];
 
 pub fn presentations() -> impl Iterator<Item = &'static ElementMeta> {
     elements()
@@ -36,66 +39,174 @@ pub fn presentations() -> impl Iterator<Item = &'static ElementMeta> {
         .filter(|e| e.kind == ElementKind::Presentation)
 }
 
+fn kind_label(key: &str) -> String {
+    match key {
+        NO_TRANSITION => "Cut".to_owned(),
+        LIGHT_LEAK_CUT => "Light leak cut".to_owned(),
+        _ => sentence(element_meta(key).map_or(key, |m| m.title.as_str())),
+    }
+}
+
+pub fn transition_title(key: &str) -> String {
+    kind_label(key)
+}
+
 pub fn transition_kinds() -> Vec<String> {
     std::iter::once(NO_TRANSITION.to_owned())
-        .chain(presentations().map(|p| p.key.clone()))
+        .chain(KINDS.iter().map(|k| k.id.to_owned()))
         .collect()
 }
 
-const NODE_ONLY_SETTINGS: [&str; 3] = ["durationInFrames", "keepWhole", "easing"];
+static KINDS: LazyLock<Vec<GroupKind>> = LazyLock::new(|| {
+    presentations()
+        .map(|meta| GroupKind::new(meta.key.as_str(), kind_label(&meta.key), meta.key.as_str()))
+        .chain([
+            GroupKind::new(LIGHT_LEAK_CUT, "Light leak cut", LIGHT_LEAK_CUT),
+            GroupKind::new(SPRING_SETTLE, "Spring settle", SPRING_SETTLE)
+                .hide(&["loop", "bgFadeFrames"]),
+        ])
+        .collect()
+});
 
-pub fn default_transition_params(kind: &str) -> Option<Map<String, Value>> {
-    let meta = crate::elements::element_meta(kind)?;
-    let mut params = meta.fixed_props.clone();
-    params.extend(
-        meta.default_props
-            .iter()
-            .filter(|(key, _)| !NODE_ONLY_SETTINGS.contains(&key.as_str()))
-            .map(|(key, value)| (key.clone(), value.clone())),
-    );
-    Some(params)
+fn usual_length(kind: &GroupKind) -> u32 {
+    kind.meta().default_duration_in_frames
 }
 
-pub fn transition_ref(
-    kind: &str,
+#[settings]
+struct TransitionFields {
+    #[setting(
+        "Length",
+        range(min = 0, max = 108_000),
+        step = 1,
+        unit = "frames",
+        zero_label = "Its usual length",
+        help = "For Spring settle, the pause between one clip leaving and the next landing."
+    )]
     duration_in_frames: u32,
+    #[setting(
+        "Keep every clip whole",
+        help = "The transition plays over a still of the last and first frames, so no clip loses screen time. The result gets longer by the transition.",
+        advanced
+    )]
     keep_whole: bool,
+    #[setting(
+        "Easing",
+        default = TransitionEase::Linear,
+        labels = { "linear": "Even", "in": "Slow start", "out": "Slow end", "in-out": "Slow start and end" },
+        advanced
+    )]
     easing: TransitionEase,
-    params: Option<Map<String, Value>>,
-) -> TransitionRef {
+}
+
+fn schema() -> ParamSchema {
+    let kinds = &*KINDS;
+    let mut properties = kind_properties("Kind", kinds, &[]);
+    if let Some(kind) = properties.get_mut(KIND) {
+        kind["default"] = Value::from(DEFAULT_TRANSITION);
+    }
+    let presentations: Vec<&str> = kinds
+        .iter()
+        .filter(|k| k.meta().kind == ElementKind::Presentation)
+        .map(|k| k.id)
+        .collect();
+    let mut fields = properties_of(&schema_of::<TransitionFields>());
+    if let Some(keep) = fields.get_mut(KEEP_WHOLE) {
+        keep["x-show-if"] = json!({ KIND: presentations });
+    }
+    if let Some(easing) = fields.get_mut(EASING) {
+        easing["x-show-if"] = json!({ KIND: presentations });
+    }
+    if let Some(Value::Object(leak)) = properties.get_mut(LIGHT_LEAK_CUT)
+        && let Some(Value::Object(leak_props)) = leak.get_mut("properties")
+    {
+        leak_props.insert(
+            LEAK_OFFSET.to_owned(),
+            json!({
+                "description": "Offset",
+                "type": "integer",
+                "minimum": -108_000,
+                "maximum": 108_000,
+                "default": 0,
+                "x-unit": "frames",
+                "x-help": "Moves the flare from the middle of the cut, later or earlier.",
+                "x-advanced": true
+            }),
+        );
+    }
+    let mut ordered = Map::new();
+    if let Some(kind) = properties.shift_remove(KIND) {
+        ordered.insert(KIND.to_owned(), kind);
+    }
+    ordered.extend(fields);
+    ordered.extend(properties);
+    ParamSchema::new(json!({ "type": "object", "properties": ordered }))
+}
+
+fn picked(values: &Values) -> &'static GroupKind {
+    let id = values
+        .get(KIND)
+        .and_then(Value::as_str)
+        .unwrap_or(DEFAULT_TRANSITION);
+    KINDS
+        .iter()
+        .find(|k| k.id == id)
+        .unwrap_or_else(|| &KINDS[0])
+}
+
+fn length_of(kind: &GroupKind, values: &Values) -> u32 {
+    match whole_number(values.get(LENGTH)).unwrap_or(0) {
+        0 => usual_length(kind),
+        length => length,
+    }
+}
+
+pub fn transition_of(values: &Values) -> TransitionRef {
+    let kind = picked(values);
+    let meta = kind.meta();
+    let mut own = kind_values(kind, values, &[]);
+    for key in NODE_ONLY_SETTINGS {
+        own.remove(key);
+    }
+    own.remove(crate::nodes::elements::CLIP_DURATION);
+    own.remove(crate::nodes::elements::ENVELOPE);
+    let presentation = meta.kind == ElementKind::Presentation;
+    let params = if presentation {
+        let mut params = meta.fixed_props.clone();
+        params.extend(own);
+        params
+    } else if kind.id == LIGHT_LEAK_CUT {
+        let offset = own.remove(LEAK_OFFSET);
+        let mut props = element_props(meta, &own);
+        if let Some(offset) = offset {
+            props.insert(LEAK_OFFSET.to_owned(), offset);
+        }
+        props
+    } else {
+        element_props(meta, &own)
+    };
+    let keep_whole = presentation
+        && values
+            .get(KEEP_WHOLE)
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
+    let easing: TransitionEase = values
+        .get(EASING)
+        .filter(|_| presentation)
+        .and_then(|v| serde_json::from_value(v.clone()).ok())
+        .unwrap_or_default();
     TransitionRef {
-        kind: kind.to_owned(),
-        duration_in_frames,
-        params,
+        kind: kind.id.to_owned(),
+        duration_in_frames: length_of(kind, values),
+        params: Some(params),
         hold: keep_whole.then_some(true),
         easing: (easing != TransitionEase::Linear).then_some(easing),
     }
 }
 
-fn ab() -> (Ports, Ports) {
-    (
-        vec![
-            ("a", port(PortType::Clip, "First")),
-            ("b", port(PortType::Clip, "Then")),
-        ],
-        vec![(CLIP_PORT, port(PortType::Clip, "Clip"))],
-    )
-}
-
-fn transition_node_type(key: &str) -> String {
-    format!("transition.{key}")
-}
-
-fn join_clips(inputs: &Inputs, join: impl FnOnce(&ClipValue, &ClipValue) -> ClipValue) -> Outputs {
-    let a = inputs.get("a").and_then(CompileValue::as_clip);
-    let b = inputs.get("b").and_then(CompileValue::as_clip);
-    match (a, b) {
-        (Some(a), Some(b)) => outputs([(CLIP_PORT, CompileValue::Clip(join(a, b)))]),
-        (Some(one), None) | (None, Some(one)) => {
-            outputs([(CLIP_PORT, CompileValue::Clip(one.clone()))])
-        }
-        (None, None) => Outputs::new(),
-    }
+pub fn default_transition(kind: &str) -> TransitionRef {
+    let mut values = Values::new();
+    values.insert(KIND.to_owned(), Value::from(kind));
+    transition_of(&values)
 }
 
 fn speed_row(length: u32, designed: u32, fps: u32) -> Option<CardRow> {
@@ -116,189 +227,248 @@ fn speed_row(length: u32, designed: u32, fps: u32) -> Option<CardRow> {
     )
 }
 
-#[settings]
-struct TransitionFields {
-    #[setting(
-        "Keep both clips whole",
-        help = "The transition plays over a still of the last and first frames, so neither clip loses screen time. The result gets longer by the transition.",
-        advanced
-    )]
-    keep_whole: bool,
-    #[setting(
-        "Easing",
-        default = TransitionEase::Linear,
-        labels = { "linear": "Even", "in": "Slow start", "out": "Slow end", "in-out": "Slow start and end" },
-        advanced
-    )]
-    easing: TransitionEase,
+fn card(ctx: &CardCtx<'_, Values>) -> Vec<Option<CardRow>> {
+    let kind = picked(ctx.values);
+    let transition = transition_of(ctx.values);
+    let fps = ctx.fps();
+    let keep_whole = transition.hold == Some(true);
+    vec![
+        Some(row(
+            Icon::ArrowRightLeft,
+            format!(
+                "{} · {}",
+                kind.label,
+                transition_length_text(transition.duration_in_frames, fps, keep_whole)
+            ),
+        )),
+        speed_row(transition.duration_in_frames, usual_length(kind), fps),
+    ]
 }
 
-fn length_field(default: u32) -> Value {
-    serde_json::json!({
-        "description": "Length",
-        "type": "integer",
-        "minimum": 1,
-        "maximum": crate::limits::MAX_FRAMES,
-        "default": default,
-        "x-step": 1,
-        "x-unit": "frames"
-    })
-}
-
-fn presentation_node(meta: &'static ElementMeta) -> NodeDef {
-    let mut extra = Map::new();
-    extra.insert(
-        "durationInFrames".into(),
-        length_field(meta.default_duration_in_frames),
-    );
-    if let Some(Value::Object(props)) = schema_of::<TransitionFields>().get("properties") {
-        extra.extend(props.clone());
-    }
-    let (inputs, outs) = ab();
-    let lowered = sentence(&meta.title).to_lowercase();
-    NodeDef::new(transition_node_type(&meta.key), sentence(&meta.title), Category::Transitions, Phase::Compile, extended_schema(&meta.schema, extra))
-        .element(meta)
-        .describe(format!(
-            "Plays the first clip, then the second, joined with a {lowered} transition. Tip: cut where the picture is still."
-        ))
-        .inputs(inputs)
-        .outputs(outs)
-        .card(move |ctx: &CardCtx<'_, Values>| {
-            let length = whole_number(ctx.values.get("durationInFrames")).unwrap_or(0);
-            let keep_whole = ctx.values.get("keepWhole").and_then(Value::as_bool).unwrap_or(false);
-            let fps = ctx.fps();
-            let frames = |p: &str| ctx.inputs.frames.get(p).copied();
-            vec![
-                Some(row(Icon::ArrowRightLeft, transition_length_text(length, fps, keep_whole))),
-                speed_row(length, meta.default_duration_in_frames, fps),
-                if keep_whole { None } else { cover_row(cover(length, &[frames("a"), frames("b")]), fps) },
-            ]
-        })
-        .compiles(move |ctx: &Ctx<'_, Values>| {
-            let mut rest = ctx.values.clone();
-            let length = whole_number(rest.remove("durationInFrames").as_ref()).unwrap_or(meta.default_duration_in_frames);
-            let keep_whole = rest.remove("keepWhole").and_then(|v| v.as_bool()).unwrap_or(false);
-            let easing = rest
-                .remove("easing")
-                .and_then(|v| serde_json::from_value(v).ok())
-                .unwrap_or_default();
-            let mut params = meta.fixed_props.clone();
-            params.extend(rest);
-            join_clips(ctx.inputs, |a, b| {
-                let ports = ["a".to_owned(), "b".to_owned()];
-                let enter = transition_ref(&meta.key, length, keep_whole, easing, Some(params));
-                sequence_clips(ctx.node_id, &[a.clone(), b.clone()], &[None, Some(enter)], SequenceSlots { ports: Some(&ports), slot_node: None })
-            })
-        })
-}
-
-#[settings]
-pub struct LightLeakCut {
-    #[setting(
-        "Length",
-        default = 30,
-        range(min = 1, max = 108_000),
-        step = 1,
-        unit = "frames"
-    )]
-    pub duration_in_frames: u32,
-    #[setting("Variation", default = 3, range(min = 0, max = 100))]
-    pub seed: u32,
-    #[setting(
-        "Colors",
-        default = leak_colours(),
-        length(min = 1, max = 4),
-        help = "The light's colours, one glow each."
-    )]
-    pub colors: Vec<Colour>,
-    #[setting("Offset", default = 0, range(min = -108_000, max = 108_000), step = 1, unit = "frames", advanced)]
-    pub offset: i32,
-    #[setting(
-        "Strength",
-        default = 100.0,
-        range(min = 0, max = 100),
-        unit = "%",
-        advanced
-    )]
-    pub strength: f64,
-}
-
-fn light_leak() -> NodeDef {
-    let (inputs, outs) = ab();
-    NodeDef::of::<LightLeakCut>(
-        "transition.lightLeak",
-        "Light leak cut",
+fn transition_node() -> NodeDef {
+    NodeDef::new(
+        TRANSITION_TYPE,
+        "Transition",
         Category::Transitions,
         Phase::Compile,
+        schema(),
     )
-    .look(NodeLook::of("lucide:sun-dim").moves(NodeMotion::Flare))
-    .describe("Cuts between two clips under a warm light flare.")
-    .inputs(inputs)
-    .outputs(outs)
-    .card(|ctx: &CardCtx<'_, LightLeakCut>| {
-        let p = &ctx.params;
-        let a = ctx.inputs.frames.get("a").copied().unwrap_or(0);
-        let b = ctx.inputs.frames.get("b").copied().unwrap_or(0);
-        let film = a + b;
-        let squeezed = a != 0 && b != 0 && p.duration_in_frames > film;
-        vec![
-            Some(row(Icon::Sun, frame_secs(p.duration_in_frames, ctx.fps()))),
-            squeezed.then(|| {
-                row(
-                    Icon::TriangleAlert,
-                    format!(
-                        "Longer than both clips, so it plays for {}",
-                        frame_secs(film, ctx.fps())
-                    ),
-                )
-                .tone(Tone::Warn)
-            }),
-        ]
-    })
-    .compiles(|ctx: &Ctx<'_, LightLeakCut>| {
-        let p = &ctx.params;
-        join_clips(ctx.inputs, |a, b| {
-            let ports = ["a".to_owned(), "b".to_owned()];
-            let cut_id = format!("{}:cut", ctx.node_id);
-            let cut = sequence_clips(
-                &cut_id,
-                &[a.clone(), b.clone()],
-                &[],
-                SequenceSlots {
-                    ports: Some(&ports),
-                    slot_node: Some(ctx.node_id),
-                },
+    .describe("Brings a clip in with a transition wherever it is joined after another clip in a Sequence. Its Transition output sets the joins of a whole Sequence or Repeat.")
+    .look(NodeLook::of("lucide:blend").moves(NodeMotion::FadeThrough))
+    .inputs(vec![(CLIP_PORT, opt(PortType::Clip, "Clip"))])
+    .outputs(vec![
+        (CLIP_PORT, port(PortType::Clip, "Clip")),
+        (TRANSITION_PORT, port(PortType::Transition, "Transition")),
+    ])
+    .card(card)
+    .compiles(|ctx: &Ctx<'_, Values>| -> Outputs {
+        let transition = transition_of(ctx.values);
+        let mut out = outputs([(TRANSITION_PORT, CompileValue::Transition(transition.clone()))]);
+        if let Some(clip) = ctx.input(CLIP_PORT).and_then(CompileValue::as_clip) {
+            out.insert(
+                CLIP_PORT.to_owned(),
+                CompileValue::Clip(ClipValue {
+                    enter: Some(transition),
+                    ..clip.clone()
+                }),
             );
-            let length = p.duration_in_frames.min(cut.duration_in_frames);
-            let props = crate::elements::element_meta("light-leak").map_or_else(Map::new, |meta| {
-                let mut values = meta.default_props.clone();
-                values.insert("seed".into(), Value::from(p.seed));
-                values.insert(
-                    "colors".into(),
-                    serde_json::to_value(&p.colors).unwrap_or(Value::Null),
-                );
-                values.insert("strength".into(), Value::from(p.strength));
-                crate::nodes::elements::element_props(meta, &values)
+        }
+        out
+    })
+}
+
+fn is_kind(join: Option<&TransitionRef>, kind: &str) -> bool {
+    join.is_some_and(|t| t.kind == kind)
+}
+
+struct Run {
+    clip: ClipValue,
+    join: Option<TransitionRef>,
+    port: String,
+}
+
+fn settled_run(
+    node_id: &str,
+    clips: &[(String, ClipValue)],
+    join: &TransitionRef,
+    index: usize,
+) -> ClipValue {
+    let props = join.params.clone().unwrap_or_default();
+    let sequencer = SequencerProps {
+        component: SPRING_SETTLE.to_owned(),
+        props: {
+            let mut props = props;
+            props.insert("gapFrames".into(), Value::from(join.duration_in_frames));
+            props
+        },
+        backgrounds: vec![None; clips.len()],
+    };
+    scene_sequence(
+        &format!("{node_id}:settle{index}"),
+        node_id,
+        clips,
+        join.duration_in_frames,
+        sequencer,
+    )
+}
+
+fn runs(
+    node_id: &str,
+    clips: &[ClipValue],
+    joins: &[Option<TransitionRef>],
+    ports: &[String],
+) -> Vec<Run> {
+    let join = |i: usize| joins.get(i).and_then(Option::as_ref);
+    let port = |i: usize| ports.get(i).cloned().unwrap_or_default();
+    let mut out = Vec::new();
+    let mut i = 0;
+    while i < clips.len() {
+        let mut end = i + 1;
+        while end < clips.len() && is_kind(join(end), SPRING_SETTLE) {
+            end += 1;
+        }
+        if end - i > 1 {
+            let scenes: Vec<(String, ClipValue)> =
+                (i..end).map(|k| (port(k), clips[k].clone())).collect();
+            let settle = join(i + 1)
+                .cloned()
+                .unwrap_or_else(|| default_transition(SPRING_SETTLE));
+            out.push(Run {
+                clip: settled_run(node_id, &scenes, &settle, i),
+                join: join(i).cloned(),
+                port: String::new(),
             });
-            let leak = item_clip(
-                &format!("{}:leak", ctx.node_id),
-                "light-leak",
+        } else {
+            out.push(Run {
+                clip: clips[i].clone(),
+                join: join(i).cloned(),
+                port: port(i),
+            });
+        }
+        i = end;
+    }
+    out
+}
+
+fn leak_track(
+    node_id: &str,
+    leaks: &[(usize, TransitionRef)],
+    cuts: &[u32],
+    total: u32,
+) -> Option<TimelineTrack> {
+    let items: Vec<_> = leaks
+        .iter()
+        .filter_map(|(i, leak)| {
+            let cut = *cuts.get(*i)?;
+            let mut props = leak.params.clone().unwrap_or_default();
+            let offset = props
+                .remove(LEAK_OFFSET)
+                .and_then(|v| v.as_i64())
+                .unwrap_or(0);
+            let length = leak.duration_in_frames.min(total).max(1);
+            let centred = i64::from(cut) - i64::from(length.div_ceil(2)) + offset;
+            let latest = i64::from(total.saturating_sub(length));
+            let start = u32::try_from(centred.clamp(0, latest)).unwrap_or(0);
+            let mut clip = item_clip(
+                &format!("{node_id}:leak{i}"),
+                LIGHT_LEAK_CUT,
                 props,
                 length,
                 ItemExtra::default(),
             );
-            let centred_on_cut = i64::from(a.duration_in_frames) - i64::from(length.div_ceil(2))
-                + i64::from(p.offset);
-            let latest = i64::from(cut.duration_in_frames - length);
-            let start = u32::try_from(centred_on_cut.clamp(0, latest)).unwrap_or(0);
-            stack_clips(ctx.node_id, &[cut, leak], &[0, start], None, None)
+            let mut item = clip.tracks.pop()?.items.pop()?;
+            item.base_mut().from = start;
+            Some(item)
         })
+        .collect();
+    (!items.is_empty()).then(|| TimelineTrack {
+        id: format!("{node_id}:leaks"),
+        items,
+        layer: None,
     })
 }
 
-pub fn nodes() -> Vec<NodeDef> {
-    presentations()
-        .map(presentation_node)
-        .chain(std::iter::once(light_leak()))
+pub fn join_clips(
+    node_id: &str,
+    clips: &[ClipValue],
+    joins: &[Option<TransitionRef>],
+    ports: &[String],
+) -> ClipValue {
+    let runs = runs(node_id, clips, joins, ports);
+    let leaks: Vec<(usize, TransitionRef)> = runs
+        .iter()
+        .enumerate()
+        .filter_map(|(i, r)| {
+            r.join
+                .clone()
+                .filter(|j| j.kind == LIGHT_LEAK_CUT)
+                .map(|j| (i, j))
+        })
+        .collect();
+    let placed: Vec<Option<TransitionRef>> = runs
+        .iter()
+        .enumerate()
+        .map(|(i, r)| {
+            r.join
+                .clone()
+                .filter(|j| i > 0 && j.kind != LIGHT_LEAK_CUT && j.kind != SPRING_SETTLE)
+        })
+        .collect();
+    let joined_clips: Vec<ClipValue> = runs.iter().map(|r| r.clip.clone()).collect();
+    let run_ports: Vec<String> = runs.iter().map(|r| r.port.clone()).collect();
+    let mut joined = sequence_clips(
+        node_id,
+        &joined_clips,
+        &placed,
+        SequenceSlots {
+            ports: Some(&run_ports),
+            slot_node: None,
+        },
+    );
+    let cuts = sequence_cuts(&joined_clips, &placed);
+    if let Some(track) = leak_track(node_id, &leaks, &cuts, joined.duration_in_frames) {
+        joined.tracks.push(track);
+    }
+    joined.enter = clips.first().and_then(|c| c.enter.clone());
+    joined
+}
+
+pub fn joins_for(
+    clips: &[ClipValue],
+    shared: Option<&TransitionRef>,
+) -> Vec<Option<TransitionRef>> {
+    clips
+        .iter()
+        .enumerate()
+        .map(|(i, clip)| {
+            if i == 0 {
+                return None;
+            }
+            clip.enter.clone().or_else(|| shared.cloned())
+        })
         .collect()
+}
+
+pub fn join_names(kinds: &[Option<String>]) -> String {
+    let named: Vec<String> = kinds
+        .iter()
+        .map(|k| k.as_deref().map_or_else(|| "Cut".to_owned(), kind_label))
+        .collect();
+    let first = named.first().cloned().unwrap_or_default();
+    if named.iter().all(|n| *n == first) {
+        return format!(
+            "{} {}",
+            crate::text::plural(numbers::float(named.len()), "join"),
+            if first == "Cut" {
+                "cut".to_owned()
+            } else {
+                format!("with {}", first.to_lowercase())
+            }
+        );
+    }
+    named.join(", ")
+}
+
+pub fn nodes() -> Vec<NodeDef> {
+    vec![transition_node()]
 }

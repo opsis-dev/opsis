@@ -116,10 +116,6 @@ pub fn layer_label(i: usize, last: Option<usize>) -> String {
     format!("Layer {}{end}", i + 1)
 }
 
-pub fn scene_label(i: usize, _last: Option<usize>) -> String {
-    format!("Scene {}", i + 1)
-}
-
 pub fn clip_family(label: FamilyLabel) -> PortFamily {
     PortFamily::new(IN_PREFIX, PortType::Clip, 0, label)
 }

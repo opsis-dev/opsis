@@ -39,15 +39,6 @@ fn shows_sound_files_as_placeholders_mutes_silent_videos_and_gives_images_one_le
         element_of("media.toClip", json!({}), sound).0,
         "placeholder"
     );
-    assert_eq!(
-        element_of(
-            "media.import",
-            json!({ "path": "assets/voice.mp3" }),
-            json!({})
-        )
-        .0,
-        "placeholder"
-    );
     let silent = json!({ "media": media("video", "project:out/film.mp4", Some(false)) });
     let loud = json!({ "media": media("video", "project:out/film.mp4", Some(true)) });
     assert_eq!(
@@ -60,13 +51,8 @@ fn shows_sound_files_as_placeholders_mutes_silent_videos_and_gives_images_one_le
     );
     let image = json!({ "media": media("image", "project:assets/shot.png", None) });
     assert_eq!(
-        element_of("media.toClip", json!({}), image).2,
-        element_of(
-            "media.import",
-            json!({ "path": "assets/shot.png" }),
-            json!({})
-        )
-        .2
+        element_of("media.toClip", json!({ "lengthMs": 4000 }), image).2,
+        120
     );
 }
 
@@ -109,7 +95,7 @@ fn checks_trim_and_media_file_settings() {
         None
     );
     assert_eq!(
-        parse_params("media.import", json!({ "path": "a.png", "stillMs": 0 })).unwrap_err(),
+        parse_params("media.toClip", json!({ "lengthMs": 0 })).unwrap_err(),
         "Length must be at least 0.1 s"
     );
 }

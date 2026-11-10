@@ -1,4 +1,3 @@
-pub mod captured_video;
 pub mod device_mockup_zoom;
 pub mod laptop_frame;
 pub mod multi_device_lineup;

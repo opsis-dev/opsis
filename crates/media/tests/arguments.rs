@@ -98,14 +98,24 @@ proptest! {
     }
 
     #[test]
-    fn cuts_rumble_only_when_asked_and_lifts_by_the_most_asked(rumble in 0u32..300, lift in 0.0..30.0f64) {
-        let p: opsis_compile::nodes::media::CleanSpeech = settings(serde_json::json!({
-            "rumbleHz": rumble, "evenLift": lift, "evenLevel": true
+    fn cuts_rumble_only_when_asked(rumble in 0u32..300, noise in 0.0..1.0f64) {
+        let p: opsis_compile::nodes::media::RemoveNoise = settings(serde_json::json!({
+            "rumbleHz": rumble, "noise": noise
         }));
-        let filter = opsis_media::filters::speech_filter(&p, None);
+        let filter = opsis_media::filters::noise_filter(&p, None).unwrap_or_default();
         prop_assert_eq!(filter.contains("highpass"), rumble > 0);
+    }
+
+    #[test]
+    fn lifts_quiet_words_by_the_most_asked(lift in 0.0..30.0f64) {
+        let p: opsis_compile::nodes::media::EvenOutVolume = settings(serde_json::json!({
+            "liftQuiet": true, "mostLift": lift
+        }));
+        let filter = opsis_media::filters::even_out_filter(&p);
         let expansion: f64 = filter.split("speechnorm=e=").nth(1).unwrap().split(':').next().unwrap().parse().unwrap();
         prop_assert!(20.0f64.mul_add(expansion.log10(), -lift.max(0.0)).abs() < 0.2);
+        let level: opsis_compile::nodes::media::EvenOutVolume = settings(serde_json::json!({ "mostLift": lift }));
+        prop_assert!(!opsis_media::filters::even_out_filter(&level).contains("speechnorm"));
     }
 }
 
@@ -163,11 +173,11 @@ fn makes_the_last_countdown_beep_as_long_and_high_as_asked() {
 
 #[test]
 fn moves_a_whoosh_the_way_asked() {
-    use opsis_compile::nodes::audio::{GenerateSound, SoundPan, sound_shape};
+    use opsis_compile::nodes::audio::{SoundPan, SoundPreset, SoundRecipe, sound_shape};
     let shape = |pan| {
-        sound_shape(&GenerateSound {
+        sound_shape(&SoundRecipe {
             pan,
-            ..GenerateSound::default()
+            ..SoundRecipe::of(SoundPreset::Whoosh)
         })
     };
     let lean = |pan| {

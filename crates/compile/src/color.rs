@@ -134,9 +134,9 @@ pub fn format_color(color: Hsva, format: ColorFormat) -> String {
             };
             let body = format!(
                 "{} {} {}",
-                number(f64::from(l), 3),
-                number(f64::from(c), 3),
-                number(h, 1)
+                number(f64::from(l), 4),
+                number(f64::from(c), 4),
+                number(h, 2)
             );
             if opaque {
                 format!("oklch({body})")

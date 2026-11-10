@@ -15,7 +15,7 @@ Every video and graded image the film shows comes from Rust as footage; colour g
 | Grade footage             | `compile/src/nodes/effects.rs` → `GRADED_COMPONENTS`                                                                                                                                                                              |
 | Grade nodes               | `compile/src/node.rs` → `grade_modifier`; `compile/src/nodes/grade.rs` → `is_neutral_entry`                                                                                                                                       |
 | Grade filter graph        | `media/src/grade.rs` → `grade_filters`; golden graphs `media/tests/golden/grade.rs`                                                                                                                                               |
-| Apply grade               | `media/src/executors.rs` → `apply_grade`; `media/src/codecs.rs` → `grade_sound_args`; `compile/src/nodes/grade.rs` → `grade_needs_video`                                                                                          |
+| Apply grade               | `media/src/executors.rs` → `apply_grade`; `media/src/codecs.rs` → `edit_video`, `graded_sound_args`; `compile/src/nodes/grade.rs` → `grade_needs_video`                                                                           |
 | Grade nodes' spot picture | `compile/src/inspector.rs` → `graded_file`                                                                                                                                                                                        |
 | Mac cursor                | `capture/src/cursor.rs` → `read_shape`; `capture/src/page_scripts.rs` → `cursor_keyword`; `camera/lib/cursor.ts` → `shapeAt`; `camera/cursor.tsx` → `MacCursor`; `camera/lib/mac-cursors.generated.ts` (`scripts/mac-cursors.ts`) |
 
@@ -36,14 +36,15 @@ Every video and graded image the film shows comes from Rust as footage; colour g
 - **A footage chain is a grade and redactions.**
   - Grade footage (`effect.gradeFootage`, `clip + grade → clip`) appends a grade's steps to the footage of every recording and every Video and Image element in a clip (`GRADED_COMPONENTS`); other elements' videos, Video loop's included, keep their colours.
   - Redact take (`effect.redactTake`, `recording → recording`, Redact's settings with From and Until, areas drawn on any frame of the take) appends a redaction that stays on the page as the camera moves; its Text to hide applies to terminal takes only ([terminal.md](terminal.md)).
-- **The window, backdrop and every other layer keep their colours**; Apply grade on an exported file grades everything.
+- **The window, background and every other layer keep their colours**; Apply grade on an exported file grades everything.
 
 ### Grades
 
 - **Grade nodes are `grade? → grade`** ([nodes.md](nodes.md) has how their entries are appended and passed through).
 - **Each step's card row and neutral check come from one list of changes (`changes` in `compile/src/nodes/grade.rs`)**, so a card's "No change" and the "The grade changes nothing" warning agree (`is_neutral_entry`, `grade_changes_nothing`).
   - The filter graph is built apart from that list (`grade_filters`, `media/src/grade.rs`), and no test checks that a step the list calls neutral adds no filter.
-- **Apply grade (`media.applyGrade`, `file + grade → file`) turns the list into one filter graph and encodes once**: the sound is copied when the container holds it and encoded again otherwise (`grade_sound_args`).
+- **Apply grade (`media.applyGrade`, `file + grade → file`) has no settings: it turns the list into one filter graph and encodes once**, a video as an MP4 at the editing quality the file nodes share (`edit_video`) and an image as a PNG; the sound is copied when MP4 holds it and made AAC otherwise (`graded_sound_args`). Convert chooses another format.
+- **Apply grade takes image files too, so the grade nodes (Colour and light with its Invert, Auto fix, Texture, Black and white and tint) are also the image colour fixes** ([images.md](images.md)).
   - An image comes out as one PNG frame (`graded.png`); Texture's grain and Lens trails need a video and are left out of a still, with a warning (`grade_needs_video`).
 - **`grade_filters` is pure and checked against golden graphs**: steps that need no blend are joined with commas, a step below full strength splits and blends back, a look image is the next numbered input to `haldclut`, and paths are escaped for the graph.
 - **A grade node's spot picture (Texture's dark edges among them) shows a frame of the file that reaches Apply grade** (`graded_file`).
