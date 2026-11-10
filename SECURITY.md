@@ -6,7 +6,7 @@ Opsis hasn't had a release yet. Security fixes go to the `main` branch.
 
 ## Reporting a vulnerability
 
-Please report vulnerabilities privately, through GitHub's **Report a vulnerability** form on the repository's **Security** tab (github.com/opsis-dev/opsis/security) or by email to [contact@bismitpanda.com](mailto:contact@bismitpanda.com). Don't open a public issue for them.
+Please report vulnerabilities privately, through GitHub's **Report a vulnerability** form on the repository's **Security** tab (github.com/opsis-dev/opsis/security) or by email to [contact@opsis.dev](mailto:contact@opsis.dev). Don't open a public issue for them.
 
 Include what you found, how to reproduce it, and what it lets someone do. Reports are answered as soon as they can be, and confirmed issues are fixed on `main`; say if you'd like to be credited.
 
