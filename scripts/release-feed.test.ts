@@ -21,7 +21,7 @@ describe("the release feed", () => {
           expect(Object.keys(written.platforms).sort()).toEqual([...keys].sort());
           for (const file of files) {
             expect(written.platforms[file.key]).toEqual({
-              url: `https://github.com/bismitpanda/opsis/releases/download/v${shipped}/${file.file}`,
+              url: `https://github.com/opsis-dev/opsis/releases/download/v${shipped}/${file.file}`,
               signature: file.signature,
             });
           }

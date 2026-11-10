@@ -4,7 +4,7 @@ import { z } from "zod";
 import { readJsonWith } from "./lib/read-json";
 import { ROOT } from "./lib/tool-config";
 
-const REPOSITORY = "https://github.com/bismitpanda/opsis";
+const REPOSITORY = "https://github.com/opsis-dev/opsis";
 const UPDATE_SUFFIX = ".update.json";
 const SELF_UPDATING_KEYS = 5;
 

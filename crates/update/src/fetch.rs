@@ -213,7 +213,7 @@ mod tests {
             (available.file, available.page.as_str()),
             (
                 None,
-                "https://github.com/bismitpanda/opsis/releases/tag/v9.0.0"
+                "https://github.com/opsis-dev/opsis/releases/tag/v9.0.0"
             )
         );
     }

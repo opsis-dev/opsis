@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::installer::Installer;
 
-pub const REPOSITORY: &str = "https://github.com/bismitpanda/opsis";
+pub const REPOSITORY: &str = "https://github.com/opsis-dev/opsis";
 pub const FEED_FILE: &str = "latest.json";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

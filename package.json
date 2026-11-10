@@ -6,13 +6,13 @@
   "description": "Record a real website and turn it into a polished product demo.",
   "keywords": [],
   "license": "GPL-3.0-or-later",
-  "homepage": "https://github.com/bismitpanda/opsis#readme",
+  "homepage": "https://github.com/opsis-dev/opsis#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bismitpanda/opsis.git"
+    "url": "git+https://github.com/opsis-dev/opsis.git"
   },
   "bugs": {
-    "url": "https://github.com/bismitpanda/opsis/issues"
+    "url": "https://github.com/opsis-dev/opsis/issues"
   },
   "author": {
     "name": "Bismit Panda",

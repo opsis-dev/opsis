@@ -44,7 +44,7 @@ Status: the Linux packages are built and checked ([packaging.md](../agent-docs/p
 
 - `.github/workflows/build.yml`, on every push, on Ubuntu 24.04: the checks (the offscreen view tests among them) and the `wayland` scenario, and the other e2e scenarios with the engine.
 - `.github/workflows/release.yml`, on `v*` tags or by hand (`workflow_dispatch`): the source notice's links (`bun run notice:links`), a package job for each system (Linux in the trixie container, Windows with the pinned NSIS and WiX v7, both Macs) and, on tags, the draft release with the update feed ([packaging.md](../agent-docs/packaging.md)). None has run, and its `qt:static` step fails on Windows and macOS until Work item 1 is done.
-- The repository is `github.com/bismitpanda/opsis`. It is private; its `main` is behind the local one, its one workflow run (Build, 2026-11-05) failed, and it has no releases. The update signing secrets are set on it (section 6).
+- The repository is `github.com/opsis-dev/opsis`. It is private; its `main` is behind the local one, its one workflow run (Build, 2026-11-05) failed, and it has no releases. The update signing secrets are set on it (section 6).
 
 **Work.**
 
