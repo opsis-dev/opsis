@@ -846,6 +846,12 @@ pub struct SetState {
 }
 
 #[settings(eq)]
+pub struct SwitchTheme {
+    #[setting("Theme", default = ColorScheme::Dark)]
+    pub color_scheme: ColorScheme,
+}
+
+#[settings(eq)]
 pub struct MockRoute {
     #[setting(
         "Address pattern",
@@ -1586,6 +1592,17 @@ pub fn nodes() -> Vec<NodeDef> {
             ),
             mock_route_rows,
         ).look(NodeLook::of("lucide:server-cog")),
+        card(
+            chain::<SwitchTheme>(
+                BrowserAction::SwitchTheme,
+                "Switch theme",
+                "Switches the page between light and dark, as changing the computer's setting would, without reloading it.",
+            ),
+            |p: &SwitchTheme| {
+                let icon = if p.color_scheme == ColorScheme::Dark { Icon::Moon } else { Icon::Sun };
+                vec![Some(row(icon, p.color_scheme.label()))]
+            },
+        ).look(NodeLook::of("lucide:sun-moon")),
         card(
             chain::<FreezeClock>(
                 BrowserAction::FreezeClock,

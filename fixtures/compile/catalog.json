@@ -385,6 +385,29 @@
    }
   },
   {
+   "type": "browser.switchTheme",
+   "title": "Switch theme",
+   "category": "Browser",
+   "description": "Switches the page between light and dark, as changing the computer's setting would, without reloading it.",
+   "runs": true,
+   "inputs": {
+    "session": {
+     "type": "browser-session",
+     "label": "Browser",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "session": {
+     "type": "browser-session",
+     "label": "Browser",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "browser.freezeClock",
    "title": "Freeze time",
    "category": "Browser",
@@ -5725,6 +5748,53 @@
      "contentType": "application/json",
      "body": "{\"ok\":true}",
      "delayMs": 0
+    }
+   }
+  },
+  {
+   "type": "browser.switchTheme",
+   "title": "Switch theme",
+   "category": "Browser",
+   "description": "Switches the page between light and dark, as changing the computer's setting would, without reloading it.",
+   "runs": true,
+   "inputs": {
+    "session": {
+     "type": "browser-session",
+     "label": "Browser",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "session": {
+     "type": "browser-session",
+     "label": "Browser",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "colorScheme": {
+      "description": "Theme",
+      "type": "string",
+      "enum": [
+       "light",
+       "dark",
+       "no-preference"
+      ],
+      "x-labels": {
+       "light": "Light",
+       "dark": "Dark",
+       "no-preference": "System"
+      },
+      "default": "dark"
+     }
+    },
+    "type": "object",
+    "default": {
+     "colorScheme": "dark"
     }
    }
   },

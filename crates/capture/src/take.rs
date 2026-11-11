@@ -10,8 +10,8 @@ use opsis_compile::asset_ref::project_rel_path;
 use opsis_compile::nodes::browser::{
     Assert, Chapter, Click, Drag, DragMethod as DragParam, DragMode, FreezeClock, HideElements,
     Hoist, Hover, MockRoute, Navigate, OPEN_BROWSER_TYPE, Open, OverlayHtml, PressKeys, Scroll,
-    ScrollAlign, ScrollMode, Select, SetState, SignIn, Silence, Type, Wait, WaitMode, WaitUntil,
-    read_path,
+    ScrollAlign, ScrollMode, Select, SetState, SignIn, Silence, SwitchTheme, Type, Wait, WaitMode,
+    WaitUntil, read_path,
 };
 use opsis_compile::nodes::capture::{Cursor, Record, Timing};
 use opsis_compile::registry::node_def;
@@ -875,6 +875,7 @@ impl<'e> TakeRun<'e> {
             BrowserAction::Chapter => self.chapter(step, params(step)?).await,
             BrowserAction::OverlayHtml => self.overlay_html(params(step)?).await,
             BrowserAction::SignIn => self.sign_in(step, params(step)?).await,
+            BrowserAction::SwitchTheme => self.switch_theme(params(step)?).await,
             BrowserAction::StartRecording => Ok(()),
         }
     }
@@ -1231,6 +1232,11 @@ impl<'e> TakeRun<'e> {
         if p.reload {
             self.lifecycle.reload(self.tab()).await?;
         }
+        Ok(())
+    }
+
+    async fn switch_theme(&self, p: SwitchTheme) -> StepResult {
+        self.session.set_color_scheme(p.color_scheme).await?;
         Ok(())
     }
 

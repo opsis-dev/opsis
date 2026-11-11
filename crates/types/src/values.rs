@@ -249,6 +249,7 @@ browser_actions! {
     Chapter = "browser.chapter",
     OverlayHtml = "browser.overlayHtml",
     SignIn = "browser.signIn",
+    SwitchTheme = "browser.switchTheme",
 }
 
 impl BrowserAction {

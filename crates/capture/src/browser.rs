@@ -185,6 +185,7 @@ pub struct Session {
     pub dpr: f64,
     pub user_agent: String,
     pub locale: String,
+    pub reduce_motion: bool,
 }
 
 const fn color_scheme(scheme: ColorScheme) -> &'static str {
@@ -285,6 +286,7 @@ impl Session {
             dpr: params.dpr,
             user_agent,
             locale,
+            reduce_motion: params.reduce_motion,
             launched,
         };
         match session.prepare(params).await {
@@ -386,17 +388,22 @@ impl Session {
             tables()["fontFamilies"][self.launched.platform].clone(),
         )
         .await?;
+        self.set_color_scheme(params.color_scheme).await
+    }
+
+    pub async fn set_color_scheme(&self, scheme: ColorScheme) -> Result<()> {
         let features = json!([
-            { "name": "prefers-color-scheme", "value": color_scheme(params.color_scheme) },
-            { "name": "prefers-reduced-motion", "value": if params.reduce_motion { "reduce" } else { "" } },
+            { "name": "prefers-color-scheme", "value": color_scheme(scheme) },
+            { "name": "prefers-reduced-motion", "value": if self.reduce_motion { "reduce" } else { "" } },
             { "name": "forced-colors", "value": "" },
             { "name": "prefers-contrast", "value": "" },
         ]);
-        tab.send(
-            "Emulation.setEmulatedMedia",
-            json!({ "media": "", "features": features }),
-        )
-        .await?;
+        self.tab
+            .send(
+                "Emulation.setEmulatedMedia",
+                json!({ "media": "", "features": features }),
+            )
+            .await?;
         Ok(())
     }
 

@@ -785,6 +785,47 @@
   }
  },
  {
+  "type": "browser.switchTheme",
+  "title": "Switch theme",
+  "category": "Browser",
+  "description": "Switches the page between light and dark, as changing the computer's setting would, without reloading it.",
+  "phase": "capture",
+  "inputs": [
+   {
+    "id": "session",
+    "type": "browser-session",
+    "label": "Browser",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "session",
+    "type": "browser-session",
+    "label": "Browser",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": true,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "colorScheme": "dark"
+  }
+ },
+ {
   "type": "browser.freezeClock",
   "title": "Freeze time",
   "category": "Browser",

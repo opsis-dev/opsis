@@ -37,6 +37,7 @@ Browser sessions and their actions, the take value every recording shares, recor
 - **The video starts at the first Start recording step**; the steps before it run off camera, and without one it starts with the first step.
 - **The session carries the address the last Go to page opened (`address`)**, which the element picker opens and the Run page script warning reads.
 - **Capture keeps Playwright's launch switches, injected page script, clock and keyboard but talks CDP itself**; `playwright-core` is only a dev dependency.
+- **Actions that change what the page is told about the computer change it mid-take, from Open browser's values.** Switch theme (`browser.switchTheme`) sends the media features again through `Session::set_color_scheme`, because `Emulation.setEmulatedMedia` replaces every feature at once, so the session keeps Open browser's reduced motion (`Session.reduce_motion`) to send it with the new scheme. Pages see the change live, as when the computer's setting changes.
 
 ### A take is one value
 
