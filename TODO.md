@@ -10,7 +10,6 @@ What's left that no plan covers: the places in the codebase that don't read as i
 
 Wrong behaviour found in the session transcripts and confirmed in the current code.
 
-- [ ] `clear_stale_child_temps` (`crates/engine/src/temp.rs`) never deletes a stray file in `<data folder>/tmp`: `remove_child_temp` uses `std::fs::remove_dir_all`, which fails on a plain file with `NotADirectory`, so the file stays while its name is still returned and counted as removed.
 - [ ] Child temp folder names keep only the first 8 characters of the id (`child_temp_name`), so the file players `player10` and `player100` share `<pid>-analysis-player10`, and closing one deletes the other's files.
 - [ ] A clip length field shows "Usual length" even with a clip connected: `blank` (`crates/ui/src/inspector.rs`) looks for the setting's own key (`clipDuration`) in `InspectorContext.connected_inputs`, which holds the connected port names (`clip`), so `x-unconnected-zero-label` always wins.
 - [ ] `x-zero-label` on a file (`asset`) or select field is never shown: the asset field always reads "Choose a file" and a select shows its `none_label`, so labels such as Text mask's "Gradient" and Terminal look's "The take's own" never appear.

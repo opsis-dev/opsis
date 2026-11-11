@@ -37,6 +37,14 @@ pub fn make_child_temp(root: &Path, name: &str) -> std::io::Result<PathBuf> {
 }
 
 pub fn remove_child_temp(dir: &Path) {
+    if dir.symlink_metadata().is_ok_and(|m| !m.is_dir()) {
+        if let Err(error) = std::fs::remove_file(dir)
+            && error.kind() != std::io::ErrorKind::NotFound
+        {
+            log::warn!("removing {}: {error}", dir.display());
+        }
+        return;
+    }
     for _ in 0..3 {
         match std::fs::remove_dir_all(dir) {
             Err(e) if e.kind() != std::io::ErrorKind::NotFound => {}
@@ -121,9 +129,10 @@ mod tests {
         ] {
             std::fs::create_dir(root.path().join(name)).unwrap();
         }
+        std::fs::write(root.path().join("stray-file"), b"left behind").unwrap();
         let mut removed = clear_stale_child_temps(root.path(), &|pid| pid == 111);
         removed.sort();
-        assert_eq!(removed, ["222-run-gone0000", "stray-folder"]);
+        assert_eq!(removed, ["222-run-gone0000", "stray-file", "stray-folder"]);
         let mut left: Vec<String> = std::fs::read_dir(root.path())
             .unwrap()
             .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
