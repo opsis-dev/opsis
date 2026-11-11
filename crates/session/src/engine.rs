@@ -100,8 +100,8 @@ pub fn engine_checking(state: &AppState) -> bool {
     *state.engine_checking.borrow()
 }
 
-pub fn engine_tools(state: &AppState) -> Tools {
-    Arc::new(Ffmpeg::new(&engine_files(state)))
+pub fn engine_tools(state: &AppState, temp: &Path) -> Tools {
+    Arc::new(Ffmpeg::new(&engine_files(state)).with_temp(temp))
 }
 
 fn send_status(app: &Session) {

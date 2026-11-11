@@ -75,7 +75,7 @@ fn current_keys(app: &Session, dir: &Path, workflow: &Workflow) -> HashMap<Strin
     let state = app.state::<AppState>();
     let engine = engine_files(state);
     let version = crate::APP_VERSION.to_owned();
-    let executors = crate::run::executors(app);
+    let executors = crate::run::executors(app, &state.paths.views_temp);
     let vars = workflow_vars(&workflow.name, &workflow.variables);
     let sorted = topo_sort(workflow);
     let keys = hash_nodes(
@@ -302,7 +302,8 @@ fn remembered(error: &FileCheckError) -> Option<Unreadable> {
 
 impl FileCheck {
     async fn run(self) {
-        let tools = engine_tools(self.app.state::<AppState>());
+        let state = self.app.state::<AppState>();
+        let tools = engine_tools(state, &state.paths.views_temp);
         let started = Instant::now();
         let checked = check_media_file(&*tools, &self.file, &self.src).await;
         let keys = self.app.state::<NodeKeys>();

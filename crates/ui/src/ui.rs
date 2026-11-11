@@ -623,7 +623,7 @@ async fn load_stem(
     let Ok(file) = opsis_project::paths::ref_to_path(dir, &public, src) else {
         return;
     };
-    let tools = opsis_session::engine::engine_tools(state);
+    let tools = opsis_session::engine::engine_tools(state, &state.paths.views_temp);
     let scratch = opsis_project::paths::project_paths(dir).analysis;
     match opsis_audio::decode::decode_stem(tools.as_ref(), &file, &scratch).await {
         Ok(samples) => audio

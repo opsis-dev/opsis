@@ -10,7 +10,6 @@ What's left that no plan covers: the places in the codebase that don't read as i
 
 Wrong behaviour found in the session transcripts and confirmed in the current code.
 
-- [ ] FFmpeg runs through `MediaTools` get no temp folder: `Ffmpeg::with_temp` (`crates/media/src/ffmpeg.rs`) is called only from tests, and `engine_tools` (`crates/session/src/engine.rs`) builds `Ffmpeg::new` with an empty environment, so the media nodes, the mix, analysis and a file player's sound (`decode_stem`) get no `TMPDIR`, `TEMP` and `TMP`, against the rule that every child program gets its own temp folder. Only the footage decoders (`crates/footage/src/decoder.rs`, `terminal.rs`) set them.
 - [ ] `clear_stale_child_temps` (`crates/engine/src/temp.rs`) never deletes a stray file in `<data folder>/tmp`: `remove_child_temp` uses `std::fs::remove_dir_all`, which fails on a plain file with `NotADirectory`, so the file stays while its name is still returned and counted as removed.
 - [ ] Child temp folder names keep only the first 8 characters of the id (`child_temp_name`), so the file players `player10` and `player100` share `<pid>-analysis-player10`, and closing one deletes the other's files.
 - [ ] A clip length field shows "Usual length" even with a clip connected: `blank` (`crates/ui/src/inspector.rs`) looks for the setting's own key (`clipDuration`) in `InspectorContext.connected_inputs`, which holds the connected port names (`clip`), so `x-unconnected-zero-label` always wins.

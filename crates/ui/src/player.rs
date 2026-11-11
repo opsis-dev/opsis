@@ -520,7 +520,7 @@ async fn load(session: &Session, player: &Arc<Player>) {
     if probe.audio.is_none() {
         return;
     }
-    let tools = opsis_session::engine::engine_tools(session.state::<AppState>());
+    let tools = opsis_session::engine::engine_tools(session.state::<AppState>(), &player.temp);
     match opsis_audio::decode::decode_stem(tools.as_ref(), &player.file, &player.temp).await {
         Ok(samples) => {
             let (volume, muted) = *player.volume.lock().expect("player volume");

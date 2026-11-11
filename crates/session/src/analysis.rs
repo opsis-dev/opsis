@@ -77,7 +77,7 @@ async fn mix(state: &AppState, mixes: &Mixes, project: &Path, plan: &MixPlan) ->
         return AnalysisResult::Skipped;
     }
     let public = state.paths.public_dir.clone();
-    let tools = engine_tools(state);
+    let tools = engine_tools(state, &state.paths.views_temp);
     let resolve = move |reference: &str| {
         ref_to_path(project, &public, reference).map_err(|_| MixError::Failed)
     };
@@ -98,7 +98,7 @@ async fn mix(state: &AppState, mixes: &Mixes, project: &Path, plan: &MixPlan) ->
 pub async fn analyze(app: &Session, request: AnalysisRequest) -> CommandResult<AnalysisResult> {
     let state = app.state::<AppState>();
     let mixes = app.state::<Mixes>();
-    let tools = engine_tools(state);
+    let tools = engine_tools(state, &state.paths.views_temp);
     Ok(match request {
         AnalysisRequest::Waveform { project_dir, src } => analyze_waveform(
             &src,

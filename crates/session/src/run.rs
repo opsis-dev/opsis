@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::path::Path;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
@@ -261,9 +262,9 @@ impl LiveFeed for AppLive {
     }
 }
 
-pub fn executors(app: &Session) -> Executors {
+pub fn executors(app: &Session, temp: &Path) -> Executors {
     let state = app.state::<AppState>();
-    let tools = engine_tools(state);
+    let tools = engine_tools(state, temp);
     let engine = Arc::new(RenderEngine {
         tools: Arc::clone(&tools),
         film_bundle: state.paths.film_bundle.clone(),
@@ -462,7 +463,7 @@ pub async fn start(app: &Session, targets: RunTargets) -> Result<StartedRun, Sta
     let id = run_id.clone();
     let deps = RunDeps {
         env,
-        executors: Arc::new(executors(app)),
+        executors: Arc::new(executors(app, &temp_dir)),
         emit: Arc::new(move |event| on_event(&emitter, &id, event)),
         cancel,
     };
