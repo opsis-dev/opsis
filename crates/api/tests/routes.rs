@@ -197,6 +197,10 @@ async fn documents_every_route_it_serves() {
     let (_, doc) = call(&served.socket, "GET", "/openapi.json", None).await;
     let paths = doc["paths"].as_object().unwrap();
     for (method, path) in [
+        ("get", "/openapi.json"),
+        ("get", "/status"),
+        ("get", "/nodes"),
+        ("get", "/nodes/{type}"),
         ("get", "/project"),
         ("put", "/project"),
         ("post", "/project/nodes"),

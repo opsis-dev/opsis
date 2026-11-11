@@ -10,7 +10,6 @@ What's left that no plan covers: the places in the codebase that don't read as i
 
 Wrong behaviour found in the session transcripts and confirmed in the current code.
 
-- [ ] `documents_every_route_it_serves` (`crates/api/tests/routes.rs`) leaves out `/openapi.json`, `/status`, `/nodes` and `/nodes/{type}`, so those routes could lose their OpenAPI entry without a failing test.
 
 ## Unconfirmed bugs
 
