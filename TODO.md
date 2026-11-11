@@ -27,7 +27,6 @@ Ideas you approved but left for later.
 - [ ] An App window session source.
 - [ ] A Moments node that marks clicks and typing by hand on an imported video.
 - [ ] A Resize window browser action.
-- [ ] A Go offline browser action.
 - [ ] A Sign out browser action.
 - [ ] An Open a new tab browser action.
 - [ ] Record take and Screenshot passing the session on, so one chain can make several takes or stills.

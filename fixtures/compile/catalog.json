@@ -431,6 +431,29 @@
    }
   },
   {
+   "type": "browser.goOffline",
+   "title": "Go offline",
+   "category": "Browser",
+   "description": "Cuts the page off from the network, as if the computer lost its connection, or brings it back online.",
+   "runs": true,
+   "inputs": {
+    "session": {
+     "type": "browser-session",
+     "label": "Browser",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "session": {
+     "type": "browser-session",
+     "label": "Browser",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "browser.freezeClock",
    "title": "Freeze time",
    "category": "Browser",
@@ -5868,6 +5891,51 @@
     "default": {
      "locale": "de-DE",
      "reload": true
+    }
+   }
+  },
+  {
+   "type": "browser.goOffline",
+   "title": "Go offline",
+   "category": "Browser",
+   "description": "Cuts the page off from the network, as if the computer lost its connection, or brings it back online.",
+   "runs": true,
+   "inputs": {
+    "session": {
+     "type": "browser-session",
+     "label": "Browser",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "session": {
+     "type": "browser-session",
+     "label": "Browser",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "connection": {
+      "description": "Connection",
+      "type": "string",
+      "enum": [
+       "offline",
+       "online"
+      ],
+      "x-labels": {
+       "offline": "Offline",
+       "online": "Back online"
+      },
+      "default": "offline"
+     }
+    },
+    "type": "object",
+    "default": {
+     "connection": "offline"
     }
    }
   },

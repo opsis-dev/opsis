@@ -40,6 +40,11 @@ const SAME_STEM_ALLOWED: &[(&str, &str, &str)] = &[
         "fx.text-mask-video",
         "one marks words in a line, the other fills letters with a picture",
     ),
+    (
+        "browser.navigate",
+        "browser.goOffline",
+        "one opens an address, the other cuts the page off from the network",
+    ),
 ];
 
 fn port_types(def: &NodeDef) -> (Vec<PortType>, Vec<PortType>) {

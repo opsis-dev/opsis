@@ -869,6 +869,21 @@ pub struct ChangeLanguage {
     pub reload: bool,
 }
 
+#[choice]
+pub enum Connection {
+    #[default]
+    #[label("Offline")]
+    Offline,
+    #[label("Back online")]
+    Online,
+}
+
+#[settings(eq)]
+pub struct GoOffline {
+    #[setting("Connection")]
+    pub connection: Connection,
+}
+
 #[settings(eq)]
 pub struct MockRoute {
     #[setting(
@@ -1638,6 +1653,14 @@ pub fn nodes() -> Vec<NodeDef> {
                 ]
             },
         ).look(NodeLook::of("lucide:languages")),
+        card(
+            chain::<GoOffline>(
+                BrowserAction::GoOffline,
+                "Go offline",
+                "Cuts the page off from the network, as if the computer lost its connection, or brings it back online.",
+            ),
+            |p: &GoOffline| vec![Some(row(Icon::Wifi, p.connection.label()))],
+        ).look(NodeLook::of("lucide:wifi-off").morphs("lucide:wifi")),
         card(
             chain::<FreezeClock>(
                 BrowserAction::FreezeClock,

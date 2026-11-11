@@ -416,6 +416,24 @@ impl Session {
         self.send_user_agent().await
     }
 
+    pub async fn set_offline(&self, offline: bool) -> Result<()> {
+        let unthrottled = json!({ "latency": 0, "downloadThroughput": -1, "uploadThroughput": -1 });
+        let mut every_request = unthrottled.clone();
+        every_request["urlPattern"] = json!("");
+        self.tab
+            .send(
+                "Network.emulateNetworkConditionsByRule",
+                json!({ "offline": offline, "matchedNetworkConditions": [every_request] }),
+            )
+            .await?;
+        let mut state = unthrottled;
+        state["offline"] = json!(offline);
+        self.tab
+            .send("Network.overrideNetworkState", state)
+            .await
+            .map(drop)
+    }
+
     pub async fn set_color_scheme(&self, scheme: ColorScheme) -> Result<()> {
         let features = json!([
             { "name": "prefers-color-scheme", "value": color_scheme(scheme) },

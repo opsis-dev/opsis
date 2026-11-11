@@ -8,10 +8,10 @@ use std::time::Duration;
 
 use opsis_compile::asset_ref::project_rel_path;
 use opsis_compile::nodes::browser::{
-    Assert, ChangeLanguage, Chapter, Click, Drag, DragMethod as DragParam, DragMode, FreezeClock,
-    HideElements, Hoist, Hover, MockRoute, Navigate, OPEN_BROWSER_TYPE, Open, OverlayHtml,
-    PressKeys, Scroll, ScrollAlign, ScrollMode, Select, SetState, SignIn, Silence, SwitchTheme,
-    Type, Wait, WaitMode, WaitUntil, read_path,
+    Assert, ChangeLanguage, Chapter, Click, Connection, Drag, DragMethod as DragParam, DragMode,
+    FreezeClock, GoOffline, HideElements, Hoist, Hover, MockRoute, Navigate, OPEN_BROWSER_TYPE,
+    Open, OverlayHtml, PressKeys, Scroll, ScrollAlign, ScrollMode, Select, SetState, SignIn,
+    Silence, SwitchTheme, Type, Wait, WaitMode, WaitUntil, read_path,
 };
 use opsis_compile::nodes::capture::{Cursor, Record, Timing};
 use opsis_compile::registry::node_def;
@@ -877,6 +877,7 @@ impl<'e> TakeRun<'e> {
             BrowserAction::SignIn => self.sign_in(step, params(step)?).await,
             BrowserAction::SwitchTheme => self.switch_theme(params(step)?).await,
             BrowserAction::ChangeLanguage => self.change_language(params(step)?).await,
+            BrowserAction::GoOffline => self.go_offline(params(step)?).await,
             BrowserAction::StartRecording => Ok(()),
         }
     }
@@ -1246,6 +1247,13 @@ impl<'e> TakeRun<'e> {
         if p.reload && self.lifecycle.url() != "about:blank" {
             self.lifecycle.reload(self.tab()).await?;
         }
+        Ok(())
+    }
+
+    async fn go_offline(&self, p: GoOffline) -> StepResult {
+        self.session
+            .set_offline(p.connection == Connection::Offline)
+            .await?;
         Ok(())
     }
 

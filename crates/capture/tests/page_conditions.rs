@@ -18,6 +18,16 @@ const LANGUAGE_PAGE: &str = r"<!doctype html><body><script>
 document.body.textContent = `lang ${navigator.language} ${new Intl.NumberFormat().format(1234.5)}`;
 </script></body>";
 
+const NETWORK_PAGE: &str = r#"<!doctype html><body><script>
+const show = async () => {
+  const reached = await fetch(`/ping?${Math.random()}`).then(() => "reached", () => "unreachable");
+  document.body.textContent = `online ${navigator.onLine} ${reached}`;
+};
+addEventListener("online", show);
+addEventListener("offline", show);
+show();
+</script></body>"#;
+
 fn shows(id: &str, text: &str) -> SessionStep {
     step(
         BrowserAction::Assert,
@@ -90,6 +100,31 @@ async fn changes_the_language_the_page_reads_when_it_reloads() {
                 json!({ "locale": "fr-FR", "reload": true }),
             ),
             shows("again", "lang fr-FR 1\u{202f}234,5"),
+        ],
+    )
+    .await;
+}
+
+#[tokio::test]
+#[ignore = "needs the dev engine"]
+async fn takes_the_page_offline_and_back_online() {
+    play(
+        NETWORK_PAGE,
+        json!({}),
+        vec![
+            shows("before", "online true reached"),
+            step(
+                BrowserAction::GoOffline,
+                "off",
+                json!({ "connection": "offline" }),
+            ),
+            shows("offline", "online false unreachable"),
+            step(
+                BrowserAction::GoOffline,
+                "on",
+                json!({ "connection": "online" }),
+            ),
+            shows("online", "online true reached"),
         ],
     )
     .await;

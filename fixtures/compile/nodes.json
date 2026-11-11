@@ -868,6 +868,47 @@
   }
  },
  {
+  "type": "browser.goOffline",
+  "title": "Go offline",
+  "category": "Browser",
+  "description": "Cuts the page off from the network, as if the computer lost its connection, or brings it back online.",
+  "phase": "capture",
+  "inputs": [
+   {
+    "id": "session",
+    "type": "browser-session",
+    "label": "Browser",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "session",
+    "type": "browser-session",
+    "label": "Browser",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": true,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "connection": "offline"
+  }
+ },
+ {
   "type": "browser.freezeClock",
   "title": "Freeze time",
   "category": "Browser",

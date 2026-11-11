@@ -39,6 +39,7 @@ Browser sessions and their actions, the take value every recording shares, recor
 - **Capture keeps Playwright's launch switches, injected page script, clock and keyboard but talks CDP itself**; `playwright-core` is only a dev dependency.
 - **Actions that change what the page is told about the computer change it mid-take, from Open browser's values.** Switch theme (`browser.switchTheme`) sends the media features again through `Session::set_color_scheme`, because `Emulation.setEmulatedMedia` replaces every feature at once, so the session keeps Open browser's reduced motion (`Session.reduce_motion`) to send it with the new scheme. Pages see the change live, as when the computer's setting changes.
   - Change language (`browser.changeLanguage`, `Session::set_locale`) clears the session's own language override before setting the new one, then sends the user agent again with the new `acceptLanguage`; it reloads the page by default, because most sites read the language only when a page loads. An empty language is the computer's, as in Open browser.
+  - Go offline (`browser.goOffline`, `Session::set_offline`) uses `Network.emulateNetworkConditionsByRule`, one rule with an empty pattern for every request, and `Network.overrideNetworkState` for what `navigator.onLine` and the `online`/`offline` events report; the older `Network.emulateNetworkConditions` that did both is deprecated. Both replacements are still experimental in the protocol, so a browser move rechecks them (`page_conditions.rs`).
 
 ### A take is one value
 
