@@ -67,6 +67,31 @@ QString Json(const QJsonValue& value) {
           .chopped(1));
 }
 
+QString ImportChosenFile(QWidget* parent, const QString& filter) {
+  const QString path = QFileDialog::getOpenFileName(
+      parent, QStringLiteral("Import files into the project"), QString(),
+      filter);
+  if (path.isEmpty()) return {};
+  try {
+    rust::Vec<rust::String> paths;
+    paths.push_back(ToRust(path));
+    const rust::Vec<rust::String> added =
+        App::Get().session().import_files(std::move(paths));
+    if (!added.empty()) return ToQ(added.front());
+  } catch (const rust::Error& error) {
+    App::Get().ShowError(QString::fromUtf8(error.what()));
+  }
+  return {};
+}
+
+QJsonValue LengthOf(const QString& reference) {
+  try {
+    return App::Get().session().media_length_ms(ToRust(reference));
+  } catch (const rust::Error&) {
+    return QJsonValue::Null;
+  }
+}
+
 class KeyChordButton : public QPushButton {
  public:
   explicit KeyChordButton(const QString& chord) {
@@ -346,13 +371,38 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
       for (const auto& choice : field.choices) {
         combo->addItem(ToQ(choice.label), ToQ(choice.value));
       }
+      int own_index = -1;
+      if (field.own_file) {
+        combo->insertSeparator(combo->count());
+        combo->addItem(QStringLiteral("Your own file…"), QString());
+        own_index = combo->count() - 1;
+      }
       combo->setCurrentIndex(std::max(0, combo->findData(ToQ(field.text))));
-      connect(combo, &QComboBox::activated, this,
-              [this, key, combo](int index) {
-                const QString value = combo->itemData(index).toString();
-                Commit(key, value.isEmpty() ? QStringLiteral("null")
-                                            : Json(QJsonValue(value)));
-              });
+      const QString length_key = ToQ(field.length_key);
+      const QString filter = ToQ(field.file_filter);
+      connect(
+          combo, &QComboBox::activated, this,
+          [this, key, combo, own_index, length_key, filter,
+           current = ToQ(field.text)](int index) {
+            QString value = combo->itemData(index).toString();
+            QJsonValue length = QJsonValue::Null;
+            if (index == own_index) {
+              value = ImportChosenFile(QWidget::window(), filter);
+              if (value.isEmpty()) {
+                combo->setCurrentIndex(std::max(0, combo->findData(current)));
+                return;
+              }
+              if (!length_key.isEmpty()) length = LengthOf(value);
+            }
+            const QJsonValue chosen =
+                value.isEmpty() ? QJsonValue(QJsonValue::Null) : value;
+            if (length_key.isEmpty()) {
+              Commit(key,
+                     chosen.isNull() ? QStringLiteral("null") : Json(chosen));
+              return;
+            }
+            CommitPatch(QJsonObject{{key, chosen}, {length_key, length}});
+          });
       return combo;
     }
     case bridge::FieldKind::EnumList: {
@@ -494,20 +544,12 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
         if (!line->isModified()) return;
         Commit(key, Json(QJsonValue(line->text().trimmed())));
       });
-      connect(choose, &QPushButton::clicked, this, [this, key] {
-        const QString path = QFileDialog::getOpenFileName(
-            QWidget::window(), QStringLiteral("Import files into the project"));
-        if (path.isEmpty()) return;
-        try {
-          rust::Vec<rust::String> paths;
-          paths.push_back(ToRust(path));
-          const rust::Vec<rust::String> added =
-              App::Get().session().import_files(std::move(paths));
-          if (!added.empty()) Commit(key, Json(QJsonValue(ToQ(added.front()))));
-        } catch (const rust::Error& error) {
-          App::Get().ShowError(QString::fromUtf8(error.what()));
-        }
-      });
+      connect(choose, &QPushButton::clicked, this,
+              [this, key, filter = ToQ(field.file_filter)] {
+                const QString added =
+                    ImportChosenFile(QWidget::window(), filter);
+                if (!added.isEmpty()) Commit(key, Json(QJsonValue(added)));
+              });
       return holder;
     }
     case bridge::FieldKind::Target: {

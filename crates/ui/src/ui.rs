@@ -2501,6 +2501,18 @@ impl Host for Ui {
             .map_or_default(|path| path.to_string_lossy().into_owned())
     }
 
+    fn media_length_ms(&self, reference: &str) -> HostResult<f64> {
+        let path = self.file_path(reference);
+        if path.is_empty() {
+            return Err("No project is open.".to_owned());
+        }
+        opsis_probe::probe(Path::new(&path))
+            .map_err(|e| format!("Couldn't read the file: {e}"))?
+            .duration_ms
+            .map(f64::from)
+            .ok_or_else(|| "The file has no length.".to_owned())
+    }
+
     fn import_files(&self, paths: Vec<String>) -> HostResult<Vec<String>> {
         let dir = self
             .state()

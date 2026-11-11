@@ -95,6 +95,7 @@ pub trait Host {
     fn gradient_info(&self, css: &str) -> GradientInfo;
     fn import_files(&self, paths: Vec<String>) -> HostResult<Vec<String>>;
     fn file_path(&self, reference: &str) -> String;
+    fn media_length_ms(&self, reference: &str) -> HostResult<f64>;
     fn box_from(&self, x0: f64, y0: f64, x1: f64, y1: f64) -> BoundsView;
     fn move_box(&self, origin: BoundsView, dx: f64, dy: f64) -> BoundsView;
     fn box_kept(&self, area: BoundsView) -> bool;
@@ -1216,6 +1217,10 @@ impl Session {
 
     pub(crate) fn file_path(&self, reference: &str) -> String {
         self.0.file_path(reference)
+    }
+
+    pub(crate) fn media_length_ms(&self, reference: &str) -> HostResult<f64> {
+        self.0.media_length_ms(reference)
     }
 
     pub(crate) fn edit_gradient(&self, css: &str, edit_json: &str) -> GradientInfo {

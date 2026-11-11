@@ -134,6 +134,7 @@ pub const AUDIO_EXTENSIONS: [&str; 14] = [
     "mka",
 ];
 
+pub const VIDEO_EXTENSIONS: [&str; 8] = ["mp4", "mov", "m4v", "webm", "mkv", "avi", "wmv", "3gp"];
 pub const TERMINAL_TAKE_EXTENSIONS: [&str; 1] = ["cast"];
 pub const ANIMATION_EXTENSIONS: [&str; 2] = ["lottie", "json"];
 

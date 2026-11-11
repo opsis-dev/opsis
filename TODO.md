@@ -4,12 +4,9 @@ What's left that no plan covers: the places in the codebase that don't read as i
 
 ## Written for Rust and Qt
 
-- [ ] Code nothing calls or reads: the `x-accept` and `x-length-key` keywords the settings emit and nothing reads.
-
 ## Bugs
 
 Wrong behaviour found in the session transcripts and confirmed in the current code.
-
 
 ## Unconfirmed bugs
 

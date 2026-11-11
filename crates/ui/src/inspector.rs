@@ -1,3 +1,4 @@
+use opsis_compile::asset_ref::{AUDIO_EXTENSIONS, IMAGE_EXTENSIONS, VIDEO_EXTENSIONS};
 use opsis_compile::catalog::{EditorCatalog, EditorNode};
 use opsis_compile::inspector::InspectorContext;
 use opsis_compile::nodes::groups::KIND_OBJECT;
@@ -338,7 +339,51 @@ fn blank(key: &str, schema: &Value, value: Option<&Value>, ctx: &FormCtx<'_>) ->
             .unwrap_or(u32::MAX),
         new_item_json: String::new(),
         extra_json: String::new(),
+        file_filter: file_filter(&text(schema, "x-accept")),
+        own_file: false,
+        length_key: sibling_key(key, &text(schema, "x-length-key")),
     }
+}
+
+fn file_filter(accept: &str) -> String {
+    let mut patterns: Vec<String> = Vec::new();
+    for token in accept.split(',').map(str::trim) {
+        let extensions: &[&str] = match token {
+            "audio/*" => &AUDIO_EXTENSIONS,
+            "image/*" => &IMAGE_EXTENSIONS,
+            "video/*" => &VIDEO_EXTENSIONS,
+            _ => match token.strip_prefix('.') {
+                Some(extension) if !extension.is_empty() => &[extension],
+                _ => return String::new(),
+            },
+        };
+        for extension in extensions {
+            let pattern = format!("*.{extension}");
+            if !patterns.contains(&pattern) {
+                patterns.push(pattern);
+            }
+        }
+    }
+    if patterns.is_empty() {
+        return String::new();
+    }
+    format!("Supported files ({});;All files (*)", patterns.join(" "))
+}
+
+fn sibling_key(key: &str, name: &str) -> String {
+    if name.is_empty() {
+        return String::new();
+    }
+    key.rsplit_once('/')
+        .map_or_else(|| name.to_owned(), |(parent, _)| format!("{parent}/{name}"))
+}
+
+fn own_file_label(reference: &str) -> String {
+    reference
+        .rsplit(['/', '\\', ':'])
+        .find(|part| !part.is_empty())
+        .unwrap_or(reference)
+        .to_owned()
 }
 
 fn with_current(mut choices: Vec<Choice>, current: &str) -> Vec<Choice> {
@@ -473,8 +518,17 @@ fn named_widget(
         view.none_label = none_label(&view.zero_label, "Project font");
         return true;
     }
-    if let Some((choices, none)) = select_choices(widget, ctx) {
+    if let Some((mut choices, none)) = select_choices(widget, ctx) {
+        let own_file = matches!(widget, "sound" | "music");
+        let current = value.map_or_default(plain);
+        if own_file && !current.is_empty() && !choices.iter().any(|c| c.value == current) {
+            choices.push(Choice {
+                label: own_file_label(&current),
+                value: current,
+            });
+        }
         select(view, value, choices, none);
+        view.own_file = own_file;
         return true;
     }
     if let Some(kind) = string_widget(widget) {
@@ -945,6 +999,47 @@ mod tests {
         ) {
             prop_assert_eq!(none_label(&zero, &none), zero);
             prop_assert_eq!(none_label("", &none), none);
+        }
+
+        #[test]
+        fn a_length_key_sits_beside_its_field(
+            parents in proptest::collection::vec("[a-z]{1,6}", 0..3),
+            field in "[a-z]{1,6}",
+            length in "[a-z]{1,6}Ms",
+        ) {
+            let path = |last: &String| {
+                parents.iter().chain([last]).cloned().collect::<Vec<_>>().join("/")
+            };
+            prop_assert_eq!(sibling_key(&path(&field), &length), path(&length));
+            let key = path(&field);
+            prop_assert_eq!(sibling_key(&key, ""), "");
+        }
+
+        #[test]
+        fn a_file_filter_lists_each_accepted_extension_once(
+            extensions in proptest::collection::vec("[a-z0-9]{1,5}", 1..5),
+            kinds in proptest::collection::vec(
+                prop_oneof![Just("audio/*"), Just("image/*"), Just("video/*")],
+                0..3,
+            ),
+        ) {
+            let tokens: Vec<String> = extensions
+                .iter()
+                .map(|e| format!(".{e}"))
+                .chain(kinds.iter().map(|k| (*k).to_owned()))
+                .collect();
+            let filter = file_filter(&tokens.join(","));
+            let listed = filter
+                .strip_prefix("Supported files (")
+                .and_then(|f| f.split_once(')'))
+                .map_or("", |(l, _)| l);
+            let patterns: Vec<&str> = listed.split(' ').collect();
+            for extension in &extensions {
+                let pattern = format!("*.{extension}");
+                prop_assert_eq!(patterns.iter().filter(|p| **p == pattern).count(), 1);
+            }
+            prop_assert!(filter.ends_with(";;All files (*)"));
+            prop_assert_eq!(file_filter(&format!("{},*/*", tokens.join(","))), "");
         }
 
         #[test]

@@ -814,6 +814,9 @@ pub mod ffi {
         max_items: u32,
         new_item_json: String,
         extra_json: String,
+        file_filter: String,
+        own_file: bool,
+        length_key: String,
     }
 
     #[derive(Debug, Clone, PartialEq)]
@@ -1097,6 +1100,7 @@ pub mod ffi {
         fn gradient_info(self: &Session, css: &str) -> GradientInfo;
         fn import_files(self: &Session, paths: Vec<String>) -> Result<Vec<String>>;
         fn file_path(self: &Session, reference: &str) -> String;
+        fn media_length_ms(self: &Session, reference: &str) -> Result<f64>;
         fn box_from(self: &Session, x0: f64, y0: f64, x1: f64, y1: f64) -> BoundsView;
         fn move_box(self: &Session, origin: BoundsView, dx: f64, dy: f64) -> BoundsView;
         fn box_kept(self: &Session, area: BoundsView) -> bool;
