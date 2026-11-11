@@ -2,12 +2,6 @@
 
 What's left that no plan covers: the places in the codebase that don't read as if Opsis had been written for Rust and Qt from the start, in the order to fix them; bugs; ideas left for later; and behaviour never checked. Each item is removed when it is done.
 
-## Written for Rust and Qt
-
-## Bugs
-
-Wrong behaviour found in the session transcripts and confirmed in the current code.
-
 ## Unconfirmed bugs
 
 Seen once during a session and never reproduced or explained.
@@ -20,9 +14,13 @@ Seen once during a session and never reproduced or explained.
 Ideas you approved but left for later.
 
 - [ ] A clip-level Reverse that plays a recording backwards through its time mapping, with one encode and no frame buffer (the Reverse node, `media.reverse`, only reverses a whole file).
+  - The time mapping already takes times that run backwards (`remapFrame`, `packages/video/src/common/remap.ts`), but the footage decoder restarts a second before any frame earlier than the few it keeps (`needs_restart`, `KEPT_FRAMES`, `crates/footage/src/footage.rs`), so playing backwards needs decoding in batches; the clip's sound needs reversing too.
 - [ ] A keep-quality encode option for the file nodes, in place of the fixed H.264 at quality 18 and `yuv420p` they encode with (`EDIT_CRF`, `crates/media/src/codecs.rs`).
+  - The lossless encoders it could use are in place: Export video's lossless formats encode with FFV1 and lossless RGB H.264 (`is_lossless`), and the bundled FFmpeg is checked for them (`REQUIRED_ENCODERS`).
 - [ ] A lossless checkpoint node that renders a clip's finished picture to a file the rest of the graph plays.
+  - Export video (MP4 or MKV lossless) → Media file → Use as clip may already be it, since Export video passes its file on; then this is a template rather than a node.
 - [ ] Recording the page's own sound in a take.
+  - Chrome's `Page.startScreenRecording` (Chrome 153 on; the pinned engine is 157) records the tab's sound as Opus beside AV1 video in the headless shell, but only sound that really plays: muted, or with no sound server, the track is silent. A take would need a virtual sound output on each system so nothing plays aloud, and only real-timing takes can use it, since a smooth take holds the page clock.
 - [ ] An App window session source.
 - [ ] A Moments node that marks clicks and typing by hand on an imported video.
 - [ ] A Resize window browser action.
