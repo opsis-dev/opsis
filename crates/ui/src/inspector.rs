@@ -294,20 +294,22 @@ fn presets(schema: &Value) -> Vec<PresetView> {
         .collect()
 }
 
+fn zero_label(schema: &Value, connected_inputs: &[String]) -> String {
+    let unconnected = text(schema, "x-unconnected-zero-label");
+    if connected_inputs.is_empty() && !unconnected.is_empty() {
+        unconnected
+    } else {
+        text(schema, "x-zero-label")
+    }
+}
+
 fn blank(key: &str, schema: &Value, value: Option<&Value>, ctx: &FormCtx<'_>) -> FieldView {
     let label = match text(schema, "description") {
         label if label.is_empty() => key.to_owned(),
         label => label,
     };
-    let connected = ctx
-        .inspector
-        .is_some_and(|i| i.connected_inputs.iter().any(|input| input == key));
-    let unconnected = text(schema, "x-unconnected-zero-label");
-    let zero_label = if !connected && !unconnected.is_empty() {
-        unconnected
-    } else {
-        text(schema, "x-zero-label")
-    };
+    let connected = ctx.inspector.map_or(&[][..], |i| &i.connected_inputs[..]);
+    let zero_label = zero_label(schema, connected);
     FieldView {
         key: key.to_owned(),
         label,
@@ -920,6 +922,17 @@ mod tests {
                     prop_assert_eq!(changed.pointer(&format!("/{i}/name")), item.get("name"));
                 }
             }
+        }
+
+        #[test]
+        fn the_unconnected_zero_label_shows_only_while_no_input_is_connected(
+            usual in "[A-Za-z ]{1,12}",
+            zero in "[A-Za-z ]{0,12}",
+            inputs in proptest::collection::vec("[a-z]{1,6}", 1..4),
+        ) {
+            let schema = json!({ "x-zero-label": zero, "x-unconnected-zero-label": usual });
+            prop_assert_eq!(zero_label(&schema, &[]), usual);
+            prop_assert_eq!(zero_label(&schema, &inputs), zero);
         }
 
         #[test]
