@@ -13,7 +13,7 @@ use crate::asset_ref::{kind_from_path, project_ref};
 use crate::card_rows::{file_row, frame_secs, quoted, sentence};
 use crate::clip::{ItemExtra, item_clip, with_handles, wrap_clip};
 use crate::elements::introspect::{
-    frames_from_seconds, is_color_schema, map_leaves, widget_keys, widget_of,
+    frames_from_seconds, is_color_schema, map_leaves, shown, widget_keys, widget_of,
 };
 use crate::elements::lengths::{animation_length, fits_its_animation};
 use crate::elements::overlay::captions::CAPTIONS_ELEMENT;
@@ -230,23 +230,6 @@ pub fn compile_element(
             with_handles(wrapped, handles, Some(envelope), camera)
         }
     }
-}
-
-pub fn shown(field: &Value, params: &Values) -> bool {
-    let Some(show_if) = field.get("x-show-if").and_then(Value::as_object) else {
-        return true;
-    };
-    show_if.iter().all(|(key, allowed)| {
-        let current = match params.get(key) {
-            None | Some(Value::Null) => String::new(),
-            Some(Value::String(s)) => s.clone(),
-            Some(Value::Number(n)) => n.as_f64().map_or_default(|n| n.to_string()),
-            Some(other) => other.to_string(),
-        };
-        allowed
-            .as_array()
-            .is_some_and(|a| a.iter().any(|v| v.as_str() == Some(current.as_str())))
-    })
 }
 
 fn palette_row(colors: &Value) -> Option<CardRow> {

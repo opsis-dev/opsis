@@ -8,7 +8,6 @@ use opsis_types::workflow::{Workflow, WorkflowNode};
 use serde_json::{Map, Value};
 
 const MILLIS_PER_SECOND: f64 = 1000.0;
-const ANY_VALUE: &str = "*";
 const COLOUR_RULE: &str = "colour";
 
 #[derive(Debug)]
@@ -238,15 +237,7 @@ fn with_picked_kind(
 }
 
 fn shown(schema: &Value, values: &Map<String, Value>, ctx: &FormCtx<'_>) -> bool {
-    let rules_hold = schema
-        .get("x-show-if")
-        .and_then(Value::as_object)
-        .is_none_or(|rules| {
-            rules.iter().all(|(key, allowed)| {
-                let current = values.get(key).map_or_default(plain);
-                lists(allowed, &current) || (lists(allowed, ANY_VALUE) && !current.is_empty())
-            })
-        });
+    let rules_hold = opsis_compile::elements::introspect::shown(schema, values);
     let files_hold = schema
         .get("x-show-if-file")
         .and_then(Value::as_object)

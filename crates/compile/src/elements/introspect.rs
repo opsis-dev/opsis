@@ -4,7 +4,35 @@ use serde_json::{Map, Value};
 use crate::params::ParamSchema;
 use crate::text::round_to;
 
-pub const ANY_VALUE: &str = "*";
+const ANY_VALUE: &str = "*";
+
+pub fn shown(field: &Value, values: &Map<String, Value>) -> bool {
+    field
+        .get("x-show-if")
+        .and_then(Value::as_object)
+        .is_none_or(|rules| {
+            rules
+                .iter()
+                .all(|(key, allowed)| allows(allowed, &show_if_text(values.get(key))))
+        })
+}
+
+fn show_if_text(value: Option<&Value>) -> String {
+    match value {
+        None | Some(Value::Null) => String::new(),
+        Some(Value::String(s)) => s.clone(),
+        Some(Value::Number(n)) => n.as_f64().map_or_else(String::new, |n| n.to_string()),
+        Some(other) => other.to_string(),
+    }
+}
+
+fn allows(allowed: &Value, current: &str) -> bool {
+    allowed.as_array().is_some_and(|list| {
+        list.iter()
+            .filter_map(Value::as_str)
+            .any(|v| v == current || (v == ANY_VALUE && !current.is_empty()))
+    })
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "lowercase")]

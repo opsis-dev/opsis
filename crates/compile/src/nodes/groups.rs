@@ -6,12 +6,13 @@ use opsis_types::values::CompileValue;
 use opsis_types::workflow::{PortType, Workflow};
 use serde_json::{Map, Value, json};
 
+use crate::elements::introspect::shown;
 use crate::elements::{ElementKind, ElementMeta, element_meta};
 use crate::node::{CLIP_PORT, CardCtx, Category, Ctx, NodeDef, Phase, outputs, port, row};
 use crate::nodes::device_frame::drawn_elements;
 use crate::nodes::elements::{
     CLIP_DURATION, ENVELOPE, EnvelopeField, clip_duration_field, compile_element, element_card,
-    properties_of, shown,
+    properties_of,
 };
 use crate::nodes::media::CLIP_ELEMENTS;
 use crate::params::{ParamSchema, Values, schema_of};

@@ -4,6 +4,7 @@ use opsis_compile::asset_ref::{
 };
 use opsis_compile::catalog::{catalog_entry, node_catalog};
 use opsis_compile::color::{parse_color, project_swatches, same_color};
+use opsis_compile::elements::introspect::shown;
 use opsis_compile::registry::registry;
 use opsis_compile::text::{
     is_locale, is_time_zone, is_wall_time, non_blank_lines, parse_number_text, project_folder_name,
@@ -14,7 +15,7 @@ use opsis_types::secrets::{secret_file_name, secret_name};
 use opsis_types::values::{LastRun, MediaKind, NodeResult};
 use opsis_types::workflow::Workflow;
 use proptest::prelude::*;
-use serde_json::json;
+use serde_json::{Value, json};
 
 #[test]
 fn joins_a_base_and_an_encoded_path_with_or_without_the_slash() {
@@ -592,5 +593,24 @@ mod color_formats {
                 && (want.g - got.g).abs() <= tolerance
                 && (want.b - got.b).abs() <= tolerance, "{} vs {}", original, text);
         }
+    }
+}
+
+proptest! {
+    #[test]
+    fn a_star_in_show_if_holds_for_any_set_value_and_nothing_else(
+        set in "[A-Za-z0-9 .]{1,12}",
+        other in "[a-z]{1,8}",
+    ) {
+        let field = json!({ "x-show-if": { "title": ["*"] } });
+        let with = |value: Value| json!({ "title": value }).as_object().unwrap().clone();
+        prop_assert!(shown(&field, &with(json!(set))));
+        prop_assert!(!shown(&field, &with(json!(""))));
+        prop_assert!(!shown(&field, &with(Value::Null)));
+        prop_assert!(!shown(&field, &serde_json::Map::new()));
+        let listed = json!({ "x-show-if": { "kind": [other] } });
+        let kind = json!({ "kind": other }).as_object().unwrap().clone();
+        prop_assert!(shown(&listed, &kind));
+        prop_assert!(!shown(&listed, &with(json!(set))));
     }
 }
