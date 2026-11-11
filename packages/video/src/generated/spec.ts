@@ -1419,6 +1419,7 @@ export type KeystrokeLook = {
 	font?: string,
 	shadow?: number,
 	caret?: boolean,
+	leftOut?: string[],
 };
 
 export type KeystrokePosition = "bottom" | "top";

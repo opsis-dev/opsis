@@ -13,7 +13,7 @@ import { DemoClip, ScreenClip, useClipTime } from "#video/camera/demo-clip.tsx";
 import { frameAddress, terminalTitle } from "#video/camera/frame-address.ts";
 import { KeycapHUD } from "#video/camera/keycap-hud.tsx";
 import { DesignWidthContext } from "#video/camera/lib/design-scale.ts";
-import { KEYSTROKE_EDGE } from "#video/camera/lib/keycap.ts";
+import { KEYSTROKE_EDGE, shownKeys } from "#video/camera/lib/keycap.ts";
 import { faded, SHOT_STYLES } from "#video/camera/lib/style.ts";
 import { poseAt } from "#video/camera/lib/zoom.ts";
 import { STAGE_COLOR } from "#video/common/element-colors.ts";
@@ -101,6 +101,7 @@ export function RecordingClip(props: RecordingProps) {
   );
 
   const { keystrokes } = props;
+  const chipKeys = keystrokes?.chords ? shownKeys(log.keys ?? [], keystrokes.leftOut ?? []) : [];
   function followX() {
     return poseAt(frame, fps, log, { speed: props.speed, tuning }).cx;
   }
@@ -110,8 +111,8 @@ export function RecordingClip(props: RecordingProps) {
         {clip}
       </LayoutFrame>
       <DesignWidthContext.Provider value={Math.max(width, height)}>
-        {keystrokes?.chords && log.keys?.length ? (
-          <KeycapHUD keys={log.keys} timeS={timeS} look={keystrokes} />
+        {keystrokes && chipKeys.length ? (
+          <KeycapHUD keys={chipKeys} timeS={timeS} look={keystrokes} />
         ) : null}
         {keystrokes?.typed ? (
           <TypedChip

@@ -10817,6 +10817,31 @@
       "type": "boolean",
       "default": true
      },
+     "leftOut": {
+      "description": "Keys left out",
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": [
+       "Escape",
+       "Enter",
+       "Tab",
+       "ArrowUp",
+       "ArrowDown",
+       "ArrowLeft",
+       "ArrowRight",
+       "Backspace",
+       "Delete",
+       "Space"
+      ],
+      "x-help": "Keys or shortcuts that get no chip, written as in Press keys, such as Escape or Control+K. A key pressed with another key, like Shift+Enter, still shows unless it is listed too.",
+      "x-show-if": {
+       "chords": [
+        "true"
+       ]
+      }
+     },
      "keycap": {
       "description": "Keycap colour",
       "type": "string",
@@ -10947,6 +10972,18 @@
      "position": "bottom",
      "typed": true,
      "chords": true,
+     "leftOut": [
+      "Escape",
+      "Enter",
+      "Tab",
+      "ArrowUp",
+      "ArrowDown",
+      "ArrowLeft",
+      "ArrowRight",
+      "Backspace",
+      "Delete",
+      "Space"
+     ],
      "keycap": "#0a0a0a",
      "ink": "#ffffff",
      "size": 1.0,

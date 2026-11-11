@@ -85,3 +85,31 @@ export function keycapAt(
   }
   return null;
 }
+
+const KEY_ALIASES = new Map([
+  ["esc", "escape"],
+  ["return", "enter"],
+  ["cmd", "meta"],
+  ["command", "meta"],
+  ["ctrl", "control"],
+  ["option", "alt"],
+  ["del", "delete"],
+  ["up", "arrowup"],
+  ["down", "arrowdown"],
+  ["left", "arrowleft"],
+  ["right", "arrowright"],
+]);
+
+function chordId(chord: string): string {
+  return chordKeys(chord)
+    .map((key) => key.toLowerCase())
+    .map((key) => KEY_ALIASES.get(key) ?? key)
+    .toSorted()
+    .join("+");
+}
+
+export function shownKeys(keys: readonly KeyEvent[], leftOut: readonly string[]): KeyEvent[] {
+  if (leftOut.length === 0) return [...keys];
+  const hidden = new Set(leftOut.map(chordId));
+  return keys.filter((key) => !hidden.has(chordId(key.chord)));
+}

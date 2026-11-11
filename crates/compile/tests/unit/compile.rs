@@ -109,7 +109,8 @@ fn uses_the_recording_once_the_capture_node_has_a_result() {
         json!({
             "position": "bottom", "typed": true, "chords": true, "keycap": "#0a0a0a", "ink": "#ffffff", "size": 1.0,
             "chordHoldS": 1.1, "typedHoldS": 0.6, "edge": 56.0, "radius": 26.0, "keyNames": "symbols", "shadow": 0.35,
-            "caret": true
+            "caret": true,
+            "leftOut": ["Escape", "Enter", "Tab", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Backspace", "Delete", "Space"]
         })
     );
 }

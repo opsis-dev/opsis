@@ -216,6 +216,8 @@ pub struct KeystrokeLook {
     pub shadow: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub caret: Option<bool>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub left_out: Vec<String>,
 }
 
 #[derive(

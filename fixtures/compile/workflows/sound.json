@@ -2065,6 +2065,18 @@
         "position": "bottom",
         "typed": true,
         "chords": true,
+        "leftOut": [
+         "Escape",
+         "Enter",
+         "Tab",
+         "ArrowUp",
+         "ArrowDown",
+         "ArrowLeft",
+         "ArrowRight",
+         "Backspace",
+         "Delete",
+         "Space"
+        ],
         "keycap": "#0a0a0a",
         "ink": "#ffffff",
         "size": 1,
@@ -8387,6 +8399,18 @@
          "position": "bottom",
          "typed": true,
          "chords": true,
+         "leftOut": [
+          "Escape",
+          "Enter",
+          "Tab",
+          "ArrowUp",
+          "ArrowDown",
+          "ArrowLeft",
+          "ArrowRight",
+          "Backspace",
+          "Delete",
+          "Space"
+         ],
          "keycap": "#0a0a0a",
          "ink": "#ffffff",
          "size": 1,
@@ -8902,7 +8926,19 @@
             "radius": 26.0,
             "keyNames": "symbols",
             "shadow": 0.35,
-            "caret": true
+            "caret": true,
+            "leftOut": [
+             "Escape",
+             "Enter",
+             "Tab",
+             "ArrowUp",
+             "ArrowDown",
+             "ArrowLeft",
+             "ArrowRight",
+             "Backspace",
+             "Delete",
+             "Space"
+            ]
            },
            "annotations": [],
            "extraBeats": [],
@@ -9437,7 +9473,19 @@
                  "radius": 26.0,
                  "keyNames": "symbols",
                  "shadow": 0.35,
-                 "caret": true
+                 "caret": true,
+                 "leftOut": [
+                  "Escape",
+                  "Enter",
+                  "Tab",
+                  "ArrowUp",
+                  "ArrowDown",
+                  "ArrowLeft",
+                  "ArrowRight",
+                  "Backspace",
+                  "Delete",
+                  "Space"
+                 ]
                 },
                 "annotations": [],
                 "extraBeats": [],
@@ -10062,7 +10110,19 @@
                       "radius": 26.0,
                       "keyNames": "symbols",
                       "shadow": 0.35,
-                      "caret": true
+                      "caret": true,
+                      "leftOut": [
+                       "Escape",
+                       "Enter",
+                       "Tab",
+                       "ArrowUp",
+                       "ArrowDown",
+                       "ArrowLeft",
+                       "ArrowRight",
+                       "Backspace",
+                       "Delete",
+                       "Space"
+                      ]
                      },
                      "annotations": [],
                      "extraBeats": [],
@@ -10746,7 +10806,19 @@
                       "radius": 26.0,
                       "keyNames": "symbols",
                       "shadow": 0.35,
-                      "caret": true
+                      "caret": true,
+                      "leftOut": [
+                       "Escape",
+                       "Enter",
+                       "Tab",
+                       "ArrowUp",
+                       "ArrowDown",
+                       "ArrowLeft",
+                       "ArrowRight",
+                       "Backspace",
+                       "Delete",
+                       "Space"
+                      ]
                      },
                      "annotations": [],
                      "extraBeats": [],
@@ -12014,7 +12086,19 @@
                     "radius": 26.0,
                     "keyNames": "symbols",
                     "shadow": 0.35,
-                    "caret": true
+                    "caret": true,
+                    "leftOut": [
+                     "Escape",
+                     "Enter",
+                     "Tab",
+                     "ArrowUp",
+                     "ArrowDown",
+                     "ArrowLeft",
+                     "ArrowRight",
+                     "Backspace",
+                     "Delete",
+                     "Space"
+                    ]
                    },
                    "annotations": [],
                    "extraBeats": [],
@@ -13140,7 +13224,19 @@
                     "radius": 26.0,
                     "keyNames": "symbols",
                     "shadow": 0.35,
-                    "caret": true
+                    "caret": true,
+                    "leftOut": [
+                     "Escape",
+                     "Enter",
+                     "Tab",
+                     "ArrowUp",
+                     "ArrowDown",
+                     "ArrowLeft",
+                     "ArrowRight",
+                     "Backspace",
+                     "Delete",
+                     "Space"
+                    ]
                    },
                    "annotations": [],
                    "extraBeats": [],
@@ -14243,7 +14339,19 @@
          "radius": 26.0,
          "keyNames": "symbols",
          "shadow": 0.35,
-         "caret": true
+         "caret": true,
+         "leftOut": [
+          "Escape",
+          "Enter",
+          "Tab",
+          "ArrowUp",
+          "ArrowDown",
+          "ArrowLeft",
+          "ArrowRight",
+          "Backspace",
+          "Delete",
+          "Space"
+         ]
         },
         "annotations": [],
         "extraBeats": [],

@@ -2555,6 +2555,18 @@
    "position": "bottom",
    "typed": true,
    "chords": true,
+   "leftOut": [
+    "Escape",
+    "Enter",
+    "Tab",
+    "ArrowUp",
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight",
+    "Backspace",
+    "Delete",
+    "Space"
+   ],
    "keycap": "#0a0a0a",
    "ink": "#ffffff",
    "size": 1.0,

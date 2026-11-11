@@ -194,6 +194,24 @@ pub struct KeystrokeChips {
     #[setting("Show shortcuts", default = true)]
     pub chords: bool,
     #[setting(
+        "Keys left out",
+        default = vec![
+            "Escape".into(),
+            "Enter".into(),
+            "Tab".into(),
+            "ArrowUp".into(),
+            "ArrowDown".into(),
+            "ArrowLeft".into(),
+            "ArrowRight".into(),
+            "Backspace".into(),
+            "Delete".into(),
+            "Space".into(),
+        ],
+        help = "Keys or shortcuts that get no chip, written as in Press keys, such as Escape or Control+K. A key pressed with another key, like Shift+Enter, still shows unless it is listed too.",
+        show_if = { "chords": ["true"] }
+    )]
+    pub left_out: Vec<String>,
+    #[setting(
         "Keycap colour",
         default = "#0a0a0a",
         widget = "color",
@@ -640,6 +658,12 @@ fn keystroke_chips() -> NodeDef {
                 font: font_prop(&p.font),
                 shadow: Some(p.shadow),
                 caret: Some(p.caret),
+                left_out: p
+                    .left_out
+                    .iter()
+                    .map(|key| key.trim().to_owned())
+                    .filter(|key| !key.is_empty())
+                    .collect(),
             }),
             ..props
         },
