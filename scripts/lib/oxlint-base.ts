@@ -62,10 +62,7 @@ export function lintConfig(dir: string, overrides: Override[] = []): OxlintConfi
   };
 }
 
-export function runtimeNeutral(
-  who: string,
-  { relativeOnly = false }: { relativeOnly?: boolean } = {},
-): Override {
+export function runtimeNeutral(who: string): Override {
   return {
     files: ["src/**/*.ts", "src/**/*.tsx"],
     excludeFiles: ["**/*.test.ts", "**/*.test.tsx"],
@@ -76,23 +73,17 @@ export function runtimeNeutral(
           patterns: [
             {
               group: NODE_ONLY,
-              message: `${who} must stay runtime-neutral (AGENTS.md, Runtime boundaries).`,
+              message: `${who} becomes a page the recording browser loads, so it must stay runtime-neutral (AGENTS.md, Boundaries and types).`,
             },
-            ...(relativeOnly
-              ? [
-                  {
-                    group: ["@/**"],
-                    message:
-                      "packages/video imports its own files by relative path: the UI compiles them too, with its own @/ alias.",
-                  },
-                ]
-              : []),
+            {
+              group: ["@/**"],
+              message: `${who} imports its own files through its package.json imports prefix and other members by package name (AGENTS.md, Workspace and layout).`,
+            },
           ],
           paths: [
             ...WALL_CLOCK_LIBS.map((name) => ({
               name,
-              message:
-                "Animations in packages/video must be a pure function of the runtime's useFrame() (AGENTS.md).",
+              message: `Animations in ${who} must be a pure function of the runtime's useFrame() (AGENTS.md, The film).`,
             })),
             {
               name: "@react-three/fiber",

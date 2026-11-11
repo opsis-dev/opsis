@@ -71,7 +71,7 @@ The Rust nightly and how to move it, the Zig build of `opsis-vt`'s wrapper, Qt a
 
 ### TypeScript
 
-- **`runtimeNeutral` keeps the runtime-neutral members' `src` (tests aside) to what a page can run**: no Node-only import (`node:*`, `playwright-core`), none of the wall-clock animation libraries (`WALL_CLOCK_LIBS`) and not fiber's `useFrame`; with `relativeOnly`, which all four members pass, no `@/` import either. Its messages still describe the old editor (TODO.md).
+- **`runtimeNeutral` keeps the runtime-neutral members' `src` (tests aside) to what a page can run**: no Node-only import (`node:*`, `playwright-core`), none of the wall-clock animation libraries (`WALL_CLOCK_LIBS`) and not fiber's `useFrame`; and no `@/` import, since each member reaches its own files through its `#…` prefix.
 - **Opsis's own oxlint rules live in one plugin (`scripts/oxlint-plugin-opsis.ts`)**, each switched on where it applies.
   - In every member (`scripts/lib/oxlint-base.ts`):
     - `use-find-by-id`: `list.find((x) => x.id === id)` becomes `findById` (`packages/video/src/common/lists.ts`);
