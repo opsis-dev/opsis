@@ -4,7 +4,6 @@ What's left that no plan covers: the places in the codebase that don't read as i
 
 ## Written for Rust and Qt
 
-- [ ] `crates/probe/tests/ffprobe.rs` reads `OPSIS_FFMPEG` and builds `~/.cache/opsis-dev/…` paths itself (`ffmpeg`, `ffprobe_program`, `make_samples`) instead of through `opsis_golden::ffmpeg()` and `dev_cache`, against the rule in AGENTS.md §3; `opsis-probe` doesn't take `opsis-golden` as a dev-dependency.
 - [ ] Code nothing calls or reads: `crates/session/src/gradients.rs` (the editor reaches `gradient_view` and `edit_gradient` through `crates/ui/src/colors.rs`); the `LIVE_WINDOW` branch of `run::watch_live` with `LiveWindowWatching` and `live_window_watching` (`crates/session/src/run.rs`, `events.rs`), since no window watches as `LIVE_WINDOW`; `EditorCompile.converts` (`output_conversions`), which no view reads; the `x-accept` and `x-length-key` keywords the settings emit and nothing reads; `ChildKind::Setup` (`crates/engine/src/temp.rs`).
 
 ## Bugs

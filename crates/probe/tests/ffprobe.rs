@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::OnceLock;
 
+use opsis_golden::{dev_cache, ffmpeg};
 use opsis_probe::{AudioStream, Probe, VideoStream, probe};
 use opsis_types::numbers;
 use serde_json::Value;
@@ -243,16 +244,8 @@ const SAMPLES: &[(&str, &[&str], &[&str])] = &[
 
 const DURATION_SLACK_MS: f64 = 25.0;
 
-fn ffmpeg() -> PathBuf {
-    PathBuf::from(std::env::var_os("OPSIS_FFMPEG").expect(
-        "OPSIS_FFMPEG names the staged FFmpeg: run cargo through bun run test:rust, or set it to what bun run ffmpeg:stage prints",
-    ))
-}
-
 fn ffprobe_program() -> PathBuf {
-    PathBuf::from(std::env::var_os("HOME").expect("a home folder"))
-        .join(".cache/opsis-dev/ffmpeg")
-        .join(format!("ffprobe{}", std::env::consts::EXE_SUFFIX))
+    dev_cache("ffmpeg").join(format!("ffprobe{}", std::env::consts::EXE_SUFFIX))
 }
 
 static MADE: OnceLock<PathBuf> = OnceLock::new();
@@ -262,8 +255,7 @@ fn samples() -> PathBuf {
 }
 
 fn make_samples() -> PathBuf {
-    let dir = PathBuf::from(std::env::var_os("HOME").expect("a home folder"))
-        .join(".cache/opsis-dev/probe-samples");
+    let dir = dev_cache("probe-samples");
     std::fs::create_dir_all(&dir).expect("the sample folder");
     for (name, sources, args) in SAMPLES {
         let file = dir.join(name);
