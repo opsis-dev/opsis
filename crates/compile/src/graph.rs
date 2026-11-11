@@ -1,13 +1,13 @@
 use std::collections::{HashMap, HashSet};
 
-use indexmap::{IndexMap, IndexSet};
+use indexmap::IndexSet;
 use opsis_types::values::{BrowserAction, BrowserSessionValue};
 use opsis_types::workflow::{PortType, Workflow, WorkflowEdge, WorkflowNode};
 use serde::{Deserialize, Serialize};
 
 use crate::compile::{CompileResult, compile_workflow};
 use crate::node::{Claim, NodeDef, PortSpec, SESSION_PORT};
-use crate::ports::{can_connect, convert_input, refused_conversion, value_conversions};
+use crate::ports::{can_connect, convert_input, refused_conversion};
 use crate::registry::{is_output_type, node_def, node_name};
 use crate::vars::{interpolate_map, unknown_variables, workflow_vars};
 
@@ -308,22 +308,6 @@ pub fn connection_problem_now(
             }
         })
     })
-}
-
-pub fn output_conversions(
-    compiled: &CompileResult,
-) -> IndexMap<String, IndexMap<String, Vec<PortType>>> {
-    compiled
-        .values
-        .iter()
-        .map(|(id, ports)| {
-            let outputs = ports
-                .iter()
-                .map(|(handle, value)| (handle.clone(), value_conversions(value)))
-                .collect();
-            (id.clone(), outputs)
-        })
-        .collect()
 }
 
 fn value_issues(wf: &Workflow, compiled: &CompileResult) -> Vec<GraphIssue> {

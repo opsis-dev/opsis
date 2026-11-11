@@ -26,10 +26,7 @@ use tokio_util::sync::CancellationToken;
 use crate::Session;
 use crate::engine::{engine_files, engine_tools};
 use crate::error::{CommandError, CommandResult};
-use crate::events::{
-    Emit, LIVE_WINDOW, LiveNoted, LiveWindowWatching, MAIN_WINDOW, RunEventFired, RunLogged,
-    RunStateReset, RunViewChanged,
-};
+use crate::events::{Emit, LiveNoted, RunEventFired, RunLogged, RunStateReset, RunViewChanged};
 use crate::frames::{FrameChannel, send};
 use crate::settings::ProjectSignIns;
 use crate::state::AppState;
@@ -503,30 +500,11 @@ pub fn clear_run_log(app: &Session) {
     host.changed();
     emit_reset(app);
 }
-pub fn unwatch_live(app: &Session, window: &str, channel: u32) {
-    let host = app.state::<RunHost>();
-    let mut live = host.live.lock().expect("live channels");
-    if live.get(window).is_some_and(|c| c.id() == channel) {
-        live.remove(window);
-    }
-}
 pub fn watch_live(app: &Session, window: &str, frames: FrameChannel) -> Vec<LiveNoted> {
     let host = app.state::<RunHost>();
     host.live
         .lock()
         .expect("live channels")
         .insert(window.to_owned(), frames);
-    if window == LIVE_WINDOW
-        && let Err(error) = LiveWindowWatching(true).emit_to(app, MAIN_WINDOW)
-    {
-        log::warn!("telling the editor the live window is watching: {error}");
-    }
     host.live_notes.lock().expect("live notes").clone()
-}
-pub fn live_window_watching(app: &Session) -> bool {
-    let host = app.state::<RunHost>();
-    host.live
-        .lock()
-        .expect("live channels")
-        .contains_key(LIVE_WINDOW)
 }

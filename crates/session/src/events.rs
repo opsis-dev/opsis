@@ -66,9 +66,6 @@ pub struct MenuCommandFired(pub MenuCommand);
 pub struct PanelWindowsChanged(pub Vec<DockPanelName>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
-pub struct LiveWindowWatching(pub bool);
-
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct ConfirmClose(pub CloseRequest);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
@@ -124,7 +121,6 @@ pub struct RunLogged(pub LogLine);
 pub struct RunStateReset(pub RunState);
 
 pub const MAIN_WINDOW: &str = "main";
-pub const LIVE_WINDOW: &str = "live";
 
 macro_rules! session_events {
     ($($name:ident),* $(,)?) => {
@@ -161,7 +157,6 @@ session_events!(
     WindowStateChanged,
     SettingsPageShown,
     LiveNoted,
-    LiveWindowWatching,
     Compiled,
     SelectionShared,
     PlayheadShared,

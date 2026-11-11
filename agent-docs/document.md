@@ -25,7 +25,7 @@ The open project lives in Rust: every view edits it through the session and foll
 
 - **The host starts the session, subscribes, and only then begins it**: `opsis-ui` starts it with `Session::start`, subscribes to its events, then calls `Session::begin`, and calls `Session::end` when the app exits. What the session owns is in [AGENTS.md](../AGENTS.md) §6.
 - **The session never opens a window or a dialog itself: it asks the host through `Platform`** (folder and file pickers, opening paths, notifications, raising the editor, exiting, the streamed view and terminal windows), which `QtPlatform` turns into calls to the C++ side.
-- **Events leave the session on one `tokio` broadcast channel of `Addressed` events**, each for every window or for one window by label (`MAIN_WINDOW`, `LIVE_WINDOW`).
+- **Events leave the session on one `tokio` broadcast channel of `Addressed` events**, each for every window or for one window by label (`MAIN_WINDOW`).
   - The host's pump turns them into the editor's event kinds ([ui.md](ui.md)).
   - A host that lags behind the channel only tells the editor the document changed (`EventKind::Document`), so other missed events wait for the next one of their kind.
 - **Frames reach the views through a `FrameSender`**: the host's `FrameSlot` unpacks each frame and hands its header and JPEG bytes to its view's callback, which copies the JPEG into the newest frame it keeps (`Shown::next`) and wakes the view that shows it.
@@ -63,7 +63,6 @@ The open project lives in Rust: every view edits it through the session and foll
 ### Live frames
 
 - **Live recording frames and live events go only to the windows that watch them** (`watch_live`, each with its own `FrameSender`).
-  - `unwatch_live` removes only its own, though the editor never calls it; nothing watches as `LIVE_WINDOW`, so the `LiveWindowWatching` event is never sent (TODO.md).
 - **Rust sends `LiveNoted` only to watching windows, and `watch_live` returns the current run's start, step and end notes**, so a view that starts watching mid-run still knows each capture's title and steps.
 - **The editor watches once, for the main window, and both places that show the stream draw from that one feed** (`Live`): the picture-in-picture (`LivePip`) and the Live window, which is only the live picture with a LIVE badge and keeps no history.
   - The PiP's enlarge button and its picture open the Live window, and the PiP hides while that window is open.

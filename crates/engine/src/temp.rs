@@ -8,7 +8,6 @@ use crate::children::processes;
 pub enum ChildKind {
     Run,
     Analysis,
-    Setup,
     Shell,
 }
 
@@ -17,7 +16,6 @@ impl ChildKind {
         match self {
             Self::Run => "run",
             Self::Analysis => "analysis",
-            Self::Setup => "setup",
             Self::Shell => "shell",
         }
     }

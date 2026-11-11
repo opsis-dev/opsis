@@ -55,14 +55,6 @@ pub fn value_converts(value: &CompileValue, target: PortType) -> bool {
         || conversion(value.port_type(), target).is_some_and(|convert| convert(value).is_some())
 }
 
-pub fn value_conversions(value: &CompileValue) -> Vec<PortType> {
-    PortType::ALL
-        .iter()
-        .copied()
-        .filter(|t| value_converts(value, *t))
-        .collect()
-}
-
 pub fn refused_conversion(value: &CompileValue, target: PortType) -> Option<String> {
     if value_converts(value, target) {
         return None;

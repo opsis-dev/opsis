@@ -84,7 +84,6 @@ What a node may be, how a node is defined, how kind groups put several elements 
   - the canvas asks before it connects (`connection_problem` in `crates/ui/src/ui.rs`, which compiles and calls `connection_problem_now`);
   - every edit that adds an edge, from the editor or the Local API, goes through the session's `document::edit`, which refuses it (`refused_edge`, `connection_problem_now`); the Local API route itself checks only the port types (`connection_problem`, [api.md](api.md));
   - validation puts an error on one already there (`value_issues`).
-  - Every compile also sends each output's conversions (`EditorCompile.converts`, `output_conversions`), which no view reads (TODO.md).
 - **A node says which files its media inputs take with `.needs(…)` after its ports** (`FileNeed`); validation warns when the connected file, converted, is another kind (`file_need_issues`, skipping turned-off nodes and repeated warnings), before anything runs.
   - `.needs` applies only to `media` ports, and every need refuses a terminal take's `.cast` (`FileNeed::refuses`, `TERMINAL_TAKE_FILE`), which has no picture or sound of its own.
 - **Nothing walks the graph backwards to find a chain.** Values carry forward what later nodes need (a browser session carries the address the last Go to page opened, [capture.md](capture.md)).

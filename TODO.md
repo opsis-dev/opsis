@@ -4,7 +4,7 @@ What's left that no plan covers: the places in the codebase that don't read as i
 
 ## Written for Rust and Qt
 
-- [ ] Code nothing calls or reads: `crates/session/src/gradients.rs` (the editor reaches `gradient_view` and `edit_gradient` through `crates/ui/src/colors.rs`); the `LIVE_WINDOW` branch of `run::watch_live` with `LiveWindowWatching` and `live_window_watching` (`crates/session/src/run.rs`, `events.rs`), since no window watches as `LIVE_WINDOW`; `EditorCompile.converts` (`output_conversions`), which no view reads; the `x-accept` and `x-length-key` keywords the settings emit and nothing reads; `ChildKind::Setup` (`crates/engine/src/temp.rs`).
+- [ ] Code nothing calls or reads: the `x-accept` and `x-length-key` keywords the settings emit and nothing reads.
 
 ## Bugs
 
