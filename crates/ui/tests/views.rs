@@ -1,20 +1,19 @@
 use std::fs::File;
+use std::path::Path;
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
 const LIMIT: Duration = Duration::from_secs(180);
 const POLL: Duration = Duration::from_millis(200);
 
-#[test]
-fn the_views_scenario_passes_on_the_offscreen_platform() {
-    let folder = tempfile::tempdir().expect("a temp folder");
-    let projects = folder.path().join("projects");
+fn run_scenario(name: &str, folder: &Path, launch: usize) -> (bool, String) {
+    let projects = folder.join("projects");
     std::fs::create_dir_all(&projects).expect("a projects folder");
-    let log_path = folder.path().join("views.log");
+    let log_path = folder.join(format!("{name}-{launch}.log"));
     let log = File::create(&log_path).expect("a log file");
     let mut app = Command::new(env!("CARGO_BIN_EXE_opsis"))
-        .env("OPSIS_USER_DATA", folder.path().join("user-data"))
-        .env("OPSIS_QT_SCENARIO", "views")
+        .env("OPSIS_USER_DATA", folder.join("user-data"))
+        .env("OPSIS_QT_SCENARIO", name)
         .env("OPSIS_QT_PROJECTS", &projects)
         .env("OPSIS_QT_SHOTS", "off")
         .env("OPSIS_AUDIO_DEVICE", "alsa:null")
@@ -37,15 +36,33 @@ fn the_views_scenario_passes_on_the_offscreen_platform() {
         std::thread::sleep(POLL);
     };
     let output = std::fs::read_to_string(&log_path).expect("the log");
+    let done = format!("scenario {name} done");
+    let passed = status.is_some_and(|s| s.success())
+        && output.contains(&done)
+        && !output.contains(" FAILED ");
     let checks: Vec<&str> = output
         .lines()
-        .filter(|line| line.contains("check ") || line.contains("scenario views done"))
+        .filter(|line| line.contains("check ") || line.contains(&done))
         .collect();
+    (passed, checks.join("\n"))
+}
+
+#[test]
+fn the_views_scenario_passes_on_the_offscreen_platform() {
+    let folder = tempfile::tempdir().expect("a temp folder");
+    let (passed, checks) = run_scenario("views", folder.path(), 1);
+    assert!(passed, "the views scenario failed:\n{checks}");
+}
+
+#[test]
+fn a_popped_out_panel_comes_back_popped_out_when_the_app_starts_again() {
+    let folder = tempfile::tempdir().expect("a temp folder");
+    let (first, checks) = run_scenario("reopen", folder.path(), 1);
+    assert!(first, "the first launch failed:\n{checks}");
+    let (second, checks) = run_scenario("reopen", folder.path(), 2);
+    assert!(second, "the second launch failed:\n{checks}");
     assert!(
-        status.is_some_and(|s| s.success())
-            && output.contains("scenario views done")
-            && !output.contains(" FAILED "),
-        "the views scenario failed:\n{}",
-        checks.join("\n")
+        checks.contains("reopen-the-timeline-is-still-popped-out"),
+        "the second launch didn't check the timeline:\n{checks}"
     );
 }

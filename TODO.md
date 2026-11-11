@@ -31,7 +31,6 @@ Ideas you approved but left for later.
 - [ ] A Run panel that lists every node, nesting compile-only nodes under their export and actions under their capture.
 - [ ] "Not in this run" and "Turned off" states in the Run panel.
 - [ ] A smaller FFmpeg build (shared, combined or trimmed) in place of the ffmpeg-static binary; `plans/ffmpeg.md` section 3 plans one trimmed build of Opsis's own.
-- [ ] Reopening the panels that were popped out when the app starts.
 - [ ] A Keystroke chips option to leave out plain keys such as Esc, Enter and Tab.
 - [ ] Typed values across the native editor's bridge in place of its JSON strings (`crates/qt/src/bridge.rs`: `settings_json`, `book_json`, `values_json`, `value_json`, `new_item_json`, `extra_json`, and the `_json` arguments of `set_params`, `edit_keyframes`, `edit_mix`, `eq_curve`, `edit_timeline`, `edit_markers`, `edit_gradient`). Edits become one typed call per operation (`mix_set_gain`, `timeline_trim`…) that Rust turns into its edit enums; values become cxx shared structs, with a `has_` flag for an optional value, a kind enum plus fields for an enum with data and a list of pairs for a map, converted from `opsis-types` with round-trip property tests. Done one domain at a time (Mixer, Timeline, Inspector), with no hand-written C++ generator.
 

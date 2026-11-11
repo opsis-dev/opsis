@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QDialog>
+#include <QDir>
 #include <QGraphicsItem>
 #include <QGraphicsView>
 #include <QImage>
@@ -81,6 +82,65 @@ QString Overlaps(const QWidget* parent) {
   return {};
 }
 
+}
+
+void Scenario::BuildReopen() {
+  const QDir projects(qEnvironmentVariable("OPSIS_QT_PROJECTS"));
+  const QStringList made =
+      projects.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+  Add(
+      QStringLiteral("reopen-past-setup"),
+      [this] {
+        if (Find(window_, QStringLiteral("Skip for now")) != nullptr) {
+          Click(window_, QStringLiteral("Skip for now"));
+        }
+      },
+      500,
+      [this] {
+        return Expect(window_->start_screen()->isVisible(),
+                      QStringLiteral("the start screen isn't showing"));
+      });
+  if (made.isEmpty()) {
+    Until(
+        QStringLiteral("reopen-create-a-project"),
+        [projects] {
+          App::Get().session().create_project(ToRust(QStringLiteral("Reopen")),
+                                              ToRust(QStringLiteral("todomvc")),
+                                              ToRust(projects.absolutePath()));
+        },
+        kProjectMs, [] { return App::Get().session().has_project(); },
+        [] { return QString(); });
+    Add(
+        QStringLiteral("reopen-pop-the-timeline-out"),
+        [this] { window_->timeline_dock()->setFloating(true); }, 500,
+        [this] {
+          return Expect(window_->timeline_dock()->isFloating(),
+                        QStringLiteral("the timeline didn't pop out"));
+        });
+    Add(
+        QStringLiteral("reopen-close-the-project"),
+        [this] { window_->CloseProject(); }, 500,
+        [] {
+          return Expect(!App::Get().session().has_project(),
+                        QStringLiteral("the project is still open"));
+        });
+    return;
+  }
+  Until(
+      QStringLiteral("reopen-open-the-project-again"),
+      [projects, made] {
+        App::Get().session().open_project(
+            ToRust(projects.absoluteFilePath(made.first())));
+      },
+      kProjectMs, [] { return App::Get().session().has_project(); },
+      [] { return QString(); });
+  Add(
+      QStringLiteral("reopen-the-timeline-is-still-popped-out"), [] {}, 500,
+      [this] {
+        return Expect(window_->timeline_dock()->isFloating() &&
+                          window_->timeline_dock()->isOpen(),
+                      QStringLiteral("the timeline came back docked"));
+      });
 }
 
 void Scenario::BuildViews() {

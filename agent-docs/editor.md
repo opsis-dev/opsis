@@ -30,6 +30,7 @@ The native editor's windows, docks and panels, the title bar and menus, the canv
 - **Every dock group with more than one tab shows two corner buttons (`DockStack`)**: one pops the current panel out into its own window ("Open … in a new window", `setFloating`), where it can dock back, and one hides the bottom panel, whichever group it sits on.
   - As the editor builds the docks only the bottom one has tabs; the node list and the Inspector, lone docks with a zero-height title bar, have no control that pops them out.
 - **The arrangement, popped-out panels included, is saved per project (`SaveLayout`, `kdw::LayoutSaver`)** when the project closes (`CloseProject`), when the window goes back to the start screen, and when the window asks Rust whether it may close and Rust asks first (`closeEvent`).
+  - On the next start it comes back with popped-out panels still in their own windows (the two-launch `reopen` test, [e2e.md](e2e.md)).
   - It is restored only when the docks are first built in a launch (`BuildDocks`); opening another project later in the same launch keeps the docks as they are and reopens the node list, Inspector and Timeline if they were closed (`ShowEditor`).
 - **The node list, Inspector and bottom panel collapse from the View menu, its shortcuts and the top bar**; a closed node list leaves a narrow category rail (`CategoryRail::kWidth`) whose categories open as popovers.
 - **Docked panels show no title, and a lone panel no tab** (`dock_style.cc` → `DockTitleBar::setVisible`; `app.cc` sets no `Flag_AlwaysShowTabs`).
