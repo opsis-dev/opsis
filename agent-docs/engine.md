@@ -46,6 +46,10 @@ The one recording browser every capture, view and render launches, the bundled F
 
 - **Nothing reads media through ffprobe: `opsis-probe` reads a file's length, container, picture (codec, size, frame rate, pixel format) and sound (codec, sample rate, channels) from its own bytes**, the way ffprobe reports them, for every probe the app makes.
 - **Its parity test (`probe/tests/ffprobe.rs`, ignored) compares it with ffprobe from the same ffmpeg-static release as the bundled FFmpeg, in `~/.cache/opsis-dev/ffmpeg`** (`bun run ffprobe:stage`, pinned beside FFmpeg in `scripts/lib/ffmpeg.generated.json`), on samples it makes with the staged FFmpeg in `~/.cache/opsis-dev/probe-samples`.
+  - A new sample is made only when its file is missing there, so changing a sample's arguments means deleting its file.
+- **Two pixel formats come from coded headers, not from fields**: an H.264 or HEVC picture whose VUI says matrix coefficients 0 is RGB (`gbrp`, `vui_signal` in `probe/src/pictures.rs`), and FFV1's format is in its range-coded Parameters (`probe/src/ffv1.rs`), read with FFmpeg's state tables (`states`, the same as `ff_build_rac_states`) from the configuration record for version 3 or the first keyframe for versions 0 and 1.
+  - FFmpeg writes FFV1 into Matroska as `V_MS/VFW/FOURCC` with an `FFV1` bitmap header (its record after the 40 bytes), not `V_FFV1`; both are read (`ffv1_record`).
+  - The first video frame is read in full up to `FIRST_FRAME_SAMPLE`, because an FFV1 header with its own state table runs to hundreds of bytes.
 
 ### Child programs
 

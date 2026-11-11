@@ -22,6 +22,60 @@ const SAMPLES: &[(&str, &[&str], &[&str])] = &[
         ],
     ),
     (
+        "h264-rgb-lossless.mp4",
+        &[VIDEO, SOUND],
+        &[
+            "-c:v",
+            "libx264rgb",
+            "-qp",
+            "0",
+            "-pix_fmt",
+            "bgr24",
+            "-c:a",
+            "alac",
+        ],
+    ),
+    (
+        "ffv1.mkv",
+        &[VIDEO, SOUND],
+        &["-c:v", "ffv1", "-pix_fmt", "bgr0", "-c:a", "flac"],
+    ),
+    (
+        "ffv1-bgra.mkv",
+        &[VIDEO],
+        &["-c:v", "ffv1", "-pix_fmt", "bgra"],
+    ),
+    (
+        "ffv1-420.mkv",
+        &[VIDEO],
+        &["-c:v", "ffv1", "-pix_fmt", "yuv420p"],
+    ),
+    (
+        "ffv1-422-10.mkv",
+        &[VIDEO],
+        &["-c:v", "ffv1", "-pix_fmt", "yuv422p10le"],
+    ),
+    (
+        "ffv1-gray.mkv",
+        &[VIDEO],
+        &["-c:v", "ffv1", "-pix_fmt", "gray"],
+    ),
+    (
+        "ffv1-yuva420.mkv",
+        &[VIDEO],
+        &["-c:v", "ffv1", "-pix_fmt", "yuva420p"],
+    ),
+    (
+        "ffv1-gbrp10.mkv",
+        &[VIDEO],
+        &["-c:v", "ffv1", "-pix_fmt", "gbrp10le"],
+    ),
+    (
+        "ffv1-v3.mkv",
+        &[VIDEO],
+        &["-c:v", "ffv1", "-level", "3", "-pix_fmt", "yuv444p"],
+    ),
+    (
         "h264-444.mp4",
         &[VIDEO],
         &["-c:v", "libx264", "-pix_fmt", "yuv444p", "-crf", "30"],

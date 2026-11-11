@@ -23,7 +23,7 @@ use opsis_engine::files::write_via_temp;
 use opsis_engine::http_files::{FileServer, folder_routes};
 use opsis_footage::serve::footage_routes;
 use opsis_media::codecs::{
-    FilmEncoding, codec_info, finish_args, has_sound_track, is_image_codec, mux_args,
+    FilmEncoding, codec_info, finish_args, has_sound_track, is_image_codec, is_lossless, mux_args,
 };
 use opsis_media::executors::{Tools, tool_error};
 use opsis_media::ffmpeg::RunOptions;
@@ -175,7 +175,7 @@ async fn render_to(job: &VariantJob<'_>, output: &Path) -> Result<(), ExecError>
         encoding: FilmEncoding {
             codec: p.codec,
             fps: f64::from(job.spec.fps),
-            png_frames: false,
+            png_frames: is_lossless(p.codec),
             crf: codec_info(p.codec).crf.then_some(f64::from(p.crf)),
             x264_preset: p.x264_preset(),
             pixel_format: p.pixel_format(),

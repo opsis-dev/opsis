@@ -44,9 +44,10 @@ impl Gl {
 impl Codec {
     pub const fn extension(self) -> &'static str {
         match self {
-            Self::H264 | Self::H265 => "mp4",
+            Self::H264 | Self::H265 | Self::H264Lossless => "mp4",
             Self::Vp8 | Self::Vp9 => "webm",
             Self::Prores => "mov",
+            Self::Ffv1 => "mkv",
             Self::Gif => "gif",
         }
     }
@@ -229,7 +230,8 @@ pub struct ExportVideo {
     pub file_name: String,
     #[setting(
         "Format",
-        default = Codec::H264
+        default = Codec::H264,
+        help = "The lossless formats keep every pixel and sound exactly, for files that feed later nodes. Few players open them."
     )]
     pub codec: Codec,
     #[setting("Quality", default = 18, range(min = 0, max = 51), widget = "quality")]
@@ -260,14 +262,14 @@ pub struct ExportVideo {
         "Chapters in the file",
         default = true,
         help = "Players list the film's chapters, taken from its Chapter actions.",
-        show_if = { "codec": ["h264", "h265", "vp8", "vp9", "prores"] },
+        show_if = { "codec": ["h264", "h265", "vp8", "vp9", "prores", "h264-lossless", "ffv1"] },
         advanced
     )]
     pub chapters: bool,
     #[setting(
         "YouTube chapter list",
         help = "Also saves the chapter times as text, to paste into a video's description. It needs at least three chapters of ten seconds or more.",
-        show_if = { "codec": ["h264", "h265", "vp8", "vp9", "prores"] }
+        show_if = { "codec": ["h264", "h265", "vp8", "vp9", "prores", "h264-lossless", "ffv1"] }
     )]
     pub chapter_list: bool,
     #[setting(

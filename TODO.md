@@ -20,7 +20,6 @@ Seen once during a session and never reproduced or explained.
 Ideas you approved but left for later.
 
 - [ ] A clip-level Reverse that plays a recording backwards through its time mapping, with one encode and no frame buffer (the Reverse node, `media.reverse`, only reverses a whole file).
-- [ ] A lossless format option for Export video, for files that feed later nodes (its ProRes is ProRes HQ, which isn't lossless).
 - [ ] A keep-quality encode option for the file nodes, in place of the fixed H.264 at quality 18 and `yuv420p` they encode with (`EDIT_CRF`, `crates/media/src/codecs.rs`).
 - [ ] A lossless checkpoint node that renders a clip's finished picture to a file the rest of the graph plays.
 - [ ] Recording the page's own sound in a take.

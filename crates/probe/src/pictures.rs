@@ -14,6 +14,7 @@ pub struct Layout {
     pub depth: u32,
     pub full_range: bool,
     pub alpha: bool,
+    pub rgb: bool,
 }
 
 impl Layout {
@@ -22,6 +23,7 @@ impl Layout {
         depth: 8,
         full_range: false,
         alpha: false,
+        rgb: false,
     };
 
     pub fn pix_fmt(self, full_range_names: FullRange) -> String {
@@ -32,6 +34,9 @@ impl Layout {
         };
         if self.chroma == Chroma::Gray {
             return format!("gray{depth}");
+        }
+        if self.rgb && self.chroma == Chroma::C444 {
+            return format!("gbrp{depth}");
         }
         let chroma = match self.chroma {
             Chroma::C422 => "422",
@@ -148,13 +153,23 @@ pub fn h264_sps(nal: &[u8]) -> Result<Layout, Short> {
             bits.ue()?;
         }
     }
-    layout.full_range = vui_full_range(&mut bits)?;
+    let signal = vui_signal(&mut bits)?;
+    layout.full_range = signal.full_range;
+    layout.rgb = signal.rgb;
     Ok(layout)
 }
 
-fn vui_full_range(bits: &mut Bits) -> Result<bool, Short> {
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct Signal {
+    pub full_range: bool,
+    pub rgb: bool,
+}
+
+const IDENTITY_MATRIX: u32 = 0;
+
+fn vui_signal(bits: &mut Bits) -> Result<Signal, Short> {
     if !bits.flag()? {
-        return Ok(false);
+        return Ok(Signal::default());
     }
     if bits.flag()? && bits.bits(8)? == 255 {
         bits.skip(32)?;
@@ -163,10 +178,14 @@ fn vui_full_range(bits: &mut Bits) -> Result<bool, Short> {
         bits.skip(1)?;
     }
     if !bits.flag()? {
-        return Ok(false);
+        return Ok(Signal::default());
     }
     bits.skip(3)?;
-    bits.flag()
+    let full_range = bits.flag()?;
+    let rgb = bits.flag().unwrap_or(false)
+        && bits.skip(16).is_ok()
+        && bits.bits(8).is_ok_and(|matrix| matrix == IDENTITY_MATRIX);
+    Ok(Signal { full_range, rgb })
 }
 
 pub fn hevc_config(record: &[u8]) -> Option<Layout> {
@@ -181,6 +200,7 @@ pub fn hevc_config(record: &[u8]) -> Option<Layout> {
         depth,
         full_range: false,
         alpha: false,
+        rgb: false,
     };
     for _ in 0..arrays {
         let kind = r.u8().ok()? & 0x3F;
@@ -189,9 +209,10 @@ pub fn hevc_config(record: &[u8]) -> Option<Layout> {
             let size = usize::from(r.be16().ok()?);
             let nal = r.take(size).ok()?;
             if kind == 33
-                && let Ok(full) = hevc_full_range(nal)
+                && let Ok(signal) = hevc_signal(nal)
             {
-                layout.full_range = full;
+                layout.full_range = signal.full_range;
+                layout.rgb = signal.rgb;
             }
         }
     }
@@ -271,7 +292,7 @@ fn short_term_sets(bits: &mut Bits, count: u32) -> Result<(), Short> {
     Ok(())
 }
 
-pub fn hevc_full_range(nal: &[u8]) -> Result<bool, Short> {
+pub fn hevc_signal(nal: &[u8]) -> Result<Signal, Short> {
     let data = unescape(nal);
     let mut bits = Bits::new(data.get(2..).ok_or(Short)?);
     bits.skip(4)?;
@@ -319,7 +340,7 @@ pub fn hevc_full_range(nal: &[u8]) -> Result<bool, Short> {
         }
     }
     bits.skip(2)?;
-    vui_full_range(&mut bits)
+    vui_signal(&mut bits)
 }
 
 pub fn vp9_config(record: &[u8]) -> Option<Layout> {
@@ -335,6 +356,7 @@ pub fn vp9_config(record: &[u8]) -> Option<Layout> {
         depth: u32::from(packed >> 4),
         full_range: packed & 1 == 1,
         alpha: false,
+        rgb: false,
     })
 }
 
@@ -382,6 +404,7 @@ pub fn vp9_frame(frame: &[u8]) -> Option<Layout> {
         depth,
         full_range: false,
         alpha: false,
+        rgb: false,
     })
 }
 
@@ -405,6 +428,7 @@ pub fn av1_config(record: &[u8]) -> Option<Layout> {
         },
         full_range: false,
         alpha: false,
+        rgb: false,
     })
 }
 
@@ -456,11 +480,13 @@ mod tests {
 
     proptest! {
         #[test]
-        fn names_a_layout_the_way_ffmpeg_does(depth in prop::sample::select(vec![8u32, 10, 12]), chroma in prop::sample::select(vec![Chroma::C420, Chroma::C422, Chroma::C444]), full in any::<bool>(), alpha in any::<bool>()) {
-            let name = Layout { chroma, depth, full_range: full, alpha }.pix_fmt(FullRange::Any);
+        fn names_a_layout_the_way_ffmpeg_does(depth in prop::sample::select(vec![8u32, 10, 12]), chroma in prop::sample::select(vec![Chroma::C420, Chroma::C422, Chroma::C444]), full in any::<bool>(), alpha in any::<bool>(), rgb in any::<bool>()) {
+            let name = Layout { chroma, depth, full_range: full, alpha, rgb }.pix_fmt(FullRange::Any);
+            let gbr = rgb && chroma == Chroma::C444;
             prop_assert_eq!(name.ends_with("le"), depth > 8);
-            prop_assert_eq!(name.starts_with("yuvj"), full && depth == 8 && !alpha);
-            prop_assert_eq!(name.starts_with("yuva"), alpha);
+            prop_assert_eq!(name.starts_with("gbrp"), gbr);
+            prop_assert_eq!(name.starts_with("yuvj"), !gbr && full && depth == 8 && !alpha);
+            prop_assert_eq!(name.starts_with("yuva"), !gbr && alpha);
         }
     }
 

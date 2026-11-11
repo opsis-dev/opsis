@@ -46,6 +46,16 @@ fn workflow() -> Workflow {
         ),
         node("mixed", "audio.mix", json!({})),
         node("film", "output.render", json!({ "fileName": "film" })),
+        node(
+            "lossless-mp4",
+            "output.render",
+            json!({ "fileName": "lossless", "codec": "h264-lossless" }),
+        ),
+        node(
+            "lossless-mkv",
+            "output.render",
+            json!({ "fileName": "lossless", "codec": "ffv1" }),
+        ),
         node("still", "output.still", json!({ "fileName": "film" })),
         node("as-clip", "media.toClip", json!({})),
         node(
@@ -66,6 +76,8 @@ fn workflow() -> Workflow {
         edge("title", "clip", "mixed", "clip"),
         edge("click", "audio", "mixed", "sounds"),
         edge("mixed", "clip", "film", "clip"),
+        edge("mixed", "clip", "lossless-mp4", "clip"),
+        edge("mixed", "clip", "lossless-mkv", "clip"),
         edge("title", "clip", "still", "clip"),
         edge("import", "media", "as-clip", "media"),
         edge("as-clip", "clip", "imported", "clip"),
@@ -170,6 +182,24 @@ async fn runs_media_nodes_and_exports_a_film() {
         assert!(
             project.join(".opsis/out").join(file).exists(),
             "{file} wasn't exported"
+        );
+    }
+    for (file, picture, sound) in [
+        ("lossless.mp4", "h264", "alac"),
+        ("lossless.mkv", "ffv1", "flac"),
+    ] {
+        let found =
+            probe(&project.join(".opsis/out").join(file)).unwrap_or_else(|e| panic!("{file}: {e}"));
+        let video = found.video.expect("a picture");
+        assert_eq!(
+            (video.codec.as_str(), found.audio.map(|a| a.codec)),
+            (picture, Some(sound.to_owned())),
+            "{file}"
+        );
+        assert!(
+            matches!(video.pix_fmt.as_str(), "gbrp" | "bgr0"),
+            "{file}: {}",
+            video.pix_fmt
         );
     }
 }

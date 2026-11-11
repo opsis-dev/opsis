@@ -1,6 +1,7 @@
 mod asf;
 mod audio;
 mod caf;
+mod ffv1;
 mod image;
 mod iso;
 mod matroska;

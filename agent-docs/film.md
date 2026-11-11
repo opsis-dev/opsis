@@ -38,6 +38,7 @@ The film page and its protocol, the frame driver that renders it, the paint trap
 - **A load or a frame that isn't ready within `FRAME_TIMEOUT` fails, naming the holds still open** (`ready_within`); a page that doesn't start within `PAGE_TIMEOUT` fails too.
 - **The page only draws when the driver asks, so while a seek waits on holds the driver issues frames it doesn't capture** (`seek`). A hold may therefore wait for an animation frame or a canvas `paint` event (`untilPainted`); the captured frame comes after them.
 - **A film's video frames are JPEG at `FRAME_QUALITY`** into FFmpeg (`film_encode_args`); a still is PNG or JPEG at its own quality (`render_still`, `still_format`).
+  - The lossless formats (MP4 lossless, `libx264rgb` at `-qp 0` in `bgr24`, with ALAC sound; MKV lossless, FFV1 in `bgr0`, with FLAC sound) take PNG frames instead (`is_lossless`, `FilmEncoding.png_frames`), because a JPEG frame would already have lost detail; `crates/media/tests/lossless.rs` checks every pixel comes back.
 - **A film is drawn in one tab, in frame order**, which the footage decoders rely on (each frame decoded once). Measure before adding tabs: shader backgrounds lose their WebGL context when several tabs draw at once.
 - **Development film pages keep their source maps** so render errors point at source lines; release staging builds without them.
 

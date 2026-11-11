@@ -84,6 +84,10 @@ pub enum Codec {
     Vp9,
     #[label("ProRes")]
     Prores,
+    #[label("MP4 (lossless)")]
+    H264Lossless,
+    #[label("MKV (lossless)")]
+    Ffv1,
     #[label("GIF")]
     Gif,
 }

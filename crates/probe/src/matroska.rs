@@ -1,5 +1,6 @@
 use opsis_types::numbers;
 
+use crate::ffv1::{Parameters, ffv1_parameters};
 use crate::pictures::{
     FullRange, Layout, aac_config, av1_config, avc_config, hevc_config, vp9_frame,
 };
@@ -28,6 +29,8 @@ const SIMPLE_BLOCK: u32 = 0xA3;
 const BLOCK_GROUP: u32 = 0xA0;
 const BLOCK: u32 = 0xA1;
 const FRAME_SAMPLE: usize = 24;
+const FIRST_FRAME_SAMPLE: usize = 4096;
+const BLOCK_TIME_AND_FLAGS: usize = 3;
 const RATE_SAMPLES: usize = 30;
 const ELEMENT_LIMIT: u64 = 64 * 1024 * 1024;
 
@@ -192,7 +195,8 @@ fn block(
             blocks.times.push(time);
         }
         if blocks.first_frame.is_none() {
-            blocks.first_frame = Some(r.rest().to_vec());
+            let frame_at = at + u64::try_from(len + BLOCK_TIME_AND_FLAGS).unwrap_or(0);
+            blocks.first_frame = Some(source.bytes(frame_at, FIRST_FRAME_SAMPLE)?);
         }
     }
     Ok(())
@@ -235,7 +239,32 @@ fn cluster(source: &mut Source, el: &Element, blocks: &mut Blocks) -> Result<u64
     Ok(end)
 }
 
+const BITMAP_HEADER: usize = 40;
+const FOURCC_AT: usize = 16;
+
+fn ffv1_record(t: &TrackEntry) -> Option<&[u8]> {
+    match t.codec.as_str() {
+        "V_FFV1" => Some(&t.private),
+        "V_MS/VFW/FOURCC" if t.private.get(FOURCC_AT..FOURCC_AT + 4) == Some(b"FFV1") => {
+            t.private.get(BITMAP_HEADER..)
+        }
+        _ => None,
+    }
+}
+
 fn video_stream(t: &TrackEntry, first_frame: Option<&[u8]>) -> VideoStream {
+    if let Some(record) = ffv1_record(t) {
+        let pix_fmt = ffv1_parameters(record, first_frame)
+            .and_then(Parameters::pix_fmt)
+            .unwrap_or_else(|| Layout::PLAIN.pix_fmt(FullRange::Never));
+        return VideoStream {
+            codec: "ffv1".to_owned(),
+            width: t.width,
+            height: t.height,
+            fps: None,
+            pix_fmt,
+        };
+    }
     let plain = || Layout::PLAIN.pix_fmt(FullRange::Never);
     let (codec, pix_fmt) = match t.codec.as_str() {
         "V_VP9" => (
@@ -358,8 +387,9 @@ pub fn probe(source: &mut Source) -> Result<Found, ProbeError> {
         if el.id == CLUSTER {
             blocks.video = tracks.iter().find(|t| t.kind == 1).map(|t| t.number);
             let video = tracks.iter().find(|t| t.kind == 1);
-            let need_frame =
-                video.is_some_and(|t| t.codec == "V_VP9") && blocks.first_frame.is_none();
+            let need_frame = video.is_some_and(|t| {
+                t.codec == "V_VP9" || ffv1_record(t).is_some_and(<[u8]>::is_empty)
+            }) && blocks.first_frame.is_none();
             let need_rate = video.is_some_and(|t| t.default_duration.is_none())
                 && blocks.times.len() < RATE_SAMPLES;
             if !need_frame && !need_rate && duration.is_some() {

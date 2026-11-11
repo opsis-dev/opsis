@@ -94,10 +94,6 @@ impl<'a> Bytes<'a> {
         self.data.len() - self.at
     }
 
-    pub fn rest(&self) -> &'a [u8] {
-        &self.data[self.at..]
-    }
-
     pub fn take(&mut self, n: usize) -> Result<&'a [u8], Short> {
         let end = self.at.checked_add(n).ok_or(Short)?;
         let out = self.data.get(self.at..end).ok_or(Short)?;

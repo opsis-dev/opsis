@@ -11,6 +11,8 @@ pub const AAC: [&str; 2] = ["-c:a", "aac"];
 pub const PCM_16: [&str; 2] = ["-c:a", "pcm_s16le"];
 const AAC_EXPORT: [&str; 4] = ["-c:a", "aac", "-b:a", "320k"];
 const OPUS_EXPORT: [&str; 4] = ["-c:a", "libopus", "-b:a", "192k"];
+const ALAC_EXPORT: [&str; 2] = ["-c:a", "alac"];
+const FLAC_EXPORT: [&str; 2] = ["-c:a", "flac"];
 const EDIT_CRF: f64 = 18.0;
 
 pub fn serde_name<T: Serialize>(value: &T) -> String {
@@ -82,6 +84,8 @@ pub const fn codec_info(codec: Codec) -> CodecInfo {
         Codec::H264 | Codec::H265 => (Some(&AAC_EXPORT), true, true),
         Codec::Vp8 | Codec::Vp9 => (Some(&OPUS_EXPORT), false, true),
         Codec::Prores => (Some(&PCM_16), false, false),
+        Codec::H264Lossless => (Some(&ALAC_EXPORT), true, false),
+        Codec::Ffv1 => (Some(&FLAC_EXPORT), false, false),
         Codec::Gif => (None, false, false),
     };
     CodecInfo {
@@ -128,7 +132,7 @@ pub fn codec_video(codec: Codec, crf: f64, preset: EncodePreset) -> Option<Vec<S
             "0".into(),
         ],
         Codec::Prores => prores_args(ProresProfile::Hq),
-        Codec::Vp8 | Codec::Gif => return None,
+        Codec::Vp8 | Codec::Gif | Codec::H264Lossless | Codec::Ffv1 => return None,
     })
 }
 
@@ -151,7 +155,24 @@ const fn film_encoder(codec: Codec) -> &'static str {
         Codec::Vp8 => "libvpx",
         Codec::Vp9 => "libvpx-vp9",
         Codec::Prores => "prores_ks",
+        Codec::H264Lossless => "libx264rgb",
+        Codec::Ffv1 => "ffv1",
         Codec::Gif => "gif",
+    }
+}
+
+pub const fn is_lossless(codec: Codec) -> bool {
+    matches!(codec, Codec::H264Lossless | Codec::Ffv1)
+}
+
+fn film_pixel_format(e: &FilmEncoding) -> String {
+    match e.codec {
+        Codec::Prores => "yuv422p10le".to_owned(),
+        Codec::H264Lossless => "bgr24".to_owned(),
+        Codec::Ffv1 => "bgr0".to_owned(),
+        _ => e
+            .pixel_format
+            .map_or_else(|| "yuv420p".to_owned(), |f| serde_name(&f)),
     }
 }
 
@@ -161,7 +182,7 @@ const fn default_film_crf(codec: Codec) -> Option<f64> {
         Codec::H265 => Some(23.0),
         Codec::Vp8 => Some(9.0),
         Codec::Vp9 => Some(28.0),
-        Codec::Prores | Codec::Gif => None,
+        Codec::Prores | Codec::Gif | Codec::H264Lossless | Codec::Ffv1 => None,
     }
 }
 
@@ -210,14 +231,11 @@ pub fn film_encode_args(e: &FilmEncoding, output: &str) -> Vec<String> {
         ]);
     }
     if !gif {
-        let pixel_format = if e.codec == Codec::Prores {
-            "yuv422p10le".to_owned()
-        } else {
-            e.pixel_format
-                .map_or_else(|| "yuv420p".to_owned(), |f| serde_name(&f))
-        };
         args.extend(strings(&["-vf", EVEN_FRAME, "-pix_fmt"]));
-        args.push(pixel_format);
+        args.push(film_pixel_format(e));
+    }
+    if e.codec == Codec::H264Lossless {
+        args.extend(strings(&["-qp", "0"]));
     }
     if let Some(preset) = e.x264_preset.filter(|_| e.codec == Codec::H264) {
         args.extend(["-preset".to_owned(), serde_name(&preset)]);
@@ -225,7 +243,7 @@ pub fn film_encode_args(e: &FilmEncoding, output: &str) -> Vec<String> {
     if e.codec == Codec::H265 {
         args.extend(strings(&["-tag:v", "hvc1"]));
     }
-    if !gif {
+    if !gif && e.codec != Codec::Ffv1 {
         args.extend(strings(&["-video_track_timescale", "90000"]));
     }
     if let Some(crf) = default_film_crf(e.codec).map(|fallback| e.crf.unwrap_or(fallback)) {

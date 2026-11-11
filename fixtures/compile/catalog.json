@@ -49721,6 +49721,8 @@
        "vp8",
        "vp9",
        "prores",
+       "h264-lossless",
+       "ffv1",
        "gif"
       ],
       "x-labels": {
@@ -49729,9 +49731,12 @@
        "vp8": "WebM (VP8)",
        "vp9": "WebM",
        "prores": "ProRes",
+       "h264-lossless": "MP4 (lossless)",
+       "ffv1": "MKV (lossless)",
        "gif": "GIF"
       },
-      "default": "h264"
+      "default": "h264",
+      "x-help": "The lossless formats keep every pixel and sound exactly, for files that feed later nodes. Few players open them."
      },
      "crf": {
       "description": "Quality",
@@ -49805,7 +49810,9 @@
         "h265",
         "vp8",
         "vp9",
-        "prores"
+        "prores",
+        "h264-lossless",
+        "ffv1"
        ]
       },
       "x-advanced": true
@@ -49821,7 +49828,9 @@
         "h265",
         "vp8",
         "vp9",
-        "prores"
+        "prores",
+        "h264-lossless",
+        "ffv1"
        ]
       }
      },

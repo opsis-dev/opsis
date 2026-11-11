@@ -9,14 +9,18 @@ const REQUIRED_CONFIGURATION: [&str; 2] = ["--enable-gpl", "--enable-version3"];
 
 const REFUSED_CONFIGURATION: [&str; 1] = ["--enable-nonfree"];
 
-pub const REQUIRED_ENCODERS: [&str; 13] = [
+pub const REQUIRED_ENCODERS: [&str; 17] = [
     "aac",
+    "alac",
+    "ffv1",
+    "flac",
     "gif",
     "libmp3lame",
     "libopus",
     "libvpx",
     "libvpx-vp9",
     "libx264",
+    "libx264rgb",
     "libx265",
     "mjpeg",
     "pcm_f32le",
@@ -25,14 +29,15 @@ pub const REQUIRED_ENCODERS: [&str; 13] = [
     "prores_ks",
 ];
 
-pub const REQUIRED_DECODERS: [&str; 4] = ["aac", "h264", "mjpeg", "png"];
+pub const REQUIRED_DECODERS: [&str; 5] = ["aac", "ffv1", "h264", "mjpeg", "png"];
 
-pub const REQUIRED_FORMATS: [&str; 10] = [
+pub const REQUIRED_FORMATS: [&str; 11] = [
     "concat",
     "f32le",
     "gif",
     "image2",
     "image2pipe",
+    "matroska",
     "mov",
     "mp4",
     "null",

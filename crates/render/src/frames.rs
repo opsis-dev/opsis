@@ -112,6 +112,7 @@ async fn write_frames(
     driver: &mut FrameDriver,
     stdin: &mut FramePipe,
     frames: &[u32],
+    format: FrameFormat,
     run: &FilmRun<'_>,
 ) -> Result<(), FilmError> {
     let total = f64::from(numbers::count(frames.len()).max(1));
@@ -119,9 +120,7 @@ async fn write_frames(
         if run.cancel.is_cancelled() {
             return Err(FilmError::Cancelled);
         }
-        let picture = driver
-            .frame(frame, FrameFormat::Jpeg(FRAME_QUALITY))
-            .await?;
+        let picture = driver.frame(frame, format).await?;
         stdin
             .stdin
             .write_all(&picture)
@@ -149,7 +148,12 @@ async fn encode(
     let args = film_encode_args(&encoding, &job.output.to_string_lossy());
     let stop = run.cancel.child_token();
     let mut pipe = run.tools.pipe(&args, Some(stop.clone()))?;
-    let written = write_frames(driver, &mut pipe, &frames, run).await;
+    let format = if encoding.png_frames {
+        FrameFormat::Png
+    } else {
+        FrameFormat::Jpeg(FRAME_QUALITY)
+    };
+    let written = write_frames(driver, &mut pipe, &frames, format, run).await;
     let FramePipe { mut stdin, done } = pipe;
     if let Err(error) = written {
         stop.cancel();
