@@ -1112,6 +1112,7 @@ fn append_step<P>(ctx: &Ctx<'_, P>, action: BrowserAction) -> Outputs {
         kind: action,
         label: ctx.label.map(str::to_owned),
         params: ctx.values.clone(),
+        replayed: false,
     });
     outputs([(SESSION_PORT, CompileValue::BrowserSession(session))])
 }

@@ -34,7 +34,10 @@ Browser sessions and their actions, the take value every recording shares, recor
 
 - **Browser nodes are virtual.** Open browser starts a `browser-session` value (`{ browser, steps }`) and every other browser node appends its own step (id, type, label, parsed and interpolated params) in `compile()`.
 - **Record take and Screenshot read the session at their `session` input and play `steps` as given, in one take.**
-- **The video starts at the first Start recording step**; the steps before it run off camera, and without one it starts with the first step.
+- **The video starts at the first Start recording step**; the steps before it run off camera, and without one it starts with the first step that isn't replayed (`video_start`).
+- **Record take and Screenshot pass on the session they played** (their `session` output, `BrowserSessionValue::played`), so one chain can make several takes or stills: the same steps, Start recording dropped, each marked `replayed`.
+  - The next take plays the replayed steps again off camera in its own fresh browser, so the page reaches the state the earlier take left; that costs their running time again.
+  - A replayed step acts on the page but leaves nothing in the take: no action in its log (`push_action`), so no click sound, keystroke chip or camera move from it, and a replayed Chapter shows no card.
 - **The session carries the address the last Go to page opened (`address`)**, which the element picker opens and the Run page script warning reads.
 - **Capture keeps Playwright's launch switches, injected page script, clock and keyboard but talks CDP itself**; `playwright-core` is only a dev dependency.
 - **Actions that change what the page is told about the computer change it mid-take, from Open browser's values.** Switch theme (`browser.switchTheme`) sends the media features again through `Session::set_color_scheme`, because `Emulation.setEmulatedMedia` replaces every feature at once, so the session keeps Open browser's reduced motion (`Session.reduce_motion`) to send it with the new scheme. Pages see the change live, as when the computer's setting changes.

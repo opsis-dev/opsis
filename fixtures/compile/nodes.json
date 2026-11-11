@@ -1829,6 +1829,13 @@
     "label": "Recording",
     "optional": false,
     "many": false
+   },
+   {
+    "id": "session",
+    "type": "browser-session",
+    "label": "Browser",
+    "optional": false,
+    "many": false
    }
   ],
   "virtual": false,
@@ -1838,7 +1845,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
-  "estimatedHeight": 168.0,
+  "estimatedHeight": 190.0,
   "compiles": true,
   "hasCard": true,
   "mutates": null,
@@ -1884,6 +1891,13 @@
     "label": "Image",
     "optional": false,
     "many": false
+   },
+   {
+    "id": "session",
+    "type": "browser-session",
+    "label": "Browser",
+    "optional": false,
+    "many": false
    }
   ],
   "virtual": false,
@@ -1893,7 +1907,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
-  "estimatedHeight": 168.0,
+  "estimatedHeight": 190.0,
   "compiles": true,
   "hasCard": true,
   "mutates": null,

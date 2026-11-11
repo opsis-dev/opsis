@@ -264,3 +264,49 @@ fn no_node_takes_a_terminal_take_file_as_a_picture_or_sound() {
         assert_eq!(need.message_for(&cast), TERMINAL_TAKE_FILE);
     }
 }
+
+proptest! {
+    #[test]
+    fn a_take_passes_on_what_it_played_as_replayed_steps_without_its_start(
+        kinds in proptest::collection::vec(
+            prop::sample::select(vec![
+                "browser.press",
+                "browser.chapter",
+                "browser.switchTheme",
+                "browser.freezeClock",
+            ]),
+            0..5,
+        ),
+        screenshot in any::<bool>(),
+    ) {
+        let mut g = Graph::default();
+        let mut ids = vec![
+            g.node("session", "browser.open", json!({})),
+            g.node("go", "browser.navigate", json!({ "url": "https://example.com" })),
+            g.node("start", "browser.startRecording", json!({})),
+        ];
+        let actions: Vec<String> = kinds
+            .iter()
+            .enumerate()
+            .map(|(i, kind)| g.node(&format!("a{i}"), kind, json!({})))
+            .collect();
+        ids.extend(actions.iter().cloned());
+        let kind = if screenshot { "capture.still" } else { "capture.record" };
+        ids.push(g.node("take", kind, json!({})));
+        g.chain(&ids);
+        let compiled = compile_workflow(&g.build(), None);
+        let Some(CompileValue::BrowserSession(passed)) = compiled.values["take"].get("session") else {
+            panic!("the take passes on no session: {:?}", compiled.errors);
+        };
+        let played: Vec<(String, bool)> = passed
+            .steps
+            .iter()
+            .map(|step| (step.id.clone(), step.replayed))
+            .collect();
+        let expected: Vec<(String, bool)> = std::iter::once("go".to_owned())
+            .chain(actions)
+            .map(|id| (id, true))
+            .collect();
+        prop_assert_eq!(played, expected);
+    }
+}

@@ -3,6 +3,7 @@ mod support;
 use std::sync::Arc;
 
 use opsis_capture::take::{SignInError, SignIns, play_take};
+use opsis_types::actions::{ActionKind, ActionLog};
 use opsis_types::values::{BrowserAction, SessionStep};
 use serde_json::{Value, json};
 use support::{NoSignIns, serve, session, step, take_env};
@@ -40,6 +41,13 @@ impl SignIns for Saved {
     }
 }
 
+const COUNTER_PAGE: &str = r#"<!doctype html><body><button id="add">Add item</button><p id="out">items 0</p><script>
+let items = 0;
+document.getElementById("add").addEventListener("click", () => {
+  document.getElementById("out").textContent = `items ${++items}`;
+});
+</script></body>"#;
+
 fn shows(id: &str, text: &str) -> SessionStep {
     step(
         BrowserAction::Assert,
@@ -53,7 +61,19 @@ async fn play(page: &'static str, browser: Value, steps: Vec<SessionStep>) {
     play_on(port, Arc::new(NoSignIns), browser, steps).await;
 }
 
-async fn play_on(port: u16, sign_ins: Arc<dyn SignIns>, browser: Value, steps: Vec<SessionStep>) {
+fn replayed(step: SessionStep) -> SessionStep {
+    SessionStep {
+        replayed: true,
+        ..step
+    }
+}
+
+async fn play_on(
+    port: u16,
+    sign_ins: Arc<dyn SignIns>,
+    browser: Value,
+    steps: Vec<SessionStep>,
+) -> ActionLog {
     let temp = tempfile::tempdir().unwrap();
     let env = take_env(temp.path(), sign_ins);
     let navigate = step(
@@ -66,8 +86,9 @@ async fn play_on(port: u16, sign_ins: Arc<dyn SignIns>, browser: Value, steps: V
         Box::pin(async { Ok(()) })
     })
     .await;
-    if let Err(error) = played.outcome {
-        panic!("the take failed: {error}");
+    match played.outcome {
+        Ok(took) => took.log,
+        Err(error) => panic!("the take failed: {error}"),
     }
 }
 
@@ -182,4 +203,41 @@ async fn signs_out_of_a_saved_sign_in_and_stays_signed_out_on_reload() {
         shows("still-out", "cookie[] token[null] tab[null]"),
     ];
     play_on(port, Arc::new(Saved(saved)), json!({}), steps).await;
+}
+
+#[tokio::test]
+#[ignore = "needs the dev engine"]
+async fn replayed_steps_change_the_page_but_leave_nothing_in_the_take() {
+    let port = serve(COUNTER_PAGE).await;
+    let steps = vec![
+        replayed(step(
+            BrowserAction::Click,
+            "earlier-click",
+            json!({ "target": "Add item", "after": 0, "hoverMs": 0 }),
+        )),
+        replayed(step(
+            BrowserAction::Chapter,
+            "earlier-chapter",
+            json!({ "title": "Earlier" }),
+        )),
+        step(BrowserAction::Chapter, "chapter", json!({ "title": "Now" })),
+        shows("count", "items 1"),
+    ];
+    let log = play_on(port, Arc::new(NoSignIns), json!({}), steps).await;
+    let logged: Vec<&str> = log
+        .actions
+        .iter()
+        .filter_map(|action| action.node_id.as_deref())
+        .collect();
+    assert!(
+        !logged.contains(&"earlier-click") && !logged.contains(&"earlier-chapter"),
+        "{logged:?}"
+    );
+    let chapters: Vec<Option<&str>> = log
+        .actions
+        .iter()
+        .filter(|action| action.kind == ActionKind::Chapter)
+        .map(|action| action.label.as_deref())
+        .collect();
+    assert_eq!(chapters, [Some("Now")]);
 }

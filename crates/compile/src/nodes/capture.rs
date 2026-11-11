@@ -212,10 +212,10 @@ fn record() -> NodeDef {
     .describe("Plays all connected browser actions in one go and records the screen.")
     .executes()
     .inputs(vec![(SESSION_PORT, session_port())])
-    .outputs(vec![(
-        RECORDING_PORT,
-        port(PortType::Recording, "Recording"),
-    )])
+    .outputs(vec![
+        (RECORDING_PORT, port(PortType::Recording, "Recording")),
+        (SESSION_PORT, session_port()),
+    ])
     .mutates(|p: &Record| (!p.mutates.is_empty()).then(|| p.mutates.clone()))
     .card(|ctx: &CardCtx<'_, Record>| {
         let p = &ctx.params;
@@ -260,8 +260,18 @@ fn record() -> NodeDef {
                     viewport: DEFAULT_VIEWPORT,
                 }),
             });
-        outputs([(RECORDING_PORT, CompileValue::Recording(recording))])
+        let mut out = outputs([(RECORDING_PORT, CompileValue::Recording(recording))]);
+        out.extend(played_on(ctx.input(SESSION_PORT)));
+        out
     })
+}
+
+fn played_on(session: Option<&CompileValue>) -> Option<(String, CompileValue)> {
+    let session = session.and_then(CompileValue::as_session)?;
+    Some((
+        SESSION_PORT.to_owned(),
+        CompileValue::BrowserSession(session.played()),
+    ))
 }
 
 fn still() -> NodeDef {
@@ -277,7 +287,10 @@ fn still() -> NodeDef {
     .executes()
     .uses_project_size()
     .inputs(vec![(SESSION_PORT, session_port())])
-    .outputs(vec![("image", port(PortType::Image, "Image"))])
+    .outputs(vec![
+        ("image", port(PortType::Image, "Image")),
+        (SESSION_PORT, session_port()),
+    ])
     .card(|ctx: &CardCtx<'_, Still>| {
         let p = &ctx.params;
         let image = image_of(ctx.result);
@@ -299,7 +312,9 @@ fn still() -> NodeDef {
             scale: None,
             body: None,
         });
-        outputs([("image", CompileValue::Image(image))])
+        let mut out = outputs([("image", CompileValue::Image(image))]);
+        out.extend(played_on(ctx.input(SESSION_PORT)));
+        out
     })
 }
 

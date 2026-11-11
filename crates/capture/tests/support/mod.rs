@@ -53,6 +53,7 @@ pub fn step(kind: BrowserAction, id: &str, params: Value) -> SessionStep {
         all.extend(params);
     }
     SessionStep {
+        replayed: false,
         id: id.to_owned(),
         kind,
         label: None,

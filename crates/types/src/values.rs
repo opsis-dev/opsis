@@ -255,6 +255,24 @@ browser_actions! {
     SignOut = "browser.signOut",
 }
 
+impl BrowserSessionValue {
+    #[must_use]
+    pub fn played(&self) -> Self {
+        Self {
+            steps: self
+                .steps
+                .iter()
+                .filter(|step| step.kind != BrowserAction::StartRecording)
+                .map(|step| SessionStep {
+                    replayed: true,
+                    ..step.clone()
+                })
+                .collect(),
+            ..self.clone()
+        }
+    }
+}
+
 impl BrowserAction {
     pub fn of_kind(kind: &str) -> Option<Self> {
         Self::ALL.iter().copied().find(|a| a.kind() == kind)
@@ -270,6 +288,8 @@ pub struct SessionStep {
     pub label: Option<String>,
     #[specta(type = crate::JsonObject)]
     pub params: Map<String, Value>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub replayed: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]

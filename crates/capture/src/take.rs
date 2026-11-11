@@ -290,7 +290,8 @@ pub fn video_start(steps: &[SessionStep]) -> usize {
     steps
         .iter()
         .position(|s| s.kind == BrowserAction::StartRecording)
-        .unwrap_or(0)
+        .or_else(|| steps.iter().position(|s| !s.replayed))
+        .unwrap_or(steps.len())
 }
 
 fn silenced(step: &SessionStep) -> bool {
@@ -698,6 +699,9 @@ impl<'e> TakeRun<'e> {
     }
 
     fn push_action(&mut self, mut action: Action, step: &SessionStep) {
+        if step.replayed {
+            return;
+        }
         action.node_id = Some(step.id.clone());
         self.actions.push(action);
     }
@@ -1366,6 +1370,9 @@ impl<'e> TakeRun<'e> {
     }
 
     async fn chapter(&mut self, step: &SessionStep, p: Chapter) -> StepResult {
+        if step.replayed {
+            return Ok(());
+        }
         let description = Some(p.description.clone()).filter(|d| !d.is_empty());
         let mut action = Action::new(
             format!("{}:chapter", step.id),
@@ -1633,6 +1640,7 @@ mod tests {
             kind: BrowserAction::Click,
             label: None,
             params: serde_json::Map::new(),
+            replayed: false,
         };
         let missing = StepError::Capture(CaptureError::NotFoundWithin(Duration::from_secs(15)));
         assert_eq!(

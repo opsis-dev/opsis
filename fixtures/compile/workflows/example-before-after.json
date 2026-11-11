@@ -687,6 +687,39 @@
        "height": 1080
       }
      }
+    },
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "before-session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
+      }
+     },
+     "steps": [
+      {
+       "id": "before-open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://example.com",
+        "waitUntil": "load",
+        "after": 2500,
+        "timeoutMs": 30000
+       },
+       "replayed": true
+      }
+     ],
+     "address": "https://example.com"
     }
    },
    "before-camera": {
@@ -777,6 +810,39 @@
        "height": 1080
       }
      }
+    },
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "after-session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
+      }
+     },
+     "steps": [
+      {
+       "id": "after-open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://example.org",
+        "waitUntil": "load",
+        "after": 2500,
+        "timeoutMs": 30000
+       },
+       "replayed": true
+      }
+     ],
+     "address": "https://example.org"
     }
    },
    "after-camera": {
@@ -4133,6 +4199,39 @@
         "height": 1080
        }
       }
+     },
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "before-session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
+       }
+      },
+      "steps": [
+       {
+        "id": "before-open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://example.com",
+         "waitUntil": "load",
+         "after": 2500,
+         "timeoutMs": 30000
+        },
+        "replayed": true
+       }
+      ],
+      "address": "https://example.com"
      }
     },
     "before-camera": {
@@ -4395,6 +4494,39 @@
         "height": 1080
        }
       }
+     },
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "after-session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
+       }
+      },
+      "steps": [
+       {
+        "id": "after-open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://example.org",
+         "waitUntil": "load",
+         "after": 2500,
+         "timeoutMs": 30000
+        },
+        "replayed": true
+       }
+      ],
+      "address": "https://example.org"
      }
     },
     "after-camera": {

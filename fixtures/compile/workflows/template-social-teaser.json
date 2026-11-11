@@ -525,6 +525,60 @@
        "height": 1080
       }
      }
+    },
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "session",
+      "params": {
+       "viewportWidth": 1440,
+       "viewportHeight": 900,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
+      }
+     },
+     "steps": [
+      {
+       "id": "open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://demo.playwright.dev/todomvc",
+        "waitUntil": "load",
+        "after": 700,
+        "timeoutMs": 30000
+       },
+       "replayed": true
+      },
+      {
+       "id": "type",
+       "type": "browser.type",
+       "params": {
+        "target": "What needs to be done?",
+        "text": "Ship the teaser",
+        "chunkPauseMs": 0,
+        "pressEnter": true,
+        "after": 1500,
+        "cluster": "",
+        "zoom": true,
+        "frame": "",
+        "zoomScale": 0.0,
+        "travelMs": 0,
+        "silent": false,
+        "hoverMs": 220,
+        "keyMs": 30,
+        "clearFirst": true
+       },
+       "replayed": true
+      }
+     ],
+     "address": "https://demo.playwright.dev/todomvc"
     }
    },
    "camera": {
@@ -2966,6 +3020,60 @@
         "height": 1080
        }
       }
+     },
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "session",
+       "params": {
+        "viewportWidth": 1440,
+        "viewportHeight": 900,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
+       }
+      },
+      "steps": [
+       {
+        "id": "open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://demo.playwright.dev/todomvc",
+         "waitUntil": "load",
+         "after": 700,
+         "timeoutMs": 30000
+        },
+        "replayed": true
+       },
+       {
+        "id": "type",
+        "type": "browser.type",
+        "params": {
+         "target": "What needs to be done?",
+         "text": "Ship the teaser",
+         "chunkPauseMs": 0,
+         "pressEnter": true,
+         "after": 1500,
+         "cluster": "",
+         "zoom": true,
+         "frame": "",
+         "zoomScale": 0.0,
+         "travelMs": 0,
+         "silent": false,
+         "hoverMs": 220,
+         "keyMs": 30,
+         "clearFirst": true
+        },
+        "replayed": true
+       }
+      ],
+      "address": "https://demo.playwright.dev/todomvc"
      }
     },
     "camera": {

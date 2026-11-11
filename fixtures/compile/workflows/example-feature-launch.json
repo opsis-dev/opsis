@@ -589,6 +589,60 @@
        "height": 1080
       }
      }
+    },
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1,
+       "showScrollbars": false,
+       "reduceMotion": false
+      }
+     },
+     "steps": [
+      {
+       "id": "open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://example.com",
+        "waitUntil": "load",
+        "after": 700,
+        "timeoutMs": 30000
+       },
+       "replayed": true
+      },
+      {
+       "id": "cta",
+       "type": "browser.click",
+       "label": "Get started",
+       "params": {
+        "target": "Get started",
+        "button": "left",
+        "double": false,
+        "after": 1500,
+        "cluster": "",
+        "zoom": true,
+        "frame": "",
+        "zoomScale": 0,
+        "travelMs": 0,
+        "hoverMs": 220,
+        "silent": false,
+        "findWithinMs": 15000,
+        "scrollSmoothly": false
+       },
+       "replayed": true
+      }
+     ],
+     "address": "https://example.com"
     }
    },
    "camera": {
@@ -3058,6 +3112,60 @@
         "height": 1080
        }
       }
+     },
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1,
+        "showScrollbars": false,
+        "reduceMotion": false
+       }
+      },
+      "steps": [
+       {
+        "id": "open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://example.com",
+         "waitUntil": "load",
+         "after": 700,
+         "timeoutMs": 30000
+        },
+        "replayed": true
+       },
+       {
+        "id": "cta",
+        "type": "browser.click",
+        "label": "Get started",
+        "params": {
+         "target": "Get started",
+         "button": "left",
+         "double": false,
+         "after": 1500,
+         "cluster": "",
+         "zoom": true,
+         "frame": "",
+         "zoomScale": 0,
+         "travelMs": 0,
+         "hoverMs": 220,
+         "silent": false,
+         "findWithinMs": 15000,
+         "scrollSmoothly": false
+        },
+        "replayed": true
+       }
+      ],
+      "address": "https://example.com"
      }
     },
     "camera": {

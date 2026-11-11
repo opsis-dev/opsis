@@ -5,7 +5,8 @@ use opsis_capture::take::{
     at_take_start, click_kind_of, landed_on_sign_in, trace_group_title, video_start,
 };
 use opsis_types::actions::{Action, ActionKind};
-use opsis_types::values::BrowserAction;
+use opsis_types::values::{BrowserAction, SessionStep};
+use proptest::prelude::*;
 use serde_json::json;
 use support::step;
 
@@ -119,6 +120,19 @@ fn films_from_the_first_action_without_start_recording() {
         step(BrowserAction::Click, "open", json!({ "target": "Open" })),
     ];
     assert_eq!(video_start(&steps), 0);
+}
+
+proptest! {
+    #[test]
+    fn films_a_passed_on_session_from_its_first_new_step(earlier in 0usize..6, new in 1usize..6) {
+        let replayed = (0..earlier).map(|i| SessionStep {
+            replayed: true,
+            ..step(BrowserAction::Click, &format!("earlier{i}"), json!({ "target": "Open" }))
+        });
+        let fresh = (0..new).map(|i| step(BrowserAction::Click, &format!("new{i}"), json!({ "target": "Open" })));
+        let steps: Vec<SessionStep> = replayed.chain(fresh).collect();
+        prop_assert_eq!(video_start(&steps), earlier);
+    }
 }
 
 #[test]

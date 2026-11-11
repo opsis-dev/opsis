@@ -3129,6 +3129,42 @@
       "height": 1080
      }
     }
+   },
+   "session": {
+    "type": "browser-session",
+    "browser": {
+     "nodeId": "session",
+     "params": {
+      "viewportWidth": 1920,
+      "viewportHeight": 1080,
+      "dpr": 2,
+      "mobile": false,
+      "userAgent": "",
+      "locale": "en-US",
+      "timezone": "",
+      "colorScheme": "light",
+      "captureScale": 1
+     }
+    },
+    "steps": [
+     {
+      "id": "open",
+      "type": "browser.navigate",
+      "params": {
+       "url": "https://example.com"
+      },
+      "replayed": true
+     },
+     {
+      "id": "press",
+      "type": "browser.click",
+      "label": "Press",
+      "params": {
+       "target": "Sign in"
+      },
+      "replayed": true
+     }
+    ]
    }
   },
   "error": null,
@@ -3348,6 +3384,42 @@
     "width": 1920,
     "height": 1080,
     "scale": 2.0
+   },
+   "session": {
+    "type": "browser-session",
+    "browser": {
+     "nodeId": "session",
+     "params": {
+      "viewportWidth": 1920,
+      "viewportHeight": 1080,
+      "dpr": 2,
+      "mobile": false,
+      "userAgent": "",
+      "locale": "en-US",
+      "timezone": "",
+      "colorScheme": "light",
+      "captureScale": 1
+     }
+    },
+    "steps": [
+     {
+      "id": "open",
+      "type": "browser.navigate",
+      "params": {
+       "url": "https://example.com"
+      },
+      "replayed": true
+     },
+     {
+      "id": "press",
+      "type": "browser.click",
+      "label": "Press",
+      "params": {
+       "target": "Sign in"
+      },
+      "replayed": true
+     }
+    ]
    }
   },
   "error": null,
