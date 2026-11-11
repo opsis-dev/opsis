@@ -3,6 +3,7 @@ use opsis_types::engine::{EngineInstallEvent, EngineStatus};
 use opsis_types::events::{LogLine, RunEvent, RunState, RunView};
 use opsis_types::live::LiveEvent;
 use opsis_types::project::ProjectFilesChange;
+use opsis_types::script::ScriptLine;
 use opsis_types::settings::AppSettings;
 use opsis_types::shell::{
     ApiServerStatus, CloseRequest, DockPanelName, MenuCommand, PlaybackCall, Playhead, ReplayTab,
@@ -120,6 +121,12 @@ pub struct RunLogged(pub LogLine);
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct RunStateReset(pub RunState);
 
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct ScriptChanged;
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct ScriptLogged(pub ScriptLine);
+
 pub const MAIN_WINDOW: &str = "main";
 
 macro_rules! session_events {
@@ -165,6 +172,8 @@ session_events!(
     RunViewChanged,
     RunLogged,
     RunStateReset,
+    ScriptChanged,
+    ScriptLogged,
     ViewEventFired,
 );
 

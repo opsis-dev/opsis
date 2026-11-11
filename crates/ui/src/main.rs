@@ -19,6 +19,7 @@ mod player;
 mod project;
 mod replay;
 mod run_panel;
+mod script_panel;
 mod streams;
 mod terminal_window;
 mod text;

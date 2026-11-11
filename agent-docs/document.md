@@ -4,20 +4,21 @@ The open project lives in Rust: every view edits it through the session and foll
 
 ## Code map
 
-| Concern                        | Where                                                                                                                    |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| Session                        | `crates/session` → `Session`, `Part`, `events::SessionEvent`, `platform::Platform`                                       |
-| The editor host of the session | `crates/ui/src/ui.rs` → `Ui` (`opsis_qt::Host`), `crates/ui/src/platform.rs` → `QtPlatform`                              |
-| Document                       | `crates/document/src/lib.rs` → `Document`, `MAX_UNDO_STEPS`                                                              |
-| Workflow and timeline edits    | `crates/types/src/edits.rs` → `WorkflowEdit`, `TimelineEdit`; applied in `crates/compile/src/edits/`                     |
-| Views of the document          | `crates/ui/src/ui.rs` reads `document_state`; `crates/ui/src/graph.rs`, `inspector.rs`, `timeline.rs` build the views    |
-| Autosave and disk changes      | `document.rs` → `schedule_autosave`, `AUTOSAVE_DELAY`, `save`, `outside_change`; `crates/project` → `ProjectFiles::save` |
-| Disk change dialog             | `crates/qt/cpp/main_window.cc` → `AskAboutDisk`; `resolve_disk_change`                                                   |
-| Compile requests               | `compile::request`                                                                                                       |
-| Shared selection and playhead  | `shared.rs`; `crates/ui/src/ui.rs` → `select`, `share_playhead`                                                          |
-| Calls and events               | the `Host` trait (`crates/qt/src/host.rs`) and its bridge (`crates/qt/src/bridge.rs`)                                    |
-| Frames to the views            | `crates/ui/src/streams.rs` → `FrameSlot` (the `FrameSender`), `Shown`; `crates/qt/src/frame.rs` → `FrameRef`             |
-| Live PiP and window            | `crates/qt/cpp/live_view.cc` → `LivePip`, `LiveWindow`; `crates/ui/src/live.rs` → `Live`                                 |
+| Concern                        | Where                                                                                                                     |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| Session                        | `crates/session` → `Session`, `Part`, `events::SessionEvent`, `platform::Platform`                                        |
+| The editor host of the session | `crates/ui/src/ui.rs` → `Ui` (`opsis_qt::Host`), `crates/ui/src/platform.rs` → `QtPlatform`                               |
+| Document                       | `crates/document/src/lib.rs` → `Document`, `MAX_UNDO_STEPS`                                                               |
+| Workflow and timeline edits    | `crates/types/src/edits.rs` → `WorkflowEdit`, `TimelineEdit`; applied in `crates/compile/src/edits/`                      |
+| Views of the document          | `crates/ui/src/ui.rs` reads `document_state`; `crates/ui/src/graph.rs`, `inspector.rs`, `timeline.rs` build the views     |
+| Autosave and disk changes      | `document.rs` → `schedule_autosave`, `AUTOSAVE_DELAY`, `save`, `outside_change`; `crates/project` → `ProjectFiles::save`  |
+| Disk change dialog             | `crates/qt/cpp/main_window.cc` → `AskAboutDisk`; `resolve_disk_change`                                                    |
+| Compile requests               | `compile::request`                                                                                                        |
+| A script's batch               | `crates/document/src/lib.rs` → `begin_batch`, `end_batch`; `document.rs` → `begin_batch`, `end_batch`, `edit_timeline_on` |
+| Shared selection and playhead  | `shared.rs`; `crates/ui/src/ui.rs` → `select`, `share_playhead`                                                           |
+| Calls and events               | the `Host` trait (`crates/qt/src/host.rs`) and its bridge (`crates/qt/src/bridge.rs`)                                     |
+| Frames to the views            | `crates/ui/src/streams.rs` → `FrameSlot` (the `FrameSender`), `Shown`; `crates/qt/src/frame.rs` → `FrameRef`              |
+| Live PiP and window            | `crates/qt/cpp/live_view.cc` → `LivePip`, `LiveWindow`; `crates/ui/src/live.rs` → `Live`                                  |
 
 ## Rules
 
@@ -42,8 +43,10 @@ The open project lives in Rust: every view edits it through the session and foll
 - **A gesture (a drag, a text field being typed in, an open colour picker) is one undo step**; nested gestures count as one, and undo or redo closes an open gesture.
   - Timeline edits inside a gesture start from the workflow the gesture began with (`gesture_start`) against the film it began with (`gesture_film`), and new ids are salted by the gesture, so each drag move replaces the last and a node it adds keeps its id.
   - How compiles treat an open gesture is in [runs.md](runs.md), Results follow the keys (`held`).
+- **A script's run is one batch** (`begin_batch`, `end_batch`; [scripting.md](scripting.md)): while it is open no change records an undo step, ended gestures included; kept, the batch records its start as one undo step when the workflow changed; dropped, it puts its start back and records nothing, and the redo list is as it was because undo and redo are refused meanwhile (`DocumentError::ScriptRunning`, 409 on the Local API).
+  - A batch is not a gesture: a gesture makes every timeline edit start from the gesture's start and holds compiles, so a script's second timeline edit would replace its first; inside a batch timeline edits build on each other and compiles run as usual.
 - **The nodes each change edited collect until the next `DocumentChanged` takes them** (`take_edited`), and a run forgets the errors of those nodes.
-- **Opening or adopting another project saves the open one first, drops a pending disk question and clears the shared selection.**
+- **Opening or adopting another project stops a running script and waits for its rollback, saves the open one, drops a pending disk question and clears the shared selection.**
 
 ### Compiles
 

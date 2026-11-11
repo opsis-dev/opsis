@@ -1,9 +1,15 @@
+#include <kddockwidgets/LayoutSaver.h>
+#include <kddockwidgets/core/DockWidget.h>
+
 #include <QApplication>
 #include <QDialog>
 #include <QDir>
 #include <QGraphicsItem>
 #include <QGraphicsView>
 #include <QImage>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QKeyEvent>
 #include <QPushButton>
 #include <QSet>
@@ -19,6 +25,7 @@
 #include "main_window.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "scenario.h"
+#include "script_panel.h"
 #include "start_screen.h"
 #include "widgets.h"
 
@@ -63,6 +70,38 @@ void Select(const QStringList& ids) {
 void ChooseStart(const QString& choice) {
   App::Get().session().patch_settings(
       ToRust(QStringLiteral(R"({"app":{"onStart":"%1"}})").arg(choice)));
+}
+
+QJsonValue Without(const QJsonValue& value, const QString& name) {
+  if (value.isArray()) {
+    QJsonArray kept;
+    for (const QJsonValue& item : value.toArray()) {
+      if (item.toString() == name ||
+          item.toObject().value("uniqueName").toString() == name) {
+        continue;
+      }
+      kept.append(Without(item, name));
+    }
+    return kept;
+  }
+  if (value.isObject()) {
+    QJsonObject kept;
+    const QJsonObject object = value.toObject();
+    for (auto it = object.begin(); it != object.end(); ++it) {
+      kept.insert(it.key(), Without(it.value(), name));
+    }
+    return kept;
+  }
+  return value;
+}
+
+bool HasCard(const QString& id, const QString& title) {
+  for (const auto& card : App::Get().session().graph().nodes) {
+    if (ToQ(card.id) == id && (title.isEmpty() || ToQ(card.title) == title)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 QString Overlaps(const QWidget* parent) {
@@ -118,8 +157,25 @@ void Scenario::BuildReopen() {
                         QStringLiteral("the timeline didn't pop out"));
         });
     Add(
+        QStringLiteral("reopen-save-a-layout-from-before-the-script-tab"),
+        [] {
+          KDDockWidgets::LayoutSaver saver;
+          const QJsonValue old =
+              Without(QJsonDocument::fromJson(saver.serializeLayout()).object(),
+                      QStringLiteral("script"));
+          App::Get().session().save_layout(ToRust(QString::fromUtf8(
+              QJsonDocument(old.toObject()).toJson(QJsonDocument::Compact))));
+        },
+        200,
+        [] {
+          return Expect(
+              !ToQ(App::Get().session().load_layout())
+                   .contains(QStringLiteral("\"script\"")),
+              QStringLiteral("the saved layout still names the script tab"));
+        });
+    Add(
         QStringLiteral("reopen-close-the-project"),
-        [this] { window_->CloseProject(); }, 500,
+        [] { App::Get().session().close_project(); }, 500,
         [] {
           return Expect(!App::Get().session().has_project(),
                         QStringLiteral("the project is still open"));
@@ -140,6 +196,15 @@ void Scenario::BuildReopen() {
         return Expect(window_->timeline_dock()->isFloating() &&
                           window_->timeline_dock()->isOpen(),
                       QStringLiteral("the timeline came back docked"));
+      });
+  Add(
+      QStringLiteral("reopen-the-script-tab-joins-the-bottom-group"), [] {},
+      300,
+      [this] {
+        auto* script = window_->script_dock();
+        return Expect(script->isOpen() && !script->isFloating() &&
+                          script->dockWidget()->isTabbed(),
+                      QStringLiteral("the script tab came back on its own"));
       });
 }
 
@@ -265,6 +330,79 @@ void Scenario::BuildViews() {
                 outline == app.Token(QStringLiteral("foreground")),
             QStringLiteral("the icon is %1 then %2")
                 .arg(primary.name(), outline.name()));
+      });
+  Add(
+      QStringLiteral("views-script-is-a-tab-in-the-bottom-group"),
+      [this] { window_->RunCommand(QStringLiteral("view:focus-script")); }, 300,
+      [this] {
+        auto* script = window_->script_dock();
+        return Expect(script->isOpen() && !script->isFloating() &&
+                          script->dockWidget()->isTabbed() &&
+                          script->dockWidget()->isCurrentTab(),
+                      QStringLiteral("the script tab isn't in the bottom "
+                                     "group"));
+      });
+  Until(
+      QStringLiteral("views-a-script-adds-a-node"),
+      [this] {
+        App::Get().session().script_new();
+        QTest::qWait(200);
+        ScriptPanel* panel = window_->script_panel();
+        panel->editor()->setPlainText(QStringLiteral(
+            "opsis.nodes.add { type = \"browser.wait\", id = \"scripted\" "
+            "}\n"));
+        panel->Run();
+      },
+      kProjectMs, [] { return HasCard(QStringLiteral("scripted"), QString()); },
+      [] {
+        return Expect(HasCard(QStringLiteral("scripted"), QString()),
+                      QStringLiteral("the script's node isn't on the canvas"));
+      });
+  Until(
+      QStringLiteral("views-a-failed-script-marks-its-line-and-undoes"),
+      [this] {
+        ScriptPanel* panel = window_->script_panel();
+        panel->editor()->setPlainText(QStringLiteral(
+            "opsis.nodes.scripted.label = \"Changed\"\n\nerror(\"broken\")\n"));
+        panel->Run();
+      },
+      kProjectMs,
+      [] {
+        const bridge::ScriptView view = App::Get().session().script_view();
+        return !view.running && ToQ(view.outcome) == QStringLiteral("failed");
+      },
+      [this] {
+        QTest::qWait(200);
+        const bridge::ScriptView view = App::Get().session().script_view();
+        const int line =
+            window_->script_panel()->editor()->textCursor().blockNumber() + 1;
+        return Expect(view.failure_line == 3 && line == 3,
+                      QStringLiteral("the failure marks line %1 of %2")
+                          .arg(line)
+                          .arg(view.failure_line)) +
+               Expect(view.rolled_back && !HasCard(QStringLiteral("scripted"),
+                                                   QStringLiteral("Changed")),
+                      QStringLiteral(" the failed script's edit stayed"));
+      });
+  Add(
+      QStringLiteral("views-the-script-split-turns-with-the-panel"),
+      [this] {
+        window_->script_dock()->setFloating(true);
+        QTest::qWait(100);
+        window_->script_panel()->window()->resize(400, 800);
+      },
+      400,
+      [this] {
+        QSplitter* split = window_->script_panel()->split();
+        const bool tall = split->orientation() == Qt::Vertical;
+        window_->script_panel()->window()->resize(1200, 300);
+        QTest::qWait(300);
+        const bool wide = split->orientation() == Qt::Horizontal;
+        window_->script_dock()->setFloating(false);
+        return Expect(tall && wide,
+                      QStringLiteral("the split didn't turn (tall %1, wide %2)")
+                          .arg(tall)
+                          .arg(wide));
       });
   Until(
       QStringLiteral("views-start-reopens-the-last-project"),

@@ -75,6 +75,12 @@ fn unsaved(app: &Session) -> bool {
 }
 
 async fn flush_save(app: &Session) {
+    if tokio::time::timeout(FLUSH_WITHIN, crate::script::stop_and_wait(app))
+        .await
+        .is_err()
+    {
+        log::warn!("the script didn't stop before closing");
+    }
     let exit = app.state::<Exit>();
     if exit.drafts.load(Ordering::Relaxed) {
         let flushed = exit.flushed.notified();

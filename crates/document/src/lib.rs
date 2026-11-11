@@ -27,6 +27,7 @@ pub struct Document {
     past: VecDeque<Workflow>,
     future: Vec<Workflow>,
     gesture: Option<Gesture>,
+    batch: Option<Workflow>,
     revision: u64,
     saved_revision: u64,
     file_version: String,
@@ -43,6 +44,7 @@ impl Document {
             past: VecDeque::new(),
             future: Vec::new(),
             gesture: None,
+            batch: None,
             revision: 0,
             saved_revision: 0,
             file_version,
@@ -107,6 +109,9 @@ impl Document {
     }
 
     fn remember(&mut self, previous: Workflow) {
+        if self.batch.is_some() {
+            return;
+        }
         self.past.push_back(previous);
         if self.past.len() > MAX_UNDO_STEPS {
             self.past.pop_front();
@@ -167,6 +172,32 @@ impl Document {
         }
     }
 
+    pub fn begin_batch(&mut self) -> bool {
+        if self.batch.is_some() {
+            return false;
+        }
+        self.batch = Some(self.workflow.clone());
+        true
+    }
+
+    pub fn end_batch(&mut self, keep: bool) {
+        let Some(start) = self.batch.take() else {
+            return;
+        };
+        if keep {
+            if start != self.workflow {
+                self.remember(start);
+            }
+        } else if start != self.workflow {
+            self.replace_workflow(start);
+            self.revision += 1;
+        }
+    }
+
+    pub const fn in_batch(&self) -> bool {
+        self.batch.is_some()
+    }
+
     pub fn gesture_start(&self) -> Option<&Workflow> {
         self.gesture.as_ref().map(|g| &g.start)
     }
@@ -204,6 +235,9 @@ impl Document {
     }
 
     pub fn undo(&mut self) -> bool {
+        if self.batch.is_some() {
+            return false;
+        }
         self.end_open_gesture();
         let Some(previous) = self.past.pop_back() else {
             return false;
@@ -215,6 +249,9 @@ impl Document {
     }
 
     pub fn redo(&mut self) -> bool {
+        if self.batch.is_some() {
+            return false;
+        }
         self.end_open_gesture();
         let Some(next) = self.future.pop() else {
             return false;
@@ -250,6 +287,8 @@ impl Document {
 
 #[cfg(test)]
 mod tests {
+    use proptest::prelude::*;
+
     use super::*;
 
     const EXAMPLE: &str = concat!(
@@ -382,5 +421,116 @@ mod tests {
         assert_eq!(doc.file_version(), "v9");
         assert!(doc.undo());
         assert_eq!(doc.workflow().name, "Start");
+    }
+
+    #[derive(Debug, Clone)]
+    enum Step {
+        Rename(String),
+        Skip(usize, bool),
+        Undo,
+        Redo,
+    }
+
+    fn step() -> impl Strategy<Value = Step> {
+        prop_oneof![
+            "[a-c]{1,2}".prop_map(Step::Rename),
+            (0usize..4, any::<bool>()).prop_map(|(n, on)| Step::Skip(n, on)),
+            Just(Step::Undo),
+            Just(Step::Redo),
+        ]
+    }
+
+    fn take(doc: &mut Document, step: &Step) {
+        match step {
+            Step::Rename(name) => rename(doc, name),
+            Step::Skip(index, on) => {
+                let nodes = &doc.workflow().nodes;
+                let id = nodes[index % nodes.len()].id.clone();
+                let patch = opsis_types::edits::NodePatch {
+                    disabled: Some(*on),
+                    ..Default::default()
+                };
+                doc.apply(WorkflowEdit::UpdateNode { id, patch }).unwrap();
+            }
+            Step::Undo => {
+                doc.undo();
+            }
+            Step::Redo => {
+                doc.redo();
+            }
+        }
+    }
+
+    fn history() -> impl Strategy<Value = (Vec<Step>, Vec<Step>)> {
+        (
+            proptest::collection::vec(step(), 0..8),
+            proptest::collection::vec(step(), 0..8),
+        )
+    }
+
+    proptest! {
+        #[test]
+        fn a_dropped_batch_leaves_the_workflow_and_both_histories_as_they_were((before, inside) in history()) {
+            let mut doc = open();
+            for step in &before {
+                take(&mut doc, step);
+            }
+            let (workflow, past, future) = (doc.workflow().clone(), doc.past.clone(), doc.future.clone());
+            prop_assert!(doc.begin_batch());
+            for step in &inside {
+                take(&mut doc, step);
+            }
+            doc.end_batch(false);
+            prop_assert_eq!(doc.workflow(), &workflow);
+            prop_assert_eq!(&doc.past, &past);
+            prop_assert_eq!(&doc.future, &future);
+        }
+
+        #[test]
+        fn a_kept_batch_undoes_to_its_start_in_one_step((before, inside) in history()) {
+            let mut doc = open();
+            for step in &before {
+                take(&mut doc, step);
+            }
+            let (workflow, past) = (doc.workflow().clone(), doc.past.len());
+            doc.begin_batch();
+            for step in &inside {
+                take(&mut doc, step);
+            }
+            let changed = doc.workflow() != &workflow;
+            doc.end_batch(true);
+            if changed {
+                prop_assert_eq!(doc.past.len(), (past + 1).min(MAX_UNDO_STEPS));
+                prop_assert!(doc.future.is_empty());
+                prop_assert!(doc.undo());
+                prop_assert_eq!(doc.workflow(), &workflow);
+            } else {
+                prop_assert_eq!(doc.past.len(), past);
+            }
+        }
+    }
+
+    #[test]
+    fn refuses_undo_and_redo_while_a_batch_is_open() {
+        let mut doc = open();
+        rename(&mut doc, "A");
+        doc.begin_batch();
+        assert!(!doc.undo());
+        assert!(!doc.redo());
+        assert!(!doc.begin_batch());
+        doc.end_batch(true);
+        assert!(doc.undo());
+    }
+
+    #[test]
+    fn records_nothing_for_a_batch_that_changes_nothing() {
+        let mut doc = open();
+        doc.begin_batch();
+        rename(&mut doc, "A");
+        rename(&mut doc, "Start");
+        let revision = doc.revision();
+        doc.end_batch(true);
+        assert!(doc.past.is_empty());
+        assert_eq!(doc.revision(), revision);
     }
 }

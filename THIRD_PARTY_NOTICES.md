@@ -663,6 +663,40 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ```
 
+## Lua — crates/script, through the mlua crate
+
+Runs the Lua scripts of the Script panel and the Local API. Lua 5.5.1 (https://www.lua.org) is compiled into the program from the source the `lua-src` crate carries, and the `mlua` crate (https://github.com/mlua-rs/mlua) binds it. Lua is licensed under the MIT License:
+
+```
+Copyright (C) 1994-2026 Lua.org, PUC-Rio.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+```
+
+`mlua` is licensed under the MIT License, Copyright (c) 2019-2021 A. Orlenko, Copyright (c) 2017 rlua.
+
+## tree-sitter and its Lua grammar — crates/script/src/syntax.rs
+
+Colours the Script panel's Lua and finds its syntax errors. tree-sitter 0.27 (https://github.com/tree-sitter/tree-sitter) and the Lua grammar `tree-sitter-lua` 0.5 (https://github.com/tree-sitter-grammars/tree-sitter-lua, by Munif Tanjim) are compiled into the program, the grammar with its highlight query. Both are licensed under the MIT License; tree-sitter's notice:
+
+```
+Copyright (c) 2018 Max Brunsfeld
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+```
+
+## Project-confined files — the cap-std crate
+
+Opens every file a script reads or writes beneath the project folder, in `crates/script`. https://github.com/bytecodealliance/cap-std, by Dan Gohman and Jakub Konka, licensed under the Apache License, Version 2.0 with LLVM Exception, the Apache License, Version 2.0, or the MIT License.
+
 ## Sound output — the cpal crate
 
 Plays the film's sound while the editor's timeline plays, in `crates/audio`. https://github.com/RustAudio/cpal, licensed under the Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0).

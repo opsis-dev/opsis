@@ -15,6 +15,7 @@ use opsis_compile::graph::{GraphIssue, IssueLevel, connection_problem};
 use opsis_compile::registry::node_def;
 use opsis_types::edits::{Edited, WorkflowEdit};
 use opsis_types::events::RunTargets;
+use opsis_types::script::{ScriptOutcome, ScriptRequest, ScriptStatus};
 use opsis_types::workflow::{WORKFLOW_FILE, Workflow, WorkflowSettings};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -25,7 +26,8 @@ use crate::bodies::{
     AddEdgeBody, AddNodeBody, OpenBody, UpdateNodeBody, VariablesBody, parse_body,
 };
 use crate::openapi::{
-    Check, Edited as EditedReply, OpenProjectName, ProjectState, RunState, Status, openapi_document,
+    Check, Edited as EditedReply, OpenProjectName, ProjectState, RunState, ScriptReply, Status,
+    openapi_document,
 };
 
 pub const MAX_BODY: usize = 20 * 1024 * 1024;
@@ -58,6 +60,9 @@ pub trait ApiHost: Send + Sync + 'static {
     fn run(&self, targets: RunTargets) -> BoxFuture<'static, HostResult<RunState>>;
     fn stop(&self) -> RunState;
     fn run_events(&self) -> tokio::sync::broadcast::Receiver<String>;
+    fn run_script(&self, request: ScriptRequest) -> BoxFuture<'static, HostResult<ScriptOutcome>>;
+    fn stop_script(&self) -> HostResult<ScriptStatus>;
+    fn script_status(&self) -> HostResult<ScriptStatus>;
     fn problems(&self, workflow: &Workflow) -> Vec<GraphIssue> {
         workflow_problems(workflow)
     }
@@ -437,6 +442,42 @@ async fn run_events(State(host): State<Host>) -> Response {
         .unwrap_or_else(|e| failure(StatusCode::INTERNAL_SERVER_ERROR, &e.to_string()))
 }
 
+async fn run_script(State(host): State<Host>, bytes: Bytes) -> Response {
+    let request = match body_of::<ScriptRequest>(&bytes, true) {
+        Ok(request) => request,
+        Err(response) => return *response,
+    };
+    if request.source.is_some() == request.file.is_some() {
+        return failure(
+            StatusCode::BAD_REQUEST,
+            "Send either source, the Lua to run, or file, a script in the project.",
+        );
+    }
+    match host.run_script(request).await {
+        Ok(outcome) => {
+            let problems = host
+                .project()
+                .map_or_default(|project| problems_of(&host, &project.workflow));
+            json_reply(StatusCode::OK, &ScriptReply { outcome, problems })
+        }
+        Err(error) => host_failure(&error),
+    }
+}
+
+async fn stop_script(State(host): State<Host>) -> Response {
+    match host.stop_script() {
+        Ok(status) => json_reply(StatusCode::OK, &status),
+        Err(error) => host_failure(&error),
+    }
+}
+
+async fn script_status(State(host): State<Host>) -> Response {
+    match host.script_status() {
+        Ok(status) => json_reply(StatusCode::OK, &status),
+        Err(error) => host_failure(&error),
+    }
+}
+
 async fn not_found(method: Method, uri: Uri) -> Response {
     failure(
         StatusCode::NOT_FOUND,
@@ -472,6 +513,8 @@ pub fn routes(host: Host) -> Router {
         .route("/project/run", get(run_state).post(run))
         .route("/project/run/stop", post(stop))
         .route("/project/run/events", get(run_events))
+        .route("/project/script", get(script_status).post(run_script))
+        .route("/project/script/stop", post(stop_script))
         .fallback(not_found)
         .layer(axum::extract::DefaultBodyLimit::max(MAX_BODY))
         .with_state(host)

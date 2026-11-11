@@ -90,3 +90,35 @@ pub fn check_workflow(input: &Value) -> CheckResult {
         }
     }
 }
+
+fn is_file_field(field: &Value) -> bool {
+    let inner = crate::elements::introspect::branch(field);
+    crate::elements::introspect::widget_of(inner) == Some("asset")
+        || inner.get("x-accept").is_some()
+        || field.get("x-accept").is_some()
+}
+
+pub fn absolute_file_settings(kind: &str, params: &serde_json::Map<String, Value>) -> Vec<String> {
+    let Some(def) = crate::registry::node_def(kind) else {
+        return Vec::new();
+    };
+    let found = std::cell::RefCell::new(Vec::new());
+    for (key, value) in params {
+        let Some(field) = def.params.field(key) else {
+            continue;
+        };
+        crate::elements::introspect::map_leaves(field, value, &|schema, leaf| {
+            let absolute = leaf.as_str().is_some_and(|text| {
+                matches!(
+                    crate::asset_ref::ref_target(text.trim()),
+                    crate::asset_ref::RefTarget::Absolute(_)
+                )
+            });
+            if absolute && is_file_field(schema) && !found.borrow().contains(key) {
+                found.borrow_mut().push(key.clone());
+            }
+            Some(leaf.clone())
+        });
+    }
+    found.into_inner()
+}

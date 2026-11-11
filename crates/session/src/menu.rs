@@ -77,7 +77,7 @@ pub fn app_menu(mac: bool) -> Vec<MenuSection> {
             vec![
                 command("Node list", MenuCommand::ViewToggleLeft, "CmdOrCtrl+B"),
                 command(
-                    "Timeline, mixer and run",
+                    "Timeline, mixer, run and script",
                     MenuCommand::ViewToggleBottom,
                     "CmdOrCtrl+J",
                 ),
@@ -91,6 +91,7 @@ pub fn app_menu(mac: bool) -> Vec<MenuSection> {
                 command("Timeline", MenuCommand::ViewFocusTimeline, "CmdOrCtrl+1"),
                 command("Mixer", MenuCommand::ViewFocusMixer, "CmdOrCtrl+2"),
                 command("Run", MenuCommand::ViewFocusRun, "CmdOrCtrl+3"),
+                command("Script", MenuCommand::ViewFocusScript, "CmdOrCtrl+4"),
                 MenuEntry::Separator,
                 role(
                     "Full screen",

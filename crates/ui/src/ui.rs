@@ -17,14 +17,15 @@ use opsis_compile::nodes::media::IMPORT_TYPE;
 use opsis_compile::timeline::flatten::BarThumbnail;
 use opsis_compile::timeline::view;
 use opsis_qt::{
-    AboutView, BarView, BoundsView, CatalogRowView, CategoryView, Choice, CloseView, ColorView,
-    EngineView, EventKind, FilmTiles, FontCatalogView, FontChoicesView, FontPickView,
+    AboutView, BarView, BoundsView, BracketView, CatalogRowView, CategoryView, Choice, CloseView,
+    ColorView, EngineView, EventKind, FilmTiles, FontCatalogView, FontChoicesView, FontPickView,
     FontReviewView, FontRowView, GradientInfo, GraphView, Host, HostResult, InspectorView,
     InstalledFontView, KeyLineView, LicenceView, LoudnessView, MarkDrawnView, MarkPointsView,
     MenuSectionView, MeterView, MixerView, MorphPathView, MorphStep, MotionInfo, NodeMove,
     PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView, ReplayView,
-    RulerStep, RunPanelView, ScreenArea, SettingsView, SnapView, TemplateView, TextToken,
-    TimelineView, TraceView, UpdateView, VariableView, WindowPlacement,
+    RulerStep, RunPanelView, ScreenArea, ScriptView, SettingsView, SnapView, SyntaxRangeView,
+    TemplateView, TextChangeView, TextToken, TimelineView, TraceView, UpdateView, VariableView,
+    WindowPlacement,
 };
 use opsis_session::analysis::{self, AnalysisRequest, AnalysisResult};
 use opsis_session::document::DiskChoice;
@@ -54,10 +55,12 @@ use crate::platform::QtPlatform;
 use crate::project::Extras;
 use crate::{
     clipboard, colors, font_views, graph, inspector, keys, live, look, media, mixer, morph, motion,
-    player, project, replay, run_panel, streams, terminal_window, timeline,
+    player, project, replay, run_panel, script_panel, streams, terminal_window, timeline,
 };
 
 const LAYOUT_KEY: &str = "nativeDockLayout";
+const SCRIPT_KEY: &str = "openScript";
+const SCRIPT_STOP_WITHIN: std::time::Duration = std::time::Duration::from_secs(3);
 const BENCH_KINDS: [&str; 4] = [
     "browser.open",
     "browser.click",
@@ -89,6 +92,7 @@ pub struct Ui {
     terminal_windows: terminal_window::TerminalWindows,
     terminal_inputs: Mutex<HashMap<String, tokio::sync::mpsc::UnboundedSender<TerminalInput>>>,
     view_inputs: Mutex<HashMap<String, tokio::sync::mpsc::UnboundedSender<ViewInput>>>,
+    scripts: Mutex<script_panel::ScriptEditing>,
     started: Instant,
 }
 
@@ -188,6 +192,7 @@ const fn event_kind(event: &SessionEvent) -> Option<EventKind> {
         SessionEvent::ApiStatusChanged(_) => Some(EventKind::Api),
         SessionEvent::EngineChanged(_) => Some(EventKind::Engine),
         SessionEvent::UpdateChanged(_) => Some(EventKind::Update),
+        SessionEvent::ScriptChanged(_) | SessionEvent::ScriptLogged(_) => Some(EventKind::Script),
         _ => None,
     }
 }
@@ -219,6 +224,7 @@ impl Ui {
             terminal_windows: terminal_window::TerminalWindows::default(),
             terminal_inputs: Mutex::default(),
             view_inputs: Mutex::default(),
+            scripts: Mutex::default(),
             started: Instant::now(),
         }
     }
@@ -555,6 +561,32 @@ impl Ui {
         }
     }
 
+    fn project_dir(&self) -> HostResult<PathBuf> {
+        self.state()
+            .editor()
+            .dir()
+            .ok_or_else(|| "Open a project to use scripts.".to_owned())
+    }
+
+    fn project_dir_of(&self, shown: &str) -> HostResult<PathBuf> {
+        let dir = self.project_dir()?;
+        if opsis_engine::tools::shown(&dir) == shown {
+            Ok(dir)
+        } else {
+            Err("The script belongs to a project that isn't open any more.".to_owned())
+        }
+    }
+
+    fn saved_script(&self) -> Option<String> {
+        let dir = self.view_key()?;
+        self.runtime
+            .block_on(settings::view_state(&self.session, dir))
+            .ok()?
+            .get(SCRIPT_KEY)
+            .and_then(Value::as_str)
+            .map(str::to_owned)
+    }
+
     fn view_key(&self) -> Option<String> {
         self.state()
             .editor()
@@ -880,6 +912,16 @@ impl Host for Ui {
     }
 
     fn close_project(&self) {
+        let stopped = self.runtime.block_on(async {
+            tokio::time::timeout(
+                SCRIPT_STOP_WITHIN,
+                opsis_session::script::stop_and_wait(&self.session),
+            )
+            .await
+        });
+        if stopped.is_err() {
+            log::warn!("the script didn't stop before the project closed");
+        }
         if let Err(error) = self
             .runtime
             .block_on(document::save_project(self.session.clone()))
@@ -1841,6 +1883,115 @@ impl Host for Ui {
         run::clear_run_log(&self.session);
     }
 
+    fn script_view(&self) -> ScriptView {
+        let dir = self.state().editor().dir();
+        let open = dir.as_deref().map(|dir| {
+            let known = self.scripts.lock().expect("script editing").dir.as_deref() == Some(dir);
+            let saved = if known { None } else { self.saved_script() };
+            let mut editing = self.scripts.lock().expect("script editing");
+            editing.follow(dir, saved);
+            editing.open.clone()
+        });
+        script_panel::view(
+            dir.as_deref(),
+            open.flatten().as_deref(),
+            &opsis_session::script::script_state(&self.session),
+        )
+    }
+
+    fn script_open(&self, file: &str) {
+        self.scripts.lock().expect("script editing").open = Some(file.to_owned());
+        if let Some(dir) = self.view_key() {
+            let saved = self.runtime.block_on(settings::set_view_pref(
+                self.session.clone(),
+                dir,
+                SCRIPT_KEY.to_owned(),
+                Value::String(file.to_owned()),
+            ));
+            if let Err(error) = saved {
+                log::warn!("remembering the open script: {}", error.0);
+            }
+        }
+        opsis_qt::post_event(EventKind::Script);
+    }
+
+    fn script_read(&self, file: &str) -> HostResult<String> {
+        let file = script_panel::checked(file)?;
+        let dir = self.project_dir()?;
+        let text = std::fs::read_to_string(dir.join(&file))
+            .map_err(|e| format!("Couldn't read {file}. {e}"))?;
+        self.scripts
+            .lock()
+            .expect("script editing")
+            .remember(&file, &text);
+        Ok(text)
+    }
+
+    fn script_save(&self, dir: &str, file: &str, text: &str) -> HostResult<()> {
+        let file = script_panel::checked(file)?;
+        let dir = self.project_dir_of(dir)?;
+        let path = dir.join(&file);
+        let unchanged = std::fs::read_to_string(&path).is_ok_and(|disk| disk == text);
+        if !unchanged {
+            if let Some(parent) = path.parent() {
+                std::fs::create_dir_all(parent).map_err(failed)?;
+            }
+            std::fs::write(&path, text).map_err(|e| format!("Couldn't save {file}. {e}"))?;
+        }
+        self.scripts
+            .lock()
+            .expect("script editing")
+            .remember(&file, text);
+        Ok(())
+    }
+
+    fn script_new(&self) -> HostResult<String> {
+        let dir = self.project_dir()?;
+        let file = script_panel::create(&dir)?;
+        self.scripts
+            .lock()
+            .expect("script editing")
+            .remember(&file, script_panel::starter());
+        self.script_open(&file);
+        Ok(file)
+    }
+
+    fn script_run(&self, dir: &str, file: &str, text: &str) -> HostResult<()> {
+        self.script_save(dir, file, text)?;
+        opsis_session::script::run_script(
+            &self.session,
+            opsis_session::script::ScriptSource::File(file.to_owned()),
+        )
+        .map(drop)
+        .map_err(failed)
+    }
+
+    fn script_stop(&self) {
+        opsis_session::script::stop_script(&self.session);
+    }
+
+    fn script_reload(&self, file: &str, text: &str) -> TextChangeView {
+        let reloaded = self.project_dir().ok().and_then(|dir| {
+            self.scripts
+                .lock()
+                .expect("script editing")
+                .reload(&dir, file, text)
+        });
+        script_panel::reloaded(reloaded)
+    }
+
+    fn script_highlight(&self, text: &str) -> Vec<SyntaxRangeView> {
+        script_panel::ranges(text)
+    }
+
+    fn script_key(&self, text: &str, anchor: u32, cursor: u32, key: &str) -> TextChangeView {
+        script_panel::key(text, anchor, cursor, key)
+    }
+
+    fn script_bracket(&self, text: &str, cursor: u32) -> BracketView {
+        script_panel::bracket(text, cursor)
+    }
+
     fn player_open(&self, file: &str) -> u64 {
         self.players
             .open(&self.session, self.runtime.handle(), file)
@@ -2627,6 +2778,8 @@ impl Host for Ui {
                 })
                 .collect(),
             api_enabled: settings.api.enabled,
+            api_scripts: settings.api.scripts,
+            api_scripts_available: !cfg!(windows),
             data_dir: self.state().paths.user_data.to_string_lossy().into_owned(),
             trace_retention: plain(&settings.traces.retention),
             trace_retentions: choices(&book.trace_retention),

@@ -136,7 +136,7 @@ fn refreshed_compile(app: &Session, input: &mut CompileInput) -> EditorCompile {
     compiled
 }
 
-fn film_of(compiled: &EditorCompile) -> Option<Film> {
+pub fn film_of(compiled: &EditorCompile) -> Option<Film> {
     Some(Film {
         flat: compiled.flat.clone()?,
         source: compiled.film.as_ref().map(|p| p.source_node_id.clone()),

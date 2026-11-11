@@ -5,7 +5,7 @@ import { parseSync } from "oxc-parser";
 import { ROOT } from "./lib/tool-config";
 
 const CHECKED =
-  /^(apps|packages|crates|scripts)\/.*\.(ts|tsx|mts|css|rs|zig|zon|cc|h|qss)$|^[^/]+\.config\.ts$/;
+  /^(apps|packages|crates|scripts)\/.*\.(ts|tsx|mts|css|rs|zig|zon|cc|h|qss|lua)$|^[^/]+\.config\.ts$/;
 const SKIPPED = [/\/generated\//];
 const DIRECTIVE = /^\/\/\/ <reference|^\/[/*]\s*(oxlint-|@ts-)/;
 const LINE_COMMENT = /^\s*\/\/|\/\*|\*\//;
@@ -33,6 +33,15 @@ function cppComments(text: string): number[] {
     .flatMap((line, index) => (CPP_COMMENT.test(line.replace(CPP_STRING, "")) ? [index] : []));
 }
 
+const LUA_STRING = /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\[(=*)\[[^]*?\]\1\]/g;
+const LUA_COMMENT = /--/;
+
+function luaComments(text: string): number[] {
+  return text
+    .split("\n")
+    .flatMap((line, index) => (LUA_COMMENT.test(line.replace(LUA_STRING, "")) ? [index] : []));
+}
+
 function otherComments(text: string): number[] {
   return text
     .split("\n")
@@ -53,7 +62,9 @@ const found = files.flatMap((file) => {
     ? scriptComments(file, text)
     : /\.(cc|h)$/.test(file)
       ? cppComments(text)
-      : otherComments(text);
+      : file.endsWith(".lua")
+        ? luaComments(text)
+        : otherComments(text);
   const all = text.split("\n");
   return lines.toSorted((a, b) => a - b).map((line) => `${file}:${line + 1}: ${all[line]?.trim()}`);
 });

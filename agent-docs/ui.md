@@ -42,6 +42,7 @@ How the editor's Qt Widgets views and the Rust session talk: the `cxx` bridge, w
   - The Inspector and the Mixer skip rebuilds while a hold is open (`Held`) and refresh on `Released`; the Inspector's check (`InspectorPanel::Editing`) also counts a focused field that holds a draft.
 - **Colours are tokens and icons bundled glyphs** (`style.qss` names tokens as `@name`, which `look::style_sheet` replaces from `TOKENS`; C++ asks `App::Token` and `App::Icon`); the editor's look is in [editor.md](editor.md).
   - Glyphs come only from `crates/ui/glyphs.generated.json`; `resources.qrc` holds only the logo.
+- **Text an editor types into crosses as UTF-8 and every position in it as UTF-16 units**, the units Qt counts in: the Script panel's highlight ranges, key changes and bracket matches convert in Rust (`crates/script/src/text.rs` → `Units`), never in C++ ([scripting.md](scripting.md)).
 - **A modal file dialog is asked for from Rust and answered back**: the session calls `request_dialog` with an id, C++ shows the system's dialog and returns the choice through `answer_dialog`.
   - On Linux `App::Run` sets `QT_QPA_PLATFORMTHEME` to `xdgdesktopportal` unless it is set, so the dialog is the desktop portal's; scenario runs use Qt's own dialogs ([e2e.md](e2e.md)).
 - **A new C++ file is listed in `SOURCES` in `crates/qt/build.rs`, and in `MOC_HEADERS` when its header declares a `Q_OBJECT`**: the build compiles only those lists, so a `.cc` left out isn't built.

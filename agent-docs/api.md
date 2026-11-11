@@ -14,6 +14,7 @@ The HTTP API scripts and agents use to read, change and run the open project. Pa
 | OpenAPI document       | `api/src/openapi.rs`; tests in `api/tests/routes.rs`                                                                                      |
 | Validation             | `compile/src/check.rs` → `check_workflow`, `workflow_problems`, `workflow_problems_with`; `session/src/node_results.rs` → `file_problems` |
 | Editor side of `/open` | `session/src/api.rs` emits `OpenRequested` to `MAIN_WINDOW`; `ui/src/ui.rs` shows the project                                             |
+| Script routes          | `api/src/routes.rs` → `run_script`, `stop_script`, `script_status`; `session/src/api.rs` → `scripts_allowed`, `script_failure`            |
 
 ## Rules
 
@@ -22,7 +23,7 @@ The HTTP API scripts and agents use to read, change and run the open project. Pa
   - A stale socket from a crash is replaced, a live one from another copy of the app is left alone and reported, and anything that isn't a socket is never deleted.
 - **Socket paths are capped at 100 bytes (`api_address`)**, below the OS limits (107 on Linux, 103 on macOS): a longer or relative path is refused before listening, and Settings → API says to set `OPSIS_API_SOCKET` to a shorter full path. There is no automatic fallback location.
 - **On Windows the variable is ignored and the API uses the named pipe `\\.\pipe\opsis-api-<user>`, never a TCP port.**
-- **Only the `/project` routes need an open project** (`routes`): without one they answer 409, except `/project/run/stop` and `/project/run/events`, which never look for a project.
+- **Only the `/project` routes need an open project** (`routes`): without one they answer 409, except `/project/run/stop`, `/project/run/events` and `/project/script/stop`, which never look for a project.
 - **A route that fails answers `{"error": …}`.**
   - The routes check what they can themselves: a body that isn't valid JSON or UTF-8 is 400, a node type `POST /project/nodes` doesn't know 400 and one `GET /nodes/{type}` doesn't know 404, a refused connection 400 or 404 (`connection_problem`).
   - The host chooses the status of its own failures (`HostError`, mapped by `document_failure` and `start_failure`).
@@ -39,9 +40,13 @@ The HTTP API scripts and agents use to read, change and run the open project. Pa
 - **Runs start from the document like the editor's.**
   - A run answers 409 while another runs and while the project's version is unchosen, as well as with no project (`StartError`, `session/src/run.rs`).
 - **Run events also stream on `/project/run/events`** as server-sent events, one `data:` line of JSON per run event, sent only while a client follows them (`run_event`).
+- **The script routes need a second switch, Settings → API → Run Lua scripts (`settings.api.scripts`, off by default)**, because with it the socket also reads and writes the project's files and drives runs; the switch is disabled while the API is off.
+  - `POST /project/script` takes `{ "source": … }` or `{ "file": "scripts/name.lua" }`, runs it as the Script panel would ([scripting.md](scripting.md)) and answers when it ends with the outcome and the editor's problems; `POST /project/script/stop` stops it and `GET /project/script` says whether one runs.
+  - They answer 403 while the switch is off, 409 with no project or while a script runs, 400 for a body that is neither form, and 200 with `ok: false` and the failure for a script that failed.
+  - A client that goes away doesn't stop its script; the stop route does.
 - **Every route is documented in `openapi.rs`** (from the `schemars` schemas of the bodies); node settings schemas come from `/nodes/{type}`.
   - `documents_every_route_it_serves` checks a list of routes written in the test, not the router, so a new route goes in that list too; the list leaves out `/openapi.json`, `/status`, `/nodes` and `/nodes/{type}` (TODO.md). Another test keeps the document under 100 KB.
 
 ## Deliberate limits
 
-- **The Windows named pipe has no current-user-only ACL**, although the description `openapi.rs` serves (`DESCRIPTION`) says only the user's account can open it.
+- **The Windows named pipe has no current-user-only ACL**, although the description `openapi.rs` serves (`DESCRIPTION`) says only the user's account can open it. Setting one needs `unsafe` (tokio's `create_with_security_attributes_raw`), which `opsis-api` may not use, so on Windows the script routes always answer 403 and Settings disables Run Lua scripts (`scripts_allowed`, `api_scripts_available`).

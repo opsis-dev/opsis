@@ -24,6 +24,7 @@ opsis-media.workspace = true
 opsis-project.workspace = true
 opsis-render.workspace = true
 opsis-runner.workspace = true
+opsis-script.workspace = true
 opsis-store.workspace = true
 opsis-stream.workspace = true
 opsis-terminal.workspace = true
@@ -47,3 +48,4 @@ uuid.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true
+tempfile.workspace = true

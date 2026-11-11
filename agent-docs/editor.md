@@ -19,6 +19,7 @@ The native editor's windows, docks and panels, the title bar and menus, the canv
 | Closing                     | `main_window.cc` → `ShowCloseDialog`; `crates/session/src/exit.rs` (`close_shown`, `decide_close`, `close_on_signals`)                                                                                                        |
 | Settings window             | `settings_window.cc` → `SettingsWindow`; `fonts_page.cc`, `engine_card.cc`, `update_card.cc`                                                                                                                                  |
 | Project Inspector           | `project_panel.cc` → `ProjectPanel`                                                                                                                                                                                           |
+| Script panel                | `script_panel.cc` → `ScriptPanel`; `script_panel.rs`; [scripting.md](scripting.md)                                                                                                                                            |
 | View state                  | `ui.rs` → `load_layout`, `save_layout`, `project_window`, `save_window`; `main_window.cc` → `SaveLayout`, `SaveWindow`; `crates/session/src/windows.rs` → `visible_bounds`                                                    |
 
 ## Rules
@@ -26,12 +27,13 @@ The native editor's windows, docks and panels, the title bar and menus, the canv
 ### Windows and docks
 
 - **The main window holds three screens in one stack**: the start screen, setup (shown while the engine is missing and setup wasn't skipped) and the editor. Settings, Replay, the streamed views, the Live window and the terminal window are windows of their own.
-- **The panels are KDDockWidgets docks**: the node list on the left, the Inspector on the right, and Timeline, Mixer and Run as tabs of one bottom dock (`kBottomShare` of the height), Timeline first.
+- **The panels are KDDockWidgets docks**: the node list on the left, the Inspector on the right, and Timeline, Mixer, Run and Script as tabs of one bottom dock (`kBottomShare` of the height), Timeline first. The Script panel is in [scripting.md](scripting.md).
 - **Every dock group with more than one tab shows two corner buttons (`DockStack`)**: one pops the current panel out into its own window ("Open … in a new window", `setFloating`), where it can dock back, and one hides the bottom panel, whichever group it sits on.
   - As the editor builds the docks only the bottom one has tabs; the node list and the Inspector, lone docks with a zero-height title bar, have no control that pops them out.
 - **The arrangement, popped-out panels included, is saved per project (`SaveLayout`, `kdw::LayoutSaver`)** when the project closes (`CloseProject`), when the window goes back to the start screen, and when the window asks Rust whether it may close and Rust asks first (`closeEvent`).
   - On the next start it comes back with popped-out panels still in their own windows (the two-launch `reopen` test, [e2e.md](e2e.md)).
   - It is restored only when the docks are first built in a launch (`BuildDocks`); opening another project later in the same launch keeps the docks as they are and reopens the node list, Inspector and Timeline if they were closed (`ShowEditor`).
+  - KDDockWidgets floats a dock that a saved arrangement doesn't name (`floatUnknownWidgets`), so `BuildDocks` puts such a dock back as a tab of the bottom group (`LayoutKnows`); the `reopen` test saves an arrangement without the Script tab to check it.
 - **The node list, Inspector and bottom panel collapse from the View menu, its shortcuts and the top bar**; a closed node list leaves a narrow category rail (`CategoryRail::kWidth`) whose categories open as popovers.
 - **Docked panels show no title, and a lone panel no tab** (`dock_style.cc` → `DockTitleBar::setVisible`; `app.cc` sets no `Flag_AlwaysShowTabs`).
   - A lone panel's docked title bar is zero pixels tall rather than hidden, because KDDockWidgets refuses to float a panel through a hidden title bar (`TitleBar::makeWindow`); in the tabbed bottom dock KDDockWidgets hides it itself (`Flag_HideTitleBarWhenTabsVisible`).

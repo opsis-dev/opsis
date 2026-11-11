@@ -15,6 +15,7 @@ pub mod platform;
 pub mod projects;
 pub mod run;
 pub mod runtime;
+pub mod script;
 mod session;
 pub mod settings;
 pub mod shared;

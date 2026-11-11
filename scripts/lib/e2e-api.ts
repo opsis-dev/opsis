@@ -21,6 +21,12 @@ type Workflow = {
 };
 type Project = { workflow: Workflow; revision: number; dir: string | null };
 type RunEvent = { type?: string; ok?: boolean; cancelled?: boolean };
+type ScriptAnswer = {
+  ok?: boolean;
+  value?: unknown;
+  rolledBack?: boolean;
+  failure?: { line?: number };
+};
 
 export type ApiTarget = { socket: string; projects: string; page: string };
 
@@ -28,6 +34,8 @@ const SOCKET_WAIT_MS = 60_000;
 const RUN_MS = 180_000;
 const POLL_MS = 250;
 const ADDED_LABEL = "API click";
+const SCRIPTED_LABEL = "Scripted wait";
+const ROLLED_BACK_LABEL = "Undone wait";
 const CALLED_ROUTES = [
   "/status",
   "/nodes",
@@ -48,6 +56,8 @@ const CALLED_ROUTES = [
   "/project/run",
   "/project/run/stop",
   "/project/run/events",
+  "/project/script",
+  "/project/script/stop",
 ];
 
 function call(socket: string, method: string, route: string, body?: unknown): Promise<Answer> {
@@ -303,6 +313,46 @@ function checks(target: ApiTarget): [string, () => Promise<string>][] {
         return expect(
           saved.status === 200 && file.includes(ADDED_LABEL),
           `saving answered ${saved.status}; the file ${file.includes(ADDED_LABEL) ? "has" : "lacks"} the added node`,
+        );
+      },
+    ],
+    [
+      "api-runs-a-script-that-adds-a-node",
+      async () => {
+        const answer = await call(socket, "POST", "/project/script", {
+          source: `local node = opsis.nodes.add { type = "browser.wait", label = "${SCRIPTED_LABEL}" }\nreturn node.id`,
+        });
+        const outcome = answer.body as ScriptAnswer;
+        const node = findById((await project(socket)).workflow.nodes, String(outcome.value));
+        const status = await call(socket, "GET", "/project/script");
+        return expect(
+          answer.status === 200 &&
+            outcome.ok === true &&
+            node?.label === SCRIPTED_LABEL &&
+            status.status === 200,
+          `the script answered ${answer.status} ${JSON.stringify(answer.body)}`,
+        );
+      },
+    ],
+    [
+      "api-rolls-back-a-script-that-fails",
+      async () => {
+        const answer = await call(socket, "POST", "/project/script", {
+          source: `opsis.nodes.add { type = "browser.wait", label = "${ROLLED_BACK_LABEL}" }\nerror("broken")`,
+        });
+        const outcome = answer.body as ScriptAnswer;
+        const left = (await project(socket)).workflow.nodes.some(
+          (node) => node.label === ROLLED_BACK_LABEL,
+        );
+        const stopped = await call(socket, "POST", "/project/script/stop");
+        return expect(
+          answer.status === 200 &&
+            outcome.ok === false &&
+            outcome.rolledBack === true &&
+            outcome.failure?.line === 2 &&
+            !left &&
+            stopped.status === 200,
+          `the failing script answered ${answer.status} ${JSON.stringify(answer.body)}; its node ${left ? "stayed" : "is gone"}`,
         );
       },
     ],

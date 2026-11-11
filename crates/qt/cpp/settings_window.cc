@@ -396,6 +396,18 @@ QWidget* SettingsWindow::ApiPage() {
       QStringLiteral("Turn on the API"), api_enabled_,
       QStringLiteral("Stays on until you turn it off. The top bar shows API "
                      "while it's on.")));
+  api_scripts_ = new ToggleSwitch();
+  api_scripts_->setObjectName(QStringLiteral("ApiScripts"));
+  connect(api_scripts_, &ToggleSwitch::toggled, this, [this](bool on) {
+    Patch(QStringLiteral("api"), QStringLiteral("scripts"), on);
+  });
+  api_scripts_row_ = MakeSwitchField(
+      QStringLiteral("Run Lua scripts"), api_scripts_,
+      QStringLiteral("Lets the API run Lua scripts on the open project. A "
+                     "script can change the project, run and export it, and "
+                     "read and write files in the project folder, but nothing "
+                     "outside it and never the internet."));
+  api->body()->addWidget(api_scripts_row_);
   api_error_ = MakeLabel(QString(), "error");
   api_error_->setWordWrap(true);
   api->body()->addWidget(api_error_);
@@ -557,6 +569,13 @@ void SettingsWindow::Load() {
   }
   confirm_exit_->SetCheckedQuietly(view.confirm_exit);
   api_enabled_->SetCheckedQuietly(view.api_enabled);
+  api_scripts_->SetCheckedQuietly(view.api_scripts);
+  api_scripts_row_->setEnabled(view.api_enabled && view.api_scripts_available);
+  api_scripts_row_->setToolTip(
+      view.api_scripts_available
+          ? QString()
+          : QStringLiteral("Not available on Windows yet: the API's pipe "
+                           "isn't limited to your user account."));
   const bool custom = !view.default_dir.empty();
   if (!default_dir_->hasFocus()) {
     default_dir_->setText(custom ? ToQ(view.default_dir)

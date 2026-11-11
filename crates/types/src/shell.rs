@@ -40,16 +40,18 @@ pub enum DockPanelName {
     Timeline,
     Mixer,
     Run,
+    Script,
 }
 
 impl DockPanelName {
-    pub const ALL: [Self; 3] = [Self::Timeline, Self::Mixer, Self::Run];
+    pub const ALL: [Self; 4] = [Self::Timeline, Self::Mixer, Self::Run, Self::Script];
 
     pub const fn id(self) -> &'static str {
         match self {
             Self::Timeline => "timeline",
             Self::Mixer => "mixer",
             Self::Run => "run",
+            Self::Script => "script",
         }
     }
 
@@ -58,6 +60,7 @@ impl DockPanelName {
             Self::Timeline => "Timeline",
             Self::Mixer => "Mixer",
             Self::Run => "Run",
+            Self::Script => "Script",
         }
     }
 }
@@ -104,6 +107,8 @@ pub enum MenuCommand {
     ViewFocusMixer,
     #[serde(rename = "view:focus-run")]
     ViewFocusRun,
+    #[serde(rename = "view:focus-script")]
+    ViewFocusScript,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]

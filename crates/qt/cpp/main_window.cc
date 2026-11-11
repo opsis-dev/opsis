@@ -9,11 +9,15 @@
 #include <QDialog>
 #include <QFileDialog>
 #include <QGuiApplication>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QMenu>
 #include <QMenuBar>
 #include <QScreen>
 #include <QTimer>
 #include <QVBoxLayout>
+#include <algorithm>
 #include <array>
 #include <functional>
 
@@ -30,6 +34,7 @@
 #include "opsis-qt/src/bridge.rs.h"
 #include "replay_dialog.h"
 #include "run_panel.h"
+#include "script_panel.h"
 #include "settings_window.h"
 #include "start_screen.h"
 #include "timeline_panel.h"
@@ -172,6 +177,7 @@ void MainWindow::Generate(int count) {
 }
 
 void MainWindow::CloseProject() {
+  if (script_panel_ != nullptr) script_panel_->Save();
   SaveWindow();
   SaveLayout();
   App::Get().session().close_project();
@@ -232,6 +238,8 @@ void MainWindow::Dispatch(const QString& id) {
     FocusDock(mixer_dock_);
   } else if (id == QStringLiteral("view:focus-run")) {
     FocusDock(run_dock_);
+  } else if (id == QStringLiteral("view:focus-script")) {
+    FocusDock(script_dock_);
   } else if (id == QStringLiteral("edit:select-all")) {
     canvas_->SelectAll();
   } else if (id == QStringLiteral("edit:add-node")) {
@@ -407,6 +415,21 @@ void MainWindow::SyncRail() {
   }
 }
 
+namespace {
+
+bool LayoutKnows(const QByteArray& layout, const QString& name) {
+  const QJsonArray docks = QJsonDocument::fromJson(layout)
+                               .object()
+                               .value("allDockWidgets")
+                               .toArray();
+  return std::any_of(
+      docks.begin(), docks.end(), [&name](const QJsonValue& dock) {
+        return dock.toObject().value("uniqueName").toString() == name;
+      });
+}
+
+}
+
 kdw::QtWidgets::DockWidget* MainWindow::MakeDock(const QString& id,
                                                  const QString& title,
                                                  QWidget* content) {
@@ -423,11 +446,6 @@ void MainWindow::BuildDocks() {
       MakeDock(QStringLiteral("nodes"), QStringLiteral("Nodes"), nodes);
   connect(nodes_dock_, &kdw::QtWidgets::DockWidget::isOpenChanged, this,
           &MainWindow::SyncRail);
-  for (auto* dock :
-       {nodes_dock_, inspector_dock_, timeline_dock_, mixer_dock_, run_dock_}) {
-    connect(dock, &kdw::QtWidgets::DockWidget::isOpenChanged, this,
-            &MainWindow::SyncPanels);
-  }
   inspector_dock_ = MakeDock(QStringLiteral("inspector"),
                              QStringLiteral("Inspector"), new InspectorPanel());
   timeline_dock_ = MakeDock(QStringLiteral("timeline"),
@@ -436,6 +454,14 @@ void MainWindow::BuildDocks() {
                          new MixerPanel());
   run_dock_ =
       MakeDock(QStringLiteral("run"), QStringLiteral("Run"), new RunPanel());
+  script_panel_ = new ScriptPanel();
+  script_dock_ = MakeDock(QStringLiteral("script"), QStringLiteral("Script"),
+                          script_panel_);
+  for (auto* dock : {nodes_dock_, inspector_dock_, timeline_dock_, mixer_dock_,
+                     run_dock_, script_dock_}) {
+    connect(dock, &kdw::QtWidgets::DockWidget::isOpenChanged, this,
+            &MainWindow::SyncPanels);
+  }
   const int bottom =
       static_cast<int>((height() - app_bar_->height()) * kBottomShare);
   addDockWidget(timeline_dock_, kdw::Location_OnBottom, nullptr,
@@ -446,6 +472,7 @@ void MainWindow::BuildDocks() {
                 kdw::InitialOption(kdw::Size(kInspectorWidth, 0)));
   timeline_dock_->addDockWidgetAsTab(mixer_dock_);
   timeline_dock_->addDockWidgetAsTab(run_dock_);
+  timeline_dock_->addDockWidgetAsTab(script_dock_);
   timeline_dock_->setAsCurrentTab();
   docked_ = true;
   const QString layout = ToQ(App::Get().session().load_layout());
@@ -453,6 +480,15 @@ void MainWindow::BuildDocks() {
     kdw::LayoutSaver saver;
     if (!saver.restoreLayout(layout.toUtf8())) {
       App::Get().Log(QStringLiteral("the saved layout didn't restore"));
+    } else if (!LayoutKnows(layout.toUtf8(), script_dock_->uniqueName())) {
+      kdw::QtWidgets::DockWidget* home = timeline_dock_;
+      for (auto* dock : {run_dock_, mixer_dock_, timeline_dock_}) {
+        if (dock->isOpen() && !dock->isFloating()) {
+          home = dock;
+          break;
+        }
+      }
+      home->addDockWidgetAsTab(script_dock_);
     }
   }
 }
@@ -479,7 +515,7 @@ void MainWindow::ShowStart() {
   if (docked_) {
     SaveLayout();
     for (auto* dock : {nodes_dock_, inspector_dock_, timeline_dock_,
-                       mixer_dock_, run_dock_}) {
+                       mixer_dock_, run_dock_, script_dock_}) {
       dock->forceClose();
     }
   }
@@ -537,13 +573,13 @@ void MainWindow::SetEnabled(const QString& id, bool enabled) {
 
 bool MainWindow::BottomOpen() const {
   return timeline_dock_->isOpen() || mixer_dock_->isOpen() ||
-         run_dock_->isOpen();
+         run_dock_->isOpen() || script_dock_->isOpen();
 }
 
 void MainWindow::ToggleBottom() {
   if (!docked_) return;
-  const std::array<kdw::QtWidgets::DockWidget*, 3> docks = {
-      timeline_dock_, mixer_dock_, run_dock_};
+  const std::array<kdw::QtWidgets::DockWidget*, 4> docks = {
+      timeline_dock_, mixer_dock_, run_dock_, script_dock_};
   if (BottomOpen()) {
     bottom_current_ = nullptr;
     for (auto* dock : docks) {
@@ -556,6 +592,7 @@ void MainWindow::ToggleBottom() {
     timeline_dock_->open();
     timeline_dock_->addDockWidgetAsTab(mixer_dock_);
     timeline_dock_->addDockWidgetAsTab(run_dock_);
+    timeline_dock_->addDockWidgetAsTab(script_dock_);
     (bottom_current_ != nullptr ? bottom_current_ : timeline_dock_)
         ->setAsCurrentTab();
   }

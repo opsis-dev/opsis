@@ -100,6 +100,9 @@ void EventHub::Dispatch(std::uint8_t kind) {
     case bridge::EventKind::Update:
       emit UpdateChanged();
       break;
+    case bridge::EventKind::Script:
+      emit ScriptChanged();
+      break;
     default:
       break;
   }

@@ -4,6 +4,7 @@ use std::time::Duration;
 
 use opsis_compile::compile::compile_workflow;
 use opsis_compile::edits::EditError;
+use opsis_compile::edits::timeline::Film;
 use opsis_compile::graph::connection_problem_now;
 use opsis_compile::node::Platform;
 use opsis_document::Document;
@@ -38,6 +39,8 @@ pub enum DocumentError {
     Edit(#[from] EditError),
     #[error("{0}")]
     Refused(String),
+    #[error("A script is running. Undo and redo wait until it ends.")]
+    ScriptRunning,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
@@ -234,6 +237,7 @@ async fn opened_project(state: &AppState, dir: &Path) -> CommandResult<OpenProje
 pub async fn open(app: &Session, dir: &Path) -> CommandResult<OpenProject> {
     let state = app.state::<AppState>();
     if document_dir(state).as_deref() != Some(dir) {
+        crate::script::stop_and_wait(app).await;
         save(app).await?;
         let project = state.projects.open(dir)?;
         state
@@ -268,6 +272,7 @@ pub async fn adopt(
     workflow: Workflow,
     version: String,
 ) -> CommandResult<OpenProject> {
+    crate::script::stop_and_wait(app).await;
     save(app).await?;
     let state = app.state::<AppState>();
     {
@@ -332,6 +337,9 @@ pub fn step(app: &Session, redo: bool) -> Result<u64, DocumentError> {
         let state = app.state::<AppState>();
         let mut editor = state.editor();
         let doc = editor.document.as_mut().ok_or(DocumentError::NoProject)?;
+        if doc.in_batch() {
+            return Err(DocumentError::ScriptRunning);
+        }
         if redo {
             doc.redo()
         } else {
@@ -420,6 +428,53 @@ pub fn edit_timeline(app: &Session, edit: TimelineEdit) -> CommandResult<Timelin
     }
     Ok(reply)
 }
+pub fn edit_timeline_on(
+    app: &Session,
+    edit: TimelineEdit,
+    film: &Film,
+) -> Result<TimelineReply, DocumentError> {
+    let reply = {
+        let state = app.state::<AppState>();
+        let mut editor = state.editor();
+        let doc = editor.document.as_mut().ok_or(DocumentError::NoProject)?;
+        doc.edit_timeline(edit, film)
+    };
+    if reply.error.is_none() {
+        changed(app);
+    }
+    Ok(reply)
+}
+
+pub fn begin_batch(app: &Session) -> Result<PathBuf, DocumentError> {
+    let state = app.state::<AppState>();
+    let mut editor = state.editor();
+    let doc = editor.document.as_mut().ok_or(DocumentError::NoProject)?;
+    if !doc.begin_batch() {
+        return Err(DocumentError::ScriptRunning);
+    }
+    Ok(doc.dir().to_path_buf())
+}
+
+pub fn end_batch(app: &Session, dir: &Path, keep: bool) -> bool {
+    let rolled_back = {
+        let state = app.state::<AppState>();
+        let mut editor = state.editor();
+        let Some(doc) = editor.document.as_mut().filter(|d| d.dir() == dir) else {
+            return false;
+        };
+        let before = doc.revision();
+        doc.end_batch(keep);
+        doc.revision() != before
+    };
+    if rolled_back {
+        changed(app);
+    } else {
+        announce(app);
+        crate::compile::request(app);
+    }
+    rolled_back
+}
+
 pub fn timeline_removal(app: &Session, selected: &[String]) -> Option<Removal> {
     let state = app.state::<AppState>();
     let editor = state.editor();

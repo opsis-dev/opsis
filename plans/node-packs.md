@@ -371,6 +371,27 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 - `wit-bindgen` 0.63.0, `cargo-component` 0.21.1 (crates.io), ComponentizeJS 0.23.0 (2026-09-21, experimental, SpiderMonkey per component) for JavaScript authors.
 
+## Lua as a pack language
+
+Findings only, checked on 11 November 2026 when Lua scripting was built ([scripting.md](../agent-docs/scripting.md)). Pack code stays WebAssembly components loaded by wasmtime, and nothing here changes that.
+
+- **Native Lua per node is the wrong home for drawing and executing.** The Lua probe links the computer's `libm`, so `math.sin` can differ between machines, which the packs plan guards against inside wasmtime; and native Lua has no sandbox of the kind an executor needs.
+- **Fusion (DaVinci Resolve) does run nodes as Lua**: a Fuse is a Lua script that defines a node, runs on LuaJIT and reloads as it is edited, and its documentation says it may be slower than a compiled plugin. This comes from search summaries of Blackmagic's documents; the Fuse SDK pages returned 404.
+- **Lua can instead be one more language for writing packs**: a stock Lua interpreter built as an `opsis:pack` component, with the author's `.lua` put into it by the pack checker. A pack stays one component, and every limit of the packs plan holds.
+- **wasmtime 50.0.1 turns the exception-handling proposal on by default** under Cranelift (`Config::wasm_exceptions`, `crates/wasmtime/src/config.rs`); the option for the older encoding is hidden and deprecated. Lua raises errors with `setjmp` and `longjmp` (`LUAI_THROW`, `ldo.c`), which on WASI compile to exceptions, so the toolchain must emit the standard encoding.
+- **The Bytecode Alliance's article on exceptions (6 November 2025)** reports a Lua interpreter using `setjmp` and `longjmp` working on wasmtime.
+- **An older port, `lua-wasi`, stubs `setjmp` and `longjmp`**, so any Lua error there aborts the process; that is what a build without exception handling looks like.
+- **`mlua` supports WebAssembly only on `wasm32-unknown-emscripten`** (its README), so the interpreter component would be C Lua with bindings generated for C, or `piccolo`, which is experimental.
+- **None of this was built**: this machine has no WASI sysroot and no wasmtime program. The cost of an interpreter inside WebAssembly on every `draw` is unmeasured.
+- **Zed and Zellij both chose WebAssembly for extensions**; Zed compiles Rust to `wasm32-wasip2`.
+
+### Sources
+
+- `wasmtime` 50.0.1 `src/config.rs`; `lua-src` 551.0.2 `lua-5.5.1/ldo.c`; `mlua` 0.12.2 `README.md`.
+- Exceptions in Cranelift and Wasmtime (https://bytecodealliance.org/articles/wasmtime-exceptions); lua-wasi (https://github.com/singlestore-labs/lua-wasi/blob/main/README.md).
+- The Resolve scripting API (https://wiki.dvresolve.com/developer-docs/scripting-api), the Fusion Fuse SDK (https://documents.blackmagicdesign.com/UserManuals/Fusion_Fuse_SDK.pdf).
+- Zed's extensions (https://zed.dev/docs/extensions/developing-extensions), Zellij's plugins (https://zellij.dev/documentation/plugins.html).
+
 ## Appendix: draft WIT
 
 `opsis:pack@0.1.0`, as checked with `wasmtime::component::bindgen!` (wasmtime 50.0.1) for both worlds on 5 November 2026. **Contract**'s work adds the `wasi` imports to the `pack` world and moves the file into the repository.

@@ -269,3 +269,35 @@ fn reports_unknown_types_bad_connections_duplicate_ids_and_invalid_settings() {
         result.problems
     );
 }
+
+#[test]
+fn names_the_file_settings_that_hold_an_absolute_path() {
+    let params = |path: &str| {
+        serde_json::json!({ "path": path })
+            .as_object()
+            .unwrap()
+            .clone()
+    };
+    let kind = opsis_compile::nodes::media::IMPORT_TYPE;
+    assert_eq!(
+        opsis_compile::check::absolute_file_settings(kind, &params("/home/me/clip.mp4")),
+        ["path"]
+    );
+    assert_eq!(
+        opsis_compile::check::absolute_file_settings(kind, &params("C:\\clips\\a.mp4")),
+        ["path"]
+    );
+    assert_eq!(
+        opsis_compile::check::absolute_file_settings(kind, &params("assets/clip.mp4")),
+        Vec::<String>::new()
+    );
+    assert_eq!(
+        opsis_compile::check::absolute_file_settings(
+            "browser.navigate",
+            serde_json::json!({ "url": "/not/a/file" })
+                .as_object()
+                .unwrap()
+        ),
+        Vec::<String>::new()
+    );
+}

@@ -1,6 +1,7 @@
 use opsis_compile::catalog::{CatalogNode, CatalogPort};
 use opsis_compile::check::ApiProblem;
 use opsis_types::events::RunTargets;
+use opsis_types::script::{ScriptOutcome, ScriptRequest, ScriptStatus};
 use opsis_types::workflow::{Workflow, WorkflowSettings};
 use schemars::generate::SchemaSettings;
 use schemars::{JsonSchema, SchemaGenerator};
@@ -56,6 +57,14 @@ pub struct ProjectState {
     #[schemars(description = "Goes up with every edit")]
     pub revision: u64,
     pub saved: bool,
+}
+
+#[derive(Debug, Clone, Serialize, JsonSchema)]
+#[schemars(rename = "ScriptAnswer")]
+pub struct ScriptReply {
+    #[serde(flatten)]
+    pub outcome: ScriptOutcome,
+    pub problems: Vec<ApiProblem>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -182,6 +191,11 @@ fn paths(doc: &mut Doc) -> Value {
             "post": project_op(with(with(operation("Start a run", &[("200", answer(reference("RunStatus"))), ("400", bad())]), "description", "With no body, runs everything that needs running. targetNodeIds runs those nodes and what they need; fromNodeId runs again from that node. Runs open the websites in the flow.".into()), "requestBody", body(doc.schema::<RunTargets>(), false))),
         },
         "/project/run/stop": { "post": project_op(operation("Stop the run", &[("200", answer(reference("RunStatus")))])) },
+        "/project/script": {
+            "get": project_op(with(operation("Whether a script is running", &[("200", answer(reference("ScriptStatus"))), ("403", error("Scripts are switched off"))]), "description", "Needs Run Lua scripts switched on in Settings → API.".into())),
+            "post": project_op(with(with(operation("Run a Lua script and answer when it ends", &[("200", answer(reference("ScriptAnswer"))), ("400", bad()), ("403", error("Scripts are switched off")), ("404", missing())]), "description", "Send source (Lua) or file (a script in the project's scripts folder). The script gets the opsis module and reaches only the project's files. A script that fails or is stopped undoes its changes to the project and answers ok: false; everything it changed is otherwise one undo step. Needs Run Lua scripts switched on in Settings → API.".into()), "requestBody", body(doc.schema::<ScriptRequest>(), true))),
+        },
+        "/project/script/stop": { "post": project_op(with(operation("Stop the running script", &[("200", answer(reference("ScriptStatus"))), ("403", error("Scripts are switched off"))]), "description", "Its changes to the project are undone.".into())) },
         "/project/run/events": { "get": with(operation("Follow run progress", &[("200", json!({ "description": "text/event-stream" }))]), "description", "A server-sent event stream. Each event is a JSON run event (run:start, node:start, node:done, node:error, node:skipped, run:done, …).".into()) },
     })
 }
@@ -203,6 +217,8 @@ pub fn openapi_document(version: &str) -> Value {
         Doc::schema::<CatalogNode>,
         Doc::schema::<CatalogPort>,
         Doc::schema::<ErrorBody>,
+        Doc::schema::<ScriptReply>,
+        Doc::schema::<ScriptStatus>,
     ] {
         register(&mut doc);
     }

@@ -19,6 +19,7 @@ class LivePip;
 class CategoryRail;
 class TopBar;
 class NodeList;
+class ScriptPanel;
 class SettingsWindow;
 class StartScreen;
 class SetupScreen;
@@ -48,6 +49,11 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   KDDockWidgets::QtWidgets::DockWidget* timeline_dock() const {
     return timeline_dock_;
   }
+  KDDockWidgets::QtWidgets::DockWidget* script_dock() const {
+    return script_dock_;
+  }
+  KDDockWidgets::QtWidgets::DockWidget* run_dock() const { return run_dock_; }
+  ScriptPanel* script_panel() const { return script_panel_; }
   void OpenExample(const QString& dir);
   void OpenFolder(const QString& dir);
   void Generate(int count);
@@ -102,6 +108,8 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   KDDockWidgets::QtWidgets::DockWidget* timeline_dock_ = nullptr;
   KDDockWidgets::QtWidgets::DockWidget* mixer_dock_ = nullptr;
   KDDockWidgets::QtWidgets::DockWidget* run_dock_ = nullptr;
+  KDDockWidgets::QtWidgets::DockWidget* script_dock_ = nullptr;
+  ScriptPanel* script_panel_ = nullptr;
   bool docked_ = false;
   QHash<QString, QAction*> actions_;
   QTimer save_window_;

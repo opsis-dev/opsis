@@ -17,7 +17,7 @@ const DEFINES: [&str; 6] = [
     "QT_TESTLIB_LIB",
 ];
 
-const MOC_HEADERS: [&str; 36] = [
+const MOC_HEADERS: [&str; 37] = [
     "event_hub.h",
     "look_glyph.h",
     "widgets.h",
@@ -42,6 +42,7 @@ const MOC_HEADERS: [&str; 36] = [
     "mixer_controls.h",
     "mixer_panel.h",
     "run_panel.h",
+    "script_panel.h",
     "gradient_field.h",
     "visual_fields.h",
     "marks_field.h",
@@ -56,7 +57,7 @@ const MOC_HEADERS: [&str; 36] = [
     "update_card.h",
 ];
 
-const SOURCES: [&str; 53] = [
+const SOURCES: [&str; 54] = [
     "app.cc",
     "look_glyph.cc",
     "event_hub.cc",
@@ -91,6 +92,7 @@ const SOURCES: [&str; 53] = [
     "mixer_controls.cc",
     "mixer_panel.cc",
     "run_panel.cc",
+    "script_panel.cc",
     "file_player.cc",
     "e2e_player.cc",
     "replay_dialog.cc",

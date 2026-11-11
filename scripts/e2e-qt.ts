@@ -131,7 +131,7 @@ function devBrowser(): string {
 function seedApi(): string {
   rmSync(API_DIR, { recursive: true, force: true });
   const userData = path.join(API_DIR, "user-data");
-  seedUserData(userData);
+  seedUserData(userData, { api: { enabled: true, scripts: true } });
   cpSync(path.join(ROOT, "examples"), path.join(API_DIR, "projects"), { recursive: true });
   return userData;
 }

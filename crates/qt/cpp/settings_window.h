@@ -58,6 +58,8 @@ class SettingsWindow : public QWidget {
   QLineEdit* default_dir_ = nullptr;
   Segmented* canvas_mode_ = nullptr;
   ToggleSwitch* api_enabled_ = nullptr;
+  ToggleSwitch* api_scripts_ = nullptr;
+  QWidget* api_scripts_row_ = nullptr;
   QLabel* default_dir_note_ = nullptr;
   QPushButton* default_dir_reset_ = nullptr;
   Segmented* trace_retention_ = nullptr;

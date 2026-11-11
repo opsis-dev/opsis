@@ -23,6 +23,56 @@ pub mod ffi {
         Engine,
         Fonts,
         Update,
+        Script,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    struct ScriptLineView {
+        id: u64,
+        kind: String,
+        text: String,
+        file: String,
+        line: u32,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    struct ScriptView {
+        has_project: bool,
+        dir: String,
+        files: Vec<String>,
+        open: String,
+        running: bool,
+        running_file: String,
+        output: Vec<ScriptLineView>,
+        outcome: String,
+        failure: String,
+        failure_file: String,
+        failure_line: u32,
+        rolled_back: bool,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    struct SyntaxRangeView {
+        start: u32,
+        length: u32,
+        kind: String,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    struct TextChangeView {
+        handled: bool,
+        start: u32,
+        end: u32,
+        text: String,
+        anchor: u32,
+        cursor: u32,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    struct BracketView {
+        found: bool,
+        open: u32,
+        close: u32,
     }
 
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -854,6 +904,8 @@ pub mod ffi {
         canvas_mode: String,
         canvas_modes: Vec<Choice>,
         api_enabled: bool,
+        api_scripts: bool,
+        api_scripts_available: bool,
         data_dir: String,
         trace_retention: String,
         trace_retentions: Vec<Choice>,
@@ -1108,6 +1160,23 @@ pub mod ffi {
         fn timeline(self: &Session) -> TimelineView;
         fn run_panel(self: &Session) -> RunPanelView;
         fn clear_run_log(self: &Session);
+        fn script_view(self: &Session) -> ScriptView;
+        fn script_open(self: &Session, file: &str);
+        fn script_read(self: &Session, file: &str) -> Result<String>;
+        fn script_save(self: &Session, dir: &str, file: &str, text: &str) -> Result<()>;
+        fn script_new(self: &Session) -> Result<String>;
+        fn script_run(self: &Session, dir: &str, file: &str, text: &str) -> Result<()>;
+        fn script_stop(self: &Session);
+        fn script_reload(self: &Session, file: &str, text: &str) -> TextChangeView;
+        fn script_highlight(self: &Session, text: &str) -> Vec<SyntaxRangeView>;
+        fn script_key(
+            self: &Session,
+            text: &str,
+            anchor: u32,
+            cursor: u32,
+            key: &str,
+        ) -> TextChangeView;
+        fn script_bracket(self: &Session, text: &str, cursor: u32) -> BracketView;
         fn player_open(self: &Session, file: &str) -> u64;
         fn player_close(self: &Session, id: u64);
         fn player_view(self: &Session, id: u64) -> PlayerView;

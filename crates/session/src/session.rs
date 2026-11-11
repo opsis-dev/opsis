@@ -12,6 +12,7 @@ use crate::node_results::NodeKeys;
 use crate::paths::AppPaths;
 use crate::platform::Platform;
 use crate::run::RunHost;
+use crate::script::Scripts;
 use crate::shared::Shared;
 use crate::startup::StartupError;
 use crate::state::AppState;
@@ -24,6 +25,7 @@ const EVENTS_KEPT: usize = 1024;
 struct Parts {
     state: AppState,
     run_host: RunHost,
+    scripts: Scripts,
     shared: Shared,
     exit: Exit,
     views: Views,
@@ -64,6 +66,7 @@ macro_rules! parts {
 parts!(
     AppState => state,
     RunHost => run_host,
+    Scripts => scripts,
     Shared => shared,
     Exit => exit,
     Views => views,
@@ -86,6 +89,7 @@ impl Session {
         Ok(Self(Arc::new(Parts {
             state,
             run_host: RunHost::default(),
+            scripts: Scripts::default(),
             shared: Shared::default(),
             exit: Exit::default(),
             views: Views::default(),
@@ -108,6 +112,7 @@ impl Session {
     }
 
     pub fn end(&self) {
+        crate::script::stop_script(self);
         self.state::<RunHost>().cancel();
         let ended = opsis_engine::children::end_remembered_children();
         if !ended.is_empty() {

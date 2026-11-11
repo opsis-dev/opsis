@@ -12,6 +12,7 @@ pub mod mix;
 pub mod numbers;
 pub mod project;
 pub mod recording;
+pub mod script;
 pub mod secrets;
 pub mod settings;
 pub mod shell;

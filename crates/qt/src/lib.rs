@@ -16,20 +16,21 @@ mod frame;
 mod host;
 
 pub use bridge::ffi::{
-    AboutView, ArtifactView, BarView, BoundsView, CardKind, CardView, CatalogRowView, CategoryView,
-    Choice, CloseView, ColorView, DialogKind, EdgeView, EngineView, EventKind, FieldKind,
-    FieldView, FilmTile, FilmTiles, FontCatalogView, FontChoicesView, FontPickView, FontReviewView,
-    FontRowView, GradientInfo, GradientStopView, GraphView, InspectorView, InstalledFontView,
-    IssueView, KeyLineView, KeyPointView, LicenceView, LiveCaptureView, LiveClickView, LiveView,
-    LoudnessView, MarkDrawnView, MarkPointsView, MenuItemKind, MenuItemView, MenuSectionView,
-    MeterView, MixerStripView, MixerView, MorphPathView, MorphStep, MotionInfo, NodeMove,
-    PaletteEntry, PlayerView, PortView, PoseView, PresetView, ProjectEntry, ProjectView,
-    RemovalView, ReplayActionView, ReplayView, RowView, RulerStep, RunLogView, RunPanelView,
-    RunRowView, ScreenArea, SettingsView, ShapeView, SnapView, StreamViewState, TemplateView,
-    TerminalWindowView, TextToken, TimelineAudioView, TimelineBarView, TimelineCameraKeyView,
-    TimelineMarkView, TimelineMarkerView, TimelineTransitionView, TimelineView, TokenKind,
-    TraceActionView, TraceConsoleView, TraceErrorView, TraceFrameView, TraceRequestView, TraceView,
-    UpdateView, VariableView, WindowPlacement,
+    AboutView, ArtifactView, BarView, BoundsView, BracketView, CardKind, CardView, CatalogRowView,
+    CategoryView, Choice, CloseView, ColorView, DialogKind, EdgeView, EngineView, EventKind,
+    FieldKind, FieldView, FilmTile, FilmTiles, FontCatalogView, FontChoicesView, FontPickView,
+    FontReviewView, FontRowView, GradientInfo, GradientStopView, GraphView, InspectorView,
+    InstalledFontView, IssueView, KeyLineView, KeyPointView, LicenceView, LiveCaptureView,
+    LiveClickView, LiveView, LoudnessView, MarkDrawnView, MarkPointsView, MenuItemKind,
+    MenuItemView, MenuSectionView, MeterView, MixerStripView, MixerView, MorphPathView, MorphStep,
+    MotionInfo, NodeMove, PaletteEntry, PlayerView, PortView, PoseView, PresetView, ProjectEntry,
+    ProjectView, RemovalView, ReplayActionView, ReplayView, RowView, RulerStep, RunLogView,
+    RunPanelView, RunRowView, ScreenArea, ScriptLineView, ScriptView, SettingsView, ShapeView,
+    SnapView, StreamViewState, SyntaxRangeView, TemplateView, TerminalWindowView, TextChangeView,
+    TextToken, TimelineAudioView, TimelineBarView, TimelineCameraKeyView, TimelineMarkView,
+    TimelineMarkerView, TimelineTransitionView, TimelineView, TokenKind, TraceActionView,
+    TraceConsoleView, TraceErrorView, TraceFrameView, TraceRequestView, TraceView, UpdateView,
+    VariableView, WindowPlacement,
 };
 pub use frame::FrameRef;
 pub use host::{

@@ -12,7 +12,7 @@ pub fn adopt(handle: Handle) {
     }
 }
 
-fn handle() -> &'static Handle {
+pub(crate) fn handle() -> &'static Handle {
     RUNTIME.get().expect("the session starts inside a runtime")
 }
 

@@ -15,6 +15,7 @@ aes-gcm = "0.11"
 apple-native-keyring-store = { version = "1", features = ["keychain"] }
 axum = "0.8"
 base64 = "0.23"
+cap-std = "4"
 cc = "1"
 cpal = "0.18"
 chromiumoxide = "0.9"
@@ -56,6 +57,7 @@ language-tags = "0.3"
 layout-rs = "0.1"
 log = "0.4"
 minisign = "0.10"
+mlua = { version = "0.12", features = ["lua55", "vendored", "serde"] }
 minisign-verify = "0.3"
 moxcms = "0.9"
 nanoid = "0.5"
@@ -81,6 +83,7 @@ opsis-project = { path = "crates/project" }
 opsis-qt = { path = "crates/qt" }
 opsis-render = { path = "crates/render" }
 opsis-runner = { path = "crates/runner" }
+opsis-script = { path = "crates/script" }
 opsis-session = { path = "crates/session" }
 opsis-store = { path = "crates/store" }
 opsis-stream = { path = "crates/stream" }
@@ -129,6 +132,8 @@ tokio-stream = { version = "0.1", features = ["sync"] }
 tokio-util = "0.7"
 tower = { version = "0.5", features = ["util"] }
 tower-http = { version = "0.7", features = ["cors", "fs"] }
+tree-sitter = "0.27"
+tree-sitter-lua = "0.5"
 url = "2"
 usvg = "0.49"
 uuid = { version = "1", features = ["v4"] }

@@ -1,14 +1,15 @@
 use std::fmt;
 
 use crate::bridge::ffi::{
-    self, AboutView, BarView, BoundsView, CategoryView, CloseView, ColorView, DialogKind,
-    EngineView, EventKind, FilmTiles, FontCatalogView, FontChoicesView, FontReviewView,
+    self, AboutView, BarView, BoundsView, BracketView, CategoryView, CloseView, ColorView,
+    DialogKind, EngineView, EventKind, FilmTiles, FontCatalogView, FontChoicesView, FontReviewView,
     FontRowView, GradientInfo, GraphView, InspectorView, InstalledFontView, KeyLineView,
     LicenceView, LiveView, LoudnessView, MarkDrawnView, MarkPointsView, MenuSectionView, MeterView,
     MixerView, MorphPathView, MorphStep, MotionInfo, NodeMove, PaletteEntry, PlayerView, PoseView,
     ProjectEntry, ProjectView, RemovalView, ReplayView, RulerStep, RunPanelView, ScreenArea,
-    SettingsView, SnapView, StreamViewState, TemplateView, TerminalWindowView, TextToken,
-    TimelineView, TraceView, UpdateView, VariableView, WindowPlacement,
+    ScriptView, SettingsView, SnapView, StreamViewState, SyntaxRangeView, TemplateView,
+    TerminalWindowView, TextChangeView, TextToken, TimelineView, TraceView, UpdateView,
+    VariableView, WindowPlacement,
 };
 use crate::frame::FrameRef;
 
@@ -103,6 +104,17 @@ pub trait Host {
     fn timeline(&self) -> TimelineView;
     fn run_panel(&self) -> RunPanelView;
     fn clear_run_log(&self);
+    fn script_view(&self) -> ScriptView;
+    fn script_open(&self, file: &str);
+    fn script_read(&self, file: &str) -> HostResult<String>;
+    fn script_save(&self, dir: &str, file: &str, text: &str) -> HostResult<()>;
+    fn script_new(&self) -> HostResult<String>;
+    fn script_run(&self, dir: &str, file: &str, text: &str) -> HostResult<()>;
+    fn script_stop(&self);
+    fn script_reload(&self, file: &str, text: &str) -> TextChangeView;
+    fn script_highlight(&self, text: &str) -> Vec<SyntaxRangeView>;
+    fn script_key(&self, text: &str, anchor: u32, cursor: u32, key: &str) -> TextChangeView;
+    fn script_bracket(&self, text: &str, cursor: u32) -> BracketView;
     fn player_open(&self, file: &str) -> u64;
     fn player_close(&self, id: u64);
     fn player_view(&self, id: u64) -> PlayerView;
@@ -670,6 +682,56 @@ impl Session {
 
     pub(crate) fn clear_run_log(&self) {
         self.0.clear_run_log();
+    }
+
+    pub(crate) fn script_view(&self) -> ScriptView {
+        self.0.script_view()
+    }
+
+    pub(crate) fn script_open(&self, file: &str) {
+        self.0.script_open(file);
+    }
+
+    pub(crate) fn script_read(&self, file: &str) -> HostResult<String> {
+        self.0.script_read(file)
+    }
+
+    pub(crate) fn script_save(&self, dir: &str, file: &str, text: &str) -> HostResult<()> {
+        self.0.script_save(dir, file, text)
+    }
+
+    pub(crate) fn script_new(&self) -> HostResult<String> {
+        self.0.script_new()
+    }
+
+    pub(crate) fn script_run(&self, dir: &str, file: &str, text: &str) -> HostResult<()> {
+        self.0.script_run(dir, file, text)
+    }
+
+    pub(crate) fn script_stop(&self) {
+        self.0.script_stop();
+    }
+
+    pub(crate) fn script_reload(&self, file: &str, text: &str) -> TextChangeView {
+        self.0.script_reload(file, text)
+    }
+
+    pub(crate) fn script_highlight(&self, text: &str) -> Vec<SyntaxRangeView> {
+        self.0.script_highlight(text)
+    }
+
+    pub(crate) fn script_key(
+        &self,
+        text: &str,
+        anchor: u32,
+        cursor: u32,
+        key: &str,
+    ) -> TextChangeView {
+        self.0.script_key(text, anchor, cursor, key)
+    }
+
+    pub(crate) fn script_bracket(&self, text: &str, cursor: u32) -> BracketView {
+        self.0.script_bracket(text, cursor)
     }
 
     pub(crate) fn player_open(&self, file: &str) -> u64 {

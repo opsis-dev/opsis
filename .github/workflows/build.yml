@@ -73,6 +73,24 @@ jobs:
       - name: Check the bundled FFmpeg has everything Opsis uses
         run: bun run test:rust -p opsis-media --lib capabilities
 
+  scripts:
+    name: Script sandbox on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with:
+          toolchain: nightly-2026-10-29
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
+        with:
+          cache-on-failure: true
+      - name: Check that scripts reach only the project's files
+        run: cargo test -p opsis-script
+
   e2e:
     name: End-to-end
     needs: checks

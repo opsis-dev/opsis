@@ -218,6 +218,8 @@ pub struct EngineSection {
 pub struct ApiSection {
     #[garde(skip)]
     pub enabled: bool,
+    #[garde(skip)]
+    pub scripts: bool,
 }
 
 #[derive(

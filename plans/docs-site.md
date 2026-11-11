@@ -91,7 +91,7 @@ The Qt scenarios already take a picture of every step: `bun run e2e:qt tour --sh
 
 **Work.**
 
-1. **Pages, in order:** installing Opsis on Linux (the packages `README.md` says work) and setting up the engine; a first project from a template; recording a browser take; recording a terminal take; camera, cursor and styles; exporting. Each through the agents: the feature finder for the area, the writer, then the verifier.
+1. **Pages, in order:** installing Opsis on Linux (the packages `README.md` says work) and setting up the engine; a first project from a template; recording a browser take; recording a terminal take; camera, cursor and styles; exporting; Lua scripts (what a script can reach, the `opsis` module, the Script tab, Run Lua scripts and `POST /project/script`, from [scripting.md](../agent-docs/scripting.md)). Each through the agents: the feature finder for the area, the writer, then the verifier.
 2. **Screenshots** for each page through section 2.
 
 **Decided.** Only what works today: no Windows or macOS pages until `plans/release.md` section 2 is done, and nothing from `plans/` or `TODO.md`.

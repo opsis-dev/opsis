@@ -12,6 +12,7 @@ use opsis_compile::graph::GraphIssue;
 use opsis_document::Document;
 use opsis_types::edits::{Edited, WorkflowEdit};
 use opsis_types::events::{RunEvent, RunTargets};
+use opsis_types::script::{ScriptOutcome, ScriptRequest, ScriptStatus};
 use opsis_types::shell::ApiServerStatus;
 use opsis_types::workflow::Workflow;
 use tokio::sync::broadcast;
@@ -55,10 +56,34 @@ const NOT_FOUND: u16 = 404;
 const BAD_REQUEST: u16 = 400;
 const CONFLICT: u16 = 409;
 const UNREADABLE: u16 = 422;
+const FORBIDDEN: u16 = 403;
+const SCRIPTS_OFF: &str = "Scripts are switched off. Turn on Run Lua scripts in Settings → API.";
+const SCRIPTS_UNAVAILABLE: &str = "Scripts can't run through the API on Windows yet, because the API's pipe isn't limited to your user account.";
+
+fn scripts_allowed(app: &Session) -> HostResult<()> {
+    if cfg!(windows) {
+        return Err(HostError::new(FORBIDDEN, SCRIPTS_UNAVAILABLE));
+    }
+    if app.state::<AppState>().settings().api.scripts {
+        Ok(())
+    } else {
+        Err(HostError::new(FORBIDDEN, SCRIPTS_OFF))
+    }
+}
+
+fn script_failure(error: &crate::script::ScriptStartError) -> HostError {
+    use crate::script::ScriptStartError;
+    let status = match error {
+        ScriptStartError::NoProject | ScriptStartError::Busy => CONFLICT,
+        ScriptStartError::NotAScript(_) => BAD_REQUEST,
+        ScriptStartError::Unreadable(_) => NOT_FOUND,
+    };
+    HostError::new(status, error.to_string())
+}
 
 fn document_failure(error: &DocumentError) -> HostError {
     let status = match error {
-        DocumentError::NoProject => CONFLICT,
+        DocumentError::NoProject | DocumentError::ScriptRunning => CONFLICT,
         DocumentError::Edit(
             EditError::NoNode(_)
             | EditError::NoEdge(_)
@@ -187,6 +212,33 @@ impl ApiHost for AppApi {
     fn run_events(&self) -> broadcast::Receiver<String> {
         self.app.state::<Api>().events.subscribe()
     }
+
+    fn run_script(&self, request: ScriptRequest) -> BoxFuture<'static, HostResult<ScriptOutcome>> {
+        let app = self.app.clone();
+        Box::pin(async move {
+            scripts_allowed(&app)?;
+            let source = match (request.file, request.source) {
+                (Some(file), _) => crate::script::ScriptSource::File(file),
+                (None, source) => crate::script::request_source(source.unwrap_or_default()),
+            };
+            let outcome =
+                crate::script::run_script(&app, source).map_err(|e| script_failure(&e))?;
+            outcome
+                .await
+                .map_err(|_| HostError::new(500, "The script ended without an answer."))
+        })
+    }
+
+    fn stop_script(&self) -> HostResult<ScriptStatus> {
+        scripts_allowed(&self.app)?;
+        Ok(crate::script::stop_script(&self.app))
+    }
+
+    fn script_status(&self) -> HostResult<ScriptStatus> {
+        scripts_allowed(&self.app)?;
+        project_state(&self.app)?;
+        Ok(crate::script::script_status(&self.app))
+    }
 }
 
 fn announce(app: &Session, status: ApiServerStatus) {
@@ -229,6 +281,10 @@ pub fn run_event(app: &Session, event: &RunEvent) {
         Err(error) => log::warn!("writing a run event for the API: {error}"),
     }
 }
+pub fn subscribe_run_events(app: &Session) -> broadcast::Receiver<String> {
+    app.state::<Api>().events.subscribe()
+}
+
 pub fn api_status(app: &Session) -> ApiServerStatus {
     let api = app.state::<Api>();
     api.server.status()

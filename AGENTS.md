@@ -13,10 +13,10 @@
 
 ## 2. Hard rules
 
-- **No comments. Any kind. Anywhere.** No `//`, `///`, `//!`, no `/* */`, no JSDoc, no file headers, no CSS comments, in source, tests, scripts and config, in TS, Rust, Zig and C++.
+- **No comments. Any kind. Anywhere.** No `//`, `///`, `//!`, no `/* */`, no JSDoc, no file headers, no CSS comments, in source, tests, scripts and config, in TS, Rust, Zig, C++ and Lua.
   - If something needs explaining, the name is wrong or the function is too big; a constraint that spans the codebase goes in this file, a domain's in its doc.
   - Allowed comment-shaped lines are functional directives only: `oxlint-disable…`, `/// <reference …>`, `@ts-…`. Rust attributes (`#[expect(…)]`, `#[cfg(…)]`) and a lint exception's `reason` are not comments.
-  - `bun run lint:comments` (`scripts/comments.ts`, part of `lint` and `lint:fix`) checks every TS file through `oxc-parser`, C++ files line by line outside string literals, and CSS, Rust, Zig and Qt style sheet files line by line, in `apps`, `packages`, `crates`, `scripts` and the root `*.config.ts`, skipping git-ignored files and `generated/` folders. TypeScript 7 has no parser API; its native compiler only type-checks.
+  - `bun run lint:comments` (`scripts/comments.ts`, part of `lint` and `lint:fix`) checks every TS file through `oxc-parser`, C++ and Lua files line by line outside string literals, and CSS, Rust, Zig and Qt style sheet files line by line, in `apps`, `packages`, `crates`, `scripts` and the root `*.config.ts`, skipping git-ignored files and `generated/` folders. TypeScript 7 has no parser API; its native compiler only type-checks.
 - **TS file names are kebab-case** (`trace-panel.tsx`); the code inside keeps its usual names (`TracePanel`).
   - oxlint enforces it (`unicorn/filename-case`).
   - Rust module files are snake_case, because a module name must be an identifier.
@@ -163,7 +163,8 @@ agent-docs/            the domain docs (§8)
 | `opsis-capture`   | the recording browser over CDP: sessions, selectors, actions, the screencast encoder, smooth takes, sign-in steps, stills, the film's `FrameDriver`, `TerminalPainter`                                                                                                       |
 | `opsis-stream`    | the streamed views (sign-in, element picker)                                                                                                                                                                                                                                 |
 | `opsis-api`       | the Local API                                                                                                                                                                                                                                                                |
-| `opsis-session`   | the open project and everything windows follow, with no window code: document, compiles, runs, shared state, settings, fonts, engine, streamed views, the exit decision, the Local API host                                                                                  |
+| `opsis-script`    | Lua scripts: the Lua 5.5 runtime, the sandbox that holds a script to the open project's files, the `opsis` module over a `ScriptHost`, and the Script panel's highlighting and editing rules                                                                                 |
+| `opsis-session`   | the open project and everything windows follow, with no window code: document, compiles, runs, scripts, shared state, settings, fonts, engine, streamed views, the exit decision, the Local API host                                                                         |
 | `opsis-qt`        | the native editor's view layer: Qt 6.12 Widgets and KDDockWidgets built from Cargo, the C++ views, the `cxx` bridge behind one safe `Host` trait; the other crate allowed `unsafe`                                                                                           |
 | `opsis-update`    | updates: which installer made this copy, the release feed, the signed download and the install step                                                                                                                                                                          |
 | `opsis-ui`        | the native editor's state and logic behind the views, implementing `Host` over `opsis-session`; the `opsis` binary                                                                                                                                                           |
@@ -213,6 +214,7 @@ agent-docs/            the domain docs (§8)
 - **Views that read a node by id handle it being gone**: a panel can refresh once more after the node is deleted.
 - **The editor keeps no state of its own**; app state is the database in Rust ([app-state.md](agent-docs/app-state.md)).
 - **Every Local API route is documented in `crates/api/src/openapi.rs`** ([api.md](agent-docs/api.md)).
+- **A script reaches only the open project's files and never the network** ([scripting.md](agent-docs/scripting.md)): its `io`, `os`, `require` and `dofile` resolve every path beneath the project folder, and the `opsis` module binds no call that downloads, opens another project or imports outside files.
 
 ### User-facing copy
 
@@ -248,6 +250,7 @@ agent-docs/            the domain docs (§8)
 | [document.md](agent-docs/document.md)   | the document in Rust, edits and gestures, compiles, shared state, live frames, autosave and disk changes                                                    |
 | [app-state.md](agent-docs/app-state.md) | the app database, settings, the keyring, projects folder                                                                                                    |
 | [api.md](agent-docs/api.md)             | the Local API: socket, routes, `ApiHost`, OpenAPI                                                                                                           |
+| [scripting.md](agent-docs/scripting.md) | Lua scripts: the runtime, the sandbox, the `opsis` module, running and stopping, the Script panel, highlighting and editing rules                           |
 | [runs.md](agent-docs/runs.md)           | run state, results following keys, media file checks, cache keys and version constants                                                                      |
 | [engine.md](agent-docs/engine.md)       | the recording browser, the bundled FFmpeg, probing, child temp folders and processes                                                                        |
 | [fonts.md](agent-docs/fonts.md)         | bundled and terminal fonts, the library, project fonts and roles, `family_for`                                                                              |

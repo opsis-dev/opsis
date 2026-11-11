@@ -72,7 +72,7 @@ impl FieldWidget {
     }
 }
 
-fn branch(schema: &Value) -> &Value {
+pub fn branch(schema: &Value) -> &Value {
     match schema.get("anyOf").and_then(Value::as_array) {
         Some(options) => options
             .iter()

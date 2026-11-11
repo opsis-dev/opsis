@@ -60,13 +60,17 @@ Built with Rust, [Qt](https://www.qt.io) Widgets and [KDDockWidgets](https://git
 
 - More than 250 node types, 7 sample projects, undo and redo, groups and auto layout.
 - **Timeline:** the film as bars with filmstrips, waveforms, action marks, chapters, markers and music beats; move, trim, split, ripple, roll, slip, speed and keyframes, each written back to the nodes as one undo step; snapping, J/K/L, in and out points.
-- Timeline, Mixer and Run are tabs, and any panel can pop out into its own window. The canvas has a mouse mode and a touchpad mode and a minimap you can hide.
+- Timeline, Mixer, Run and Script are tabs, and any panel can pop out into its own window. The canvas has a mouse mode and a touchpad mode and a minimap you can hide.
 - New projects go to `~/OpsisProjects` (changeable in Settings). If the project file changes on disk while it's open, the editor loads it, or asks first when you have unsaved edits; it never saves over a change it hasn't seen.
 - Settings has pages for General, Projects, Editor, Engine, Recording, Fonts, API, Licences and About.
 
 ### 🔌 Local API
 
 Off by default; switch it on in **Settings → API**. Scripts and AI agents on your computer can then read, change and run the open project over plain HTTP on a local socket (`api.sock` in the app's data folder, or the full path in `OPSIS_API_SOCKET`, at most 100 bytes long; a named pipe on Windows). `GET /openapi.json` describes every route, and every edit is one undo step in the editor.
+
+### 📜 Lua scripts
+
+Write Lua in the **Script** tab (`scripts/*.lua` in the project) and run it with Ctrl+Enter. The `opsis` module reaches everything the editor does with the open project: nodes, connections, variables, the timeline, the mixer, runs and exports. A script reads and writes only files inside the project folder and never uses the internet, and one that fails or is stopped undoes its changes to the project; one that finishes is a single undo step. With **Run Lua scripts** switched on in Settings → API, `POST /project/script` runs one too (not on Windows yet).
 
 ### 🔄 Updates
 
