@@ -15,6 +15,7 @@ fn run_scenario(name: &str, folder: &Path, launch: usize) -> (bool, String) {
         .env("OPSIS_USER_DATA", folder.join("user-data"))
         .env("OPSIS_QT_SCENARIO", name)
         .env("OPSIS_QT_PROJECTS", &projects)
+        .env("XDG_DATA_HOME", folder.join("data"))
         .env("OPSIS_QT_SHOTS", "off")
         .env("OPSIS_AUDIO_DEVICE", "alsa:null")
         .env("QT_QPA_PLATFORM", "offscreen")

@@ -1,10 +1,12 @@
 #include <kddockwidgets/LayoutSaver.h>
 #include <kddockwidgets/core/DockWidget.h>
+#include <kddockwidgets/qtwidgets/views/Separator.h>
 
 #include <QApplication>
 #include <QComboBox>
 #include <QDialog>
 #include <QDir>
+#include <QFile>
 #include <QFontInfo>
 #include <QGraphicsItem>
 #include <QGraphicsView>
@@ -25,6 +27,7 @@
 
 #include "app.h"
 #include "color_picker.h"
+#include "event_hub.h"
 #include "gradient_field.h"
 #include "graph_canvas.h"
 #include "main_window.h"
@@ -462,6 +465,65 @@ void Scenario::BuildViews() {
             QStringLiteral("the open script is %1").arg(ToQ(view.open)));
       });
   Add(
+      QStringLiteral("views-the-script-list-stays-still"),
+      [this] {
+        quiet_from_ = EventHub::Instance()->dispatched(
+            static_cast<std::uint8_t>(bridge::EventKind::Script));
+      },
+      1500,
+      [this] {
+        const int now = EventHub::Instance()->dispatched(
+            static_cast<std::uint8_t>(bridge::EventKind::Script));
+        return Expect(now == quiet_from_,
+                      QStringLiteral("the idle script panel rebuilt %1 times")
+                          .arg(now - quiet_from_));
+      });
+  Until(
+      QStringLiteral("views-a-script-is-deleted-to-the-trash"),
+      [] {
+        App::Get().session().script_new();
+        QTest::qWait(200);
+        const bridge::ScriptView view = App::Get().session().script_view();
+        App::Get().session().script_delete(view.dir, view.open);
+      },
+      kProjectMs,
+      [] {
+        const bridge::ScriptView view = App::Get().session().script_view();
+        return std::none_of(
+            view.files.begin(), view.files.end(), [](const auto& f) {
+              return ToQ(f) == QStringLiteral("scripts/script.lua");
+            });
+      },
+      [] {
+        const bridge::ScriptView view = App::Get().session().script_view();
+        const QString trashed =
+            QDir(qEnvironmentVariable("XDG_DATA_HOME"))
+                .filePath(QStringLiteral("Trash/files/script.lua"));
+        return Expect(ToQ(view.open) == QStringLiteral("scripts/titles.lua") &&
+                          QFile::exists(trashed),
+                      QStringLiteral("after deleting, %1 is open and the trash "
+                                     "%2 it")
+                          .arg(ToQ(view.open), QFile::exists(trashed)
+                                                   ? QStringLiteral("has")
+                                                   : QStringLiteral("lacks")));
+      });
+  Add(
+      QStringLiteral("views-panels-have-wide-splitters"), [] {}, 100,
+      [this] {
+        int thin = 0;
+        int seen = 0;
+        for (auto* separator :
+             window_->findChildren<KDDockWidgets::QtWidgets::Separator*>()) {
+          if (!separator->isVisible()) continue;
+          ++seen;
+          if (std::min(separator->width(), separator->height()) < 7) ++thin;
+        }
+        return Expect(seen > 0 && thin == 0,
+                      QStringLiteral("%1 of %2 splitters are thinner than 7 px")
+                          .arg(thin)
+                          .arg(seen));
+      });
+  Add(
       QStringLiteral("views-the-script-split-turns-with-the-panel"),
       [this] {
         window_->script_dock()->setFloating(true);
@@ -489,6 +551,24 @@ void Scenario::BuildViews() {
                Expect(small_buttons == 0,
                       QStringLiteral(" %1 title buttons are smaller than 24 px")
                           .arg(small_buttons));
+      });
+  Add(
+      QStringLiteral("views-a-closed-popped-out-panel-docks-back"),
+      [this] {
+        window_->script_dock()->setFloating(true);
+        QTest::qWait(200);
+        window_->script_panel()->window()->close();
+      },
+      500,
+      [this] {
+        auto* script = window_->script_dock();
+        return Expect(
+            script->isOpen() && !script->isFloating() &&
+                script->dockWidget()->isTabbed(),
+            QStringLiteral("after closing its window the script panel "
+                           "is %1")
+                .arg(script->isOpen() ? QStringLiteral("not docked")
+                                      : QStringLiteral("closed")));
       });
   Until(
       QStringLiteral("views-start-reopens-the-last-project"),

@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use std::time::Duration;
 
-use notify_debouncer_mini::notify::{RecommendedWatcher, RecursiveMode};
-use notify_debouncer_mini::{DebounceEventResult, Debouncer, new_debouncer};
+use notify_debouncer_mini::notify::event::ModifyKind;
+use notify_debouncer_mini::notify::{
+    self, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher, recommended_watcher,
+};
 use opsis_qt::{
-    BracketView, Choice, EventKind, ScriptLineView, ScriptLookView, ScriptView, SyntaxRangeView,
-    TextChangeView,
+    BracketView, Choice, EventKind as PanelEvent, ScriptLineView, ScriptLookView, ScriptView,
+    SyntaxRangeView, TextChangeView,
 };
 use opsis_script::editing::{self, TextChange};
 use opsis_script::runtime::location;
@@ -18,7 +19,6 @@ use opsis_types::settings::{SCRIPT_FONT_SIZE, ScriptSection};
 
 use crate::ui::plain;
 
-const WATCH_DELAY: Duration = Duration::from_millis(300);
 const STARTER: &str = "print(opsis.project.name)\n";
 const NEW_NAME: &str = "script";
 
@@ -27,7 +27,7 @@ pub struct ScriptEditing {
     pub dir: Option<PathBuf>,
     pub open: Option<String>,
     saved: HashMap<String, String>,
-    watch: Option<Debouncer<RecommendedWatcher>>,
+    watch: Option<RecommendedWatcher>,
 }
 
 impl std::fmt::Debug for ScriptEditing {
@@ -57,6 +57,13 @@ impl ScriptEditing {
         self.saved.insert(file.to_owned(), text.to_owned());
     }
 
+    pub fn forget(&mut self, file: &str) {
+        self.saved.remove(file);
+        if self.open.as_deref() == Some(file) {
+            self.open = None;
+        }
+    }
+
     pub fn moved(&mut self, from: &str, to: &str) {
         if let Some(text) = self.saved.remove(from) {
             self.saved.insert(to.to_owned(), text);
@@ -79,24 +86,32 @@ impl ScriptEditing {
     }
 }
 
-fn watch(dir: &Path) -> Option<Debouncer<RecommendedWatcher>> {
+pub const fn changes_files(kind: EventKind) -> bool {
+    matches!(
+        kind,
+        EventKind::Create(_)
+            | EventKind::Remove(_)
+            | EventKind::Modify(ModifyKind::Data(_) | ModifyKind::Name(_) | ModifyKind::Any)
+    )
+}
+
+fn watch(dir: &Path) -> Option<RecommendedWatcher> {
     let scripts = dir.join(SCRIPTS_DIR);
     if !scripts.is_dir() {
         return None;
     }
-    let mut debouncer = new_debouncer(WATCH_DELAY, |result: DebounceEventResult| {
-        if result.is_ok() {
-            opsis_qt::post_event(EventKind::Script);
+    let mut watcher = recommended_watcher(|result: notify::Result<Event>| {
+        if result.is_ok_and(|event| changes_files(event.kind)) {
+            opsis_qt::post_event(PanelEvent::Script);
         }
     })
     .map_err(|error| log::warn!("watching the scripts folder: {error}"))
     .ok()?;
-    debouncer
-        .watcher()
+    watcher
         .watch(&scripts, RecursiveMode::Recursive)
         .map_err(|error| log::warn!("watching the scripts folder: {error}"))
         .ok()?;
-    Some(debouncer)
+    Some(watcher)
 }
 
 fn line_view(line: &ScriptLine) -> ScriptLineView {
@@ -173,6 +188,10 @@ pub fn rename(dir: &Path, from: &str, to: &str) -> Result<(), String> {
     std::fs::rename(dir.join(from), &target).map_err(|e| format!("Couldn't rename {from}. {e}"))
 }
 
+pub fn discard(dir: &Path, file: &str) -> Result<(), String> {
+    trash::delete(dir.join(file)).map_err(|e| format!("Couldn't move {file} to the trash. {e}"))
+}
+
 pub fn create(dir: &Path) -> Result<String, String> {
     let folder = dir.join(SCRIPTS_DIR);
     std::fs::create_dir_all(&folder)
@@ -234,11 +253,7 @@ pub fn theme_choices() -> Vec<Choice> {
         .iter()
         .map(|theme| Choice {
             value: theme.name.clone(),
-            label: if theme.dark {
-                theme.name.clone()
-            } else {
-                format!("{} (light)", theme.name)
-            },
+            label: theme.label.clone(),
         })
         .collect()
 }
@@ -322,6 +337,30 @@ mod tests {
             prop_assert!(script_path(&file).is_some(), "{file}");
             prop_assert_eq!(renamed(&file), file);
         }
+    }
+
+    #[test]
+    fn only_writes_new_files_renames_and_removals_reload_the_list() {
+        use notify::event::{
+            AccessKind, AccessMode, CreateKind, DataChange, MetadataKind, RemoveKind, RenameMode,
+        };
+        assert!(!changes_files(EventKind::Access(AccessKind::Open(
+            AccessMode::Any
+        ))));
+        assert!(!changes_files(EventKind::Access(AccessKind::Close(
+            AccessMode::Read
+        ))));
+        assert!(!changes_files(EventKind::Modify(ModifyKind::Metadata(
+            MetadataKind::AccessTime
+        ))));
+        assert!(changes_files(EventKind::Create(CreateKind::File)));
+        assert!(changes_files(EventKind::Remove(RemoveKind::File)));
+        assert!(changes_files(EventKind::Modify(ModifyKind::Data(
+            DataChange::Content
+        ))));
+        assert!(changes_files(EventKind::Modify(ModifyKind::Name(
+            RenameMode::Both
+        ))));
     }
 
     #[test]

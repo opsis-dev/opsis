@@ -67,7 +67,7 @@ const outStyle = z.object({
 });
 const outTheme = z.object({
   name: z.string(),
-  dark: z.boolean(),
+  label: z.string(),
   background: hex,
   text: hex,
   selection: hex,
@@ -155,11 +155,34 @@ function lightness(colourHex: string): number {
   return 0.2126 * channel(1) + 0.7152 * channel(3) + 0.0722 * channel(5);
 }
 
+const WORDS = new Map([
+  ["github", "GitHub"],
+  ["onedark", "One Dark"],
+  ["onedarker", "One Darker"],
+  ["jetbrains", "JetBrains"],
+  ["nvim", "Neovim"],
+  ["tokyonight", "Tokyo Night"],
+  ["papercolor", "PaperColor"],
+]);
+
+function readable(name: string): string {
+  if (name === DEFAULT_THEME) return "Helix Default";
+  return name
+    .split(/[_-]+/)
+    .filter((word) => word.length > 0)
+    .map((word) => WORDS.get(word) ?? `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
+    .join(" ");
+}
+
+function isDark(background: string): boolean {
+  return lightness(background) < 0.4;
+}
+
 function built(dir: string, name: string): Theme | undefined {
   const theme = merged(dir, name);
   const background = part(theme, "ui.background", "bg");
   const text = part(theme, "ui.text", "fg") ?? part(theme, "ui.background", "fg");
-  if (background === undefined || text === undefined) return undefined;
+  if (background === undefined || text === undefined || !isDark(background)) return undefined;
   const selection = part(theme, "ui.selection", "bg") ?? part(theme, "ui.selection", "fg") ?? text;
   const bracket =
     part(theme, "ui.cursor.match", "bg") ?? part(theme, "ui.cursor.match", "fg") ?? selection;
@@ -189,7 +212,7 @@ function built(dir: string, name: string): Theme | undefined {
   }
   return outTheme.parse({
     name,
-    dark: lightness(background) < 0.4,
+    label: readable(name),
     background,
     text,
     selection,
@@ -223,5 +246,5 @@ console.log(
 );
 if (skipped.length > 0)
   console.log(
-    `left out ${skipped.length} with no fixed background or text colour: ${skipped.join(", ")}`,
+    `left out ${skipped.length} light themes and ones with no fixed background or text colour: ${skipped.join(", ")}`,
   );

@@ -39,6 +39,7 @@ serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "sync", "time", "macros"] }
+trash.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true

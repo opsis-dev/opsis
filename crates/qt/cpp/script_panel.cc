@@ -1,11 +1,13 @@
 #include "script_panel.h"
 
+#include <QAbstractItemView>
 #include <QCompleter>
 #include <QHBoxLayout>
 #include <QInputDialog>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QKeyEvent>
+#include <QMessageBox>
 #include <QMouseEvent>
 #include <QScrollBar>
 #include <QTextBlock>
@@ -225,6 +227,8 @@ ScriptPanel::ScriptPanel(QWidget* parent)
                       this)),
       rename_(MakeButton(QStringLiteral("Rename"), "ghost",
                          QStringLiteral("pencil"), this)),
+      delete_(MakeButton(QStringLiteral("Delete"), "ghost",
+                         QStringLiteral("trash-2"), this)),
       run_(MakeButton(QStringLiteral("Run"), "outline", QStringLiteral("play"),
                       this)),
       stop_(MakeButton(QStringLiteral("Stop"), "outline",
@@ -261,6 +265,9 @@ ScriptPanel::ScriptPanel(QWidget* parent)
   rename_->setObjectName(QStringLiteral("ScriptRename"));
   rename_->setToolTip(QStringLiteral("Rename the open script"));
   row->addWidget(rename_);
+  delete_->setObjectName(QStringLiteral("ScriptDelete"));
+  delete_->setToolTip(QStringLiteral("Move the open script to the trash"));
+  row->addWidget(delete_);
   run_->setObjectName(QStringLiteral("ScriptRun"));
   run_->setToolTip(QStringLiteral("Run the script (Ctrl+Enter)"));
   row->addWidget(run_);
@@ -281,9 +288,13 @@ ScriptPanel::ScriptPanel(QWidget* parent)
   theme_->completer()->setCompletionMode(QCompleter::PopupCompletion);
   theme_->completer()->setFilterMode(Qt::MatchContains);
   theme_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  int longest = 0;
   for (const auto& choice : App::Get().session().script_themes()) {
-    theme_->addItem(ToQ(choice.label), ToQ(choice.value));
+    const QString label = ToQ(choice.label);
+    longest = std::max(longest, static_cast<int>(label.size()));
+    theme_->addItem(label, ToQ(choice.value));
   }
+  theme_->setMinimumContentsLength(longest);
   row->addWidget(theme_);
   size_->setObjectName(QStringLiteral("ScriptFontSize"));
   size_->setAccessibleName(QStringLiteral("Code size"));
@@ -328,6 +339,7 @@ ScriptPanel::ScriptPanel(QWidget* parent)
     }
   });
   connect(rename_, &QPushButton::clicked, this, &ScriptPanel::Rename);
+  connect(delete_, &QPushButton::clicked, this, &ScriptPanel::Delete);
   connect(files_, &QComboBox::activated, this, [this](int index) {
     Save();
     App::Get().session().script_open(ToRust(files_->itemText(index)));
@@ -419,6 +431,21 @@ void ScriptPanel::Rename() {
   try {
     App::Get().session().script_rename(ToRust(dir_), ToRust(open_),
                                        ToRust(name.trimmed()));
+  } catch (const rust::Error& error) {
+    App::Get().ShowError(QString::fromUtf8(error.what()));
+  }
+}
+
+void ScriptPanel::Delete() {
+  if (open_.isEmpty()) return;
+  const QMessageBox::StandardButton answer = QMessageBox::question(
+      this, QStringLiteral("Delete script"),
+      QStringLiteral("Move %1 to the trash?").arg(open_),
+      QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
+  if (answer != QMessageBox::Yes) return;
+  save_.stop();
+  try {
+    App::Get().session().script_delete(ToRust(dir_), ToRust(open_));
   } catch (const rust::Error& error) {
     App::Get().ShowError(QString::fromUtf8(error.what()));
   }
@@ -528,12 +555,17 @@ void ScriptPanel::Rebuild() {
   const bool fresh_outcome =
       last_ == nullptr || last_->outcome != view.outcome ||
       last_->failure != view.failure || last_->running != view.running;
-  files_->blockSignals(true);
-  files_->clear();
-  for (const auto& file : view.files) files_->addItem(ToQ(file));
-  files_->setCurrentText(ToQ(view.open));
-  files_->setEnabled(!view.files.empty());
-  files_->blockSignals(false);
+  const bool same_files = last_ != nullptr && last_->open == view.open &&
+                          std::equal(last_->files.begin(), last_->files.end(),
+                                     view.files.begin(), view.files.end());
+  if (!same_files && !files_->view()->isVisible()) {
+    files_->blockSignals(true);
+    files_->clear();
+    for (const auto& file : view.files) files_->addItem(ToQ(file));
+    files_->setCurrentText(ToQ(view.open));
+    files_->setEnabled(!view.files.empty());
+    files_->blockSignals(false);
+  }
   const QString open = ToQ(view.open);
   const QString dir = ToQ(view.dir);
   if (open != open_ || dir != dir_) {
@@ -564,6 +596,8 @@ void ScriptPanel::Rebuild() {
   }
   new_->setEnabled(view.has_project);
   rename_->setEnabled(view.has_project && !open_.isEmpty());
+  delete_->setEnabled(view.has_project && !open_.isEmpty() &&
+                      ToQ(view.running_file) != open_);
   run_->setEnabled(view.has_project && !view.running && !open_.isEmpty());
   stop_->setEnabled(view.running);
   badge_->setVisible(view.running);

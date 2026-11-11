@@ -699,25 +699,24 @@ Opens every file a script reads or writes beneath the project folder, in `crates
 
 ## Helix's code themes and Lua highlight query — crates/script/src/themes.generated.json, crates/script/src/highlights.generated.scm
 
-The Script panel's code themes are the themes of the Helix editor (https://github.com/helix-editor/helix, release 25.07.1: `theme.toml` and `runtime/themes`), converted to the colours the panel uses by `scripts/script-themes.ts`, and its Lua highlighting uses Helix's `runtime/queries/lua/highlights.scm` unchanged. Helix is licensed under the Mozilla Public License, Version 2.0 (https://mozilla.org/MPL/2.0/); the source of these files is available at the address above. The four Modus Vivendi themes, licensed under the GNU Free Documentation License, are left out.
+The Script panel's code themes are the themes of the Helix editor (https://github.com/helix-editor/helix, release 25.07.1: `theme.toml` and `runtime/themes`), converted to the colours the panel uses by `scripts/script-themes.ts`, and its Lua highlighting uses Helix's `runtime/queries/lua/highlights.scm` unchanged. Helix is licensed under the Mozilla Public License, Version 2.0 (https://mozilla.org/MPL/2.0/); the source of these files is available at the address above. Only the dark themes are included; the four Modus Vivendi themes, licensed under the GNU Free Documentation License, are among those left out.
 
 These themes are also licensed under the MIT License, by their copyright holders:
 
 - ashen: Copyright (c) 2025 Daniel Fichtinger
 - carbonfox: Copyright (c) 2021 James Simpson
-- cyan_light: Copyright (c) 2016 CloudCannon
 - dark-synthwave: Copyright (c) 2021 Aaron Young
 - doom-one: Copyright (c) 2025 NTBBloodbath
-- everforest_dark, everforest_light: Copyright (c) 2019 sainnhe
+- everforest_dark: Copyright (c) 2019 sainnhe
 - gruvbox-material: by sainnhe
-- kinda_nvim, kinda_nvim_light: Copyright (c) 2025 Strash
+- kinda_nvim: Copyright (c) 2025 Strash
 - lapis_aquamarine: Copyright (c) 2025 Alex Barnett
 - poimandres: Copyright (c) 2023 drcmda
-- serika-dark, serika-light: Copyright (c) 2018 arturoalviar
+- serika-dark: Copyright (c) 2018 arturoalviar
 - sidra: by Md Atiquz Zaman
 - sonokai: Copyright (c) 2020 sainnhe
 - vesper: Copyright (c) 2023 Rauno Freiberg
-- yo, yo_berry, yo_light: by Michael McClintock
+- yo, yo_berry: by Michael McClintock
 
 ```
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -728,6 +727,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 ```
 
 The starlight theme is released into the public domain (The Unlicense).
+
+## Moving deleted scripts to the trash — the trash crate
+
+Deletes a script by moving it to the system's trash, in `crates/ui`. https://github.com/ArturKovacs/trash, licensed under the MIT License.
 
 ## Sound output — the cpal crate
 

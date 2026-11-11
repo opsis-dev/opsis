@@ -18,7 +18,7 @@ pub struct Style {
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct Theme {
     pub name: String,
-    pub dark: bool,
+    pub label: String,
     pub background: String,
     pub text: String,
     pub selection: String,
@@ -105,7 +105,7 @@ mod tests {
             styles.insert(key, Style { fg: "#ffffff".into(), bold: false, italic: false });
             let theme = Theme {
                 name: "t".into(),
-                dark: true,
+                label: "T".into(),
                 background: "#000000".into(),
                 text: "#ffffff".into(),
                 selection: "#333333".into(),

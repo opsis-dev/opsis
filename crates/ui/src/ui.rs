@@ -1969,6 +1969,19 @@ impl Host for Ui {
         Ok(to)
     }
 
+    fn script_delete(&self, dir: &str, file: &str) -> HostResult<()> {
+        let file = script_panel::checked(file)?;
+        let dir = self.project_dir_of(dir)?;
+        let running = opsis_session::script::script_status(&self.session).file;
+        if running.as_deref() == Some(file.as_str()) {
+            return Err("This script is running. Stop it before deleting it.".to_owned());
+        }
+        script_panel::discard(&dir, &file)?;
+        self.scripts.lock().expect("script editing").forget(&file);
+        opsis_qt::post_event(EventKind::Script);
+        Ok(())
+    }
+
     fn script_run(&self, dir: &str, file: &str, text: &str) -> HostResult<()> {
         self.script_save(dir, file, text)?;
         opsis_session::script::run_script(

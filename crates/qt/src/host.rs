@@ -110,6 +110,7 @@ pub trait Host {
     fn script_save(&self, dir: &str, file: &str, text: &str) -> HostResult<()>;
     fn script_new(&self) -> HostResult<String>;
     fn script_rename(&self, dir: &str, from: &str, to: &str) -> HostResult<String>;
+    fn script_delete(&self, dir: &str, file: &str) -> HostResult<()>;
     fn script_run(&self, dir: &str, file: &str, text: &str) -> HostResult<()>;
     fn script_stop(&self);
     fn script_reload(&self, file: &str, text: &str) -> TextChangeView;
@@ -709,6 +710,10 @@ impl Session {
 
     pub(crate) fn script_rename(&self, dir: &str, from: &str, to: &str) -> HostResult<String> {
         self.0.script_rename(dir, from, to)
+    }
+
+    pub(crate) fn script_delete(&self, dir: &str, file: &str) -> HostResult<()> {
+        self.0.script_delete(dir, file)
     }
 
     pub(crate) fn script_run(&self, dir: &str, file: &str, text: &str) -> HostResult<()> {

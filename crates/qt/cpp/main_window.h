@@ -9,6 +9,7 @@
 #include <QPointer>
 #include <QStackedWidget>
 #include <QTimer>
+#include <array>
 
 namespace opsis {
 
@@ -81,6 +82,9 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   void SaveLayout();
   void SyncTitle();
   void ToggleDock(KDDockWidgets::QtWidgets::DockWidget* dock);
+  std::array<KDDockWidgets::QtWidgets::DockWidget*, 4> BottomDocks() const;
+  void DockBottom(KDDockWidgets::QtWidgets::DockWidget* dock);
+  void ReopenBottom();
   void FocusDock(KDDockWidgets::QtWidgets::DockWidget* dock);
   void Dispatch(const QString& id);
   void NewProject(const QString& template_id, bool fixed);
@@ -111,6 +115,7 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   KDDockWidgets::QtWidgets::DockWidget* script_dock_ = nullptr;
   ScriptPanel* script_panel_ = nullptr;
   bool docked_ = false;
+  bool parking_ = false;
   QHash<QString, QAction*> actions_;
   QTimer save_window_;
   QPointer<SettingsWindow> settings_;

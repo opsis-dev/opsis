@@ -1182,6 +1182,7 @@ pub mod ffi {
         fn script_save(self: &Session, dir: &str, file: &str, text: &str) -> Result<()>;
         fn script_new(self: &Session) -> Result<String>;
         fn script_rename(self: &Session, dir: &str, from: &str, to: &str) -> Result<String>;
+        fn script_delete(self: &Session, dir: &str, file: &str) -> Result<()>;
         fn script_run(self: &Session, dir: &str, file: &str, text: &str) -> Result<()>;
         fn script_stop(self: &Session);
         fn script_reload(self: &Session, file: &str, text: &str) -> TextChangeView;

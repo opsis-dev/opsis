@@ -289,7 +289,14 @@ void MainWindow::RunRole(const QString& id) {
 
 void MainWindow::FocusDock(kdw::QtWidgets::DockWidget* dock) {
   if (dock == nullptr) return;
-  if (!dock->isOpen()) dock->open();
+  const auto bottom = BottomDocks();
+  if (!dock->isOpen()) {
+    if (std::find(bottom.begin(), bottom.end(), dock) != bottom.end()) {
+      DockBottom(dock);
+    } else {
+      dock->open();
+    }
+  }
   dock->setAsCurrentTab();
   dock->raise();
   dock->widget()->setFocus();
@@ -462,6 +469,18 @@ void MainWindow::BuildDocks() {
     connect(dock, &kdw::QtWidgets::DockWidget::isOpenChanged, this,
             &MainWindow::SyncPanels);
   }
+  for (auto* dock : BottomDocks()) {
+    connect(dock, &kdw::QtWidgets::DockWidget::isOpenChanged, this,
+            [this, dock](bool open) {
+              if (open || parking_) return;
+              QTimer::singleShot(0, this, [this, dock] {
+                if (!dock->isOpen() && !parking_ && docked_ &&
+                    stack_->currentWidget() == canvas_) {
+                  DockBottom(dock);
+                }
+              });
+            });
+  }
   const int bottom =
       static_cast<int>((height() - app_bar_->height()) * kBottomShare);
   addDockWidget(timeline_dock_, kdw::Location_OnBottom, nullptr,
@@ -480,15 +499,13 @@ void MainWindow::BuildDocks() {
     kdw::LayoutSaver saver;
     if (!saver.restoreLayout(layout.toUtf8())) {
       App::Get().Log(QStringLiteral("the saved layout didn't restore"));
-    } else if (!LayoutKnows(layout.toUtf8(), script_dock_->uniqueName())) {
-      kdw::QtWidgets::DockWidget* home = timeline_dock_;
-      for (auto* dock : {run_dock_, mixer_dock_, timeline_dock_}) {
-        if (dock->isOpen() && !dock->isFloating()) {
-          home = dock;
-          break;
+    } else {
+      for (auto* dock : BottomDocks()) {
+        if (!dock->isOpen() ||
+            !LayoutKnows(layout.toUtf8(), dock->uniqueName())) {
+          DockBottom(dock);
         }
       }
-      home->addDockWidgetAsTab(script_dock_);
     }
   }
 }
@@ -499,9 +516,10 @@ void MainWindow::ShowEditor() {
   if (!docked_) {
     BuildDocks();
   } else {
-    for (auto* dock : {nodes_dock_, inspector_dock_, timeline_dock_}) {
+    for (auto* dock : {nodes_dock_, inspector_dock_}) {
       if (!dock->isOpen()) dock->open();
     }
+    ReopenBottom();
   }
   SyncRail();
   top_bar_->show();
@@ -514,10 +532,12 @@ void MainWindow::ShowEditor() {
 void MainWindow::ShowStart() {
   if (docked_) {
     SaveLayout();
+    parking_ = true;
     for (auto* dock : {nodes_dock_, inspector_dock_, timeline_dock_,
                        mixer_dock_, run_dock_, script_dock_}) {
       dock->forceClose();
     }
+    parking_ = false;
   }
   start_->Reload();
   stack_->setCurrentWidget(start_);
@@ -587,16 +607,45 @@ void MainWindow::ToggleBottom() {
         bottom_current_ = dock;
       }
     }
+    parking_ = true;
     for (auto* dock : docks) dock->forceClose();
+    parking_ = false;
   } else {
-    timeline_dock_->open();
-    timeline_dock_->addDockWidgetAsTab(mixer_dock_);
-    timeline_dock_->addDockWidgetAsTab(run_dock_);
-    timeline_dock_->addDockWidgetAsTab(script_dock_);
+    ReopenBottom();
     (bottom_current_ != nullptr ? bottom_current_ : timeline_dock_)
         ->setAsCurrentTab();
   }
   SyncPanels();
+}
+
+std::array<kdw::QtWidgets::DockWidget*, 4> MainWindow::BottomDocks() const {
+  return {timeline_dock_, mixer_dock_, run_dock_, script_dock_};
+}
+
+void MainWindow::DockBottom(kdw::QtWidgets::DockWidget* dock) {
+  kdw::QtWidgets::DockWidget* anchor = nullptr;
+  for (auto* other : BottomDocks()) {
+    if (other != dock && other->isOpen() && !other->isFloating()) {
+      anchor = other;
+      break;
+    }
+  }
+  if (anchor != nullptr) {
+    anchor->addDockWidgetAsTab(dock);
+  } else {
+    const int bottom =
+        static_cast<int>((height() - app_bar_->height()) * kBottomShare);
+    addDockWidget(dock, kdw::Location_OnBottom, nullptr,
+                  kdw::InitialOption(kdw::Size(0, bottom)));
+  }
+  dock->setAsCurrentTab();
+}
+
+void MainWindow::ReopenBottom() {
+  for (auto* dock : BottomDocks()) {
+    if (!dock->isOpen()) DockBottom(dock);
+  }
+  timeline_dock_->setAsCurrentTab();
 }
 
 void MainWindow::ToggleDock(kdw::QtWidgets::DockWidget* dock) {

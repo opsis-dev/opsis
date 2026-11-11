@@ -132,6 +132,7 @@ tokio-stream = { version = "0.1", features = ["sync"] }
 tokio-util = "0.7"
 tower = { version = "0.5", features = ["util"] }
 tower-http = { version = "0.7", features = ["cors", "fs"] }
+trash = "5"
 tree-sitter = "0.27"
 tree-sitter-lua = "0.5"
 url = "2"

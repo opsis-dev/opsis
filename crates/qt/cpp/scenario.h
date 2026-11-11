@@ -68,6 +68,7 @@ class Scenario : public QObject {
   std::size_t index_ = 0;
   bool shooting_ = true;
   QStringList misses_;
+  int quiet_from_ = 0;
   int checked_ = 0;
   int failed_ = 0;
 };

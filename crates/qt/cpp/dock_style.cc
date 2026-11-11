@@ -30,6 +30,10 @@ namespace kdw = KDDockWidgets;
 constexpr int kTitleHeight = 32;
 constexpr int kCornerIcon = 14;
 constexpr int kTitleButton = 24;
+constexpr double kDividerWidth = 3.0;
+constexpr int kGripDots = 5;
+constexpr double kGripGap = 6.0;
+constexpr double kGripDot = 3.0;
 constexpr int kTitleIcon = 14;
 
 bool OnWayland() {
@@ -169,9 +173,28 @@ class DockSeparator : public kdw::QtWidgets::Separator {
 
  protected:
   void paintEvent(QPaintEvent*) override {
+    App& app = App::Get();
     QPainter painter(this);
-    painter.fillRect(rect(),
-                     App::Get().Token(underMouse() ? "ring" : "window-border"));
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.fillRect(rect(), app.Token("sidebar"));
+    const QColor line = app.Token(underMouse() ? "ring" : "window-border");
+    const bool across = width() >= height();
+    const QRectF area = rect();
+    const QPointF middle = area.center();
+    const QRectF divider =
+        across ? QRectF(area.left(), middle.y() - kDividerWidth / 2.0,
+                        area.width(), kDividerWidth)
+               : QRectF(middle.x() - kDividerWidth / 2.0, area.top(),
+                        kDividerWidth, area.height());
+    painter.fillRect(divider, line);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(
+        app.Token(underMouse() ? "foreground" : "muted-foreground"));
+    for (int dot = -kGripDots / 2; dot <= kGripDots / 2; ++dot) {
+      const QPointF at = middle + (across ? QPointF(dot * kGripGap, 0)
+                                          : QPointF(0, dot * kGripGap));
+      painter.drawEllipse(at, kGripDot / 2.0, kGripDot / 2.0);
+    }
   }
 };
 
