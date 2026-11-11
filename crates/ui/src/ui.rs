@@ -1956,6 +1956,19 @@ impl Host for Ui {
         Ok(file)
     }
 
+    fn script_rename(&self, dir: &str, from: &str, to: &str) -> HostResult<String> {
+        let from = script_panel::checked(from)?;
+        let to = script_panel::checked(&script_panel::renamed(to))?;
+        let dir = self.project_dir_of(dir)?;
+        script_panel::rename(&dir, &from, &to)?;
+        self.scripts
+            .lock()
+            .expect("script editing")
+            .moved(&from, &to);
+        self.script_open(&to);
+        Ok(to)
+    }
+
     fn script_run(&self, dir: &str, file: &str, text: &str) -> HostResult<()> {
         self.script_save(dir, file, text)?;
         opsis_session::script::run_script(

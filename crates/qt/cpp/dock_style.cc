@@ -4,17 +4,22 @@
 #include <kddockwidgets/core/TitleBar.h>
 #include <kddockwidgets/qtcommon/View.h>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
+#include <kddockwidgets/qtwidgets/views/FloatingWindow.h>
 #include <kddockwidgets/qtwidgets/views/Group.h>
 #include <kddockwidgets/qtwidgets/views/Separator.h>
 #include <kddockwidgets/qtwidgets/views/Stack.h>
 #include <kddockwidgets/qtwidgets/views/TitleBar.h>
 
+#include <QGuiApplication>
 #include <QHBoxLayout>
+#include <QMouseEvent>
 #include <QPainter>
 #include <QToolButton>
+#include <QWindow>
 
 #include "app.h"
 #include "widgets.h"
+#include "window_chrome.h"
 
 namespace opsis {
 
@@ -24,6 +29,12 @@ namespace kdw = KDDockWidgets;
 
 constexpr int kTitleHeight = 32;
 constexpr int kCornerIcon = 14;
+constexpr int kTitleButton = 24;
+constexpr int kTitleIcon = 14;
+
+bool OnWayland() {
+  return QGuiApplication::platformName() == QStringLiteral("wayland");
+}
 
 class DockTitleBar : public kdw::QtWidgets::TitleBar {
  public:
@@ -37,6 +48,32 @@ class DockTitleBar : public kdw::QtWidgets::TitleBar {
     const bool docked = group != nullptr && group->isInMainWindow();
     setFixedHeight(docked ? 0 : kTitleHeight);
     kdw::QtWidgets::TitleBar::setVisible(visible);
+    for (QToolButton* button : findChildren<QToolButton*>()) {
+      button->setObjectName(QStringLiteral("DockTitleButton"));
+      button->setFixedSize(kTitleButton, kTitleButton);
+      button->setIconSize(QSize(kTitleIcon, kTitleIcon));
+    }
+  }
+
+ protected:
+  void showEvent(QShowEvent* event) override {
+    kdw::QtWidgets::TitleBar::showEvent(event);
+    removeEventFilter(this);
+    installEventFilter(this);
+  }
+
+  bool eventFilter(QObject* watched, QEvent* event) override {
+    if (watched == this && event->type() == QEvent::MouseButtonPress &&
+        OnWayland() && controller_->isFloating()) {
+      const auto* mouse = static_cast<QMouseEvent*>(event);
+      QWindow* handle = QWidget::window()->windowHandle();
+      if (mouse->button() == Qt::LeftButton && handle != nullptr &&
+          childAt(mouse->position().toPoint()) == nullptr) {
+        handle->startSystemMove();
+        return true;
+      }
+    }
+    return kdw::QtWidgets::TitleBar::eventFilter(watched, event);
   }
 
  protected:
@@ -143,6 +180,15 @@ class DockSeparator : public kdw::QtWidgets::Separator {
 kdw::Core::View* DockViewFactory::createTitleBar(
     kdw::Core::TitleBar* controller, kdw::Core::View* parent) const {
   return new DockTitleBar(controller, parent);
+}
+
+kdw::Core::View* DockViewFactory::createFloatingWindow(
+    kdw::Core::FloatingWindow* controller, kdw::Core::MainWindow* parent,
+    Qt::WindowFlags flags) const {
+  kdw::Core::View* view = kdw::QtWidgets::ViewFactory::createFloatingWindow(
+      controller, parent, flags);
+  if (OnWayland()) new WindowChrome(kdw::QtCommon::View_qt::asQWidget(view));
+  return view;
 }
 
 kdw::Core::View* DockViewFactory::createGroup(kdw::Core::Group* controller,

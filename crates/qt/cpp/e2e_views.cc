@@ -2,8 +2,10 @@
 #include <kddockwidgets/core/DockWidget.h>
 
 #include <QApplication>
+#include <QComboBox>
 #include <QDialog>
 #include <QDir>
+#include <QFontInfo>
 #include <QGraphicsItem>
 #include <QGraphicsView>
 #include <QImage>
@@ -11,10 +13,13 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QKeyEvent>
+#include <QPlainTextEdit>
 #include <QPushButton>
 #include <QSet>
 #include <QTimer>
+#include <QToolButton>
 #include <QtTest/QTest>
+#include <algorithm>
 #include <cmath>
 #include <memory>
 
@@ -384,6 +389,55 @@ void Scenario::BuildViews() {
                                                    QStringLiteral("Changed")),
                       QStringLiteral(" the failed script's edit stayed"));
       });
+  Until(
+      QStringLiteral("views-script-text-is-monospace-and-keeps-its-spaces"),
+      [this] {
+        ScriptPanel* panel = window_->script_panel();
+        panel->editor()->setPlainText(
+            QStringLiteral("print(\"  indented\", \"tabbed\")\n"));
+        panel->Run();
+      },
+      kProjectMs,
+      [] {
+        const bridge::ScriptView view = App::Get().session().script_view();
+        return !view.running && ToQ(view.outcome) == QStringLiteral("ok");
+      },
+      [this] {
+        QTest::qWait(200);
+        ScriptPanel* panel = window_->script_panel();
+        auto* output =
+            panel->findChild<QPlainTextEdit*>(QStringLiteral("ScriptOutput"));
+        const QString shown =
+            output == nullptr ? QString() : output->toPlainText();
+        const QFontInfo font(panel->editor()->font());
+        return Expect(font.fixedPitch(),
+                      QStringLiteral("the script is drawn in %1")
+                          .arg(font.family())) +
+               Expect(shown.contains(QStringLiteral("  indented\ttabbed")),
+                      QStringLiteral(" the output reads '%1'").arg(shown));
+      });
+  Add(
+      QStringLiteral("views-a-script-is-renamed"),
+      [] {
+        const bridge::ScriptView view = App::Get().session().script_view();
+        App::Get().session().script_rename(view.dir, view.open,
+                                           ToRust(QStringLiteral("titles")));
+      },
+      400,
+      [this] {
+        const bridge::ScriptView view = App::Get().session().script_view();
+        const bool old_gone = std::none_of(
+            view.files.begin(), view.files.end(), [](const auto& f) {
+              return ToQ(f) == QStringLiteral("scripts/script.lua");
+            });
+        auto* files = window_->script_panel()->findChild<QComboBox*>(
+            QStringLiteral("ScriptFiles"));
+        return Expect(
+            ToQ(view.open) == QStringLiteral("scripts/titles.lua") &&
+                old_gone && files != nullptr &&
+                files->currentText() == QStringLiteral("scripts/titles.lua"),
+            QStringLiteral("the open script is %1").arg(ToQ(view.open)));
+      });
   Add(
       QStringLiteral("views-the-script-split-turns-with-the-panel"),
       [this] {
@@ -398,11 +452,20 @@ void Scenario::BuildViews() {
         window_->script_panel()->window()->resize(1200, 300);
         QTest::qWait(300);
         const bool wide = split->orientation() == Qt::Horizontal;
+        int small_buttons = 0;
+        for (QToolButton* button :
+             window_->script_panel()->window()->findChildren<QToolButton*>(
+                 QStringLiteral("DockTitleButton"))) {
+          if (button->isVisible() && button->width() < 24) ++small_buttons;
+        }
         window_->script_dock()->setFloating(false);
         return Expect(tall && wide,
                       QStringLiteral("the split didn't turn (tall %1, wide %2)")
                           .arg(tall)
-                          .arg(wide));
+                          .arg(wide)) +
+               Expect(small_buttons == 0,
+                      QStringLiteral(" %1 title buttons are smaller than 24 px")
+                          .arg(small_buttons));
       });
   Until(
       QStringLiteral("views-start-reopens-the-last-project"),

@@ -70,7 +70,7 @@ QLabel* SmallLabel(const QString& text, const char* role, QWidget* parent) {
   auto* label = MakeLabel(text, role, parent);
   QFont font = label->font();
   font.setPixelSize(kSmallFont);
-  label->setFont(font);
+  UseFont(label, font);
   label->setAlignment(Qt::AlignCenter);
   return label;
 }
@@ -498,7 +498,7 @@ MixerPopover* MixerPopover::Open(QWidget* anchor, const QString& name,
                                  int width) {
   auto* popover = new MixerPopover(anchor->window(), name, width);
   FormHold::Instance()->Begin();
-  popover->adjustSize();
+  FitHeightToWidth(popover);
   QPoint at = anchor->mapToGlobal(QPoint(0, anchor->height() + 4));
   if (const QScreen* screen = anchor->screen()) {
     const QRect room = screen->availableGeometry();
@@ -617,7 +617,7 @@ void OpenEqPopover(QWidget* anchor, const QJsonObject& book, QJsonObject eq,
     grid->addLayout(column, 0, i);
   }
   layout->addLayout(grid);
-  popover->adjustSize();
+  FitHeightToWidth(popover);
 }
 
 void OpenCompPopover(QWidget* anchor, const QJsonObject& book, QJsonObject comp,
@@ -671,7 +671,7 @@ void OpenCompPopover(QWidget* anchor, const QJsonObject& book, QJsonObject comp,
                 "muted", popover);
   note->setWordWrap(true);
   layout->addWidget(note);
-  popover->adjustSize();
+  FitHeightToWidth(popover);
 }
 
 void OpenDuckPopover(QWidget* anchor, const QJsonObject& book,
@@ -752,7 +752,7 @@ void OpenDuckPopover(QWidget* anchor, const QJsonObject& book,
       "muted", popover);
   note->setWordWrap(true);
   layout->addWidget(note);
-  popover->adjustSize();
+  FitHeightToWidth(popover);
 }
 
 }

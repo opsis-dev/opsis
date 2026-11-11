@@ -54,6 +54,15 @@ impl ScriptEditing {
         self.saved.insert(file.to_owned(), text.to_owned());
     }
 
+    pub fn moved(&mut self, from: &str, to: &str) {
+        if let Some(text) = self.saved.remove(from) {
+            self.saved.insert(to.to_owned(), text);
+        }
+        if self.open.as_deref() == Some(from) {
+            self.open = Some(to.to_owned());
+        }
+    }
+
     pub fn reload(&mut self, dir: &Path, file: &str, text: &str) -> Option<String> {
         if self.saved.get(file).map(String::as_str) != Some(text) {
             return None;
@@ -132,6 +141,33 @@ pub fn checked(file: &str) -> Result<String, String> {
     script_path(file).ok_or_else(|| {
         format!("Scripts live in the project's {SCRIPTS_DIR} folder as .{SCRIPT_EXTENSION} files.")
     })
+}
+
+pub fn renamed(name: &str) -> String {
+    let name = name.trim().replace('\\', "/");
+    let name = name
+        .strip_prefix(&format!("{SCRIPTS_DIR}/"))
+        .unwrap_or(&name)
+        .to_owned();
+    if Path::new(&name)
+        .extension()
+        .is_some_and(|e| e == SCRIPT_EXTENSION)
+    {
+        format!("{SCRIPTS_DIR}/{name}")
+    } else {
+        format!("{SCRIPTS_DIR}/{name}.{SCRIPT_EXTENSION}")
+    }
+}
+
+pub fn rename(dir: &Path, from: &str, to: &str) -> Result<(), String> {
+    let target = dir.join(to);
+    if target.exists() {
+        return Err(format!("There's already a script called {to}."));
+    }
+    if let Some(parent) = target.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| format!("Couldn't rename {from}. {e}"))?;
+    }
+    std::fs::rename(dir.join(from), &target).map_err(|e| format!("Couldn't rename {from}. {e}"))
 }
 
 pub fn create(dir: &Path) -> Result<String, String> {
@@ -232,4 +268,35 @@ pub fn bracket(text: &str, cursor: u32) -> BracketView {
             close,
         },
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use proptest::prelude::*;
+
+    use super::*;
+
+    proptest! {
+        #[test]
+        fn a_new_name_always_lands_in_the_scripts_folder_as_lua(name in "[a-z][a-z0-9-]{0,8}(\\.lua)?") {
+            let file = renamed(&name);
+            prop_assert!(script_path(&file).is_some(), "{file}");
+            prop_assert_eq!(renamed(&file), file);
+        }
+    }
+
+    #[test]
+    fn renames_a_script_and_refuses_to_overwrite_one() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(dir.path().join(SCRIPTS_DIR)).unwrap();
+        std::fs::write(dir.path().join("scripts/a.lua"), "print(1)").unwrap();
+        std::fs::write(dir.path().join("scripts/b.lua"), "print(2)").unwrap();
+        assert!(rename(dir.path(), "scripts/a.lua", "scripts/b.lua").is_err());
+        rename(dir.path(), "scripts/a.lua", "scripts/c.lua").unwrap();
+        assert_eq!(
+            std::fs::read_to_string(dir.path().join("scripts/c.lua")).unwrap(),
+            "print(1)"
+        );
+        assert!(!dir.path().join("scripts/a.lua").exists());
+    }
 }

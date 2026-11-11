@@ -73,7 +73,7 @@ QLabel* Small(const QString& text, const char* role, QWidget* parent) {
   auto* label = MakeLabel(text, role, parent);
   QFont font = label->font();
   font.setPixelSize(kSmallFont);
-  label->setFont(font);
+  UseFont(label, font);
   return label;
 }
 
@@ -645,7 +645,7 @@ QWidget* MixerPanel::MasterStrip(const bridge::MixerView& view,
   QFont bold = title->font();
   bold.setPixelSize(kNameFont);
   bold.setWeight(QFont::Medium);
-  title->setFont(bold);
+  UseFont(title, bold);
   header->addWidget(title, 1);
   auto* reset = MakeIconButton(QStringLiteral("ellipsis"),
                                QStringLiteral("Reset master"), shell, 14);

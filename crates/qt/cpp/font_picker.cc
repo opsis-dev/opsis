@@ -205,7 +205,7 @@ FontPicker::FontPicker(QString value, QString empty_label, OnFontPick on_pick,
         App::Get().session().font_choices(ToRust(value_));
     QFont sample = SampleFont(ToQ(choices.current_sample), value_);
     sample.setPixelSize(13);
-    name->setFont(sample);
+    UseFont(name, sample);
   }
   row->addWidget(name, 1);
   auto* chevrons = new QLabel(this);

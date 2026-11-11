@@ -277,7 +277,7 @@ RunPanel::RunPanel(QWidget* parent)
   log_->setAccessibleName(QStringLiteral("Run log"));
   QFont mono(QStringLiteral("JetBrains Mono"));
   mono.setPixelSize(12);
-  log_->setFont(mono);
+  UseFont(log_, mono);
   log_column->addWidget(log_, 1);
   nodes_->setMinimumWidth(kNodesWidth);
   outputs_->setMinimumWidth(kOutputsWidth);
@@ -341,13 +341,13 @@ void RunPanel::Rebuild() {
             ? error
             : (level == QStringLiteral("warn") ? muted : QString());
     const QString message = ToQ(line.message).toHtmlEscaped();
-    log_->appendHtml(
+    log_->appendHtml(KeepSpaces(
         QStringLiteral("<span style=\"color:%1\">%2</span> %3")
             .arg(muted, time,
                  colour.isEmpty()
                      ? message
                      : QStringLiteral("<span style=\"color:%1\">%2</span>")
-                           .arg(colour, message)));
+                           .arg(colour, message))));
   }
   last_log_ = newest;
   log_scope_ = key;

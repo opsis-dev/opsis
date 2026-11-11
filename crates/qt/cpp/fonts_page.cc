@@ -219,7 +219,7 @@ void FontsCard::Reload() {
     auto* words = new QVBoxLayout();
     words->setSpacing(0);
     auto* name = MakeLabel(ToQ(font.family), nullptr, row);
-    name->setFont(SampleFont(ToQ(font.sample), ToQ(font.family)));
+    UseFont(name, SampleFont(ToQ(font.sample), ToQ(font.family)));
     words->addWidget(name);
     auto* faces = new ClampedLabel(ToQ(font.faces), 1, row);
     faces->setProperty("role", "muted");
@@ -374,7 +374,7 @@ void FontsCard::ShowInstalled() {
           auto* line = new QHBoxLayout(row);
           line->setContentsMargins(8, 4, 8, 4);
           auto* name = MakeLabel(family, nullptr, row);
-          name->setFont(SampleFont(QString(), family));
+          UseFont(name, SampleFont(QString(), family));
           line->addWidget(name, 1);
           line->addWidget(MakeLabel(ToQ(font.styles), "muted", row));
           row->setMinimumHeight(row->sizeHint().height());

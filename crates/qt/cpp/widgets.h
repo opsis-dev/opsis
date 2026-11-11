@@ -123,6 +123,8 @@ QLabel* MakeLabel(const QString& text, const char* role = nullptr,
                   QWidget* parent = nullptr);
 QFrame* MakeRule(QWidget* parent = nullptr);
 void FitHeightToWidth(QWidget* popup);
+QString KeepSpaces(const QString& html);
+void UseFont(QWidget* widget, const QFont& font);
 void ShowToast(QWidget* window, const QString& message, bool error);
 QToolButton* MakeIconButton(const QString& icon, const QString& tip,
                             QWidget* parent = nullptr, int size = 16);

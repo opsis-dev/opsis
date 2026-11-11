@@ -1,6 +1,7 @@
 #include "script_panel.h"
 
 #include <QHBoxLayout>
+#include <QInputDialog>
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QScrollBar>
@@ -98,7 +99,7 @@ ScriptEditor::ScriptEditor(QWidget* parent) : QPlainTextEdit(parent) {
   setAccessibleName(QStringLiteral("Script"));
   setFrameShape(QFrame::NoFrame);
   setLineWrapMode(QPlainTextEdit::NoWrap);
-  setFont(Mono());
+  UseFont(this, Mono());
   setTabChangesFocus(false);
   connect(this, &QPlainTextEdit::cursorPositionChanged, this,
           &ScriptEditor::ShowBracket);
@@ -210,6 +211,8 @@ ScriptPanel::ScriptPanel(QWidget* parent)
       files_(new Combo(this)),
       new_(MakeButton(QStringLiteral("New"), "ghost", QStringLiteral("plus"),
                       this)),
+      rename_(MakeButton(QStringLiteral("Rename"), "ghost",
+                         QStringLiteral("pencil"), this)),
       run_(MakeButton(QStringLiteral("Run"), "outline", QStringLiteral("play"),
                       this)),
       stop_(MakeButton(QStringLiteral("Stop"), "outline",
@@ -234,12 +237,16 @@ ScriptPanel::ScriptPanel(QWidget* parent)
   files_->setObjectName(QStringLiteral("ScriptFiles"));
   files_->setAccessibleName(QStringLiteral("Scripts"));
   files_->setMinimumContentsLength(16);
+  files_->setPlaceholderText(QStringLiteral("No scripts yet"));
   row->addWidget(files_);
   new_->setObjectName(QStringLiteral("ScriptNew"));
   new_->setToolTip(
       QStringLiteral("Make a script in the project's scripts "
                      "folder"));
   row->addWidget(new_);
+  rename_->setObjectName(QStringLiteral("ScriptRename"));
+  rename_->setToolTip(QStringLiteral("Rename the open script"));
+  row->addWidget(rename_);
   run_->setObjectName(QStringLiteral("ScriptRun"));
   run_->setToolTip(QStringLiteral("Run the script (Ctrl+Enter)"));
   row->addWidget(run_);
@@ -257,7 +264,7 @@ ScriptPanel::ScriptPanel(QWidget* parent)
   output_->setAccessibleName(QStringLiteral("Script output"));
   output_->setReadOnly(true);
   output_->setFrameShape(QFrame::NoFrame);
-  output_->setFont(Mono());
+  UseFont(output_, Mono());
   output_->viewport()->installEventFilter(this);
   split_->setObjectName(QStringLiteral("ScriptSplit"));
   split_->addWidget(editor_);
@@ -290,6 +297,7 @@ ScriptPanel::ScriptPanel(QWidget* parent)
       App::Get().ShowError(QString::fromUtf8(error.what()));
     }
   });
+  connect(rename_, &QPushButton::clicked, this, &ScriptPanel::Rename);
   connect(files_, &QComboBox::activated, this, [this](int index) {
     Save();
     App::Get().session().script_open(ToRust(files_->itemText(index)));
@@ -344,7 +352,29 @@ void ScriptPanel::Load(const QString& file) {
   loading_ = false;
   open_ = file;
   editor_->setEnabled(!file.isEmpty());
+  editor_->setPlaceholderText(
+      file.isEmpty()
+          ? QStringLiteral("Press New to make a script in the project's "
+                           "scripts folder.")
+          : QString());
   Highlight();
+}
+
+void ScriptPanel::Rename() {
+  if (open_.isEmpty()) return;
+  Save();
+  const QString current = open_.section(QLatin1Char('/'), -1);
+  bool chosen = false;
+  const QString name = QInputDialog::getText(
+      this, QStringLiteral("Rename script"), QStringLiteral("Name"),
+      QLineEdit::Normal, current, &chosen);
+  if (!chosen || name.trimmed().isEmpty() || name.trimmed() == current) return;
+  try {
+    App::Get().session().script_rename(ToRust(dir_), ToRust(open_),
+                                       ToRust(name.trimmed()));
+  } catch (const rust::Error& error) {
+    App::Get().ShowError(QString::fromUtf8(error.what()));
+  }
 }
 
 void ScriptPanel::Save() {
@@ -407,10 +437,10 @@ void ScriptPanel::ShowOutput(const bridge::ScriptView& view) {
                            : kind == QStringLiteral("warn") ? warn
                                                             : QString();
     const QString text = ToQ(line.text).toHtmlEscaped();
-    output_->appendHtml(
+    output_->appendHtml(KeepSpaces(
         colour.isEmpty() ? text
                          : QStringLiteral("<span style=\"color:%1\">%2</span>")
-                               .arg(colour, text));
+                               .arg(colour, text)));
     const bool here = ToQ(line.file) == open_;
     output_lines_.push_back(here ? static_cast<int>(line.line) : 0);
   }
@@ -436,7 +466,14 @@ void ScriptPanel::Rebuild() {
   const QString open = ToQ(view.open);
   const QString dir = ToQ(view.dir);
   if (open != open_ || dir != dir_) {
-    if (save_.isActive()) Save();
+    const bool still_there =
+        std::any_of(view.files.begin(), view.files.end(),
+                    [this](const auto& file) { return ToQ(file) == open_; });
+    if (save_.isActive() && dir == dir_ && still_there) {
+      Save();
+    } else {
+      save_.stop();
+    }
     dir_ = dir;
     Load(open);
   } else if (!open_.isEmpty()) {
@@ -455,6 +492,7 @@ void ScriptPanel::Rebuild() {
     }
   }
   new_->setEnabled(view.has_project);
+  rename_->setEnabled(view.has_project && !open_.isEmpty());
   run_->setEnabled(view.has_project && !view.running && !open_.isEmpty());
   stop_->setEnabled(view.running);
   badge_->setVisible(view.running);

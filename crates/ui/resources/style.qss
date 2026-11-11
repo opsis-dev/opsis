@@ -329,6 +329,13 @@ QToolButton:hover {
   background: @accent;
 }
 
+QLineEdit QToolButton,
+QTabBar QToolButton,
+QToolButton#DockTitleButton {
+  border: none;
+  padding: 0;
+}
+
 QToolButton:checked {
   background: @toggle-on;
   border: 1px solid @toggle-on-border;

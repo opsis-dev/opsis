@@ -627,7 +627,7 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
       area->setFixedHeight(kJsonHeight);
       QFont mono(QStringLiteral("JetBrains Mono"));
       mono.setPixelSize(12);
-      area->setFont(mono);
+      UseFont(area, mono);
       const QString initial = ToQ(field.value_json);
       area->on_commit = [this, key, area, initial] {
         const QString text = area->toPlainText().trimmed();
@@ -720,7 +720,7 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
       area->setFixedHeight(96);
       QFont mono(QStringLiteral("JetBrains Mono"));
       mono.setPixelSize(12);
-      area->setFont(mono);
+      UseFont(area, mono);
       const QString initial = ToQ(field.text);
       area->on_commit = [this, key, area, initial] {
         if (area->toPlainText() != initial) {

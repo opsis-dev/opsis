@@ -430,6 +430,22 @@ QLabel* MakeBadge(const QString& glyph, const QColor& color, int size,
   return label;
 }
 
+void UseFont(QWidget* widget, const QFont& font) {
+  widget->setFont(font);
+  QString sheet = QStringLiteral("font-family: \"%1\"; font-weight: %2;")
+                      .arg(font.family())
+                      .arg(static_cast<int>(font.weight()));
+  if (font.pixelSize() > 0) {
+    sheet += QStringLiteral(" font-size: %1px;").arg(font.pixelSize());
+  }
+  widget->setStyleSheet(sheet);
+}
+
+QString KeepSpaces(const QString& html) {
+  return QStringLiteral("<span style=\"white-space:pre-wrap\">%1</span>")
+      .arg(html);
+}
+
 void FitHeightToWidth(QWidget* popup) {
   popup->adjustSize();
   const QLayout* layout = popup->layout();

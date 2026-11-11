@@ -2,6 +2,7 @@
 
 #include <kddockwidgets/Config.h>
 #include <kddockwidgets/KDDockWidgets.h>
+#include <kddockwidgets/qtwidgets/views/FloatingWindow.h>
 
 #include <QApplication>
 #include <QDir>
@@ -164,7 +165,10 @@ void App::ConfigureDocks() {
   config.setSeparatorThickness(kSeparatorThickness);
   config.setFlags(KDDockWidgets::Config::Flag_HideTitleBarWhenTabsVisible |
                   KDDockWidgets::Config::Flag_AllowReorderTabs |
-                  KDDockWidgets::Config::Flag_TitleBarHasMaximizeButton);
+                  KDDockWidgets::Config::Flag_TitleBarHasMaximizeButton |
+                  KDDockWidgets::Config::Flag_TitleBarHasMinimizeButton);
+  config.setInternalFlags(
+      KDDockWidgets::Config::InternalFlag_DontUseParentForFloatingWindows);
 }
 
 int App::Run(rust::Box<bridge::Session> host) {
@@ -221,6 +225,14 @@ int App::Run(rust::Box<bridge::Session> host) {
   });
   Scenario::MaybeStart(window);
   const int code = QApplication::exec();
+  QList<QPointer<QWidget>> floating;
+  for (QWidget* top : QApplication::topLevelWidgets()) {
+    if (dynamic_cast<KDDockWidgets::QtWidgets::FloatingWindow*>(top) !=
+        nullptr) {
+      floating.append(top);
+    }
+  }
+  for (const QPointer<QWidget>& top : floating) delete top.data();
   delete window;
   QList<QPointer<QWidget>> left;
   for (QWidget* top : QApplication::topLevelWidgets()) left.append(top);

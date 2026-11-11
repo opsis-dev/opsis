@@ -117,6 +117,7 @@ const ICONS = [
   "panel-left-open",
   "panel-right",
   "pause",
+  "pencil",
   "pipette",
   "play",
   "plug",

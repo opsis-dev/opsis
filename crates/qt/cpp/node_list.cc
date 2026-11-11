@@ -361,7 +361,7 @@ void NodeList::ShowCard() {
   flow->setWordWrap(true);
   layout->addWidget(flow);
   const QRect row = tree_->visualItemRect(hovered_);
-  card->adjustSize();
+  FitHeightToWidth(card);
   card->move(tree_->viewport()->mapToGlobal(
       QPoint(tree_->viewport()->width() + kCardOffset, row.top())));
   card->show();

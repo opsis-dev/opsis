@@ -265,7 +265,7 @@ void TracePanel::Build() {
     if (!action.target.empty()) {
       auto* target = new ClampedLabel(ToQ(action.target), 1, row);
       target->setProperty("role", "muted");
-      target->setFont(Mono());
+      UseFont(target, Mono());
       words->addWidget(target);
     }
     line->addLayout(words, 1);
@@ -312,7 +312,7 @@ void TracePanel::Build() {
   empty->setVisible(false);
   call_ = Wrapped(QString(), nullptr, right);
   call_->setObjectName(QStringLiteral("TraceCall"));
-  call_->setFont(Mono());
+  UseFont(call_, Mono());
   call_->setTextFormat(Qt::RichText);
   call_->setAlignment(Qt::AlignTop | Qt::AlignLeft);
   call_->setContentsMargins(8, 8, 8, 8);
@@ -332,7 +332,7 @@ void TracePanel::Build() {
         MakeButton(ToQ(error.at) + QStringLiteral("  ") + ToQ(error.text),
                    "ghost", QStringLiteral("circle-alert"), errors);
     button->setObjectName(QStringLiteral("TraceError"));
-    button->setFont(Mono());
+    UseFont(button, Mono());
     button->setStyleSheet(QStringLiteral("text-align: left;"));
     const int target = error.action;
     connect(button, &QPushButton::clicked, this,
@@ -442,7 +442,7 @@ void TracePanel::FillTabs() {
     line->setContentsMargins(8, 4, 8, 4);
     line->setSpacing(8);
     auto* at = MakeLabel(ToQ(entry.at), "muted", row);
-    at->setFont(Mono());
+    UseFont(at, Mono());
     at->setFixedWidth(kTimeWidth + 8);
     line->addWidget(at, 0, Qt::AlignTop);
     const QString level = ToQ(entry.level);
@@ -454,7 +454,7 @@ void TracePanel::FillTabs() {
                   row),
         0, Qt::AlignTop);
     auto* text = Wrapped(ToQ(entry.text), nullptr, row);
-    text->setFont(Mono());
+    UseFont(text, Mono());
     text->setTextInteractionFlags(Qt::TextSelectableByMouse);
     line->addWidget(text, 1);
     lines->addWidget(row);
@@ -611,7 +611,7 @@ QWidget* ReplayDialog::Footage(const bridge::ReplayView& view) {
     if (!action.selector.empty()) {
       auto* selector = new ClampedLabel(ToQ(action.selector), 1, row);
       selector->setProperty("role", "muted");
-      selector->setFont(Mono());
+      UseFont(selector, Mono());
       words->addWidget(selector);
     }
     line->addLayout(words, 1);

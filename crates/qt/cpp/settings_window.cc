@@ -465,7 +465,7 @@ QWidget* SettingsWindow::LicencesPage() {
         text->setFixedHeight(220);
         QFont mono(QStringLiteral("JetBrains Mono"));
         mono.setPixelSize(11);
-        text->setFont(mono);
+        UseFont(text, mono);
         text->hide();
         auto* toggle = MakeIconButton(QStringLiteral("chevron-right"),
                                       QStringLiteral("Show the licence"));
@@ -541,7 +541,7 @@ QWidget* SettingsWindow::AboutPage() {
   for (const auto& [name, value] : rows) {
     grid->addWidget(MakeLabel(name, "muted"), row, 0, Qt::AlignTop);
     auto* text = MakeLabel(value);
-    text->setFont(mono);
+    UseFont(text, mono);
     text->setWordWrap(true);
     text->setTextInteractionFlags(Qt::TextSelectableByMouse);
     grid->addWidget(text, row, 1);

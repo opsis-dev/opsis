@@ -75,6 +75,7 @@ class ScriptPanel : public QWidget {
   void Rebuild();
   void Run();
   void Save();
+  void Rename();
   QSplitter* split() const { return split_; }
   ScriptEditor* editor() const { return editor_; }
 
@@ -90,6 +91,7 @@ class ScriptPanel : public QWidget {
 
   Combo* files_;
   QPushButton* new_;
+  QPushButton* rename_;
   QPushButton* run_;
   QPushButton* stop_;
   QLabel* badge_;

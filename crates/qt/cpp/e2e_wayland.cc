@@ -168,6 +168,16 @@ bool HoverCardShown() {
   return false;
 }
 
+bool HoverCardFits() {
+  for (QWidget* top : QApplication::topLevelWidgets()) {
+    if (top->isVisible() && top->objectName() == QStringLiteral("HoverCard") &&
+        top->layout() != nullptr) {
+      return top->height() >= top->layout()->totalHeightForWidth(top->width());
+    }
+  }
+  return false;
+}
+
 bool TimelinePoppedOut(MainWindow* window) {
   return window->timeline_dock()->isFloating() &&
          window->timeline_dock()->QWidget::window()->isVisible();
@@ -351,7 +361,9 @@ void Scenario::BuildWayland() {
       [input] {
         return Expect(HoverCardShown(),
                       QStringLiteral("hovering a node showed no card; %1")
-                          .arg(input->last()));
+                          .arg(input->last())) +
+               Expect(HoverCardFits(),
+                      QStringLiteral(" the card is shorter than its text"));
       });
   Until(
       QStringLiteral("wayland-pop-out-the-timeline"),

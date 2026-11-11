@@ -14,6 +14,10 @@ class DockViewFactory : public KDDockWidgets::QtWidgets::ViewFactory {
   KDDockWidgets::Core::View* createTitleBar(
       KDDockWidgets::Core::TitleBar* controller,
       KDDockWidgets::Core::View* parent) const override;
+  KDDockWidgets::Core::View* createFloatingWindow(
+      KDDockWidgets::Core::FloatingWindow* controller,
+      KDDockWidgets::Core::MainWindow* parent = nullptr,
+      Qt::WindowFlags flags = {}) const override;
   KDDockWidgets::Core::View* createGroup(
       KDDockWidgets::Core::Group* controller,
       KDDockWidgets::Core::View* parent) const override;

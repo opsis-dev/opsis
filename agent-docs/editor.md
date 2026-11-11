@@ -38,6 +38,10 @@ The native editor's windows, docks and panels, the title bar and menus, the canv
 - **Docked panels show no title, and a lone panel no tab** (`dock_style.cc` → `DockTitleBar::setVisible`; `app.cc` sets no `Flag_AlwaysShowTabs`).
   - A lone panel's docked title bar is zero pixels tall rather than hidden, because KDDockWidgets refuses to float a panel through a hidden title bar (`TitleBar::makeWindow`); in the tabbed bottom dock KDDockWidgets hides it itself (`Flag_HideTitleBarWhenTabsVisible`).
   - A floating panel keeps its window's title bar to drag and close it by.
+- **A popped-out panel is a normal window of its own** (`Flag_TitleBarHasMinimizeButton`, which brings `Flag_DontUseUtilityFloatingWindows`, and `InternalFlag_DontUseParentForFloatingWindows` in `App::ConfigureDocks`): it can go behind the editor, minimizes on its own and has its own task bar entry. KDDockWidgets' default, a tool window owned by the main window, is always stacked above the editor.
+  - Without an owner it outlives the main window, so `App::Run` deletes the floating windows before the main window at exit; the other order crashes on a restored floating window.
+- **On Wayland a popped-out panel has one title bar, ours** (`DockViewFactory::createFloatingWindow` gives it `WindowChrome`): KDDockWidgets forces the compositor's title bar there and keeps its own for drag and drop (`Config.cpp`), which shows two bars. `DockTitleBar` moves the window with `startSystemMove`, so dragging a popped-out panel onto the editor to dock it works only on X11; its dock button works everywhere.
+- **The title bar's buttons are 24 px with 14 px icons** (`DockTitleButton`): KDDockWidgets makes them 16 px, which the style sheet's tool button padding leaves 6 px of.
   - The style sheet styles `QTabWidget::pane`, or Fusion draws a second sunken frame inside every dock.
 - **Files play in `FilePlayer`**: videos and sounds in the Run panel and Replay, and a made sound below its node's settings in the Inspector. Images open full size in `ImagePreview`.
 
@@ -58,6 +62,11 @@ The native editor's windows, docks and panels, the title bar and menus, the canv
 
 ### Look and motion
 
+- **A font set in code is set with `UseFont` (`widgets.h`), never `setFont` alone**: the style sheet's `*` rule sets every widget's family and size, which beats `setFont`, so `UseFont` repeats the family, weight and size in the widget's own style sheet. A `setFont` that only changes the weight is kept, since the rule sets no weight.
+  - The `*` rule stays: without it the desktop theme's fonts, which the portal sends after start, replace the app's.
+- **A window or popover whose text wraps takes its height from its width (`FitHeightToWidth`, `widgets.h`)**, after building and after showing more text, as a fixed-width window's `adjustSize` measures the text at its preferred width and clips it.
+- **Lines appended as HTML go through `KeepSpaces` (`widgets.h`)**: HTML drops leading spaces and tabs and merges runs of them, which a log or a script's output must keep.
+- **Qt's and KDDockWidgets' own tool buttons have no padding** (`QLineEdit QToolButton`, `QTabBar QToolButton`, `DockTitleButton` in `style.qss`): the style sheet's tool button padding is for the app's own buttons and shrinks the fixed-size ones inside line edits, tab bars and title bars.
 - **Colours are tokens in `look.rs` (`TOKENS`)**, resolved into `style.qss` and read in C++ with `App::Token`; panels, the menu bar and the top bar sit on the sidebar colour, popup menus on the popover colour, the canvas on the background colour.
   - C++ writes a colour as a literal only where the theme doesn't change it: black glyphs and text on a category's own colour, black behind pictures (players, Replay, the live view), the colour and gradient pickers' white and black, the Marks field's default mark colours and the glyph effects in `look_glyph.cc`.
 - **Motion respects the system's reduced motion setting** (`ReducedMotion`, from `QAccessibilityHints::motionPreference`): fades and slides become instant.

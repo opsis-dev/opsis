@@ -149,6 +149,7 @@ void NewProjectDialog::Create() {
     problem_->setText(QStringLiteral("Couldn't create the project: ") +
                       QString::fromUtf8(error.what()));
     problem_->show();
+    FitHeightToWidth(this);
   }
 }
 
