@@ -38,7 +38,7 @@ How specs name files, how a page gets their addresses, the file servers, prepare
 
 - **Work the video would repeat in every render tab is done once in Rust and kept**:
   - 3D text typefaces: the face is picked in compile like the page picks it, then `wuff` and `skrifa` draw its outlines at the weight into three.js typeface JSON;
-  - 3D models: `draco-gltf` decodes Draco and meshopt meshes into a plain GLB with every image packed in, so the page uses a plain `GLTFLoader`;
+  - 3D models: `draco-gltf` decodes Draco and meshopt meshes into a plain GLB with every image packed in, so the page needs only a `GLTFLoader`; KTX2 images stay KTX2 (`image/ktx2`), and the page's `KTX2Loader` (`packages/video/src/three/load-model.ts`) turns them into plain RGBA, never a GPU-compressed format (`PLAIN_PIXELS`), so a model looks the same on every computer; its transcoder ships in the film bundle (`basis_transcoder.js`, `.wasm`), found by `new URL(…, import.meta.url)`;
   - SVG logos, flattened by `usvg`;
   - textures: images whose long side is over `LONG_SIDE_CAP` (`prepare/src/texture.rs`) are made smaller; others, and SVG textures, are served as they are.
 - **Compile turns those settings into `prepared:<kind>/[weight/]<project|app>/<path>` refs (`prepare_props`), and `hosted` turns them into `.opsis/prepared/<path>` on the spec's project base.**

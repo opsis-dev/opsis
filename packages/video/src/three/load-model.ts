@@ -1,30 +1,27 @@
 import { useHeldLoad } from "@opsis/runtime/holds.ts";
 import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
-import { z } from "zod";
-import { parseJsonWith } from "#video/common/guards.ts";
-
-const GLB_MAGIC = 0x46546c67;
-const GLB_JSON_START = 20;
-const UNSUPPORTED_TEXTURES = ["KHR_texture_basisu"];
+import { KTX2Loader, type KTX2LoaderWorkerConfig } from "three/addons/loaders/KTX2Loader.js";
 
 const MODEL_UNREADABLE = "Couldn't open this 3D model.";
-const TEXTURES_UNSUPPORTED = "This model uses a texture format that isn't supported yet.";
 
-const extensionsSchema = z.object({
-  extensionsUsed: z.array(z.string()).optional(),
-  extensionsRequired: z.array(z.string()).optional(),
-});
+const PLAIN_PIXELS: KTX2LoaderWorkerConfig = {
+  astcSupported: false,
+  astcHDRSupported: false,
+  etc1Supported: false,
+  etc2Supported: false,
+  dxtSupported: false,
+  bptcSupported: false,
+  pvrtcSupported: false,
+};
 
-export function modelExtensions(buffer: ArrayBuffer): string[] {
-  const view = new DataView(buffer);
-  const binary = buffer.byteLength >= GLB_JSON_START && view.getUint32(0, true) === GLB_MAGIC;
-  const text = binary
-    ? new TextDecoder().decode(new Uint8Array(buffer, GLB_JSON_START, view.getUint32(12, true)))
-    : new TextDecoder().decode(buffer);
-  const parsed = parseJsonWith(extensionsSchema, text);
-  if (parsed === null) throw new Error(MODEL_UNREADABLE);
-  if (!parsed.success) return [];
-  return [...(parsed.data.extensionsUsed ?? []), ...(parsed.data.extensionsRequired ?? [])];
+let textureLoader: KTX2Loader | null = null;
+
+function compressedTextures(): KTX2Loader {
+  if (!textureLoader) {
+    textureLoader = new KTX2Loader();
+    textureLoader.workerConfig = PLAIN_PIXELS;
+  }
+  return textureLoader;
 }
 
 function folderOf(url: string) {
@@ -35,15 +32,13 @@ async function fetchModel(url: string): Promise<GLTF> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(MODEL_UNREADABLE);
   const buffer = await res.arrayBuffer();
-  let extensions: string[];
   try {
-    extensions = modelExtensions(buffer);
+    return await new GLTFLoader()
+      .setKTX2Loader(compressedTextures())
+      .parseAsync(buffer, folderOf(url));
   } catch (error) {
     throw new Error(MODEL_UNREADABLE, { cause: error });
   }
-  if (extensions.some((e) => UNSUPPORTED_TEXTURES.includes(e)))
-    throw new Error(TEXTURES_UNSUPPORTED);
-  return new GLTFLoader().parseAsync(buffer, folderOf(url));
 }
 
 const models = new Map<string, Promise<GLTF>>();

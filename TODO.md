@@ -28,7 +28,6 @@ Ideas you approved but left for later.
 - [ ] A Resize window browser action.
 - [ ] An Open a new tab browser action.
 - [ ] Lid-angle keyframes on the 3D screen's laptop, so its lid can open and close on a playing clip.
-- [ ] KTX2 textures in 3D models through three.js's bundled basis transcoder.
 - [ ] A Run panel that lists every node, nesting compile-only nodes under their export and actions under their capture.
 - [ ] "Not in this run" and "Turned off" states in the Run panel.
 - [ ] A smaller FFmpeg build (shared, combined or trimmed) in place of the ffmpeg-static binary; `plans/ffmpeg.md` section 3 plans one trimmed build of Opsis's own.

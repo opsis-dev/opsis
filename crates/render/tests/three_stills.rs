@@ -55,6 +55,11 @@ fn cases() -> Vec<(&'static str, &'static str, Value)> {
             json!({ "src": "project:assets/models/external/external.gltf" }),
         ),
         (
+            "model-ktx2",
+            "model-3d",
+            json!({ "src": "project:assets/models/external/ktx2.gltf" }),
+        ),
+        (
             "model-draco",
             "model-3d",
             json!({ "src": "project:assets/models/draco.glb" }),

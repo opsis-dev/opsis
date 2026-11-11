@@ -566,6 +566,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## KTX2 textures in 3D models — the Basis Universal transcoder
+
+Turns a 3D model's KTX2 textures into plain pictures when the model is drawn. Shipped in the film page as `basis_transcoder.js` and `basis_transcoder.wasm`, unchanged, from the copy in the three package (`examples/jsm/libs/basis`). https://github.com/BinomialLLC/basis_universal, licensed under the Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0). Its NOTICE file's attribution notices:
+
+```
+Basis Universal™ Supercompressed GPU Texture Compression Library
+
+Copyright © 2016–2026 Binomial LLC.
+"Basis Universal" is a trademark of Binomial LLC.
+```
+
 ## Compressed 3D models — the draco-gltf crate
 
 Decodes 3D models with compressed meshes (Draco and meshoptimizer) into plain ones before they're drawn, in `crates/prepare`. https://github.com/Filyus/draco-rust, a Rust implementation of Google's Draco format (https://github.com/google/draco). Licensed under the Apache License, Version 2.0, the same licence as Opsis; its full text is in `LICENSE`.
