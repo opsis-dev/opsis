@@ -408,6 +408,29 @@
    }
   },
   {
+   "type": "browser.changeLanguage",
+   "title": "Change language",
+   "category": "Browser",
+   "description": "Changes the language the page is told the computer uses, as for a visitor from another country.",
+   "runs": true,
+   "inputs": {
+    "session": {
+     "type": "browser-session",
+     "label": "Browser",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "session": {
+     "type": "browser-session",
+     "label": "Browser",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "browser.freezeClock",
    "title": "Freeze time",
    "category": "Browser",
@@ -5795,6 +5818,56 @@
     "type": "object",
     "default": {
      "colorScheme": "dark"
+    }
+   }
+  },
+  {
+   "type": "browser.changeLanguage",
+   "title": "Change language",
+   "category": "Browser",
+   "description": "Changes the language the page is told the computer uses, as for a visitor from another country.",
+   "runs": true,
+   "inputs": {
+    "session": {
+     "type": "browser-session",
+     "label": "Browser",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "session": {
+     "type": "browser-session",
+     "label": "Browser",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "locale": {
+      "description": "Language",
+      "type": "string",
+      "default": "de-DE",
+      "x-help": "For example en-US, de-DE, ja-JP.",
+      "x-zero-label": "This computer's language",
+      "x-check": {
+       "rule": "locale-or-empty",
+       "message": "Use a language like en-US, de-DE or ja-JP"
+      }
+     },
+     "reload": {
+      "description": "Reload the page after",
+      "type": "boolean",
+      "default": true,
+      "x-help": "Most sites read the language only when a page loads."
+     }
+    },
+    "type": "object",
+    "default": {
+     "locale": "de-DE",
+     "reload": true
     }
    }
   },

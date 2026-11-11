@@ -826,6 +826,48 @@
   }
  },
  {
+  "type": "browser.changeLanguage",
+  "title": "Change language",
+  "category": "Browser",
+  "description": "Changes the language the page is told the computer uses, as for a visitor from another country.",
+  "phase": "capture",
+  "inputs": [
+   {
+    "id": "session",
+    "type": "browser-session",
+    "label": "Browser",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "session",
+    "type": "browser-session",
+    "label": "Browser",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": true,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "locale": "de-DE",
+   "reload": true
+  }
+ },
+ {
   "type": "browser.freezeClock",
   "title": "Freeze time",
   "category": "Browser",

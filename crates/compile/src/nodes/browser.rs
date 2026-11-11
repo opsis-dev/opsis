@@ -852,6 +852,24 @@ pub struct SwitchTheme {
 }
 
 #[settings(eq)]
+pub struct ChangeLanguage {
+    #[setting(
+        "Language",
+        default = "de-DE",
+        help = "For example en-US, de-DE, ja-JP.",
+        zero_label = "This computer's language",
+        check = { "rule": "locale-or-empty", "message": "Use a language like en-US, de-DE or ja-JP" }
+    )]
+    pub locale: String,
+    #[setting(
+        "Reload the page after",
+        default = true,
+        help = "Most sites read the language only when a page loads."
+    )]
+    pub reload: bool,
+}
+
+#[settings(eq)]
 pub struct MockRoute {
     #[setting(
         "Address pattern",
@@ -1603,6 +1621,23 @@ pub fn nodes() -> Vec<NodeDef> {
                 vec![Some(row(icon, p.color_scheme.label()))]
             },
         ).look(NodeLook::of("lucide:sun-moon")),
+        card(
+            chain::<ChangeLanguage>(
+                BrowserAction::ChangeLanguage,
+                "Change language",
+                "Changes the language the page is told the computer uses, as for a visitor from another country.",
+            ),
+            |p: &ChangeLanguage| {
+                let language = match p.locale.trim() {
+                    "" => "This computer's language",
+                    given => given,
+                };
+                vec![
+                    Some(row(Icon::Languages, language)),
+                    p.reload.then(|| row(Icon::RefreshCw, "Reloads the page")),
+                ]
+            },
+        ).look(NodeLook::of("lucide:languages")),
         card(
             chain::<FreezeClock>(
                 BrowserAction::FreezeClock,

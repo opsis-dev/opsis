@@ -186,6 +186,7 @@ pub struct Session {
     pub user_agent: String,
     pub locale: String,
     pub reduce_motion: bool,
+    pub mobile: bool,
 }
 
 const fn color_scheme(scheme: ColorScheme) -> &'static str {
@@ -287,6 +288,7 @@ impl Session {
             user_agent,
             locale,
             reduce_motion: params.reduce_motion,
+            mobile: params.mobile,
             launched,
         };
         match session.prepare(params).await {
@@ -350,11 +352,7 @@ impl Session {
             )
             .await?;
         }
-        let mut agent = json!({ "userAgent": self.user_agent, "acceptLanguage": self.locale });
-        if let Some(metadata) = user_agent_metadata(&self.user_agent, params.mobile) {
-            agent["userAgentMetadata"] = metadata;
-        }
-        tab.send("Emulation.setUserAgentOverride", agent).await?;
+        self.send_user_agent().await?;
         if let Err(error) = tab
             .send(
                 "Emulation.setLocaleOverride",
@@ -389,6 +387,33 @@ impl Session {
         )
         .await?;
         self.set_color_scheme(params.color_scheme).await
+    }
+
+    async fn send_user_agent(&self) -> Result<()> {
+        let mut agent = json!({ "userAgent": self.user_agent, "acceptLanguage": self.locale });
+        if let Some(metadata) = user_agent_metadata(&self.user_agent, self.mobile) {
+            agent["userAgentMetadata"] = metadata;
+        }
+        self.tab
+            .send("Emulation.setUserAgentOverride", agent)
+            .await
+            .map(drop)
+    }
+
+    pub async fn set_locale(&mut self, locale: &str) -> Result<()> {
+        let locale = match locale.trim() {
+            "" => system_locale(),
+            given => given.to_owned(),
+        };
+        self.tab
+            .send("Emulation.setLocaleOverride", json!({}))
+            .await?;
+        self.tab
+            .send("Emulation.setLocaleOverride", json!({ "locale": locale }))
+            .await
+            .map_err(|_| CaptureError::Failed(format!("Can't use the language “{locale}”.")))?;
+        self.locale = locale;
+        self.send_user_agent().await
     }
 
     pub async fn set_color_scheme(&self, scheme: ColorScheme) -> Result<()> {

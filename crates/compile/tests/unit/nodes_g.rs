@@ -269,6 +269,7 @@ fn asks_a_new_action_only_for_what_the_user_has_to_fill_in() {
         ("browser.setState", None),
         ("browser.mockRoute", None),
         ("browser.switchTheme", None),
+        ("browser.changeLanguage", None),
         ("browser.freezeClock", None),
         ("browser.hideElements", None),
         ("browser.chapter", None),

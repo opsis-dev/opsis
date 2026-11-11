@@ -14,6 +14,10 @@ dark.addEventListener("change", show);
 show();
 </script></body>"#;
 
+const LANGUAGE_PAGE: &str = r"<!doctype html><body><script>
+document.body.textContent = `lang ${navigator.language} ${new Intl.NumberFormat().format(1234.5)}`;
+</script></body>";
+
 fn shows(id: &str, text: &str) -> SessionStep {
     step(
         BrowserAction::Assert,
@@ -61,6 +65,31 @@ async fn switches_the_theme_the_page_sees_without_reloading() {
                 json!({ "colorScheme": "light" }),
             ),
             shows("back", "theme light"),
+        ],
+    )
+    .await;
+}
+
+#[tokio::test]
+#[ignore = "needs the dev engine"]
+async fn changes_the_language_the_page_reads_when_it_reloads() {
+    play(
+        LANGUAGE_PAGE,
+        json!({ "locale": "en-US" }),
+        vec![
+            shows("before", "lang en-US 1,234.5"),
+            step(
+                BrowserAction::ChangeLanguage,
+                "german",
+                json!({ "locale": "de-DE", "reload": true }),
+            ),
+            shows("after", "lang de-DE 1.234,5"),
+            step(
+                BrowserAction::ChangeLanguage,
+                "french",
+                json!({ "locale": "fr-FR", "reload": true }),
+            ),
+            shows("again", "lang fr-FR 1\u{202f}234,5"),
         ],
     )
     .await;

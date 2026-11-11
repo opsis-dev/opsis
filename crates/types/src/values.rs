@@ -250,6 +250,7 @@ browser_actions! {
     OverlayHtml = "browser.overlayHtml",
     SignIn = "browser.signIn",
     SwitchTheme = "browser.switchTheme",
+    ChangeLanguage = "browser.changeLanguage",
 }
 
 impl BrowserAction {
