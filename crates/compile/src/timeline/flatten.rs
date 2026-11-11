@@ -779,6 +779,16 @@ fn visit_item(acc: &mut Collected, p: &Placed<'_>, previous_length: f64) {
 
 fn visit_group(acc: &mut Collected, p: &Placed<'_>, group: &GroupProps, link: ChainLink) {
     let base = p.item.base();
+    if let Some(title) = &group.chapter {
+        acc.marks.push(ActionMark {
+            key: format!("{}:chapter", p.key),
+            frame: p.from,
+            kind: ActionKind::Chapter,
+            label: title.clone(),
+            node_id: base.node_id.clone(),
+            bar_key: p.key.clone(),
+        });
+    }
     let instances = group_instances(p.item, group, &p.walk.inst, p.abs_start, p.abs_end);
     let looped = instances.len() > 1;
     let chain = if base.node_id.is_some() || base.handles.is_some() || base.slot.is_some() {

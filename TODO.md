@@ -33,7 +33,6 @@ Ideas you approved but left for later.
 - [ ] A Sign out browser action.
 - [ ] An Open a new tab browser action.
 - [ ] Record take and Screenshot passing the session on, so one chain can make several takes or stills.
-- [ ] A Chapter node on the Timeline that marks the start of any clip.
 - [ ] Lid-angle keyframes on the 3D screen's laptop, so its lid can open and close on a playing clip.
 - [ ] KTX2 textures in 3D models through three.js's bundled basis transcoder.
 - [ ] A Run panel that lists every node, nesting compile-only nodes under their export and actions under their capture.

@@ -1253,6 +1253,7 @@ export type GroupProps = {
 	cropFill?: boolean,
 	wrapper?: ElementRef,
 	background?: string,
+	chapter?: string,
 	design?: Viewport,
 	sequencer?: SequencerProps,
 };

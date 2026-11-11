@@ -3,14 +3,14 @@ use opsis_types::cards::{CardRow, Icon, Tone};
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::numbers;
 use opsis_types::timeline::{
-    EditHandles, GroupProps, ItemBase, LinkedParam, ParamRef, ParamUnit, Sign, TimelineTrack,
-    TransitionRef,
+    EditHandles, GroupProps, ItemBase, LinkedParam, ParamRef, ParamUnit, Sign, TimelineItem,
+    TimelineTrack, TransitionRef,
 };
 use opsis_types::values::{ClipValue, CompileValue};
 use opsis_types::workflow::{PortType, WorkflowSettings};
 
 use crate::card_rows::{
-    Cover, TAG_TEXT_MAX, cover, cover_row, frame_secs, quote, range_row, truncate_card,
+    Cover, TAG_TEXT_MAX, cover, cover_row, frame_secs, quote, quoted, range_row, truncate_card,
 };
 use crate::clip::{
     EMPTY_CLIP_FRAMES, empty_clip, group_item, mark_layers, stack_clips, with_handles, wrap_clip,
@@ -480,6 +480,44 @@ fn delay() -> NodeDef {
         })
 }
 
+#[settings(eq)]
+pub struct ClipChapter {
+    #[setting("Title", default = "Chapter")]
+    pub title: String,
+}
+
+fn chapter_title(title: &str) -> String {
+    match title.trim() {
+        "" => "Chapter".to_owned(),
+        title => title.to_owned(),
+    }
+}
+
+fn chapter() -> NodeDef {
+    NodeDef::clip_modifier::<ClipChapter>("timeline.chapter", "Chapter", Category::Timeline)
+        .describe("Starts a chapter where a clip begins, for an export's chapters.")
+        .card(|ctx: &CardCtx<'_, ClipChapter>| {
+            vec![Some(row(
+                Icon::Bookmark,
+                quoted(&chapter_title(&ctx.params.title)),
+            ))]
+        })
+        .compiles(|ctx: &Ctx<'_, ClipChapter>| {
+            with_clip(ctx, |clip| {
+                let mut chaptered = ClipValue {
+                    enter: clip.enter.clone(),
+                    ..stack_clips(ctx.node_id, std::slice::from_ref(clip), &[0], None, None)
+                };
+                for item in chaptered.tracks.iter_mut().flat_map(|t| t.items.iter_mut()) {
+                    if let TimelineItem::Group { props, .. } = item {
+                        props.chapter = Some(chapter_title(&ctx.params.title));
+                    }
+                }
+                chaptered
+            })
+        })
+}
+
 #[settings]
 pub struct Speed {
     #[setting(
@@ -736,6 +774,7 @@ pub fn nodes() -> Vec<NodeDef> {
         trim().look(NodeLook::of("lucide:scissors")),
         repeat().look(NodeLook::of("lucide:repeat").moves(NodeMotion::Turn)),
         delay().look(NodeLook::of("lucide:timer")),
+        chapter().look(NodeLook::of("lucide:bookmark-plus")),
         speed().look(NodeLook::of("lucide:rabbit").morphs("lucide:turtle")),
         fit_length().look(NodeLook::of("lucide:ruler-dimension-line").moves(NodeMotion::Stretch)),
         branch().look(NodeLook::of("lucide:split")),

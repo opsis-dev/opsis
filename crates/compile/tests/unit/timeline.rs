@@ -4,6 +4,8 @@ use opsis_compile::timeline::chapters::{
     FilmChapter, chapter_list, chapter_metadata, film_chapters,
 };
 use opsis_compile::timeline::flatten::node_spans;
+use opsis_types::actions::ActionKind;
+use proptest::prelude::*;
 use serde_json::{Value, json};
 
 use crate::helpers::{
@@ -283,5 +285,36 @@ fn gives_each_bar_its_local_frame_at_every_timeline_frame() {
             near(*local, expected, 0.01),
             "frame {i}: {local} isn't {expected}"
         );
+    }
+}
+
+proptest! {
+    #[test]
+    fn a_chapter_node_marks_where_its_clip_starts_in_the_film(
+        first in 30u32..600,
+        second in 30u32..600,
+        title in "[A-Za-z ]{0,12}",
+    ) {
+        let wf = film(|g| {
+            g.node("a", TITLE, json!({ "clipDuration": first }));
+            g.node("b", TITLE, json!({ "clipDuration": second }));
+            g.node("ch", "timeline.chapter", json!({ "title": title }));
+            g.link("b", "ch");
+            g.sequence("seq", None);
+            g.link_ports("a", "seq", "clip", "in1")
+                .link_ports("ch", "seq", "clip", "in2");
+            "seq".into()
+        });
+        let chapters: Vec<(String, f64)> = flat_film(&wf)
+            .marks
+            .into_iter()
+            .filter(|m| m.kind == ActionKind::Chapter)
+            .map(|m| (m.label, m.frame))
+            .collect();
+        let named = match title.trim() {
+            "" => "Chapter",
+            trimmed => trimmed,
+        };
+        prop_assert_eq!(chapters, vec![(named.to_owned(), f64::from(first))]);
     }
 }

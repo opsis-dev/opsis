@@ -64,7 +64,8 @@ How the compiled spec becomes bars, how Timeline drags write back into the nodes
 
 ### Chapters in exports
 
-- **`film_chapters` reads the Chapter action marks from `flatten_spec` and follows YouTube's rules**: marks at or after the film's end are dropped; the first mark moves to 0:00 when it is under 10 s in, or else a chapter named by Export video's First chapter name is added when the first mark is 10 s or more in; a chapter starting under 10 s after the one kept before it is dropped, and so are trailing chapters shorter than 10 s.
+- **A chapter starts at a browser Chapter action or where a Chapter node's clip begins.** The Chapter node (`timeline.chapter`) wraps its clip in one group carrying the title (`GroupProps.chapter`), and `visit_group` (`timeline/flatten.rs`) marks a chapter at that group's start, so it lands wherever the clip ends up in the film.
+- **`film_chapters` reads the Chapter marks from `flatten_spec` and follows YouTube's rules**: marks at or after the film's end are dropped; the first mark moves to 0:00 when it is under 10 s in, or else a chapter named by Export video's First chapter name is added when the first mark is 10 s or more in; a chapter starting under 10 s after the one kept before it is dropped, and so are trailing chapters shorter than 10 s.
 - **Export video writes them as FFmpeg chapter metadata in the finishing copy when its Chapters in the file setting is on (`chapters_for`, `finish_args`, with the web-ready move)**; GIFs get none.
   - A chapter change reuses the saved picture only when the film has a mix and the format carries sound (`render_variant`); otherwise it renders the picture again ([runs.md](runs.md), Saved pictures).
 - **The optional `.youtube-chapters.txt` (Export video's YouTube chapter list, apart from Chapters in the file) needs `MIN_LISTED_CHAPTERS`**; with fewer, but some, the run logs a warning and saves no list.

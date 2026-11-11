@@ -324,6 +324,8 @@ pub struct GroupProps {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub background: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub chapter: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub design: Option<Viewport>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sequencer: Option<SequencerProps>,

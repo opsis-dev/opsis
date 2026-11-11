@@ -2602,6 +2602,29 @@
    }
   },
   {
+   "type": "timeline.chapter",
+   "title": "Chapter",
+   "category": "Timeline",
+   "description": "Starts a chapter where a clip begins, for an export's chapters.",
+   "runs": false,
+   "inputs": {
+    "clip": {
+     "type": "clip",
+     "label": "Clip",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "clip": {
+     "type": "clip",
+     "label": "Clip",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "timeline.speed",
    "title": "Speed",
    "category": "Timeline",
@@ -44315,6 +44338,43 @@
     "type": "object",
     "default": {
      "ms": 500
+    }
+   }
+  },
+  {
+   "type": "timeline.chapter",
+   "title": "Chapter",
+   "category": "Timeline",
+   "description": "Starts a chapter where a clip begins, for an export's chapters.",
+   "runs": false,
+   "inputs": {
+    "clip": {
+     "type": "clip",
+     "label": "Clip",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "clip": {
+     "type": "clip",
+     "label": "Clip",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "title": {
+      "description": "Title",
+      "type": "string",
+      "default": "Chapter"
+     }
+    },
+    "type": "object",
+    "default": {
+     "title": "Chapter"
     }
    }
   },

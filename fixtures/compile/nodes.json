@@ -6335,6 +6335,47 @@
   }
  },
  {
+  "type": "timeline.chapter",
+  "title": "Chapter",
+  "category": "Timeline",
+  "description": "Starts a chapter where a clip begins, for an export's chapters.",
+  "phase": "compile",
+  "inputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "clip",
+    "type": "clip",
+    "label": "Clip",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": false,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "title": "Chapter"
+  }
+ },
+ {
   "type": "timeline.speed",
   "title": "Speed",
   "category": "Timeline",
