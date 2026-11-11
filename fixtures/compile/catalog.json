@@ -49803,7 +49803,7 @@
       "description": "Chapters in the file",
       "type": "boolean",
       "default": true,
-      "x-help": "Players list the film's chapters, taken from its Chapter actions.",
+      "x-help": "Players list the film's chapters, taken from its Chapter actions and Chapter nodes.",
       "x-show-if": {
        "codec": [
         "h264",

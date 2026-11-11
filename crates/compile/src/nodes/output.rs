@@ -261,7 +261,7 @@ pub struct ExportVideo {
     #[setting(
         "Chapters in the file",
         default = true,
-        help = "Players list the film's chapters, taken from its Chapter actions.",
+        help = "Players list the film's chapters, taken from its Chapter actions and Chapter nodes.",
         show_if = { "codec": ["h264", "h265", "vp8", "vp9", "prores", "h264-lossless", "ffv1"] },
         advanced
     )]
