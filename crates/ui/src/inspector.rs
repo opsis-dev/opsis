@@ -370,11 +370,20 @@ fn pairs<'a>(items: impl IntoIterator<Item = (&'a str, String)>) -> Vec<Choice> 
         .collect()
 }
 
+fn none_label(zero_label: &str, none: &str) -> String {
+    if zero_label.is_empty() {
+        none
+    } else {
+        zero_label
+    }
+    .to_owned()
+}
+
 fn select(view: &mut FieldView, value: Option<&Value>, choices: Vec<Choice>, none: &str) {
     view.kind = FieldKind::Select;
     view.text = value.map_or_default(plain);
     view.choices = with_current(choices, &view.text);
-    none.clone_into(&mut view.none_label);
+    view.none_label = none_label(&view.zero_label, none);
 }
 
 fn marker_label(label: &str, at_ms: f64) -> String {
@@ -470,7 +479,7 @@ fn named_widget(
     if widget == "font" {
         view.kind = FieldKind::Font;
         view.text = value.map_or_default(plain);
-        "Project font".clone_into(&mut view.none_label);
+        view.none_label = none_label(&view.zero_label, "Project font");
         return true;
     }
     if let Some((choices, none)) = select_choices(widget, ctx) {
@@ -480,6 +489,9 @@ fn named_widget(
     if let Some(kind) = string_widget(widget) {
         view.kind = kind;
         view.text = value.map_or_default(plain);
+        if kind == FieldKind::Asset {
+            view.none_label = none_label(&view.zero_label, "Choose a file");
+        }
         return true;
     }
     if widget == "theme" {
@@ -933,6 +945,15 @@ mod tests {
             let schema = json!({ "x-zero-label": zero, "x-unconnected-zero-label": usual });
             prop_assert_eq!(zero_label(&schema, &[]), usual);
             prop_assert_eq!(zero_label(&schema, &inputs), zero);
+        }
+
+        #[test]
+        fn a_zero_label_names_the_empty_choice_in_place_of_the_widgets_own(
+            zero in "[A-Za-z ]{1,12}",
+            none in "[A-Za-z ]{0,12}",
+        ) {
+            prop_assert_eq!(none_label(&zero, &none), zero);
+            prop_assert_eq!(none_label("", &none), none);
         }
 
         #[test]

@@ -484,7 +484,7 @@ QWidget* InspectorPanel::MakeControl(const bridge::FieldView& field) {
       row->setSpacing(8);
       auto* line = new QLineEdit(holder);
       line->setText(ToQ(field.text));
-      line->setPlaceholderText(QStringLiteral("Choose a file"));
+      line->setPlaceholderText(ToQ(field.none_label));
       line->setAccessibleName(ToQ(field.label));
       row->addWidget(line, 1);
       auto* choose = MakeButton(QStringLiteral("Choose"), "outline",

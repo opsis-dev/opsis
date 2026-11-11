@@ -10,7 +10,6 @@ What's left that no plan covers: the places in the codebase that don't read as i
 
 Wrong behaviour found in the session transcripts and confirmed in the current code.
 
-- [ ] `x-zero-label` on a file (`asset`) or select field is never shown: the asset field always reads "Choose a file" and a select shows its `none_label`, so labels such as Text mask's "Gradient" and Terminal look's "The take's own" never appear.
 - [ ] Card rows and the Inspector disagree on `x-show-if` with `"*"`: the Inspector treats `"*"` as any non-empty value (`ANY_VALUE`, `crates/ui/src/inspector.rs`), while `shown` in `crates/compile/src/nodes/elements.rs` compares it as text.
 - [ ] `documents_every_route_it_serves` (`crates/api/tests/routes.rs`) leaves out `/openapi.json`, `/status`, `/nodes` and `/nodes/{type}`, so those routes could lose their OpenAPI entry without a failing test.
 
