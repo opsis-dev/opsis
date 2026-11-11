@@ -46,7 +46,7 @@ The `tour`, `runs` and `api` scenarios, and the Rust tests that are ignored by d
 - **Rust is the source of types and logic.** Shapes that cross a boundary are Rust types, exported with specta for the film and shared through the `cxx` bridge with the editor; don't write them by hand, and don't copy logic into the editor's C++ that Rust already has.
 - **Dependencies go through the package managers** (`bun add`, `cargo add`), at their latest release unless AGENTS.md pins them. A Rust dependency's version lives once in the root `Cargo.toml`'s `[workspace.dependencies]`; AGENTS.md says how to add one.
 - **Scripts run with Bun:** `bun scripts/<name>.ts`.
-- **User-facing text** is in sentence case, names no library or tool, and gives durations in seconds.
+- **User-facing text** is in sentence case, names no library or tool a person never works with, and gives durations in seconds.
 - **Golden files** in `fixtures/` are recorded again with `OPSIS_WRITE_GOLDEN=1` when a change is intended; review the diff instead of editing them.
 - **A change that makes a doc wrong updates that doc** in the same change.
 
