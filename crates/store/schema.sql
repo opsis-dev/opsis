@@ -24,15 +24,6 @@ CREATE TABLE view_state (
   UNIQUE (project_id, key)
 );
 
-CREATE TABLE window_bounds (
-  id INTEGER PRIMARY KEY,
-  window TEXT NOT NULL UNIQUE,
-  x INTEGER NOT NULL,
-  y INTEGER NOT NULL,
-  width INTEGER NOT NULL,
-  height INTEGER NOT NULL
-);
-
 CREATE TABLE fonts (
   id INTEGER PRIMARY KEY,
   font_id TEXT NOT NULL UNIQUE,

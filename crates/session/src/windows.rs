@@ -1,4 +1,3 @@
-use opsis_store::windows::Bounds;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -8,6 +7,14 @@ use crate::state::AppState;
 pub const MAIN_WINDOW_KEY: &str = "mainWindow";
 const MIN_VISIBLE_PX: i32 = 40;
 const ABOVE_WORK_AREA_PX: i32 = 20;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Bounds {
+    pub x: i32,
+    pub y: i32,
+    pub width: i32,
+    pub height: i32,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct WorkArea {

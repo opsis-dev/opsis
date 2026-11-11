@@ -4,7 +4,6 @@ What's left that no plan covers: the places in the codebase that don't read as i
 
 ## Written for Rust and Qt
 
-- [ ] The `window_bounds` table (`crates/store/schema.sql`) and `Database::saved_bounds` and `save_bounds` (`crates/store/src/windows.rs`) are used only by their own tests: the app keeps the main window's place in the project's view state under `mainWindow` (`crates/session/src/windows.rs` → `save_main_window`). `Bounds` there is still used by `visible_bounds`.
 - [ ] `crates/probe/tests/ffprobe.rs` reads `OPSIS_FFMPEG` and builds `~/.cache/opsis-dev/…` paths itself (`ffmpeg`, `ffprobe_program`, `make_samples`) instead of through `opsis_golden::ffmpeg()` and `dev_cache`, against the rule in AGENTS.md §3; `opsis-probe` doesn't take `opsis-golden` as a dev-dependency.
 - [ ] Code nothing calls or reads: `crates/session/src/gradients.rs` (the editor reaches `gradient_view` and `edit_gradient` through `crates/ui/src/colors.rs`); the `LIVE_WINDOW` branch of `run::watch_live` with `LiveWindowWatching` and `live_window_watching` (`crates/session/src/run.rs`, `events.rs`), since no window watches as `LIVE_WINDOW`; `EditorCompile.converts` (`output_conversions`), which no view reads; the `x-accept` and `x-length-key` keywords the settings emit and nothing reads; `ChildKind::Setup` (`crates/engine/src/temp.rs`).
 

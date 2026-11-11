@@ -160,14 +160,7 @@ mod tests {
         let db = Database::in_memory().await.unwrap();
         assert_eq!(
             db.table_names().await.unwrap(),
-            [
-                "fonts",
-                "meta",
-                "projects",
-                "settings",
-                "view_state",
-                "window_bounds"
-            ]
+            ["fonts", "meta", "projects", "settings", "view_state"]
         );
         assert_eq!(db.stored_schema_hash().await, Some(schema_hash()));
     }
