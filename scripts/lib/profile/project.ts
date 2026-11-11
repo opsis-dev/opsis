@@ -191,6 +191,11 @@ function browserTake(builder: Builder): { recording: string; still: string } {
     ["browser.press"],
     ["browser.chapter", { description: "The second page" }],
     ["browser.overlayHtml"],
+    ["browser.switchTheme", { colorScheme: "dark" }],
+    ["browser.changeLanguage", { locale: "de-DE" }],
+    ["browser.goOffline", { connection: "offline" }],
+    ["browser.goOffline", { connection: "online" }],
+    ["browser.signOut"],
     ["browser.navigate", { url: `{{${SITE_VARIABLE}}}/next` }],
   ]);
   const recording = builder.add("capture.record");
