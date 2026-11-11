@@ -90,6 +90,9 @@ jobs:
         with:
           path: ~/.cache/opsis-dev/qt-static
           key: static-qt-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/static-qt.ts') }}
+      - name: Install Ninja
+        if: runner.os == 'macOS'
+        run: command -v ninja || brew install ninja
       - name: Build the static Qt
         run: |
           bun run qt:static | tee "$RUNNER_TEMP/qt-static.log"

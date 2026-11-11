@@ -1,13 +1,23 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  closeSync,
+  existsSync,
+  mkdirSync,
+  openSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 import { devCache } from "./tool-config";
 import { runInTrixie } from "./trixie";
 
 export const QT_VERSION = "6.12.0";
+export const MACOS_MINIMUM = "14.4";
 const BUILD_JOBS = "8";
 const COMPLETE = ".opsis-complete";
+const LOG_TAIL_LINES = 40;
 const SOURCES = [
   {
     module: "qtbase",
@@ -20,7 +30,12 @@ const SOURCES = [
     size: 2341876,
   },
 ];
-const CONFIGURE = [
+
+export type QtPlatform = "linux" | "darwin" | "win32";
+
+export const QT_PLATFORMS: QtPlatform[] = ["linux", "darwin", "win32"];
+
+const SHARED_CONFIGURE = [
   "-static",
   "-release",
   "-no-icu",
@@ -35,21 +50,41 @@ const CONFIGURE = [
   "-qt-libjpeg",
   "-qt-harfbuzz",
   "-qt-pcre",
-  "-system-freetype",
-  "-fontconfig",
-  "-xcb",
 ];
+
+const PLATFORM_CONFIGURE: Record<QtPlatform, string[]> = {
+  linux: ["-system-freetype", "-fontconfig", "-xcb"],
+  darwin: ["-no-framework", "--", `-DCMAKE_OSX_DEPLOYMENT_TARGET=${MACOS_MINIMUM}`],
+  win32: [],
+};
+
+export type BuildStep = { dir: string; program: string; args: string[]; log: string };
+
+function isQtPlatform(platform: string): platform is QtPlatform {
+  return (QT_PLATFORMS as string[]).includes(platform);
+}
+
+function qtPlatform(platform: string = process.platform): QtPlatform {
+  if (!isQtPlatform(platform)) throw new Error(`The static Qt isn't built for ${platform}.`);
+  return platform;
+}
+
+export function configureArgs(platform: QtPlatform): string[] {
+  return [...SHARED_CONFIGURE, ...PLATFORM_CONFIGURE[platform]];
+}
 
 function cacheDir(): string {
   return devCache("qt-static");
 }
 
-function folder(): string {
-  return process.arch === "arm64" ? "gcc_arm64" : "gcc_64";
+export function qtFolder(platform: QtPlatform, arch: string = process.arch): string {
+  if (platform === "darwin") return "macos";
+  if (platform === "win32") return "msvc2022_64";
+  return arch === "arm64" ? "gcc_arm64" : "gcc_64";
 }
 
 export function staticQtPrefix(): string {
-  return path.join(cacheDir(), QT_VERSION, folder());
+  return path.join(cacheDir(), QT_VERSION, qtFolder(qtPlatform()));
 }
 
 export function staticQtReady(): boolean {
@@ -87,41 +122,164 @@ async function download(source: (typeof SOURCES)[number]): Promise<string> {
   return tarball;
 }
 
-function buildScript(tarballs: string[], build: string, prefix: string): string {
+function script(platform: QtPlatform, name: string): string {
+  return platform === "win32" ? `${name}.bat` : name;
+}
+
+function cmakeStep(dir: string, args: string[], log: string): BuildStep {
+  return { dir, program: "cmake", args, log };
+}
+
+export function buildSteps(
+  platform: QtPlatform,
+  tarballs: string[],
+  build: string,
+  prefix: string,
+): BuildStep[] {
   const [qtbase, qtsvg] = tarballs;
-  const sources = path.join(build, "src");
+  const join = platform === "win32" ? path.win32.join : path.posix.join;
+  const sources = join(build, "src");
+  const base = join(build, "qtbase");
+  const svg = join(build, "qtsvg");
   return [
-    `rm -rf ${build} ${prefix}`,
-    `mkdir -p ${sources} ${build}/qtbase ${build}/qtsvg`,
-    `tar -xf ${qtbase} -C ${sources}`,
-    `tar -xf ${qtsvg} -C ${sources}`,
-    `cd ${build}/qtbase`,
-    `${sources}/qtbase-everywhere-src-${QT_VERSION}/configure -prefix ${prefix} ${CONFIGURE.join(" ")} > configure.log`,
-    `cmake --build . --parallel ${BUILD_JOBS} > build.log`,
-    "cmake --install . > install.log",
-    `cd ${build}/qtsvg`,
-    `${prefix}/bin/qt-configure-module ${sources}/qtsvg-everywhere-src-${QT_VERSION} > configure.log`,
-    `cmake --build . --parallel ${BUILD_JOBS} > build.log`,
-    "cmake --install . > install.log",
-    `rm -rf ${build}`,
-    `touch ${prefix}/${COMPLETE}`,
+    cmakeStep(sources, ["-E", "tar", "xf", qtbase], "unpack-qtbase.log"),
+    cmakeStep(sources, ["-E", "tar", "xf", qtsvg], "unpack-qtsvg.log"),
+    {
+      dir: base,
+      program: join(sources, `qtbase-everywhere-src-${QT_VERSION}`, script(platform, "configure")),
+      args: ["-prefix", prefix, ...configureArgs(platform)],
+      log: "configure.log",
+    },
+    cmakeStep(base, ["--build", ".", "--parallel", BUILD_JOBS], "build.log"),
+    cmakeStep(base, ["--install", "."], "install.log"),
+    {
+      dir: svg,
+      program: join(prefix, "bin", script(platform, "qt-configure-module")),
+      args: [join(sources, `qtsvg-everywhere-src-${QT_VERSION}`)],
+      log: "configure.log",
+    },
+    cmakeStep(svg, ["--build", ".", "--parallel", BUILD_JOBS], "build.log"),
+    cmakeStep(svg, ["--install", "."], "install.log"),
+  ];
+}
+
+function quoted(arg: string): string {
+  return `'${arg.replaceAll("'", "'\\''")}'`;
+}
+
+export function shellScript(steps: BuildStep[], build: string, prefix: string): string {
+  const dirs = [...new Set(steps.map((step) => step.dir))];
+  return [
+    `rm -rf ${quoted(build)} ${quoted(prefix)}`,
+    `mkdir -p ${dirs.map(quoted).join(" ")}`,
+    ...steps.map(
+      (step) =>
+        `cd ${quoted(step.dir)} && ${[step.program, ...step.args].map(quoted).join(" ")} > ${quoted(step.log)}`,
+    ),
+    `rm -rf ${quoted(build)}`,
+    `touch ${quoted(path.posix.join(prefix, COMPLETE))}`,
   ].join("\n");
 }
 
+function logTail(file: string): string {
+  if (!existsSync(file)) return "";
+  return readFileSync(file, "utf8").split("\n").slice(-LOG_TAIL_LINES).join("\n");
+}
+
+function runStep(platform: QtPlatform, step: BuildStep, env: NodeJS.ProcessEnv): void {
+  const log = path.join(step.dir, step.log);
+  const [program, args] = step.program.endsWith(".bat")
+    ? ["cmd.exe", ["/d", "/s", "/c", step.program, ...step.args]]
+    : [step.program, step.args];
+  const out = openSync(log, "w");
+  try {
+    execFileSync(program, args, { cwd: step.dir, env, stdio: ["ignore", out, "inherit"] });
+  } catch (error) {
+    console.error(logTail(log));
+    throw new Error(`${path.basename(step.program)} failed on ${platform}; its log is ${log}`, {
+      cause: error,
+    });
+  } finally {
+    closeSync(out);
+  }
+}
+
+export function parseSetOutput(text: string): Record<string, string> {
+  const entries: [string, string][] = [];
+  for (const line of text.split(/\r?\n/)) {
+    const at = line.indexOf("=");
+    if (at > 0) entries.push([line.slice(0, at), line.slice(at + 1)]);
+  }
+  return Object.fromEntries(entries);
+}
+
+function msvcEnv(): NodeJS.ProcessEnv {
+  if (process.env.VCINSTALLDIR) return process.env;
+  const programs = process.env["ProgramFiles(x86)"] ?? "C:\\Program Files (x86)";
+  const vswhere = path.win32.join(programs, "Microsoft Visual Studio", "Installer", "vswhere.exe");
+  if (!existsSync(vswhere))
+    throw new Error(
+      `Building Qt on Windows needs Visual Studio's C++ tools; ${vswhere} is missing.`,
+    );
+  const install = execFileSync(
+    vswhere,
+    [
+      "-latest",
+      "-products",
+      "*",
+      "-requires",
+      "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+      "-property",
+      "installationPath",
+    ],
+    { encoding: "utf8" },
+  ).trim();
+  if (!install) throw new Error("Visual Studio has no C++ tools for x64 installed.");
+  const vcvars = path.win32.join(install, "VC", "Auxiliary", "Build", "vcvars64.bat");
+  const set = spawnSync("cmd.exe", ["/d", "/s", "/c", `""${vcvars}" >nul && set"`], {
+    encoding: "utf8",
+    windowsVerbatimArguments: true,
+  });
+  if (set.status !== 0) throw new Error(`${vcvars} failed: ${set.stderr}`);
+  return { ...process.env, ...parseSetOutput(set.stdout) };
+}
+
+function buildEnv(platform: QtPlatform): NodeJS.ProcessEnv {
+  if (platform === "darwin") return { ...process.env, MACOSX_DEPLOYMENT_TARGET: MACOS_MINIMUM };
+  if (platform === "win32") return msvcEnv();
+  return process.env;
+}
+
+function runNatively(platform: QtPlatform, steps: BuildStep[], build: string, prefix: string) {
+  const env = buildEnv(platform);
+  rmSync(build, { recursive: true, force: true });
+  rmSync(prefix, { recursive: true, force: true });
+  for (const dir of new Set(steps.map((step) => step.dir))) mkdirSync(dir, { recursive: true });
+  for (const step of steps) runStep(platform, step, env);
+  rmSync(build, { recursive: true, force: true });
+  writeFileSync(path.join(prefix, COMPLETE), "");
+}
+
+function buildDir(platform: QtPlatform): string {
+  const runnerTemp = process.env.RUNNER_TEMP;
+  return platform === "win32" && runnerTemp
+    ? path.join(runnerTemp, "qtb")
+    : path.join(cacheDir(), "build");
+}
+
 export function buildsNatively(): boolean {
-  return process.env.CI === "true" && process.platform !== "linux";
+  return process.platform !== "linux";
 }
 
 export async function ensureStaticQt(): Promise<string> {
+  const platform = qtPlatform();
   const prefix = staticQtPrefix();
   if (staticQtReady()) return prefix;
-  if (process.platform !== "linux")
-    throw new Error("The static Qt is built here only on Linux; macOS and Windows come with CI.");
   const tarballs = await Promise.all(SOURCES.map(download));
-  const build = path.join(cacheDir(), "build");
-  const script = buildScript(tarballs, build, prefix);
-  if (buildsNatively()) execFileSync("bash", ["-c", `set -eu\n${script}`], { stdio: "inherit" });
-  else runInTrixie({ script, mounts: [cacheDir()] });
+  const build = buildDir(platform);
+  const steps = buildSteps(platform, tarballs, build, prefix);
+  if (buildsNatively()) runNatively(platform, steps, build, prefix);
+  else runInTrixie({ script: shellScript(steps, build, prefix), mounts: [cacheDir()] });
   if (!staticQtReady()) throw new Error(`The static Qt build didn't finish in ${prefix}.`);
   return prefix;
 }

@@ -1,6 +1,14 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 import { devCache } from "./lib/tool-config";
 
@@ -87,10 +95,12 @@ async function downloadKddw(): Promise<string> {
   const unpacking = `${source}.partial`;
   rmSync(unpacking, { recursive: true, force: true });
   mkdirSync(unpacking, { recursive: true });
-  execFileSync("tar", ["-xzf", tarball, "-C", unpacking, "--strip-components=1"], {
-    stdio: "inherit",
-  });
-  renameSync(unpacking, source);
+  execFileSync("cmake", ["-E", "tar", "xzf", tarball], { cwd: unpacking, stdio: "inherit" });
+  const [top, ...others] = readdirSync(unpacking);
+  if (!top || others.length > 0)
+    throw new Error(`${tarball} doesn't hold one KDDockWidgets folder`);
+  renameSync(path.join(unpacking, top), source);
+  rmSync(unpacking, { recursive: true, force: true });
   return source;
 }
 

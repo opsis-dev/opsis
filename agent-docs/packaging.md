@@ -85,7 +85,9 @@ How a release build and its installers are made, what they ship, how update file
 ## Deliberate limits
 
 - **Programs aren't code signed** ([plans/release.md](../plans/release.md), code signing): macOS gets an ad-hoc signature only, and Windows none; only update files carry Opsis's minisign signature.
-- **The macOS and Windows packages can't be built yet**: `bun run qt:static` and `bun run make` both stop at `ensureStaticQt` there, locally and in the release workflow alike, unless a finished static Qt is already in the cache, because the static Qt builds only on Linux ([toolchain.md](toolchain.md), [plans/release.md](../plans/release.md) section 2).
+- **The macOS and Windows packages have never been built**: the static Qt, the editor's static link and the packages build natively there (`buildsNatively`, [toolchain.md](toolchain.md)), but no run of the release workflow has happened, so the first one is where they meet a real Mac and Windows runner ([plans/release.md](../plans/release.md) section 2).
+- **A macOS package needs macOS 14.4 or newer** (`MACOS_MINIMUM` in `crates/packager/src/app.rs` and `scripts/lib/static-qt.ts`, kept equal by `static-qt.test.ts`): the oldest macOS Qt 6.12 runs on, and the deployment target the static Qt and the release build are compiled for.
+- **The Windows release program is a GUI program** (`windows_subsystem` in `crates/ui/src/main.rs`, release builds only), so starting it opens no console window; a debug build keeps its console for the log.
 - **The MSI has no installer pages of its own**: it shows Windows Installer's basic progress, since a WiX dialog set needs a licence page in RTF; it is the package for administrators deploying it.
 - **The Windows program has no embedded icon**: shortcuts and Add/Remove Programs use `opsis.ico` beside it.
 - **The notices of the crates and npm packages compiled into the app are deliberately not shipped.**

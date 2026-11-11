@@ -15,7 +15,7 @@ Status: the Linux packages are built and checked ([packaging.md](../agent-docs/p
 | Topic                       | What users get                                                       | Left to do                                         | Status                           |
 | --------------------------- | -------------------------------------------------------------------- | -------------------------------------------------- | -------------------------------- |
 | 1. Size work                | A smaller download and install                                       | act on the findings, record CI sizes               | measured 2026-11-08              |
-| 2. Windows and macOS builds | Installers that have actually run on each system                     | static Qt off Linux, push, first CI run, fixes     | Linux packages built and checked |
+| 2. Windows and macOS builds | Installers that have actually run on each system                     | push, first CI run, fixes                          | Linux packages built and checked |
 | 3. Platform checks          | The editor working the same on Windows and macOS                     | runner checks, the macOS shell, sign-in end to end | not started                      |
 | 4. Local API on Windows     | A named pipe only the user's account can open                        | the access list and its test                       | not started                      |
 | 5. Code signing             | No "unknown publisher" or "can't be opened" warnings                 | identities, entitlements, CI signing               | not started                      |
@@ -43,16 +43,15 @@ Status: the Linux packages are built and checked ([packaging.md](../agent-docs/p
 **In place.**
 
 - `.github/workflows/build.yml`, on every push, on Ubuntu 24.04: the checks (the offscreen view tests among them) and the `wayland` scenario, and the other e2e scenarios with the engine.
-- `.github/workflows/release.yml`, on `v*` tags or by hand (`workflow_dispatch`): the source notice's links (`bun run notice:links`), a package job for each system (Linux in the trixie container, Windows with the pinned NSIS and WiX v7, both Macs) and, on tags, the draft release with the update feed ([packaging.md](../agent-docs/packaging.md)). None has run, and its `qt:static` step fails on Windows and macOS until Work item 1 is done.
+- `.github/workflows/release.yml`, on `v*` tags or by hand (`workflow_dispatch`): the source notice's links (`bun run notice:links`), a package job for each system (Linux in the trixie container, Windows with the pinned NSIS and WiX v7, both Macs) and, on tags, the draft release with the update feed ([packaging.md](../agent-docs/packaging.md)). None has run. On macOS the job installs Ninja when the runner lacks it; on Windows `qt:static` loads Visual Studio's environment itself.
 - The repository is `github.com/opsis-dev/opsis`. It is private; its `main` is behind the local one, its one workflow run (Build, 2026-11-05) failed, and it has no releases. The update signing secrets are set on it (section 6).
 
 **Work.**
 
-1. **Static Qt on Windows and macOS.** `ensureStaticQt` (`scripts/lib/static-qt.ts`) throws on any platform but Linux before it reaches the branch it already has for building on a CI runner off Linux (`buildsNatively`, which runs the build script with `bash` on the runner). Lift that throw and give each platform its own configure flags, without `-xcb`, `-fontconfig` and `-system-freetype`, and its own prefix folder (`folder` names only `gcc_64` and `gcc_arm64`), so the package jobs can build on their runners.
-2. **Push and make it public.** Push `main`, then switch the repository to public (decided below).
-3. **First run.** Start the workflow with `workflow_dispatch`; expect every build job to need fixes at least once (`fail-fast: false` is set).
-4. **Fix failures one system at a time.** Likely places: `install-engine` on Windows (Chrome for Testing download and unzip), begin-frame control on each platform's browser (the driver falls back to screenshots and says so), the MSI (WiX runs only on Windows and needs the VBSCRIPT feature), long paths on Windows (the downloaded engine sits several folders deep).
-5. **Keep the builds** in `~/.cache/opsis-ci/<run id>/` when checking them; sizes go to section 1.
+1. **Push and make it public.** Push `main`, then switch the repository to public (decided below).
+2. **First run.** Start the workflow with `workflow_dispatch`; expect every build job to need fixes at least once (`fail-fast: false` is set).
+3. **Fix failures one system at a time.** Likely places: the static Qt build and the editor's static link on Windows and macOS (written from Qt's docs and the macOS `.prl` files, never run there: the `.prl` text on MSVC and the Windows plugin's system libraries are the least certain), `bun`'s `windowsVerbatimArguments` in `msvcEnv`, `install-engine` on Windows (Chrome for Testing download and unzip), begin-frame control on each platform's browser (the driver falls back to screenshots and says so), the MSI (WiX runs only on Windows and needs the VBSCRIPT feature), long paths on Windows (the downloaded engine sits several folders deep).
+4. **Keep the builds** in `~/.cache/opsis-ci/<run id>/` when checking them; sizes go to section 1.
 
 **Decided.** Public repo; CI runners only for Windows and macOS (no manual pass), plus a person on Linux; x64 Windows and separate Apple Silicon and Intel Mac builds, no Windows on Arm or universal build; one build with FFmpeg inside and no recording browser; NSIS and MSI on Windows, the zipped app (for updates and notarization) and a DMG (for first installs) on macOS.
 

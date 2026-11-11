@@ -4,7 +4,7 @@ import { homedir } from "node:os";
 import path from "node:path";
 import { APPIMAGE_TOOLS_CACHE, appImageTools } from "./appimage-tools";
 import { hostTarget, stagedFfmpeg } from "./ffmpeg";
-import { buildsNatively, ensureStaticQt } from "./static-qt";
+import { buildsNatively, ensureStaticQt, MACOS_MINIMUM } from "./static-qt";
 import { devCache, ROOT } from "./tool-config";
 import { runInTrixie } from "./trixie";
 
@@ -87,7 +87,13 @@ export async function buildAndPackage(run: PackageRun): Promise<void> {
   const built = commit();
   mkdirSync(run.out, { recursive: true });
   if (buildsNatively()) {
-    const env = { ...process.env, OPSIS_QT: qt, CARGO_BUILD_JOBS: jobs, OPSIS_COMMIT: built };
+    const env = {
+      ...process.env,
+      OPSIS_QT: qt,
+      CARGO_BUILD_JOBS: jobs,
+      OPSIS_COMMIT: built,
+      ...(process.platform === "darwin" ? { MACOSX_DEPLOYMENT_TARGET: MACOS_MINIMUM } : {}),
+    };
     execFileSync(build[0], build.slice(1), { cwd: ROOT, stdio: "inherit", env });
     execFileSync(packager[0], packager.slice(1), { cwd: ROOT, stdio: "inherit", env });
     return;

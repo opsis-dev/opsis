@@ -12,7 +12,7 @@ pub const LICENSE: &str = "GPL-3.0-or-later";
 pub const HOMEPAGE: &str = opsis_update::feed::REPOSITORY;
 pub const SUMMARY: &str = "Record a real website and turn it into a polished product demo.";
 pub const DESCRIPTION: &str = "Opsis records a real website, then turns the take into a product demo with camera moves, captions, sound and graphics, and exports it as a video.";
-pub const MACOS_MINIMUM: &str = "11.0";
+pub const MACOS_MINIMUM: &str = "14.4";
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 const RESOURCE_FOLDERS: [&str; 3] = ["film-bundle", "terminal-bundle", "resources"];

@@ -116,7 +116,11 @@ fn main() {
     println!("cargo::rustc-env=OPSIS_KDDW_VERSION={KDDW_VERSION}");
     let manifest =
         PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("Cargo sets CARGO_MANIFEST_DIR"));
-    let home = PathBuf::from(env::var("HOME").expect("HOME is set"));
+    let home = env::var_os("HOME")
+        .or_else(|| env::var_os("USERPROFILE"))
+        .map(PathBuf::from)
+        .expect("a home folder in HOME or USERPROFILE");
+    let toolchain = Toolchain::of_target();
     let qt_prefix = env::var("OPSIS_QT").map_or_else(
         |_| {
             home.join(".cache/opsis-dev/qt")
@@ -125,13 +129,12 @@ fn main() {
         },
         PathBuf::from,
     );
-    let installation = QtInstallationQMake::try_from(qt_prefix.join("bin").join("qmake6"))
-        .unwrap_or_else(|error| {
-            panic!(
-                "Qt 6.12 is needed in {} (bun run qt:install, or set OPSIS_QT): {error}",
-                qt_prefix.display()
-            )
-        });
+    let installation = QtInstallationQMake::try_from(qmake(&qt_prefix)).unwrap_or_else(|error| {
+        panic!(
+            "Qt 6.12 is needed in {} (bun run qt:install, or set OPSIS_QT): {error}",
+            qt_prefix.display()
+        )
+    });
     let mut qt = QtBuild::with_installation(
         Box::new(installation),
         QT_MODULES.iter().map(|m| (*m).to_owned()).collect(),
@@ -142,7 +145,7 @@ fn main() {
         "Qt 6.12 or newer is needed, found {version}"
     );
 
-    let kddw = build_kddw(&qt_prefix, &home);
+    let kddw = build_kddw(&qt_prefix, &home, toolchain);
     let cpp = manifest.join("cpp");
     let out = PathBuf::from(env::var("OUT_DIR").expect("Cargo sets OUT_DIR"));
     let bridge_include = out.join("cxxbridge").join("include");
@@ -177,30 +180,41 @@ fn main() {
         .includes(&includes)
         .flag_if_supported("-Wno-unused-parameter")
         .flag_if_supported("-Wno-deprecated-declarations");
+    toolchain.qt_flags(&mut build);
     for define in DEFINES {
         build.define(define, None);
     }
     write_compile_commands(&out, &cpp, &includes);
     let kddw_lib = kddw.join("lib");
-    let link_args = if static_qt(&qt_prefix) {
+    let link_args = if toolchain.static_qt(&qt_prefix) {
         build.define("KDDOCKWIDGETS_STATICLIB", None);
         build.compile("opsis_qt");
-        let imports = cc::Build::new()
+        let mut imports = cc::Build::new();
+        imports
             .cpp(true)
             .std("c++17")
             .includes(&includes)
-            .file(static_plugin_imports(&out))
-            .compile_intermediates();
-        static_link_args(&qt_prefix, &kddw_lib, &imports)
+            .file(static_plugin_imports(&out, toolchain));
+        toolchain.qt_flags(&mut imports);
+        static_link_args(
+            &qt_prefix,
+            &kddw_lib,
+            &imports.compile_intermediates(),
+            toolchain,
+        )
     } else {
         qt.cargo_link_libraries(&mut build);
         build.compile("opsis_qt");
         println!("cargo:rustc-link-search=native={}", kddw_lib.display());
         println!("cargo:rustc-link-lib=dylib=kddockwidgets-qt6");
-        vec![
-            format!("-Wl,-rpath,{}", kddw_lib.display()),
-            format!("-Wl,-rpath,{}", qt_prefix.join("lib").display()),
-        ]
+        if toolchain == Toolchain::Msvc {
+            Vec::new()
+        } else {
+            vec![
+                format!("-Wl,-rpath,{}", kddw_lib.display()),
+                format!("-Wl,-rpath,{}", qt_prefix.join("lib").display()),
+            ]
+        }
     };
     let args_file = out.join("link-args.txt");
     std::fs::write(&args_file, link_args.join("\n")).expect("writing the link arguments");
@@ -212,7 +226,16 @@ fn main() {
     println!("cargo:rerun-if-env-changed=OPSIS_KDDW_SOURCE");
 }
 
-fn build_kddw(qt_prefix: &Path, home: &Path) -> PathBuf {
+fn qmake(qt_prefix: &Path) -> PathBuf {
+    let bin = qt_prefix.join("bin");
+    ["qmake6", "qmake"]
+        .iter()
+        .map(|name| bin.join(format!("{name}{}", env::consts::EXE_SUFFIX)))
+        .find(|path| path.exists())
+        .unwrap_or_else(|| bin.join("qmake6"))
+}
+
+fn build_kddw(qt_prefix: &Path, home: &Path, toolchain: Toolchain) -> PathBuf {
     let source = env::var("OPSIS_KDDW_SOURCE").map_or_else(
         |_| home.join(format!(".cache/opsis-dev/qt/kddockwidgets-{KDDW_VERSION}")),
         PathBuf::from,
@@ -230,21 +253,90 @@ fn build_kddw(qt_prefix: &Path, home: &Path) -> PathBuf {
         .define("KDDockWidgets_TESTS", "OFF")
         .define(
             "KDDockWidgets_STATIC",
-            if static_qt(qt_prefix) { "ON" } else { "OFF" },
+            if toolchain.static_qt(qt_prefix) {
+                "ON"
+            } else {
+                "OFF"
+            },
         )
         .define("CMAKE_INSTALL_LIBDIR", "lib")
         .profile("Release")
         .build()
 }
 
-fn static_qt(qt_prefix: &Path) -> bool {
-    qt_prefix.join("lib").join("libQt6Core.a").exists()
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Toolchain {
+    Gnu,
+    Apple,
+    Msvc,
 }
 
-fn static_plugin_imports(out: &Path) -> PathBuf {
+impl Toolchain {
+    fn of_target() -> Self {
+        let os = env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();
+        let abi = env::var("CARGO_CFG_TARGET_ENV").unwrap_or_default();
+        match (os.as_str(), abi.as_str()) {
+            ("windows", "msvc") => Self::Msvc,
+            ("macos", _) => Self::Apple,
+            _ => Self::Gnu,
+        }
+    }
+
+    fn static_library(self, name: &str) -> String {
+        match self {
+            Self::Msvc => format!("{name}.lib"),
+            Self::Gnu | Self::Apple => format!("lib{name}.a"),
+        }
+    }
+
+    fn static_qt(self, qt_prefix: &Path) -> bool {
+        let core = qt_prefix.join("lib").join(self.static_library("Qt6Core"));
+        match self {
+            Self::Msvc => core.exists() && !qt_prefix.join("bin").join("Qt6Core.dll").exists(),
+            Self::Gnu | Self::Apple => core.exists(),
+        }
+    }
+
+    const fn plugins(self) -> &'static [Plugin] {
+        match self {
+            Self::Gnu => &LINUX_PLUGINS,
+            Self::Apple => &MACOS_PLUGINS,
+            Self::Msvc => &WINDOWS_PLUGINS,
+        }
+    }
+
+    fn qt_flags(self, build: &mut cc::Build) {
+        if self != Self::Msvc {
+            return;
+        }
+        for flag in ["/Zc:__cplusplus", "/permissive-", "/utf-8"] {
+            build.flag(flag);
+        }
+        for define in ["UNICODE", "_UNICODE", "WIN32", "_WIN64"] {
+            build.define(define, None);
+        }
+    }
+
+    fn system_entry(self, tokens: &[&str]) -> Vec<String> {
+        match (self, tokens) {
+            (Self::Msvc, [token]) => vec![token.strip_prefix("-l").map_or_else(
+                || {
+                    token
+                        .strip_prefix("-L")
+                        .map_or_else(|| (*token).to_owned(), |dir| format!("/LIBPATH:{dir}"))
+                },
+                |name| format!("{name}.lib"),
+            )],
+            _ => tokens.iter().map(|token| (*token).to_owned()).collect(),
+        }
+    }
+}
+
+fn static_plugin_imports(out: &Path, toolchain: Toolchain) -> PathBuf {
     let text: String = std::iter::once("#include <QtPlugin>\n".to_owned())
         .chain(
-            STATIC_PLUGINS
+            toolchain
+                .plugins()
                 .iter()
                 .map(|(_, _, class)| format!("Q_IMPORT_PLUGIN({class})\n")),
         )
@@ -254,14 +346,23 @@ fn static_plugin_imports(out: &Path) -> PathBuf {
     path
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct StaticLinks {
+    toolchain: Toolchain,
     group: Vec<String>,
-    system: Vec<String>,
+    system: Vec<Vec<String>>,
 }
 
 impl StaticLinks {
-    fn push(list: &mut Vec<String>, item: String) {
+    const fn new(toolchain: Toolchain) -> Self {
+        Self {
+            toolchain,
+            group: Vec::new(),
+            system: Vec::new(),
+        }
+    }
+
+    fn push<T: PartialEq>(list: &mut Vec<T>, item: T) {
         if !list.contains(&item) {
             list.push(item);
         }
@@ -284,19 +385,32 @@ impl StaticLinks {
                 .replace("$$[QT_INSTALL_LIBS]", &lib)
                 .replace("$$[QT_INSTALL_PLUGINS]", &plugins)
                 .replace("$$[QT_INSTALL_PREFIX]", &prefix);
-            for token in libs.split_whitespace() {
+            let tokens: Vec<&str> = libs.split_whitespace().collect();
+            let mut at = 0;
+            while at < tokens.len() {
+                let token = tokens[at];
                 let extension = Path::new(token).extension().and_then(|e| e.to_str());
-                if matches!(extension, Some("a" | "o")) {
+                if token == "-framework" && at + 1 < tokens.len() {
+                    let entry = self.toolchain.system_entry(&tokens[at..at + 2]);
+                    Self::push(&mut self.system, entry);
+                    at += 2;
+                    continue;
+                }
+                if matches!(extension, Some("a" | "o" | "lib" | "obj")) {
                     Self::push(&mut self.group, token.to_owned());
                 } else {
-                    Self::push(&mut self.system, token.to_owned());
+                    let entry = self.toolchain.system_entry(&[token]);
+                    Self::push(&mut self.system, entry);
                 }
+                at += 1;
             }
         }
     }
 }
 
-const STATIC_PLUGINS: [(&str, &str, &str); 9] = [
+type Plugin = (&'static str, &'static str, &'static str);
+
+const LINUX_PLUGINS: [Plugin; 9] = [
     ("platforms", "qxcb", "QXcbIntegrationPlugin"),
     ("platforms", "qwayland", "QWaylandIntegrationPlugin"),
     ("platforms", "qoffscreen", "QOffscreenIntegrationPlugin"),
@@ -328,17 +442,37 @@ const STATIC_PLUGINS: [(&str, &str, &str); 9] = [
     ("platforms", "qminimal", "QMinimalIntegrationPlugin"),
 ];
 
-fn static_link_args(qt_prefix: &Path, kddw_lib: &Path, imports: &[PathBuf]) -> Vec<String> {
-    let mut links = StaticLinks::default();
+const MACOS_PLUGINS: [Plugin; 3] = [
+    ("platforms", "qcocoa", "QCocoaIntegrationPlugin"),
+    ("platforms", "qoffscreen", "QOffscreenIntegrationPlugin"),
+    ("platforms", "qminimal", "QMinimalIntegrationPlugin"),
+];
+
+const WINDOWS_PLUGINS: [Plugin; 3] = [
+    ("platforms", "qwindows", "QWindowsIntegrationPlugin"),
+    ("platforms", "qoffscreen", "QOffscreenIntegrationPlugin"),
+    ("platforms", "qminimal", "QMinimalIntegrationPlugin"),
+];
+
+fn static_link_args(
+    qt_prefix: &Path,
+    kddw_lib: &Path,
+    imports: &[PathBuf],
+    toolchain: Toolchain,
+) -> Vec<String> {
+    let mut links = StaticLinks::new(toolchain);
     for object in imports {
         StaticLinks::push(&mut links.group, object.to_string_lossy().into_owned());
     }
-    links.archive(&kddw_lib.join("libkddockwidgets-qt6.a"), qt_prefix);
-    for (folder, name, _) in STATIC_PLUGINS {
+    links.archive(
+        &kddw_lib.join(toolchain.static_library("kddockwidgets-qt6")),
+        qt_prefix,
+    );
+    for (folder, name, _) in toolchain.plugins() {
         let archive = qt_prefix
             .join("plugins")
             .join(folder)
-            .join(format!("lib{name}.a"));
+            .join(toolchain.static_library(name));
         assert!(
             archive.exists(),
             "the static Qt has no {}",
@@ -348,15 +482,22 @@ fn static_link_args(qt_prefix: &Path, kddw_lib: &Path, imports: &[PathBuf]) -> V
     }
     for module in QT_MODULES {
         links.archive(
-            &qt_prefix.join("lib").join(format!("libQt6{module}.a")),
+            &qt_prefix
+                .join("lib")
+                .join(toolchain.static_library(&format!("Qt6{module}"))),
             qt_prefix,
         );
     }
-    std::iter::once("-Wl,--start-group".to_owned())
-        .chain(links.group)
-        .chain(std::iter::once("-Wl,--end-group".to_owned()))
-        .chain(links.system)
-        .collect()
+    let system = links.system.into_iter().flatten();
+    if toolchain == Toolchain::Gnu {
+        std::iter::once("-Wl,--start-group".to_owned())
+            .chain(links.group)
+            .chain(std::iter::once("-Wl,--end-group".to_owned()))
+            .chain(system)
+            .collect()
+    } else {
+        links.group.into_iter().chain(system).collect()
+    }
 }
 
 fn qt_folder() -> &'static str {
