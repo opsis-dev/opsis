@@ -417,6 +417,29 @@ void Scenario::BuildViews() {
                       QStringLiteral(" the output reads '%1'").arg(shown));
       });
   Add(
+      QStringLiteral("views-the-code-theme-and-size-restyle-the-script"),
+      [] {
+        App::Get().session().patch_settings(ToRust(
+            QStringLiteral(R"({"script":{"theme":"gruvbox","fontSize":16}})")));
+      },
+      400,
+      [this] {
+        ScriptPanel* panel = window_->script_panel();
+        const bridge::ScriptLookView look = App::Get().session().script_look();
+        auto* theme =
+            panel->findChild<QComboBox*>(QStringLiteral("ScriptTheme"));
+        const QFontInfo font(panel->editor()->font());
+        const bool styled =
+            panel->editor()->styleSheet().contains(ToQ(look.background));
+        return Expect(
+            ToQ(look.theme) == QStringLiteral("gruvbox") && styled &&
+                font.pixelSize() == 16 && theme != nullptr &&
+                theme->currentData().toString() == QStringLiteral("gruvbox"),
+            QStringLiteral("the script shows theme %1 at %2 px")
+                .arg(ToQ(look.theme))
+                .arg(font.pixelSize()));
+      });
+  Add(
       QStringLiteral("views-a-script-is-renamed"),
       [] {
         const bridge::ScriptView view = App::Get().session().script_view();

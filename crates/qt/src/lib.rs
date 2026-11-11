@@ -25,12 +25,12 @@ pub use bridge::ffi::{
     MenuItemView, MenuSectionView, MeterView, MixerStripView, MixerView, MorphPathView, MorphStep,
     MotionInfo, NodeMove, PaletteEntry, PlayerView, PortView, PoseView, PresetView, ProjectEntry,
     ProjectView, RemovalView, ReplayActionView, ReplayView, RowView, RulerStep, RunLogView,
-    RunPanelView, RunRowView, ScreenArea, ScriptLineView, ScriptView, SettingsView, ShapeView,
-    SnapView, StreamViewState, SyntaxRangeView, TemplateView, TerminalWindowView, TextChangeView,
-    TextToken, TimelineAudioView, TimelineBarView, TimelineCameraKeyView, TimelineMarkView,
-    TimelineMarkerView, TimelineTransitionView, TimelineView, TokenKind, TraceActionView,
-    TraceConsoleView, TraceErrorView, TraceFrameView, TraceRequestView, TraceView, UpdateView,
-    VariableView, WindowPlacement,
+    RunPanelView, RunRowView, ScreenArea, ScriptLineView, ScriptLookView, ScriptView, SettingsView,
+    ShapeView, SnapView, StreamViewState, SyntaxRangeView, TemplateView, TerminalWindowView,
+    TextChangeView, TextToken, TimelineAudioView, TimelineBarView, TimelineCameraKeyView,
+    TimelineMarkView, TimelineMarkerView, TimelineTransitionView, TimelineView, TokenKind,
+    TraceActionView, TraceConsoleView, TraceErrorView, TraceFrameView, TraceRequestView, TraceView,
+    UpdateView, VariableView, WindowPlacement,
 };
 pub use frame::FrameRef;
 pub use host::{

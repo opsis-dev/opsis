@@ -1,7 +1,10 @@
 #include "script_panel.h"
 
+#include <QCompleter>
 #include <QHBoxLayout>
 #include <QInputDialog>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QScrollBar>
@@ -23,18 +26,21 @@ constexpr int kHighlightDelay = 30;
 constexpr double kTurnRatio = 1.6;
 constexpr int kOutputShare = 2;
 constexpr int kEditorShare = 3;
-constexpr int kFontSize = 12;
+constexpr float kLineMarkAlpha = 0.18F;
 
-QFont Mono() {
-  QFont mono(QStringLiteral("JetBrains Mono"));
-  mono.setPixelSize(kFontSize);
-  return mono;
+QString LookSheet(const bridge::ScriptLookView& look) {
+  return QStringLiteral(
+             "QPlainTextEdit { font-family: \"JetBrains Mono\"; font-size: "
+             "%1px; background: %2; color: %3; selection-background-color: "
+             "%4; selection-color: %3; }")
+      .arg(look.font_size)
+      .arg(ToQ(look.background), ToQ(look.text), ToQ(look.selection));
 }
 
-QTextEdit::ExtraSelection LineMark(QPlainTextEdit* editor, int line) {
+QTextEdit::ExtraSelection LineMark(QPlainTextEdit* editor, int line,
+                                   QColor tone) {
   QTextEdit::ExtraSelection mark;
-  QColor tone = App::Get().Token(QStringLiteral("destructive"));
-  tone.setAlphaF(0.18F);
+  tone.setAlphaF(kLineMarkAlpha);
   mark.format.setBackground(tone);
   mark.format.setProperty(QTextFormat::FullWidthSelection, true);
   mark.cursor =
@@ -42,9 +48,10 @@ QTextEdit::ExtraSelection LineMark(QPlainTextEdit* editor, int line) {
   return mark;
 }
 
-QTextEdit::ExtraSelection BracketMark(QPlainTextEdit* editor, int at) {
+QTextEdit::ExtraSelection BracketMark(QPlainTextEdit* editor, int at,
+                                      const QColor& tone) {
   QTextEdit::ExtraSelection mark;
-  mark.format.setBackground(App::Get().Token(QStringLiteral("bracket-match")));
+  mark.format.setBackground(tone);
   mark.cursor = QTextCursor(editor->document());
   mark.cursor.setPosition(at);
   mark.cursor.setPosition(at + 1, QTextCursor::KeepAnchor);
@@ -99,7 +106,6 @@ ScriptEditor::ScriptEditor(QWidget* parent) : QPlainTextEdit(parent) {
   setAccessibleName(QStringLiteral("Script"));
   setFrameShape(QFrame::NoFrame);
   setLineWrapMode(QPlainTextEdit::NoWrap);
-  UseFont(this, Mono());
   setTabChangesFocus(false);
   connect(this, &QPlainTextEdit::cursorPositionChanged, this,
           &ScriptEditor::ShowBracket);
@@ -187,6 +193,12 @@ void ScriptEditor::MarkLine(int line) {
   ShowBracket();
 }
 
+void ScriptEditor::SetMarks(const QColor& bracket, const QColor& error) {
+  bracket_ = bracket;
+  error_ = error;
+  ShowBracket();
+}
+
 void ScriptEditor::ClearMark() {
   if (marked_ == 0) return;
   marked_ = 0;
@@ -195,13 +207,13 @@ void ScriptEditor::ClearMark() {
 
 void ScriptEditor::ShowBracket() {
   QList<QTextEdit::ExtraSelection> marks;
-  if (marked_ > 0) marks.append(LineMark(this, marked_));
+  if (marked_ > 0) marks.append(LineMark(this, marked_, error_));
   const bridge::BracketView bracket = App::Get().session().script_bracket(
       ToRust(toPlainText()),
       static_cast<std::uint32_t>(textCursor().position()));
   if (bracket.found) {
-    marks.append(BracketMark(this, static_cast<int>(bracket.open)));
-    marks.append(BracketMark(this, static_cast<int>(bracket.close)));
+    marks.append(BracketMark(this, static_cast<int>(bracket.open), bracket_));
+    marks.append(BracketMark(this, static_cast<int>(bracket.close), bracket_));
   }
   setExtraSelections(marks);
 }
@@ -219,6 +231,8 @@ ScriptPanel::ScriptPanel(QWidget* parent)
                        QStringLiteral("square"), this)),
       badge_(MakeLabel(QStringLiteral("Running"), "badge", this)),
       status_(MakeLabel(QString(), "muted", this)),
+      theme_(new Combo(this)),
+      size_(new QSpinBox(this)),
       split_(new QSplitter(Qt::Horizontal, this)),
       editor_(new ScriptEditor(split_)),
       highlighter_(new ScriptHighlighter(editor_->document())),
@@ -259,12 +273,28 @@ ScriptPanel::ScriptPanel(QWidget* parent)
   row->addWidget(badge_);
   status_->setObjectName(QStringLiteral("ScriptStatus"));
   row->addWidget(status_, 1);
+  theme_->setObjectName(QStringLiteral("ScriptTheme"));
+  theme_->setAccessibleName(QStringLiteral("Code theme"));
+  theme_->setToolTip(QStringLiteral("Code theme"));
+  theme_->setEditable(true);
+  theme_->setInsertPolicy(QComboBox::NoInsert);
+  theme_->completer()->setCompletionMode(QCompleter::PopupCompletion);
+  theme_->completer()->setFilterMode(Qt::MatchContains);
+  theme_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  for (const auto& choice : App::Get().session().script_themes()) {
+    theme_->addItem(ToQ(choice.label), ToQ(choice.value));
+  }
+  row->addWidget(theme_);
+  size_->setObjectName(QStringLiteral("ScriptFontSize"));
+  size_->setAccessibleName(QStringLiteral("Code size"));
+  size_->setToolTip(QStringLiteral("Code size"));
+  size_->setSuffix(QStringLiteral(" px"));
+  row->addWidget(size_);
   layout->addWidget(bar);
   output_->setObjectName(QStringLiteral("ScriptOutput"));
   output_->setAccessibleName(QStringLiteral("Script output"));
   output_->setReadOnly(true);
   output_->setFrameShape(QFrame::NoFrame);
-  UseFont(output_, Mono());
   output_->viewport()->installEventFilter(this);
   split_->setObjectName(QStringLiteral("ScriptSplit"));
   split_->addWidget(editor_);
@@ -305,8 +335,25 @@ ScriptPanel::ScriptPanel(QWidget* parent)
   for (auto signal : {&EventHub::ScriptChanged, &EventHub::ProjectChanged}) {
     connect(EventHub::Instance(), signal, this, &ScriptPanel::Rebuild);
   }
+  connect(theme_, &QComboBox::activated, this, [this](int index) {
+    const QString name = theme_->itemData(index).toString();
+    if (name.isEmpty()) return;
+    QJsonObject script;
+    script.insert(QStringLiteral("theme"), name);
+    QJsonObject patch;
+    patch.insert(QStringLiteral("script"), script);
+    App::Get().session().patch_settings(ToRust(QString::fromUtf8(
+        QJsonDocument(patch).toJson(QJsonDocument::Compact))));
+  });
+  connect(size_, &QSpinBox::valueChanged, this, [](int size) {
+    App::Get().session().patch_settings(
+        ToRust(QStringLiteral(R"({"script":{"fontSize":%1}})").arg(size)));
+  });
+  connect(EventHub::Instance(), &EventHub::SettingsChanged, this,
+          &ScriptPanel::ApplyLook);
   connect(EventHub::Instance(), &EventHub::FlushDrafts, this,
           &ScriptPanel::Save);
+  ApplyLook();
   Rebuild();
 }
 
@@ -404,17 +451,41 @@ void ScriptPanel::Highlight() {
   for (const auto& range :
        App::Get().session().script_highlight(ToRust(editor_->toPlainText()))) {
     QTextCharFormat format;
-    const QString kind = ToQ(range.kind);
-    if (kind == QStringLiteral("error")) {
+    if (!range.color.empty()) {
+      format.setForeground(QColor::fromString(ToQ(range.color)));
+    }
+    if (range.bold) format.setFontWeight(QFont::Bold);
+    if (range.italic) format.setFontItalic(true);
+    if (range.error) {
       format.setUnderlineStyle(QTextCharFormat::WaveUnderline);
-      format.setUnderlineColor(App::Get().Token(QStringLiteral("destructive")));
-    } else {
-      format.setForeground(App::Get().Token(QStringLiteral("syntax-") + kind));
+      format.setUnderlineColor(QColor::fromString(error_colour_));
     }
     ranges.push_back({static_cast<int>(range.start),
                       static_cast<int>(range.length), format});
   }
   highlighter_->SetRanges(std::move(ranges));
+}
+
+void ScriptPanel::ApplyLook() {
+  const bridge::ScriptLookView look = App::Get().session().script_look();
+  const QString sheet = LookSheet(look);
+  editor_->setStyleSheet(sheet);
+  output_->setStyleSheet(sheet);
+  error_colour_ = ToQ(look.error);
+  warning_colour_ = ToQ(look.warning);
+  editor_->SetMarks(QColor::fromString(ToQ(look.bracket)),
+                    QColor::fromString(error_colour_));
+  theme_->blockSignals(true);
+  theme_->setCurrentIndex(theme_->findData(ToQ(look.theme)));
+  theme_->blockSignals(false);
+  size_->blockSignals(true);
+  size_->setRange(static_cast<int>(look.font_min),
+                  static_cast<int>(look.font_max));
+  size_->setValue(static_cast<int>(look.font_size));
+  size_->blockSignals(false);
+  Highlight();
+  last_line_ = 0;
+  if (last_ != nullptr) ShowOutput(*last_);
 }
 
 void ScriptPanel::ShowOutput(const bridge::ScriptView& view) {
@@ -428,8 +499,8 @@ void ScriptPanel::ShowOutput(const bridge::ScriptView& view) {
     output_->clear();
     output_lines_.clear();
   }
-  const QString warn = App::Get().Token(QStringLiteral("warning")).name();
-  const QString error = App::Get().Token(QStringLiteral("destructive")).name();
+  const QString warn = warning_colour_;
+  const QString error = error_colour_;
   for (const auto& line : view.output) {
     if (append && line.id <= last_line_) continue;
     const QString kind = ToQ(line.kind);

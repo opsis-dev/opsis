@@ -4,100 +4,57 @@ use tree_sitter::{Language, Node, Parser, Query, QueryCursor, StreamingIterator}
 
 use crate::text::Units;
 
-const MODULE: &str = "opsis";
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum SyntaxKind {
-    Keyword,
-    String,
-    Number,
-    Comment,
-    Function,
-    Module,
-    Operator,
-    Constant,
-    Error,
-}
-
-impl SyntaxKind {
-    pub const ALL: [Self; 9] = [
-        Self::Keyword,
-        Self::String,
-        Self::Number,
-        Self::Comment,
-        Self::Function,
-        Self::Module,
-        Self::Operator,
-        Self::Constant,
-        Self::Error,
-    ];
-
-    pub const fn name(self) -> &'static str {
-        match self {
-            Self::Keyword => "keyword",
-            Self::String => "string",
-            Self::Number => "number",
-            Self::Comment => "comment",
-            Self::Function => "function",
-            Self::Module => "module",
-            Self::Operator => "operator",
-            Self::Constant => "constant",
-            Self::Error => "error",
-        }
-    }
-
-    fn of_capture(name: &str) -> Option<Self> {
-        let head = name.split('.').next().unwrap_or(name);
-        match (head, name) {
-            ("keyword" | "conditional" | "repeat" | "label" | "preproc", _) => Some(Self::Keyword),
-            ("string", _) => Some(Self::String),
-            ("number", _) => Some(Self::Number),
-            ("boolean" | "constant", _) => Some(Self::Constant),
-            ("comment", _) => Some(Self::Comment),
-            ("function" | "method" | "constructor", _) => Some(Self::Function),
-            ("operator", _) => Some(Self::Operator),
-            _ => None,
-        }
-    }
-}
+const HIGHLIGHTS: &str = include_str!("highlights.generated.scm");
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SyntaxRange {
     pub start: u32,
     pub length: u32,
-    pub kind: SyntaxKind,
+    pub capture: Option<&'static str>,
+    pub error: bool,
 }
 
 struct Grammar {
     language: Language,
     query: Query,
-    kinds: Vec<Option<SyntaxKind>>,
+    names: Vec<&'static str>,
 }
 
 static GRAMMAR: LazyLock<Grammar> = LazyLock::new(|| {
     let language: Language = tree_sitter_lua::LANGUAGE.into();
-    let query = Query::new(&language, tree_sitter_lua::HIGHLIGHTS_QUERY)
-        .expect("the Lua grammar's highlight query");
-    let kinds = query
+    let query = Query::new(&language, HIGHLIGHTS).expect("the Lua highlight query");
+    let names = query
         .capture_names()
         .iter()
-        .map(|name| SyntaxKind::of_capture(name))
+        .map(|name| &*Box::leak(name.to_string().into_boxed_str()))
         .collect();
     Grammar {
         language,
         query,
-        kinds,
+        names,
     }
 });
 
-fn paint(kinds: &mut [Option<SyntaxKind>], from: usize, to: usize, kind: Option<SyntaxKind>) {
-    let to = to.min(kinds.len());
+pub fn captures() -> &'static [&'static str] {
+    &GRAMMAR.names
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+struct Mark {
+    capture: Option<u32>,
+    error: bool,
+}
+
+fn paint_errors(marks: &mut [Mark], from: usize, to: usize) {
+    let to = to.min(marks.len());
     if from < to {
-        kinds[from..to].fill(kind);
+        for mark in &mut marks[from..to] {
+            mark.error = true;
+        }
     }
 }
 
-fn mark_errors(node: Node<'_>, text: &str, kinds: &mut [Option<SyntaxKind>]) {
+fn mark_errors(node: Node<'_>, text: &str, marks: &mut [Mark]) {
     if !node.has_error() {
         return;
     }
@@ -108,17 +65,17 @@ fn mark_errors(node: Node<'_>, text: &str, kinds: &mut [Option<SyntaxKind>]) {
             .map_or(text.len(), |end| start + end);
         let end = node.end_byte().min(line_end);
         if end > start {
-            paint(kinds, start, end, Some(SyntaxKind::Error));
+            paint_errors(marks, start, end);
         } else {
             let before = text[..start].trim_end();
             let token = before.rfind(char::is_whitespace).map_or(0, |i| i + 1);
-            paint(kinds, token, before.len(), Some(SyntaxKind::Error));
+            paint_errors(marks, token, before.len());
         }
         return;
     }
     let mut cursor = node.walk();
     for child in node.children(&mut cursor) {
-        mark_errors(child, text, kinds);
+        mark_errors(child, text, marks);
     }
 }
 
@@ -131,47 +88,47 @@ pub fn highlight(text: &str) -> Vec<SyntaxRange> {
     let Some(tree) = parser.parse(text, None) else {
         return Vec::new();
     };
-    let mut kinds = vec![None; text.len()];
+    let mut marks = vec![Mark::default(); text.len()];
     let mut cursor = QueryCursor::new();
-    let mut captures = cursor.captures(&grammar.query, tree.root_node(), text.as_bytes());
-    while let Some((found, index)) = captures.next() {
-        let capture = found.captures()[*index];
-        let node = capture.node;
-        let kind = grammar.kinds[usize::try_from(capture.index)
-            .unwrap_or(usize::MAX)
-            .min(grammar.kinds.len() - 1)];
-        let kind = if kind.is_none()
-            && node.kind() == "identifier"
-            && node.utf8_text(text.as_bytes()) == Ok(MODULE)
-        {
-            Some(SyntaxKind::Module)
-        } else {
-            kind
-        };
-        paint(&mut kinds, node.start_byte(), node.end_byte(), kind);
+    let mut found = cursor.captures(&grammar.query, tree.root_node(), text.as_bytes());
+    while let Some((matched, index)) = found.next() {
+        let capture = matched.captures()[*index];
+        let from = capture.node.start_byte();
+        let to = capture.node.end_byte().min(marks.len());
+        if from < to {
+            for mark in &mut marks[from..to] {
+                mark.capture = Some(capture.index);
+            }
+        }
     }
-    mark_errors(tree.root_node(), text, &mut kinds);
-    ranges(text, &kinds)
+    mark_errors(tree.root_node(), text, &mut marks);
+    ranges(text, &marks)
 }
 
-fn ranges(text: &str, kinds: &[Option<SyntaxKind>]) -> Vec<SyntaxRange> {
+fn ranges(text: &str, marks: &[Mark]) -> Vec<SyntaxRange> {
+    let names = &GRAMMAR.names;
     let units = Units::new(text);
     let mut out = Vec::new();
     let mut at = 0;
-    while at < kinds.len() {
-        let kind = kinds[at];
+    while at < marks.len() {
+        let mark = marks[at];
         let mut end = at + 1;
-        while end < kinds.len() && kinds[end] == kind {
+        while end < marks.len() && marks[end] == mark {
             end += 1;
         }
-        if let Some(kind) = kind {
+        let capture = mark
+            .capture
+            .and_then(|index| usize::try_from(index).ok())
+            .and_then(|index| names.get(index).copied());
+        if capture.is_some() || mark.error {
             let start = units.unit(at);
             let stop = units.unit(end);
             if stop > start {
                 out.push(SyntaxRange {
                     start,
                     length: stop - start,
-                    kind,
+                    capture,
+                    error: mark.error,
                 });
             }
         }
@@ -187,16 +144,30 @@ mod tests {
     use super::*;
     use crate::text::units_of;
 
-    fn kinds_in(text: &str) -> Vec<(String, SyntaxKind)> {
+    fn captures_in(text: &str) -> Vec<(String, Option<&'static str>, bool)> {
         let utf16: Vec<u16> = text.encode_utf16().collect();
         highlight(text)
             .into_iter()
             .map(|r| {
                 let from = r.start as usize;
                 let to = from + r.length as usize;
-                (String::from_utf16_lossy(&utf16[from..to]), r.kind)
+                (
+                    String::from_utf16_lossy(&utf16[from..to]),
+                    r.capture,
+                    r.error,
+                )
             })
             .collect()
+    }
+
+    fn captured(
+        found: &[(String, Option<&'static str>, bool)],
+        text: &str,
+    ) -> Option<&'static str> {
+        found
+            .iter()
+            .find(|(t, _, _)| t == text)
+            .and_then(|(_, c, _)| *c)
     }
 
     proptest! {
@@ -214,44 +185,31 @@ mod tests {
     }
 
     #[test]
-    fn colours_lua_and_the_opsis_module_after_characters_outside_the_basic_plane() {
-        let found = kinds_in("local s = \"😀\" -- note\nprint(opsis.version, 42, nil)\n");
-        assert!(
-            found.contains(&("local".to_owned(), SyntaxKind::Keyword)),
+    fn names_lua_with_the_themes_scopes_after_characters_outside_the_basic_plane() {
+        let found = captures_in("local s = \"😀\" -- note\nprint(opsis.version, 42, nil)\n");
+        assert_eq!(captured(&found, "local"), Some("keyword"), "{found:?}");
+        assert_eq!(captured(&found, "\"😀\""), Some("string"), "{found:?}");
+        assert_eq!(captured(&found, "-- note"), Some("comment"), "{found:?}");
+        assert_eq!(
+            captured(&found, "42"),
+            Some("constant.numeric.integer"),
             "{found:?}"
         );
-        assert!(
-            found.contains(&("\"😀\"".to_owned(), SyntaxKind::String)),
+        assert_eq!(
+            captured(&found, "nil"),
+            Some("constant.builtin"),
             "{found:?}"
         );
-        assert!(
-            found.contains(&("-- note".to_owned(), SyntaxKind::Comment)),
-            "{found:?}"
-        );
-        assert!(
-            found.contains(&("opsis".to_owned(), SyntaxKind::Module)),
-            "{found:?}"
-        );
-        assert!(
-            found.contains(&("42".to_owned(), SyntaxKind::Number)),
-            "{found:?}"
-        );
-        assert!(
-            found.contains(&("nil".to_owned(), SyntaxKind::Constant)),
-            "{found:?}"
-        );
-        assert!(
-            found.contains(&("print".to_owned(), SyntaxKind::Function)),
+        assert_eq!(
+            captured(&found, "print"),
+            Some("function.call"),
             "{found:?}"
         );
     }
 
     #[test]
     fn marks_a_syntax_error() {
-        let found = kinds_in("local x = \nif then\n");
-        assert!(
-            found.iter().any(|(_, kind)| *kind == SyntaxKind::Error),
-            "{found:?}"
-        );
+        let found = captures_in("local x = \nif then\n");
+        assert!(found.iter().any(|(_, _, error)| *error), "{found:?}");
     }
 }

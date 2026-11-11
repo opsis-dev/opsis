@@ -708,14 +708,13 @@ QPushButton#RunRow[selected="true"] {
   background: @muted;
 }
 
-QPlainTextEdit#RunLog,
-QPlainTextEdit#ScriptOutput {
+QPlainTextEdit#RunLog {
   background: @background;
   padding: 8px;
 }
 
+QPlainTextEdit#ScriptOutput,
 QPlainTextEdit#ScriptEditor {
-  background: @card;
   padding: 8px;
 }
 

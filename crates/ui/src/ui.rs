@@ -23,9 +23,9 @@ use opsis_qt::{
     InstalledFontView, KeyLineView, LicenceView, LoudnessView, MarkDrawnView, MarkPointsView,
     MenuSectionView, MeterView, MixerView, MorphPathView, MorphStep, MotionInfo, NodeMove,
     PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView, ReplayView,
-    RulerStep, RunPanelView, ScreenArea, ScriptView, SettingsView, SnapView, SyntaxRangeView,
-    TemplateView, TextChangeView, TextToken, TimelineView, TraceView, UpdateView, VariableView,
-    WindowPlacement,
+    RulerStep, RunPanelView, ScreenArea, ScriptLookView, ScriptView, SettingsView, SnapView,
+    SyntaxRangeView, TemplateView, TextChangeView, TextToken, TimelineView, TraceView, UpdateView,
+    VariableView, WindowPlacement,
 };
 use opsis_session::analysis::{self, AnalysisRequest, AnalysisResult};
 use opsis_session::document::DiskChoice;
@@ -1994,7 +1994,16 @@ impl Host for Ui {
     }
 
     fn script_highlight(&self, text: &str) -> Vec<SyntaxRangeView> {
-        script_panel::ranges(text)
+        let settings = self.state().settings();
+        script_panel::ranges(text, opsis_script::themes::theme(&settings.script.theme))
+    }
+
+    fn script_look(&self) -> ScriptLookView {
+        script_panel::look(&self.state().settings().script)
+    }
+
+    fn script_themes(&self) -> Vec<Choice> {
+        script_panel::theme_choices()
     }
 
     fn script_key(&self, text: &str, anchor: u32, cursor: u32, key: &str) -> TextChangeView {

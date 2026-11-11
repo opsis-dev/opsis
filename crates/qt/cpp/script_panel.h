@@ -4,6 +4,7 @@
 #include <QLabel>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QSpinBox>
 #include <QSplitter>
 #include <QSyntaxHighlighter>
 #include <QTimer>
@@ -47,6 +48,7 @@ class ScriptEditor : public QPlainTextEdit {
   explicit ScriptEditor(QWidget* parent = nullptr);
   void MarkLine(int line);
   void ClearMark();
+  void SetMarks(const QColor& bracket, const QColor& error);
 
  signals:
   void RunRequested();
@@ -60,6 +62,8 @@ class ScriptEditor : public QPlainTextEdit {
   void ShowBracket();
 
   int marked_ = 0;
+  QColor bracket_;
+  QColor error_;
 };
 
 class ScriptPanel : public QWidget {
@@ -86,6 +90,7 @@ class ScriptPanel : public QWidget {
  private:
   void Load(const QString& file);
   void Highlight();
+  void ApplyLook();
   void ShowOutput(const bridge::ScriptView& view);
   void GoToLine(int line);
 
@@ -96,6 +101,8 @@ class ScriptPanel : public QWidget {
   QPushButton* stop_;
   QLabel* badge_;
   QLabel* status_;
+  Combo* theme_;
+  QSpinBox* size_;
   QSplitter* split_;
   ScriptEditor* editor_;
   ScriptHighlighter* highlighter_;
@@ -108,6 +115,8 @@ class ScriptPanel : public QWidget {
   std::uint64_t last_line_ = 0;
   std::vector<int> output_lines_;
   std::unique_ptr<bridge::ScriptView> last_;
+  QString error_colour_;
+  QString warning_colour_;
 };
 
 }

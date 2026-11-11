@@ -1,15 +1,15 @@
 use std::fmt;
 
 use crate::bridge::ffi::{
-    self, AboutView, BarView, BoundsView, BracketView, CategoryView, CloseView, ColorView,
+    self, AboutView, BarView, BoundsView, BracketView, CategoryView, Choice, CloseView, ColorView,
     DialogKind, EngineView, EventKind, FilmTiles, FontCatalogView, FontChoicesView, FontReviewView,
     FontRowView, GradientInfo, GraphView, InspectorView, InstalledFontView, KeyLineView,
     LicenceView, LiveView, LoudnessView, MarkDrawnView, MarkPointsView, MenuSectionView, MeterView,
     MixerView, MorphPathView, MorphStep, MotionInfo, NodeMove, PaletteEntry, PlayerView, PoseView,
     ProjectEntry, ProjectView, RemovalView, ReplayView, RulerStep, RunPanelView, ScreenArea,
-    ScriptView, SettingsView, SnapView, StreamViewState, SyntaxRangeView, TemplateView,
-    TerminalWindowView, TextChangeView, TextToken, TimelineView, TraceView, UpdateView,
-    VariableView, WindowPlacement,
+    ScriptLookView, ScriptView, SettingsView, SnapView, StreamViewState, SyntaxRangeView,
+    TemplateView, TerminalWindowView, TextChangeView, TextToken, TimelineView, TraceView,
+    UpdateView, VariableView, WindowPlacement,
 };
 use crate::frame::FrameRef;
 
@@ -114,6 +114,8 @@ pub trait Host {
     fn script_stop(&self);
     fn script_reload(&self, file: &str, text: &str) -> TextChangeView;
     fn script_highlight(&self, text: &str) -> Vec<SyntaxRangeView>;
+    fn script_look(&self) -> ScriptLookView;
+    fn script_themes(&self) -> Vec<Choice>;
     fn script_key(&self, text: &str, anchor: u32, cursor: u32, key: &str) -> TextChangeView;
     fn script_bracket(&self, text: &str, cursor: u32) -> BracketView;
     fn player_open(&self, file: &str) -> u64;
@@ -723,6 +725,14 @@ impl Session {
 
     pub(crate) fn script_highlight(&self, text: &str) -> Vec<SyntaxRangeView> {
         self.0.script_highlight(text)
+    }
+
+    pub(crate) fn script_look(&self) -> ScriptLookView {
+        self.0.script_look()
+    }
+
+    pub(crate) fn script_themes(&self) -> Vec<Choice> {
+        self.0.script_themes()
     }
 
     pub(crate) fn script_key(

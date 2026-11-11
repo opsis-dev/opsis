@@ -697,6 +697,38 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 Opens every file a script reads or writes beneath the project folder, in `crates/script`. https://github.com/bytecodealliance/cap-std, by Dan Gohman and Jakub Konka, licensed under the Apache License, Version 2.0 with LLVM Exception, the Apache License, Version 2.0, or the MIT License.
 
+## Helix's code themes and Lua highlight query — crates/script/src/themes.generated.json, crates/script/src/highlights.generated.scm
+
+The Script panel's code themes are the themes of the Helix editor (https://github.com/helix-editor/helix, release 25.07.1: `theme.toml` and `runtime/themes`), converted to the colours the panel uses by `scripts/script-themes.ts`, and its Lua highlighting uses Helix's `runtime/queries/lua/highlights.scm` unchanged. Helix is licensed under the Mozilla Public License, Version 2.0 (https://mozilla.org/MPL/2.0/); the source of these files is available at the address above. The four Modus Vivendi themes, licensed under the GNU Free Documentation License, are left out.
+
+These themes are also licensed under the MIT License, by their copyright holders:
+
+- ashen: Copyright (c) 2025 Daniel Fichtinger
+- carbonfox: Copyright (c) 2021 James Simpson
+- cyan_light: Copyright (c) 2016 CloudCannon
+- dark-synthwave: Copyright (c) 2021 Aaron Young
+- doom-one: Copyright (c) 2025 NTBBloodbath
+- everforest_dark, everforest_light: Copyright (c) 2019 sainnhe
+- gruvbox-material: by sainnhe
+- kinda_nvim, kinda_nvim_light: Copyright (c) 2025 Strash
+- lapis_aquamarine: Copyright (c) 2025 Alex Barnett
+- poimandres: Copyright (c) 2023 drcmda
+- serika-dark, serika-light: Copyright (c) 2018 arturoalviar
+- sidra: by Md Atiquz Zaman
+- sonokai: Copyright (c) 2020 sainnhe
+- vesper: Copyright (c) 2023 Rauno Freiberg
+- yo, yo_berry, yo_light: by Michael McClintock
+
+```
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+```
+
+The starlight theme is released into the public domain (The Unlicense).
+
 ## Sound output — the cpal crate
 
 Plays the film's sound while the editor's timeline plays, in `crates/audio`. https://github.com/RustAudio/cpal, licensed under the Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0).

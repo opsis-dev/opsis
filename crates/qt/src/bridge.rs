@@ -55,7 +55,24 @@ pub mod ffi {
     struct SyntaxRangeView {
         start: u32,
         length: u32,
-        kind: String,
+        color: String,
+        bold: bool,
+        italic: bool,
+        error: bool,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    struct ScriptLookView {
+        theme: String,
+        background: String,
+        text: String,
+        selection: String,
+        bracket: String,
+        error: String,
+        warning: String,
+        font_size: u32,
+        font_min: u32,
+        font_max: u32,
     }
 
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1169,6 +1186,8 @@ pub mod ffi {
         fn script_stop(self: &Session);
         fn script_reload(self: &Session, file: &str, text: &str) -> TextChangeView;
         fn script_highlight(self: &Session, text: &str) -> Vec<SyntaxRangeView>;
+        fn script_look(self: &Session) -> ScriptLookView;
+        fn script_themes(self: &Session) -> Vec<Choice>;
         fn script_key(
             self: &Session,
             text: &str,

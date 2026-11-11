@@ -17,6 +17,8 @@ pub struct WholeRange {
 pub const KEEP_LAST_TRACES: WholeRange = WholeRange { min: 1, max: 500 };
 
 pub const LIVE_FPS: WholeRange = WholeRange { min: 1, max: 30 };
+pub const SCRIPT_FONT_SIZE: WholeRange = WholeRange { min: 10, max: 24 };
+pub const DEFAULT_SCRIPT_THEME: &str = "default";
 
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, Type, schemars::JsonSchema,
@@ -122,6 +124,28 @@ pub struct TracesSection {
     #[default = 10]
     #[garde(range(min = KEEP_LAST_TRACES.min, max = KEEP_LAST_TRACES.max))]
     pub keep_last: u32,
+}
+
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    SmartDefault,
+    Serialize,
+    Deserialize,
+    Validate,
+    Type,
+    schemars::JsonSchema,
+)]
+#[serde(rename_all = "camelCase", default)]
+pub struct ScriptSection {
+    #[default(_code = "DEFAULT_SCRIPT_THEME.to_owned()")]
+    #[garde(length(min = 1))]
+    pub theme: String,
+    #[default = 12]
+    #[garde(range(min = SCRIPT_FONT_SIZE.min, max = SCRIPT_FONT_SIZE.max))]
+    pub font_size: u32,
 }
 
 #[derive(
@@ -272,6 +296,8 @@ pub struct AppSettings {
     pub media: MediaSection,
     #[garde(dive)]
     pub updates: UpdatesSection,
+    #[garde(dive)]
+    pub script: ScriptSection,
 }
 
 #[choice(export)]
@@ -317,8 +343,8 @@ pub struct MediaSection {
     pub encode_speed: EncodePreset,
 }
 
-pub const SETTINGS_SECTIONS: [&str; 9] = [
-    "app", "traces", "live", "projects", "editor", "api", "engine", "media", "updates",
+pub const SETTINGS_SECTIONS: [&str; 10] = [
+    "app", "traces", "live", "projects", "editor", "api", "engine", "media", "updates", "script",
 ];
 
 pub const RUST_ONLY_SECTIONS: [&str; 1] = ["engine"];
@@ -332,6 +358,7 @@ pub struct SettingsBook {
     pub canvas_modes: Vec<CanvasMode>,
     pub keep_last_traces: WholeRange,
     pub live_fps: WholeRange,
+    pub script_font_size: WholeRange,
     pub encode_speeds: Vec<(EncodePreset, String)>,
 }
 
@@ -345,6 +372,7 @@ pub fn settings_book() -> SettingsBook {
         canvas_modes: CanvasMode::ALL.to_vec(),
         keep_last_traces: KEEP_LAST_TRACES,
         live_fps: LIVE_FPS,
+        script_font_size: SCRIPT_FONT_SIZE,
         encode_speeds: EncodePreset::ALL
             .map(|p| (p, p.label().to_owned()))
             .to_vec(),

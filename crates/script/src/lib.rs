@@ -9,6 +9,7 @@ pub mod runtime;
 pub mod sandbox;
 pub mod syntax;
 pub mod text;
+pub mod themes;
 pub mod values;
 
 pub use host::{HostResult, ProjectInfo, RunEvents, RunNext, ScriptHost};

@@ -5,13 +5,16 @@ use std::time::Duration;
 use notify_debouncer_mini::notify::{RecommendedWatcher, RecursiveMode};
 use notify_debouncer_mini::{DebounceEventResult, Debouncer, new_debouncer};
 use opsis_qt::{
-    BracketView, EventKind, ScriptLineView, ScriptView, SyntaxRangeView, TextChangeView,
+    BracketView, Choice, EventKind, ScriptLineView, ScriptLookView, ScriptView, SyntaxRangeView,
+    TextChangeView,
 };
 use opsis_script::editing::{self, TextChange};
 use opsis_script::runtime::location;
 use opsis_script::syntax::highlight;
+use opsis_script::themes::{Theme, theme, themes};
 use opsis_session::script::{ScriptState, list_scripts, script_path};
 use opsis_types::script::{SCRIPT_EXTENSION, SCRIPTS_DIR, ScriptLine};
+use opsis_types::settings::{SCRIPT_FONT_SIZE, ScriptSection};
 
 use crate::ui::plain;
 
@@ -193,13 +196,49 @@ pub const fn starter() -> &'static str {
     STARTER
 }
 
-pub fn ranges(text: &str) -> Vec<SyntaxRangeView> {
+pub fn ranges(text: &str, theme: &Theme) -> Vec<SyntaxRangeView> {
     highlight(text)
         .into_iter()
-        .map(|range| SyntaxRangeView {
-            start: range.start,
-            length: range.length,
-            kind: range.kind.name().to_owned(),
+        .filter_map(|range| {
+            let style = range.capture.and_then(|capture| theme.style(capture));
+            (style.is_some() || range.error).then(|| SyntaxRangeView {
+                start: range.start,
+                length: range.length,
+                color: style.map_or_default(|s| s.fg.clone()),
+                bold: style.is_some_and(|s| s.bold),
+                italic: style.is_some_and(|s| s.italic),
+                error: range.error,
+            })
+        })
+        .collect()
+}
+
+pub fn look(settings: &ScriptSection) -> ScriptLookView {
+    let theme = theme(&settings.theme);
+    ScriptLookView {
+        theme: theme.name.clone(),
+        background: theme.background.clone(),
+        text: theme.text.clone(),
+        selection: theme.selection.clone(),
+        bracket: theme.bracket.clone(),
+        error: theme.error.clone(),
+        warning: theme.warning.clone(),
+        font_size: settings.font_size,
+        font_min: SCRIPT_FONT_SIZE.min,
+        font_max: SCRIPT_FONT_SIZE.max,
+    }
+}
+
+pub fn theme_choices() -> Vec<Choice> {
+    themes()
+        .iter()
+        .map(|theme| Choice {
+            value: theme.name.clone(),
+            label: if theme.dark {
+                theme.name.clone()
+            } else {
+                format!("{} (light)", theme.name)
+            },
         })
         .collect()
 }
