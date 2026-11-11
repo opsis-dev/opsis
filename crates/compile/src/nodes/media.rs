@@ -770,7 +770,13 @@ fn join_files() -> NodeDef {
         ))
         .executes()
         .uses_project_size()
-        .family(PortFamily::new(IN_PREFIX, PortType::Media, 2, file_label))
+        .family(PortFamily::new(
+            IN_PREFIX,
+            PortType::Media,
+            2,
+            "Files",
+            file_label,
+        ))
         .outputs(vec![(MEDIA_PORT, port(PortType::Media, "File"))])
         .card(|ctx: &CardCtx<'_, JoinFiles>| {
             let n = ctx

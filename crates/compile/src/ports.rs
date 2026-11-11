@@ -108,8 +108,8 @@ pub fn layer_label(i: usize, last: Option<usize>) -> String {
     format!("Layer {}{end}", i + 1)
 }
 
-pub fn clip_family(label: FamilyLabel) -> PortFamily {
-    PortFamily::new(IN_PREFIX, PortType::Clip, 0, label)
+pub fn clip_family(name: &'static str, label: FamilyLabel) -> PortFamily {
+    PortFamily::new(IN_PREFIX, PortType::Clip, 0, name, label)
 }
 
 pub fn connected_clips(inputs: &Inputs) -> Vec<(String, &ClipValue)> {

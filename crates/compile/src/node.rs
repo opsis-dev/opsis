@@ -237,6 +237,7 @@ pub fn numbered_index(prefix: &str, handle: &str) -> Option<usize> {
 #[derive(Debug, Clone)]
 pub struct PortFamily {
     pub prefix: &'static str,
+    pub name: &'static str,
     pub required: usize,
     pub shown: usize,
     label: FamilyLabel,
@@ -245,7 +246,13 @@ pub struct PortFamily {
 }
 
 impl PortFamily {
-    pub fn new(prefix: &'static str, kind: PortType, required: usize, label: FamilyLabel) -> Self {
+    pub fn new(
+        prefix: &'static str,
+        kind: PortType,
+        required: usize,
+        name: &'static str,
+        label: FamilyLabel,
+    ) -> Self {
         let spec = PortSpec {
             kind,
             label: None,
@@ -255,6 +262,7 @@ impl PortFamily {
         };
         Self {
             prefix,
+            name,
             required,
             shown: required.max(2),
             label,

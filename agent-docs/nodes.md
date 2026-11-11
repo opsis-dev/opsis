@@ -90,7 +90,7 @@ What a node may be, how a node is defined, how kind groups put several elements 
 
 ### Growing inputs and many connections
 
-- **Numbered inputs (`in1`, `in2`, …) are a `PortFamily` declared with `.family(…)`**: how many are required and a label for each that knows the last connected one. No setting names a family's ports, so renumbering moves only edges. The nodes that use it call `.family(` in `nodes/`.
+- **Numbered inputs (`in1`, `in2`, …) are a `PortFamily` declared with `.family(…)`**: how many are required, a name for them together ("Clips", the catalogue's `label`) and a label for each that knows the last connected one. No setting names a family's ports, so renumbering moves only edges. The nodes that use it call `.family(` in `nodes/`.
 - **A family node shows one empty input after the last connected one, and never fewer than `PortFamily::shown`, its required count but at least two** (`NodeDef::input_ports`, `PortFamily::shown_count`); `NodeDef::input` accepts any member and the catalogue describes the family so the editor and the Local API know any member.
 - **Every family node's inputs come from the edges through one function, `node_inputs`**: each compile sends them (`EditorCompile.inputs`) and before the first compile the canvas works them out itself (`crates/ui/src/graph.rs`), so an edge into `in3` never hangs loose.
 - **Renumbering a family moves its edges** (`renumber_family`), for closing gaps after a removal and shifting ports on a split.

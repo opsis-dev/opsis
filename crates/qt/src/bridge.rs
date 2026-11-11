@@ -840,8 +840,24 @@ pub mod ffi {
         motion: String,
         morph: String,
         description: String,
-        inputs: String,
-        outputs: String,
+        inputs: Vec<PalettePort>,
+        outputs: Vec<PalettePort>,
+    }
+
+    #[derive(Debug, Clone)]
+    struct PalettePort {
+        label: String,
+        note: String,
+        color: String,
+        optional: bool,
+        shape: PortShape,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    enum PortShape {
+        Single,
+        Many,
+        Numbered,
     }
 
     #[derive(Debug, Clone)]

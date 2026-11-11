@@ -22,6 +22,7 @@
 #include <QSet>
 #include <QTimer>
 #include <QToolButton>
+#include <QTreeWidget>
 #include <QtTest/QTest>
 #include <algorithm>
 #include <cmath>
@@ -33,6 +34,7 @@
 #include "gradient_field.h"
 #include "graph_canvas.h"
 #include "main_window.h"
+#include "node_list.h"
 #include "opsis-qt/src/bridge.rs.h"
 #include "scenario.h"
 #include "script_panel.h"
@@ -68,6 +70,71 @@ QString WidgetName(const QWidget* widget) {
   return widget->objectName().isEmpty()
              ? QString::fromUtf8(widget->metaObject()->className())
              : widget->objectName();
+}
+
+struct CardCase {
+  QString node_type;
+  QString special;
+  bridge::PortShape shape;
+};
+
+QWidget* ShownHoverCard() {
+  for (QWidget* top : QApplication::topLevelWidgets()) {
+    if (top->isVisible() && top->objectName() == QStringLiteral("HoverCard")) {
+      return top;
+    }
+  }
+  return nullptr;
+}
+
+QString HoverCardProblem(const CardCase& want) {
+  const auto palette = App::Get().session().palette();
+  const auto entry = std::find_if(
+      palette.begin(), palette.end(),
+      [&](const auto& e) { return ToQ(e.node_type) == want.node_type; });
+  if (entry == palette.end()) {
+    return QStringLiteral("%1 isn't in the node list").arg(want.node_type);
+  }
+  QWidget* card = ShownHoverCard();
+  if (card == nullptr) {
+    return QStringLiteral("hovering %1 showed no card").arg(want.node_type);
+  }
+  QStringList texts;
+  int badge = 0;
+  for (QLabel* label : card->findChildren<QLabel*>()) {
+    texts << label->text();
+    if (!label->pixmap().isNull()) {
+      badge = static_cast<int>(label->pixmap().deviceIndependentSize().width());
+    }
+  }
+  QStringList missing;
+  int ports = 0;
+  bool special = false;
+  for (const auto* side : {&entry->inputs, &entry->outputs}) {
+    for (const auto& port : *side) {
+      ++ports;
+      for (const QString& text : {ToQ(port.label), ToQ(port.note)}) {
+        if (!text.isEmpty() && !texts.contains(text)) missing << text;
+      }
+      special |= ToQ(port.label) == want.special && port.shape == want.shape;
+    }
+  }
+  const auto dots =
+      card->findChildren<QWidget*>(QStringLiteral("PortDot")).size();
+  const bool old_parts = texts.contains(ToQ(entry->category)) ||
+                         texts.join(' ').contains(QChar(0x2192));
+  return Expect(missing.isEmpty() && texts.contains(ToQ(entry->title)),
+                QStringLiteral("the %1 card lacks %2")
+                    .arg(want.node_type, missing.join(QStringLiteral(", ")))) +
+         Expect(dots == ports, QStringLiteral(" it draws %1 dots for %2 ports")
+                                   .arg(dots)
+                                   .arg(ports)) +
+         Expect(special, QStringLiteral(" %1 isn't drawn as its own kind")
+                             .arg(want.special)) +
+         Expect(!old_parts,
+                QStringLiteral(" it still shows the group name or an arrow")) +
+         Expect(badge == 40,
+                QStringLiteral(" its icon is %1 px, not 40").arg(badge));
 }
 
 QColor MiddleColour(QWidget* widget) {
@@ -352,6 +419,39 @@ void Scenario::BuildViews() {
                 outline == app.Token(QStringLiteral("foreground")),
             QStringLiteral("the icon is %1 then %2")
                 .arg(primary.name(), outline.name()));
+      });
+  for (const CardCase& each :
+       {CardCase{QStringLiteral("timeline.sequence"), QStringLiteral("Clips"),
+                 bridge::PortShape::Numbered},
+        CardCase{QStringLiteral("media.concat"), QStringLiteral("Files"),
+                 bridge::PortShape::Numbered},
+        CardCase{QStringLiteral("audio.mix"), QStringLiteral("Sounds"),
+                 bridge::PortShape::Many}}) {
+    Add(
+        QStringLiteral("views-the-hover-card-names-the-ports-of-%1")
+            .arg(each.node_type),
+        [this, each] {
+          auto* list = qobject_cast<NodeList*>(window_->nodes_dock()->widget());
+          QTreeWidgetItem* row = list->RowOf(each.node_type);
+          auto* tree = list->findChild<QTreeWidget*>();
+          if (row == nullptr || tree == nullptr) return;
+          tree->scrollToItem(row);
+          emit tree->itemEntered(row, 0);
+        },
+        900, [each] { return HoverCardProblem(each); });
+  }
+  Add(
+      QStringLiteral("views-the-hover-card-goes-when-the-pointer-leaves"),
+      [this] {
+        auto* list = qobject_cast<NodeList*>(window_->nodes_dock()->widget());
+        QEvent leave(QEvent::Leave);
+        QCoreApplication::sendEvent(list->findChild<QTreeWidget*>(), &leave);
+      },
+      200,
+      [] {
+        return Expect(ShownHoverCard() == nullptr,
+                      QStringLiteral("the hover card stays after the pointer "
+                                     "leaves the list"));
       });
   Add(
       QStringLiteral("views-script-is-a-tab-in-the-bottom-group"),

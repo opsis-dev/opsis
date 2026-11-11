@@ -1294,6 +1294,7 @@ fn grid() -> NodeDef {
         IN_PREFIX,
         PortType::Media,
         2,
+        "Images",
         picture_label,
     ))
     .card(|ctx: &CardCtx<'_, ImageGrid>| {

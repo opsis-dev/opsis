@@ -113,7 +113,7 @@ fn sequence() -> NodeDef {
         Phase::Compile,
     )
     .describe("Plays clips one after another. Each join uses the transition its clip comes in with, else the one on the Transition input, else a plain cut.")
-    .family(clip_family(clip_label))
+    .family(clip_family("Clips", clip_label))
     .inputs(vec![(TRANSITION_PORT, opt(PortType::Transition, "Transition"))])
     .outputs(vec![(CLIP_PORT, port(PortType::Clip, "Clip"))])
     .card(|ctx: &CardCtx<'_, Sequence>| {
@@ -228,7 +228,7 @@ fn layers() -> NodeDef {
         Phase::Compile,
     )
     .describe("Stacks clips on top of each other: Layer 1 at the back, the last at the front.")
-    .family(clip_family(layer_label))
+    .family(clip_family("Layers", layer_label))
     .outputs(vec![(CLIP_PORT, port(PortType::Clip, "Clip"))])
     .card(|ctx: &CardCtx<'_, Layers>| {
         let layers = connected_ports(&ctx.inputs.connected).len();

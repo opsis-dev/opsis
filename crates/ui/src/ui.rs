@@ -51,6 +51,7 @@ use serde_json::{Map, Value};
 use tokio::runtime::Runtime;
 use tokio::sync::broadcast::error::RecvError;
 
+use crate::palette::palette_ports;
 use crate::platform::QtPlatform;
 use crate::project::Extras;
 use crate::{
@@ -126,17 +127,6 @@ impl fmt::Debug for Ui {
             .field("session", &self.session)
             .finish_non_exhaustive()
     }
-}
-
-fn port_labels(ports: &IndexMap<String, opsis_compile::catalog::CatalogPort>) -> String {
-    if ports.is_empty() {
-        return "Nothing".to_owned();
-    }
-    ports
-        .values()
-        .map(|port| port.label.as_str())
-        .collect::<Vec<_>>()
-        .join(", ")
 }
 
 pub fn plain(value: &impl serde::Serialize) -> String {
@@ -1003,8 +993,8 @@ impl Host for Ui {
                             .and_then(|l| l.morph.clone())
                             .unwrap_or_default(),
                         description: n.description.clone().unwrap_or_default(),
-                        inputs: port_labels(&n.inputs),
-                        outputs: port_labels(&n.outputs),
+                        inputs: palette_ports(&n.inputs, n.family.as_ref()),
+                        outputs: palette_ports(&n.outputs, None),
                     },
                 )
             })

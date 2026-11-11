@@ -14,6 +14,7 @@ mod menu;
 mod mixer;
 mod morph;
 mod motion;
+mod palette;
 mod platform;
 mod player;
 mod project;

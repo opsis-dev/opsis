@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QFrame>
+#include <QGridLayout>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QMimeData>
@@ -27,7 +28,18 @@ constexpr int kEntryRole = Qt::UserRole + 3;
 constexpr int kHoverDelayMs = 500;
 constexpr int kCardWidth = 280;
 constexpr int kCardOffset = 12;
-constexpr int kCardBadge = 32;
+constexpr int kCardBadge = 40;
+constexpr int kDotBox = 14;
+constexpr double kDotRadius = 4.0;
+constexpr double kRingInner = 3.0;
+constexpr double kRingOuter = 6.0;
+constexpr double kStackDot = 1.75;
+constexpr double kStackGap = 4.5;
+constexpr int kInDot = 0;
+constexpr int kInName = 1;
+constexpr int kGap = 2;
+constexpr int kOutName = 3;
+constexpr int kOutDot = 4;
 constexpr int kBadge = 20;
 constexpr int kPopoverWidth = 256;
 constexpr int kPopoverHeight = 400;
@@ -36,9 +48,12 @@ constexpr double kBadgeRadius = 4;
 constexpr double kBadgeInset = 4;
 
 QIcon BadgeIcon(const Look& look, const QColor& color,
-                const LookFrame& frame = {}) {
+                const LookFrame& frame = {}, int size = kBadge) {
   const qreal ratio = qApp->devicePixelRatio();
-  QPixmap pixmap(QSize(kBadge, kBadge) * ratio);
+  const double scale = static_cast<double>(size) / kBadge;
+  const double radius = kBadgeRadius * scale;
+  const double inset = kBadgeInset * scale;
+  QPixmap pixmap(QSize(size, size) * ratio);
   pixmap.setDevicePixelRatio(ratio);
   pixmap.fill(Qt::transparent);
   QPainter painter(&pixmap);
@@ -46,18 +61,92 @@ QIcon BadgeIcon(const Look& look, const QColor& color,
   painter.setRenderHint(QPainter::SmoothPixmapTransform);
   painter.setPen(Qt::NoPen);
   painter.setBrush(color);
-  const QRectF badge(0, 0, kBadge, kBadge);
-  painter.drawRoundedRect(badge, kBadgeRadius, kBadgeRadius);
-  PaintLookGlyph(
-      &painter, badge,
-      badge.adjusted(kBadgeInset, kBadgeInset, -kBadgeInset, -kBadgeInset),
-      look, frame, color);
+  const QRectF badge(0, 0, size, size);
+  painter.drawRoundedRect(badge, radius, radius);
+  PaintLookGlyph(&painter, badge, badge.adjusted(inset, inset, -inset, -inset),
+                 look, frame, color);
   painter.end();
   return {pixmap};
 }
 
 Look LookOf(const bridge::PaletteEntry& entry) {
   return {ToQ(entry.glyph), ToQ(entry.motion), ToQ(entry.morph)};
+}
+
+class PortDot : public QWidget {
+ public:
+  PortDot(const bridge::PalettePort& port, QWidget* parent)
+      : QWidget(parent),
+        color_(QColor::fromString(ToQ(port.color))),
+        shape_(port.shape) {
+    setObjectName(QStringLiteral("PortDot"));
+    setFixedSize(kDotBox, kDotBox);
+  }
+
+ protected:
+  void paintEvent(QPaintEvent*) override {
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    const QPointF middle = QRectF(rect()).center();
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(color_);
+    switch (shape_) {
+      case bridge::PortShape::Numbered:
+        for (int step = -1; step <= 1; ++step) {
+          painter.drawEllipse(middle + QPointF(0, step * kStackGap), kStackDot,
+                              kStackDot);
+        }
+        break;
+      case bridge::PortShape::Many:
+        painter.drawEllipse(middle, kRingInner, kRingInner);
+        painter.setPen(QPen(color_, 1.0));
+        painter.setBrush(Qt::NoBrush);
+        painter.drawEllipse(middle, kRingOuter, kRingOuter);
+        break;
+      default:
+        painter.drawEllipse(middle, kDotRadius, kDotRadius);
+        break;
+    }
+  }
+
+ private:
+  QColor color_;
+  bridge::PortShape shape_;
+};
+
+void AddPort(QGridLayout* grid, const bridge::PalettePort& port, int row,
+             bool output, QWidget* card) {
+  auto* name =
+      MakeLabel(ToQ(port.label), port.optional ? "small" : "port", card);
+  auto* dot = new PortDot(port, card);
+  if (output) {
+    grid->addWidget(name, row, kOutName, Qt::AlignRight | Qt::AlignVCenter);
+    grid->addWidget(dot, row, kOutDot);
+    return;
+  }
+  grid->addWidget(dot, row, kInDot);
+  if (port.note.empty()) {
+    grid->addWidget(name, row, kInName);
+    return;
+  }
+  auto* named = new QHBoxLayout();
+  named->setSpacing(6);
+  named->addWidget(name);
+  named->addWidget(MakeLabel(ToQ(port.note), "small", card));
+  named->addStretch(1);
+  grid->addLayout(named, row, kInName);
+}
+
+QGridLayout* PortRows(const bridge::PaletteEntry& entry, QWidget* card) {
+  auto* grid = new QGridLayout();
+  grid->setHorizontalSpacing(6);
+  grid->setVerticalSpacing(6);
+  grid->setColumnStretch(kGap, 1);
+  int row = 0;
+  for (const auto& port : entry.inputs) AddPort(grid, port, row++, false, card);
+  row = 0;
+  for (const auto& port : entry.outputs) AddPort(grid, port, row++, true, card);
+  return grid;
 }
 
 }
@@ -332,34 +421,35 @@ void NodeList::ShowCard() {
   card->setFixedWidth(kCardWidth);
   auto* layout = new QVBoxLayout(card);
   layout->setContentsMargins(16, 16, 16, 16);
-  layout->setSpacing(8);
+  layout->setSpacing(12);
   auto* head = new QHBoxLayout();
-  head->setSpacing(8);
+  head->setSpacing(12);
   auto* badge = new QLabel(card);
   badge->setPixmap(BadgeIcon(Look{ToQ(entry.glyph), {}, {}},
-                             QColor::fromString(ToQ(entry.color)))
+                             QColor::fromString(ToQ(entry.color)), {},
+                             kCardBadge)
                        .pixmap(kCardBadge, kCardBadge));
-  head->addWidget(badge);
-  auto* names = new QVBoxLayout();
-  names->setSpacing(0);
+  head->addWidget(badge, 0, Qt::AlignTop);
+  auto* words = new QVBoxLayout();
+  words->setSpacing(4);
   auto* title = MakeLabel(ToQ(entry.title), nullptr, card);
+  title->setObjectName(QStringLiteral("HoverCardTitle"));
+  title->setWordWrap(true);
   QFont bold = title->font();
   bold.setWeight(QFont::Medium);
   title->setFont(bold);
-  names->addWidget(title);
-  names->addWidget(MakeLabel(ToQ(entry.category), "small", card));
-  head->addLayout(names, 1);
-  layout->addLayout(head);
+  words->addWidget(title);
   if (!entry.description.empty()) {
     auto* about = MakeLabel(ToQ(entry.description), "small", card);
     about->setWordWrap(true);
-    layout->addWidget(about);
+    words->addWidget(about);
   }
-  auto* flow = MakeLabel(
-      ToQ(entry.inputs) + QStringLiteral("  →  ") + ToQ(entry.outputs), "small",
-      card);
-  flow->setWordWrap(true);
-  layout->addWidget(flow);
+  head->addLayout(words, 1);
+  layout->addLayout(head);
+  if (!entry.inputs.empty() || !entry.outputs.empty()) {
+    layout->addWidget(MakeRule(card));
+    layout->addLayout(PortRows(entry, card));
+  }
   const QRect row = tree_->visualItemRect(hovered_);
   FitHeightToWidth(card);
   card->move(tree_->viewport()->mapToGlobal(

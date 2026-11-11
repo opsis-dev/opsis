@@ -275,6 +275,10 @@ QLabel[role="small"] {
   font-size: 12px;
 }
 
+QLabel[role="port"] {
+  font-size: 12px;
+}
+
 QLabel#TemplateIcon {
   background: @muted;
   border-radius: @radius;

@@ -60,6 +60,8 @@ pub struct CatalogNode {
 )]
 pub struct CatalogFamily {
     pub prefix: String,
+    #[schemars(description = "What the numbered inputs are called together")]
+    pub label: String,
     #[serde(rename = "type")]
     pub kind: PortType,
     #[schemars(description = "How many of the first inputs must be connected")]
@@ -103,6 +105,7 @@ fn input_ports<'a>(
 fn catalog_family(def: &NodeDef) -> Option<CatalogFamily> {
     def.family.as_ref().map(|f| CatalogFamily {
         prefix: f.prefix.to_owned(),
+        label: f.name.to_owned(),
         kind: f.kind(),
         required: f.required,
     })
