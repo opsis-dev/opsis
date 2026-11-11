@@ -375,15 +375,13 @@ QWidget* SettingsWindow::ApiPage() {
 #if defined(Q_OS_WIN)
       QStringLiteral("Scripts and AI agents on this computer can read the open "
                      "project, change it and run it. It only listens on a "
-                     "local pipe that only your user account can open, never "
-                     "on the network. Edits show in the editor and can be "
-                     "undone."));
+                     "local pipe, never on the network. Edits show in the "
+                     "editor and can be undone."));
 #else
       QStringLiteral("Scripts and AI agents on this computer can read the open "
                      "project, change it and run it. It only listens on a "
-                     "local socket that only your user account can open, "
-                     "never on the network. Edits show in the editor and can "
-                     "be undone."));
+                     "local socket, never on the network. Edits show in the "
+                     "editor and can be undone."));
 #endif
   api_state_ = MakeLabel(QString(), "badge");
   api->body()->addWidget(Holder(api_state_));
@@ -570,12 +568,7 @@ void SettingsWindow::Load() {
   confirm_exit_->SetCheckedQuietly(view.confirm_exit);
   api_enabled_->SetCheckedQuietly(view.api_enabled);
   api_scripts_->SetCheckedQuietly(view.api_scripts);
-  api_scripts_row_->setEnabled(view.api_enabled && view.api_scripts_available);
-  api_scripts_row_->setToolTip(
-      view.api_scripts_available
-          ? QString()
-          : QStringLiteral("Not available on Windows yet: the API's pipe "
-                           "isn't limited to your user account."));
+  api_scripts_row_->setEnabled(view.api_enabled);
   const bool custom = !view.default_dir.empty();
   if (!default_dir_->hasFocus()) {
     default_dir_->setText(custom ? ToQ(view.default_dir)

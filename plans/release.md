@@ -2,7 +2,7 @@
 
 Everything still missing between today's app and a public release, and what comes after it: size work, builds and checks on Windows and macOS, signing, updates, the release test pass, and node packs. Each section says first what is already in place, then what is left.
 
-Status: the Linux packages are built and checked ([packaging.md](../agent-docs/packaging.md)); the Windows and macOS builds, signing and updates (sections 2, 5 and 6) build on `opsis-packager`; the rest is current for the native editor.
+Status: the Linux packages are built and checked ([packaging.md](../agent-docs/packaging.md)); the Windows and macOS builds, signing and updates (sections 2, 4 and 5) build on `opsis-packager`; the rest is current for the native editor.
 
 ## How to read this plan
 
@@ -17,11 +17,10 @@ Status: the Linux packages are built and checked ([packaging.md](../agent-docs/p
 | 1. Size work                | A smaller download and install                                       | act on the findings, record CI sizes               | measured 2026-11-08              |
 | 2. Windows and macOS builds | Installers that have actually run on each system                     | push, first CI run, fixes                          | Linux packages built and checked |
 | 3. Platform checks          | The editor working the same on Windows and macOS                     | runner checks, the macOS shell, sign-in end to end | not started                      |
-| 4. Local API on Windows     | A named pipe only the user's account can open                        | the access list and its test                       | not started                      |
-| 5. Code signing             | No "unknown publisher" or "can't be opened" warnings                 | identities, entitlements, CI signing               | not started                      |
-| 6. Updates                  | Check for updates, ask first, install signed updates                 | check a real update on each system                 | built, not yet run               |
-| 7. Release test pass        | Fewer surprises: long takes, odd paths, every template, every system | the manual pass before each release                | e2e in place (4 scenarios)       |
-| 8. Node packs (long term)   | Nodes that install and update apart from the app                     | all of it, after sections 1–7                      | not started                      |
+| 4. Code signing             | No "unknown publisher" or "can't be opened" warnings                 | identities, entitlements, CI signing               | not started                      |
+| 5. Updates                  | Check for updates, ask first, install signed updates                 | check a real update on each system                 | built, not yet run               |
+| 6. Release test pass        | Fewer surprises: long takes, odd paths, every template, every system | the manual pass before each release                | e2e in place (4 scenarios)       |
+| 7. Node packs (long term)   | Nodes that install and update apart from the app                     | all of it, after sections 1–6                      | not started                      |
 
 ## 1. Size work
 
@@ -44,7 +43,7 @@ Status: the Linux packages are built and checked ([packaging.md](../agent-docs/p
 
 - `.github/workflows/build.yml`, on every push, on Ubuntu 24.04: the checks (the offscreen view tests among them) and the `wayland` scenario, and the other e2e scenarios with the engine.
 - `.github/workflows/release.yml`, on `v*` tags or by hand (`workflow_dispatch`): the source notice's links (`bun run notice:links`), a package job for each system (Linux in the trixie container, Windows with the pinned NSIS and WiX v7, both Macs) and, on tags, the draft release with the update feed ([packaging.md](../agent-docs/packaging.md)). None has run. On macOS the job installs Ninja when the runner lacks it; on Windows `qt:static` loads Visual Studio's environment itself.
-- The repository is `github.com/opsis-dev/opsis`. It is private; its `main` is behind the local one, its one workflow run (Build, 2026-11-05) failed, and it has no releases. The update signing secrets are set on it (section 6).
+- The repository is `github.com/opsis-dev/opsis`. It is private; its `main` is behind the local one, its one workflow run (Build, 2026-11-05) failed, and it has no releases. The update signing secrets are set on it (section 5).
 
 **Work.**
 
@@ -69,16 +68,7 @@ The native editor has run only on Linux: X11 in a virtual display, and Wayland o
 4. **Engine checks.** On each runner, download the recording browser through Settings' installer and run `check_browser` on it: Chrome for Testing must open a page. The release workflow checks the bundled FFmpeg on every package runner (`check_ffmpeg` on the staged program, the step after the build), but it has not run on Windows or macOS yet.
 5. **Sign-in end to end.** Not in the e2e scenarios, because saving a sign-in writes to the real keyring. `keyring-core`'s mock store is used only by the store's unit tests (`crates/store/src/keys.rs`); add a test-only store for scenario runs and a step in `runs` that signs in and records a take with it.
 
-## 4. Local API on Windows
-
-The named pipe is created with the default security descriptor, which grants read access to Everyone and the anonymous account.
-
-**Work.**
-
-1. Create the pipe for the current user only with tokio's `ServerOptions::create_with_security_attributes_raw` and a security descriptor built from the user's SID, in one small module with the only `unsafe` code, and a test that reads the pipe's ACL back.
-2. In the Windows CI job, create a second local user and check it can't connect.
-
-## 5. Code signing
+## 4. Code signing
 
 **In place.** `opsis-packager` signs the macOS app ad hoc with `codesign` (`crates/packager/src/macos.rs`); nothing else is code signed.
 
@@ -92,7 +82,7 @@ The named pipe is created with the default security descriptor, which grants rea
 
 **Decision for the user.** Signing routes and costs, checked 2026-10-16: the Apple Developer Program is 99 USD a year and is needed for macOS users to open the app normally and for macOS updates. Windows: Azure Artifact Signing (about 10 USD a month, individuals only in the US or Canada), an OV certificate (about 220–440 USD a year, key on a token or cloud service), or not signing yet ("More info → Run anyway").
 
-## 6. Updates
+## 5. Updates
 
 **In place.** The updater, the About page's Updates card, the installer marker, update signing and the draft release with its feed are built ([updates.md](../agent-docs/updates.md), [packaging.md](../agent-docs/packaging.md)). The key pair is `signing/opsis.key` (ignored by git) and `signing/opsis.key.pub` (committed); the key and its password are in the ignored `.env` and the repository's secrets as `OPSIS_UPDATE_KEY` and `OPSIS_UPDATE_KEY_PASSWORD`, and the ignored test `the_update_key_signs_what_the_committed_public_key_verifies` (`crates/packager/src/sign.rs`) passed with them on 2026-11-08.
 
@@ -100,9 +90,9 @@ The named pipe is created with the default security descriptor, which grants rea
 
 1. **Check a real update on each system** once the release workflow runs: install a published version, publish a newer one, and update from it on the AppImage, the NSIS and MSI installs and both Macs (Restart to update and an ordinary close); the deb, rpm and pacman installs open the release page.
 
-**Risks.** An ad-hoc-signed macOS app that replaces itself may meet Gatekeeper on first open until section 5 signs and notarizes it.
+**Risks.** An ad-hoc-signed macOS app that replaces itself may meet Gatekeeper on first open until section 4 signs and notarizes it.
 
-## 7. Release test pass
+## 6. Release test pass
 
 **In place.** `bun run e2e:qt` runs four scenarios in the real app: `tour` (every panel, field and window), `runs` (setup, recording, export, Replay, the element picker, terminal takes recorded, played, taped live and imported from a cast), `api` (every Local API route from outside, ending with the close check) and `wayland` (real input on headless sway); `cargo test -p opsis-ui` runs the `views` scenario offscreen. `bun run package:check` installs each Linux package in a clean container and opens and exports the changelog example in it ([packaging.md](../agent-docs/packaging.md)).
 
@@ -120,6 +110,6 @@ The named pipe is created with the default security descriptor, which grants rea
 10. **Keyboard only:** create, connect, edit, run and export without a mouse.
 11. **Renders as recorded:** `crates/render/tests/frames.rs` (the same bytes) and `three_stills.rs` against their golden files, rerun on every browser or FFmpeg bump.
 
-## 8. Node packs (long term)
+## 7. Node packs (long term)
 
-Nodes that install and update apart from the app; build after sections 1–7. The phases, the WebAssembly contract and the work are in [node-packs.md](node-packs.md).
+Nodes that install and update apart from the app; build after sections 1–6. The phases, the WebAssembly contract and the work are in [node-packs.md](node-packs.md).

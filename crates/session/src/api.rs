@@ -58,12 +58,8 @@ const CONFLICT: u16 = 409;
 const UNREADABLE: u16 = 422;
 const FORBIDDEN: u16 = 403;
 const SCRIPTS_OFF: &str = "Scripts are switched off. Turn on Run Lua scripts in Settings → API.";
-const SCRIPTS_UNAVAILABLE: &str = "Scripts can't run through the API on Windows yet, because the API's pipe isn't limited to your user account.";
 
 fn scripts_allowed(app: &Session) -> HostResult<()> {
-    if cfg!(windows) {
-        return Err(HostError::new(FORBIDDEN, SCRIPTS_UNAVAILABLE));
-    }
     if app.state::<AppState>().settings().api.scripts {
         Ok(())
     } else {

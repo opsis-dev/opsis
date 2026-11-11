@@ -12,7 +12,7 @@ use crate::bodies::{AddEdgeBody, AddNodeBody, OpenBody, UpdateNodeBody, Variable
 
 const SCHEMAS: &str = "#/components/schemas/";
 
-const DESCRIPTION: &str = "Reads, edits and runs the project open in Opsis. It listens only on a local socket (a named pipe on Windows) that only your user account can open, and only while it's switched on in Settings → API.
+const DESCRIPTION: &str = "Reads, edits and runs the project open in Opsis. It listens only on a local socket (a named pipe on Windows), and only while it's switched on in Settings → API.
 
 Each edit is one undo step, saves itself and shows in every window.
 

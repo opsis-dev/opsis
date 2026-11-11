@@ -46,7 +46,3 @@ The HTTP API scripts and agents use to read, change and run the open project. Pa
   - A client that goes away doesn't stop its script; the stop route does.
 - **Every route is documented in `openapi.rs`** (from the `schemars` schemas of the bodies); node settings schemas come from `/nodes/{type}`.
   - `documents_every_route_it_serves` checks a list of routes written in the test, not the router, so a new route goes in that list too; the list leaves out `/openapi.json`, `/status`, `/nodes` and `/nodes/{type}` (TODO.md). Another test keeps the document under 100 KB.
-
-## Deliberate limits
-
-- **The Windows named pipe has no current-user-only ACL**, although the description `openapi.rs` serves (`DESCRIPTION`) says only the user's account can open it. Setting one needs `unsafe` (tokio's `create_with_security_attributes_raw`), which `opsis-api` may not use, so on Windows the script routes always answer 403 and Settings disables Run Lua scripts (`scripts_allowed`, `api_scripts_available`).

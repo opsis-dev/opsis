@@ -75,7 +75,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Sources
 
-- [release.md](release.md) §8.
+- [release.md](release.md) §7.
 
 ## Phase 2
 
@@ -107,7 +107,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Sources
 
-- [release.md](release.md) §8.
+- [release.md](release.md) §7.
 
 ## Contract
 
@@ -289,7 +289,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Fit with Opsis
 
-- **In place:** update signing ([release.md](release.md) §6); code signing is still to come (§5).
+- **In place:** update signing ([release.md](release.md) §5); code signing is still to come (§4).
 - **Missing:** the permission list, the warning, signature checks.
 
 ### Work
@@ -309,7 +309,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Sources
 
-- [release.md](release.md) §5, §6, §8.
+- [release.md](release.md) §4, §5, §7.
 
 ## Installing
 
@@ -338,7 +338,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Sources
 
-- [release.md](release.md) §8.
+- [release.md](release.md) §7.
 
 ## SDK and checks
 

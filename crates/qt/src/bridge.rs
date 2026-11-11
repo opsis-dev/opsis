@@ -905,7 +905,6 @@ pub mod ffi {
         canvas_modes: Vec<Choice>,
         api_enabled: bool,
         api_scripts: bool,
-        api_scripts_available: bool,
         data_dir: String,
         trace_retention: String,
         trace_retentions: Vec<Choice>,

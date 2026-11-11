@@ -70,7 +70,7 @@ Off by default; switch it on in **Settings → API**. Scripts and AI agents on y
 
 ### 📜 Lua scripts
 
-Write Lua in the **Script** tab (`scripts/*.lua` in the project) and run it with Ctrl+Enter. The `opsis` module reaches everything the editor does with the open project: nodes, connections, variables, the timeline, the mixer, runs and exports. A script reads and writes only files inside the project folder and never uses the internet, and one that fails or is stopped undoes its changes to the project; one that finishes is a single undo step. With **Run Lua scripts** switched on in Settings → API, `POST /project/script` runs one too (not on Windows yet).
+Write Lua in the **Script** tab (`scripts/*.lua` in the project) and run it with Ctrl+Enter. The `opsis` module reaches everything the editor does with the open project: nodes, connections, variables, the timeline, the mixer, runs and exports. A script reads and writes only files inside the project folder and never uses the internet, and one that fails or is stopped undoes its changes to the project; one that finishes is a single undo step. With **Run Lua scripts** switched on in Settings → API, `POST /project/script` runs one too.
 
 ### 🔄 Updates
 

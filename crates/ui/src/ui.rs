@@ -2779,7 +2779,6 @@ impl Host for Ui {
                 .collect(),
             api_enabled: settings.api.enabled,
             api_scripts: settings.api.scripts,
-            api_scripts_available: !cfg!(windows),
             data_dir: self.state().paths.user_data.to_string_lossy().into_owned(),
             trace_retention: plain(&settings.traces.retention),
             trace_retentions: choices(&book.trace_retention),

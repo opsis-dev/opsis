@@ -22,7 +22,7 @@ Replace the ffmpeg-static program the app ships as its `opsis-ffmpeg` sidecar wi
 
 **Work.**
 
-1. **Hardened runtime.** Once macOS signing is in place (`plans/release.md` section 5), the sidecar is signed with the hardened runtime and notarized with the app. Whether ffmpeg-static runs under it without extra entitlements is unchecked, and nothing tests it in CI: the capability check on the macOS runners starts the staged program, not the signed one in `Contents/MacOS`. Look at it if exports fail on macOS.
+1. **Hardened runtime.** Once macOS signing is in place (`plans/release.md` section 4), the sidecar is signed with the hardened runtime and notarized with the app. Whether ffmpeg-static runs under it without extra entitlements is unchecked, and nothing tests it in CI: the capability check on the macOS runners starts the staged program, not the signed one in `Contents/MacOS`. Look at it if exports fail on macOS.
 
 **Decided.**
 
@@ -62,7 +62,7 @@ Linking FFmpeg into the Rust program (owned bindgen bindings and a small C file 
 ## 5. Risks
 
 - **Different FFmpeg per platform.** ffmpeg-static b6.1.1 is FFmpeg 7.0.2 on Linux and 6.1.1 on Windows, so until section 3 exports and golden results can differ between platforms.
-- **Warnings on Windows.** An unsigned `opsis-ffmpeg.exe` inside the installer may be flagged by SmartScreen or virus scanners; sign it with the app once code signing exists (`plans/release.md` section 5).
+- **Warnings on Windows.** An unsigned `opsis-ffmpeg.exe` inside the installer may be flagged by SmartScreen or virus scanners; sign it with the app once code signing exists (`plans/release.md` section 4).
 - **Package size.** The download grows by the compressed program (about 19–30 MB) and the install by the program (about 80 MB on Linux x64) until section 3 trims it.
 
 ## 6. Sources
