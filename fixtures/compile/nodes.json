@@ -909,6 +909,47 @@
   }
  },
  {
+  "type": "browser.signOut",
+  "title": "Sign out",
+  "category": "Browser",
+  "description": "Clears the cookies and the site's saved data, so the page shows what a signed-out visitor sees. Undoes Sign in for the rest of the take.",
+  "phase": "capture",
+  "inputs": [
+   {
+    "id": "session",
+    "type": "browser-session",
+    "label": "Browser",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "family": null,
+  "outputs": [
+   {
+    "id": "session",
+    "type": "browser-session",
+    "label": "Browser",
+    "optional": false,
+    "many": false
+   }
+  ],
+  "virtual": true,
+  "action": false,
+  "executes": false,
+  "usesProjectSize": false,
+  "element": null,
+  "hidden": false,
+  "cardHeight": null,
+  "estimatedHeight": 168.0,
+  "compiles": true,
+  "hasCard": true,
+  "mutates": null,
+  "hostDefaults": null,
+  "defaults": {
+   "reload": true
+  }
+ },
+ {
   "type": "browser.freezeClock",
   "title": "Freeze time",
   "category": "Browser",

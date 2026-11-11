@@ -454,6 +454,29 @@
    }
   },
   {
+   "type": "browser.signOut",
+   "title": "Sign out",
+   "category": "Browser",
+   "description": "Clears the cookies and the site's saved data, so the page shows what a signed-out visitor sees. Undoes Sign in for the rest of the take.",
+   "runs": true,
+   "inputs": {
+    "session": {
+     "type": "browser-session",
+     "label": "Browser",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "session": {
+     "type": "browser-session",
+     "label": "Browser",
+     "optional": false,
+     "many": false
+    }
+   }
+  },
+  {
    "type": "browser.freezeClock",
    "title": "Freeze time",
    "category": "Browser",
@@ -5936,6 +5959,43 @@
     "type": "object",
     "default": {
      "connection": "offline"
+    }
+   }
+  },
+  {
+   "type": "browser.signOut",
+   "title": "Sign out",
+   "category": "Browser",
+   "description": "Clears the cookies and the site's saved data, so the page shows what a signed-out visitor sees. Undoes Sign in for the rest of the take.",
+   "runs": true,
+   "inputs": {
+    "session": {
+     "type": "browser-session",
+     "label": "Browser",
+     "optional": false,
+     "many": false
+    }
+   },
+   "outputs": {
+    "session": {
+     "type": "browser-session",
+     "label": "Browser",
+     "optional": false,
+     "many": false
+    }
+   },
+   "params": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+     "reload": {
+      "description": "Reload the page after",
+      "type": "boolean",
+      "default": true
+     }
+    },
+    "type": "object",
+    "default": {
+     "reload": true
     }
    }
   },

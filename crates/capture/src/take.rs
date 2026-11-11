@@ -11,7 +11,7 @@ use opsis_compile::nodes::browser::{
     Assert, ChangeLanguage, Chapter, Click, Connection, Drag, DragMethod as DragParam, DragMode,
     FreezeClock, GoOffline, HideElements, Hoist, Hover, MockRoute, Navigate, OPEN_BROWSER_TYPE,
     Open, OverlayHtml, PressKeys, Scroll, ScrollAlign, ScrollMode, Select, SetState, SignIn,
-    Silence, SwitchTheme, Type, Wait, WaitMode, WaitUntil, read_path,
+    SignOut, Silence, SwitchTheme, Type, Wait, WaitMode, WaitUntil, read_path,
 };
 use opsis_compile::nodes::capture::{Cursor, Record, Timing};
 use opsis_compile::registry::node_def;
@@ -434,6 +434,7 @@ pub struct TakeRun<'e> {
     hoisted: HashMap<String, String>,
     driver: Option<CursorDriver>,
     signed_in: Option<SignedIn>,
+    sign_in_scripts: Vec<String>,
     recording: Option<Recording>,
     overlays: Option<Arc<Overlays>>,
     clock: Clock,
@@ -493,6 +494,7 @@ impl<'e> TakeRun<'e> {
             hoisted: HashMap::new(),
             driver: None,
             signed_in: None,
+            sign_in_scripts: Vec::new(),
             recording,
             overlays,
             clock: Clock::default(),
@@ -878,6 +880,7 @@ impl<'e> TakeRun<'e> {
             BrowserAction::SwitchTheme => self.switch_theme(params(step)?).await,
             BrowserAction::ChangeLanguage => self.change_language(params(step)?).await,
             BrowserAction::GoOffline => self.go_offline(params(step)?).await,
+            BrowserAction::SignOut => self.sign_out(params(step)?).await,
             BrowserAction::StartRecording => Ok(()),
         }
     }
@@ -1257,6 +1260,28 @@ impl<'e> TakeRun<'e> {
         Ok(())
     }
 
+    async fn sign_out(&mut self, p: SignOut) -> StepResult {
+        self.signed_in = None;
+        for script in std::mem::take(&mut self.sign_in_scripts) {
+            self.session.remove_script(&script).await?;
+        }
+        let page = self.lifecycle.url();
+        let origin = url::Url::parse(&page)
+            .ok()
+            .filter(|u| matches!(u.scheme(), "http" | "https"))
+            .map(|u| u.origin().ascii_serialization());
+        self.session.clear_site_data(origin.as_deref()).await?;
+        if origin.is_some() {
+            self.tab()
+                .evaluate_main::<Value>("sessionStorage.clear()")
+                .await?;
+            if p.reload {
+                self.lifecycle.reload(self.tab()).await?;
+            }
+        }
+        Ok(())
+    }
+
     async fn mock_route(&mut self, p: MockRoute) -> StepResult {
         let tab = Arc::clone(self.tab());
         self.routes
@@ -1411,7 +1436,8 @@ impl<'e> TakeRun<'e> {
                 items: &origin.local_storage,
             };
             let script = call(RESTORE_LOCAL_STORAGE, &json!(storage));
-            self.session.add_init_script(&script).await?;
+            let added = self.session.add_removable_script(&script).await?;
+            self.sign_in_scripts.push(added);
             if page_origin.as_deref() == Some(origin.origin.as_str()) {
                 self.tab().evaluate_main::<Value>(&script).await?;
             }

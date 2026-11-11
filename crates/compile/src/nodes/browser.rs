@@ -885,6 +885,12 @@ pub struct GoOffline {
 }
 
 #[settings(eq)]
+pub struct SignOut {
+    #[setting("Reload the page after", default = true)]
+    pub reload: bool,
+}
+
+#[settings(eq)]
 pub struct MockRoute {
     #[setting(
         "Address pattern",
@@ -1661,6 +1667,19 @@ pub fn nodes() -> Vec<NodeDef> {
             ),
             |p: &GoOffline| vec![Some(row(Icon::Wifi, p.connection.label()))],
         ).look(NodeLook::of("lucide:wifi-off").morphs("lucide:wifi")),
+        card(
+            chain::<SignOut>(
+                BrowserAction::SignOut,
+                "Sign out",
+                "Clears the cookies and the site's saved data, so the page shows what a signed-out visitor sees. Undoes Sign in for the rest of the take.",
+            ),
+            |p: &SignOut| {
+                vec![
+                    Some(row(Icon::KeyRound, "Clears cookies and site data")),
+                    p.reload.then(|| row(Icon::RefreshCw, "Reloads the page")),
+                ]
+            },
+        ).look(NodeLook::of("lucide:log-out")),
         card(
             chain::<FreezeClock>(
                 BrowserAction::FreezeClock,

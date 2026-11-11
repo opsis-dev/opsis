@@ -41,6 +41,11 @@ const SAME_STEM_ALLOWED: &[(&str, &str, &str)] = &[
         "one marks words in a line, the other fills letters with a picture",
     ),
     (
+        "browser.signIn",
+        "browser.signOut",
+        "one restores a saved sign-in, the other clears it",
+    ),
+    (
         "browser.navigate",
         "browser.goOffline",
         "one opens an address, the other cuts the page off from the network",

@@ -460,6 +460,48 @@ impl Session {
             .map(drop)
     }
 
+    pub async fn add_removable_script(&self, source: &str) -> Result<String> {
+        let added = self
+            .tab
+            .send(
+                "Page.addScriptToEvaluateOnNewDocument",
+                json!({ "source": source }),
+            )
+            .await?;
+        added
+            .get("identifier")
+            .and_then(Value::as_str)
+            .map(str::to_owned)
+            .ok_or_else(|| {
+                CaptureError::Failed("The browser didn't name the page script it added.".to_owned())
+            })
+    }
+
+    pub async fn remove_script(&self, identifier: &str) -> Result<()> {
+        self.tab
+            .send(
+                "Page.removeScriptToEvaluateOnNewDocument",
+                json!({ "identifier": identifier }),
+            )
+            .await
+            .map(drop)
+    }
+
+    pub async fn clear_site_data(&self, origin: Option<&str>) -> Result<()> {
+        self.tab
+            .send("Network.clearBrowserCookies", json!({}))
+            .await?;
+        if let Some(origin) = origin {
+            self.tab
+                .send(
+                    "Storage.clearDataForOrigin",
+                    json!({ "origin": origin, "storageTypes": "all" }),
+                )
+                .await?;
+        }
+        Ok(())
+    }
+
     pub async fn close(self) {
         self.launched.close().await;
     }

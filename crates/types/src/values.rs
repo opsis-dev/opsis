@@ -252,6 +252,7 @@ browser_actions! {
     SwitchTheme = "browser.switchTheme",
     ChangeLanguage = "browser.changeLanguage",
     GoOffline = "browser.goOffline",
+    SignOut = "browser.signOut",
 }
 
 impl BrowserAction {

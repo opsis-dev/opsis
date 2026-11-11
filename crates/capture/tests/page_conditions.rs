@@ -2,7 +2,7 @@ mod support;
 
 use std::sync::Arc;
 
-use opsis_capture::take::play_take;
+use opsis_capture::take::{SignInError, SignIns, play_take};
 use opsis_types::values::{BrowserAction, SessionStep};
 use serde_json::{Value, json};
 use support::{NoSignIns, serve, session, step, take_env};
@@ -28,6 +28,18 @@ addEventListener("offline", show);
 show();
 </script></body>"#;
 
+const ACCOUNT_PAGE: &str = r"<!doctype html><body><script>
+document.body.textContent = `cookie[${document.cookie}] token[${localStorage.getItem('token')}] tab[${sessionStorage.getItem('tab')}]`;
+</script></body>";
+
+struct Saved(String);
+
+impl SignIns for Saved {
+    fn read(&self, _: &str) -> Result<Option<String>, SignInError> {
+        Ok(Some(self.0.clone()))
+    }
+}
+
 fn shows(id: &str, text: &str) -> SessionStep {
     step(
         BrowserAction::Assert,
@@ -38,8 +50,12 @@ fn shows(id: &str, text: &str) -> SessionStep {
 
 async fn play(page: &'static str, browser: Value, steps: Vec<SessionStep>) {
     let port = serve(page).await;
+    play_on(port, Arc::new(NoSignIns), browser, steps).await;
+}
+
+async fn play_on(port: u16, sign_ins: Arc<dyn SignIns>, browser: Value, steps: Vec<SessionStep>) {
     let temp = tempfile::tempdir().unwrap();
-    let env = take_env(temp.path(), Arc::new(NoSignIns));
+    let env = take_env(temp.path(), sign_ins);
     let navigate = step(
         BrowserAction::Navigate,
         "go",
@@ -128,4 +144,42 @@ async fn takes_the_page_offline_and_back_online() {
         ],
     )
     .await;
+}
+
+#[tokio::test]
+#[ignore = "needs the dev engine"]
+async fn signs_out_of_a_saved_sign_in_and_stays_signed_out_on_reload() {
+    let port = serve(ACCOUNT_PAGE).await;
+    let saved = json!({
+        "cookies": [{ "name": "sid", "value": "1", "domain": "127.0.0.1", "path": "/", "expires": -1, "httpOnly": false, "secure": false, "sameSite": "Lax" }],
+        "origins": [{ "origin": format!("http://127.0.0.1:{port}"), "localStorage": [{ "name": "token", "value": "t" }] }],
+    })
+    .to_string();
+    let steps = vec![
+        step(
+            BrowserAction::SignIn,
+            "login",
+            json!({ "url": "http://127.0.0.1:1/login", "secretName": "shop" }),
+        ),
+        step(
+            BrowserAction::Navigate,
+            "again",
+            json!({ "url": format!("http://127.0.0.1:{port}/"), "after": 0 }),
+        ),
+        step(
+            BrowserAction::SetState,
+            "tab",
+            json!({ "script": "sessionStorage.setItem('tab', 'x');", "reload": true }),
+        ),
+        shows("signed-in", "cookie[sid=1] token[t] tab[x]"),
+        step(BrowserAction::SignOut, "logout", json!({ "reload": true })),
+        shows("signed-out", "cookie[] token[null] tab[null]"),
+        step(
+            BrowserAction::Navigate,
+            "later",
+            json!({ "url": format!("http://127.0.0.1:{port}/"), "after": 0 }),
+        ),
+        shows("still-out", "cookie[] token[null] tab[null]"),
+    ];
+    play_on(port, Arc::new(Saved(saved)), json!({}), steps).await;
 }
