@@ -263,7 +263,7 @@ fn temp_of(session: &Session, id: u64) -> PathBuf {
     let paths = &session.state::<AppState>().paths;
     paths.temp_root.join(opsis_engine::temp::child_temp_name(
         opsis_engine::temp::ChildKind::Analysis,
-        &format!("player{id}"),
+        &id.to_string(),
         std::process::id(),
     ))
 }

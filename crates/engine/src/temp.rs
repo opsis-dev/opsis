@@ -97,7 +97,20 @@ pub fn temp_env(dir: &Path) -> [(&'static str, PathBuf); 3] {
 
 #[cfg(test)]
 mod tests {
+    use proptest::prelude::*;
+
     use super::*;
+
+    proptest! {
+        #[test]
+        fn ids_of_up_to_eight_digits_get_their_own_folder(a in 0..100_000_000u64, b in 0..100_000_000u64) {
+            prop_assume!(a != b);
+            prop_assert_ne!(
+                child_temp_name(ChildKind::Analysis, &a.to_string(), 7),
+                child_temp_name(ChildKind::Analysis, &b.to_string(), 7)
+            );
+        }
+    }
 
     #[test]
     fn names_a_folder_after_the_app_process_the_kind_and_the_run() {
