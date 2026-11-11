@@ -94,6 +94,7 @@ class ScriptPanel : public QWidget {
   void ApplyLook();
   void ShowOutput(const bridge::ScriptView& view);
   void GoToLine(int line);
+  void Enable(QPushButton* button, bool enabled);
 
   Combo* files_;
   QPushButton* new_;

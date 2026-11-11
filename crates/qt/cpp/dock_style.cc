@@ -10,12 +10,15 @@
 #include <kddockwidgets/qtwidgets/views/Stack.h>
 #include <kddockwidgets/qtwidgets/views/TitleBar.h>
 
+#include <QCoreApplication>
 #include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPointer>
 #include <QToolButton>
 #include <QWindow>
+#include <algorithm>
 
 #include "app.h"
 #include "widgets.h"
@@ -30,10 +33,12 @@ namespace kdw = KDDockWidgets;
 constexpr int kTitleHeight = 32;
 constexpr int kCornerIcon = 14;
 constexpr int kTitleButton = 24;
-constexpr double kDividerWidth = 3.0;
-constexpr int kGripDots = 5;
-constexpr double kGripGap = 6.0;
-constexpr double kGripDot = 3.0;
+constexpr double kLineWidth = 2.0;
+constexpr int kHandleShort = 12;
+constexpr int kHandleLong = 16;
+constexpr int kHandleIcon = 10;
+constexpr double kHandleRadius = 2.0;
+constexpr double kQuarterTurn = 90.0;
 constexpr int kTitleIcon = 14;
 
 bool OnWayland() {
@@ -166,37 +171,183 @@ class DockStack : public kdw::QtWidgets::Stack {
   QToolButton* pop_out_;
 };
 
+bool Across(const QWidget* separator) {
+  return separator->width() >= separator->height();
+}
+
+class DockSeparator;
+
+class SplitterHandle : public QWidget {
+ public:
+  explicit SplitterHandle(DockSeparator* separator);
+  bool inside() const { return inside_; }
+  void Follow();
+
+ protected:
+  bool eventFilter(QObject* watched, QEvent* event) override;
+  void paintEvent(QPaintEvent*) override;
+  void enterEvent(QEnterEvent*) override;
+  void leaveEvent(QEvent*) override;
+  void mousePressEvent(QMouseEvent* event) override { Forward(event); }
+  void mouseMoveEvent(QMouseEvent* event) override { Forward(event); }
+  void mouseReleaseEvent(QMouseEvent* event) override { Forward(event); }
+  void mouseDoubleClickEvent(QMouseEvent* event) override { Forward(event); }
+
+ private:
+  void Watch(QWidget* parent);
+  void Forward(QMouseEvent* event);
+
+  DockSeparator* separator_;
+  bool inside_ = false;
+};
+
 class DockSeparator : public kdw::QtWidgets::Separator {
  public:
   DockSeparator(kdw::Core::Separator* controller, kdw::Core::View* parent)
-      : kdw::QtWidgets::Separator(controller, parent) {}
+      : kdw::QtWidgets::Separator(controller, parent),
+        handle_(new SplitterHandle(this)) {
+    setAttribute(Qt::WA_Hover);
+    handle_->Follow();
+  }
+  ~DockSeparator() override { delete handle_.data(); }
+  DockSeparator(const DockSeparator&) = delete;
+  DockSeparator& operator=(const DockSeparator&) = delete;
+  DockSeparator(DockSeparator&&) = delete;
+  DockSeparator& operator=(DockSeparator&&) = delete;
+
+  bool Hot() const {
+    return inside_ || (handle_ != nullptr && handle_->inside());
+  }
+
+  void Refresh() {
+    update();
+    if (handle_ != nullptr) handle_->update();
+  }
+
+  void raise() override {
+    kdw::QtWidgets::Separator::raise();
+    if (handle_ != nullptr) handle_->raise();
+  }
 
  protected:
+  bool event(QEvent* event) override {
+    const bool handled = kdw::QtWidgets::Separator::event(event);
+    switch (event->type()) {
+      case QEvent::Move:
+      case QEvent::Resize:
+      case QEvent::Show:
+      case QEvent::Hide:
+      case QEvent::ParentChange:
+        if (handle_ != nullptr) handle_->Follow();
+        break;
+      default:
+        break;
+    }
+    return handled;
+  }
+
+  void enterEvent(QEnterEvent* event) override {
+    kdw::QtWidgets::Separator::enterEvent(event);
+    inside_ = true;
+    Refresh();
+  }
+
+  void leaveEvent(QEvent* event) override {
+    kdw::QtWidgets::Separator::leaveEvent(event);
+    inside_ = false;
+    Refresh();
+  }
+
   void paintEvent(QPaintEvent*) override {
     App& app = App::Get();
     QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
     painter.fillRect(rect(), app.Token("sidebar"));
-    const QColor line = app.Token(underMouse() ? "ring" : "window-border");
-    const bool across = width() >= height();
     const QRectF area = rect();
-    const QPointF middle = area.center();
-    const QRectF divider =
-        across ? QRectF(area.left(), middle.y() - kDividerWidth / 2.0,
-                        area.width(), kDividerWidth)
-               : QRectF(middle.x() - kDividerWidth / 2.0, area.top(),
-                        kDividerWidth, area.height());
-    painter.fillRect(divider, line);
-    painter.setPen(Qt::NoPen);
-    painter.setBrush(
-        app.Token(underMouse() ? "foreground" : "muted-foreground"));
-    for (int dot = -kGripDots / 2; dot <= kGripDots / 2; ++dot) {
-      const QPointF at = middle + (across ? QPointF(dot * kGripGap, 0)
-                                          : QPointF(0, dot * kGripGap));
-      painter.drawEllipse(at, kGripDot / 2.0, kGripDot / 2.0);
-    }
+    const QRectF line =
+        Across(this) ? QRectF(area.left(), (area.height() - kLineWidth) / 2.0,
+                              area.width(), kLineWidth)
+                     : QRectF((area.width() - kLineWidth) / 2.0, area.top(),
+                              kLineWidth, area.height());
+    painter.fillRect(line, app.Token(Hot() ? "ring" : "window-border"));
   }
+
+ private:
+  QPointer<SplitterHandle> handle_;
+  bool inside_ = false;
 };
+
+SplitterHandle::SplitterHandle(DockSeparator* separator)
+    : QWidget(separator->parentWidget()), separator_(separator) {
+  setObjectName(QStringLiteral("SplitterHandle"));
+  setAttribute(Qt::WA_Hover);
+  setMouseTracking(true);
+  Watch(parentWidget());
+}
+
+void SplitterHandle::Watch(QWidget* parent) {
+  if (parent != nullptr) parent->installEventFilter(this);
+}
+
+void SplitterHandle::Follow() {
+  QWidget* parent = separator_->parentWidget();
+  if (parent != parentWidget()) {
+    if (parentWidget() != nullptr) parentWidget()->removeEventFilter(this);
+    setParent(parent);
+    Watch(parent);
+  }
+  const bool across = Across(separator_);
+  QRect box(QPoint(), across ? QSize(kHandleLong, kHandleShort)
+                             : QSize(kHandleShort, kHandleLong));
+  box.moveCenter(separator_->geometry().center());
+  setGeometry(box);
+  setCursor(across ? Qt::SizeVerCursor : Qt::SizeHorCursor);
+  setVisible(parent != nullptr && separator_->isVisible() &&
+             std::max(separator_->width(), separator_->height()) > kHandleLong);
+  raise();
+}
+
+bool SplitterHandle::eventFilter(QObject* watched, QEvent* event) {
+  if (watched == parentWidget() && event->type() == QEvent::ChildAdded) {
+    QMetaObject::invokeMethod(this, &QWidget::raise, Qt::QueuedConnection);
+  }
+  return QWidget::eventFilter(watched, event);
+}
+
+void SplitterHandle::paintEvent(QPaintEvent*) {
+  App& app = App::Get();
+  const bool hot = separator_->Hot();
+  QPainter painter(this);
+  painter.setRenderHint(QPainter::Antialiasing);
+  painter.setPen(QPen(app.Token(hot ? "ring" : "window-border"), 1.0));
+  painter.setBrush(app.Token("window-border"));
+  painter.drawRoundedRect(QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5),
+                          kHandleRadius, kHandleRadius);
+  const QPixmap grip = app.Glyph(
+      QStringLiteral("grip-vertical"),
+      app.Token(hot ? "foreground" : "muted-foreground"), kHandleIcon);
+  painter.translate(QRectF(rect()).center());
+  if (Across(separator_)) painter.rotate(kQuarterTurn);
+  painter.drawPixmap(QPointF(-kHandleIcon / 2.0, -kHandleIcon / 2.0), grip);
+}
+
+void SplitterHandle::enterEvent(QEnterEvent*) {
+  inside_ = true;
+  separator_->Refresh();
+}
+
+void SplitterHandle::leaveEvent(QEvent*) {
+  inside_ = false;
+  separator_->Refresh();
+}
+
+void SplitterHandle::Forward(QMouseEvent* event) {
+  QMouseEvent mapped(
+      event->type(),
+      separator_->QWidget::mapFromGlobal(event->globalPosition()),
+      event->scenePosition(), event->globalPosition(), event->button(),
+      event->buttons(), event->modifiers());
+  QCoreApplication::sendEvent(separator_, &mapped);
+}
 
 }
 

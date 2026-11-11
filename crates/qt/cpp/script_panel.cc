@@ -25,7 +25,7 @@ namespace {
 
 constexpr int kSaveDelay = 600;
 constexpr int kHighlightDelay = 30;
-constexpr double kTurnRatio = 1.6;
+constexpr double kTurnRatio = 2.0;
 constexpr int kOutputShare = 2;
 constexpr int kEditorShare = 3;
 constexpr float kLineMarkAlpha = 0.18F;
@@ -392,6 +392,13 @@ bool ScriptPanel::eventFilter(QObject* watched, QEvent* event) {
   return QWidget::eventFilter(watched, event);
 }
 
+void ScriptPanel::Enable(QPushButton* button, bool enabled) {
+  if (!enabled && button->window()->focusWidget() == button) {
+    editor_->setFocus();
+  }
+  button->setEnabled(enabled);
+}
+
 void ScriptPanel::GoToLine(int line) {
   editor_->MarkLine(line);
   editor_->setFocus();
@@ -594,12 +601,12 @@ void ScriptPanel::Rebuild() {
       Highlight();
     }
   }
-  new_->setEnabled(view.has_project);
-  rename_->setEnabled(view.has_project && !open_.isEmpty());
-  delete_->setEnabled(view.has_project && !open_.isEmpty() &&
+  Enable(new_, view.has_project);
+  Enable(rename_, view.has_project && !open_.isEmpty());
+  Enable(delete_, view.has_project && !open_.isEmpty() &&
                       ToQ(view.running_file) != open_);
-  run_->setEnabled(view.has_project && !view.running && !open_.isEmpty());
-  stop_->setEnabled(view.running);
+  Enable(run_, view.has_project && !view.running && !open_.isEmpty());
+  Enable(stop_, view.running);
   badge_->setVisible(view.running);
   status_->setText(Outcome(view));
   ShowOutput(view);

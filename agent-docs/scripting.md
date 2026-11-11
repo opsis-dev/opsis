@@ -78,7 +78,8 @@ Lua scripts that drive the open project: the graph, the timeline, the mixer, run
 
 - **The Script tab sits in the bottom group after Run** (View → Script, Cmd/Ctrl+4) and pops out like the others.
   - An arrangement saved before the tab existed doesn't name it, and KDDockWidgets floats a dock its saved layout doesn't know (`floatUnknownWidgets`); `BuildDocks` puts it back as a tab of the bottom group (`LayoutKnows`).
-- **The editor and the output share one splitter, side by side while the panel is at least 1.6 times as wide as tall and stacked otherwise**, following the panel's shape rather than whether it is popped out.
+- **The editor and the output share one splitter, side by side while the panel is at least twice as wide as tall and stacked otherwise** (`kTurnRatio`), following the panel's shape rather than whether it is popped out: the docked bottom bar sits side by side, and a full-screen 16:9 window stacks.
+- **A toolbar button that is disabled while it has focus hands focus to the editor** (`ScriptPanel::Enable`); otherwise Qt passes it to the next control that takes it, the theme box, whenever Run starts a script or Stop ends one.
 - **The text saves itself 600 ms after typing stops, before every run, when another script opens and when the project closes**; there is no Save button. Each save names the project it belongs to (`script_save(dir, …)`), so text typed in one project never lands in the next.
   - A save still waiting when its script disappears from the list (renamed or deleted outside the app) or the project changes is dropped, so it never brings the old file back.
 - **Rename renames the open script's file** (`script_rename`, `ui/src/script_panel.rs` → `renamed`, `rename`): a bare name lands in `scripts/` with `.lua` added, an existing script is never overwritten, and the open script and its last saved text follow the new name.

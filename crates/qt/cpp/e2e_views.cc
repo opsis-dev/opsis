@@ -6,6 +6,7 @@
 #include <QComboBox>
 #include <QDialog>
 #include <QDir>
+#include <QEnterEvent>
 #include <QFile>
 #include <QFontInfo>
 #include <QGraphicsItem>
@@ -16,6 +17,7 @@
 #include <QJsonObject>
 #include <QKeyEvent>
 #include <QPlainTextEdit>
+#include <QPointer>
 #include <QPushButton>
 #include <QSet>
 #include <QTimer>
@@ -59,6 +61,18 @@ QColor IconInk(const QAbstractButton* button) {
     }
   }
   return {};
+}
+
+QString WidgetName(const QWidget* widget) {
+  if (widget == nullptr) return QStringLiteral("nothing");
+  return widget->objectName().isEmpty()
+             ? QString::fromUtf8(widget->metaObject()->className())
+             : widget->objectName();
+}
+
+QColor MiddleColour(QWidget* widget) {
+  const QImage shot = widget->grab().toImage();
+  return shot.pixelColor(shot.width() / 2, shot.height() / 2);
 }
 
 QSet<QString> SelectedCards(GraphCanvas* canvas) {
@@ -419,6 +433,36 @@ void Scenario::BuildViews() {
                Expect(shown.contains(QStringLiteral("  indented\ttabbed")),
                       QStringLiteral(" the output reads '%1'").arg(shown));
       });
+  auto focus_while_running = std::make_shared<QPointer<QWidget>>();
+  Until(
+      QStringLiteral("views-running-from-the-button-keeps-focus-in-the-editor"),
+      [this, focus_while_running] {
+        ScriptPanel* panel = window_->script_panel();
+        panel->editor()->setPlainText(
+            QStringLiteral("opsis.sleep(0.5)\nprint(\"focus\")\n"));
+        auto* run = panel->findChild<QPushButton*>(QStringLiteral("ScriptRun"));
+        run->setFocus();
+        QTest::mouseClick(run, Qt::LeftButton);
+        QTest::qWait(250);
+        *focus_while_running = panel->window()->focusWidget();
+      },
+      kProjectMs,
+      [] {
+        const bridge::ScriptView view = App::Get().session().script_view();
+        return !view.running && ToQ(view.outcome) == QStringLiteral("ok") &&
+               !view.output.empty() &&
+               ToQ(view.output.back().text) == QStringLiteral("focus");
+      },
+      [this, focus_while_running] {
+        QTest::qWait(200);
+        ScriptPanel* panel = window_->script_panel();
+        QWidget* during = focus_while_running->data();
+        QWidget* after = panel->window()->focusWidget();
+        return Expect(during == panel->editor() && after == panel->editor(),
+                      QStringLiteral("focus is on %1 while the script runs and "
+                                     "%2 after")
+                          .arg(WidgetName(during), WidgetName(after)));
+      });
   Add(
       QStringLiteral("views-the-code-theme-and-size-restyle-the-script"),
       [] {
@@ -512,16 +556,60 @@ void Scenario::BuildViews() {
       [this] {
         int thin = 0;
         int seen = 0;
+        int handled = 0;
+        const QList<QWidget*> handles =
+            window_->findChildren<QWidget*>(QStringLiteral("SplitterHandle"));
         for (auto* separator :
              window_->findChildren<KDDockWidgets::QtWidgets::Separator*>()) {
           if (!separator->isVisible()) continue;
           ++seen;
-          if (std::min(separator->width(), separator->height()) < 7) ++thin;
+          if (std::min(separator->width(), separator->height()) < 6) ++thin;
+          const bool across = separator->width() >= separator->height();
+          const QSize box = across ? QSize(16, 12) : QSize(12, 16);
+          const QPoint middle = separator->geometry().center();
+          handled += static_cast<int>(
+              std::any_of(handles.begin(), handles.end(), [&](QWidget* h) {
+                return h->isVisible() &&
+                       h->parentWidget() == separator->parentWidget() &&
+                       h->size() == box &&
+                       (h->geometry().center() - middle).manhattanLength() <= 1;
+              }));
         }
         return Expect(seen > 0 && thin == 0,
-                      QStringLiteral("%1 of %2 splitters are thinner than 7 px")
+                      QStringLiteral("%1 of %2 splitters are thinner than 6 px")
                           .arg(thin)
+                          .arg(seen)) +
+               Expect(handled == seen,
+                      QStringLiteral(" %1 of %2 splitters have a centred "
+                                     "12 by 16 handle")
+                          .arg(handled)
                           .arg(seen));
+      });
+  Add(
+      QStringLiteral("views-a-splitter-is-plain-again-once-the-mouse-leaves"),
+      [] {}, 100,
+      [this] {
+        KDDockWidgets::QtWidgets::Separator* separator = nullptr;
+        for (auto* each :
+             window_->findChildren<KDDockWidgets::QtWidgets::Separator*>()) {
+          if (each->isVisible()) separator = each;
+        }
+        if (separator == nullptr) {
+          return Expect(false, QStringLiteral("no splitter is shown"));
+        }
+        const QPointF middle = QRectF(separator->rect()).center();
+        const QColor before = MiddleColour(separator);
+        QEnterEvent enter(middle, middle,
+                          QPointF(separator->mapToGlobal(middle.toPoint())));
+        QCoreApplication::sendEvent(separator, &enter);
+        const QColor lit = MiddleColour(separator);
+        QEvent leave(QEvent::Leave);
+        QCoreApplication::sendEvent(separator, &leave);
+        const QColor after = MiddleColour(separator);
+        return Expect(lit != before && after == before,
+                      QStringLiteral("the splitter's line is %1, then %2 on "
+                                     "hover and %3 after")
+                          .arg(before.name(), lit.name(), after.name()));
       });
   Add(
       QStringLiteral("views-the-script-split-turns-with-the-panel"),
@@ -537,6 +625,9 @@ void Scenario::BuildViews() {
         window_->script_panel()->window()->resize(1200, 300);
         QTest::qWait(300);
         const bool wide = split->orientation() == Qt::Horizontal;
+        window_->script_panel()->window()->resize(1920, 1080);
+        QTest::qWait(300);
+        const bool full = split->orientation() == Qt::Vertical;
         int small_buttons = 0;
         for (QToolButton* button :
              window_->script_panel()->window()->findChildren<QToolButton*>(
@@ -544,10 +635,12 @@ void Scenario::BuildViews() {
           if (button->isVisible() && button->width() < 24) ++small_buttons;
         }
         window_->script_dock()->setFloating(false);
-        return Expect(tall && wide,
-                      QStringLiteral("the split didn't turn (tall %1, wide %2)")
+        return Expect(tall && wide && full,
+                      QStringLiteral("the split didn't turn (tall %1, wide "
+                                     "%2, full screen %3)")
                           .arg(tall)
-                          .arg(wide)) +
+                          .arg(wide)
+                          .arg(full)) +
                Expect(small_buttons == 0,
                       QStringLiteral(" %1 title buttons are smaller than 24 px")
                           .arg(small_buttons));

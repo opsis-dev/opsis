@@ -31,7 +31,7 @@ namespace opsis {
 
 namespace {
 
-constexpr int kSeparatorThickness = 7;
+constexpr int kSeparatorThickness = 6;
 
 QPalette DarkPalette(App& app) {
   QPalette palette;
