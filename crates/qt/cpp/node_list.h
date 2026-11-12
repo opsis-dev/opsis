@@ -44,6 +44,9 @@ class NodeList : public QWidget {
     return rows_.value(node_type);
   }
   const LookPlayer& looks() const { return looks_; }
+  static QString CardLook(const QString& node_type) {
+    return QStringLiteral("card:") + node_type;
+  }
 
  signals:
   void AddRequested(const QString& node_type);
@@ -53,7 +56,9 @@ class NodeList : public QWidget {
 
   void Hover(QTreeWidgetItem* item);
   void ShowCard();
-  void Repaint(const QString& node_type);
+  void Repaint(const QString& look_id);
+  void RepaintCard();
+  void CloseCard();
   const bridge::PaletteEntry* EntryOf(QTreeWidgetItem* item) const;
 
   QLineEdit* search_;
@@ -63,6 +68,8 @@ class NodeList : public QWidget {
   QTimer hover_timer_;
   QTreeWidgetItem* hovered_ = nullptr;
   QPointer<QFrame> card_;
+  QPointer<QLabel> card_badge_;
+  QString card_type_;
   LookPlayer looks_;
   QHash<QString, QTreeWidgetItem*> rows_;
   QString playing_;

@@ -384,18 +384,37 @@ const bridge::PaletteEntry* NodeList::EntryOf(QTreeWidgetItem* item) const {
   return &entries_.at(static_cast<std::size_t>(index));
 }
 
-void NodeList::Repaint(const QString& node_type) {
-  QTreeWidgetItem* item = rows_.value(node_type);
+void NodeList::Repaint(const QString& look_id) {
+  if (!card_type_.isEmpty() && look_id == CardLook(card_type_)) {
+    RepaintCard();
+    return;
+  }
+  QTreeWidgetItem* item = rows_.value(look_id);
   const bridge::PaletteEntry* entry = EntryOf(item);
   if (entry == nullptr) return;
   item->setIcon(0,
                 BadgeIcon(LookOf(*entry), QColor::fromString(ToQ(entry->color)),
-                          looks_.FrameOf(node_type)));
+                          looks_.FrameOf(look_id)));
+}
+
+void NodeList::RepaintCard() {
+  const bridge::PaletteEntry* entry = EntryOf(rows_.value(card_type_));
+  if (card_badge_ == nullptr || entry == nullptr) return;
+  card_badge_->setPixmap(
+      BadgeIcon(LookOf(*entry), QColor::fromString(ToQ(entry->color)),
+                looks_.FrameOf(CardLook(card_type_)), kCardBadge)
+          .pixmap(kCardBadge, kCardBadge));
+}
+
+void NodeList::CloseCard() {
+  if (!card_type_.isEmpty()) looks_.Leave(CardLook(card_type_));
+  card_type_.clear();
+  if (card_ != nullptr) card_->close();
 }
 
 void NodeList::Hover(QTreeWidgetItem* item) {
   hover_timer_.stop();
-  if (card_ != nullptr) card_->close();
+  CloseCard();
   const bridge::PaletteEntry* entry = EntryOf(item);
   const QString type = entry != nullptr ? ToQ(entry->node_type) : QString();
   if (type != playing_) {
@@ -425,11 +444,12 @@ void NodeList::ShowCard() {
   auto* head = new QHBoxLayout();
   head->setSpacing(12);
   auto* badge = new QLabel(card);
-  badge->setPixmap(BadgeIcon(Look{ToQ(entry.glyph), {}, {}},
-                             QColor::fromString(ToQ(entry.color)), {},
-                             kCardBadge)
-                       .pixmap(kCardBadge, kCardBadge));
+  badge->setFixedSize(kCardBadge, kCardBadge);
   head->addWidget(badge, 0, Qt::AlignTop);
+  card_badge_ = badge;
+  card_type_ = ToQ(entry.node_type);
+  looks_.Enter(CardLook(card_type_), LookOf(entry));
+  RepaintCard();
   auto* words = new QVBoxLayout();
   words->setSpacing(4);
   auto* title = MakeLabel(ToQ(entry.title), nullptr, card);

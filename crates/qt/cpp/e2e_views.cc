@@ -137,6 +137,30 @@ QString HoverCardProblem(const CardCase& want) {
                 QStringLiteral(" its icon is %1 px, not 40").arg(badge));
 }
 
+QRect InWindow(QWidget* widget, QWidget* window) {
+  return {widget->mapTo(window, QPoint()), widget->size()};
+}
+
+QString BottomBetweenSides(MainWindow* window) {
+  auto* bottom = window->timeline_dock();
+  auto* nodes = window->nodes_dock();
+  auto* inspector = window->inspector_dock();
+  if (!bottom->isVisible() || !nodes->isVisible() || !inspector->isVisible()) {
+    return QStringLiteral("the timeline, node list or Inspector isn't shown");
+  }
+  const QRect under = InWindow(bottom, window);
+  const QRect left = InWindow(nodes, window);
+  const QRect right = InWindow(inspector, window);
+  return Expect(under.left() > left.right() && under.right() < right.left(),
+                QStringLiteral("the bottom bar spans x %1 to %2 while the "
+                               "node list ends at %3 and the Inspector "
+                               "starts at %4")
+                    .arg(under.left())
+                    .arg(under.right())
+                    .arg(left.right())
+                    .arg(right.left()));
+}
+
 QColor MiddleColour(QWidget* widget) {
   const QImage shot = widget->grab().toImage();
   return shot.pixelColor(shot.width() / 2, shot.height() / 2);
@@ -440,6 +464,32 @@ void Scenario::BuildViews() {
         },
         900, [each] { return HoverCardProblem(each); });
   }
+  auto moving = std::make_shared<QString>();
+  Until(
+      QStringLiteral("views-the-hover-card-plays-the-node-motion"),
+      [this, moving] {
+        for (const auto& entry : App::Get().session().palette()) {
+          if (!entry.motion.empty()) {
+            *moving = ToQ(entry.node_type);
+            break;
+          }
+        }
+        auto* list = qobject_cast<NodeList*>(window_->nodes_dock()->widget());
+        QTreeWidgetItem* row = list->RowOf(*moving);
+        auto* tree = list->findChild<QTreeWidget*>();
+        if (row == nullptr || tree == nullptr) return;
+        tree->scrollToItem(row);
+        emit tree->itemEntered(row, 0);
+      },
+      2000, [] { return ShownHoverCard() != nullptr; },
+      [this, moving] {
+        auto* list = qobject_cast<NodeList*>(window_->nodes_dock()->widget());
+        const double elapsed =
+            list->looks().MotionElapsed(NodeList::CardLook(*moving));
+        return Expect(
+            !moving->isEmpty() && elapsed >= 0,
+            QStringLiteral("the card for %1 shows a still icon").arg(*moving));
+      });
   Add(
       QStringLiteral("views-the-hover-card-goes-when-the-pointer-leaves"),
       [this] {
@@ -775,11 +825,21 @@ void Scenario::BuildViews() {
         return App::Get().session().has_project() &&
                !App::Get().session().graph().nodes.empty();
       },
-      [] {
+      [this] {
+        QTest::qWait(200);
         return Expect(App::Get().session().has_project(),
                       QStringLiteral("starting with the last project opened "
-                                     "nothing"));
+                                     "nothing")) +
+               BottomBetweenSides(window_);
       });
+  Add(
+      QStringLiteral("views-the-bottom-bar-comes-back-between-the-sidebars"),
+      [this] {
+        window_->RunCommand(QStringLiteral("view:toggle-bottom"));
+        QTest::qWait(100);
+        window_->RunCommand(QStringLiteral("view:toggle-bottom"));
+      },
+      300, [this] { return BottomBetweenSides(window_); });
   Until(
       QStringLiteral("views-start-asks-for-a-new-project"),
       [this] {

@@ -632,6 +632,9 @@ void MainWindow::DockBottom(kdw::QtWidgets::DockWidget* dock) {
   }
   if (anchor != nullptr) {
     anchor->addDockWidgetAsTab(dock);
+  } else if (dock->dockWidget()->hasPreviousDockedLocation()) {
+    dock->open();
+    if (dock->isFloating()) dock->setFloating(false);
   } else {
     const int bottom =
         static_cast<int>((height() - app_bar_->height()) * kBottomShare);
