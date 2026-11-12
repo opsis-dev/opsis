@@ -1,15 +1,17 @@
 # Native renderer
 
-How Opsis stops drawing films in the recording browser: every element, the camera, the terminal and the transitions become Rust that returns scene nodes, Skia draws them on the CPU, wgpu runs the shader effects and 3D, and finished frames go straight into the bundled FFmpeg. Node packs draw through the same scene contract ([node-packs.md](node-packs.md)).
+How Opsis stops drawing films in the recording browser: every element, the camera, the terminal and the transitions become Rust that returns scene nodes written in the CSS and SVG subset the film uses today, Taffy and Parley lay them out, Skia draws them on the CPU, Filament runs the shader effects and the 3D, and finished frames go straight into the bundled FFmpeg. Node packs draw through the same scene contract ([node-packs.md](node-packs.md)).
 
-Status: plan only. Nothing here is built yet. Facts were checked on 5 November 2026, in the libraries' own repositories and the Opsis code; everything this plan relies on is in it or linked from it.
+Status: plan only. Nothing here is built yet. Facts were checked on 5 and 12 November 2026, in the libraries' own repositories and the Opsis code; everything this plan relies on is in it or linked from it.
 
 ## How to read this plan
 
-- **Scene** comes first: the types every element returns, the clock and the caches. Everything else draws or produces them.
-- **Skia**, **Text and layout** and **Effects and 3D** come next, then **Footage and terminal** and **Output**.
+- **Oracle** comes first: the reference pictures every later part is checked against.
+- **Wrappers** come next: the two crates that hold Skia and Filament behind safe Rust.
+- **Scene**, **Layout** and **Paint** follow: the types every element returns, how they are laid out and how they are drawn. No element is ported before their property cases pass.
+- **Effects and 3D**, **Footage and terminal** and **Output** come next.
 - **Elements** is the port of every element, the camera and the terminal view onto the scene contract.
-- **Goldens and tests**, then **Cut-over**, close it. The browser film page goes in one step, after everything above passes.
+- **Goldens and tests**, then **Cut-over**, close it. The cut-over is the merge of the branch.
 - Each part has the same sections: **What it changes**, **Fit with Opsis** (In place / Missing), **Work**, **Decisions**, **Risks**, **Sources**.
 
 ## Conventions
@@ -18,56 +20,139 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 - **Every frame is a pure function of the frame number.** An element is `fn(&Settings, &Clock, &Stage) -> Node`; no element reads a wall clock, a random source, a file or the network. Randomness is Opsis's `random(seed)`, ported exactly.
 - **Rust owns the open project and every file, as today.** The renderer is Rust in the app's process tree; nothing draws a film in a page.
-- **No comments**, in Rust, WGSL and every new file.
+- **The work happens on a branch in its own worktree.** `main` is not touched until the merge, and its release build stays as the oracle.
+- **An element never works around a missing feature.** A construct with no row in the transform table stops the port of that element; the construct is added to the renderer and the table, and the port goes on.
+- **No comments**, in Rust, C++, GLSL and every new file.
 - **No number is converted with `as`**, and floats are compared exactly only through `exact_eq`, in renderer code as everywhere else.
 - **Nothing uses the internet unless the user asks.** Fonts, images, models and footage reach the renderer from the project, the data folder and `public/`, as `app:` and project refs do today.
-- **Checks when a part is done:** `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, plus the part's golden pictures.
+- **Checks when a part is done:** `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, plus the part's cases against the oracle.
 
 ## Decided
 
-- **Skia draws every 2D frame, on the CPU.** It is the only library that covers every 2D feature the film uses on the CPU: all blend modes, layers with backdrop blur, every CSS filter function, turbulence, displacement and colour-matrix filters, `SkM44` perspective, OKLCH gradient interpolation (`SkGradient.h`), dithering, F16 surfaces. How Opsis calls Skia is open (see **Skia**).
-- **wgpu runs every shader effect and the 3D**, from WGSL, on a GPU when there is one and otherwise on a software driver: the SwiftShader inside the pinned Chrome Headless Shell, the system's lavapipe on Linux, WARP on Windows.
+- **The scene contract is the film's own CSS and SVG subset.** A node carries the CSS properties and SVG tags the elements use today, under the same names, with CSS meaning and the defaults of `packages/video/src/video.css`, so porting an element is a lookup in the transform table. It is Opsis's own code on Taffy and Parley.
+- **Skia draws every 2D frame, on the CPU.** It is the only library that covers every 2D feature the film uses on the CPU: all blend modes, layers with backdrop blur, every CSS filter function, turbulence, displacement and colour-matrix filters, `SkM44` perspective, OKLCH gradient interpolation (`SkGradient.h`), dithering, F16 surfaces.
+- **Opsis calls Skia through its own wrapper crate, `opsis-skia`**: C++ over the Skia calls the film needs, behind a safe Rust API, with Skia built from a pinned commit. No third-party sys crate.
+- **Filament runs every shader effect and the 3D**, through a second wrapper crate, `opsis-filament`. Shaders stay GLSL ES 3.0, as materials. It draws on a GPU when there is one and otherwise on a software Vulkan driver: the SwiftShader inside the pinned Chrome Headless Shell, or the system's lavapipe on Linux. macOS draws on Metal.
+- **Filament comes from Google's release archives**, pinned by sha256 and size for each platform, with the `matc` material compiler from the same archive.
+- **`unsafe` is allowed in `opsis-skia` and `opsis-filament`**, beside `opsis-vt` and `opsis-qt`.
 - **Taffy lays out boxes, Parley lays out text**, from the same font bytes Skia draws.
 - **The scene model is pure evaluation with content hashes, memo caches and a raster layer cache**, not a signal graph. Held frames get equal hashes by quantising before hashing: positions to 1/64 px, opacity in 8-bit steps; `spring` keeps its maths.
-- **The browser film page is replaced in one go**, once every element, the camera, the terminal and every transition pass on the native renderer. There is no period with both renderers in the app.
+- **The browser film page is replaced in one go: the merge of the branch.** Every element, the camera, the terminal and every transition pass on the native renderer first. There is no period with both renderers on `main`.
+- **`main`'s release build is the oracle.** It renders the reference pictures, and the commit it was built from is recorded with them.
 - **Golden pictures are exact on one software setup**: the pinned SwiftShader and a fixed Skia CPU path. GPU runs compare with a tolerance.
 - **No live preview in the editor in this plan.** A film is still watched as an export; a preview is a later decision.
 - **Lottie plays through Skottie without expressions.** A file that contains any expression draws its keyframed values, and its card warns and points to Bodymovin's expression baking. Android, iOS and Windows Lottie don't run expressions either (Airbnb's `supported-features.md`), and the Lottie spec leaves them out (IANA `video/lottie+json`).
-- **Element authoring is Rust for built-in elements** and WebAssembly components for packs, both returning the same scene nodes ([node-packs.md](node-packs.md)).
+- **Element authoring is Rust for built-in elements** and WebAssembly components for packs, both returning the same scene nodes. Packs ship GLSL shaders, compiled when the pack loads ([node-packs.md](node-packs.md)).
 
 ## Summary
 
-| Part                 | What it changes                                                                    | Needs                 |
-| -------------------- | ---------------------------------------------------------------------------------- | --------------------- |
-| Scene                | scene types, clock and time maps, hashes, memo and layer caches, the resolve pass  | —                     |
-| Skia                 | how Opsis calls Skia, the font manager, layers, filters, perspective               | Scene                 |
-| Text and layout      | Parley and Taffy behind the scene's layout and text nodes                          | Scene, Skia           |
-| Effects and 3D       | wgpu effects in WGSL, the software drivers, the 3D renderer, Skia–wgpu layers      | Scene, Skia           |
-| Footage and terminal | decoded frames as image layers, the terminal drawn natively                        | Skia, Text and layout |
-| Output               | raw frames into FFmpeg with colour tags, parallel chunks                           | Skia                  |
-| Elements             | all 140 element and transition implementations, the camera, captions, the terminal | every part above      |
-| Goldens and tests    | exact goldens on the software setup, tolerance on GPUs, render tests un-ignored    | Elements              |
-| Cut-over             | delete the film page, the terminal page, the frame driver and the painter; docs    | everything            |
+| Part                 | What it changes                                                                      | Needs            |
+| -------------------- | ------------------------------------------------------------------------------------ | ---------------- |
+| Oracle               | reference frames of every element and example film, and one case per CSS property    | —                |
+| Wrappers             | `opsis-skia` and `opsis-filament`, the Filament pin, the readback measurement        | —                |
+| Scene                | scene types in the CSS and SVG subset, clock and time maps, hashes, caches, resolve  | —                |
+| Layout               | `opsis-layout`: block, inline, flex and grid on Taffy and Parley, stacking order     | Scene            |
+| Paint                | `opsis-paint`: positioned boxes, text and inline SVG into Skia calls                 | Wrappers, Layout |
+| Effects and 3D       | `opsis-effects` and `opsis-stage3d`: shader passes and 3D scenes on Filament         | Wrappers, Paint  |
+| Footage and terminal | decoded frames as image layers, the terminal drawn natively                          | Paint            |
+| Output               | raw frames into FFmpeg with colour tags, parallel chunks                             | Paint            |
+| Elements             | the transform table, all 140 element and transition implementations, the camera      | every part above |
+| Goldens and tests    | exact goldens on the software setup, tolerance on GPUs, render tests un-ignored      | Elements         |
+| Cut-over             | the merge: delete the film page, the terminal page, the frame driver and the painter | everything       |
+
+## Oracle
+
+### What it changes
+
+- **`main`'s release build renders the reference pictures once**, into `~/.cache/opsis-dev/oracle/<commit>`: every element at five frames (first, the two quarter points, middle, last), and every project in `examples/` as whole films.
+- **One case per CSS property and SVG tag in [Appendix: constructs](#appendix-constructs)**: a small page drawn by the pinned browser with `video.css` and the bundled fonts, beside the same case written as scene nodes.
+- **Every later part compares against these pictures**, never against the browser running in the branch.
+
+### Fit with Opsis
+
+- **In place:** `bun run elements:render` (`crates/render/src/bin/render-elements.rs`) draws one still per element; `examples/` holds ten projects; `opsis_golden::dev_cache` names the folder.
+- **Missing:** several frames per element, the example films as frames, the property cases, the recorded commit.
+
+### Work
+
+1. `render-elements` takes a list of frame positions and writes each picture with its element, frame and settings.
+2. The example films rendered to frames.
+3. The property cases, grouped as the appendix groups them.
+
+### Decisions
+
+- None.
+
+### Risks
+
+- **A picture the oracle draws wrong is copied into the port.** The paint traps in [film.md](../agent-docs/film.md) are the known ones.
+
+### Sources
+
+- `crates/render/src/bin/render-elements.rs`, `crates/project/src/templates.rs` → `examples()`, `crates/golden/src/lib.rs` → `dev_cache`.
+
+## Wrappers
+
+### What it changes
+
+- **`opsis-skia` wraps the Skia calls the film needs**, in C++ behind the `cxx` bridge, as `opsis-qt` wraps Qt ([ui.md](../agent-docs/ui.md)): raster surfaces (N32 and F16), the canvas with layers and backdrops, paths, paints, gradients, image and colour filters, blend modes, `SkM44`, the font manager, glyph runs, images and Skottie. Skia is built from a pinned commit with GN.
+- **`opsis-filament` wraps Filament**: the engine on a chosen backend, a headless swap chain (`Engine::createSwapChain(width, height, flags)`), views with post-processing off, render targets, textures, materials, lights, the indirect light, glTF loading (`gltfio`) and readback (`Renderer::readPixels`).
+- **`opsis-filament` exposes plain C functions on every platform.** Filament's Linux build is clang 17 with libc++, while the rest of the app's C++ on Linux is built with GCC (`gcc_64` Qt, `scripts/qt-install.ts`), so no C++ type crosses that boundary.
+- **Filament is pinned like the browser and FFmpeg**: a script writes each platform's archive, sha256 and size into a generated file, and the archives are kept in `~/.cache/opsis-dev/filament`.
+- **Rust reaches neither library except through these two crates.**
+
+### Fit with Opsis
+
+- **In place:** the `cxx` bridge and its build from Cargo (`crates/qt/build.rs`), the pin scripts for the browser and FFmpeg (`scripts/engine-downloads.ts`, `scripts/ffmpeg-pin.ts`).
+- **Missing:** both crates, Skia in the build, the Filament pin, clang 17 and libc++ on Linux build machines.
+
+### Work
+
+1. `opsis-skia`: Skia built on Linux x64 and arm64, Windows and macOS, and one test picture drawn through the wrapper.
+2. `opsis-filament`: the pin, the archive unpacked for the build, and one test picture drawn without a window.
+3. The readback measurement: a 1920×1080 full-screen shader pass read back every frame, on a GPU and on the software driver, 60 frames each.
+4. Drawing without a window on macOS (Metal) and on Windows, and the software driver on Windows.
+
+### Decisions
+
+- **Whether one Filament engine serves every render worker through a queue, or each worker holds its own.** `Renderer::renderStandaloneView` "must be called from the Engine's main thread" (`Renderer.h`).
+
+### Risks
+
+- **Filament calls `readPixels` "intended for debugging and testing. It will impact performance significantly"** (`Renderer.h`), and every frame with a shader effect or a 3D layer needs one. Work 3 measures it; if a frame-by-frame render can't afford it, shader effects go to wgpu and WGSL and Filament keeps the 3D.
+- **The link of a libc++ library into a program whose other C++ uses GCC's library is untested.**
+- **Skia's C++ API moves between milestones** (at m159 the gradient factories live only in `include/effects/SkGradient.h`); the tree is at m160.
+- **Linking the system FreeType** can crash when the version differs from the one Skia was built with (rust-skia #1345); the font manager in **Paint** avoids the system's.
+
+### Sources
+
+- Filament v1.80.0 (2026-11-02, Apache-2.0, https://github.com/google/filament): `README.md` (backends: OpenGL, Metal, Vulkan, WebGPU), `BUILDING.md` (clang 17, libc++, software rendering through `VK_ICD_FILENAMES`), `CMakeLists.txt` (`FILAMENT_ENABLE_EXPERIMENTAL_GCC_SUPPORT`), `filament/include/filament/{Engine.h,Renderer.h,SwapChain.h}`, `filament/backend/src/vulkan/platform/VulkanPlatformSwapChainImpl.cpp` (`VulkanPlatformHeadlessSwapChain`).
+- The v1.80.0 archives: `filament-v1.80.0-linux.tgz` 76,102,096 B, `-arm-linux.tgz` 74,355,070 B, `-mac.tgz` 45,445,964 B, `-windows.tgz` 867,739,530 B. The Linux one holds `lib/x86_64/libfilament.a` (5,189,728 B), `libbackend.a` (5,053,894 B), `libfilamat.a` (35,180,872 B), `libgltfio_core.a`, `libdracodec.a`, `libbluevk.a`, and `bin/matc` (17,137,880 B) and `bin/cmgen`.
+- Skia (https://github.com/google/skia): `include/core/SkMilestone.h`, `gn/skia.gni`. rust-skia issue #1345.
 
 ## Scene
 
 ### What it changes
 
-- **A new crate, `opsis-scene`, holds what every element returns and how a frame is evaluated.** Its node types are the WIT `types` interface of [node-packs.md](node-packs.md): flat lists of nodes with child indices (WIT has no recursive types), CSS-like layout, boxes, paths, text runs, images and footage frames, SVG, Lottie, 3D models, WGSL effects over other nodes, slots for children and transitions, and per-node transform, opacity, blend mode, filters, backdrop filters, clip and mask.
+- **A new crate, `opsis-scene`, holds what every element returns and how a frame is evaluated.** It draws nothing, so `opsis-compile` depends on it without Skia or Filament.
+- **A node is a box, a text run, an inline SVG tree or a leaf**, with a style struct whose fields are the CSS properties in [Appendix: constructs](#appendix-constructs): size and position, flex and grid, padding, margin and border, background layers, radius, shadows, opacity, `transform` with `translate`, `scale` and `rotate`, `filter`, `backdrop-filter`, `mix-blend-mode`, `clip-path`, masks, overflow, `z-index` and the text properties.
+- **Leaves are what CSS has no word for**: an image or footage frame, a Lottie file at a frame, a 3D scene, a shader effect over other nodes, a 2D drawing callback, and slots for children and transitions.
+- **Inline SVG keeps its tags and attributes** (`path`, `circle`, `rect`, `line`, `ellipse`, `g`, `defs`, `clipPath`, `mask`, `linearGradient`, `radialGradient`, `stop`, `text`, `filter` and the eight filter primitives in use).
+- **The node types are the WIT `types` interface of [node-packs.md](node-packs.md)**: flat lists of nodes with child indices, since WIT has no recursive types.
 - **Time is a value passed down, never a global.** `Clock` carries the frame (fractional, because remaps are), the rate and the length. `Sequence`, `Freeze`, `Loop`, group `remap`, `startFrom`, `loopEvery` and each motion-blur sample are pure maps from one clock to another. Elements registered with `.authored_clock` get a 30 fps clock, as `useAuthoredFrame` gives them today.
 - **Every node gets a content hash when it is built.** A group's own transform and opacity stay out of its content hash, so moving or fading a group keeps what's inside cached.
-- **Memo caches keyed by value**: text shaping, flex layout, path flattening, decoded images, parsed SVG, spring lengths. `measureSpring` loops frame by frame to the rest frame on every `spring({durationInFrames})` call today (`packages/runtime/src/spring.ts:76-111`).
+- **Memo caches keyed by value**: text shaping, layout, path flattening, decoded images, parsed SVG, spring lengths. `measureSpring` loops frame by frame to the rest frame on every `spring({durationInFrames})` call today (`packages/runtime/src/spring.ts:76-111`).
 - **A raster layer cache keyed by subtree hash and raster-scale bucket.** Because frame n+1 is known, a camera move rasters once at its largest scale. Footage and backdrop filters over moving content are never cached. A frame whose root hash equals the last one's reuses the last picture.
 - **A resolve pass before the first frame** loads every font, image, SVG, model, Lottie file and footage decoder an element asks for, replacing `holdRender`, `useHeldLoad`, `untilPainted` and `document.fonts.ready`.
 
 ### Fit with Opsis
 
-- **In place:** `spring` is closed form (`springProgress`), `random(seed)` is a hash, `interpolate` is stateless (`packages/runtime/src`), so frame n needs no earlier frame. Compile already produces a `TimelineSpec` that one `DemoTimeline` draws (`packages/video/src/demo-timeline.tsx`), and the flattener, cuts, remaps and envelopes are Rust (`crates/compile/src`).
-- **Missing:** the scene crate, the clock maps, the hashing, both caches and the resolve pass. `DemoTimeline`'s tracks, `TransitionWrap`, `EnvelopeWrap`, `Group`, `CropBox`, `DesignBox` and `SceneSequence` become Rust that walks the spec and calls element functions.
+- **In place:** `spring` is closed form (`springProgress`), `random(seed)` is a hash, `interpolate` is stateless (`packages/runtime/src`), so frame n needs no earlier frame. Compile already produces a `TimelineSpec` that one `DemoTimeline` draws (`packages/video/src/demo-timeline.tsx`), and the flattener, cuts, remaps and envelopes are Rust (`crates/compile/src`). The film styles inline: its one stylesheet, `video.css`, is a reset, so there is no selector or cascade to carry over.
+- **Missing:** the scene crate, the style struct, the clock maps, the hashing, both caches and the resolve pass. `DemoTimeline`'s tracks, `TransitionWrap`, `EnvelopeWrap`, `Group`, `CropBox`, `DesignBox` and `SceneSequence` become Rust that walks the spec and calls element functions.
 
 ### Work
 
-1. `opsis-scene` with the node types, `Clock` and the clock maps, `Stage` (size, design size, overlay scale, shape insets), and the quantise-and-hash step.
+1. `opsis-scene` with the node types and the style struct, `Clock` and the clock maps, `Stage` (size, design size, overlay scale, shape insets), and the quantise-and-hash step.
 2. The timeline walker: tracks, items with `from` and length, envelopes, transitions with their outgoing and incoming slots, groups with `remap`, `loopEvery`, `startFrom`, crop, design box, wrapper and sequencer.
 3. Motion blur as N clocks for one subtree, accumulated with `sampleOpacity` weights (`camera/lib/shutter.ts` ported).
 4. Memo caches with age-based eviction, and the layer cache with the planned raster scale.
@@ -88,120 +173,129 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 - Skottie's seek and static properties: https://github.com/google/skia `modules/skottie/src/{Skottie.cpp,animator/Animator.cpp}`. Flutter's three-frame raster cache warm-up: https://github.com/flutter/flutter `engine/src/flutter/flow/raster_cache.h` (`access_threshold = 3`). `comemo`: https://github.com/typst/comemo `src/constraint.rs`, `src/accelerate.rs`.
 
-## Skia
+## Layout
 
 ### What it changes
 
-- **Skia's CPU raster backend draws every 2D frame** into an N32 or F16 surface: paths, strokes, dashes, every gradient kind with OKLCH interpolation, rounded rects and blurred shadows, `saveLayer` with opacity and blend modes and `SaveLayerRec::fBackdrop` for backdrop blur, `SkImageFilters` (blur, drop shadow, colour matrix, displacement map, merge, blend, offset, image), `SkPerlinNoiseShader` for turbulence, `SkM44` for perspective, `setDither`.
+- **A new crate, `opsis-layout`, turns scene nodes into positioned boxes** with CSS meaning for the properties the film uses.
+- **Taffy lays out every box**: block, flex and grid as CSS defines them. Its fixtures take their expected numbers from Chrome for Testing (`scripts/gentest`).
+- **Parley shapes and breaks text** (harfrust, ICU4X segmentation, `skrifa`, fontique fallback): rich runs, variable fonts, OpenType features, letter and word spacing, bidi, CSS whitespace. Its line breaks are tested against Chromium's (`parley_tests/linebreaking_cases`).
+- **Inline content is a Taffy leaf whose measure function calls Parley**: text with `span`s of their own style, and inline boxes for the characters and words elements animate one by one.
+- **Text properties inherit** (`color`, the font properties, `letter-spacing`, `line-height`, `text-align`, `white-space`), and `em`, `%`, `calc()` and the container query units resolve against the same boxes CSS names.
+- **Paint order follows CSS stacking**: `z-index`, positioned boxes, and the properties that make a stacking context (`opacity`, `transform`, `filter`, `mix-blend-mode`, `isolation`).
+- **Elements that measure before laying out** (word-push, kinetic-center-build, slot-machine-roll, punch-lines, launch-anything's shader text reveal, the terminal view, which call `measureText` today, and the seven files that read boxes from the page) call one measurer.
+
+### Fit with Opsis
+
+- **In place:** `skrifa` and the font library (`opsis-fonts`), `family_for` (`crates/compile/src/fonts/mod.rs`) and `face_for` (`crates/compile/src/elements/prepared.rs`), which the image nodes call (`crates/image/src/executors.rs`) and draw with `crates/image/src/text.rs`.
+- **Missing:** Taffy and Parley in the workspace, the crate, the measurer.
+
+### Work
+
+1. Taffy and Parley pinned in the root table.
+2. Styles into Taffy, inline content measured by Parley, results cached by hash.
+3. Inheritance, units and stacking order.
+4. The layout property cases against the oracle.
+
+### Decisions
+
+- None.
+
+### Risks
+
+- **The subset is Opsis's own code**, so its correctness rests on the property cases. Blitz (`blitz-dom`, MIT/Apache-2.0) does the same job on Taffy and Parley and is the reference to read; it is at `0.3.0-beta.4` with one main author, drops 3D transforms and has no `filter: url(…)`, so it is not a dependency.
+- **No `text-wrap: balance` and no hyphenation in Parley.** No element uses either today.
+- **Taffy and Parley break their APIs each 0.x minor**, as their changelogs list (Taffy 0.15.1, Parley 0.12.0).
+
+### Sources
+
+- Taffy (https://github.com/DioxusLabs/taffy): `README.md`, `CHANGELOG.md`, `test_fixtures/`, `scripts/gentest/src/main.rs`. Parley (https://github.com/linebender/parley): `CHANGELOG.md`, `parley_tests/linebreaking_cases`. Blitz (https://github.com/DioxusLabs/blitz): `packages/blitz-dom/src/stylo_to_kurbo.rs`, `packages/blitz-paint/src/filters.rs`.
+
+## Paint
+
+### What it changes
+
+- **A new crate, `opsis-paint`, draws positioned boxes through `opsis-skia`** into an N32 or F16 surface: backgrounds in layers with size, position and repeat, every gradient kind with OKLCH interpolation, borders by side, rounded corners, blurred shadows, outlines, `saveLayer` with opacity and blend modes and `SaveLayerRec::fBackdrop` for backdrop blur, `SkImageFilters` (blur, drop shadow, colour matrix, displacement map, merge, blend, offset, image), `SkPerlinNoiseShader` for turbulence, `SkM44` for perspective, `setDither`.
+- **Text is drawn from Parley's glyph runs**, from the same font bytes, with shadows, stroke, decorations and gradient fills (`background-clip: text`, 5 elements) as a clip from the glyph outlines.
+- **Inline SVG is drawn from its tree** through `usvg` and the same Skia calls, filters included.
+- **A 2D drawing callback gets a canvas**, for the seven files that draw on a page canvas today.
 - **One font manager built from font bytes on every OS** (Fontations or an embedded FreeType), never the system's, so glyphs don't change by operating system. The film already renders unhinted (`--font-render-hinting=none`, `crates/capture/src/film.rs`).
 - **Skottie plays Lottie files**, with no expression evaluator attached.
 
 ### Fit with Opsis
 
-- **In place:** the film draws through Skia today, inside Chrome, so blur, gradient and anti-aliasing maths stay closest to current output. `usvg` (0.49) and `skrifa` are already dependencies (`crates/prepare`).
-- **Missing:** Skia itself in the build, the drawing code for each scene node, the font manager, the Skottie bridge.
+- **In place:** the film draws through Skia today, inside Chrome, so blur, gradient and anti-aliasing maths stay closest to current output. `usvg` and `skrifa` are already dependencies (`crates/prepare`).
+- **Missing:** the crate, the drawing code for each property, the font manager, the Skottie bridge.
 
 ### Work
 
-1. Skia in the build, by the route the decision below picks, on Linux x64 and arm64, Windows and macOS.
-2. A painter from scene nodes to `SkCanvas` calls, with every filter, blend mode, clip, mask and perspective case listed in [Appendix: drawing features](#appendix-drawing-features).
-3. The font manager from the project's and the app's font bytes; `family_for` keeps choosing faces as today ([fonts.md](../agent-docs/fonts.md)).
-4. A fixed CPU path for golden runs: Skia picks AVX2+FMA code at run time on x86 (`src/core/SkOpts.cpp`, `Init_ml3`) and fuses `mad()` on AVX2, AVX-512 and NEON (`src/opts/SkRasterPipeline_opts.h`), so golden runs pin one path. x86 and ARM differ even then; goldens are recorded on x86 Linux.
-5. Skottie for the Lottie element, with the expression check that feeds the card's warning.
+1. The painter, with every filter, blend mode, clip, mask and perspective case listed in [Appendix: drawing features](#appendix-drawing-features).
+2. The font manager from the project's and the app's font bytes; `family_for` keeps choosing faces as today ([fonts.md](../agent-docs/fonts.md)).
+3. A fixed CPU path for golden runs: Skia picks AVX2+FMA code at run time on x86 (`src/core/SkOpts.cpp`, `Init_ml3`) and fuses `mad()` on AVX2, AVX-512 and NEON (`src/opts/SkRasterPipeline_opts.h`), so golden runs pin one path. x86 and ARM differ even then; goldens are recorded on x86 Linux.
+4. Skottie for the Lottie element, with the expression check that feeds the card's warning.
+5. The paint property cases against the oracle; their differences set the tolerance **Goldens and tests** uses.
 
 ### Decisions
 
-- **How Opsis calls Skia: open.** No third-party sys crates or pins is the aim; Skia itself is given.
-  - `skia-safe` (rust-skia 0.157.0 on Skia m157): its `unsafe` stays in the dependency, and its prebuilt binaries download at build time. pragmatrix wrote 449 of its 496 commits since 2026-05-05, its README calls it "a prerelease crate", and no prebuilt archive is CPU-only with Skottie.
-  - Our own `cxx` wrapper over the Skia calls listed above, building Skia from a pinned commit with GN. It reuses the `cxx` bridge the editor uses for Qt ([ui.md](../agent-docs/ui.md)), and it is a third crate that needs `unsafe`, beside `opsis-vt` and `opsis-qt`.
-- **Skia's text modules or Parley.** This plan uses Parley (see **Text and layout**); SkParagraph brings ICU and HarfBuzz into the Skia build.
+- None.
 
 ### Risks
 
-- **Skia's C++ API moves between milestones** (at m159 the gradient factories live only in `include/effects/SkGradient.h`).
-- **Linking the system FreeType** can crash when the version differs from the one Skia was built with (rust-skia #1345, open since 2026-10-10); the font manager above avoids the system's.
+- **Chrome's text and edge smoothing won't match bit for bit**, so the comparison with the oracle carries a tolerance.
 - **No sourced measurement of Skia's speed on blur, filters, text or whole frames exists**; measure on the example projects early.
 
 ### Sources
 
-- Skia (https://github.com/google/skia): `include/effects/{SkGradient.h,SkImageFilters.h,SkRuntimeEffect.h,SkPerlinNoiseShader.h}`, `include/core/SkCanvas.h`, `src/core/SkOpts.cpp`, `src/opts/SkRasterPipeline_opts.h`, `modules/skottie/include/Skottie.h`. rust-skia (https://github.com/rust-skia/rust-skia): `README.md`, `skia-bindings/build_support/`, issue #1345. Benchmarks: https://laurenzv.github.io/vello_chart/ (x86 and ARM data files).
-
-## Text and layout
-
-### What it changes
-
-- **Taffy lays out every box**: flex and grid as CSS defines them. Its 1,689 fixtures take their expected numbers from Chrome for Testing (`scripts/gentest`).
-- **Parley shapes and breaks text** (harfrust, ICU4X segmentation, `skrifa`, fontique fallback): rich runs, variable fonts, OpenType features, letter and word spacing, bidi, CSS whitespace. Its line breaks are tested against Chromium's (`parley_tests/linebreaking_cases`).
-- **Text is a Taffy leaf whose measure function calls Parley**, and the same glyph runs are drawn by Skia from the same font bytes.
-- **Elements that measure before laying out** (word-push, kinetic-center-build, slot-machine-roll, punch-lines, launch-anything's shader text reveal, the terminal view, which call `measureText` today) call the same measurer.
-
-### Fit with Opsis
-
-- **In place:** `skrifa` and the font library (`opsis-fonts`), `family_for` (`crates/compile/src/fonts/mod.rs`) and `face_for` (`crates/compile/src/elements/prepared.rs`), which the image nodes call (`crates/image/src/executors.rs`) and draw with `crates/image/src/text.rs`.
-- **Missing:** Taffy and Parley in the workspace, the layout pass over scene nodes, the measurer.
-
-### Work
-
-1. Taffy and Parley pinned in the root table.
-2. The layout pass: scene layout styles into Taffy, text leaves measured by Parley, results cached by hash.
-3. Gradient-filled text (`background-clip: text`, 5 elements) as a clip from the glyph outlines.
-
-### Decisions
-
-- None beyond the decided Parley and Taffy.
-
-### Risks
-
-- **No `text-wrap: balance` and no hyphenation in Parley.** No element uses either today.
-- **Taffy and Parley break their APIs each 0.x minor**, as their changelogs list.
-
-### Sources
-
-- Taffy (https://github.com/DioxusLabs/taffy): `README.md`, `CHANGELOG.md`, `test_fixtures/`, `scripts/gentest/src/main.rs`. Parley (https://github.com/linebender/parley): `CHANGELOG.md`, `parley_tests/linebreaking_cases`.
+- Skia (https://github.com/google/skia): `include/effects/{SkGradient.h,SkImageFilters.h,SkPerlinNoiseShader.h}`, `include/core/SkCanvas.h`, `src/core/SkOpts.cpp`, `src/opts/SkRasterPipeline_opts.h`, `modules/skottie/include/Skottie.h`. `usvg` 0.50.0 (https://github.com/linebender/resvg). Benchmarks: https://laurenzv.github.io/vello_chart/ (x86 and ARM data files).
 
 ## Effects and 3D
 
 ### What it changes
 
-- **Every shader effect is WGSL run by wgpu 30**: the 8 `@paper-design/shaders` programs (Apache-2.0: MeshGradient, GrainGradient, Warp, Swirl, GodRays, PerlinNoise, Dithering, SmokeRing), Opsis's own filters (crt-screen, vhs-filter, camera-lens, tv-power-off, halftone-print, mosaic), the transitions over two scenes (glitch-cut, particle-dissolve), light-leak, launch-anything's text reveal, lens-zoom's radial pass, and the terminal's texture and lens.
-- **Effects read their input nodes as layers.** Skia draws each input into a pixel buffer, wgpu runs the program, the result comes back as an image layer. Canvas Draw Element (`captureElementImage`, `drawElementImage`) is no longer needed.
-- **The adapter order:** a GPU; on Linux the SwiftShader in the pinned headless shell or the system's lavapipe; on Windows WARP; on macOS Metal. The renderer runs as a child process started with `VK_DRIVER_FILES` set, because pointing wgpu at a chosen Vulkan driver otherwise needs `unsafe` or `set_var`.
-- **3D is a small wgpu renderer of our own**: metal/roughness PBR, ambient, hemisphere and up to three directional lights, one prefiltered environment map, ACES tone mapping, 4× MSAA, transparent planes, skinning, morph targets, animation sampling. glTF through the `gltf` crate; extrude, tube and shape geometry ported from three.js (MIT).
-- **Integer hashes (PCG) in every WGSL program.** Four of today's shaders hash with `fract(sin(dot(…)) * 43758.5453)`, which differs between drivers.
+- **A new crate, `opsis-effects`, holds the shader materials and runs their passes** through `opsis-filament`.
+- **Every shader effect is a Filament material**: unlit, with its fragment code in GLSL ES 3.0 and its inputs as `sampler2d` parameters, drawn as one full-screen pass into a render target with post-processing off (`samples/procedural_effect.cpp`). The programs are the 8 from `@paper-design/shaders` (Apache-2.0: MeshGradient, GrainGradient, Warp, Swirl, GodRays, PerlinNoise, Dithering, SmokeRing), Opsis's own filters (crt-screen, vhs-filter, camera-lens, tv-power-off, halftone-print, mosaic), the transitions over two scenes (glitch-cut, particle-dissolve), light-leak, launch-anything's text reveal, lens-zoom's radial pass, and the terminal's texture and lens.
+- **Built-in materials are compiled by `matc` when Opsis is built**; pack materials are compiled when the pack loads ([node-packs.md](node-packs.md), Shaders).
+- **Effects read their input nodes as layers.** Skia draws each input into a pixel buffer, Filament takes it as a texture and runs the pass, and the result comes back as an image layer. Canvas Draw Element (`captureElementImage`, `drawElementImage`) is no longer needed.
+- **The backend order:** a GPU through Vulkan on Linux and Windows and Metal on macOS; without one, a software Vulkan driver: the SwiftShader in the pinned headless shell, or the system's lavapipe on Linux. The renderer runs as a child process started with `VK_DRIVER_FILES` set, because choosing the driver inside the running app needs `set_var`.
+- **3D is a Filament scene**, built by a new crate, `opsis-stage3d`: lit materials for today's `MeshStandardMaterial`, unlit ones for `MeshBasicMaterial`, up to three directional lights, the indirect light from one prefiltered environment map, the ACES tone mapper, 4× MSAA, transparent planes, and glTF through `gltfio`. Extrude, tube and shape geometry is ported from three.js (MIT).
+- **Ambient and hemisphere lights become the indirect light.** Filament's light types are sun, directional, point and two spots (`LightManager.h`).
+- **Integer hashes (PCG) in every program.** Four of today's shaders hash with `fract(sin(dot(…)) * 43758.5453)`, which differs between drivers.
 
 ### Fit with Opsis
 
-- **In place:** `crates/prepare` makes typeface JSON with `skrifa`, normalises SVG with `usvg` and prepares GLB (Draco decoded with `draco-gltf`), so the 3D inputs are Rust already. The pinned Chrome Headless Shell ships SwiftShader on every platform (`libvk_swiftshader.so` 3,986,104 B on linux64).
-- **Missing:** wgpu in the workspace, every WGSL port, the layer transfer, the 3D renderer, the child process.
+- **In place:** `crates/prepare` makes typeface JSON with `skrifa`, normalises SVG with `usvg` and prepares GLB (Draco decoded with `draco-gltf`), so the 3D inputs are Rust already. The film's shaders are GLSL ES 3.00 today (`packages/video/src/lib/shaders/quad.ts`), with constant-bound loops and `texture()` samples. The pinned Chrome Headless Shell ships SwiftShader on every platform (`libvk_swiftshader.so` 3,986,104 B on linux64).
+- **Missing:** every material, the layer transfer, the 3D scene code, the child process.
 
 ### Work
 
-1. wgpu in a renderer child process, with the adapter order and the "Graphics card / Software" render setting becoming the adapter choice.
-2. The layer transfer between Skia's buffers and wgpu textures, with readback rows aligned to 256 bytes (`COPY_BYTES_PER_ROW_ALIGNMENT`) and double-buffered `map_async`.
-3. WGSL ports of every program listed above, with PCG hashes. naga's GLSL front end takes only Vulkan GLSL 440 (partly), 450 and 460, so the GLSL ES 3.00 sources are ported by hand.
-4. The 3D renderer and its geometry, against today's stills in `fixtures/prepare/stills`.
+1. The renderer child process, with the backend order and the "Graphics card / Software" render setting becoming the backend choice.
+2. The layer transfer between Skia's buffers and Filament textures.
+3. Each program as a material, with PCG hashes, checked against its oracle frames.
+4. The 3D scenes and their geometry, against today's stills in `fixtures/prepare/stills`.
 5. `screen-3d`'s clip drawn with an `SkM44` perspective from `three/project.ts`'s homography.
 
 ### Decisions
 
-- **The environment map**: one precomputed prefiltered cube map shipped in `public/` in place of `RoomEnvironment` through `PMREMGenerator`, or one computed at load.
+- **The environment map**: one prefiltered map made by `cmgen` when Opsis is built and shipped in `public/`, in place of `RoomEnvironment` through `PMREMGenerator`, or one computed at load.
 
 ### Risks
 
-- **SwiftShader through the headless shell's own Vulkan loader on macOS and Windows is untested.**
-- **The 3D renderer's look against three.js's** (PMREM, ACES, MSAA) decides whether `three_stills.rs` passes with its slack of 24 over 99.5% of pixels.
-- **Measured shader speed per 1080p frame** for one film-like filter: RTX 3060 1.7 ms, Intel Iris Xe 6.7 ms, lavapipe 49.8 ms, SwiftShader 143.9 ms. A 3D scene on the software drivers wasn't measured.
+- **Readback speed**, measured in **Wrappers**.
+- **SwiftShader through the headless shell's own Vulkan loader on Windows is untested**, and so is drawing without a window on macOS.
+- **Filament's lighting against three.js's** (indirect light for ambient and hemisphere, ACES, MSAA) decides whether `three_stills.rs` passes with its slack of 24 over 99.5% of pixels.
+- **Software drivers are slow.** One film-like 1080p filter measured through wgpu on 5 November 2026: RTX 3060 1.7 ms, Intel Iris Xe 6.7 ms, lavapipe 49.8 ms, SwiftShader 143.9 ms a frame. The drivers are the same under Filament; the timings are measured again in **Wrappers**.
 
 ### Sources
 
-- The shader timings come from a benchmark run on 5 November 2026 and not kept in the repository: one 1920×1080 WGSL filter shaped like the film's (32 blur taps in a spiral, colour fringing, 4-octave noise grain, a vignette), read back every frame, wgpu 30.0.1 on an i7-12700H, 60 frames per driver; the same kernel in plain Rust on rayon took 261.6 ms a frame. Rerun it on the target machines when this part starts. wgpu (https://github.com/gfx-rs/wgpu): `naga/src/front/glsl/mod.rs`, `wgpu-hal/src/{vulkan/instance.rs,dx12/adapter.rs}`, issue gfx-rs/wgpu#9293. WGSL §15.7: https://www.w3.org/TR/WGSL/.
+- Filament: `docs_src/src_markdeep/Materials.md.html` (`shadingModel : unlit`, `sampler2d`, fragment code in ESSL 3.0), `samples/{procedural_effect.cpp,frame_generator.cpp,texturedquad.cpp}`, `filament/include/filament/LightManager.h`, `README.md` (tone mappers, MSAA, image-based lighting, glTF with Draco and morph animation). The Vulkan loader's `VK_DRIVER_FILES`.
+- The 5 November timings come from a benchmark not kept in the repository: one 1920×1080 filter shaped like the film's (32 blur taps in a spiral, colour fringing, 4-octave noise grain, a vignette), read back every frame, wgpu 30.0.1 on an i7-12700H, 60 frames per driver; the same kernel in plain Rust on rayon took 261.6 ms a frame.
 
 ## Footage and terminal
 
 ### What it changes
 
-- **Footage frames reach the renderer as decoded frames.** The FFmpeg decoder per source and its grade graph stay (`crates/footage`); the JPEG 4:4:4 encode (42.3% of the app's CPU in the profiling pass), the HTTP serving and the page's decode go. The CPU path asks FFmpeg for RGBA with explicit `in_color_matrix` and `in_range`; the GPU path uploads Y, U and V as R8 textures and converts in WGSL.
-- **Terminal pictures are drawn natively** from `opsis-vt`'s frames: cell backgrounds as rects, runs placed by column with the shared text stack and today's glyph narrowing, box-drawing and block sprites from `terminal/sprites.ts` as Rust paths so they stay sharp under camera zoom, texture and lens as WGSL passes.
+- **Footage frames reach the renderer as decoded frames.** The FFmpeg decoder per source and its grade graph stay (`crates/footage`); the JPEG 4:4:4 encode (42.3% of the app's CPU in the profiling pass), the HTTP serving and the page's decode go. FFmpeg hands over RGBA with explicit `in_color_matrix` and `in_range`.
+- **Terminal pictures are drawn natively** from `opsis-vt`'s frames: cell backgrounds as rects, runs placed by column with the shared text stack and today's glyph narrowing, box-drawing and block sprites from `terminal/sprites.ts` as Rust paths so they stay sharp under camera zoom, texture and lens as shader passes.
 - **`TerminalPainter` and the terminal page go**, and live terminal pictures for the desktop come from the same drawing.
 
 ### Fit with Opsis
@@ -263,7 +357,8 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### What it changes
 
-- **Every element's draw function lives in its Rust file** in `crates/compile/src/elements/<category>/`, next to its `#[settings]` struct and `definition()`, and returns scene nodes through a builder API. One file per element instead of a Rust file and a TSX file.
+- **Every element's draw function lives in its Rust file** in `crates/compile/src/elements/<category>/`, next to its `#[settings]` struct and `definition()`, and returns scene nodes through a builder whose methods are the CSS property names. One file per element instead of a Rust file and a TSX file.
+- **The transform table decides every construct before any element is ported**: one row per CSS property, SVG tag, hook and page call in [Appendix: constructs](#appendix-constructs), with its target. It is `plans/native-renderer-transforms.md` until the cut-over.
 - **All 140 implementations in `ELEMENTS` move**: the 138 elements into their own Rust files, and `placeholder` and `still`, which have no element file or category in Rust, with the camera and takes below. By the capabilities they need ([Appendix: elements](#appendix-elements)): layout 71, text 84, vector 93, layer effects 96, SVG filters 12, perspective 7, pixel programs 24, 3D 6, media 20, canvas drawing 5.
 - **The camera and takes move**: `core/recording-clip.tsx` and `camera/` (stage, cursor with the macOS cursor SVGs, window frame, keycap HUD, annotations, motion blur, demo clip), captions, the still and placeholder elements.
 - **The film's JavaScript libraries are replaced:**
@@ -272,17 +367,18 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
   - `svg-path-commander` by `usvg` and `kurbo`;
   - `simplex-noise` by a port with the same output for the same seed;
   - `lottie-web` and `fflate` by Skottie and `zip`;
-  - `three` and `@react-three/fiber` by the 3D renderer.
+  - `three` and `@react-three/fiber` by the Filament scene;
+  - `@paper-design/shaders` by its GLSL as materials.
 
 ### Fit with Opsis
 
-- **In place:** every element's settings, defaults, lengths, design size, fonts and themes are Rust already (`crates/compile/src/elements`, `lengths.rs`, `theme.rs`, `props.rs`). `colors.test.ts`'s allow-list and the theme presets carry over.
-- **Missing:** every draw function, the builder API, the camera and terminal code in Rust.
+- **In place:** every element's settings, defaults, lengths, design size, fonts and themes are Rust already (`crates/compile/src/elements`, `lengths.rs`, `theme.rs`, `props.rs`). `colors.test.ts`'s allow-list and the theme presets carry over. Most of the film is stateless: `useState` is in 15 of its 275 files and `useEffect` in 11.
+- **Missing:** the transform table, every draw function, the builder, the camera and terminal code in Rust.
 
 ### Work
 
-1. The builder API over `opsis-scene` (`row`, `column`, `text`, `rect`, `path`, `image`, `effect`, placement, transforms).
-2. Elements by category, simplest capabilities first; each checked against its still from `bun run elements:render` before the cut-over.
+1. The transform table, and the builder over `opsis-scene`'s style struct.
+2. Elements by category, simplest capabilities first; each compared with its oracle frames, one element a unit of work with the same brief: its TSX, the transform table, its oracle frames and the tolerance.
 3. The camera, takes and captions.
 4. Transitions, with `TransitionWrap`'s pairing of outgoing and incoming sides through slots, and `SceneSeries` for the scenes inside one element.
 
@@ -292,7 +388,8 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Risks
 
-- **Parity element by element.** The stills before the cut-over are the reference; a difference that is intended is reviewed and recorded.
+- **Parity element by element.** The oracle frames are the reference; a difference that is intended is reviewed and recorded.
+- **The constructs that are not a lookup** are settled once, in the renderer, before the elements that use them: the shader programs behind 24 elements, the 6 3D elements, page measuring (7 files) and `measureText` (4 files), state and effects (15 and 11 files), 2D canvas drawing (7 files), the one `foreignObject` (the terminal under the lens filter) and container query units (2 files).
 
 ### Sources
 
@@ -302,8 +399,9 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### What it changes
 
+- **The oracle decides parity during the port**: each property case and each element's frames compare with a tolerance, FLIP's mean (`nv-flip` 0.1.2, MIT/Apache/Zlib) or the slack and share `three_stills.rs` uses today, set from the paint property cases.
 - **Golden pictures are recorded on one software setup and compared exactly there**: x86 Linux, the fixed Skia CPU path, SwiftShader from the engine folder for effects and 3D.
-- **GPU runs compare with a tolerance**: FLIP's mean (`nv-flip` 0.1.2, MIT/Apache/Zlib) or the slack and share `three_stills.rs` uses today.
+- **GPU runs compare with a tolerance.**
 - **Render tests stop needing a browser page.** The 11 tests `#[ignore]`d for the film or terminal page (`crates/render/tests/frames.rs` 5, `run.rs` 2, `terminal.rs` 2, `sprites.rs` 1, `three_stills.rs` 1) run in-process; those that need SwiftShader stay ignored where it isn't present.
 - **Element stills** come from the renderer, and `elements:render` can join `bun run test` once shaders run on the software driver.
 - **Scene goldens**: the serialised scene of chosen elements at chosen frames, compared through `opsis-golden`, with no rasterising.
@@ -334,7 +432,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### What it changes
 
-- **In one step, the browser stops drawing films.** Removed: `apps/film`, `apps/terminal`, `film-bundle`, `terminal-bundle`, `packages/runtime`, the film parts of `packages/video`, `FrameDriver` and `film_switches` (`crates/capture/src/film.rs`), `TerminalPainter`, the `CanvasDrawElement` feature switch and the begin-frame driver.
+- **The merge of the branch is the one step in which the browser stops drawing films.** Removed: `apps/film`, `apps/terminal`, `film-bundle`, `terminal-bundle`, `packages/runtime`, the film parts of `packages/video`, `FrameDriver` and `film_switches` (`crates/capture/src/film.rs`), `TerminalPainter`, the `CanvasDrawElement` feature switch and the begin-frame driver.
 - **The recording browser stays** for capture, page stills, smooth takes, sign-in and the streamed views; its download is unchanged, and its SwiftShader doubles as the renderer's software driver.
 - **The docs move with it**: `film.md` becomes the renderer's doc, `elements.md` and `terminal.md` lose their page parts, `scene.md` is new, AGENTS.md's film rules (`packages/video` purity, oxlint animation bans, `holdRender`) become their Rust equivalents.
 
@@ -349,8 +447,9 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 ### Work
 
 1. Move or drop each of those uses of `packages/video` (Fit with Opsis, Missing) before it goes.
-2. Delete the listed apps, packages, bundles and Rust paths; remove their scripts (`film:bundle`, `terminal:bundle`) and their table rows in AGENTS.md; add `opsis-scene` and the renderer to the AGENTS.md crate table, and, when the Skia choice is our own `cxx` wrapper, name that crate in the AGENTS.md rule on the crates allowed `unsafe`.
-3. Rewrite the docs named above in the same change.
+2. Delete the listed apps, packages, bundles and Rust paths, and `plans/native-renderer-transforms.md`; remove their scripts (`film:bundle`, `terminal:bundle`) and their table rows in AGENTS.md.
+3. In AGENTS.md: add `opsis-skia`, `opsis-filament`, `opsis-scene`, `opsis-layout`, `opsis-paint`, `opsis-effects` and `opsis-stage3d` to the crate table, name `opsis-skia` and `opsis-filament` in the rule on the crates allowed `unsafe`, and add the Filament pin to the table of generated files.
+4. Rewrite the docs named above in the same change.
 
 ### Decisions
 
@@ -358,11 +457,25 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Risks
 
-- **There is no fallback after the cut-over**; the stills and goldens recorded before it are the safety net.
+- **There is no fallback after the merge**; the oracle frames and the goldens are the safety net.
 
 ### Sources
 
 - `AGENTS.md` §2, §6, §7; `agent-docs/{film,elements,terminal,footage,engine}.md`.
+
+## Appendix: constructs
+
+What the film's source writes, from a scan of `packages/video/src` on 12 November 2026 (275 files, 42,117 lines; tests and generated files left out). A unit is one element, or one file outside `elements/`. The property scan matches object keys against CSS property names, so a few of its hits are not styles (`cx`, `cy`, `offset`, `page`).
+
+- **Styling:** inline style objects only; `className` is passed through in 11 files and names no rule. `video.css` is a reset: `box-sizing: border-box`, zero margin and padding, `border: 0 solid`, `line-height: 1.5`.
+- **Size and position, by units:** `width` 107, `height` 106, `position` 92, `left` 62, `inset` 57, `top` 55, `right` 29, `bottom` 22, `maxWidth` 17, `minWidth` 10, `zIndex` 7.
+- **Flex and grid:** `display` 80, `alignItems` 72, `justifyContent` 71, `gap` 37, `flexDirection` 27, `flexShrink` 19, `flex` 7, `flexWrap` 6, `placeItems` 6, `gridTemplateColumns` 1.
+- **Box:** `background` 82, `borderRadius` 61, `overflow` 59, `padding` 38, `border` 37, `boxShadow` 36, `backgroundColor` 11, `objectFit` 11.
+- **Effects:** `opacity` 103, `scale` 50, `transform` 48, `translate` 45, `filter` 43, `transformOrigin` 34, `clipPath` 16, `mixBlendMode` 14, `rotate` 10, `maskImage` 6, `backdropFilter` 4, `backgroundClip` 4, `perspective` 3.
+- **Text:** `color` 70, `fontFamily` 69, `fontSize` 61, `letterSpacing` 48, `whiteSpace` 44, `fontWeight` 42, `textAlign` 37, `lineHeight` 29, `fontVariantNumeric` 19, `textTransform` 13, `textOverflow` 10.
+- **Values:** `color-mix()`, `oklch()` and `oklab()` 100 times in 29 files; `calc()` 10 times in 4; container query units 6 times in 2.
+- **Tags, by occurrences:** `div` 510, `span` 194, `path` 74, `svg` 68, `circle` 34, `g` 20, `defs` 10, `rect` 10, `filter` 10, `text` 9, `stop` 8, `line` 8, `ellipse` 5, `clipPath` 5, `canvas` 5, `img` 3, `linearGradient` 3, `radialGradient` 1, `mask` 1, `foreignObject` 1; filter primitives `feColorMatrix` 7, `feGaussianBlur` 4, `feTurbulence` 4, `feDisplacementMap` 3, `feOffset` 3, `feBlend` 2, `feMerge` 1, `feImage` 1.
+- **State and the page, by files:** `useMemo` 24, `useState` 15, `holdRender` or `useHeldLoad` 14, `useRef` 13, `useEffect` 11, `useLayoutEffect` 9, 2D canvas contexts 7, page measuring (`getBoundingClientRect`, `offsetWidth`, `getBBox`, `getTotalLength`, `ResizeObserver` and the like) 7, `measureText` 4.
 
 ## Appendix: drawing features
 

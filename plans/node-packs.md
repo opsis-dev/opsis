@@ -30,7 +30,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 - **Packs may be written in any language that builds WIT components.** Rust (`wit-bindgen` on `wasm32-wasip2`) is the documented and tested one; others are allowed and unsupported.
 - **Pack executors are WASM components only**, never separate programs. They get Opsis's `files` interface and WASI preview 2, scoped: `wasi:filesystem` preopened to the run's input files and output folder, `wasi:clocks`, `wasi:random`. Drawing never gets WASI.
 - **Built-in elements and nodes are native Rust behind the same contract**: linked into the app, returning the same types, with no boundary cost. If a built-in needs something the contract lacks, the contract grows.
-- **Packs may ship WGSL shaders**, which naga parses and validates when the pack loads.
+- **Packs may ship GLSL shaders**, which Filament's runtime material compiler builds into materials when the pack loads.
 - **After release, every minor of the current pack API major keeps loading.** `opsis:pack@1.x` packs load until 2.0; a new major drops the older one.
 
 ## Summary
@@ -43,7 +43,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 | Host                    | `opsis-packs`: wasmtime engine, compile cache, linking, limits, instances per worker | Contract                                             |
 | Elements from packs     | pack elements in the catalogue, the resolve pass, `draw` per frame                   | Host                                                 |
 | Nodes from packs        | pack settings schemas, `compile`, `execute` with files and scoped WASI               | Host                                                 |
-| Shaders                 | pack WGSL validated and run like built-in effects                                    | Host, native renderer's Effects                      |
+| Shaders                 | pack GLSL compiled at load and run like built-in effects                             | Host, native renderer's Effects                      |
 | Permissions and signing | manifest permissions, the warning, signatures                                        | Nodes from packs                                     |
 | Installing              | install from a file, update, remove, the data folder and project packs               | Permissions and signing                              |
 | SDK and checks          | the Rust SDK crate, a template pack, the pack checker                                | Contract                                             |
@@ -114,7 +114,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 ### What it changes
 
 - **One WIT package, `opsis:pack`, is the contract for pack code.**
-  - `types`: the scene as a flat list of nodes with child indices (WIT has no recursive types), CSS-like layout, paints with OKLCH gradients, filters, blend modes, clips, masks, text runs, images and footage frames, SVG, Lottie, glTF models, WGSL effects, slots for children and transitions; `Clock`, `Stage`, assets, spring settings.
+  - `types`: the scene as a flat list of nodes with child indices (WIT has no recursive types), each carrying the CSS and SVG subset of [native-renderer.md](native-renderer.md) **Scene**: the style record under CSS property names, text runs, inline SVG trees, images and footage frames, Lottie, 3D scenes, shader effects, slots for children and transitions; `Clock`, `Stage`, assets, spring settings.
   - `host`: `measure-text`, `spring`, `random`, `log`.
   - `files`: read inputs, write outputs, report progress.
   - `elements`: `list-elements`, `shaders`, `assets`, and the `element` resource with `open`, `length` and `draw(clock, stage, transition)`.
@@ -126,7 +126,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 ### Fit with Opsis
 
 - **In place:** a first draft, `opsis:pack@0.1.0`, written during the native-renderer research. It passes `wasmtime::component::bindgen!` for both worlds under wasmtime 50.0.1 (wit-parser 0.261.0) with no warnings; that check renamed the displacement filter's `map` field to `source`, since `map` is a WIT keyword. The draft is in [Appendix: draft WIT](#appendix-draft-wit).
-- **Missing:** the WIT in the repository, the `wasi` imports in the `pack` world, a guest built against it, and the fields a built-in needs that the draft can't carry yet (Work 4), though the Decided section puts built-ins behind the same contract.
+- **Missing:** the WIT in the repository, the `wasi` imports in the `pack` world, a guest built against it, the fields a built-in needs that the draft can't carry yet (Work 4), though the Decided section puts built-ins behind the same contract, and scene records that carry the CSS and SVG subset (Work 5): the draft's `layout`, `box-shape`, `path-shape`, `text-node` and `node` hold a smaller vocabulary of their own.
 
 ### Work
 
@@ -138,6 +138,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
    - `port`: the label, whether it is optional and its file need, and a port kind that is the `PortType` enum rather than a free string;
    - `node-info`: the phase, the input family, whether it is a browser action or hidden, and `uses_project_size` and `uses_project_fonts`;
    - `category`: the `Category` and `ElementCategory` enums rather than strings.
+5. Write the scene records from `opsis-scene`'s style struct and SVG tree, and check both worlds with `bindgen!` again.
 
 ### Decisions
 
@@ -196,7 +197,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 - **Pack elements join the catalogue** with their settings schema, defaults, fonts, design size and authored-clock flag (the 30 fps clock, `.authored_clock`) from `element-info`, beside built-in elements.
 - **Before a render, `assets(key, settings)`** lists what the element needs; the native renderer's resolve pass loads it and `element.open` receives an `asset-info` for each.
-- **Each frame, `draw` returns scene nodes** that take the same path as built-in elements: hashes, caches, layout, Skia, wgpu.
+- **Each frame, `draw` returns scene nodes** that take the same path as built-in elements: hashes, caches, layout, Skia, Filament.
 
 ### Fit with Opsis
 
@@ -255,22 +256,22 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### What it changes
 
-- **`shaders` returns the pack's WGSL sources**; naga parses and validates each when the pack loads, and a pack whose shader fails doesn't load.
-- **Pack effects run like built-in ones**: WGSL on wgpu over input layers, on the GPU or the software drivers.
+- **`shaders` returns the pack's GLSL sources**, each the fragment code of an unlit material; Filament's runtime material compiler (`filamat`) builds each into a material when the pack loads, and a pack whose shader fails doesn't load.
+- **Pack effects run like built-in ones**: full-screen passes on Filament over input layers, on the GPU or the software driver.
 
 ### Fit with Opsis
 
 - **In place:** by then, the native renderer's effects path.
-- **Missing:** loading pack shaders, limits on them.
+- **Missing:** loading pack shaders, limits on them, and `filamat` linked into the app (`libfilamat.a` is 35,180,872 B in Filament v1.80.0's Linux archive; its size in the linked program is unmeasured).
 
 ### Work
 
-1. Validation at load, with the shader's error shown on the pack.
+1. Compiling at load, with the shader's error shown on the pack.
 2. Limits: uniforms per effect, inputs per effect, texture size.
 
 ### Decisions
 
-- None.
+- **How a pack names a shader's parameters**: listed beside the source in `shader-source`, or read from the source. `MaterialBuilder` takes each one by name and type.
 
 ### Risks
 
@@ -278,7 +279,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Sources
 
-- naga (`naga` 30.0.1), [native-renderer.md](native-renderer.md) **Effects and 3D**.
+- Filament v1.80.0 (https://github.com/google/filament): `libs/filamat/include/filamat/MaterialBuilder.h` (`material(code)`, `shading`, `parameter`, `build`), `filament/include/filament/Material.h` (`Builder::package`); [native-renderer.md](native-renderer.md) **Effects and 3D**.
 
 ## Permissions and signing
 
@@ -394,7 +395,7 @@ Findings only, checked on 11 November 2026 when Lua scripting was built ([script
 
 ## Appendix: draft WIT
 
-`opsis:pack@0.1.0`, as checked with `wasmtime::component::bindgen!` (wasmtime 50.0.1) for both worlds on 5 November 2026. **Contract**'s work adds the `wasi` imports to the `pack` world and moves the file into the repository.
+`opsis:pack@0.1.0`, as checked with `wasmtime::component::bindgen!` (wasmtime 50.0.1) for both worlds on 5 November 2026; `shader-source`'s `glsl` field is not covered by that check. **Contract**'s work adds the `wasi` imports to the `pack` world, writes the scene records from the CSS and SVG subset and moves the file into the repository.
 
 ```wit
 package opsis:pack@0.1.0;
@@ -912,7 +913,7 @@ interface elements {
 
   record shader-source {
     name: string,
-    wgsl: string,
+    glsl: string,
   }
 
   list-elements: func() -> list<element-info>;
