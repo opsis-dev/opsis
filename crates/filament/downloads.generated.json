@@ -1,0 +1,30 @@
+{
+  "version": "v1.80.1",
+  "archives": {
+    "linux-x64": {
+      "url": "https://github.com/google/filament/releases/download/v1.80.1/filament-v1.80.1-linux.tgz",
+      "size": 76094829,
+      "sha256": "c2f46496ba5707605f0459d8714d34c73296fbfd7fcfdbe4c1a00b76607da193"
+    },
+    "linux-arm64": {
+      "url": "https://github.com/google/filament/releases/download/v1.80.1/filament-v1.80.1-arm-linux.tgz",
+      "size": 74344133,
+      "sha256": "730c4f0a17dbda3a57bf8770d2ee5ae15c4fff628878264a6cb296e25775d2a9"
+    },
+    "darwin-arm64": {
+      "url": "https://github.com/google/filament/releases/download/v1.80.1/filament-v1.80.1-mac.tgz",
+      "size": 45440527,
+      "sha256": "e8788257ac47d438615fe12773c64aafea7211990e07ea3263c0e8e343ff833f"
+    },
+    "darwin-x64": {
+      "url": "https://github.com/google/filament/releases/download/v1.80.1/filament-v1.80.1-mac.tgz",
+      "size": 45440527,
+      "sha256": "e8788257ac47d438615fe12773c64aafea7211990e07ea3263c0e8e343ff833f"
+    },
+    "win32-x64": {
+      "url": "https://github.com/google/filament/releases/download/v1.80.1/filament-v1.80.1-windows.tgz",
+      "size": 868430825,
+      "sha256": "28d513447a93b5087a1f30a8109595dd3d29e26536d6ceb35adf194564b8ce1b"
+    }
+  }
+}

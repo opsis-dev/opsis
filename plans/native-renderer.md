@@ -71,10 +71,11 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 ### Fit with Opsis
 
 - **In place:** the branch's first commit, built in release, is the oracle; `main` itself stays untouched so the branch fast-forwards onto it at the cut-over.
-  - `bun run oracle [elements|cases|films|all] [part of a name]` (`scripts/oracle.ts`) refuses a working tree with changes (`--dirty` for a trial run, into `<commit>-dirty`), builds the film and oracle pages, stages FFmpeg and runs `crates/oracle/src/bin/oracle.rs` in release with its own target folder, `~/.cache/opsis-dev/oracle/target`, so later builds on the branch never replace it.
+  - `bun run oracle [elements|cases|boxes|films|all] [part of a name]` (`scripts/oracle.ts`) builds from a clean checkout of a commit (`--commit=`, `HEAD` by default) in `~/.cache/opsis-dev/oracle/src`, so changes in the working tree never reach it: it builds the film and oracle pages there, stages FFmpeg and runs `crates/oracle/src/bin/oracle.rs` in release with its own target folder, `~/.cache/opsis-dev/oracle/target`. The pictures go to `~/.cache/opsis-dev/oracle/<commit>`, or with `--into=<commit>` into an earlier oracle, `oracle.json` recording which commit drew each part.
+  - Boxes: the oracle page's `window.oracleBoxes()` (`apps/oracle/src/boxes.ts`) lists every element's border box and every text node's line boxes by child-index path; `BoxReader` (`crates/oracle/src/boxes.rs`) loads each case at 640×360 with the film's launch switches and writes `cases/<group>/<name>.boxes.json`. The scene tree mirrors the DOM, so the layout's results are checked path by path against Chrome's without drawing.
   - Everything draws on Software (`ORACLE_GL`, `crates/oracle/src/pictures.rs`) through the frame driver at full size as PNG, so the pictures don't depend on the graphics card.
   - Elements: each element as `render-elements` builds it (`crates/oracle/src/elements.rs` → `workflow_for`, `element_spec`), at `ORACLE_POSITIONS`, into `elements/<key>/<frame>.png` beside the `spec.json` it drew; `elements.json` lists them.
-  - Cases: one TSX file per construct in `apps/oracle/src/cases/<group>/<name>.tsx`, drawn by the oracle page (`apps/oracle`, `oracle-bundle`) on the film's own runtime, `video.css` and bundled fonts (`CASE_FONTS`, `crates/oracle/src/cases.rs`) at 640×360, into `cases/<group>/<name>.png`; `cases.json` lists them with the fonts they loaded. The scene-node version of each case is written beside the part that draws it.
+  - Cases: one TSX file per construct in `apps/oracle/src/cases/<group>/<name>.tsx`, drawn by the oracle page (`apps/oracle`, `oracle-bundle`) on the film's own runtime, `video.css` and bundled fonts (`CASE_FONTS`, `crates/oracle/src/cases.rs`) at 640×360, into `cases/<group>/<name>.png`; `cases.json` lists them with the fonts they loaded. The scene-node version of each case lives once in `opsis-cases` (`crates/cases`), which the layout and paint tests share; the SVG cases are their React markup rendered once and parsed into SVG nodes (`crates/cases/svg`).
   - Films: each example copied into `projects/<name>`, every Render node set to MKV lossless on Software (`lossless_renders`, `crates/oracle/src/films.rs`), run once with the browser, terminal, media and output executors, and its exports copied into `films/<name>`. The project keeps its takes in `.opsis/cache`, so the native renderer draws the same takes without recording again.
   - `oracle.json` records the commit, the browser and the drawing choice.
 - **Missing:** nothing.
@@ -110,13 +111,18 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 ### Fit with Opsis
 
 - **In place:** the `cxx` bridge and its build from Cargo (`crates/qt/build.rs`), the pin scripts for the browser and FFmpeg (`scripts/engine-downloads.ts`, `scripts/ffmpeg-pin.ts`).
-- **Missing:** both crates, Skia in the build, the Filament pin, clang 17 and libc++ on Linux build machines.
+  - Skia `chrome/m157` (`fef60e46`, the milestone of the oracle's Chrome 157) is built by `bun run skia:build` (`scripts/skia-build.ts`), directly or with `--docker` in an `ubuntu:26.04` container, into static libraries in `~/.cache/opsis-dev/skia/<commit>/out/<platform>`: CPU only, its own FreeType, PNG, JPEG, WebP and zlib, Skottie, the primitive shaper, no fontconfig, no PartitionAlloc and no Perfetto (PartitionAlloc as `malloc` would replace the allocator of the whole app). The build writes `consumer.json`, the defines, include folders and libraries `crates/skia/build.rs` compiles and links with.
+  - `opsis-skia` draws and reads back its first test picture (`crates/skia/tests/surface.rs`).
+  - The Filament pin: `bun scripts/filament-pin.ts [--fetch]` writes `crates/filament/downloads.generated.json` (v1.80.1, each desktop archive's URL, size and sha256 from the release) and unpacks this platform's archive into `~/.cache/opsis-dev/filament/<version>/<platform>`.
+  - The libc++ link, measured on 12 November 2026 in an `ubuntu:26.04` container: C functions compiled with clang and libc++ over Filament, partly linked (`ld -r`) with Filament's archives (`libfilament`, `libbackend`, `libbluevk`, `libbluegl`, `libwebgpu_dawn`, `libfilabridge`, `libfilaflat`, `libutils`, `libgeometry`, `libibl-lite`, `libshaders`, `libsmol-v`, `libabseil`, `libperfetto`, `libzstd`) and the static `libc++.a` and `libc++abi.a`, then `objcopy --keep-global-symbol='opsis_*'`, leave two global symbols; a program built with GCC and libstdc++ links that object (with `-lX11`, which Dawn's surface code needs) and still throws and catches its own exceptions.
+  - `opsis-filament`: `bun run filament:build [--docker]` seals `crates/filament/cpp` (an engine on a chosen backend, materials, and one full-screen pass from an RGBA picture to an RGBA picture) the same way into `libopsis_filament.a`; `build.rs` compiles `crates/filament/materials/*.mat` with the pinned `matc` and links the archive. `crates/filament/tests/pass.rs` runs a pass on lavapipe and on the RTX 3060; `readPixels` returns rows bottom-up, so `Filament::pass` turns them upright.
+- **Missing:** Skia and Filament on the other platforms, clang and libc++ on Linux build machines.
 
 ### Work
 
-1. `opsis-skia`: Skia built on Linux x64 and arm64, Windows and macOS, and one test picture drawn through the wrapper.
-2. `opsis-filament`: the pin, the archive unpacked for the build, and one test picture drawn without a window.
-3. The readback measurement: a 1920×1080 full-screen shader pass read back every frame, on a GPU and on the software driver, 60 frames each.
+1. `opsis-skia`: Skia built on Linux x64 and arm64, Windows and macOS, and one test picture drawn through the wrapper. Linux x64 is done.
+2. Done on Linux x64: `opsis-filament`, the pin, the archive unpacked for the build, and one test picture drawn without a window.
+3. Done: the readback measurement, 1920×1080, the film-like filter of **Effects and 3D** (32 spiral taps with colour fringing, 4-octave PCG grain, a vignette) as an unlit material compiled by `matc`, drawn over a full-screen triangle and read back with `readPixels` and `flushAndWait` every frame, 60 frames, Filament 1.80.1 on Vulkan without a window: RTX 3060 6.21 ms (clear and readback alone 4.19 ms), Intel Mesa 10.32 ms (6.97), lavapipe 74.64 ms (5.50). A frame-by-frame render affords it, so shader effects stay on Filament. The same program in a container limited to 8 CPUs took 380 ms on lavapipe, which scales with the cores it gets.
 4. Drawing without a window on macOS (Metal) and on Windows, and the software driver on Windows.
 
 ### Decisions
@@ -125,9 +131,9 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Risks
 
-- **Filament calls `readPixels` "intended for debugging and testing. It will impact performance significantly"** (`Renderer.h`), and every frame with a shader effect or a 3D layer needs one. Work 3 measures it; if a frame-by-frame render can't afford it, shader effects go to wgpu and WGSL and Filament keeps the 3D.
-- **The link of a libc++ library into a program whose other C++ uses GCC's library is untested.**
-- **Skia's C++ API moves between milestones** (at m159 the gradient factories live only in `include/effects/SkGradient.h`); the tree is at m160.
+- **Filament calls `readPixels` "intended for debugging and testing. It will impact performance significantly"** (`Renderer.h`), and every frame with a shader effect or a 3D layer needs one. Work 3 measured it as affordable; reading back while the next frame draws would hide part of the 4–7 ms it costs.
+- **The libc++ object stays sealed**: every C++ name in it is local after `objcopy`, so no Filament or libc++ type may cross into the app's C++; only the `opsis_*` C functions do.
+- **Skia's C++ API moves between milestones** (at m159 the gradient factories live only in `include/effects/SkGradient.h`); the pinned tree is m157.
 - **Linking the system FreeType** can crash when the version differs from the one Skia was built with (rust-skia #1345); the font manager in **Paint** avoids the system's.
 
 ### Sources
@@ -144,7 +150,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 - **A node is a box, a text run, an inline SVG tree or a leaf**, with a style struct whose fields are the CSS properties in [Appendix: constructs](#appendix-constructs): size and position, flex and grid, padding, margin and border, background layers, radius, shadows, opacity, `transform` with `translate`, `scale` and `rotate`, `filter`, `backdrop-filter`, `mix-blend-mode`, `clip-path`, masks, overflow, `z-index` and the text properties.
 - **Leaves are what CSS has no word for**: an image or footage frame, a Lottie file at a frame, a 3D scene, a shader effect over other nodes, a 2D drawing callback, and slots for children and transitions.
 - **Inline SVG keeps its tags and attributes** (`path`, `circle`, `rect`, `line`, `ellipse`, `g`, `defs`, `clipPath`, `mask`, `linearGradient`, `radialGradient`, `stop`, `text`, `filter` and the eight filter primitives in use).
-- **The node types are the WIT `types` interface of [node-packs.md](node-packs.md)**: flat lists of nodes with child indices, since WIT has no recursive types.
+- **The node types are Rust** (`Node`, `Element`, `Kind`, `crates/scene/src/node.rs`): an element is a `div`, `span`, image, inline SVG tree or leaf with a sparse `Style` (one `Prop` per CSS property set, `crates/scene/src/style.rs`) and its children, as the film's React tree is. The flat WIT form with child indices comes with [node-packs.md](node-packs.md).
 - **Time is a value passed down, never a global.** `Clock` carries the frame (fractional, because remaps are), the rate and the length. `Sequence`, `Freeze`, `Loop`, group `remap`, `startFrom`, `loopEvery` and each motion-blur sample are pure maps from one clock to another. Elements registered with `.authored_clock` get a 30 fps clock, as `useAuthoredFrame` gives them today.
 - **Every node gets a content hash when it is built.** A group's own transform and opacity stay out of its content hash, so moving or fading a group keeps what's inside cached.
 - **Memo caches keyed by value**: text shaping, layout, path flattening, decoded images, parsed SVG, spring lengths. `measureSpring` loops frame by frame to the rest frame on every `spring({durationInFrames})` call today (`packages/runtime/src/spring.ts:76-111`).
@@ -167,8 +173,8 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Decisions
 
-- **Where the scene types are written.** The WIT isn't in the repository yet (node-packs.md, Contract: "Missing: the WIT in the repository"), so Scene either adds it first or writes the Rust types first. The WIT is a boundary, and AGENTS.md makes Rust the source of every type that crosses one. Either the Rust types are generated from the WIT by `wasmtime::component::bindgen!` and AGENTS.md records that exception, or they are hand-written in Rust and a test fails when they and the WIT disagree. Decide before Scene starts.
-- **`comemo` or explicit hash keys** for the memo layer (`comemo` 0.5.1, MIT/Apache-2.0, thread-safe behind `parking_lot::RwLock`).
+- Decided: **the scene types are Rust only** (`crates/scene/src`), since node packs aren't built in this plan; the WIT and its agreement test come with [node-packs.md](node-packs.md).
+- Decided: **`comemo`** for the memo layer. On the spring rest measurement it gave the same results at about 20× the speed (100,000 calls: 113 ms uncached, 5.7 ms through `#[comemo::memoize]`) and served eight threads at once. Floats reach a memoized function through the `Num`, `Px` and `Alpha` newtypes (`crates/scene/src/values.rs`), which hash exactly, at 1/64 px and at 8-bit steps.
 
 ### Risks
 
@@ -194,23 +200,31 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 ### Fit with Opsis
 
 - **In place:** `skrifa` and the font library (`opsis-fonts`), `family_for` (`crates/compile/src/fonts/mod.rs`) and `face_for` (`crates/compile/src/elements/prepared.rs`), which the image nodes call (`crates/image/src/executors.rs`) and draw with `crates/image/src/text.rs`.
-- **Missing:** Taffy and Parley in the workspace, the crate, the measurer.
+  - `opsis-layout` (`crates/layout`): `lay_out` builds a Taffy tree of its own (`crates/layout/src/tree.rs`, Taffy's low-level traits, `calc()` as formula tokens) from scene nodes, with inherited text styles and units (`crates/layout/src/computed.rs`: `em`, `rem`, `%`, `vw`/`vh`, `lh`, `ch` and `ex` from the face's `0` advance and x-height, `calc`/`min`/`max`/`clamp`, container units), and returns every border box, text line box and client rect after transforms and perspective (`crates/layout/src/output.rs`, `crates/layout/src/transform.rs`).
+  - Fonts are registered by CSS family name from their bytes (`crates/layout/src/fonts.rs`); Parley never reads the system's fonts.
+  - Inline content (`crates/layout/src/inline.rs`) follows Chrome's line box model: ascent and descent rounded, half leading floored, line heights floored to 1/64 px, Chromium's break table (`CHROMIUM_LINE_BREAK_OVERRIDE`) except in `word-break: break-all` paragraphs, tab stops at `tab-size` spaces, soft hyphens drawn and fitted, hanging trailing spaces, `vertical-align` with Blink's shifts, span padding, borders and margins as zero-height inline boxes, relative offsets on spans, inline-block margins and baselines.
+  - Container units lay the tree out again with each container's measured content box, up to four passes, since a container's size never depends on its contents.
+  - Replaced elements keep their picture's ratio when one side is set; picture sizes come from the caller (`Images`).
+  - The layout property cases (`crates/layout/tests/{size,flex,text,values,boxes,transforms,media}.rs`) match Chrome's boxes from the oracle, every element's border box within 0.5 px and every text line within 1.5 px; `support::check` reports both sides' lines on a difference.
+- **Missing:** the measurer elements call, results cached by hash, and stacking order, which paint uses.
 
 ### Work
 
-1. Taffy and Parley pinned in the root table.
-2. Styles into Taffy, inline content measured by Parley, results cached by hash.
-3. Inheritance, units and stacking order.
-4. The layout property cases against the oracle.
+1. Done: Taffy and Parley pinned in the root table.
+2. Styles into Taffy and inline content measured by Parley: done; results cached by hash to do.
+3. Inheritance and units: done; stacking order to do.
+4. Done: the layout property cases against the oracle (50 cases; the canvas, SVG and paint-only cases are checked by paint).
 
 ### Decisions
 
-- None.
+- Decided: **one bundled fallback font for characters the bundled faces lack.** The bundled faces are Latin subsets; `fonts:bundle` adds Noto Sans's other subsets as the hidden `Opsis Fallback` family (`public/fonts/bundled/fallback`), each subset registered by `Fonts::register_fallback` and appended to every font stack, never the computer's fonts. The oracle's Chrome drew those characters from the computer's fonts, so the mixed-scripts cell of `text/wrapping` stays out of the comparison.
 
 ### Risks
 
 - **The subset is Opsis's own code**, so its correctness rests on the property cases. Blitz (`blitz-dom`, MIT/Apache-2.0) does the same job on Taffy and Parley and is the reference to read; it is at `0.3.0-beta.4` with one main author, drops 3D transforms and has no `filter: url(…)`, so it is not a dependency.
-- **No `text-wrap: balance` and no hyphenation in Parley.** No element uses either today.
+- **No `text-wrap: balance` and no automatic hyphenation in Parley.** No element uses either today; soft hyphens are handled by the layout.
+- **`vertical-align: top` and `bottom` on text spans align as `baseline`**; on inline-blocks they follow the line box. No element sets them on spans.
+- **A soft hyphen is drawn with `-`**, as Chrome does when the face has no U+2010, which is true of every bundled Latin subset.
 - **Taffy and Parley break their APIs each 0.x minor**, as their changelogs list (Taffy 0.15.1, Parley 0.12.0).
 
 ### Sources
@@ -231,7 +245,15 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 ### Fit with Opsis
 
 - **In place:** the film draws through Skia today, inside Chrome, so blur, gradient and anti-aliasing maths stay closest to current output. `usvg` and `skrifa` are already dependencies (`crates/prepare`).
-- **Missing:** the crate, the drawing code for each property, the font manager, the Skottie bridge.
+  - `opsis-skia` builds Skia with Chrome's Linux defines (`CHROME_LINUX_DEFINES` in `scripts/skia-build.ts`: text gamma 1.2 and contrast 0.2 without gamma on greyscale masks, and the legacy blur, rounded-rect and sampling flags Chrome sets) and wraps a canvas, paints, shaders (CSS gradients interpolated in any CSS colour space by `SkGradient`, pictures, noise), image filters, paths, typefaces from font bytes (FreeType through the empty font manager) and pictures.
+  - `opsis-paint` (`crates/paint`) draws `lay_out`'s boxes in CSS stacking order (`Painter::paint_context`, `crates/paint/src/lib.rs`): shadows, background colours and layers (gradients, pictures and SVG pictures, sized, positioned, repeated and blended in an isolated group), borders by side with Chrome's dash and dot ratios, outlines, replaced pictures with `object-fit` snapped to whole pixels as Chrome does, text from the layout's glyph runs with shadows, strokes, paint order and decorations, `background-clip: text`, and effects in CSS order (backdrop filter, clip path, then opacity and blend, filter, mask).
+  - Colours resolve through linebender's `color` (`crates/paint/src/color.rs`); `color-mix` percentages are Opsis's own.
+  - Inline SVG, SVG pictures and `clip-path: url(#…)` go through `usvg` (`crates/paint/src/svg.rs`, `crates/paint/src/clips.rs`), its fonts the registered ones; SVG filters become Skia image-filter graphs with `color-interpolation-filters` (`crates/paint/src/filters.rs`).
+  - 2D canvas drawing is a scene leaf, `Kind::Drawing` (`crates/scene/src/drawing.rs`): the Canvas 2D calls the film makes, as data, so it hashes and caches like every node. Layout shapes its `fillText` and `strokeText` (`crates/layout/src/drawing.rs`) and paint replays it in an isolated layer clipped to the canvas box (`crates/paint/src/canvas.rs`), path points mapped by the transform current when each is added, as Canvas 2D does.
+  - SVG `<image>` and `feImage` read `app:` pictures through the same file reader (`picture_kind`, `crates/paint/src/resources.rs`); `filter: url(#…)` on an HTML element runs the SVG filter in the element's own coordinates.
+  - The paint property cases (`crates/paint/tests/cases.rs`, `every_case_draws_like_the_browser`) draw every case, write ours and the error map into `~/.cache/opsis-dev/paint-cases`, and fail when FLIP's mean against the oracle picture is above 0.05; every case is at 0.046 or below.
+  - Skottie plays the Lottie leaf (`opsis_skia::Lottie`, `boxes::draw_lottie`): a `.lottie` file is unpacked with its pictures embedded as data URIs (`crates/paint/src/lottie.rs`), the animation seeks to the leaf's frame and fits the content box by `object-fit`; `uses_expressions` finds the expressions Skottie doesn't evaluate, for the element card's warning.
+- **Missing:** the fixed CPU path for golden runs (a second Skia build limited to SSE4.1 behind an `opsis-skia` feature only golden tests enable, since Skia chooses its code path once at start), the card warning wired to `uses_expressions`, and the SVG primitives no case uses yet (component transfer, convolution, morphology, lighting, tile).
 
 ### Work
 
@@ -243,11 +265,15 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Decisions
 
-- None.
+- Decided: **text edges are greyscale anti-aliased.** Chrome on Linux draws film text with LCD subpixel edges (coloured fringes); native films don't, so text differs from today's exports by the edge colour, within the text cases' tolerance.
+- Decided: **glyph advances stay fractional**, as Chrome lays text out on macOS. The Linux recording browser rounds each advance to a whole pixel, so very large text in today's Linux exports sits up to a pixel per word away; fractional advances keep spacing as drawn and widths smooth while sizes animate. The element test records the frames this moves (`ALLOWANCES`, `crates/film/tests/elements.rs`).
+- Decided: **3D-transformed content is drawn as vectors through the perspective.** Chrome rasterises the layer first and projects it, which leaves stair-stepped edges at steep angles; the element test records the frame it changes.
+- **Filters see content beyond the frame.** A filtered element without a blend mode or backdrop filter is painted unclipped on a surface grown by the filter's reach, then drawn under its ancestors' clips (`paint_offscreen`, `crates/paint/src/lib.rs`), as Chrome feeds a filter the element's whole content.
 
 ### Risks
 
 - **Chrome's text and edge smoothing won't match bit for bit**, so the comparison with the oracle carries a tolerance.
+- **HTML inside SVG (`foreignObject`) is not drawn.** The film uses it once, the terminal under the lens filter, which ports as an HTML element with `filter: url(#…)`; `svg/foreign-object` stays out of the paint cases.
 - **No sourced measurement of Skia's speed on blur, filters, text or whole frames exists**; measure on the example projects early.
 
 ### Sources
@@ -339,7 +365,9 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 ### Fit with Opsis
 
 - **In place:** the bundled FFmpeg sidecar and its required-format check (`crates/media/src/capabilities.rs`), the output executors (`crates/render/src/executors.rs`), chapters, sizes per shape (`variant_size`).
-- **Missing:** `rawvideo` in the required formats, the raw pipe, the colour tags, the chunked scheduler.
+  - `rawvideo` is a required format, and `film_raw_encode_args` (`crates/media/src/codecs.rs`) takes RGBA frames raw, converts them to BT.709 limited range for the YUV codecs and tags every output's colour; `crates/media/tests/raw_frames.rs` checks a colour survives each codec.
+  - `render_in_order` (`crates/render/src/chunks.rs`) hands contiguous chunks to workers, each keeping its own state (its decoders) across a chunk, and passes frames through a reorder buffer that holds at most `Schedule::held` frames ahead of the encoder.
+- **Missing:** the native frame source behind `render_in_order` and its use in `render_film`, and stills through the renderer.
 
 ### Work
 

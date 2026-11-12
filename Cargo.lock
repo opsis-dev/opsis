@@ -1061,6 +1061,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "color"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2ec7c5eb7a16992b1904d76c517d170ab353b0e0b3d5a0c81a8a0cd1037893cf"
+
+[[package]]
 name = "color_quant"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1080,6 +1086,30 @@ checksum = "4356eba6976435498d05a311ee9fc486da3bc81c200d3f0d7dd9703b41913f92"
 dependencies = [
  "bytes",
  "memchr",
+]
+
+[[package]]
+name = "comemo"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3c963350b2b08aa4b725d7802593245380ab53dacfedcaa971385fc33306c0d4"
+dependencies = [
+ "comemo-macros",
+ "parking_lot",
+ "rustc-hash",
+ "siphasher",
+ "slab",
+]
+
+[[package]]
+name = "comemo-macros"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a3c400139ba1389ef9e20ad2d87cda68b437a66483aa0da616bdf2cea7413853"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
 ]
 
 [[package]]
@@ -1937,6 +1967,20 @@ dependencies = [
  "memmap2",
  "slotmap",
  "tinyvec",
+]
+
+[[package]]
+name = "fontique"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbf1df16263783918b7da396077521f92b729ef7c429444dfcf03581f1448b77"
+dependencies = [
+ "hashbrown 0.17.1",
+ "linebender_resource_handle",
+ "memmap2",
+ "parlance",
+ "read-fonts 0.41.0",
+ "smallvec",
 ]
 
 [[package]]
@@ -3252,6 +3296,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "linebender_resource_handle"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d4a5ff6bcca6c4867b1c4fd4ef63e4db7436ef363e0ad7531d1558856bae64f4"
+
+[[package]]
 name = "link-cplusplus"
 version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3885,6 +3935,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "nv-flip"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ec3c68ac226790270de1d9d0eb5853832d82a34b62199ab2a1a4756df1a1974"
+dependencies = [
+ "nv-flip-sys",
+]
+
+[[package]]
+name = "nv-flip-sys"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "932e1eed40002ba70fccac6dab3b64be3301607c3ee88bd14989c4d4e1c1c993"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "objc2"
 version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4097,21 +4165,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "opsis-cases"
+version = "0.1.0"
+dependencies = [
+ "opsis-golden",
+ "opsis-scene",
+ "opsis-types",
+ "roxmltree 0.21.2",
+ "serde_json",
+]
+
+[[package]]
 name = "opsis-compile"
 version = "0.1.0"
 dependencies = [
+ "color",
  "csscolorparser",
  "heck",
  "icu_segmenter",
  "indexmap",
  "jiff",
  "jsonschema",
+ "kurbo",
  "language-tags",
  "layout-rs",
  "nanoid",
  "num-format",
  "opsis-golden",
  "opsis-macros",
+ "opsis-scene",
  "opsis-types",
  "percent-encoding",
  "proptest",
@@ -4173,6 +4255,33 @@ dependencies = [
  "tower",
  "tower-http 0.7.1",
  "zip",
+]
+
+[[package]]
+name = "opsis-filament"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sha2 0.11.1",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "opsis-film"
+version = "0.1.0"
+dependencies = [
+ "nv-flip",
+ "opsis-compile",
+ "opsis-golden",
+ "opsis-layout",
+ "opsis-paint",
+ "opsis-probe",
+ "opsis-scene",
+ "opsis-skia",
+ "opsis-types",
+ "serde_json",
+ "thiserror 2.0.21",
 ]
 
 [[package]]
@@ -4257,6 +4366,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "opsis-layout"
+version = "0.1.0"
+dependencies = [
+ "opsis-cases",
+ "opsis-golden",
+ "opsis-probe",
+ "opsis-scene",
+ "opsis-types",
+ "parley",
+ "serde",
+ "serde_json",
+ "skrifa 0.49.0",
+ "taffy",
+ "thiserror 2.0.21",
+ "wuff",
+]
+
+[[package]]
 name = "opsis-macros"
 version = "0.1.0"
 dependencies = [
@@ -4334,6 +4461,28 @@ dependencies = [
  "serde_json",
  "tempfile",
  "thiserror 2.0.21",
+]
+
+[[package]]
+name = "opsis-paint"
+version = "0.1.0"
+dependencies = [
+ "base64 0.23.1",
+ "color",
+ "nv-flip",
+ "opsis-cases",
+ "opsis-golden",
+ "opsis-layout",
+ "opsis-probe",
+ "opsis-scene",
+ "opsis-skia",
+ "opsis-types",
+ "parley",
+ "proptest",
+ "serde_json",
+ "thiserror 2.0.21",
+ "usvg",
+ "zip",
 ]
 
 [[package]]
@@ -4427,6 +4576,7 @@ dependencies = [
  "opsis-runner",
  "opsis-terminal",
  "opsis-types",
+ "proptest",
  "regex",
  "serde",
  "serde_json",
@@ -4455,6 +4605,20 @@ dependencies = [
  "thiserror 2.0.21",
  "tokio",
  "tokio-util",
+]
+
+[[package]]
+name = "opsis-scene"
+version = "0.1.0"
+dependencies = [
+ "color",
+ "comemo",
+ "opsis-golden",
+ "opsis-types",
+ "proptest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
 ]
 
 [[package]]
@@ -4512,6 +4676,17 @@ dependencies = [
  "tokio",
  "tokio-util",
  "uuid",
+]
+
+[[package]]
+name = "opsis-skia"
+version = "0.1.0"
+dependencies = [
+ "cxx",
+ "cxx-build",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
 ]
 
 [[package]]
@@ -4752,6 +4927,62 @@ dependencies = [
  "redox_syscall",
  "smallvec",
  "windows-link",
+]
+
+[[package]]
+name = "parlance"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "73072a9470554c8e794778acece2312661218aaabb635600957d952cf01c716e"
+
+[[package]]
+name = "parley"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61bd0c0c1737f0b3d3726dc06b225083af213b61913e4fbae1670613a106c6ce"
+dependencies = [
+ "fontique",
+ "hashbrown 0.17.1",
+ "linebender_resource_handle",
+ "parlance",
+ "parley_engine",
+ "smallvec",
+]
+
+[[package]]
+name = "parley_data"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c43b63f808f6cc8f4a3b07de0d62a977bddd2e0bb5c232bd9e93ba8ef92e5e4b"
+dependencies = [
+ "icu_collections",
+ "icu_properties",
+]
+
+[[package]]
+name = "parley_emoji"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c4482d912d7671a7cd2089794f90ef3bb5f5f8c738230fb0fcd50fa020f0ed3"
+
+[[package]]
+name = "parley_engine"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b74c0d373e462e504ad4436710a39f099e18e848e1ee711f70cd2dcd5a69b290"
+dependencies = [
+ "fontique",
+ "harfrust",
+ "hashbrown 0.17.1",
+ "icu_locale_core",
+ "icu_normalizer",
+ "icu_properties",
+ "icu_segmenter",
+ "linebender_resource_handle",
+ "parlance",
+ "parley_data",
+ "parley_emoji",
+ "skrifa 0.44.0",
 ]
 
 [[package]]
@@ -6615,6 +6846,17 @@ dependencies = [
  "objc2-io-kit",
  "objc2-open-directory",
  "windows",
+]
+
+[[package]]
+name = "taffy"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "31f7bd2d97198df05186f93a3a3c306845f40e8b3c22bf9279cdd7e5cf5fea7d"
+dependencies = [
+ "serde",
+ "slotmap",
+ "smallvec",
 ]
 
 [[package]]

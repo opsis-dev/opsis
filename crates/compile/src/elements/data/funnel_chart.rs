@@ -1,7 +1,18 @@
 use opsis_macros::settings;
+use opsis_scene::clock::js_round;
+use opsis_scene::node::{Node, SvgElement, div, svg};
+use opsis_scene::random::js_number_text;
+use opsis_scene::style::{Align, Style, TextAlign};
+use opsis_scene::timeline::absolute_fill;
 use opsis_types::looks::NodeLook;
+use opsis_types::numbers::float;
 
+use crate::elements::anim::clamped_eased;
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::fonts::{FontRole, font_or};
+use crate::elements::number_text::format_number;
+use crate::elements::text_split::easing_enter;
 use crate::elements::shared::NumberFormat;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
@@ -125,4 +136,148 @@ pub fn definition() -> ElementMeta {
         .design(1920, 1080)
         .look(NodeLook::of("lucide:funnel")),
     )
+}
+
+fn n(value: f64) -> String {
+    js_number_text(value)
+}
+
+fn label(x: f64, y: f64, fill: &str, size: f64, weight: u32, opacity: f64) -> SvgElement {
+    SvgElement::new("text")
+        .attr("x", x)
+        .attr("y", y)
+        .attr("fill", fill)
+        .attr("font-size", size)
+        .attr("font-weight", weight)
+        .attr("text-anchor", "end")
+        .attr("dominant-baseline", "central")
+        .attr("opacity", opacity)
+}
+
+#[expect(
+    clippy::suboptimal_flops,
+    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+)]
+pub fn draw(props: &FunnelChart, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let frame = cx.frame();
+    let stages = &props.stages;
+    let count = float(stages.len().max(1));
+    let highest = stages.iter().map(|s| f64::from(s.value)).fold(0.0, f64::max);
+    let peak = if highest > 0.0 { highest } else { 1.0 };
+    let (width, height) = (props.width, props.height);
+    let band_height = (height - props.gap * (count - 1.0)) / count;
+    let label_size = (band_height * 0.34).min(width * 0.028).max(12.0);
+    let gutter = props.label_width.map_or(width * 0.3, f64::from);
+    let dropoff_gutter = if props.show_dropoff { width * 0.13 } else { 0.0 };
+    let funnel_width = width - gutter - dropoff_gutter;
+    let centre = gutter + funnel_width / 2.0;
+    let band_width = |value: f64| value.max(0.0) / peak * funnel_width;
+    let duration = f64::from(props.duration_in_frames);
+    let stagger = f64::from(props.stagger_in_frames);
+    let first = stages.first().map_or(0.0, |s| f64::from(s.value));
+    let mut root = SvgElement::new("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("viewBox", format!("0 0 {} {}", n(width), n(height)))
+        .attr("font-family", font_or(&props.font_family, FontRole::Main).join(", "));
+    for (index, stage) in stages.iter().enumerate() {
+        let value = f64::from(stage.value);
+        let top = float(index) * (band_height + props.gap);
+        let bottom = top + band_height;
+        let top_width = band_width(value);
+        let next = stages.get(index + 1);
+        let bottom_width = next.map_or(top_width, |s| band_width(f64::from(s.value)));
+        let start = float(index) * stagger;
+        let shown = clamped_eased(frame, [start, start + duration], [0.0, 1.0], easing_enter())?;
+        if shown <= 0.0 {
+            continue;
+        }
+        let reveal_bottom = top + band_height * shown;
+        let reveal_width = top_width + (bottom_width - top_width) * shown;
+        let path = format!(
+            "M {} {} L {} {} L {} {} L {} {} Z",
+            n(centre - top_width / 2.0),
+            n(top),
+            n(centre + top_width / 2.0),
+            n(top),
+            n(centre + reveal_width / 2.0),
+            n(reveal_bottom),
+            n(centre - reveal_width / 2.0),
+            n(reveal_bottom)
+        );
+        let conversion = js_round(value / (if first > 0.0 { first } else { 1.0 }) * 100.0);
+        let dropoff = next.map_or(0.0, |s| js_round((f64::from(s.value) - value) / value * 100.0));
+        let dropoff_start = start + stagger + duration * 0.6;
+        let dropoff_progress =
+            clamped_eased(frame, [dropoff_start, dropoff_start + 12.0], [0.0, 1.0], easing_enter())?;
+        let fill = stage.color.as_deref().unwrap_or(&props.color);
+        let fade = 1.0 - float(index) / (count - 1.0).max(1.0);
+        let mut figures = format_number(value, props.number_format);
+        if props.show_conversion {
+            figures.push_str(&format!(" · {}%", js_number_text(conversion)));
+        }
+        let mut group = SvgElement::new("g")
+            .child(
+                SvgElement::new("path")
+                    .attr("d", path)
+                    .attr("fill", fill)
+                    .attr("opacity", props.tail_opacity + (1.0 - props.tail_opacity) * fade),
+            )
+            .child(
+                label(
+                    gutter - label_size,
+                    top + band_height * 0.36,
+                    &props.ink_color,
+                    label_size,
+                    600,
+                    ((shown - 0.25) / 0.35).clamp(0.0, 1.0),
+                )
+                .text(stage.label.as_str()),
+            )
+            .child(
+                label(
+                    gutter - label_size,
+                    top + band_height * 0.72,
+                    &props.label_color,
+                    label_size * 0.92,
+                    600,
+                    ((shown - 0.45) / 0.35).clamp(0.0, 1.0),
+                )
+                .text(figures),
+            );
+        if props.show_dropoff && next.is_some() && value > 0.0 {
+            let sign = if dropoff >= 0.0 { "+" } else { "\u{2212}" };
+            group = group.child(
+                label(
+                    width - label_size * 0.5,
+                    bottom + props.gap / 2.0,
+                    &props.dropoff_color,
+                    label_size * 0.92,
+                    700,
+                    dropoff_progress,
+                )
+                .text(format!("{sign}{}%", js_number_text(dropoff.abs()))),
+            );
+        }
+        if props.show_dropoff && index == 0 {
+            group = group.child(
+                label(
+                    width - label_size * 0.5,
+                    top + band_height * 0.32,
+                    &props.label_color,
+                    label_size * 0.82,
+                    600,
+                    ((shown - 0.4) / 0.3).clamp(0.0, 1.0),
+                )
+                .text(props.dropoff_heading.as_str()),
+            );
+        }
+        root = root.child(group);
+    }
+    Ok(div(absolute_fill()
+        .align_items(Align::Center)
+        .justify_content(Align::Center)
+        .text_align(TextAlign::Center))
+    .child(svg(root, Style::default()))
+    .into())
 }

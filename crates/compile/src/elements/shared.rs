@@ -144,6 +144,17 @@ pub enum FontWeight {
     W700,
 }
 
+impl FontWeight {
+    pub const fn value(&self) -> f64 {
+        match self {
+            Self::W400 => 400.0,
+            Self::W500 => 500.0,
+            Self::W600 => 600.0,
+            Self::W700 => 700.0,
+        }
+    }
+}
+
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
 )]

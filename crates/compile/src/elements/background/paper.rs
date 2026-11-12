@@ -1,6 +1,11 @@
 use opsis_macros::settings;
+use opsis_scene::css::with_background;
+use opsis_scene::node::{Node, div};
+use opsis_scene::timeline::absolute_fill;
 use opsis_types::looks::NodeLook;
 
+use crate::elements::backgrounds::grain;
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
@@ -32,4 +37,12 @@ pub fn definition() -> ElementMeta {
         )
         .look(NodeLook::of("lucide:scroll")),
     )
+}
+
+const PAPER_GRAIN_SEED: u32 = 11;
+
+pub fn draw(props: &Paper, _: &Cx<'_>) -> Result<Node, DrawFailure> {
+    Ok(div(with_background(absolute_fill(), &props.color))
+        .children(grain(props.grain, props.grain_size, PAPER_GRAIN_SEED))
+        .into())
 }

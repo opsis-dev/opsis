@@ -1,8 +1,16 @@
 use opsis_macros::settings;
+use opsis_scene::node::{Node, div, span};
+use opsis_scene::style::{Style, TextAlign as SceneAlign, VerticalAlign, WhiteSpace};
+use opsis_scene::values::Length;
 use opsis_types::looks::NodeLook;
 
+use crate::elements::backgrounds::centered_stage;
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::fonts::{FontRole, font_or};
+use crate::elements::parts::caret::{Caret, caret};
 use crate::elements::shared::{FontWeight, TextAlign};
+use crate::elements::ui_kit::typewriter;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -75,4 +83,56 @@ pub fn definition() -> ElementMeta {
         .authored_clock()
         .look(NodeLook::of("lucide:text-cursor")),
     )
+}
+
+const CARET_GAP_EM: f64 = 0.04;
+const TEXT_WIDTH_PERCENT: f64 = 90.0;
+
+pub const fn text_align(align: &TextAlign) -> SceneAlign {
+    match align {
+        TextAlign::Center => SceneAlign::Center,
+        TextAlign::Left => SceneAlign::Left,
+        TextAlign::Right => SceneAlign::Right,
+    }
+}
+
+pub fn draw(props: &Typewriter, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let typed = typewriter(
+        &props.text,
+        cx,
+        Some(f64::from(props.chars_per_second)),
+        props.speed,
+        0.0,
+    );
+    let mut line = span(
+        Style::default()
+            .font_size(f64::from(props.font_size))
+            .font_weight(props.font_weight.value())
+            .color(cx.color(&props.color))
+            .letter_spacing(Length::em(props.letter_spacing))
+            .font_family(font_or(&props.font_family, FontRole::Main))
+            .white_space(WhiteSpace::PreWrap)
+            .max_width(Length::percent(TEXT_WIDTH_PERCENT))
+            .text_align(text_align(&props.align)),
+    )
+    .child(typed.text.as_str());
+    if props.cursor {
+        line = line.child(caret(
+            &Caret {
+                color: cx.color(&props.cursor_color),
+                blink: !typed.typing,
+                speed: props.speed,
+                blink_per_second: props.blink_rate,
+                radius: 0.0,
+                ..Caret::default()
+            },
+            cx,
+            &Style::default()
+                .width(Length::em(props.cursor_width))
+                .height(Length::em(1.0))
+                .margin_left(Length::em(CARET_GAP_EM))
+                .vertical_align(VerticalAlign::TextBottom),
+        ));
+    }
+    Ok(div(centered_stage(&props.background)).child(line).into())
 }

@@ -1,7 +1,24 @@
-use opsis_macros::settings;
-use opsis_types::looks::NodeLook;
+use std::f64::consts::PI;
 
+use opsis_macros::settings;
+use opsis_scene::clock::js_round;
+use opsis_scene::css::with_background;
+use opsis_scene::node::{Node, SvgElement, div, span, svg};
+use opsis_scene::random::js_number_text;
+use opsis_scene::style::{
+    Align, Display, LineHeight, NumericVariant, Position, Style, TextAlign, TextTransform,
+};
+use opsis_scene::timeline::absolute_fill;
+use opsis_scene::values::{Length, Num};
+use opsis_types::looks::NodeLook;
+use opsis_types::numbers::{exact_eq, float};
+
+use crate::elements::anim::clamped_eased;
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::fonts::{FontRole, font_or};
+use crate::elements::number_text::{Direction, format_number, read_delta};
+use crate::elements::text_split::easing_enter;
 use crate::elements::shared::{Colour, LegendValue, NumberFormat};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
@@ -128,4 +145,206 @@ pub fn definition() -> ElementMeta {
         .design(1920, 1080)
         .look(NodeLook::of("lucide:chart-pie")),
     )
+}
+
+fn n(value: f64) -> String {
+    js_number_text(value)
+}
+
+fn tabular() -> NumericVariant {
+    NumericVariant {
+        tabular: true,
+        ..NumericVariant::default()
+    }
+}
+
+struct Drawn<'a> {
+    segment: &'a DonutChartSegment,
+    start: f64,
+    fraction: f64,
+    progress: f64,
+    color: String,
+}
+
+fn legend_row(props: &DonutChart, drawn: &Drawn<'_>, cx: &Cx<'_>) -> Node {
+    let size = props.size;
+    let shown = if props.legend_shows == LegendValue::Percent {
+        format!("{}%", js_number_text(js_round(drawn.fraction * drawn.progress * 100.0)))
+    } else {
+        format_number(drawn.segment.value * drawn.progress, props.number_format)
+    };
+    let mut row = div(Style::default()
+        .display(Display::Flex)
+        .align_items(Align::Center)
+        .gap(size * 0.045)
+        .opacity((drawn.progress * 1.6).clamp(0.0, 1.0))
+        .translate(Length::px((1.0 - drawn.progress) * size * 0.05), Length::ZERO))
+    .child(span(with_background(
+        Style::default()
+            .width(size * 0.05)
+            .height(size * 0.05)
+            .border_radius_all(999.0)
+            .flex_shrink(0.0),
+        &drawn.color,
+    )))
+    .child(
+        span(Style::default()
+            .color(cx.color(&props.ink_color))
+            .font_size(size * 0.062)
+            .font_weight(600.0)
+            .min_width(size * 0.42))
+        .child(drawn.segment.label.as_str()),
+    )
+    .child(
+        span(Style::default()
+            .color(cx.color(&props.label_color))
+            .font_size(size * 0.062)
+            .font_weight(600.0)
+            .font_variant_numeric(tabular()))
+        .child(shown),
+    );
+    if let Some(delta) = drawn.segment.delta.as_deref().filter(|d| !d.is_empty()) {
+        let (direction, text) = read_delta(delta);
+        let color = match direction {
+            Direction::Down => &props.down_color,
+            Direction::Up => &props.up_color,
+            Direction::Flat => &props.label_color,
+        };
+        row = row.child(
+            span(Style::default()
+                .color(cx.color(color))
+                .font_size(size * 0.052)
+                .font_weight(600.0)
+                .font_variant_numeric(tabular()))
+            .child(text),
+        );
+    }
+    row.into()
+}
+
+pub fn draw(props: &DonutChart, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let frame = cx.frame();
+    let sum: f64 = props.segments.iter().map(|s| s.value).sum();
+    let total = if exact_eq(sum, 0.0) || sum.is_nan() { 1.0 } else { sum };
+    let size = props.size;
+    let radius = (size - props.thickness) / 2.0;
+    let circumference = 2.0 * PI * radius;
+    let gap = (circumference * props.segment_gap / 100.0).min(props.thickness * 0.22);
+    let duration = f64::from(props.duration_in_frames);
+    let mut drawn = Vec::new();
+    let mut before = 0.0;
+    for (index, segment) in props.segments.iter().enumerate() {
+        let begin = float(index) * f64::from(props.stagger_in_frames);
+        drawn.push(Drawn {
+            segment,
+            start: before,
+            fraction: segment.value / total,
+            progress: clamped_eased(frame, [begin, begin + duration], [0.0, 1.0], easing_enter())?,
+            color: segment.color.clone().unwrap_or_else(|| {
+                props
+                    .colors
+                    .get(index % props.colors.len().max(1))
+                    .map(|c| c.0.clone())
+                    .unwrap_or_default()
+            }),
+        });
+        before += segment.value / total;
+    }
+    let landed: f64 = drawn.iter().map(|d| d.segment.value * d.progress).sum();
+    let centre = size / 2.0;
+    let mut ring = SvgElement::new("svg")
+        .attr("width", size)
+        .attr("height", size)
+        .attr("viewBox", format!("0 0 {} {}", n(size), n(size)))
+        .child(
+            SvgElement::new("circle")
+                .attr("cx", centre)
+                .attr("cy", centre)
+                .attr("r", radius)
+                .attr("fill", "none")
+                .attr("stroke", props.track_color.as_str())
+                .attr("stroke-width", props.thickness),
+        );
+    for segment in &drawn {
+        let length = (segment.fraction * circumference * segment.progress - gap).max(0.0);
+        ring = ring.child(
+            SvgElement::new("circle")
+                .attr("cx", centre)
+                .attr("cy", centre)
+                .attr("r", radius)
+                .attr("fill", "none")
+                .attr("stroke", segment.color.as_str())
+                .attr("stroke-width", props.thickness)
+                .attr("stroke-linecap", if props.round_ends { "round" } else { "butt" })
+                .attr("stroke-dasharray", format!("{} {}", n(length), n(circumference)))
+                .attr(
+                    "transform",
+                    format!(
+                        "rotate({} {} {})",
+                        n(-90.0 + props.start_angle + segment.start * 360.0),
+                        n(centre),
+                        n(centre)
+                    ),
+                ),
+        );
+    }
+    let mut chart = div(Style::default()
+        .position(Position::Relative)
+        .width(size)
+        .height(size))
+    .child(svg(ring, Style::default()));
+    if props.show_total {
+        let mut caption = Style::default()
+            .color(cx.color(&props.label_color))
+            .font_size(size * 0.065)
+            .font_weight(600.0)
+            .margin_top(size * 0.03);
+        if props.uppercase_label {
+            caption = caption
+                .letter_spacing(Length::em(0.06))
+                .text_transform(TextTransform::Uppercase);
+        }
+        chart = chart.child(
+            div(Style::default()
+                .position(Position::Absolute)
+                .inset(Length::ZERO)
+                .display(Display::Grid)
+                .align_items(Align::Center)
+                .justify_items(Align::Center)
+                .text_align(TextAlign::Center))
+            .child(
+                div(Style::default())
+                    .child(
+                        div(Style::default()
+                            .color(cx.color(&props.ink_color))
+                            .font_size(size * 0.17)
+                            .font_weight(700.0)
+                            .line_height(LineHeight::Number(Num(1.0)))
+                            .font_variant_numeric(tabular()))
+                        .child(format_number(landed, props.number_format)),
+                    )
+                    .child(div(caption).child(props.total_label.as_str())),
+            ),
+        );
+    }
+    let mut body = div(Style::default()
+        .display(Display::Flex)
+        .align_items(Align::Center)
+        .font_family(font_or(&props.font_family, FontRole::Main))
+        .gap(size * 0.16)
+        .opacity(1.0)
+        .scale(1.0, 1.0))
+    .child(chart);
+    if props.show_legend {
+        body = body.child(
+            div(Style::default().display(Display::Grid).gap(size * 0.055))
+                .children(drawn.iter().map(|d| legend_row(props, d, cx))),
+        );
+    }
+    Ok(div(absolute_fill()
+        .align_items(Align::Center)
+        .justify_content(Align::Center)
+        .text_align(TextAlign::Center))
+    .child(body)
+    .into())
 }

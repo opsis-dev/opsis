@@ -1,7 +1,14 @@
 use opsis_macros::settings;
+use opsis_scene::node::{Node, div, span};
+use opsis_scene::style::{Display, Style};
+use opsis_scene::values::{Edges, Length};
 use opsis_types::looks::NodeLook;
 
+use crate::elements::anim::clamped;
+use crate::elements::backgrounds::centered_stage;
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::fonts::{FontRole, font_or};
 use crate::elements::shared::FontWeight;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
@@ -74,4 +81,50 @@ pub fn definition() -> ElementMeta {
         .authored_clock()
         .look(NodeLook::of("lucide:type")),
     )
+}
+
+const WORD_GAP_EM: f64 = 0.25;
+
+pub fn draw(props: &StaggeredFadeUp, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let frame = cx.authored_frame() * props.speed;
+    let words = props
+        .text
+        .split(' ')
+        .enumerate()
+        .map(|(i, word)| {
+            let local =
+                f64::mul_add(f64::from(u32::try_from(i).unwrap_or(u32::MAX)), -props.stagger_delay, frame);
+            let opacity = clamped(local, [0.0, props.word_duration], [0.0, 1.0])?;
+            let y = clamped(
+                local,
+                [0.0, props.word_duration],
+                [f64::from(props.distance), 0.0],
+            )?;
+            Ok(span(
+                Style::default()
+                    .display(Display::InlineBlock)
+                    .margin(Edges {
+                        right: Length::em(WORD_GAP_EM),
+                        ..Edges::all(Length::ZERO)
+                    })
+                    .opacity(opacity)
+                    .translate(Length::ZERO, Length::px(y)),
+            )
+            .child(word)
+            .into())
+        })
+        .collect::<Result<Vec<Node>, DrawFailure>>()?;
+    Ok(div(centered_stage(&props.background))
+        .child(
+            span(
+                Style::default()
+                    .font_size(f64::from(props.font_size))
+                    .font_weight(props.font_weight.value())
+                    .color(cx.color(&props.color))
+                    .letter_spacing(Length::em(props.letter_spacing))
+                    .font_family(font_or(&props.font_family, FontRole::Main)),
+            )
+            .children(words),
+        )
+        .into())
 }

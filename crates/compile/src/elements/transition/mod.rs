@@ -11,6 +11,8 @@ pub mod grid_pixelate_wipe;
 pub mod iris;
 pub mod lens_zoom;
 pub mod page_turn;
+pub mod path_morph;
+pub mod present;
 pub mod particle_dissolve;
 pub mod push_through;
 pub mod ripple_zoom;

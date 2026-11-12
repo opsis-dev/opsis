@@ -6,7 +6,8 @@ import { ROOT } from "./lib/tool-config";
 const CLANG_FORMAT = "clang-format==23.1.5";
 const CLANG_TIDY = "clang-tidy==23.1.4";
 const STYLE = "{BasedOnStyle: Google, FixNamespaceComments: false}";
-const SOURCES = /^crates\/qt\/cpp\/.*\.(cc|h)$/;
+const SOURCES = /^crates\/(qt|skia|filament)\/cpp\/.*\.(cc|h)$/;
+const LINTED = /^crates\/qt\/cpp\//;
 const CHECKS = [
   "-*",
   "bugprone-*",
@@ -70,7 +71,7 @@ function lint(): number {
   });
   if (built.status !== 0) return built.status ?? 1;
   const commands = newestCompileCommands();
-  const files = sources().filter((file) => file.endsWith(".cc"));
+  const files = sources().filter((file) => file.endsWith(".cc") && LINTED.test(file));
   return run(CLANG_TIDY, [
     "clang-tidy",
     "-p",

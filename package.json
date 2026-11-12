@@ -68,6 +68,9 @@
     "film:bundle": "bun run --cwd apps/film build",
     "terminal:bundle": "bun run --cwd apps/terminal build",
     "oracle:bundle": "bun run --cwd apps/oracle build",
+    "skia:build": "bun scripts/skia-build.ts",
+    "filament:pin": "bun scripts/filament-pin.ts",
+    "filament:build": "bun scripts/filament-build.ts",
     "oracle": "bun scripts/oracle.ts",
     "e2e:qt": "bun scripts/e2e-qt.ts",
     "stage": "bun scripts/stage.ts",
@@ -99,6 +102,7 @@
   },
   "devDependencies": {
     "@fontsource/noto-color-emoji": "^5.3.2",
+    "@fontsource/noto-sans": "^5.3.0",
     "@fontsource/noto-sans-sc": "^5.3.1",
     "@fontsource/noto-sans-symbols-2": "^5.3.0",
     "@hugeicons/core-free-icons": "^4.4.0",

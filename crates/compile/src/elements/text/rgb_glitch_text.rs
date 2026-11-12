@@ -1,7 +1,16 @@
 use opsis_macros::settings;
+use opsis_scene::color::Color;
+use opsis_scene::node::{Node, div, span};
+use opsis_scene::paint::BlendMode as SceneBlend;
+use opsis_scene::random::{js_number_text, random};
+use opsis_scene::style::{Display, Position, Style, WhiteSpace};
+use opsis_scene::values::Length;
 use opsis_types::looks::NodeLook;
 
+use crate::elements::backgrounds::centered_stage;
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::fonts::{FontRole, font_or};
 use crate::elements::shared::{BlendMode, Colour, FontWeight};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
@@ -85,4 +94,76 @@ pub fn definition() -> ElementMeta {
         .authored_clock()
         .look(NodeLook::of("lucide:type")),
     )
+}
+
+const VERTICAL_SHARE: f64 = 0.4;
+
+const fn blend_of(blend: BlendMode) -> SceneBlend {
+    match blend {
+        BlendMode::Multiply => SceneBlend::Multiply,
+        BlendMode::Screen => SceneBlend::Screen,
+        BlendMode::Normal => SceneBlend::Normal,
+    }
+}
+
+pub fn draw(props: &RgbGlitchText, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let frame = cx.authored_frame() * props.speed;
+    let glitching = frame >= props.glitch_at && frame < props.glitch_at + props.glitch_duration;
+    let intensity = f64::from(props.intensity);
+    let offset = |axis: &str, scale: f64| {
+        if glitching {
+            random(format!("{}-{axis}-{}", props.seed, js_number_text(frame))).mul_add(2.0, -1.0)
+                * scale
+        } else {
+            0.0
+        }
+    };
+    let font = font_or(&props.font_family, FontRole::Main);
+    let text_style = Style::default()
+        .font_size(f64::from(props.font_size))
+        .font_weight(props.font_weight.value())
+        .letter_spacing(Length::em(props.letter_spacing))
+        .font_family(font)
+        .white_space(WhiteSpace::Pre);
+    let copy = |index: usize, axis: char| -> Node {
+        let color = props
+            .glitch_colors
+            .get(index)
+            .map_or(Color::TRANSPARENT, |c| cx.color(&c.0));
+        span(
+            text_style
+                .clone()
+                .position(Position::Absolute)
+                .top(Length::ZERO)
+                .left(Length::ZERO)
+                .mix_blend_mode(blend_of(props.blend))
+                .color(color)
+                .opacity(if glitching { 1.0 } else { 0.0 })
+                .translate(
+                    Length::px(offset(&format!("{axis}-x"), intensity)),
+                    Length::px(offset(&format!("{axis}-y"), intensity * VERTICAL_SHARE)),
+                ),
+        )
+        .child(props.text.as_str())
+        .into()
+    };
+    Ok(div(centered_stage(&props.background))
+        .child(
+            div(Style::default()
+                .position(Position::Relative)
+                .display(Display::InlineBlock))
+            .child(
+                span(
+                    text_style
+                        .clone()
+                        .position(Position::Relative)
+                        .color(cx.color(&props.color)),
+                )
+                .child(props.text.as_str()),
+            )
+            .child(copy(0, 'r'))
+            .child(copy(1, 'g'))
+            .child(copy(2, 'b')),
+        )
+        .into())
 }

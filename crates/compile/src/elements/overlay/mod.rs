@@ -4,6 +4,7 @@ pub mod confetti;
 pub mod ink_arrow;
 pub mod ink_underline;
 pub mod keystroke;
+pub mod keystroke_draw;
 pub mod light_leak;
 pub mod lottie;
 pub mod lower_third;

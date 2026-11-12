@@ -1,0 +1,20 @@
+[package]
+name = "opsis-skia"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+links = "opsis_skia"
+
+[lints]
+workspace = true
+
+[dependencies]
+cxx.workspace = true
+thiserror.workspace = true
+
+[build-dependencies]
+cxx-build.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true

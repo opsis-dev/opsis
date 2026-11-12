@@ -1,7 +1,17 @@
-use opsis_macros::settings;
-use opsis_types::looks::{NodeLook, NodeMotion};
+use std::f64::consts::PI;
 
+use opsis_macros::settings;
+use opsis_scene::node::Node;
+use opsis_scene::style::Style;
+use opsis_types::looks::{NodeLook, NodeMotion};
+use opsis_types::numbers::{float, truncate};
+
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::parts::brush::{
+    BrushView, Point, Taper, brush_view, placed_on_stage, reach as brush_reach, ribbon,
+};
+use crate::elements::stop_motion::{random_between, stepped_ramp};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -113,4 +123,75 @@ pub fn definition() -> ElementMeta {
                 .design(1920, 1080)
                 .look(NodeLook::of("lucide:lasso").moves(NodeMotion::Draw)),
         )
+}
+
+const SAMPLES_PER_LAP: f64 = 48.0;
+const CENTRE: f64 = 0.02;
+
+fn points(props: &ScribbleCircle) -> Vec<Point> {
+    let (width, height) = (f64::from(props.width), f64::from(props.height));
+    let count: usize = truncate((props.laps * SAMPLES_PER_LAP).ceil().max(2.0));
+    let (rx, ry) = (width / 2.0, height / 2.0);
+    let seed = &props.seed;
+    let cx = random_between(&format!("{seed}:cx"), -CENTRE, CENTRE).mul_add(width, width / 2.0);
+    let cy = random_between(&format!("{seed}:cy"), -CENTRE, CENTRE).mul_add(height, height / 2.0);
+    let start = props.start_angle.to_radians();
+    let turn = if props.clockwise { 1.0 } else { -1.0 };
+    (0..count)
+        .map(|i| {
+            let angle = (turn * props.laps * PI * 2.0).mul_add(float(i) / float(count - 1), start);
+            let scale = 1.0 + random_between(&format!("{seed}:r{i}"), -props.wobble, props.wobble);
+            Point {
+                x: (rx * scale).mul_add(angle.cos(), cx),
+                y: (ry * scale).mul_add(angle.sin(), cy),
+            }
+        })
+        .collect()
+}
+
+#[expect(
+    clippy::suboptimal_flops,
+    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+)]
+pub fn draw(props: &ScribbleCircle, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let progress = stepped_ramp(
+        cx.authored_frame(),
+        0.0,
+        f64::from(props.duration_steps) * props.step,
+        props.step,
+        None,
+    );
+    let (width, height) = (f64::from(props.width), f64::from(props.height));
+    let stroke = f64::from(props.stroke_width);
+    let reach = brush_reach(stroke, props.grain);
+    let margin_x = reach + width / 2.0 * props.wobble + width * CENTRE;
+    let margin_y = reach + height / 2.0 * props.wobble + height * CENTRE;
+    let d = ribbon(
+        &points(props),
+        &Taper {
+            stroke_width: stroke,
+            pressure: Some(props.pressure),
+            release: Some(props.release),
+        },
+        progress,
+    );
+    let view = brush_view(BrushView {
+        width,
+        height,
+        margin: (margin_x, margin_y),
+        d,
+        color: &props.color,
+        opacity: props.opacity,
+        seed: &props.seed,
+        stroke_width: stroke,
+        grain: props.grain,
+        shown: progress > 0.0,
+    });
+    Ok(placed_on_stage(
+        props.x,
+        props.y,
+        cx.at.stage,
+        &Style::default(),
+        view,
+    ))
 }

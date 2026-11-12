@@ -39,6 +39,7 @@ image = { workspace = true, default-features = true }
 opsis-capture.workspace = true
 opsis-golden.workspace = true
 opsis-image.workspace = true
+proptest.workspace = true
 tempfile.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 

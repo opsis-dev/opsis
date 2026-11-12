@@ -1,6 +1,12 @@
 use opsis_macros::settings;
+use opsis_scene::node::Node;
+use opsis_scene::paint::{Filter, Transform};
+use opsis_scene::style::Style;
+use opsis_scene::values::{Length, Num};
 use opsis_types::looks::NodeLook;
 
+use crate::elements::draw::{Cx, DrawFailure, Transition};
+use crate::elements::transition::present::filled;
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
@@ -26,4 +32,35 @@ pub fn definition() -> ElementMeta {
             )
                 .look(NodeLook::of("lucide:expand")),
         )
+}
+
+pub fn present(props: &ZoomBlur, side: Transition, _: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let p = side.progress;
+    let (blur, rise) = (f64::from(props.blur), f64::from(props.rise));
+    let style = if side.entering {
+        let scale = p.mul_add(0.1, 0.9);
+        let mut moves = vec![Transform::Scale(Num(scale), Num(scale), Num(1.0))];
+        if rise > 0.0 {
+            moves.push(Transform::Translate(Length::ZERO, Length::px((1.0 - p) * rise), Length::ZERO));
+        }
+        let style = Style::default().opacity(p).transform(moves);
+        if p < 1.0 {
+            style.filter(vec![Filter::Blur(Length::px((1.0 - p) * blur))])
+        } else {
+            style
+        }
+    } else {
+        let scale = p.mul_add(props.zoom - 1.0, 1.0);
+        let mut moves = vec![Transform::Scale(Num(scale), Num(scale), Num(1.0))];
+        if rise > 0.0 {
+            moves.push(Transform::Translate(Length::ZERO, Length::px(-p * rise), Length::ZERO));
+        }
+        let style = Style::default().transform(moves);
+        if p > 0.0 {
+            style.filter(vec![Filter::Blur(Length::px(p * blur))])
+        } else {
+            style
+        }
+    };
+    Ok(filled(style, side.children))
 }

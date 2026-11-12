@@ -31,7 +31,7 @@ pub const REQUIRED_ENCODERS: [&str; 17] = [
 
 pub const REQUIRED_DECODERS: [&str; 5] = ["aac", "ffv1", "h264", "mjpeg", "png"];
 
-pub const REQUIRED_FORMATS: [&str; 11] = [
+pub const REQUIRED_FORMATS: [&str; 12] = [
     "concat",
     "f32le",
     "gif",
@@ -41,6 +41,7 @@ pub const REQUIRED_FORMATS: [&str; 11] = [
     "mov",
     "mp4",
     "null",
+    "rawvideo",
     "wav",
     "webm",
 ];

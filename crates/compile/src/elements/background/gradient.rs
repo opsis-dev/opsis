@@ -1,6 +1,13 @@
 use opsis_macros::{choice, settings};
+use opsis_scene::color::Color;
+use opsis_scene::node::{Node, div};
+use opsis_scene::paint::{ColorStop, Gradient as Painted, RadialShape};
+use opsis_scene::timeline::absolute_fill;
+use opsis_scene::values::{Angle, Position2};
 use opsis_types::looks::NodeLook;
 
+use crate::elements::backgrounds::{GRAIN_SEED, grain};
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
@@ -52,4 +59,39 @@ pub fn definition() -> ElementMeta {
         )
         .look(NodeLook::of("lucide:rainbow")),
     )
+}
+
+fn fill(shape: GradientShape, angle: f64, from: &Color, to: &Color) -> Painted {
+    match shape {
+        GradientShape::Radial => Painted::radial(
+            RadialShape::Circle,
+            Position2::center(),
+            vec![ColorStop::new(from.clone()), ColorStop::new(to.clone())],
+        ),
+        GradientShape::Conic => Painted::conic(
+            Angle::deg(angle),
+            Position2::center(),
+            vec![
+                ColorStop::new(from.clone()),
+                ColorStop::new(to.clone()),
+                ColorStop::new(from.clone()),
+            ],
+        ),
+        GradientShape::Linear => Painted::linear(
+            Angle::deg(angle),
+            vec![ColorStop::new(from.clone()), ColorStop::new(to.clone())],
+        ),
+    }
+}
+
+pub fn draw(props: &Gradient, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let painted = fill(
+        props.shape,
+        f64::from(props.angle),
+        &cx.color(&props.from),
+        &cx.color(&props.to),
+    );
+    Ok(div(absolute_fill().background(vec![painted.layer()]))
+        .children(grain(props.grain, props.grain_size, GRAIN_SEED))
+        .into())
 }

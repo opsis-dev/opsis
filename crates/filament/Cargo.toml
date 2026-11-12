@@ -1,0 +1,19 @@
+[package]
+name = "opsis-filament"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+links = "opsis_filament"
+
+[lints]
+workspace = true
+
+[dependencies]
+thiserror.workspace = true
+
+[build-dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+sha2.workspace = true

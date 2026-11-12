@@ -1,8 +1,21 @@
-use opsis_macros::{choice, settings};
-use opsis_types::looks::NodeLook;
+use std::f64::consts::PI;
 
+use opsis_macros::{choice, settings};
+use opsis_scene::color::{Color, Interpolation as ColorInterpolation};
+use opsis_scene::node::{Node, div, span};
+use opsis_scene::paint::Shadow;
+use opsis_scene::random::{js_number_text, random};
+use opsis_scene::style::{Align, Display, Style, TextAlign, WhiteSpace};
+use opsis_scene::timeline::absolute_fill;
+use opsis_scene::values::Length;
+use opsis_types::looks::NodeLook;
+use opsis_types::numbers::{float, truncate};
+
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::parts::split_chars::{SplitChars, SplitEffect, split_chars};
 use crate::elements::shared::FontWeight;
+use crate::elements::text_split::{SplitOrder, SplitTiming, Unit};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[choice(export)]
@@ -136,4 +149,153 @@ pub fn definition() -> ElementMeta {
         )
         .look(NodeLook::of("lucide:type")),
     )
+}
+
+const STRIKE_FLOOR: f64 = 0.22;
+const STRIKE_RISE: f64 = 0.78;
+const HUM_PHASE_PER_UNIT: f64 = 1.3;
+const STUTTER_LIFT: f64 = 0.2;
+const LIT_MARGIN: f64 = 0.001;
+const OFF_TINT_PERCENT: f64 = 16.0;
+const GLOW_SHARES: [f64; 4] = [0.16, 0.5, 1.0, 2.2];
+
+const fn split_order(order: FlickerOrder) -> SplitOrder {
+    match order {
+        FlickerOrder::Start => SplitOrder::Start,
+        FlickerOrder::End => SplitOrder::End,
+        FlickerOrder::Center => SplitOrder::Center,
+        FlickerOrder::Edges => SplitOrder::Edges,
+        FlickerOrder::Random => SplitOrder::Random,
+    }
+}
+
+fn beat(frame: f64, every: f64) -> i64 {
+    truncate((frame / every).floor())
+}
+
+fn one_decimal(value: f64) -> f64 {
+    (value * 10.0).round() / 10.0
+}
+
+fn lit_level(props: &NeonFlickerText, unit: &Unit, frame: f64, hum_step: f64) -> f64 {
+    let seed = f64::from(props.seed);
+    let index = float(unit.index);
+    let mut lit = if unit.enter <= 0.0 {
+        0.0
+    } else if unit.enter < 1.0 {
+        let roll = random(format!(
+            "{}:{}:{}",
+            props.seed,
+            unit.index,
+            beat(frame, 2.0)
+        ));
+        if roll < STRIKE_RISE.mul_add(unit.enter, STRIKE_FLOOR) {
+            1.0
+        } else {
+            props.off_level
+        }
+    } else {
+        let wave = 0.5_f64.mul_add(index.mul_add(HUM_PHASE_PER_UNIT, frame * hum_step).sin(), 0.5);
+        let stutter = props.buzz > 0.0
+            && random(format!(
+                "{}:{}:{}",
+                js_number_text(seed + 7.0),
+                unit.index,
+                beat(frame, 3.0)
+            )) < props.buzz;
+        if stutter {
+            props.off_level + STUTTER_LIFT
+        } else {
+            props.hum.mul_add(-wave, 1.0)
+        }
+    };
+    if props.flicker_on_exit && unit.exit > 0.0 {
+        let dying = random(format!(
+            "{}:{}:{}",
+            js_number_text(seed + 3.0),
+            unit.index,
+            beat(frame, 2.0)
+        ));
+        if dying < unit.exit {
+            lit = props.off_level;
+        }
+    }
+    lit
+}
+
+pub fn draw(props: &NeonFlickerText, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let frame = cx.frame();
+    let glow_color = cx.color(&props.glow_color);
+    let off_color = if props.off_color.is_empty() {
+        Color::mix(
+            ColorInterpolation::DEFAULT,
+            (glow_color.clone(), Some(OFF_TINT_PERCENT)),
+            (Color::TRANSPARENT, None),
+        )
+    } else {
+        cx.color(&props.off_color)
+    };
+    let on_color = cx.color(&props.color);
+    let hum_step = props.hum_rate * PI * 2.0 / cx.fps();
+    let render = |unit: &Unit| -> Result<Vec<Node>, DrawFailure> {
+        let lit = lit_level(props, unit, frame, hum_step);
+        let on = lit > props.off_level + LIT_MARGIN;
+        let glow = lit.max(0.0);
+        let mut style = Style::default()
+            .display(Display::InlineBlock)
+            .white_space(WhiteSpace::Pre)
+            .opacity(if unit.enter > 0.0 {
+                1.0 - unit.exit
+            } else {
+                0.0
+            })
+            .color(if on {
+                on_color.clone()
+            } else {
+                off_color.clone()
+            });
+        if on {
+            style = style.text_shadow(
+                GLOW_SHARES
+                    .iter()
+                    .map(|share| Shadow {
+                        inset: false,
+                        x: Length::ZERO,
+                        y: Length::ZERO,
+                        blur: Length::px(one_decimal(props.glow_size * share * glow)),
+                        spread: Length::ZERO,
+                        color: glow_color.clone(),
+                    })
+                    .collect::<Vec<_>>(),
+            );
+        }
+        Ok(vec![span(style).child(unit.text.as_str()).into()])
+    };
+    let chars = split_chars(
+        &SplitChars {
+            text: props.text.clone(),
+            timing: SplitTiming {
+                stagger: Some(f64::from(props.stagger_in_frames)),
+                duration: Some(f64::from(props.duration_in_frames)),
+                order: split_order(props.order),
+                seed: f64::from(props.seed),
+                exit: true,
+                ..SplitTiming::default()
+            },
+            effect: SplitEffect::None,
+            font_size: props.font_size.map(f64::from),
+            font_weight: props.font_weight.value(),
+            word_spacing: props.word_spacing,
+            color: on_color.clone(),
+            ..SplitChars::default()
+        },
+        cx,
+        Some(&render),
+    )?;
+    Ok(div(absolute_fill()
+        .align_items(Align::Center)
+        .justify_content(Align::Center)
+        .text_align(TextAlign::Center))
+    .child(chars)
+    .into())
 }

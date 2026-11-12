@@ -1,7 +1,16 @@
 use opsis_macros::settings;
+use opsis_scene::node::Node;
+use opsis_scene::style::Style;
+use opsis_scene::values::Angle;
 use opsis_types::looks::{NodeLook, NodeMotion};
 
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::parts::brush::{
+    BrushView, Point, Taper, brush_view, placed_on_stage, reach as brush_reach, ribbon,
+    sample_cubic,
+};
+use crate::elements::stop_motion::{random_between, stepped_ramp};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -95,4 +104,70 @@ pub fn definition() -> ElementMeta {
                 .design(1920, 1080)
                 .look(NodeLook::of("lucide:underline").moves(NodeMotion::Draw)),
         )
+}
+
+const SAMPLES: usize = 40;
+const EDGE_INSET: f64 = 2.0;
+
+fn spine(width: f64, thickness: f64, seed: &str, wobble_size: f64) -> Vec<Point> {
+    let wobble = random_between(&format!("{seed}:w"), -wobble_size, wobble_size);
+    let mid = thickness / 2.0 + EDGE_INSET;
+    sample_cubic(
+        Point { x: EDGE_INSET, y: mid },
+        Point {
+            x: width * 0.3,
+            y: mid + wobble,
+        },
+        Point {
+            x: width * 0.7,
+            y: mid - wobble,
+        },
+        Point {
+            x: width - EDGE_INSET,
+            y: wobble.mul_add(0.6, mid),
+        },
+        SAMPLES,
+    )
+}
+
+pub fn draw(props: &InkUnderline, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let frame = cx.authored_frame();
+    let progress = stepped_ramp(
+        frame,
+        0.0,
+        f64::from(props.duration_steps) * props.step,
+        props.step,
+        None,
+    );
+    let (width, thickness) = (f64::from(props.width), f64::from(props.thickness));
+    let reach = brush_reach(thickness, props.grain);
+    let height = thickness + 4.0;
+    let d = ribbon(
+        &spine(width, thickness, &props.seed, props.wobble),
+        &Taper {
+            stroke_width: thickness,
+            pressure: Some(props.pressure),
+            release: Some(props.release),
+        },
+        progress,
+    );
+    let view = brush_view(BrushView {
+        width,
+        height,
+        margin: (reach, reach),
+        d,
+        color: &props.color,
+        opacity: props.opacity,
+        seed: &props.seed,
+        stroke_width: thickness,
+        grain: props.grain,
+        shown: progress > 0.0,
+    });
+    Ok(placed_on_stage(
+        props.x,
+        props.y,
+        cx.at.stage,
+        &Style::default().rotate(Angle::deg(props.angle)),
+        view,
+    ))
 }

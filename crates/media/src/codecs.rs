@@ -212,6 +212,58 @@ pub fn film_encode_args(e: &FilmEncoding, output: &str) -> Vec<String> {
         "-i",
         "-",
     ]));
+    film_output_args(e, output, false, args)
+}
+
+const fn is_rgb_output(codec: Codec) -> bool {
+    matches!(codec, Codec::H264Lossless | Codec::Ffv1 | Codec::Gif)
+}
+
+const YUV_FROM_RGB: &str = "scale=out_color_matrix=bt709:out_range=tv";
+
+pub fn film_raw_encode_args(
+    e: &FilmEncoding,
+    (width, height): (u32, u32),
+    output: &str,
+) -> Vec<String> {
+    let mut args = strings(&["-f", "rawvideo", "-pix_fmt", "rgba", "-s"]);
+    args.push(format!("{width}x{height}"));
+    args.push("-framerate".to_owned());
+    args.push(e.fps.to_string());
+    args.extend(strings(&["-i", "-"]));
+    film_output_args(e, output, true, args)
+}
+
+fn colour_tags(codec: Codec) -> Vec<String> {
+    if is_rgb_output(codec) {
+        strings(&[
+            "-color_primaries",
+            "bt709",
+            "-color_trc",
+            "iec61966-2-1",
+            "-color_range",
+            "pc",
+        ])
+    } else {
+        strings(&[
+            "-colorspace",
+            "bt709",
+            "-color_primaries",
+            "bt709",
+            "-color_trc",
+            "bt709",
+            "-color_range",
+            "tv",
+        ])
+    }
+}
+
+fn film_output_args(
+    e: &FilmEncoding,
+    output: &str,
+    raw: bool,
+    mut args: Vec<String>,
+) -> Vec<String> {
     let gif = e.codec == Codec::Gif;
     if gif {
         args.extend(strings(&[
@@ -231,8 +283,17 @@ pub fn film_encode_args(e: &FilmEncoding, output: &str) -> Vec<String> {
         ]);
     }
     if !gif {
-        args.extend(strings(&["-vf", EVEN_FRAME, "-pix_fmt"]));
+        args.push("-vf".to_owned());
+        if raw && !is_rgb_output(e.codec) {
+            args.push(format!("{EVEN_FRAME},{YUV_FROM_RGB}"));
+        } else {
+            args.push(EVEN_FRAME.to_owned());
+        }
+        args.push("-pix_fmt".to_owned());
         args.push(film_pixel_format(e));
+    }
+    if raw {
+        args.extend(colour_tags(e.codec));
     }
     if e.codec == Codec::H264Lossless {
         args.extend(strings(&["-qp", "0"]));

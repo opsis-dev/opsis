@@ -17,9 +17,11 @@ axum = "0.8"
 base64 = "0.23"
 cap-std = "4"
 cc = "1"
+color = "0.3"
 cpal = "0.18"
 chromiumoxide = "0.9"
 cmake = "0.1"
+comemo = "0.5"
 csscolorparser = "0.9"
 cxx = "1"
 cxx-build = "1"
@@ -53,6 +55,7 @@ jiff = "0.2"
 jpeg-encoder = { version = "0.7", features = ["simd"] }
 jsonschema = "0.61"
 keyring-core = "1"
+kurbo = "0.13"
 language-tags = "0.3"
 layout-rs = "0.1"
 log = "0.4"
@@ -62,29 +65,36 @@ minisign-verify = "0.3"
 moxcms = "0.9"
 nanoid = "0.5"
 nnnoiseless = { version = "0.5", default-features = false }
+nv-flip = "0.1"
 notify-debouncer-mini = "0.7"
 num-format = "0.4"
 num-traits = "0.2"
 opsis-api = { path = "crates/api" }
 opsis-capture = { path = "crates/capture" }
+opsis-cases = { path = "crates/cases" }
 opsis-compile = { path = "crates/compile" }
 opsis-document = { path = "crates/document" }
 opsis-engine = { path = "crates/engine" }
+opsis-film = { path = "crates/film" }
 opsis-fonts = { path = "crates/fonts" }
 opsis-footage = { path = "crates/footage" }
 opsis-golden = { path = "crates/golden" }
 opsis-image = { path = "crates/image" }
+opsis-layout = { path = "crates/layout" }
 opsis-macros = { path = "crates/macros" }
 opsis-audio = { path = "crates/audio" }
 opsis-media = { path = "crates/media" }
+opsis-paint = { path = "crates/paint" }
 opsis-prepare = { path = "crates/prepare" }
 opsis-probe = { path = "crates/probe" }
 opsis-project = { path = "crates/project" }
 opsis-qt = { path = "crates/qt" }
 opsis-render = { path = "crates/render" }
+opsis-scene = { path = "crates/scene" }
 opsis-runner = { path = "crates/runner" }
 opsis-script = { path = "crates/script" }
 opsis-session = { path = "crates/session" }
+opsis-skia = { path = "crates/skia" }
 opsis-store = { path = "crates/store" }
 opsis-stream = { path = "crates/stream" }
 opsis-terminal = { path = "crates/terminal" }
@@ -92,6 +102,7 @@ opsis-traces = { path = "crates/traces" }
 opsis-types = { path = "crates/types" }
 opsis-update = { path = "crates/update" }
 opsis-vt = { path = "crates/vt" }
+parley = { version = "0.12", default-features = false, features = ["std"] }
 path-clean = "1"
 percent-encoding = "2"
 portable-pty = "0.9"
@@ -102,6 +113,7 @@ qt-build-utils = "0.10"
 quote = "1"
 regex = "1"
 reqwest = { version = "0.13", default-features = false, features = ["rustls"] }
+roxmltree = "0.21"
 sanitize-filename = "0.6"
 schemars = { version = "1", features = ["indexmap2"] }
 semver = "1"
@@ -125,6 +137,7 @@ syn = { version = "3", features = ["full"] }
 tar = { version = "0.4", default-features = false }
 sys-locale = "0.3"
 sysinfo = "0.40"
+taffy = "0.15"
 tempfile = "3"
 thiserror = "2"
 tokio = "1"
@@ -172,3 +185,6 @@ opt-level = 3
 lto = true
 codegen-units = 1
 strip = true
+
+[profile.dev.package.nv-flip-sys]
+opt-level = 3

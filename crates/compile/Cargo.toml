@@ -7,17 +7,20 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
+color.workspace = true
 csscolorparser.workspace = true
 heck.workspace = true
 icu_segmenter.workspace = true
 indexmap = { workspace = true, features = ["serde"] }
 jiff.workspace = true
 jsonschema.workspace = true
+kurbo.workspace = true
 language-tags.workspace = true
 layout-rs.workspace = true
 nanoid.workspace = true
 num-format.workspace = true
 opsis-macros.workspace = true
+opsis-scene.workspace = true
 opsis-types.workspace = true
 percent-encoding.workspace = true
 regex.workspace = true

@@ -1,0 +1,32 @@
+[package]
+name = "opsis-paint"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+base64.workspace = true
+color.workspace = true
+opsis-layout.workspace = true
+opsis-scene.workspace = true
+opsis-skia.workspace = true
+opsis-types.workspace = true
+parley.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+usvg.workspace = true
+zip.workspace = true
+
+[dev-dependencies]
+nv-flip.workspace = true
+opsis-cases.workspace = true
+opsis-golden.workspace = true
+opsis-probe.workspace = true
+proptest.workspace = true
+serde_json.workspace = true
+zip.workspace = true

@@ -268,16 +268,22 @@ async function notoEmoji(): Promise<FontFamilyDef> {
   );
 }
 
+type SubsetGroup = { folder: string; category: FontCategory };
+
+const TERMINAL_GROUP: SubsetGroup = { folder: "terminal", category: "monospace" };
+const FALLBACK_GROUP: SubsetGroup = { folder: "fallback", category: "sans-serif" };
+
 function fontsourceSubsets(
   pkg: string,
   id: string,
   family: string,
   weights: number[],
+  group: SubsetGroup = TERMINAL_GROUP,
 ): FontFamilyDef {
   const dir = path.join(ROOT, "node_modules", pkg);
   const meta = readJsonWith(metadataSchema, path.join(dir, "metadata.json"));
   const ranges = readJsonWith(unicodeSchema, path.join(dir, "unicode.json"));
-  const dest = path.join(TERMINAL_OUT, id);
+  const dest = path.join(OUT, group.folder, id);
   mkdirSync(dest, { recursive: true });
   const faces: Face[] = [];
   for (const weight of weights)
@@ -288,7 +294,7 @@ function fontsourceSubsets(
       if (!existsSync(src)) throw new Error(`${pkg}: missing ${name}`);
       copyFileSync(src, path.join(dest, name));
       faces.push({
-        file: `app:fonts/bundled/terminal/${id}/${name}`,
+        file: `app:fonts/bundled/${group.folder}/${id}/${name}`,
         weight: String(weight),
         style: "normal",
         format: "woff2",
@@ -296,7 +302,23 @@ function fontsourceSubsets(
       });
     }
   copyFileSync(path.join(dir, "LICENSE"), path.join(dest, "LICENSE"));
-  return terminalFamily(id, family, faces, meta.license.type);
+  return {
+    ...terminalFamily(id, family, faces, meta.license.type),
+    category: group.category,
+    licenseFile: `app:fonts/bundled/${group.folder}/${id}/LICENSE`,
+  };
+}
+
+function fallbackFonts(): FontFamilyDef[] {
+  return [
+    fontsourceSubsets(
+      "@fontsource/noto-sans",
+      "opsis-fallback",
+      "Opsis Fallback",
+      [400, 700],
+      FALLBACK_GROUP,
+    ),
+  ];
 }
 
 async function terminalFonts(): Promise<FontFamilyDef[]> {
@@ -322,7 +344,7 @@ async function terminalFonts(): Promise<FontFamilyDef[]> {
 async function writeBundle(): Promise<void> {
   rmSync(OUT, { recursive: true, force: true });
   mkdirSync(OUT, { recursive: true });
-  const defs = [...FONTS.map(copyFontFiles), ...(await terminalFonts())];
+  const defs = [...FONTS.map(copyFontFiles), ...(await terminalFonts()), ...fallbackFonts()];
   mkdirSync(path.dirname(RUST_META_OUT), { recursive: true });
   writeFileSync(RUST_META_OUT, `${JSON.stringify(defs, null, 2)}\n`);
 }

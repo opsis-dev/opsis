@@ -1,0 +1,26 @@
+[package]
+name = "opsis-film"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+opsis-compile.workspace = true
+opsis-layout.workspace = true
+opsis-paint.workspace = true
+opsis-scene.workspace = true
+opsis-skia.workspace = true
+opsis-types.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+nv-flip.workspace = true
+opsis-golden.workspace = true
+opsis-probe.workspace = true
+serde_json.workspace = true

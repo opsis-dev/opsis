@@ -1,7 +1,20 @@
 use opsis_macros::settings;
+use opsis_scene::clock::js_round;
+use opsis_scene::css::with_background;
+use opsis_scene::node::{Node, div, span};
+use opsis_scene::style::{
+    Align, BoxSizing, Display, NumericVariant, Overflow, Position, Style, TextAlign,
+    TextOverflow, WhiteSpace,
+};
+use opsis_scene::timeline::absolute_fill;
+use opsis_scene::values::Length;
 use opsis_types::looks::NodeLook;
+use opsis_types::numbers::{exact_eq, float, truncate};
 
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::fonts::{FontRole, font_or};
+use crate::elements::number_text::format_number;
 use crate::elements::shared::{Colour, Corner, NumberFormat};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
@@ -174,4 +187,164 @@ pub fn definition() -> ElementMeta {
         .design(1920, 1080)
         .look(NodeLook::of("lucide:chart-bar-decreasing")),
     )
+}
+
+fn value_at(values: &[f64], time: f64) -> f64 {
+    let Some(last) = values.len().checked_sub(1) else {
+        return 0.0;
+    };
+    let clamped = time.clamp(0.0, float(last));
+    let lower: usize = truncate(clamped.floor());
+    let upper = (lower + 1).min(last);
+    let t = clamped - float(lower);
+    (values[upper] - values[lower]).mul_add(t, values[lower])
+}
+
+fn ranks_at(series: &[BarChartRaceSerie], step: usize) -> Vec<f64> {
+    let mut live: Vec<(usize, f64)> = series
+        .iter()
+        .enumerate()
+        .filter_map(|(index, entry)| entry.values.get(step).map(|v| (index, *v)))
+        .collect();
+    live.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
+    (0..series.len())
+        .map(|index| float(live.iter().position(|e| e.0 == index).unwrap_or(live.len())))
+        .collect()
+}
+
+pub fn draw(props: &BarChartRace, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let frame = cx.frame();
+    let series = &props.series;
+    let step_count = series.iter().map(|s| s.values.len()).max().unwrap_or(0);
+    let last_step = step_count.saturating_sub(1);
+    let time = (frame / f64::from(props.frames_per_step.max(1))).clamp(0.0, float(last_step));
+    let presence: Vec<(f64, f64, String)> = series
+        .iter()
+        .enumerate()
+        .map(|(index, entry)| {
+            (
+                value_at(&entry.values, time),
+                (float(entry.values.len()) - time).clamp(0.0, 1.0),
+                entry.color.clone().unwrap_or_else(|| {
+                    props
+                        .colors
+                        .get(index % props.colors.len().max(1))
+                        .map(|c| c.0.clone())
+                        .unwrap_or_default()
+                }),
+            )
+        })
+        .collect();
+    let highest = presence
+        .iter()
+        .filter(|p| p.1 > 0.0)
+        .map(|p| p.0)
+        .fold(0.0, f64::max);
+    let leader = if exact_eq(highest, 0.0) || highest.is_nan() { 1.0 } else { highest };
+    let lower_step: usize = truncate(time.floor());
+    let lower = ranks_at(series, lower_step);
+    let upper = ranks_at(series, (lower_step + 1).min(last_step));
+    let blend = time - float(lower_step);
+    let eased = blend * blend * 2.0_f64.mul_add(-blend, 3.0);
+    let row = props.row_height;
+    let pitch = row + props.gap;
+    let bar_width = props.width - props.label_width;
+    let rows_shown = f64::from(props.visible_rows);
+    let mut rows = Vec::new();
+    for (index, entry) in series.iter().enumerate() {
+        let rank = (upper[index] - lower[index]).mul_add(eased, lower[index]);
+        let (current, present, color) = &presence[index];
+        let visibility = (rows_shown - rank).clamp(0.0, 1.0) * present;
+        if visibility <= 0.0 {
+            continue;
+        }
+        rows.push(
+            div(Style::default()
+                .position(Position::Absolute)
+                .top(Length::ZERO)
+                .left(Length::ZERO)
+                .width(props.width)
+                .height(row)
+                .display(Display::Flex)
+                .align_items(Align::Center)
+                .gap(props.gap)
+                .translate(Length::ZERO, Length::px(rank * pitch))
+                .opacity(visibility))
+            .child(
+                span(Style::default()
+                    .width(props.label_width - props.gap)
+                    .text_align(TextAlign::Right)
+                    .color(cx.color(&props.label_color))
+                    .font_size(row * 0.32)
+                    .font_weight(600.0)
+                    .white_space(WhiteSpace::Nowrap)
+                    .overflow(Overflow::Hidden)
+                    .text_overflow(TextOverflow::Ellipsis))
+                .child(entry.label.as_str()),
+            )
+            .child(
+                div(with_background(
+                    Style::default()
+                        .height(row)
+                        .width((row * 0.6).max(current / leader * bar_width))
+                        .border_radius_all(row * props.corner_radius / 100.0)
+                        .display(Display::Flex)
+                        .align_items(Align::Center)
+                        .justify_content(Align::FlexEnd)
+                        .padding_right(row * 0.28)
+                        .box_sizing(BoxSizing::BorderBox),
+                    color,
+                ))
+                .child(
+                    span(Style::default()
+                        .color(cx.color(&props.bar_ink_color))
+                        .font_size(row * 0.3)
+                        .font_weight(700.0)
+                        .font_variant_numeric(NumericVariant {
+                            tabular: true,
+                            ..NumericVariant::default()
+                        }))
+                    .child(format_number(*current, props.number_format)),
+                ),
+            )
+            .into(),
+        );
+    }
+    let step_index: usize = truncate(js_round(time).max(0.0));
+    if let Some(label) = props.steps.get(step_index).filter(|_| props.show_step_label).filter(|l| !l.is_empty()) {
+        let mut corner = Style::default().position(Position::Absolute);
+        corner = match props.step_label_position {
+            Corner::TopLeft => corner.left(Length::ZERO).top(Length::ZERO),
+            Corner::TopRight => corner.right(Length::ZERO).top(Length::ZERO),
+            Corner::BottomLeft => corner.left(Length::ZERO).bottom(Length::ZERO),
+            Corner::BottomRight => corner.right(Length::ZERO).bottom(Length::ZERO),
+        };
+        rows.push(
+            div(corner
+                .color(cx.color(&props.ink_color))
+                .font_size(row * props.step_label_size / 100.0)
+                .font_weight(700.0)
+                .opacity(props.step_label_opacity / 100.0)
+                .font_variant_numeric(NumericVariant {
+                    tabular: true,
+                    ..NumericVariant::default()
+                }))
+            .child(label.as_str())
+            .into(),
+        );
+    }
+    Ok(div(absolute_fill()
+        .align_items(Align::Center)
+        .justify_content(Align::Center)
+        .text_align(TextAlign::Center))
+    .child(
+        div(Style::default()
+            .position(Position::Relative)
+            .width(props.width)
+            .height(pitch * rows_shown)
+            .opacity(1.0)
+            .font_family(font_or(&props.font_family, FontRole::Main)))
+        .children(rows),
+    )
+    .into())
 }
