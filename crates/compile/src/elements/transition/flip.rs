@@ -6,9 +6,9 @@ use opsis_scene::values::Angle;
 use opsis_types::looks::NodeLook;
 
 use crate::elements::draw::{Cx, DrawFailure, Transition};
-use crate::elements::transition::present::filled;
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::Direction;
+use crate::elements::transition::present::filled;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export, eq)]
@@ -69,9 +69,9 @@ pub fn present(props: &Flip, side: Transition, _: &Cx<'_>) -> Result<Node, DrawF
         Transform::RotateX(angle)
     };
     Ok(filled(
-        Style::default().perspective(f64::from(props.perspective)),
+        &Style::default().perspective(f64::from(props.perspective)),
         vec![filled(
-            Style::default()
+            &Style::default()
                 .transform(vec![turn])
                 .backface_visibility(Visibility::Hidden),
             side.children,

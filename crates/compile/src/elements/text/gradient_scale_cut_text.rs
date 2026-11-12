@@ -3,7 +3,9 @@ use opsis_scene::color::Color;
 use opsis_scene::easing::Easing;
 use opsis_scene::interpolate::{Interpolation, interpolate};
 use opsis_scene::node::{Node, div, span};
-use opsis_scene::paint::{ColorStop, Filter, Gradient as Painted, MaskLayer, MaskMode, Repeat, Transform};
+use opsis_scene::paint::{
+    ColorStop, Filter, Gradient as Painted, MaskLayer, MaskMode, Repeat, Transform,
+};
 use opsis_scene::style::{Display, LineHeight, Overflow, Position, Style, WhiteSpace};
 use opsis_scene::values::{Angle, Length, Num};
 use opsis_types::looks::NodeLook;
@@ -189,14 +191,16 @@ fn text_layer(layer: Layer<'_>) -> Node {
     div(Style::default().position(Position::Relative))
         .child(span(text_style.clone().color(layer.ghost)).child(layer.text))
         .child(
-            span(text_style
-                .position(Position::Absolute)
-                .inset(Length::ZERO)
-                .color(Color::TRANSPARENT)
-                .background(vec![paint.layer()])
-                .background_clip_text(true)
-                .mask(vec![layer.mask])
-                .opacity(1.0))
+            span(
+                text_style
+                    .position(Position::Absolute)
+                    .inset(Length::ZERO)
+                    .color(Color::TRANSPARENT)
+                    .background(vec![paint.layer()])
+                    .background_clip_text(true)
+                    .mask(vec![layer.mask])
+                    .opacity(1.0),
+            )
             .child(layer.text),
         )
         .into()
@@ -248,7 +252,10 @@ pub fn draw(props: &GradientScaleCutText, cx: &Cx<'_>) -> Result<Node, DrawFailu
         &[0.0, 0.58, 0.875, 1.0],
         &Interpolation::clamped(),
     )?;
-    let compact_x = COMPACT_START_X_CORRECTION.mul_add(1.0 - moved, clamped(moved, [0.0, 1.0], [f64::from(props.settle_travel), 0.0])?);
+    let compact_x = COMPACT_START_X_CORRECTION.mul_add(
+        1.0 - moved,
+        clamped(moved, [0.0, 1.0], [f64::from(props.settle_travel), 0.0])?,
+    );
     let anchor = f64::from(props.anchor_offset_x);
     let giant_shown = frame < cut;
     let layer = Layer {
@@ -260,7 +267,10 @@ pub fn draw(props: &GradientScaleCutText, cx: &Cx<'_>) -> Result<Node, DrawFailu
             props.compact_font_size.max(1)
         }),
         font_weight: props.font_weight.value(),
-        gradient: (cx.color(&props.gradient_start), cx.color(&props.gradient_end)),
+        gradient: (
+            cx.color(&props.gradient_start),
+            cx.color(&props.gradient_end),
+        ),
         ghost: cx.color(&props.ghost_color),
         mask: reveal_mask(solid_until, fade_until),
         spread: props.gradient_spread,
@@ -270,9 +280,11 @@ pub fn draw(props: &GradientScaleCutText, cx: &Cx<'_>) -> Result<Node, DrawFailu
         Style::default()
             .position(Position::Absolute)
             .top(centred(GIANT_Y))
-            .left(centred(
-                f64::mul_add(f64::from(props.giant_travel), -giant, anchor + GIANT_X_CORRECTION),
-            ))
+            .left(centred(f64::mul_add(
+                f64::from(props.giant_travel),
+                -giant,
+                anchor + GIANT_X_CORRECTION,
+            )))
             .opacity(1.0)
             .transform(vec![Transform::Translate(
                 Length::ZERO,

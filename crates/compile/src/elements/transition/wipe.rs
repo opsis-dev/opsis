@@ -7,8 +7,8 @@ use opsis_types::looks::NodeLook;
 use opsis_types::numbers::exact_eq;
 
 use crate::elements::draw::{Cx, DrawFailure, Transition};
-use crate::elements::transition::present::filled;
 use crate::elements::entry::{element, meta};
+use crate::elements::transition::present::filled;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[choice(export)]
@@ -46,9 +46,19 @@ pub fn definition() -> ElementMeta {
 fn edge_wipe(direction: WipeDirection, shown: f64) -> Option<Vec<(f64, f64)>> {
     Some(match direction {
         WipeDirection::FromLeft => vec![(0.0, 0.0), (shown, 0.0), (shown, 1.0), (0.0, 1.0)],
-        WipeDirection::FromRight => vec![(1.0 - shown, 0.0), (1.0, 0.0), (1.0, 1.0), (1.0 - shown, 1.0)],
+        WipeDirection::FromRight => vec![
+            (1.0 - shown, 0.0),
+            (1.0, 0.0),
+            (1.0, 1.0),
+            (1.0 - shown, 1.0),
+        ],
         WipeDirection::FromTop => vec![(0.0, 0.0), (1.0, 0.0), (1.0, shown), (0.0, shown)],
-        WipeDirection::FromBottom => vec![(0.0, 1.0 - shown), (1.0, 1.0 - shown), (1.0, 1.0), (0.0, 1.0)],
+        WipeDirection::FromBottom => vec![
+            (0.0, 1.0 - shown),
+            (1.0, 1.0 - shown),
+            (1.0, 1.0),
+            (0.0, 1.0),
+        ],
         _ => return None,
     })
 }
@@ -72,14 +82,14 @@ pub fn wipe_corners(direction: WipeDirection, progress: f64) -> Vec<(f64, f64)> 
 
 pub fn present(props: &Wipe, side: Transition, _: &Cx<'_>) -> Result<Node, DrawFailure> {
     if !side.entering {
-        return Ok(filled(Style::default(), side.children));
+        return Ok(filled(&Style::default(), side.children));
     }
     let points = wipe_corners(props.direction, side.progress)
         .into_iter()
         .map(|(x, y)| (Length::percent(x * 100.0), Length::percent(y * 100.0)))
         .collect();
     Ok(filled(
-        Style::default().clip_path(ClipPath::Polygon {
+        &Style::default().clip_path(ClipPath::Polygon {
             fill: FillRule::Nonzero,
             points,
         }),

@@ -182,7 +182,11 @@ pub fn draw(props: &Callout, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         "M {} {} Q {} {} {} {}",
         js_number_text(sx),
         js_number_text(sy),
-        js_number_text(f64::mul_add(f64::from(props.bend), k, f64::midpoint(sx, px))),
+        js_number_text(f64::mul_add(
+            f64::from(props.bend),
+            k,
+            f64::midpoint(sx, px)
+        )),
         js_number_text(f64::midpoint(sy, py)),
         js_number_text(px),
         js_number_text(py)

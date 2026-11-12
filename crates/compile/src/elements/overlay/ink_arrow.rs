@@ -1,4 +1,3 @@
-
 use opsis_macros::settings;
 use opsis_scene::node::{Node, SvgElement, div, svg};
 use opsis_scene::style::{Display, Overflow, Style};
@@ -155,9 +154,13 @@ fn controls(from: Point, to: Point, curvature: f64, seed: &str, share: f64) -> (
     let bow = curvature * distance;
     let wobble = distance * share;
     let at = |t: f64, key: &str| Point {
-        x: from.x + dx * t + normal_x * bow
+        x: from.x
+            + dx * t
+            + normal_x * bow
             + random_between(&format!("{seed}:{key}:x"), -wobble, wobble),
-        y: from.y + dy * t + normal_y * bow
+        y: from.y
+            + dy * t
+            + normal_y * bow
             + random_between(&format!("{seed}:{key}:y"), -wobble, wobble),
     };
     (at(0.3, "c1"), at(0.7, "c2"))
@@ -218,7 +221,10 @@ pub fn draw(props: &InkArrow, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     let left_arm = stepped_ramp(frame, head_start, head_mid, step, None);
     let right_arm = stepped_ramp(frame, head_mid, head_start + props.head_dur, step, None);
     let distance = (to.x - from.x).hypot(to.y - from.y);
-    let margin = props.curvature.abs().mul_add(distance, head_reach(f64::from(props.head_size), stroke))
+    let margin = props
+        .curvature
+        .abs()
+        .mul_add(distance, head_reach(f64::from(props.head_size), stroke))
         + brush_reach(stroke, props.grain);
     let width = margin.max(from.x.max(to.x) + margin);
     let height = margin.max(from.y.max(to.y) + margin);

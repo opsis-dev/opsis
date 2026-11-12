@@ -1,9 +1,8 @@
 use opsis_macros::{choice, settings};
 use opsis_types::looks::NodeLook;
 
-pub use crate::elements::overlay::keystroke_draw::draw;
-
 use crate::elements::entry::{element, meta};
+pub use crate::elements::overlay::keystroke_draw::draw;
 use crate::elements::theme::{Theme, ThemeMode, keystroke_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 

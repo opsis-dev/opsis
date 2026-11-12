@@ -135,26 +135,35 @@ fn digit_column(value: f64, font_size: f64, reveal: f64) -> Node {
     let cell = font_size * CELL;
     let digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map(|d| {
         Node::from(
-            span(Style::default()
-                .height(cell)
-                .line_height(LineHeight::Length(Length::px(cell))))
+            span(
+                Style::default()
+                    .height(cell)
+                    .line_height(LineHeight::Length(Length::px(cell))),
+            )
             .child(d.to_string()),
         )
     });
-    span(Style::default()
-        .display(Display::InlineBlock)
-        .overflow(Overflow::Hidden)
-        .height(cell)
-        .width(Length::em(DIGIT_WIDTH_EM))
-        .vertical_align(VerticalAlign::Top)
-        .text_align(TextAlign::Center)
-        .opacity(reveal)
-        .translate(Length::ZERO, Length::px((1.0 - reveal) * font_size * REVEAL_RISE_EM)))
+    span(
+        Style::default()
+            .display(Display::InlineBlock)
+            .overflow(Overflow::Hidden)
+            .height(cell)
+            .width(Length::em(DIGIT_WIDTH_EM))
+            .vertical_align(VerticalAlign::Top)
+            .text_align(TextAlign::Center)
+            .opacity(reveal)
+            .translate(
+                Length::ZERO,
+                Length::px((1.0 - reveal) * font_size * REVEAL_RISE_EM),
+            ),
+    )
     .child(
-        span(Style::default()
-            .display(Display::Flex)
-            .flex_direction(FlexDirection::Column)
-            .translate(Length::ZERO, Length::px(-value * cell)))
+        span(
+            Style::default()
+                .display(Display::Flex)
+                .flex_direction(FlexDirection::Column)
+                .translate(Length::ZERO, Length::px(-value * cell)),
+        )
         .children(digits),
     )
     .into()
@@ -184,7 +193,8 @@ pub fn draw(props: &RollingNumber, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     let grouped = props.group_separator != GroupSeparator::None;
     let groups = if grouped { (digits.len() - 1) / 3 } else { 0 };
     let fitted = f64::from(props.font_size).min(
-        FIT_WIDTH / (float(groups).mul_add(SEPARATOR_WIDTH_EM, float(digits.len())) * DIGIT_WIDTH_EM),
+        FIT_WIDTH
+            / (float(groups).mul_add(SEPARATOR_WIDTH_EM, float(digits.len())) * DIGIT_WIDTH_EM),
     );
     let cell = fitted * CELL;
     let mut cells: Vec<Node> = Vec::new();
@@ -193,19 +203,24 @@ pub fn draw(props: &RollingNumber, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         if grouped && place > 0 && place % 3 == 0 {
             cells.insert(
                 0,
-                span(Style::default()
-                    .display(Display::InlineBlock)
-                    .width(Length::em(SEPARATOR_WIDTH_EM))
-                    .height(cell)
-                    .line_height(LineHeight::Length(Length::px(cell)))
-                    .text_align(TextAlign::Center))
+                span(
+                    Style::default()
+                        .display(Display::InlineBlock)
+                        .width(Length::em(SEPARATOR_WIDTH_EM))
+                        .height(cell)
+                        .line_height(LineHeight::Length(Length::px(cell)))
+                        .text_align(TextAlign::Center),
+                )
                 .child(separator_mark(props.group_separator))
                 .into(),
             );
         }
         let start_digit = (start / 10_f64.powi(power)).floor() % 10.0;
         let position = eased.mul_add(place_travel(start, end, power), start_digit);
-        cells.insert(0, digit_column(wrap10(position), fitted, place_reveal(current, power)?));
+        cells.insert(
+            0,
+            digit_column(wrap10(position), fitted, place_reveal(current, power)?),
+        );
     }
     let line = || Style::default().line_height(LineHeight::Length(Length::px(cell)));
     let mut row = div(Style::default()

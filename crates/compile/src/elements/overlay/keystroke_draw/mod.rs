@@ -4,7 +4,10 @@ pub mod timeline;
 use opsis_scene::color::{Color, ColorSpace, Interpolation as ColorInterpolation};
 use opsis_scene::node::{Node, SvgElement, div, span, svg};
 use opsis_scene::paint::{Shadow, Transform};
-use opsis_scene::style::{Align, BorderSide, BorderStyle, BoxSizing, Display, LineHeight, Overflow, Position, Style, WhiteSpace};
+use opsis_scene::style::{
+    Align, BorderSide, BorderStyle, BoxSizing, Display, LineHeight, Overflow, Position, Style,
+    WhiteSpace,
+};
 use opsis_scene::values::{Edges, Length, Num};
 use opsis_types::numbers::float;
 
@@ -134,11 +137,13 @@ fn legend(legend: &Legend, metrics: &Metrics, weight: f64) -> Node {
             } else {
                 metrics.char_font
             };
-            span(Style::default()
-                .font_size(size)
-                .font_weight(weight)
-                .line_height(LineHeight::Number(Num(1.0)))
-                .white_space(WhiteSpace::Nowrap))
+            span(
+                Style::default()
+                    .font_size(size)
+                    .font_weight(weight)
+                    .line_height(LineHeight::Number(Num(1.0)))
+                    .white_space(WhiteSpace::Nowrap),
+            )
             .child(text.as_str())
             .into()
         }
@@ -253,8 +258,16 @@ fn group_node(group: &Group, time: f64, look: &Look<'_>) -> Node {
                 color: Some(css_color(look.palette.get("edge"))),
             }))
             .background_color(css_color(look.palette.get("cap")))
-            .color(legend_color(look.palette.get("ink"), look.accent, pressed.clamp(0.0, 1.0)))
-            .transform(vec![Transform::Translate(Length::ZERO, Length::px(key_lift), Length::ZERO)])
+            .color(legend_color(
+                look.palette.get("ink"),
+                look.accent,
+                pressed.clamp(0.0, 1.0),
+            ))
+            .transform(vec![Transform::Translate(
+                Length::ZERO,
+                Length::px(key_lift),
+                Length::ZERO,
+            )])
             .display(Display::Flex)
             .align_items(Align::Center)
             .justify_content(Align::Center))
@@ -266,7 +279,9 @@ fn group_node(group: &Group, time: f64, look: &Look<'_>) -> Node {
                 .top(y - metrics.height / 2.0)
                 .width(round3(cap.width * size))
                 .height(metrics.height)
-                .opacity(round3(fade_in(time - enter) * (1.0 - (1.0 - DIM_OPACITY) * dim))))
+                .opacity(round3(
+                    fade_in(time - enter) * (1.0 - (1.0 - DIM_OPACITY) * dim),
+                )))
             .child(wall)
             .child(top)
             .into(),

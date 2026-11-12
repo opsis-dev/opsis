@@ -113,7 +113,7 @@ fn decimals_of(value: f64) -> usize {
         .min(MAX_DECIMALS)
 }
 
-fn pop_easing() -> Easing {
+const fn pop_easing() -> Easing {
     Easing::Bezier(0.34, 1.56, 0.64, 1.0)
 }
 
@@ -144,15 +144,20 @@ pub fn draw(props: &GaugeDial, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     let full_circle = sweep >= 360.0;
     let ticks = f64::from(props.tick_count);
     let steps = if full_circle { ticks } else { ticks - 1.0 };
-    let decimals = props
-        .decimals
-        .map_or_else(|| decimals_of(props.value), |d| usize::try_from(d).unwrap_or(0));
+    let decimals = props.decimals.map_or_else(
+        || decimals_of(props.value),
+        |d| usize::try_from(d).unwrap_or(0),
+    );
     let size = props.size;
     let centre = size / 2.0;
     let radius = (size - props.thickness) / 2.0;
     let (start, end) = (-sweep / 2.0, sweep / 2.0);
     let span = props.max - props.min;
-    let span = if exact_eq(span, 0.0) || span.is_nan() { 1.0 } else { span };
+    let span = if exact_eq(span, 0.0) || span.is_nan() {
+        1.0
+    } else {
+        span
+    };
     let target = ((props.value - props.min) / span).clamp(0.0, 1.0);
     let window = [0.0, f64::from(props.duration_in_frames)];
     let arc_progress = clamped_eased(frame, window, [0.0, 1.0], easing_enter())?;
@@ -160,28 +165,70 @@ pub fn draw(props: &GaugeDial, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     let arc_fraction = target * arc_progress;
     let needle_fraction = target * needle_progress;
     let needle_angle = needle_fraction.mul_add(sweep, start);
-    let tip = polar(centre, centre, props.thickness.mul_add(-0.55, radius), needle_angle);
+    let tip = polar(
+        centre,
+        centre,
+        props.thickness.mul_add(-0.55, radius),
+        needle_angle,
+    );
     let tail = polar(centre, centre, props.thickness * 0.5, needle_angle + 180.0);
     let mut dial = SvgElement::new("svg")
         .attr("width", size)
         .attr("height", size)
-        .attr("viewBox", format!("0 0 {} {}", js_number_text(size), js_number_text(size)))
-        .child(stroke(arc_path(centre, centre, radius, start, end), &props.track_color, props.thickness, cap))
+        .attr(
+            "viewBox",
+            format!("0 0 {} {}", js_number_text(size), js_number_text(size)),
+        )
         .child(stroke(
-            arc_path(centre, centre, radius, start, arc_fraction.mul_add(sweep, start)),
+            arc_path(centre, centre, radius, start, end),
+            &props.track_color,
+            props.thickness,
+            cap,
+        ))
+        .child(stroke(
+            arc_path(
+                centre,
+                centre,
+                radius,
+                start,
+                arc_fraction.mul_add(sweep, start),
+            ),
             &props.color,
             props.thickness,
             cap,
         ));
     for index in 0..props.tick_count {
-        let fraction = if steps > 0.0 { f64::from(index) / steps } else { 0.0 };
+        let fraction = if steps > 0.0 {
+            f64::from(index) / steps
+        } else {
+            0.0
+        };
         let angle = fraction.mul_add(sweep, start);
-        let outer = polar(centre, centre, props.thickness.mul_add(-0.72, radius), angle);
-        let inner = polar(centre, centre, props.thickness.mul_add(-1.05, radius), angle);
+        let outer = polar(
+            centre,
+            centre,
+            props.thickness.mul_add(-0.72, radius),
+            angle,
+        );
+        let inner = polar(
+            centre,
+            centre,
+            props.thickness.mul_add(-1.05, radius),
+            angle,
+        );
         let passed = fraction <= needle_fraction;
         dial = dial.child(
-            line(inner, outer, if passed { &props.ink_color } else { &props.label_color }, size * 0.007)
-                .attr("opacity", if passed { 0.85 } else { 0.35 }),
+            line(
+                inner,
+                outer,
+                if passed {
+                    &props.ink_color
+                } else {
+                    &props.label_color
+                },
+                size * 0.007,
+            )
+            .attr("opacity", if passed { 0.85 } else { 0.35 }),
         );
     }
     if props.show_needle {

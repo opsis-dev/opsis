@@ -1,6 +1,6 @@
-use opsis_macros::{choice, settings};
 use std::f64::consts::PI;
 
+use opsis_macros::{choice, settings};
 use opsis_scene::easing::Easing;
 use opsis_scene::node::Node;
 use opsis_scene::paint::Filter;
@@ -10,8 +10,8 @@ use opsis_types::looks::NodeLook;
 
 use crate::elements::anim::clamped_eased;
 use crate::elements::draw::{Cx, DrawFailure, Transition};
-use crate::elements::transition::present::filled;
 use crate::elements::entry::{element, meta};
+use crate::elements::transition::present::filled;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[choice(export)]
@@ -63,7 +63,11 @@ pub fn present(props: &WhipPan, side: Transition, _: &Cx<'_>) -> Result<Node, Dr
     )?;
     let velocity = (PI * travel).sin();
     let horizontal = matches!(props.direction, WhipDirection::Left | WhipDirection::Right);
-    let sign = if matches!(props.direction, WhipDirection::Left | WhipDirection::Up) { -1.0 } else { 1.0 };
+    let sign = if matches!(props.direction, WhipDirection::Left | WhipDirection::Up) {
+        -1.0
+    } else {
+        1.0
+    };
     let offset = if side.entering {
         (travel - 1.0) * TRAVEL_PERCENT * sign
     } else {
@@ -80,7 +84,9 @@ pub fn present(props: &WhipPan, side: Transition, _: &Cx<'_>) -> Result<Node, Dr
             .scale(1.0, stretch)
     };
     Ok(filled(
-        style.filter(vec![Filter::Blur(Length::px(velocity * f64::from(props.blur)))]),
+        &style.filter(vec![Filter::Blur(Length::px(
+            velocity * f64::from(props.blur),
+        ))]),
         side.children,
     ))
 }

@@ -1,7 +1,19 @@
-use opsis_macros::settings;
-use opsis_types::looks::NodeLook;
+use std::f64::consts::PI;
 
+use opsis_macros::settings;
+use opsis_scene::css::with_background;
+use opsis_scene::node::{Node, div};
+use opsis_scene::paint::{BlendMode, Filter, Transform};
+use opsis_scene::random::random;
+use opsis_scene::style::{Overflow, Position, Style};
+use opsis_scene::timeline::absolute_fill;
+use opsis_scene::values::{Length, Num};
+use opsis_types::looks::NodeLook;
+use opsis_types::numbers::whole;
+
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::units::to_fixed;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -81,5 +93,103 @@ pub fn definition() -> ElementMeta {
             120,
         )
         .look(NodeLook::of("lucide:sparkles")),
+    )
+}
+
+const TRACK: f64 = 140.0;
+const CROSSING_SECONDS: f64 = 8.0;
+const DESIGN_WIDTH: f64 = 1920.0;
+
+#[derive(Debug, Clone, Copy)]
+struct Particle {
+    depth: f64,
+    offset: f64,
+    lane: f64,
+    drift_amount: f64,
+    drift_period: f64,
+    drift_phase: f64,
+    twinkle_period: f64,
+    twinkle_phase: f64,
+}
+
+fn particles(count: u32, seed: u32) -> Vec<Particle> {
+    let draw = |index: u32, n: u32| random(format!("{seed}:{index}:{n}"));
+    (0..count)
+        .map(|i| Particle {
+            depth: draw(i, 1).powi(2),
+            offset: draw(i, 2),
+            lane: draw(i, 3),
+            drift_amount: draw(i, 4).mul_add(1.6, 0.4),
+            drift_period: draw(i, 5).mul_add(1.3, 1.1),
+            drift_phase: draw(i, 6) * PI * 2.0,
+            twinkle_period: draw(i, 7).mul_add(1.2, 0.9),
+            twinkle_phase: draw(i, 8) * PI * 2.0,
+        })
+        .collect()
+}
+
+#[expect(
+    clippy::suboptimal_flops,
+    reason = "the film places each particle with these exact steps, and the frames have to match it"
+)]
+fn particle(props: &ParticleField, p: &Particle, time: f64, pixel: f64) -> Node {
+    let radians = props.angle * PI / 180.0;
+    let (dir_x, dir_y) = (radians.sin(), -radians.cos());
+    let (perp_x, perp_y) = (radians.cos(), radians.sin());
+    let rate = (0.35 + p.depth * 0.95) / CROSSING_SECONDS;
+    let along = (p.offset + time * rate) % 1.0;
+    let wander =
+        (time / p.drift_period * PI * 2.0 + p.drift_phase).sin() * props.drift * p.drift_amount;
+    let across = p.lane * TRACK - TRACK / 2.0 + wander;
+    let forward = along * TRACK - TRACK / 2.0;
+    let x = 50.0 + dir_x * forward + perp_x * across;
+    let y = 50.0 + dir_y * forward + perp_y * across;
+    let diameter = (props.min_size + (props.size - props.min_size) * p.depth) * pixel;
+    let twinkle = 1.0 - props.twinkle
+        + props.twinkle * (time / p.twinkle_period * PI * 2.0 + p.twinkle_phase).sin();
+    let mut style = Style::default()
+        .position(Position::Absolute)
+        .left(Length::percent(to_fixed(x, 3)))
+        .top(Length::percent(to_fixed(y, 3)))
+        .width(Length::px(diameter))
+        .height(Length::px(diameter))
+        .margin_left(Length::px(-diameter / 2.0))
+        .margin_top(Length::px(-diameter / 2.0))
+        .border_radius_all(Length::percent(50.0))
+        .opacity((0.18 + p.depth * 0.7) * twinkle * props.intensity)
+        .mix_blend_mode(BlendMode::Screen);
+    style = if props.glow > 0.0 {
+        with_background(
+            style,
+            &format!(
+                "radial-gradient(circle, {0} 0%, {0} 34%, transparent 70%)",
+                props.color
+            ),
+        )
+        .transform(vec![Transform::Scale(
+            Num(1.0 + props.glow),
+            Num(1.0 + props.glow),
+            Num(1.0),
+        )])
+    } else {
+        with_background(style, &props.color)
+    };
+    if props.depth_blur > 0.0 {
+        style = style.filter(vec![Filter::Blur(Length::px(to_fixed(
+            (1.0 - p.depth) * props.depth_blur * pixel,
+            2,
+        )))]);
+    }
+    div(style).into()
+}
+
+pub fn draw(props: &ParticleField, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let pixel = cx.at.stage.width / DESIGN_WIDTH;
+    let time = cx.frame() / cx.fps() * props.speed;
+    let field = particles(whole(f64::from(props.count)).max(1), props.seed);
+    Ok(
+        div(with_background(absolute_fill(), &props.background_color).overflow(Overflow::Hidden))
+            .children(field.iter().map(|p| particle(props, p, time, pixel)))
+            .into(),
     )
 }

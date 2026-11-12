@@ -18,8 +18,8 @@ use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
 use crate::elements::fonts::{FontRole, font_or};
 use crate::elements::number_text::{Direction, format_number, read_delta};
-use crate::elements::text_split::easing_enter;
 use crate::elements::shared::{Colour, LegendValue, NumberFormat};
+use crate::elements::text_split::easing_enter;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -169,7 +169,10 @@ struct Drawn<'a> {
 fn legend_row(props: &DonutChart, drawn: &Drawn<'_>, cx: &Cx<'_>) -> Node {
     let size = props.size;
     let shown = if props.legend_shows == LegendValue::Percent {
-        format!("{}%", js_number_text(js_round(drawn.fraction * drawn.progress * 100.0)))
+        format!(
+            "{}%",
+            js_number_text(js_round(drawn.fraction * drawn.progress * 100.0))
+        )
     } else {
         format_number(drawn.segment.value * drawn.progress, props.number_format)
     };
@@ -178,7 +181,10 @@ fn legend_row(props: &DonutChart, drawn: &Drawn<'_>, cx: &Cx<'_>) -> Node {
         .align_items(Align::Center)
         .gap(size * 0.045)
         .opacity((drawn.progress * 1.6).clamp(0.0, 1.0))
-        .translate(Length::px((1.0 - drawn.progress) * size * 0.05), Length::ZERO))
+        .translate(
+            Length::px((1.0 - drawn.progress) * size * 0.05),
+            Length::ZERO,
+        ))
     .child(span(with_background(
         Style::default()
             .width(size * 0.05)
@@ -188,19 +194,23 @@ fn legend_row(props: &DonutChart, drawn: &Drawn<'_>, cx: &Cx<'_>) -> Node {
         &drawn.color,
     )))
     .child(
-        span(Style::default()
-            .color(cx.color(&props.ink_color))
-            .font_size(size * 0.062)
-            .font_weight(600.0)
-            .min_width(size * 0.42))
+        span(
+            Style::default()
+                .color(cx.color(&props.ink_color))
+                .font_size(size * 0.062)
+                .font_weight(600.0)
+                .min_width(size * 0.42),
+        )
         .child(drawn.segment.label.as_str()),
     )
     .child(
-        span(Style::default()
-            .color(cx.color(&props.label_color))
-            .font_size(size * 0.062)
-            .font_weight(600.0)
-            .font_variant_numeric(tabular()))
+        span(
+            Style::default()
+                .color(cx.color(&props.label_color))
+                .font_size(size * 0.062)
+                .font_weight(600.0)
+                .font_variant_numeric(tabular()),
+        )
         .child(shown),
     );
     if let Some(delta) = drawn.segment.delta.as_deref().filter(|d| !d.is_empty()) {
@@ -211,11 +221,13 @@ fn legend_row(props: &DonutChart, drawn: &Drawn<'_>, cx: &Cx<'_>) -> Node {
             Direction::Flat => &props.label_color,
         };
         row = row.child(
-            span(Style::default()
-                .color(cx.color(color))
-                .font_size(size * 0.052)
-                .font_weight(600.0)
-                .font_variant_numeric(tabular()))
+            span(
+                Style::default()
+                    .color(cx.color(color))
+                    .font_size(size * 0.052)
+                    .font_weight(600.0)
+                    .font_variant_numeric(tabular()),
+            )
             .child(text),
         );
     }
@@ -225,7 +237,11 @@ fn legend_row(props: &DonutChart, drawn: &Drawn<'_>, cx: &Cx<'_>) -> Node {
 pub fn draw(props: &DonutChart, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     let frame = cx.frame();
     let sum: f64 = props.segments.iter().map(|s| s.value).sum();
-    let total = if exact_eq(sum, 0.0) || sum.is_nan() { 1.0 } else { sum };
+    let total = if exact_eq(sum, 0.0) || sum.is_nan() {
+        1.0
+    } else {
+        sum
+    };
     let size = props.size;
     let radius = (size - props.thickness) / 2.0;
     let circumference = 2.0 * PI * radius;
@@ -244,8 +260,7 @@ pub fn draw(props: &DonutChart, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
                 props
                     .colors
                     .get(index % props.colors.len().max(1))
-                    .map(|c| c.0.clone())
-                    .unwrap_or_default()
+                    .map_or_default(|c| c.0.clone())
             }),
         });
         before += segment.value / total;
@@ -266,7 +281,9 @@ pub fn draw(props: &DonutChart, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
                 .attr("stroke-width", props.thickness),
         );
     for segment in &drawn {
-        let length = (segment.fraction * circumference * segment.progress - gap).max(0.0);
+        let length = (segment.fraction * circumference)
+            .mul_add(segment.progress, -gap)
+            .max(0.0);
         ring = ring.child(
             SvgElement::new("circle")
                 .attr("cx", centre)
@@ -275,13 +292,23 @@ pub fn draw(props: &DonutChart, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
                 .attr("fill", "none")
                 .attr("stroke", segment.color.as_str())
                 .attr("stroke-width", props.thickness)
-                .attr("stroke-linecap", if props.round_ends { "round" } else { "butt" })
-                .attr("stroke-dasharray", format!("{} {}", n(length), n(circumference)))
+                .attr(
+                    "stroke-linecap",
+                    if props.round_ends { "round" } else { "butt" },
+                )
+                .attr(
+                    "stroke-dasharray",
+                    format!("{} {}", n(length), n(circumference)),
+                )
                 .attr(
                     "transform",
                     format!(
                         "rotate({} {} {})",
-                        n(-90.0 + props.start_angle + segment.start * 360.0),
+                        n(f64::mul_add(
+                            segment.start,
+                            360.0,
+                            -90.0 + props.start_angle
+                        )),
                         n(centre),
                         n(centre)
                     ),

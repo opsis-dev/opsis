@@ -6,8 +6,8 @@ use opsis_scene::values::{Length, Num};
 use opsis_types::looks::NodeLook;
 
 use crate::elements::draw::{Cx, DrawFailure, Transition};
-use crate::elements::transition::present::filled;
 use crate::elements::entry::{element, meta};
+use crate::elements::transition::present::filled;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -41,7 +41,11 @@ pub fn present(props: &ZoomBlur, side: Transition, _: &Cx<'_>) -> Result<Node, D
         let scale = p.mul_add(0.1, 0.9);
         let mut moves = vec![Transform::Scale(Num(scale), Num(scale), Num(1.0))];
         if rise > 0.0 {
-            moves.push(Transform::Translate(Length::ZERO, Length::px((1.0 - p) * rise), Length::ZERO));
+            moves.push(Transform::Translate(
+                Length::ZERO,
+                Length::px((1.0 - p) * rise),
+                Length::ZERO,
+            ));
         }
         let style = Style::default().opacity(p).transform(moves);
         if p < 1.0 {
@@ -53,7 +57,11 @@ pub fn present(props: &ZoomBlur, side: Transition, _: &Cx<'_>) -> Result<Node, D
         let scale = p.mul_add(props.zoom - 1.0, 1.0);
         let mut moves = vec![Transform::Scale(Num(scale), Num(scale), Num(1.0))];
         if rise > 0.0 {
-            moves.push(Transform::Translate(Length::ZERO, Length::px(-p * rise), Length::ZERO));
+            moves.push(Transform::Translate(
+                Length::ZERO,
+                Length::px(-p * rise),
+                Length::ZERO,
+            ));
         }
         let style = Style::default().transform(moves);
         if p > 0.0 {
@@ -62,5 +70,5 @@ pub fn present(props: &ZoomBlur, side: Transition, _: &Cx<'_>) -> Result<Node, D
             style
         }
     };
-    Ok(filled(style, side.children))
+    Ok(filled(&style, side.children))
 }

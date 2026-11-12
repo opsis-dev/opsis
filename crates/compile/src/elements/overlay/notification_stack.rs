@@ -242,9 +242,9 @@ fn tone_glyph(tone: ToastTone, size: f64, color: &str) -> Node {
             .attr("fill", color)
     };
     let root = match tone {
-        ToastTone::Success => root.child(
-            stroke("M5.5 12.5l4.3 4.3L18.5 7.6", 2.4).attr("stroke-linejoin", "round"),
-        ),
+        ToastTone::Success => {
+            root.child(stroke("M5.5 12.5l4.3 4.3L18.5 7.6", 2.4).attr("stroke-linejoin", "round"))
+        }
         ToastTone::Error => root.child(stroke("M7.4 7.4l9.2 9.2M16.6 7.4l-9.2 9.2", 2.4)),
         ToastTone::Warn => root
             .child(
@@ -322,12 +322,22 @@ fn toast_node(
     let frame = cx.frame();
     let fps = cx.fps();
     let at = |seconds: f64| seconds * fps / props.speed;
-    let is_right = matches!(props.align, ToastCorner::TopRight | ToastCorner::BottomRight);
-    let is_bottom = matches!(props.align, ToastCorner::BottomRight | ToastCorner::BottomLeft);
+    let is_right = matches!(
+        props.align,
+        ToastCorner::TopRight | ToastCorner::BottomRight
+    );
+    let is_bottom = matches!(
+        props.align,
+        ToastCorner::BottomRight | ToastCorner::BottomLeft
+    );
     let tone = toast.tone.unwrap_or(ToastTone::Info);
     let color = tone_color(tone, &props.accent_color, palette);
     let remaining = if props.show_progress {
-        1.0 - clamped(frame, [at(beat.spawn), at(beat.spawn + beat.life)], [0.0, 1.0])?
+        1.0 - clamped(
+            frame,
+            [at(beat.spawn), at(beat.spawn + beat.life)],
+            [0.0, 1.0],
+        )?
     } else {
         1.0
     };
@@ -348,17 +358,23 @@ fn toast_node(
     );
     if let Some(meta) = present(toast.meta.as_ref()) {
         title_row = title_row.child(
-            span(Style::default()
-                .margin_left(Length::Auto)
-                .flex_shrink(0.0)
-                .color(css_color(palette.get("faint")))
-                .font_size(14.5 * u)
-                .font_weight(500.0))
+            span(
+                Style::default()
+                    .margin_left(Length::Auto)
+                    .flex_shrink(0.0)
+                    .color(css_color(palette.get("faint")))
+                    .font_size(14.5 * u)
+                    .font_weight(500.0),
+            )
             .child(meta),
         );
     }
-    let mut text = div(Style::default().min_width(Length::ZERO).flex_grow(1.0).flex_shrink(1.0).flex_basis(Length::percent(0.0)))
-        .child(title_row);
+    let mut text = div(Style::default()
+        .min_width(Length::ZERO)
+        .flex_grow(1.0)
+        .flex_shrink(1.0)
+        .flex_basis(Length::percent(0.0)))
+    .child(title_row);
     if let Some(body) = present(toast.body.as_ref()) {
         text = text.child(
             div(ellipsis_line(
@@ -456,7 +472,9 @@ pub fn draw(props: &NotificationStack, cx: &Cx<'_>) -> Result<Node, DrawFailure>
     let side = (f64::from(props.margin) / REFERENCE * width).round();
     let edge = (f64::from(props.margin) * VERTICAL_SHARE / REFERENCE * height).round();
     let at = |seconds: f64| seconds * fps / props.speed;
-    let ease = |from: f64, to: f64, easing: Easing| clamped_eased(frame, [at(from), at(to)], [0.0, 1.0], easing);
+    let ease = |from: f64, to: f64, easing: Easing| {
+        clamped_eased(frame, [at(from), at(to)], [0.0, 1.0], easing)
+    };
     let portrait = height > width;
     let u = props.size
         * if portrait {
@@ -464,15 +482,25 @@ pub fn draw(props: &NotificationStack, cx: &Cx<'_>) -> Result<Node, DrawFailure>
         } else {
             (width / 1024.0).min(height / 576.0)
         };
-    let is_right = matches!(props.align, ToastCorner::TopRight | ToastCorner::BottomRight);
-    let is_bottom = matches!(props.align, ToastCorner::BottomRight | ToastCorner::BottomLeft);
+    let is_right = matches!(
+        props.align,
+        ToastCorner::TopRight | ToastCorner::BottomRight
+    );
+    let is_bottom = matches!(
+        props.align,
+        ToastCorner::BottomRight | ToastCorner::BottomLeft
+    );
     let gap = 11.0 * u;
-    let toast_width = side.mul_add(-2.0, width).min(f64::from(props.toast_width) * u);
+    let toast_width = side
+        .mul_add(-2.0, width)
+        .min(f64::from(props.toast_width) * u);
     let mut plan = Vec::new();
     for (index, toast) in props.toasts.iter().enumerate() {
-        let spawn = toast
-            .at_seconds
-            .unwrap_or_else(|| props.stagger_seconds.mul_add(float(index), props.start_at_seconds));
+        let spawn = toast.at_seconds.unwrap_or_else(|| {
+            props
+                .stagger_seconds
+                .mul_add(float(index), props.start_at_seconds)
+        });
         let life = toast.hold_for.unwrap_or(props.life_seconds);
         let enter = ease(spawn, spawn + ENTER_FOR, easing_enter())?;
         let leave = ease(spawn + life, spawn + life + LEAVE_FOR, easing_exit())?;
@@ -482,7 +510,11 @@ pub fn draw(props: &NotificationStack, cx: &Cx<'_>) -> Result<Node, DrawFailure>
             enter,
             leave,
             occupancy: enter * (1.0 - leave),
-            box_height: if present(toast.body.as_ref()).is_some() { 82.0 * u } else { 60.0 * u },
+            box_height: if present(toast.body.as_ref()).is_some() {
+                82.0 * u
+            } else {
+                60.0 * u
+            },
         });
     }
     let mut toasts = Vec::new();
@@ -491,10 +523,22 @@ pub fn draw(props: &NotificationStack, cx: &Cx<'_>) -> Result<Node, DrawFailure>
         toasts.push(toast_node(props, toast, beat, (offset, u), &palette, cx)?);
         offset = f64::mul_add(beat.occupancy, beat.box_height + gap, offset);
     }
-    let mut stack = Style::default().position(Position::Absolute).width(toast_width);
-    stack = if is_right { stack.right(side) } else { stack.left(side) };
-    stack = if is_bottom { stack.bottom(edge) } else { stack.top(edge) };
-    Ok(div(absolute_fill().font_family(font_or(&props.font_family, FontRole::Main)))
-        .child(div(stack).children(toasts))
-        .into())
+    let mut stack = Style::default()
+        .position(Position::Absolute)
+        .width(toast_width);
+    stack = if is_right {
+        stack.right(side)
+    } else {
+        stack.left(side)
+    };
+    stack = if is_bottom {
+        stack.bottom(edge)
+    } else {
+        stack.top(edge)
+    };
+    Ok(
+        div(absolute_fill().font_family(font_or(&props.font_family, FontRole::Main)))
+            .child(div(stack).children(toasts))
+            .into(),
+    )
 }

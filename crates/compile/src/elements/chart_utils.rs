@@ -81,8 +81,11 @@ pub fn nice_domain(values: &[f64], include_zero: bool, ticks: f64) -> (Domain, V
     let max = (raw.max / step).ceil() * step;
     let mut out = Vec::new();
     let mut index = 0.0;
-    while index * step + min <= step.mul_add(1e-6, max) {
-        let tick = index * step + min;
+    loop {
+        let tick = f64::mul_add(index, step, min);
+        if tick > step.mul_add(1e-6, max) {
+            break;
+        }
         out.push(format!("{tick:.11e}").parse().unwrap_or(tick));
         index += 1.0;
     }
@@ -104,7 +107,11 @@ fn scale_value(value: f64, min: f64, max: f64) -> f64 {
     (value - min) / (max - min)
 }
 
-pub fn plot_area(width: f64, height: f64, (top, right, bottom, left): (f64, f64, f64, f64)) -> PlotArea {
+pub fn plot_area(
+    width: f64,
+    height: f64,
+    (top, right, bottom, left): (f64, f64, f64, f64),
+) -> PlotArea {
     PlotArea {
         left,
         top,
@@ -115,14 +122,20 @@ pub fn plot_area(width: f64, height: f64, (top, right, bottom, left): (f64, f64,
     }
 }
 
-pub fn plot_points(points: &[(f64, f64, Option<String>)], plot: &PlotArea, y: &Domain) -> Vec<Plotted> {
+pub fn plot_points(
+    points: &[(f64, f64, Option<String>)],
+    plot: &PlotArea,
+    y: &Domain,
+) -> Vec<Plotted> {
     let xs: Vec<f64> = points.iter().map(|p| p.0).collect();
     let x = domain_of(&xs, false);
     points
         .iter()
         .map(|(px, py, label)| Plotted {
             x: scale_value(*px, x.min, x.max).mul_add(plot.width, plot.left),
-            y: plot.bottom - scale_value(*py, y.min, y.max).clamp(0.0, 1.0) * plot.height,
+            y: scale_value(*py, y.min, y.max)
+                .clamp(0.0, 1.0)
+                .mul_add(-plot.height, plot.bottom),
             value: *py,
             label: label.clone(),
         })
@@ -137,7 +150,14 @@ pub fn line_path(points: &[(f64, f64)]) -> String {
     points
         .iter()
         .enumerate()
-        .map(|(i, p)| format!("{} {} {}", if i == 0 { "M" } else { "L" }, round2(p.0), round2(p.1)))
+        .map(|(i, p)| {
+            format!(
+                "{} {} {}",
+                if i == 0 { "M" } else { "L" },
+                round2(p.0),
+                round2(p.1)
+            )
+        })
         .collect::<Vec<_>>()
         .join(" ")
 }
@@ -148,16 +168,20 @@ pub fn smooth_path(points: &[(f64, f64)], tension: f64) -> String {
     }
     let mut parts = vec![format!("M {} {}", round2(points[0].0), round2(points[0].1))];
     for index in 0..points.len() - 1 {
-        let previous = if index == 0 { points[0] } else { points[index - 1] };
+        let previous = if index == 0 {
+            points[0]
+        } else {
+            points[index - 1]
+        };
         let current = points[index];
         let next = points[index + 1];
         let after = points.get(index + 2).copied().unwrap_or(next);
         let (low, high) = (current.1.min(next.1), current.1.max(next.1));
         let clamp_y = |v: f64| v.clamp(low, high);
-        let c1x = current.0 + (next.0 - previous.0) / 6.0 * tension * 2.0;
-        let c1y = clamp_y(current.1 + (next.1 - previous.1) / 6.0 * tension * 2.0);
-        let c2x = next.0 - (after.0 - current.0) / 6.0 * tension * 2.0;
-        let c2y = clamp_y(next.1 - (after.1 - current.1) / 6.0 * tension * 2.0);
+        let c1x = ((next.0 - previous.0) / 6.0 * tension).mul_add(2.0, current.0);
+        let c1y = clamp_y(((next.1 - previous.1) / 6.0 * tension).mul_add(2.0, current.1));
+        let c2x = ((after.0 - current.0) / 6.0 * tension).mul_add(-2.0, next.0);
+        let c2y = clamp_y(((after.1 - current.1) / 6.0 * tension).mul_add(-2.0, next.1));
         parts.push(format!(
             "C {} {}, {} {}, {} {}",
             round2(c1x),

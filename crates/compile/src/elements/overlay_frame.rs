@@ -63,7 +63,11 @@ pub fn overlay_frame(stage: Stage) -> OverlayFrame {
     }
 }
 
-pub fn overlay_padding(style: opsis_scene::style::Style, pad: f64, insets: Insets) -> opsis_scene::style::Style {
+pub fn overlay_padding(
+    style: opsis_scene::style::Style,
+    pad: f64,
+    insets: Insets,
+) -> opsis_scene::style::Style {
     style.padding(opsis_scene::values::Edges {
         top: (pad + insets.top).into(),
         right: (pad + insets.right).into(),

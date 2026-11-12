@@ -3,8 +3,8 @@ use opsis_scene::clock::js_round;
 use opsis_scene::css::with_background;
 use opsis_scene::node::{Node, div, span};
 use opsis_scene::style::{
-    Align, BoxSizing, Display, NumericVariant, Overflow, Position, Style, TextAlign,
-    TextOverflow, WhiteSpace,
+    Align, BoxSizing, Display, NumericVariant, Overflow, Position, Style, TextAlign, TextOverflow,
+    WhiteSpace,
 };
 use opsis_scene::timeline::absolute_fill;
 use opsis_scene::values::Length;
@@ -229,8 +229,7 @@ pub fn draw(props: &BarChartRace, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
                     props
                         .colors
                         .get(index % props.colors.len().max(1))
-                        .map(|c| c.0.clone())
-                        .unwrap_or_default()
+                        .map_or_default(|c| c.0.clone())
                 }),
             )
         })
@@ -240,7 +239,11 @@ pub fn draw(props: &BarChartRace, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         .filter(|p| p.1 > 0.0)
         .map(|p| p.0)
         .fold(0.0, f64::max);
-    let leader = if exact_eq(highest, 0.0) || highest.is_nan() { 1.0 } else { highest };
+    let leader = if exact_eq(highest, 0.0) || highest.is_nan() {
+        1.0
+    } else {
+        highest
+    };
     let lower_step: usize = truncate(time.floor());
     let lower = ranks_at(series, lower_step);
     let upper = ranks_at(series, (lower_step + 1).min(last_step));
@@ -271,15 +274,17 @@ pub fn draw(props: &BarChartRace, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
                 .translate(Length::ZERO, Length::px(rank * pitch))
                 .opacity(visibility))
             .child(
-                span(Style::default()
-                    .width(props.label_width - props.gap)
-                    .text_align(TextAlign::Right)
-                    .color(cx.color(&props.label_color))
-                    .font_size(row * 0.32)
-                    .font_weight(600.0)
-                    .white_space(WhiteSpace::Nowrap)
-                    .overflow(Overflow::Hidden)
-                    .text_overflow(TextOverflow::Ellipsis))
+                span(
+                    Style::default()
+                        .width(props.label_width - props.gap)
+                        .text_align(TextAlign::Right)
+                        .color(cx.color(&props.label_color))
+                        .font_size(row * 0.32)
+                        .font_weight(600.0)
+                        .white_space(WhiteSpace::Nowrap)
+                        .overflow(Overflow::Hidden)
+                        .text_overflow(TextOverflow::Ellipsis),
+                )
                 .child(entry.label.as_str()),
             )
             .child(
@@ -296,14 +301,16 @@ pub fn draw(props: &BarChartRace, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
                     color,
                 ))
                 .child(
-                    span(Style::default()
-                        .color(cx.color(&props.bar_ink_color))
-                        .font_size(row * 0.3)
-                        .font_weight(700.0)
-                        .font_variant_numeric(NumericVariant {
-                            tabular: true,
-                            ..NumericVariant::default()
-                        }))
+                    span(
+                        Style::default()
+                            .color(cx.color(&props.bar_ink_color))
+                            .font_size(row * 0.3)
+                            .font_weight(700.0)
+                            .font_variant_numeric(NumericVariant {
+                                tabular: true,
+                                ..NumericVariant::default()
+                            }),
+                    )
                     .child(format_number(*current, props.number_format)),
                 ),
             )
@@ -311,7 +318,12 @@ pub fn draw(props: &BarChartRace, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         );
     }
     let step_index: usize = truncate(js_round(time).max(0.0));
-    if let Some(label) = props.steps.get(step_index).filter(|_| props.show_step_label).filter(|l| !l.is_empty()) {
+    if let Some(label) = props
+        .steps
+        .get(step_index)
+        .filter(|_| props.show_step_label)
+        .filter(|l| !l.is_empty())
+    {
         let mut corner = Style::default().position(Position::Absolute);
         corner = match props.step_label_position {
             Corner::TopLeft => corner.left(Length::ZERO).top(Length::ZERO),

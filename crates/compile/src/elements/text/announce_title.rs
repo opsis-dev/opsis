@@ -185,7 +185,8 @@ const EXIT_LETTER_DELAY: f64 = 0.215;
 const TITLE_DECAY: f64 = 0.82;
 const TITLE_SPAN: f64 = 30.0;
 const TITLE_ALPHA_DECAY: f64 = 0.79;
-const TITLE_ENTRY: [(f64, f64, f64); 3] = [(41.0, 143.0, 0.39), (48.0, 87.0, 0.46), (54.0, 88.0, 0.29)];
+const TITLE_ENTRY: [(f64, f64, f64); 3] =
+    [(41.0, 143.0, 0.39), (48.0, 87.0, 0.46), (54.0, 88.0, 0.29)];
 const MACRO_SIZE: f64 = 487.0 / REF_W;
 const MACRO_BASELINE: f64 = 347.0 / REF_H;
 const MACRO_HOLD: f64 = 90.0;
@@ -260,23 +261,32 @@ fn line_style(font_size: f64, tracking: f64, face: &[String]) -> Style {
 }
 
 fn stage(offset: f64, align: Align, child: Node) -> Node {
-    div(absolute_fill().align_items(align).justify_content(Align::Center))
-        .child(
-            div(Style::default().transform(vec![Transform::Translate(
-                Length::ZERO,
-                Length::px(offset),
-                Length::ZERO,
-            )]))
-            .child(child),
-        )
-        .into()
+    div(absolute_fill()
+        .align_items(align)
+        .justify_content(Align::Center))
+    .child(
+        div(Style::default().transform(vec![Transform::Translate(
+            Length::ZERO,
+            Length::px(offset),
+            Length::ZERO,
+        )]))
+        .child(child),
+    )
+    .into()
 }
 
-fn line(scene: &Scene<'_>, font_size: f64, tracking: f64, baseline: f64, style: Style, children: Vec<Node>) -> Node {
+fn line(
+    scene: &Scene<'_>,
+    font_size: f64,
+    tracking: f64,
+    baseline: f64,
+    style: &Style,
+    children: Vec<Node>,
+) -> Node {
     stage(
-        (baseline - 0.5) * scene.height - BASELINE_DROP * font_size,
+        BASELINE_DROP.mul_add(-font_size, (baseline - 0.5) * scene.height),
         Align::Center,
-        div(line_style(font_size, tracking, scene.face).merged(&style))
+        div(line_style(font_size, tracking, scene.face).merged(style))
             .children(children)
             .into(),
     )
@@ -296,7 +306,10 @@ fn shutter(frame: f64, samples: f64, open: f64, draw: &dyn Fn(f64) -> Node) -> V
 
 fn symbol_stops(colors: &[Colour]) -> Vec<(f64, String)> {
     match colors {
-        [] => SPARK_RAMP.iter().map(|(at, c)| (*at, (*c).to_owned())).collect(),
+        [] => SPARK_RAMP
+            .iter()
+            .map(|(at, c)| (*at, (*c).to_owned()))
+            .collect(),
         [only] => vec![(0.0, only.0.clone()), (1.0, only.0.clone())],
         many => many
             .iter()
@@ -351,10 +364,10 @@ fn mark(look: &MarkLook<'_>) -> Option<Node> {
                 .attr("y", "-300%")
                 .attr("width", "700%")
                 .attr("height", "700%")
-                .child(
-                    SvgElement::new("feGaussianBlur")
-                        .attr("stdDeviation", r * look.glow * look.width * 100.0 / look.size),
-                ),
+                .child(SvgElement::new("feGaussianBlur").attr(
+                    "stdDeviation",
+                    r * look.glow * look.width * 100.0 / look.size,
+                )),
         );
     }
     let fill = format!("url(#{})", look.id);
@@ -372,7 +385,11 @@ fn mark(look: &MarkLook<'_>) -> Option<Node> {
                 .attr("style", "mix-blend-mode:screen"),
         );
     }
-    root = root.child(SvgElement::new("path").attr("d", look.path).attr("fill", fill.as_str()));
+    root = root.child(
+        SvgElement::new("path")
+            .attr("d", look.path)
+            .attr("fill", fill.as_str()),
+    );
     Some(
         svg(
             root,
@@ -390,7 +407,7 @@ fn receding_plane(scene: &Scene<'_>, text: &str, frame: f64, font_size: f64, ink
     let rake = sample(&PLANE_RAKE, frame);
     let scale = mag / PLANE_BASE;
     stage(
-        (EYEBROW_BASELINE - 0.5) * scene.height - BASELINE_DROP * font_size,
+        BASELINE_DROP.mul_add(-font_size, (EYEBROW_BASELINE - 0.5) * scene.height),
         Align::Center,
         div(Style::default().transform(vec![Transform::Scale(Num(scale), Num(scale), Num(1.0))]))
             .child(
@@ -398,9 +415,11 @@ fn receding_plane(scene: &Scene<'_>, text: &str, frame: f64, font_size: f64, ink
                     .perspective(PLANE_PERSPECTIVE * scene.width)
                     .transform_style(TransformStyle::Preserve3d))
                 .child(
-                    div(line_style(font_size * PLANE_BASE, EYEBROW_TRACK, scene.face)
-                        .color(scene.cx.color(ink))
-                        .transform(vec![Transform::RotateX(Angle::deg(rake))]))
+                    div(
+                        line_style(font_size * PLANE_BASE, EYEBROW_TRACK, scene.face)
+                            .color(scene.cx.color(ink))
+                            .transform(vec![Transform::RotateX(Angle::deg(rake))]),
+                    )
                     .child(text),
                 ),
             )
@@ -409,7 +428,7 @@ fn receding_plane(scene: &Scene<'_>, text: &str, frame: f64, font_size: f64, ink
 }
 
 fn eyebrow_exit(frame: f64, letter: usize, width: f64) -> f64 {
-    let t = frame - EXIT_FROM - float(letter) * EXIT_LETTER_DELAY;
+    let t = float(letter).mul_add(-EXIT_LETTER_DELAY, frame - EXIT_FROM);
     if t < 0.0 {
         return 0.0;
     }
@@ -417,7 +436,10 @@ fn eyebrow_exit(frame: f64, letter: usize, width: f64) -> f64 {
 }
 
 fn eyebrow_line(scene: &Scene<'_>, text: &str, frame: f64, font_size: f64, ink: &str) -> Node {
-    let scale = 1.0 + EYEBROW_ENTER * (1.0 - settle(frame - PLANE_OUT, EYEBROW_SPAN, EYEBROW_DECAY));
+    let scale = EYEBROW_ENTER.mul_add(
+        1.0 - settle(frame - PLANE_OUT, EYEBROW_SPAN, EYEBROW_DECAY),
+        1.0,
+    );
     let letters = text
         .chars()
         .enumerate()
@@ -436,7 +458,7 @@ fn eyebrow_line(scene: &Scene<'_>, text: &str, frame: f64, font_size: f64, ink: 
         font_size,
         EYEBROW_TRACK,
         EYEBROW_BASELINE,
-        Style::default()
+        &Style::default()
             .color(scene.cx.color(ink))
             .display(Display::Flex)
             .transform_origin((Length::percent(50.0), Length::percent(100.0), Length::ZERO))
@@ -460,16 +482,26 @@ fn title_line(scene: &Scene<'_>, words: &[&str], frame: f64, font_size: f64, col
         .filter_map(|(i, word)| {
             let extra = i.saturating_sub(last);
             let (at, travel, pop) = TITLE_ENTRY[i - extra];
-            let t = frame - at - float(extra) * 6.0;
+            let t = float(extra).mul_add(-6.0, frame - at);
             if t < 0.0 {
                 return None;
             }
             let x = travel * scene.width / REF_W * (1.0 - settle(t, TITLE_SPAN, TITLE_DECAY));
             Some(
-                span(Style::default()
-                    .opacity(1.0 - (1.0 - pop) * TITLE_ALPHA_DECAY.powf(t))
-                    .transform(vec![Transform::Translate(Length::px(x), Length::ZERO, Length::ZERO)]))
-                .child(if i == 0 { (*word).to_owned() } else { format!(" {word}") })
+                span(
+                    Style::default()
+                        .opacity(f64::mul_add(1.0 - pop, -TITLE_ALPHA_DECAY.powf(t), 1.0))
+                        .transform(vec![Transform::Translate(
+                            Length::px(x),
+                            Length::ZERO,
+                            Length::ZERO,
+                        )]),
+                )
+                .child(if i == 0 {
+                    (*word).to_owned()
+                } else {
+                    format!(" {word}")
+                })
                 .into(),
             )
         })
@@ -479,7 +511,9 @@ fn title_line(scene: &Scene<'_>, words: &[&str], frame: f64, font_size: f64, col
         font_size,
         TITLE_TRACK,
         TITLE_BASELINE,
-        Style::default().display(Display::Flex).color(scene.cx.color(color)),
+        &Style::default()
+            .display(Display::Flex)
+            .color(scene.cx.color(color)),
         spans,
     )
 }
@@ -503,13 +537,21 @@ fn macro_shot(scene: &Scene<'_>, props: &AnnounceTitle, frame: f64) -> Vec<Node>
     let pan = macro_pan(frame) * scene.width / REF_W;
     let font_size = MACRO_SIZE * props.text_scale * scene.width;
     let tagline = stage(
-        (MACRO_BASELINE - 0.5) * scene.height - BASELINE_DROP * font_size,
+        BASELINE_DROP.mul_add(-font_size, (MACRO_BASELINE - 0.5) * scene.height),
         Align::FlexStart,
         div(line_style(font_size, TAGLINE_TRACK, scene.face)
             .color(scene.cx.color(&props.ink_color))
             .transform(vec![
-                Transform::Translate(Length::px(scene.width / 2.0 + pan), Length::ZERO, Length::ZERO),
-                Transform::Translate(Length::percent(-MACRO_ANCHOR * 100.0), Length::ZERO, Length::ZERO),
+                Transform::Translate(
+                    Length::px(scene.width / 2.0 + pan),
+                    Length::ZERO,
+                    Length::ZERO,
+                ),
+                Transform::Translate(
+                    Length::percent(-MACRO_ANCHOR * 100.0),
+                    Length::ZERO,
+                    Length::ZERO,
+                ),
             ]))
         .child(props.tagline.as_str())
         .into(),
@@ -526,16 +568,18 @@ fn macro_shot(scene: &Scene<'_>, props: &AnnounceTitle, frame: f64) -> Vec<Node>
     });
     vec![
         tagline,
-        div(absolute_fill().align_items(Align::Center).justify_content(Align::Center))
-            .child(
-                div(Style::default().transform(vec![Transform::Translate(
-                    Length::px((MACRO_STAR_AT_HOLD - 0.5) * scene.width - pan),
-                    Length::px(MACRO_STAR_Y * scene.height),
-                    Length::ZERO,
-                )]))
-                .children(star),
-            )
-            .into(),
+        div(absolute_fill()
+            .align_items(Align::Center)
+            .justify_content(Align::Center))
+        .child(
+            div(Style::default().transform(vec![Transform::Translate(
+                Length::px((MACRO_STAR_AT_HOLD - 0.5).mul_add(scene.width, -pan)),
+                Length::px(MACRO_STAR_Y * scene.height),
+                Length::ZERO,
+            )]))
+            .children(star),
+        )
+        .into(),
     ]
 }
 
@@ -554,12 +598,20 @@ fn tagline_fill(front: f64, rest: &str, tint: &[Colour]) -> Gradient {
             }
         }
         let span = above.0 - below.0;
-        let local = if span > 0.0 { (p - below.0) / span } else { 0.0 };
+        let local = if span > 0.0 {
+            (p - below.0) / span
+        } else {
+            0.0
+        };
         let (from, to) = (hex_to_rgb(&below.1), hex_to_rgb(&above.1));
         let drained = ((front - p) / WIPE_EDGE + 0.5).clamp(0.0, 1.0);
         let mixed: [u8; 3] = std::array::from_fn(|k| {
             let (a, b) = (f64::from(from[k]), f64::from(to[k]));
-            let value = (a + (b - a) * local) * (1.0 - drained) + f64::from(rest[k]) * drained;
+            let value = f64::mul_add(
+                f64::from(rest[k]),
+                drained,
+                f64::mul_add(b - a, local, a) * (1.0 - drained),
+            );
             u8::try_from(whole(value)).unwrap_or(u8::MAX)
         });
         stops.push(ColorStop::at(
@@ -570,7 +622,13 @@ fn tagline_fill(front: f64, rest: &str, tint: &[Colour]) -> Gradient {
     Gradient::linear(Angle::deg(90.0), stops)
 }
 
-fn closing_shot(scene: &Scene<'_>, props: &AnnounceTitle, words: &[&str], frame: f64, font_size: f64) -> Vec<Node> {
+fn closing_shot(
+    scene: &Scene<'_>,
+    props: &AnnounceTitle,
+    words: &[&str],
+    frame: f64,
+    font_size: f64,
+) -> Vec<Node> {
     let eased = 1.0 - settle(frame - MACRO_OUT, TAGLINE_SPAN, TAGLINE_DECAY);
     let slide = -TAGLINE_TRAVEL * scene.width * eased;
     let front = WIPE_SPEED * (frame - WIPE_START);
@@ -581,9 +639,17 @@ fn closing_shot(scene: &Scene<'_>, props: &AnnounceTitle, words: &[&str], frame:
         .enumerate()
         .map(|(i, word)| {
             let shown = frame >= float(last - i).mul_add(TAGLINE_STAGGER, TAGLINE_FIRST);
-            span(Style::default().visibility(if shown { Visibility::Visible } else { Visibility::Hidden }))
-                .child(if i == 0 { (*word).to_owned() } else { format!(" {word}") })
-                .into()
+            span(Style::default().visibility(if shown {
+                Visibility::Visible
+            } else {
+                Visibility::Hidden
+            }))
+            .child(if i == 0 {
+                (*word).to_owned()
+            } else {
+                format!(" {word}")
+            })
+            .into()
         })
         .collect();
     let mut out = vec![line(
@@ -591,10 +657,16 @@ fn closing_shot(scene: &Scene<'_>, props: &AnnounceTitle, words: &[&str], frame:
         font_size,
         TAGLINE_TRACK,
         TAGLINE_BASELINE,
-        Style::default()
+        &Style::default()
             .display(Display::Flex)
-            .transform(vec![Transform::Translate(Length::px(slide), Length::ZERO, Length::ZERO)])
-            .background(vec![tagline_fill(front, &props.tagline_color, &props.tagline_tint).layer()])
+            .transform(vec![Transform::Translate(
+                Length::px(slide),
+                Length::ZERO,
+                Length::ZERO,
+            )])
+            .background(vec![
+                tagline_fill(front, &props.tagline_color, &props.tagline_tint).layer(),
+            ])
             .background_clip_text(true)
             .color(Color::TRANSPARENT),
         spans,
@@ -616,7 +688,7 @@ fn closing_shot(scene: &Scene<'_>, props: &AnnounceTitle, words: &[&str], frame:
             div(Style::default()
                 .transform(vec![
                     Transform::Translate(
-                        Length::px((STAR_REST_X - 0.5) * scene.width + slide),
+                        Length::px((STAR_REST_X - 0.5).mul_add(scene.width, slide)),
                         Length::ZERO,
                         Length::ZERO,
                     ),
@@ -632,7 +704,9 @@ fn closing_shot(scene: &Scene<'_>, props: &AnnounceTitle, words: &[&str], frame:
 
 fn fit_scales(scene: &Scene<'_>, weight: f64, lines: &[(&str, f64, f64, f64)]) -> Vec<f64> {
     let probes = lines.iter().map(|(text, size, tracking, _)| {
-        span(line_style(*size, *tracking, scene.face)).child(*text).into()
+        span(line_style(*size, *tracking, scene.face))
+            .child(*text)
+            .into()
     });
     let root: Node = div(absolute_fill().font_weight(weight))
         .child(
@@ -678,9 +752,19 @@ pub fn draw(props: &AnnounceTitle, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         &scene,
         weight,
         &[
-            (&props.eyebrow, EYEBROW_SIZE * scale, EYEBROW_TRACK, 0.55 * width),
+            (
+                &props.eyebrow,
+                EYEBROW_SIZE * scale,
+                EYEBROW_TRACK,
+                0.55 * width,
+            ),
             (&props.title, TITLE_SIZE * scale, TITLE_TRACK, 0.8 * width),
-            (&props.tagline, TAGLINE_SIZE * scale, TAGLINE_TRACK, 0.88 * width),
+            (
+                &props.tagline,
+                TAGLINE_SIZE * scale,
+                TAGLINE_TRACK,
+                0.88 * width,
+            ),
         ],
     );
     let eyebrow_size = EYEBROW_SIZE * scale * scales[0];
@@ -704,7 +788,13 @@ pub fn draw(props: &AnnounceTitle, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
             .into()
     } else if frame < PAPER_OUT {
         div(absolute_fill().background_color(cx.color(&props.paper_color)))
-            .child(title_line(&scene, &title_words, frame, title_size, &props.title_color))
+            .child(title_line(
+                &scene,
+                &title_words,
+                frame,
+                title_size,
+                &props.title_color,
+            ))
             .into()
     } else {
         let content = if frame < MACRO_OUT {
@@ -713,8 +803,8 @@ pub fn draw(props: &AnnounceTitle, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
             closing_shot(&scene, props, &tagline_words, frame, tagline_size)
         };
         div(absolute_fill().background_color(cx.color(&props.night_color)))
-        .children(content)
-        .into()
+            .children(content)
+            .into()
     };
     Ok(div(absolute_fill().font_weight(weight)).child(shot).into())
 }

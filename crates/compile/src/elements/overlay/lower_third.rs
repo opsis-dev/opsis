@@ -207,8 +207,16 @@ pub fn draw(props: &LowerThird, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     .child(text);
     Ok(div(overlay_padding(
         absolute_fill()
-            .justify_content(if top { Align::FlexStart } else { Align::FlexEnd })
-            .align_items(if right { Align::FlexEnd } else { Align::FlexStart }),
+            .justify_content(if top {
+                Align::FlexStart
+            } else {
+                Align::FlexEnd
+            })
+            .align_items(if right {
+                Align::FlexEnd
+            } else {
+                Align::FlexStart
+            }),
         f64::from(props.margin) * k,
         insets,
     ))

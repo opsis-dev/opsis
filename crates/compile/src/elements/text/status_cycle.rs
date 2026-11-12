@@ -19,9 +19,9 @@ use crate::elements::anim::{clamped, sprung};
 use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
 use crate::elements::oklch_mix::mix_oklch;
-use crate::elements::warm_theme::{resolve_font, warm_theme};
 use crate::elements::shared::{Colour, FontWeight};
 use crate::elements::theme::{Theme, ThemeMode, warm_themes};
+use crate::elements::warm_theme::{resolve_font, warm_theme};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -334,11 +334,11 @@ fn status_at(frame: f64, intro: f64, hold: f64, count: usize) -> (usize, f64) {
     }
     let mut index = 0;
     for i in 1..count {
-        if frame >= intro + float(i - 1) * hold {
+        if frame >= float(i - 1).mul_add(hold, intro) {
             index = i;
         }
     }
-    let since = frame - (intro + (float(index) - 1.0) * hold);
+    let since = frame - (float(index) - 1.0).mul_add(hold, intro);
     (index, since)
 }
 
@@ -348,17 +348,20 @@ fn chip_at(frame: f64, beat: f64, stagger: f64, count: usize) -> (usize, f64) {
     }
     let steps: usize = truncate(((frame - beat) / stagger).floor().max(0.0));
     let arrived = count.min(steps + 1);
-    (arrived, frame - beat - (float(arrived) - 1.0) * stagger)
+    (
+        arrived,
+        (float(arrived) - 1.0).mul_add(-stagger, frame - beat),
+    )
 }
 
 fn fit_scale(measured: f64, budget: f64) -> f64 {
-    if !(measured > 0.0) || !(budget > 0.0) {
+    if measured.is_nan() || budget.is_nan() || measured <= 0.0 || budget <= 0.0 {
         return 1.0;
     }
     (budget / measured).min(1.0)
 }
 
-fn or_theme<'a>(value: &'a str, fallback: &'a str) -> &'a str {
+const fn or_theme<'a>(value: &'a str, fallback: &'a str) -> &'a str {
     if value.is_empty() { fallback } else { value }
 }
 
@@ -392,7 +395,11 @@ fn measure(
 ) -> Metrics {
     let letters: Vec<Node> = glyphs
         .iter()
-        .map(|g| span(Style::default().display(Display::InlineBlock)).child(glyph_text(g)).into())
+        .map(|g| {
+            span(Style::default().display(Display::InlineBlock))
+                .child(glyph_text(g))
+                .into()
+        })
         .collect();
     let prefix = span(
         Style::default()
@@ -417,14 +424,24 @@ fn measure(
     .child(prefix);
     for text in labels {
         column = column.child(
-            span(Style::default().display(Display::InlineBlock).font_size(em).merged(typed))
-                .child(text.as_str()),
+            span(
+                Style::default()
+                    .display(Display::InlineBlock)
+                    .font_size(em)
+                    .merged(typed),
+            )
+            .child(text.as_str()),
         );
     }
     for text in chip_labels {
         column = column.child(
-            span(Style::default().display(Display::InlineBlock).font_size(chip_em).merged(chip_typed))
-                .child(text.as_str()),
+            span(
+                Style::default()
+                    .display(Display::InlineBlock)
+                    .font_size(chip_em)
+                    .merged(chip_typed),
+            )
+            .child(text.as_str()),
         );
     }
     let root: Node = div(absolute_fill()).child(column).into();
@@ -461,21 +478,23 @@ fn prefix_node(
 ) -> Result<Node, DrawFailure> {
     let mut spans = Vec::new();
     for (i, glyph) in glyphs.iter().enumerate() {
-        let p = sprung(frame - float(i) * stagger, fps, LETTER_SPRING)?;
+        let p = sprung(float(i).mul_add(-stagger, frame), fps, LETTER_SPRING)?;
         let scale = interpolate(p, &[0.0, 1.0], &[0.1, 1.0], &Interpolation::default())?;
         let left = metrics.letters.get(i).map_or(0.0, |l| l.0) * fit;
         spans.push(
-            span(Style::default()
-                .position(Position::Absolute)
-                .left(left)
-                .top(Length::ZERO)
-                .transform(vec![Transform::Scale(Num(scale), Num(scale), Num(1.0))])
-                .transform_origin((
-                    Length::percent(50.0),
-                    Length::px(metrics.baseline * fit),
-                    Length::ZERO,
-                ))
-                .merged(look.typed))
+            span(
+                Style::default()
+                    .position(Position::Absolute)
+                    .left(left)
+                    .top(Length::ZERO)
+                    .transform(vec![Transform::Scale(Num(scale), Num(scale), Num(1.0))])
+                    .transform_origin((
+                        Length::percent(50.0),
+                        Length::px(metrics.baseline * fit),
+                        Length::ZERO,
+                    ))
+                    .merged(look.typed),
+            )
             .child(glyph_text(glyph))
             .into(),
         );
@@ -503,7 +522,7 @@ struct PillLook {
     travel: f64,
 }
 
-fn pill_node(labels: &[String], index: usize, roll: f64, pill: PillLook, look: &Look<'_>) -> Node {
+fn pill_node(labels: &[String], index: usize, roll: f64, pill: &PillLook, look: &Look<'_>) -> Node {
     let label = |text: &str, offset: f64| -> Node {
         div(Style::default()
             .position(Position::Absolute)
@@ -550,7 +569,7 @@ fn pill_node(labels: &[String], index: usize, roll: f64, pill: PillLook, look: &
     reason = "the element follows the film's one view function in order"
 )]
 pub fn draw(props: &StatusCycle, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
-    let frame = cx.authored_frame() * props.speed - props.start_at;
+    let frame = cx.authored_frame().mul_add(props.speed, -props.start_at);
     let fps = Cx::authored_fps();
     let (width, height) = (cx.at.stage.width, cx.at.stage.height);
     let theme = warm_theme(&props.theme);
@@ -599,19 +618,22 @@ pub fn draw(props: &StatusCycle, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         (nominal_em, nominal_chip_em),
         (&typed, &chip_typed),
     );
-    let swap_at = |i: f64| props.intro_frames + (i - 1.0) * props.status_hold;
+    let swap_at = |i: f64| (i - 1.0).mul_add(props.status_hold, props.intro_frames);
     let act1_end = swap_at(float(labels.len())) + props.status_hold;
     let fade_frames = props.field_fade_time * fps;
     let beat = act1_end + fade_frames / 2.0;
-    let fade = clamped(frame, [act1_end, act1_end + fade_frames], [0.0, 1.0])?;
+    let faded = clamped(frame, [act1_end, act1_end + fade_frames], [0.0, 1.0])?;
     let raw_pad = props.pill_padding * props.pill_height * nominal_em;
     let raw_gap = props.pill_gap * props.pill_height * nominal_em;
     let widest = metrics.status_widths.iter().copied().fold(0.0, f64::max);
-    let act1_fit = fit_scale(metrics.prefix_width + raw_gap + widest + 2.0 * raw_pad, ACT1_FIT * width);
+    let act1_fit = fit_scale(
+        2.0f64.mul_add(raw_pad, metrics.prefix_width + raw_gap + widest),
+        ACT1_FIT * width,
+    );
     let widest_chip = metrics.chip_widths.iter().copied().fold(0.0, f64::max);
     let chip_fit = fit_scale(
-        widest_chip + 2.0 * props.chip_padding * nominal_chip_em,
-        (1.0 - 2.0 * props.chip_inset) * width,
+        (2.0 * props.chip_padding).mul_add(nominal_chip_em, widest_chip),
+        2.0f64.mul_add(-props.chip_inset, 1.0) * width,
     );
     let em = nominal_em * act1_fit;
     let chip_em = nominal_chip_em * chip_fit;
@@ -622,7 +644,7 @@ pub fn draw(props: &StatusCycle, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     let pill_widths: Vec<f64> = metrics
         .status_widths
         .iter()
-        .map(|w| w * act1_fit + 2.0 * pill_pad)
+        .map(|w| 2.0f64.mul_add(pill_pad, w * act1_fit))
         .collect();
     let width_frames = props.pill_resize_time * fps;
     let roll_frames = props.roll_time * fps;
@@ -655,7 +677,11 @@ pub fn draw(props: &StatusCycle, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         ..Spring::at(frame, fps)
     })?;
     let exit = settle((frame - beat) * (1.0 / EXIT_SECONDS / fps), 0.28);
-    let exit_y = if frame < beat { 0.0 } else { -exit * 0.62 * height };
+    let exit_y = if frame < beat {
+        0.0
+    } else {
+        -exit * 0.62 * height
+    };
     let total = prefix_width + gap + pill_w;
     let origin_x = (width - total) / 2.0;
     let cy = props.pill_center_y * height;
@@ -665,9 +691,12 @@ pub fn draw(props: &StatusCycle, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         cy,
     };
     let mut layers: Vec<Node> = vec![
-        div(absolute_fill().background_color(cx.color(&field)).opacity(1.0 - fade)).into(),
+        div(absolute_fill()
+            .background_color(cx.color(&field))
+            .opacity(1.0 - faded))
+        .into(),
     ];
-    if frame < beat + EXIT_SECONDS * fps {
+    if frame < EXIT_SECONDS.mul_add(fps, beat) {
         layers.push(
             div(Style::default()
                 .position(Position::Absolute)
@@ -684,14 +713,19 @@ pub fn draw(props: &StatusCycle, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
                 &glyphs,
                 &metrics,
                 (frame, fps),
-                (act1_fit, props.letter_stagger, origin_x, cx.color(prefix_ink)),
+                (
+                    act1_fit,
+                    props.letter_stagger,
+                    origin_x,
+                    cx.color(prefix_ink),
+                ),
                 &look,
             )?)
             .child(pill_node(
                 &labels,
                 index,
                 roll,
-                PillLook {
+                &PillLook {
                     x: origin_x + prefix_width + gap,
                     width: pill_w,
                     height: pill_h,
@@ -710,11 +744,14 @@ pub fn draw(props: &StatusCycle, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         let step = props.chip_gap.mul_add(height, chip_h);
         let (arrived, since) = chip_at(frame, beat, props.chip_stagger, chip_labels.len());
         let p = settle(since, SCROLL_TAU * fps);
-        let field_y = height - props.chip_gap * height - chip_h - (float(arrived) - 2.0 + p) * step;
+        let field_y = (float(arrived) - 2.0 + p)
+            .mul_add(-step, props.chip_gap.mul_add(-height, height) - chip_h);
         let mut chips = Vec::new();
         for (i, text) in chip_labels.iter().take(arrived).enumerate() {
-            let w = metrics.chip_widths.get(i).copied().unwrap_or(0.0) * chip_fit
-                + 2.0 * props.chip_padding * chip_em;
+            let w = (2.0 * props.chip_padding).mul_add(
+                chip_em,
+                metrics.chip_widths.get(i).copied().unwrap_or(0.0) * chip_fit,
+            );
             let fill = fills.get(i % fills.len().max(1)).map_or("", String::as_str);
             let mut style = Style::default()
                 .position(Position::Absolute)

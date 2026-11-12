@@ -143,31 +143,39 @@ fn kinetic_word(
         Easing::ease_out(Easing::Cubic),
     )?;
     let emphasis = cx.color(&props.emphasis_color);
-    let mut node = span(Style::default()
-        .position(Position::Relative)
-        .display(Display::InlineBlock)
-        .color(if word.em {
-            emphasis.clone()
-        } else {
-            cx.color(&props.color)
-        })
-        .opacity(clamped(frame, [0.0, WORD_FADE_FRAMES], [0.0, 1.0])?)
-        .transform(vec![
-            Transform::Translate(Length::ZERO, Length::em((1.0 - s) * props.rise), Length::ZERO),
-            Transform::Rotate(Angle::deg((1.0 - s) * props.tilt)),
-        ]))
+    let mut node = span(
+        Style::default()
+            .position(Position::Relative)
+            .display(Display::InlineBlock)
+            .color(if word.em {
+                emphasis.clone()
+            } else {
+                cx.color(&props.color)
+            })
+            .opacity(clamped(frame, [0.0, WORD_FADE_FRAMES], [0.0, 1.0])?)
+            .transform(vec![
+                Transform::Translate(
+                    Length::ZERO,
+                    Length::em((1.0 - s) * props.rise),
+                    Length::ZERO,
+                ),
+                Transform::Rotate(Angle::deg((1.0 - s) * props.tilt)),
+            ]),
+    )
     .child(word.word.as_str());
     if word.em && props.underline_emphasis {
-        node = node.child(span(Style::default()
-            .position(Position::Absolute)
-            .left(Length::ZERO)
-            .right(Length::ZERO)
-            .bottom(Length::em(UNDERLINE_BOTTOM_EM))
-            .height(Length::em(UNDERLINE_HEIGHT_EM))
-            .background_color(emphasis)
-            .transform_origin((Length::ZERO, Length::percent(50.0), Length::ZERO))
-            .transform(vec![Transform::Scale(Num(sweep), Num(1.0), Num(1.0))])
-            .border_radius_all(UNDERLINE_RADIUS)));
+        node = node.child(span(
+            Style::default()
+                .position(Position::Absolute)
+                .left(Length::ZERO)
+                .right(Length::ZERO)
+                .bottom(Length::em(UNDERLINE_BOTTOM_EM))
+                .height(Length::em(UNDERLINE_HEIGHT_EM))
+                .background_color(emphasis)
+                .transform_origin((Length::ZERO, Length::percent(50.0), Length::ZERO))
+                .transform(vec![Transform::Scale(Num(sweep), Num(1.0), Num(1.0))])
+                .border_radius_all(UNDERLINE_RADIUS),
+        ));
     }
     Ok(node.into())
 }
@@ -190,7 +198,10 @@ pub fn draw(props: &KineticHeadline, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     let body = div(absolute_fill()
         .align_items(Align::Center)
         .justify_content(Align::Center)
-        .padding(Edges::axes(Length::ZERO, Length::percent(props.side_margin)))
+        .padding(Edges::axes(
+            Length::ZERO,
+            Length::percent(props.side_margin),
+        ))
         .opacity(exit_opacity(
             frame,
             cx.duration(),

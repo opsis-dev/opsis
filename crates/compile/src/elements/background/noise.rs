@@ -109,7 +109,8 @@ pub fn draw(props: &Noise, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
             let offset = f64::from(i) * BLOB_NOISE_SPACING * props.scale;
             let x = field.at(offset, 0.0, time).mul_add(props.wander, 50.0);
             let y = field.at(offset, Y_LANE, time).mul_add(props.wander, 50.0);
-            let r = random(seeded(&format!("r{i}"), props.seed)).mul_add(BLOB_RADIUS_SPREAD_PERCENT, props.blob_size);
+            let r = random(seeded(&format!("r{i}"), props.seed))
+                .mul_add(BLOB_RADIUS_SPREAD_PERCENT, props.blob_size);
             Painted::radial(
                 RadialShape::Circle,
                 Position2 {

@@ -91,27 +91,32 @@ fn read_spec(dir: &Path) -> TimelineSpec {
 fn items_drawn(tracks: &[TimelineTrack], cx: &Cx<'_>) -> bool {
     tracks.iter().flat_map(|t| t.items.iter()).all(|item| {
         let base = item.base();
-        let presented = [&base.enter, &base.exit].into_iter().flatten().all(|transition| {
-            presentation(
-                &transition.kind,
-                transition.params.as_ref(),
-                Transition {
-                    entering: true,
-                    progress: 0.0,
-                    duration: 1.0,
-                    children: Vec::new(),
-                },
-                cx,
-            )
-            .is_ok_and(|d| d.is_some())
-        });
+        let presented = [&base.enter, &base.exit]
+            .into_iter()
+            .flatten()
+            .all(|transition| {
+                presentation(
+                    &transition.kind,
+                    transition.params.as_ref(),
+                    Transition {
+                        entering: true,
+                        progress: 0.0,
+                        duration: 1.0,
+                        children: Vec::new(),
+                    },
+                    cx,
+                )
+                .is_ok_and(|d| d.is_some())
+            });
         presented
             && match item {
                 TimelineItem::Element {
                     component, props, ..
                 } => element(component, props, cx).is_ok_and(|d| d.is_some()),
                 TimelineItem::Group { props, .. } => {
-                    props.wrapper.is_none() && props.sequencer.is_none() && items_drawn(&props.tracks, cx)
+                    props.wrapper.is_none()
+                        && props.sequencer.is_none()
+                        && items_drawn(&props.tracks, cx)
                 }
                 TimelineItem::Recording { .. } => false,
             }

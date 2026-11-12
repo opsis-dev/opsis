@@ -7,7 +7,10 @@ import {
   type MorphShapeName,
 } from "#video/elements/transition/transition-morph-shape/path-morph.ts";
 
-const FIXTURE = path.resolve(import.meta.dirname, "../../../../../../fixtures/scene/path-morph.json");
+const FIXTURE = path.resolve(
+  import.meta.dirname,
+  "../../../../../../fixtures/scene/path-morph.json",
+);
 
 const SHAPES = Object.keys(MORPH_SHAPES) as MorphShapeName[];
 

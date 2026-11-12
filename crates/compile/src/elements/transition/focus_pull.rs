@@ -8,8 +8,8 @@ use opsis_types::looks::NodeLook;
 
 use crate::elements::anim::{clamped, clamped_eased};
 use crate::elements::draw::{Cx, DrawFailure, Transition};
-use crate::elements::transition::present::filled;
 use crate::elements::entry::{element, meta};
+use crate::elements::transition::present::filled;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -45,7 +45,7 @@ pub fn definition() -> ElementMeta {
 const ENTER_GLOW_SHARE: f64 = 25.0 / 30.0;
 const ENTER_ZOOM_SHARE: f64 = 0.6;
 
-fn smooth() -> Easing {
+const fn smooth() -> Easing {
     Easing::Bezier(0.42, 0.0, 0.58, 1.0)
 }
 
@@ -65,7 +65,12 @@ pub fn present(props: &FocusPull, side: Transition, _: &Cx<'_>) -> Result<Node, 
             .opacity(clamped(p, [0.32, 0.52], [0.0, 1.0])?)
             .scale(scale, scale)
             .filter(vec![
-                Filter::Blur(Length::px(clamped_eased(p, [0.35, 0.9], [blur, 0.0], Easing::ease_out(Easing::Quad))?)),
+                Filter::Blur(Length::px(clamped_eased(
+                    p,
+                    [0.35, 0.9],
+                    [blur, 0.0],
+                    Easing::ease_out(Easing::Quad),
+                )?)),
                 Filter::Brightness(Num(clamped(p, [0.4, 0.85], [in_glow, 1.0])?)),
             ])
     } else {
@@ -74,9 +79,14 @@ pub fn present(props: &FocusPull, side: Transition, _: &Cx<'_>) -> Result<Node, 
             .opacity(clamped_eased(p, [0.42, 0.68], [1.0, 0.0], smooth())?)
             .scale(scale, scale)
             .filter(vec![
-                Filter::Blur(Length::px(clamped_eased(p, [0.05, 0.55], [0.0, blur], Easing::ease_in(Easing::Quad))?)),
+                Filter::Blur(Length::px(clamped_eased(
+                    p,
+                    [0.05, 0.55],
+                    [0.0, blur],
+                    Easing::ease_in(Easing::Quad),
+                )?)),
                 Filter::Brightness(Num(clamped(p, [0.1, 0.55], [1.0, out_glow])?)),
             ])
     };
-    Ok(filled(style, side.children))
+    Ok(filled(&style, side.children))
 }

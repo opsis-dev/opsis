@@ -195,7 +195,10 @@ fn lit_level(props: &NeonFlickerText, unit: &Unit, frame: f64, hum_step: f64) ->
             props.off_level
         }
     } else {
-        let wave = 0.5_f64.mul_add(index.mul_add(HUM_PHASE_PER_UNIT, frame * hum_step).sin(), 0.5);
+        let wave = 0.5_f64.mul_add(
+            index.mul_add(HUM_PHASE_PER_UNIT, frame * hum_step).sin(),
+            0.5,
+        );
         let stutter = props.buzz > 0.0
             && random(format!(
                 "{}:{}:{}",

@@ -6,9 +6,9 @@ use opsis_types::looks::NodeLook;
 use opsis_types::numbers::truncate;
 
 use crate::elements::draw::{Cx, DrawFailure, Transition};
-use crate::elements::transition::present::filled;
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::NoSettings;
+use crate::elements::transition::present::filled;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 pub fn definition() -> ElementMeta {
@@ -44,14 +44,14 @@ pub fn clock_points(width: f64, height: f64, progress: f64) -> Vec<(f64, f64)> {
 
 pub fn present(_: &NoSettings, side: Transition, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     if !side.entering {
-        return Ok(filled(Style::default(), side.children));
+        return Ok(filled(&Style::default(), side.children));
     }
     let points = clock_points(cx.at.stage.width, cx.at.stage.height, side.progress)
         .into_iter()
         .map(|(x, y)| (Length::px(x), Length::px(y)))
         .collect();
     Ok(filled(
-        Style::default().clip_path(ClipPath::Polygon {
+        &Style::default().clip_path(ClipPath::Polygon {
             fill: FillRule::Nonzero,
             points,
         }),

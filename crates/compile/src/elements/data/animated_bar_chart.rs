@@ -131,14 +131,14 @@ pub fn draw(props: &AnimatedBarChart, cx: &Cx<'_>) -> Result<Node, DrawFailure> 
     let frame = cx.authored_frame() * props.speed;
     let (width, height) = (f64::from(props.width), f64::from(props.height));
     let count = float(data.len());
-    let inner_width = width - PADDING * 2.0;
-    let inner_height = height - PADDING * 2.0 - if labelled { LABEL_SPACE } else { 0.0 };
+    let inner_width = PADDING.mul_add(-2.0, width);
+    let inner_height = PADDING.mul_add(-2.0, height) - if labelled { LABEL_SPACE } else { 0.0 };
     let largest = data.iter().copied().fold(0.0, f64::max);
     let max = if largest > 0.0 { largest } else { 1.0 };
     let fit_gap = f64::from(props.gap)
         .min((inner_width - count) / (count - 1.0).max(1.0))
         .max(0.0);
-    let bar_width = ((inner_width - fit_gap * (count - 1.0)) / count).max(1.0);
+    let bar_width = (f64::mul_add(fit_gap, -(count - 1.0), inner_width) / count).max(1.0);
     let base_y = PADDING + inner_height;
     let shadow = with_alpha(&props.bar_color, props.glow / 100.0);
     let mut root = SvgElement::new("svg")
@@ -160,7 +160,10 @@ pub fn draw(props: &AnimatedBarChart, cx: &Cx<'_>) -> Result<Node, DrawFailure> 
         let y = base_y - target;
         let grow = spring(&Spring {
             config: BAR_SPRING,
-            ..Spring::at(float(index).mul_add(-props.stagger_frames, frame), Cx::authored_fps())
+            ..Spring::at(
+                float(index).mul_add(-props.stagger_frames, frame),
+                Cx::authored_fps(),
+            )
         })?;
         let (ox, oy) = (x + (x + bar_width / 2.0), y + base_y);
         let mut group = SvgElement::new("g").child(
@@ -186,8 +189,10 @@ pub fn draw(props: &AnimatedBarChart, cx: &Cx<'_>) -> Result<Node, DrawFailure> 
         );
         let label = &props.bars[index].label;
         if labelled && !label.is_empty() {
-            let size = f64::from(props.label_size)
-                .min(fit_gap.mul_add(0.8, bar_width) / (float(label.encode_utf16().count()) * 0.56).max(1.0));
+            let size = f64::from(props.label_size).min(
+                fit_gap.mul_add(0.8, bar_width)
+                    / (float(label.encode_utf16().count()) * 0.56).max(1.0),
+            );
             group = group.child(
                 SvgElement::new("text")
                     .attr("x", x + bar_width / 2.0)

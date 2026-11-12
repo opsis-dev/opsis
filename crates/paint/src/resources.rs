@@ -142,8 +142,6 @@ impl<'a> Resources<'a> {
                 .is_some_and(|e| e.eq_ignore_ascii_case("svg"))
     }
 
-
-
     pub fn svg(&mut self, source: &str) -> Option<&usvg::Tree> {
         let files = self.files;
         let options = &self.options;
@@ -196,7 +194,9 @@ impl<'a> Resources<'a> {
 }
 
 fn hex_value(digit: u8) -> Option<u8> {
-    char::from(digit).to_digit(16).and_then(|d| u8::try_from(d).ok())
+    char::from(digit)
+        .to_digit(16)
+        .and_then(|d| u8::try_from(d).ok())
 }
 
 fn percent_decoded(text: &str) -> Vec<u8> {
@@ -204,7 +204,10 @@ fn percent_decoded(text: &str) -> Vec<u8> {
     let mut out = Vec::with_capacity(bytes.len());
     let mut i = 0;
     while i < bytes.len() {
-        let pair = (bytes.get(i + 1).copied().and_then(hex_value), bytes.get(i + 2).copied().and_then(hex_value));
+        let pair = (
+            bytes.get(i + 1).copied().and_then(hex_value),
+            bytes.get(i + 2).copied().and_then(hex_value),
+        );
         match (bytes[i], pair) {
             (b'%', (Some(high), Some(low))) => {
                 out.push(high * 16 + low);
@@ -223,7 +226,9 @@ fn data_bytes(rest: &str) -> Option<Vec<u8>> {
     use base64::Engine as _;
     let (header, payload) = rest.split_once(',')?;
     if header.ends_with(";base64") {
-        base64::engine::general_purpose::STANDARD.decode(payload.trim()).ok()
+        base64::engine::general_purpose::STANDARD
+            .decode(payload.trim())
+            .ok()
     } else {
         Some(percent_decoded(payload))
     }

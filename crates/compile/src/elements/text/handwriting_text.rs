@@ -12,9 +12,9 @@ use opsis_types::looks::{NodeLook, NodeMotion};
 use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
 use crate::elements::parts::split_chars::{SplitChars, SplitEffect, split_chars};
+use crate::elements::shared::FontWeight;
 use crate::elements::text_split::{SplitMode, SplitOrder, SplitTiming, Unit};
 use crate::elements::units::to_fixed;
-use crate::elements::shared::FontWeight;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -154,30 +154,36 @@ fn unit_node(props: &HandwritingText, nib: &Color, softness: f64, unit: &Unit) -
     let tilt = jitter(&props.seed, unit.index, 1) * props.wobble;
     let drift = jitter(&props.seed, unit.index, 2) * props.wobble * DRIFT_EM;
     let writing = written > WRITING_FROM && written < WRITING_UNTIL;
-    let letter = span(Style::default()
-        .display(Display::InlineBlock)
-        .mask(vec![ink_mask(stop, softness)]))
+    let letter = span(
+        Style::default()
+            .display(Display::InlineBlock)
+            .mask(vec![ink_mask(stop, softness)]),
+    )
     .child(unit.text.as_str());
-    let mut wrapper = span(Style::default()
-        .position(Position::Relative)
-        .display(Display::InlineBlock)
-        .white_space(WhiteSpace::Pre)
-        .opacity(unit.opacity)
-        .rotate(Angle::deg(to_fixed(tilt, 3)))
-        .translate(Length::ZERO, Length::em(to_fixed(drift, 4))))
+    let mut wrapper = span(
+        Style::default()
+            .position(Position::Relative)
+            .display(Display::InlineBlock)
+            .white_space(WhiteSpace::Pre)
+            .opacity(unit.opacity)
+            .rotate(Angle::deg(to_fixed(tilt, 3)))
+            .translate(Length::ZERO, Length::em(to_fixed(drift, 4))),
+    )
     .child(letter);
     if props.pen_size > 0.0 {
         let pen = Length::em(props.pen_size);
-        wrapper = wrapper.child(span(Style::default()
-            .position(Position::Absolute)
-            .left(Length::percent(to_fixed(stop, 2)))
-            .bottom(Length::em(PEN_LIFT_EM))
-            .width(pen.clone())
-            .height(pen)
-            .margin_left(Length::em(to_fixed(-props.pen_size / 2.0, 4)))
-            .border_radius_all(Length::percent(50.0))
-            .background_color(nib.clone())
-            .opacity(if writing { unit.opacity } else { 0.0 })));
+        wrapper = wrapper.child(span(
+            Style::default()
+                .position(Position::Absolute)
+                .left(Length::percent(to_fixed(stop, 2)))
+                .bottom(Length::em(PEN_LIFT_EM))
+                .width(pen.clone())
+                .height(pen)
+                .margin_left(Length::em(to_fixed(-props.pen_size / 2.0, 4)))
+                .border_radius_all(Length::percent(50.0))
+                .background_color(nib.clone())
+                .opacity(if writing { unit.opacity } else { 0.0 }),
+        ));
     }
     wrapper.into()
 }

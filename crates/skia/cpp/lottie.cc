@@ -1,5 +1,6 @@
 #include <utility>
 
+#include "convert.h"
 #include "include/codec/SkCodec.h"
 #include "include/codec/SkJpegDecoder.h"
 #include "include/codec/SkPngDecoder.h"
@@ -9,7 +10,6 @@
 #include "include/ports/SkFontMgr_empty.h"
 #include "modules/skottie/include/Skottie.h"
 #include "modules/skresources/include/SkResources.h"
-#include "convert.h"
 #include "opsis_skia.h"
 
 namespace opsis::skia {

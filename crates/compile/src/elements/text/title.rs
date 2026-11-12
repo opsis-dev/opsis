@@ -13,10 +13,9 @@ use serde_json::{Value, json};
 use crate::elements::anim::{Entrance as LineEntrance, entrance_style, exit_opacity};
 use crate::elements::backgrounds::backgrounded;
 use crate::elements::draw::{Cx, DrawFailure, element as draw_element};
-use crate::elements::element_meta;
 use crate::elements::entry::{element, meta};
 use crate::elements::fonts::{FontRole, font_or};
-use crate::elements::{ElementCategory, ElementKind, ElementMeta};
+use crate::elements::{ElementCategory, ElementKind, ElementMeta, element_meta};
 
 #[choice(export)]
 pub enum TitleAlign {
@@ -219,7 +218,8 @@ const fn line_entrance(entrance: Entrance) -> LineEntrance {
 
 fn weight_for(usual: Option<&Value>, weight: f64) -> Value {
     if usual.is_some_and(Value::is_string) {
-        let rounded = ((weight / 100.0).round() * 100.0).clamp(SIDE_ALIGN_WEIGHT_MIN, SIDE_ALIGN_WEIGHT_MAX);
+        let rounded =
+            ((weight / 100.0).round() * 100.0).clamp(SIDE_ALIGN_WEIGHT_MIN, SIDE_ALIGN_WEIGHT_MAX);
         Value::String(js_number_text(rounded))
     } else {
         json!(weight)
@@ -227,8 +227,7 @@ fn weight_for(usual: Option<&Value>, weight: f64) -> Value {
 }
 
 fn animated_line(props: &Title, key: &str, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
-    let mut drawn_props = element_meta(key)
-        .map_or_default(|meta| meta.default_props.clone());
+    let mut drawn_props = element_meta(key).map_or_default(|meta| meta.default_props.clone());
     let weight = weight_for(drawn_props.get("fontWeight"), f64::from(props.font_weight));
     let family = props_font(&props.font_family);
     for (name, value) in [
@@ -339,15 +338,26 @@ pub fn draw(props: &Title, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
                     .opacity(if faded { SUBTITLE_FADE } else { 1.0 }),
             },
             &props.subtitle,
-            if faded { &props.color } else { &props.subtitle_color },
+            if faded {
+                &props.color
+            } else {
+                &props.subtitle_color
+            },
             cx,
         )?);
     }
     let centered = props.align == TitleAlign::Center;
     let body = div(absolute_fill()
-        .align_items(if centered { Align::Center } else { Align::FlexStart })
+        .align_items(if centered {
+            Align::Center
+        } else {
+            Align::FlexStart
+        })
         .justify_content(Align::Center)
-        .padding(Edges::axes(Length::ZERO, Length::percent(props.side_margin)))
+        .padding(Edges::axes(
+            Length::ZERO,
+            Length::percent(props.side_margin),
+        ))
         .text_align(if centered {
             SceneTextAlign::Center
         } else {

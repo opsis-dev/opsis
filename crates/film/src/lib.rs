@@ -50,7 +50,10 @@ fn animation_timing(bytes: &[u8]) -> Option<AnimationTiming> {
     let json = opsis_paint::lottie::animation_json(bytes)?;
     let value: serde_json::Value = serde_json::from_slice(&json).ok()?;
     Some(AnimationTiming {
-        in_point: value.get("ip").and_then(serde_json::Value::as_f64).unwrap_or(0.0),
+        in_point: value
+            .get("ip")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or(0.0),
         out_point: value.get("op")?.as_f64()?,
         frame_rate: value.get("fr")?.as_f64()?,
     })

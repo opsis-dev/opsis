@@ -19,8 +19,8 @@ use crate::elements::entry::{element, meta};
 use crate::elements::fonts::{FontRole, font_or};
 use crate::elements::number_text::{Direction, format_number, read_delta};
 use crate::elements::parts::line_chart::{LineChart, line_chart};
-use crate::elements::text_split::easing_enter;
 use crate::elements::shared::NumberFormat;
+use crate::elements::text_split::easing_enter;
 use crate::elements::theme::{Theme, ThemeMode, metric_ticker_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
@@ -225,7 +225,10 @@ fn card(
     let figure = format!(
         "{}{}{}",
         metric.prefix.as_deref().unwrap_or(""),
-        format_number((metric.value - from).mul_add(enter, from), props.number_format),
+        format_number(
+            (metric.value - from).mul_add(enter, from),
+            props.number_format
+        ),
         metric.suffix.as_deref().unwrap_or("")
     );
     let mut value_row = div(Style::default()
@@ -234,16 +237,18 @@ fn card(
         .gap(scale_font(12.0, width))
         .flex_wrap(FlexWrap::Wrap))
     .child(
-        span(Style::default()
-            .color(css_color(card_color))
-            .font_size(scale_font(if portrait { 76.0 } else { 64.0 }, width))
-            .font_weight(700.0)
-            .line_height(LineHeight::Number(Num(1.0)))
-            .letter_spacing(Length::em(-0.03))
-            .font_variant_numeric(NumericVariant {
-                tabular: true,
-                ..NumericVariant::default()
-            }))
+        span(
+            Style::default()
+                .color(css_color(card_color))
+                .font_size(scale_font(if portrait { 76.0 } else { 64.0 }, width))
+                .font_weight(700.0)
+                .line_height(LineHeight::Number(Num(1.0)))
+                .letter_spacing(Length::em(-0.03))
+                .font_variant_numeric(NumericVariant {
+                    tabular: true,
+                    ..NumericVariant::default()
+                }),
+        )
         .child(figure),
     );
     if !delta_text.is_empty() {
@@ -252,14 +257,20 @@ fn card(
             Direction::Down => "\u{2193}",
             Direction::Flat => "",
         };
-        let arrow = if props.show_arrows { format!("{glyph} ") } else { String::new() };
+        let arrow = if props.show_arrows {
+            format!("{glyph} ")
+        } else {
+            String::new()
+        };
         value_row = value_row.child(
-            span(Style::default()
-                .color(css_color(delta_color))
-                .font_size(scale_font(22.0, width))
-                .font_weight(600.0)
-                .line_height(LineHeight::Number(Num(1.0)))
-                .opacity(detail))
+            span(
+                Style::default()
+                    .color(css_color(delta_color))
+                    .font_size(scale_font(22.0, width))
+                    .font_weight(600.0)
+                    .line_height(LineHeight::Number(Num(1.0)))
+                    .opacity(detail),
+            )
             .child(format!("{arrow}{delta_text}")),
         );
     }
@@ -276,7 +287,10 @@ fn card(
                 color: Some(css_color(palette.get("border"))),
             }))
             .opacity((enter * 1.6).min(1.0))
-            .translate(Length::ZERO, Length::px((1.0 - enter) * scale_font(22.0, width))),
+            .translate(
+                Length::ZERO,
+                Length::px((1.0 - enter) * scale_font(22.0, width)),
+            ),
         palette.get("card"),
     ))
     .child(
@@ -290,12 +304,21 @@ fn card(
     .child(value_row);
     if let Some(trend) = metric.trend.as_ref().filter(|t| t.len() > 1) {
         let mut chart = LineChart::new(
-            trend.iter().enumerate().map(|(i, v)| (float(i), *v, None)).collect(),
-            f64::from(whole(card_width - padding * 2.0)).max(1.0),
+            trend
+                .iter()
+                .enumerate()
+                .map(|(i, v)| (float(i), *v, None))
+                .collect(),
+            f64::from(whole(f64::mul_add(padding, -2.0, card_width))).max(1.0),
             scale_font(if portrait { 56.0 } else { 64.0 }, width),
             frame,
         );
-        chart.color = (if delta_text.is_empty() { card_color } else { delta_color }).to_owned();
+        (if delta_text.is_empty() {
+            card_color
+        } else {
+            delta_color
+        })
+        .clone_into(&mut chart.color);
         chart.stroke_width = Some(scale_font(3.0, width).max(2.0));
         chart.show_axis = false;
         chart.show_x_labels = false;
@@ -337,8 +360,8 @@ pub fn draw(props: &MetricTicker, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     let columns = if portrait { 1 } else { cards.len().max(1) };
     let gap = scale_font(20.0, width);
     let padding = scale_font(28.0, width);
-    let content = width - side * 2.0;
-    let card_width = (content - gap * (float(columns) - 1.0)) / float(columns);
+    let content = f64::mul_add(side, -2.0, width);
+    let card_width = gap.mul_add(-(float(columns) - 1.0), content) / float(columns);
     let header = clamped_eased(frame, [0.0, DURATION_NORMAL], [0.0, 1.0], easing_enter())?;
     let glow = Gradient::Radial {
         shape: RadialShape::Ellipse,
@@ -366,29 +389,31 @@ pub fn draw(props: &MetricTicker, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     } else {
         props.background_color.as_str()
     };
-    let mut root = div(with_background(
-        Style::default().width(width).height(height),
-        page,
-    )
-    .background(vec![glow.layer()])
-    .color(css_color(palette.get("ink")))
-    .font_family(font_or(&props.font_family, FontRole::Main))
-    .padding(Edges {
-        top: Length::px(edge),
-        right: Length::px(side),
-        bottom: Length::px(edge),
-        left: Length::px(side),
-    })
-    .display(Display::Flex)
-    .flex_direction(FlexDirection::Column)
-    .justify_content(Align::Center)
-    .gap(scale_font(44.0, width)));
+    let mut root = div(
+        with_background(Style::default().width(width).height(height), page)
+            .background(vec![glow.layer()])
+            .color(css_color(palette.get("ink")))
+            .font_family(font_or(&props.font_family, FontRole::Main))
+            .padding(Edges {
+                top: Length::px(edge),
+                right: Length::px(side),
+                bottom: Length::px(edge),
+                left: Length::px(side),
+            })
+            .display(Display::Flex)
+            .flex_direction(FlexDirection::Column)
+            .justify_content(Align::Center)
+            .gap(scale_font(44.0, width)),
+    );
     if !props.title.is_empty() || !props.eyebrow.is_empty() {
         let mut head = div(Style::default()
             .display(Display::Grid)
             .gap(scale_font(10.0, width))
             .opacity(header)
-            .translate(Length::ZERO, Length::px((1.0 - header) * scale_font(16.0, width))));
+            .translate(
+                Length::ZERO,
+                Length::px((1.0 - header) * scale_font(16.0, width)),
+            ));
         if !props.eyebrow.is_empty() {
             let mut eyebrow = Style::default()
                 .color(css_color(palette.get("eyebrow")))

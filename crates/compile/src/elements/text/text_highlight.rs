@@ -1,7 +1,7 @@
 use opsis_macros::{choice, settings};
 use opsis_scene::color::Color;
 use opsis_scene::css::{font_family, with_background};
-use opsis_scene::node::{Node, span, div};
+use opsis_scene::node::{Node, div, span};
 use opsis_scene::paint::{ColorStop, Gradient, LayerSize, Transform};
 use opsis_scene::spring::{DEFAULT_SPRING, Spring, SpringConfig, spring};
 use opsis_scene::style::{
@@ -15,9 +15,9 @@ use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
 use crate::elements::fonts::{FontRole, font_or};
 use crate::elements::oklch_mix::{interpolated_color, lightness, with_alpha};
-use crate::elements::warm_theme::{resolve_font, warm_theme};
 use crate::elements::shared::FontWeight;
 use crate::elements::theme::{Theme, ThemeMode, warm_themes};
+use crate::elements::warm_theme::{resolve_font, warm_theme};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[choice(export)]
@@ -243,11 +243,15 @@ fn lighter_of<'a>(a: &'a str, b: &'a str) -> &'a str {
 fn shine_position(frame: f64, start: f64, duration: f64, sweeps: u32) -> Result<f64, DrawFailure> {
     let count = f64::from(sweeps.max(1));
     let progress = clamped(frame, [start, duration.mul_add(count, start)], [0.0, count])?;
-    let pass = if progress >= count { 1.0 } else { progress - progress.floor() };
+    let pass = if progress >= count {
+        1.0
+    } else {
+        progress - progress.floor()
+    };
     clamped(pass, [0.0, 1.0], [200.0, -100.0])
 }
 
-fn non_empty<'a>(value: &'a str, fallback: &'a str) -> &'a str {
+const fn non_empty<'a>(value: &'a str, fallback: &'a str) -> &'a str {
     if value.is_empty() { fallback } else { value }
 }
 
@@ -273,30 +277,36 @@ fn highlight_node(
     let thickness = f64::from(props.thickness);
     let swept = || clamped(sweep, [SHADE_FROM, SHADE_TO], [0.0, 1.0]);
     let wrapper = || {
-        span(Style::default()
-            .position(Position::Relative)
-            .display(Display::InlineBlock))
+        span(
+            Style::default()
+                .position(Position::Relative)
+                .display(Display::InlineBlock),
+        )
     };
     let left_center = (Length::ZERO, Length::percent(50.0), Length::ZERO);
     let scale_x = vec![Transform::Scale(Num(sweep), Num(1.0), Num(1.0))];
     Ok(match props.preset {
         HighlightPreset::Marker => wrapper()
-            .child(span(Style::default()
-                .position(Position::Absolute)
-                .left(Length::em(-0.12))
-                .right(Length::em(-0.12))
-                .bottom(Length::em(-0.02))
-                .height(Length::percent(props.marker_height * 100.0))
-                .background_color(cx.color(&with_alpha(accent, props.marker_opacity / 100.0)))
-                .border_radius_all(Length::em(0.12))
-                .transform_origin(left_center)
-                .transform(scale_x)
-                .z_index(0)))
+            .child(span(
+                Style::default()
+                    .position(Position::Absolute)
+                    .left(Length::em(-0.12))
+                    .right(Length::em(-0.12))
+                    .bottom(Length::em(-0.02))
+                    .height(Length::percent(props.marker_height * 100.0))
+                    .background_color(cx.color(&with_alpha(accent, props.marker_opacity / 100.0)))
+                    .border_radius_all(Length::em(0.12))
+                    .transform_origin(left_center)
+                    .transform(scale_x)
+                    .z_index(0),
+            ))
             .child(
-                span(Style::default()
-                    .position(Position::Relative)
-                    .z_index(1)
-                    .color(shaded(swept()?, base, emphasis)?))
+                span(
+                    Style::default()
+                        .position(Position::Relative)
+                        .z_index(1)
+                        .color(shaded(swept()?, base, emphasis)?),
+                )
                 .child(props.highlight.as_str()),
             )
             .into(),
@@ -315,64 +325,74 @@ fn highlight_node(
                 span(Style::default().color(shaded(swept()?, base, emphasis)?))
                     .child(props.highlight.as_str()),
             )
-            .child(span(Style::default()
-                .position(Position::Absolute)
-                .left(Length::ZERO)
-                .right(Length::ZERO)
-                .bottom(Length::em(-0.06))
-                .height(thickness)
-                .background_color(cx.color(accent))
-                .border_radius_all(thickness / 2.0)
-                .transform_origin(left_center)
-                .transform(scale_x)))
+            .child(span(
+                Style::default()
+                    .position(Position::Absolute)
+                    .left(Length::ZERO)
+                    .right(Length::ZERO)
+                    .bottom(Length::em(-0.06))
+                    .height(thickness)
+                    .background_color(cx.color(accent))
+                    .border_radius_all(thickness / 2.0)
+                    .transform_origin(left_center)
+                    .transform(scale_x),
+            ))
             .into(),
         HighlightPreset::Strikethrough => {
             let draw_end = props.start_at + props.draw_duration;
             let fade_end = draw_end + props.swap_length;
             let cell = (GridLine::Line(1), GridLine::Auto);
             let replacement = non_empty(&props.replace_with, &props.highlight);
-            span(Style::default()
-                .display(Display::InlineGrid)
-                .vertical_align(VerticalAlign::Baseline)
-                .justify_items(Align::Center))
-            .child(
-                span(Style::default()
-                    .grid_row(cell)
-                    .grid_column(cell)
-                    .position(Position::Relative)
-                    .white_space(WhiteSpace::Pre)
-                    .opacity(clamped(frame, [draw_end, fade_end], [1.0, 0.0])?))
-                .child(props.highlight.as_str())
-                .child(span(Style::default()
-                    .position(Position::Absolute)
-                    .left(Length::ZERO)
-                    .top(Length::percent(50.0))
-                    .height(thickness)
-                    .width(Length::percent(clamped(
-                        frame,
-                        [props.start_at, draw_end],
-                        [0.0, 100.0],
-                    )?))
-                    .background_color(cx.color(accent))
-                    .transform(vec![Transform::Translate(
-                        Length::ZERO,
-                        Length::percent(-50.0),
-                        Length::ZERO,
-                    )])
-                    .border_radius_all(thickness / 2.0))),
+            span(
+                Style::default()
+                    .display(Display::InlineGrid)
+                    .vertical_align(VerticalAlign::Baseline)
+                    .justify_items(Align::Center),
             )
             .child(
-                span(Style::default()
-                    .grid_row(cell)
-                    .grid_column(cell)
-                    .white_space(WhiteSpace::Pre)
-                    .color(cx.color(emphasis))
-                    .opacity(clamped(frame, [draw_end, fade_end], [0.0, 1.0])?)
-                    .transform(vec![Transform::Translate(
-                        Length::ZERO,
-                        Length::px(clamped(frame, [draw_end, fade_end], [STRIKE_RISE, 0.0])?),
-                        Length::ZERO,
-                    )]))
+                span(
+                    Style::default()
+                        .grid_row(cell)
+                        .grid_column(cell)
+                        .position(Position::Relative)
+                        .white_space(WhiteSpace::Pre)
+                        .opacity(clamped(frame, [draw_end, fade_end], [1.0, 0.0])?),
+                )
+                .child(props.highlight.as_str())
+                .child(span(
+                    Style::default()
+                        .position(Position::Absolute)
+                        .left(Length::ZERO)
+                        .top(Length::percent(50.0))
+                        .height(thickness)
+                        .width(Length::percent(clamped(
+                            frame,
+                            [props.start_at, draw_end],
+                            [0.0, 100.0],
+                        )?))
+                        .background_color(cx.color(accent))
+                        .transform(vec![Transform::Translate(
+                            Length::ZERO,
+                            Length::percent(-50.0),
+                            Length::ZERO,
+                        )])
+                        .border_radius_all(thickness / 2.0),
+                )),
+            )
+            .child(
+                span(
+                    Style::default()
+                        .grid_row(cell)
+                        .grid_column(cell)
+                        .white_space(WhiteSpace::Pre)
+                        .color(cx.color(emphasis))
+                        .opacity(clamped(frame, [draw_end, fade_end], [0.0, 1.0])?)
+                        .transform(vec![Transform::Translate(
+                            Length::ZERO,
+                            Length::px(clamped(frame, [draw_end, fade_end], [STRIKE_RISE, 0.0])?),
+                            Length::ZERO,
+                        )]),
+                )
                 .child(replacement),
             )
             .into()
@@ -381,9 +401,15 @@ fn highlight_node(
             let band = Gradient::linear(
                 Angle::deg(props.band_angle),
                 vec![
-                    ColorStop::at(Color::TRANSPARENT, Length::percent(50.0 - props.shine_width / 2.0)),
+                    ColorStop::at(
+                        Color::TRANSPARENT,
+                        Length::percent(50.0 - props.shine_width / 2.0),
+                    ),
                     ColorStop::at(cx.color(shine), Length::percent(50.0)),
-                    ColorStop::at(Color::TRANSPARENT, Length::percent(50.0 + props.shine_width / 2.0)),
+                    ColorStop::at(
+                        Color::TRANSPARENT,
+                        Length::percent(50.0 + props.shine_width / 2.0),
+                    ),
                 ],
             );
             let mut layer = band.layer();
@@ -398,14 +424,19 @@ fn highlight_node(
                 y: Length::percent(50.0),
             };
             wrapper()
-                .child(span(Style::default().color(cx.color(emphasis))).child(props.highlight.as_str()))
                 .child(
-                    span(Style::default()
-                        .position(Position::Absolute)
-                        .inset(Length::ZERO)
-                        .color(Color::TRANSPARENT)
-                        .background(vec![layer])
-                        .background_clip_text(true))
+                    span(Style::default().color(cx.color(emphasis)))
+                        .child(props.highlight.as_str()),
+                )
+                .child(
+                    span(
+                        Style::default()
+                            .position(Position::Absolute)
+                            .inset(Length::ZERO)
+                            .color(Color::TRANSPARENT)
+                            .background(vec![layer])
+                            .background_clip_text(true),
+                    )
                     .child(props.highlight.as_str()),
                 )
                 .into()
@@ -417,8 +448,11 @@ pub fn draw(props: &TextHighlight, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     let frame = cx.authored_frame() * props.speed;
     let theme = warm_theme(&props.theme);
     let ground = non_empty(&props.background, theme.get("background"));
-    let face = resolve_font(non_empty(&props.font_family, theme.font_family().unwrap_or("")))
-        .map_or_else(|| font_or("", FontRole::Main), |f| font_family(&f));
+    let face = resolve_font(non_empty(
+        &props.font_family,
+        theme.font_family().unwrap_or(""),
+    ))
+    .map_or_else(|| font_or("", FontRole::Main), |f| font_family(&f));
     let base = non_empty(&props.base_color, theme.get("foreground"));
     let accent = non_empty(&props.accent_color, theme.get("primary"));
     let shine = if props.shine_color.is_empty() {
@@ -427,7 +461,10 @@ pub fn draw(props: &TextHighlight, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         props.shine_color.as_str()
     };
     let emphasis = if props.highlighted_text_color.is_empty() {
-        if matches!(props.preset, HighlightPreset::Color | HighlightPreset::Strikethrough) {
+        if matches!(
+            props.preset,
+            HighlightPreset::Color | HighlightPreset::Strikethrough
+        ) {
             accent
         } else {
             base
@@ -436,30 +473,34 @@ pub fn draw(props: &TextHighlight, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         props.highlighted_text_color.as_str()
     };
     let highlighted = highlight_node(props, cx, frame, (base, accent, emphasis, shine))?;
-    let text = span(Style::default()
-        .font_size(f64::from(props.font_size))
-        .font_weight(props.font_weight.value())
-        .color(cx.color(base))
-        .letter_spacing(Length::em(props.letter_spacing))
-        .line_height(LineHeight::Number(Num(props.line_height)))
-        .font_family(face)
-        .white_space(WhiteSpace::PreWrap)
-        .text_align(TextAlign::Center)
-        .max_width(Length::percent(props.text_width))
-        .position(Position::Absolute)
-        .left(Length::percent(props.x * 100.0))
-        .top(Length::percent(props.y * 100.0))
-        .width(Length::percent(props.text_width))
-        .transform(vec![Transform::Translate(
-            Length::percent(-50.0),
-            Length::percent(-50.0),
-            Length::ZERO,
-        )]))
+    let text = span(
+        Style::default()
+            .font_size(f64::from(props.font_size))
+            .font_weight(props.font_weight.value())
+            .color(cx.color(base))
+            .letter_spacing(Length::em(props.letter_spacing))
+            .line_height(LineHeight::Number(Num(props.line_height)))
+            .font_family(face)
+            .white_space(WhiteSpace::PreWrap)
+            .text_align(TextAlign::Center)
+            .max_width(Length::percent(props.text_width))
+            .position(Position::Absolute)
+            .left(Length::percent(props.x * 100.0))
+            .top(Length::percent(props.y * 100.0))
+            .width(Length::percent(props.text_width))
+            .transform(vec![Transform::Translate(
+                Length::percent(-50.0),
+                Length::percent(-50.0),
+                Length::ZERO,
+            )]),
+    )
     .child(props.before.as_str())
     .child(highlighted)
     .child(props.after.as_str());
     Ok(div(with_background(
-        Style::default().position(Position::Absolute).inset(Length::ZERO),
+        Style::default()
+            .position(Position::Absolute)
+            .inset(Length::ZERO),
         ground,
     ))
     .child(text)

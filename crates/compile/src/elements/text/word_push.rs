@@ -125,9 +125,11 @@ pub fn draw(props: &WordPush, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         drive_easing(),
     )?;
     for (j, word) in words.iter().enumerate().skip(1) {
-        let width = SPACE_WIDTH_EM.mul_add(size, cx
-            .measure
-            .text_width(word, &font, props.letter_spacing * size));
+        let width = SPACE_WIDTH_EM.mul_add(
+            size,
+            cx.measure
+                .text_width(word, &font, props.letter_spacing * size),
+        );
         let reveal = reveal_frame(j, gap, props.accel);
         let pushed = clamped_eased(
             frame,

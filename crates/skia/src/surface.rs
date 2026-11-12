@@ -23,7 +23,8 @@ impl std::fmt::Debug for Surface {
         f.debug_struct("Surface")
             .field("width", &self.inner.width())
             .field("height", &self.inner.height())
-            .finish()
+            .field("base", &self.base)
+            .finish_non_exhaustive()
     }
 }
 
@@ -40,6 +41,7 @@ impl Surface {
         Ok(Self { inner, base: None })
     }
 
+    #[must_use]
     pub fn with_base(mut self, base: Matrix44) -> Self {
         self.base = Some(base);
         self.reset_matrix();

@@ -2,8 +2,8 @@ use opsis_scene::node::{Node, div};
 use opsis_scene::style::Style;
 use opsis_scene::timeline::absolute_fill;
 
-pub fn filled(style: Style, children: Vec<Node>) -> Node {
-    div(absolute_fill().merged(&style)).children(children).into()
+pub fn filled(style: &Style, children: Vec<Node>) -> Node {
+    div(absolute_fill().merged(style)).children(children).into()
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -37,7 +37,11 @@ pub fn transition_phase(
         return Ok(Phase {
             entering,
             displace: 1.0 - arrived,
-            opacity: if fade { ranged([0.0, 0.42, 1.0], [0.0, 0.72, 1.0])? } else { 1.0 },
+            opacity: if fade {
+                ranged([0.0, 0.42, 1.0], [0.0, 0.72, 1.0])?
+            } else {
+                1.0
+            },
         });
     }
     let left = if spans {
@@ -48,18 +52,24 @@ pub fn transition_phase(
     Ok(Phase {
         entering,
         displace: left,
-        opacity: if fade { ranged([0.0, 0.58, 1.0], [1.0, 0.42, 0.0])? } else { 1.0 },
+        opacity: if fade {
+            ranged([0.0, 0.58, 1.0], [1.0, 0.42, 0.0])?
+        } else {
+            1.0
+        },
     })
 }
 
 pub fn encoded_svg(markup: &str) -> String {
-    let mut out = String::from("data:image/svg+xml,");
-    for byte in markup.bytes() {
-        if byte.is_ascii_alphanumeric() || b"-_.!~*'()".contains(&byte) {
-            out.push(char::from(byte));
-        } else {
-            out.push_str(&format!("%{byte:02X}"));
-        }
-    }
-    out
+    let escaped: String = markup
+        .bytes()
+        .map(|byte| {
+            if byte.is_ascii_alphanumeric() || b"-_.!~*'()".contains(&byte) {
+                char::from(byte).to_string()
+            } else {
+                format!("%{byte:02X}")
+            }
+        })
+        .collect();
+    format!("data:image/svg+xml,{escaped}")
 }

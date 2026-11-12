@@ -124,7 +124,11 @@ struct BurstState {
     clippy::suboptimal_flops,
     reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
 )]
-fn burst_state(frame: f64, props: &RadialBurst, (width, height): (f64, f64)) -> Result<BurstState, DrawFailure> {
+fn burst_state(
+    frame: f64,
+    props: &RadialBurst,
+    (width, height): (f64, f64),
+) -> Result<BurstState, DrawFailure> {
     let (w, h) = (width.max(1.0), height.max(1.0));
     let unit = w.min(h) / 720.0;
     let local = frame.max(0.0);
@@ -138,23 +142,38 @@ fn burst_state(frame: f64, props: &RadialBurst, (width, height): (f64, f64)) -> 
     let anticipate = ease_in_out(normalize(local, 86.0, 96.0));
     let exit = normalize(local, 96.0, BURST_LENGTH).powf(2.6);
     let launch = spring(&Spring {
-        config: SpringConfig { damping: 13.0, stiffness: 170.0, mass: 0.8, overshoot_clamping: false },
+        config: SpringConfig {
+            damping: 13.0,
+            stiffness: 170.0,
+            mass: 0.8,
+            overshoot_clamping: false,
+        },
         duration_in_frames: Some(26.0),
         ..Spring::at((local - 18.0).max(0.0), 30.0)
     })?;
     let pop = spring(&Spring {
-        config: SpringConfig { damping: 11.0, stiffness: 180.0, mass: 0.65, overshoot_clamping: false },
+        config: SpringConfig {
+            damping: 11.0,
+            stiffness: 180.0,
+            mass: 0.65,
+            overshoot_clamping: false,
+        },
         duration_in_frames: Some(16.0),
         ..Spring::at((local - 2.0).max(0.0), 30.0)
     })?;
     let ring_stroke = lerp(stroke * 0.8, stroke * 1.1, anticipate);
     let exit_stroke = lerp(ring_stroke, stroke * 2.2, exit);
     let clear_radius = w.hypot(h) / 2.0 + stroke * 2.2 + 2.0;
-    let orbit_radius = lerp(lerp(28.0 * unit, burst_radius, launch), ring_radius, assemble);
+    let orbit_radius = lerp(
+        lerp(28.0 * unit, burst_radius, launch),
+        ring_radius,
+        assemble,
+    );
     let final_radius = lerp(ring_radius, ring_radius * 0.84, anticipate);
     let strength = props.intensity.clamp(0.0, 1.5);
     let energy = (PI * normalize(local, 18.0, 84.0)).sin();
-    let tilt = ease_out(normalize(local, 18.0, 48.0)) * (1.0 - ease_in_out(normalize(local, 96.0, 114.0)));
+    let tilt =
+        ease_out(normalize(local, 18.0, 48.0)) * (1.0 - ease_in_out(normalize(local, 96.0, 114.0)));
     let travel = normalize(local, 18.0, 114.0);
     Ok(BurstState {
         frame: local,
@@ -171,8 +190,16 @@ fn burst_state(frame: f64, props: &RadialBurst, (width, height): (f64, f64)) -> 
         show_segments: (18.0..84.0).contains(&local),
         show_ring: (84.0..BURST_LENGTH).contains(&local),
         segment_opacity: ease_out(normalize(local, 18.0, 23.0)),
-        radius: if local < 84.0 { orbit_radius } else { lerp(final_radius, clear_radius, exit) },
-        stroke_width: if local < 84.0 { lerp(stroke, stroke * 0.8, assemble) } else { exit_stroke },
+        radius: if local < 84.0 {
+            orbit_radius
+        } else {
+            lerp(final_radius, clear_radius, exit)
+        },
+        stroke_width: if local < 84.0 {
+            lerp(stroke, stroke * 0.8, assemble)
+        } else {
+            exit_stroke
+        },
         segment_length: lerp(
             12.0 * unit,
             (82.0 * unit).min(burst_radius * 0.42),
@@ -214,9 +241,17 @@ fn fixed3(value: f64) -> String {
 }
 
 fn segment_path(state: &BurstState) -> String {
-    let points = segment_points(state.radius, state.segment_length, state.arc_angle, state.curl)
-        .map(|p| format!("{} {}", fixed3(p[0]), fixed3(p[1])));
-    format!("M {} C {} {} {}", points[0], points[1], points[2], points[3])
+    let points = segment_points(
+        state.radius,
+        state.segment_length,
+        state.arc_angle,
+        state.curl,
+    )
+    .map(|p| format!("{} {}", fixed3(p[0]), fixed3(p[1])));
+    format!(
+        "M {} C {} {} {}",
+        points[0], points[1], points[2], points[3]
+    )
 }
 
 #[expect(
@@ -245,13 +280,19 @@ fn ribbon_path(state: &BurstState, index: u32, twist: f64) -> String {
         let t = f64::from(sample) / f64::from(RIBBON_SAMPLES);
         let q = 1.0 - t;
         let at = |k: usize| {
-            q.powi(3) * p[0][k] + 3.0 * q * q * t * p[1][k] + 3.0 * q * t * t * p[2][k] + t.powi(3) * p[3][k]
+            q.powi(3) * p[0][k]
+                + 3.0 * q * q * t * p[1][k]
+                + 3.0 * q * t * t * p[2][k]
+                + t.powi(3) * p[3][k]
         };
         let d = |k: usize| {
-            3.0 * q * q * (p[1][k] - p[0][k]) + 6.0 * q * t * (p[2][k] - p[1][k]) + 3.0 * t * t * (p[3][k] - p[2][k])
+            3.0 * q * q * (p[1][k] - p[0][k])
+                + 6.0 * q * t * (p[2][k] - p[1][k])
+                + 3.0 * t * t * (p[3][k] - p[2][k])
         };
         let dd = |k: usize| {
-            6.0 * q * (p[2][k] - 2.0 * p[1][k] + p[0][k]) + 6.0 * t * (p[3][k] - 2.0 * p[2][k] + p[1][k])
+            6.0 * q * (p[2][k] - 2.0 * p[1][k] + p[0][k])
+                + 6.0 * t * (p[3][k] - 2.0 * p[2][k] + p[1][k])
         };
         let (x, y, dx, dy) = (at(0), at(1), d(0), d(1));
         let length = dx.hypot(dy).max(0.001);
@@ -265,8 +306,16 @@ fn ribbon_path(state: &BurstState, index: u32, twist: f64) -> String {
         if sample == RIBBON_SAMPLES {
             last_width = half;
         }
-        upper.push(format!("{} {}", fixed3(x - dy / length * half), fixed3(y + dx / length * half)));
-        lower.push(format!("{} {}", fixed3(x + dy / length * half), fixed3(y - dx / length * half)));
+        upper.push(format!(
+            "{} {}",
+            fixed3(x - dy / length * half),
+            fixed3(y + dx / length * half)
+        ));
+        lower.push(format!(
+            "{} {}",
+            fixed3(x + dy / length * half),
+            fixed3(y - dx / length * half)
+        ));
     }
     let back: Vec<&String> = lower[..lower.len() - 1].iter().rev().collect();
     format!(
@@ -275,7 +324,10 @@ fn ribbon_path(state: &BurstState, index: u32, twist: f64) -> String {
         js_number_text(last_width),
         js_number_text(last_width),
         lower[lower.len() - 1],
-        back.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(" L "),
+        back.iter()
+            .map(|s| s.as_str())
+            .collect::<Vec<_>>()
+            .join(" L "),
         js_number_text(first_width),
         js_number_text(first_width),
         upper[0]
@@ -296,11 +348,16 @@ fn plane(pose: &BurstState) -> String {
     clippy::suboptimal_flops,
     reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
 )]
-fn ribbons(props: &RadialBurst, pose: &BurstState, outline: bool) -> Result<Vec<SvgElement>, DrawFailure> {
+fn ribbons(
+    props: &RadialBurst,
+    pose: &BurstState,
+    outline: bool,
+) -> Result<Vec<SvgElement>, DrawFailure> {
     let mut out = Vec::new();
     for index in 0..pose.count {
         let i = f64::from(index);
-        let turn = i * 360.0 / f64::from(pose.count) + pose.rotation - 90.0 + (i * 1.7).sin() * pose.energy * 16.0;
+        let turn = i * 360.0 / f64::from(pose.count) + pose.rotation - 90.0
+            + (i * 1.7).sin() * pose.energy * 16.0;
         let fill = if outline {
             "none".to_owned()
         } else if index % 3 == 0 {
@@ -317,7 +374,14 @@ fn ribbons(props: &RadialBurst, pose: &BurstState, outline: bool) -> Result<Vec<
                 .attr("d", ribbon_path(pose, index, f64::from(props.twist)))
                 .attr("transform", format!("rotate({})", js_number_text(turn)))
                 .attr("fill", fill)
-                .attr("stroke", if outline { props.color.as_str() } else { "none" })
+                .attr(
+                    "stroke",
+                    if outline {
+                        props.color.as_str()
+                    } else {
+                        "none"
+                    },
+                )
                 .attr("stroke-width", 1.5 * pose.unit),
         );
     }
@@ -325,14 +389,20 @@ fn ribbons(props: &RadialBurst, pose: &BurstState, outline: bool) -> Result<Vec<
 }
 
 fn group(children: Vec<SvgElement>) -> SvgElement {
-    children.into_iter().fold(SvgElement::new("g"), SvgElement::child)
+    children
+        .into_iter()
+        .fold(SvgElement::new("g"), SvgElement::child)
 }
 
 #[expect(
     clippy::suboptimal_flops,
     reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
 )]
-fn echoes(props: &RadialBurst, state: &BurstState, size: (f64, f64)) -> Result<Vec<SvgElement>, DrawFailure> {
+fn echoes(
+    props: &RadialBurst,
+    state: &BurstState,
+    size: (f64, f64),
+) -> Result<Vec<SvgElement>, DrawFailure> {
     let mut out = Vec::new();
     if !(state.strength > 0.0 && state.frame >= 18.0 && state.frame < BURST_LENGTH) {
         return Ok(out);
@@ -361,7 +431,11 @@ fn echoes(props: &RadialBurst, state: &BurstState, size: (f64, f64)) -> Result<V
                     .attr("fill", "none")
                     .attr(
                         "stroke",
-                        if index % 2 == 1 { props.color.as_str() } else { props.accent_color.as_str() },
+                        if index % 2 == 1 {
+                            props.color.as_str()
+                        } else {
+                            props.accent_color.as_str()
+                        },
                     )
                     .attr("stroke-width", echo.stroke_width * (0.22 + i * 0.07)),
             );
@@ -392,7 +466,8 @@ pub fn draw(props: &RadialBurst, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         );
     }
     if state.show_segments && state.strength > 0.0 {
-        main = main.child(group(ribbons(props, &state, false)?).attr("opacity", state.segment_opacity));
+        main = main
+            .child(group(ribbons(props, &state, false)?).attr("opacity", state.segment_opacity));
     } else if state.show_segments {
         let path = segment_path(&state);
         let mut g = SvgElement::new("g")
@@ -401,17 +476,18 @@ pub fn draw(props: &RadialBurst, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
             .attr("stroke-width", state.stroke_width)
             .attr("stroke-linecap", "round")
             .attr("opacity", state.segment_opacity)
-            .attr("transform", format!("rotate({})", js_number_text(state.rotation - 90.0)));
-        for index in 0..state.count {
-            g = g.child(
-                SvgElement::new("path").attr("d", path.as_str()).attr(
-                    "transform",
-                    format!(
-                        "rotate({})",
-                        js_number_text(f64::from(index) * 360.0 / f64::from(state.count))
-                    ),
-                ),
+            .attr(
+                "transform",
+                format!("rotate({})", js_number_text(state.rotation - 90.0)),
             );
+        for index in 0..state.count {
+            g = g.child(SvgElement::new("path").attr("d", path.as_str()).attr(
+                "transform",
+                format!(
+                    "rotate({})",
+                    js_number_text(f64::from(index) * 360.0 / f64::from(state.count))
+                ),
+            ));
         }
         main = main.child(g);
     }

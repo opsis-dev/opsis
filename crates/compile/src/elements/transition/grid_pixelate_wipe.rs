@@ -10,8 +10,8 @@ use opsis_types::numbers::whole;
 
 use crate::elements::anim::clamped_eased;
 use crate::elements::draw::{Cx, DrawFailure, Transition};
-use crate::elements::transition::present::{encoded_svg, filled, transition_phase};
 use crate::elements::entry::{element, meta};
+use crate::elements::transition::present::{encoded_svg, filled, transition_phase};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[choice(export)]
@@ -94,7 +94,9 @@ fn cell_rank(order: PixelateOrder, col: f64, row: f64, cols: f64, rows: f64) -> 
         PixelateOrder::FromLeft => u,
         PixelateOrder::FromTop => v,
         PixelateOrder::Diagonal => f64::midpoint(u, v),
-        PixelateOrder::Center => ((u - 0.5).hypot(v - 0.5) / std::f64::consts::FRAC_1_SQRT_2).min(1.0),
+        PixelateOrder::Center => {
+            ((u - 0.5).hypot(v - 0.5) / std::f64::consts::FRAC_1_SQRT_2).min(1.0)
+        }
     }
 }
 
@@ -105,23 +107,32 @@ fn cell_opacity(progress: f64, rank: f64, stagger: f64) -> Result<f64, DrawFailu
     clamped_eased(raw, [0.0, 1.0], [0.0, 1.0], Easing::ease_out(Easing::Cubic))
 }
 
-fn grid_mask(props: &GridPixelateWipe, progress: f64, rows: u32, aspect: f64) -> Result<String, DrawFailure> {
+fn grid_mask(
+    props: &GridPixelateWipe,
+    progress: f64,
+    rows: u32,
+    aspect: f64,
+) -> Result<String, DrawFailure> {
     let (cols, rows_f) = (f64::from(props.cols), f64::from(rows));
     let (cell_w, cell_h) = (100.0 / cols, 100.0 / rows_f);
     let n = js_number_text;
-    let mut cells = String::new();
+    let mut cells: Vec<String> = Vec::new();
     for row in 0..rows {
         for col in 0..props.cols {
             let (c, r) = (f64::from(col), f64::from(row));
             let rank = cell_rank(props.order, c, r, cols, rows_f);
-            let opacity = cell_opacity(progress, if props.reverse { 1.0 - rank } else { rank }, props.stagger)?;
+            let opacity = cell_opacity(
+                progress,
+                if props.reverse { 1.0 - rank } else { rank },
+                props.stagger,
+            )?;
             if opacity < MIN_OPACITY {
                 continue;
             }
             let alpha = format!("{opacity:.3}");
             if props.shape == PixelShape::Dot {
                 let radius = (cell_w * aspect).hypot(cell_h) / 2.0 * opacity;
-                cells.push_str(&format!(
+                cells.push(format!(
                     "<ellipse cx=\"{}\" cy=\"{}\" rx=\"{:.3}\" ry=\"{radius:.3}\" fill=\"white\" fill-opacity=\"{alpha}\"/>",
                     n((c + 0.5) * cell_w),
                     n((r + 0.5) * cell_h),
@@ -129,7 +140,7 @@ fn grid_mask(props: &GridPixelateWipe, progress: f64, rows: u32, aspect: f64) ->
                 ));
                 continue;
             }
-            cells.push_str(&format!(
+            cells.push(format!(
                 "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" fill=\"white\" fill-opacity=\"{alpha}\"/>",
                 n(c * cell_w),
                 n(r * cell_h),
@@ -139,23 +150,33 @@ fn grid_mask(props: &GridPixelateWipe, progress: f64, rows: u32, aspect: f64) ->
         }
     }
     Ok(encoded_svg(&format!(
-        "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\" preserveAspectRatio=\"none\">{cells}</svg>"
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\" preserveAspectRatio=\"none\">{}</svg>",
+        cells.concat()
     )))
 }
 
-pub fn present(props: &GridPixelateWipe, side: Transition, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+pub fn present(
+    props: &GridPixelateWipe,
+    side: Transition,
+    cx: &Cx<'_>,
+) -> Result<Node, DrawFailure> {
     let phase = transition_phase(side.progress, side.entering, 1.0, false)?;
     let filled_share = 1.0 - phase.displace;
     if !phase.entering || filled_share >= 1.0 {
-        return Ok(filled(Style::default(), side.children));
+        return Ok(filled(&Style::default(), side.children));
     }
     let (width, height) = (cx.at.stage.width, cx.at.stage.height);
     let rows = whole(f64::from(props.rows) * (height / width) * 16.0 / 9.0).max(1);
-    let mut layer = ImageLayer::of(Image::Url(AssetRef(grid_mask(props, filled_share, rows, width / height)?)));
+    let mut layer = ImageLayer::of(Image::Url(AssetRef(grid_mask(
+        props,
+        filled_share,
+        rows,
+        width / height,
+    )?)));
     layer.size = LayerSize::Explicit(Length::percent(100.0), Length::percent(100.0));
     layer.repeat = (Repeat::NoRepeat, Repeat::NoRepeat);
     Ok(filled(
-        Style::default().mask(vec![MaskLayer {
+        &Style::default().mask(vec![MaskLayer {
             layer,
             mode: MaskMode::Alpha,
         }]),

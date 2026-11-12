@@ -174,7 +174,11 @@ fn ribbons(count: u32, colors: &[Colour], seed: u32, folds: f64, sideways: f64) 
     let draw = |index: u32, n: u32| random(format!("{seed}:{index}:{n}"));
     (0..count)
         .map(|index| {
-            let t = if count == 1 { 0.5 } else { f64::from(index) / f64::from(count - 1) };
+            let t = if count == 1 {
+                0.5
+            } else {
+                f64::from(index) / f64::from(count - 1)
+            };
             Ribbon {
                 color: colors
                     .get(usize::try_from(index).unwrap_or(0) % colors.len().max(1))
@@ -203,7 +207,11 @@ struct Wave {
 }
 
 fn sample_x(i: u32) -> f64 {
-    -OVERSCAN + f64::from(i) / f64::from(SAMPLES) * OVERSCAN.mul_add(2.0, 100.0)
+    f64::mul_add(
+        f64::from(i) / f64::from(SAMPLES),
+        OVERSCAN.mul_add(2.0, 100.0),
+        -OVERSCAN,
+    )
 }
 
 fn point(command: &str, x: f64, y: f64) -> String {
@@ -229,7 +237,8 @@ fn ribbon_path(ribbon: &Ribbon, wave: Wave) -> String {
     let k = ribbon.waves * PI * 2.0 / (100.0 + OVERSCAN * 2.0);
     let slow = time / SLOW_PERIOD * ribbon.slow_rate * PI * 2.0;
     let fast = time / FAST_PERIOD * ribbon.fast_rate * PI * 2.0;
-    let base = center_y + ribbon.band * spread + (slow * 0.5 + ribbon.slow_phase).sin() * amplitude * 0.35;
+    let base =
+        center_y + ribbon.band * spread + (slow * 0.5 + ribbon.slow_phase).sin() * amplitude * 0.35;
     let (mut top, mut bottom) = (Vec::new(), Vec::new());
     for i in 0..=SAMPLES {
         let u = f64::from(i) / f64::from(SAMPLES);
@@ -266,7 +275,11 @@ pub fn draw(props: &AuroraBg, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     let first = props.colors.first().map_or("", |c| c.0.as_str());
     let mut layers: Vec<Node> = Vec::new();
     if props.horizon_glow > 0.0 {
-        let glow = if props.horizon_glow_color.is_empty() { first } else { &props.horizon_glow_color };
+        let glow = if props.horizon_glow_color.is_empty() {
+            first
+        } else {
+            &props.horizon_glow_color
+        };
         let pulse = 0.15f64.mul_add((time / SLOW_PERIOD * PI).sin(), 0.85);
         layers.push(
             div(with_background(
@@ -288,19 +301,22 @@ pub fn draw(props: &AuroraBg, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         center_y: props.center_y,
         spread: props.spread,
     };
-    let defs = list.iter().enumerate().fold(SvgElement::new("defs"), |defs, (index, ribbon)| {
-        defs.child(
-            SvgElement::new("linearGradient")
-                .attr("id", format!("aurora-{index}"))
-                .attr("x1", "0")
-                .attr("y1", "0")
-                .attr("x2", "0")
-                .attr("y2", "1")
-                .child(stop("0%", &ribbon.color, "0"))
-                .child(stop("55%", &ribbon.color, "0.55"))
-                .child(stop("100%", &ribbon.color, "1")),
-        )
-    });
+    let defs = list
+        .iter()
+        .enumerate()
+        .fold(SvgElement::new("defs"), |defs, (index, ribbon)| {
+            defs.child(
+                SvgElement::new("linearGradient")
+                    .attr("id", format!("aurora-{index}"))
+                    .attr("x1", "0")
+                    .attr("y1", "0")
+                    .attr("x2", "0")
+                    .attr("y2", "1")
+                    .child(stop("0%", &ribbon.color, "0"))
+                    .child(stop("55%", &ribbon.color, "0.55"))
+                    .child(stop("100%", &ribbon.color, "1")),
+            )
+        });
     let picture = list.iter().enumerate().fold(
         SvgElement::new("svg")
             .attr("viewBox", "0 0 100 100")
@@ -352,9 +368,11 @@ pub fn draw(props: &AuroraBg, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         ))
         .into(),
     );
-    Ok(div(with_background(absolute_fill(), &props.background_color).overflow(Overflow::Hidden))
-        .children(layers)
-        .into())
+    Ok(
+        div(with_background(absolute_fill(), &props.background_color).overflow(Overflow::Hidden))
+            .children(layers)
+            .into(),
+    )
 }
 
 fn stop(offset: &str, color: &str, opacity: &str) -> SvgElement {

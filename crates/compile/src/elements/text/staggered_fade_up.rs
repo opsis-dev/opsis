@@ -92,8 +92,11 @@ pub fn draw(props: &StaggeredFadeUp, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         .split(' ')
         .enumerate()
         .map(|(i, word)| {
-            let local =
-                f64::mul_add(f64::from(u32::try_from(i).unwrap_or(u32::MAX)), -props.stagger_delay, frame);
+            let local = f64::mul_add(
+                f64::from(u32::try_from(i).unwrap_or(u32::MAX)),
+                -props.stagger_delay,
+                frame,
+            );
             let opacity = clamped(local, [0.0, props.word_duration], [0.0, 1.0])?;
             let y = clamped(
                 local,

@@ -129,14 +129,11 @@ fn particles(props: &Confetti) -> Vec<Particle> {
     };
     (0..props.particle_count)
         .map(|_| {
-            let angle =
-                f64::mul_add(next(), props.spread, props.direction - props.spread / 2.0).to_radians();
+            let angle = f64::mul_add(next(), props.spread, props.direction - props.spread / 2.0)
+                .to_radians();
             let speed = 0.65_f64.mul_add(next(), 0.35);
             let pick: usize = truncate((next() * float(props.colors.len())).floor());
-            let color = props
-                .colors
-                .get(pick)
-                .map_or_default(|c| c.0.clone());
+            let color = props.colors.get(pick).map_or_default(|c| c.0.clone());
             let size = 0.6_f64.mul_add(next(), 0.7);
             let rot0 = next() * PI * 2.0;
             let spin = (next() - 0.5) * 0.6 * props.spin;

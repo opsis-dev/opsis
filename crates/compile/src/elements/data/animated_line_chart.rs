@@ -99,22 +99,30 @@ pub fn draw(props: &AnimatedLineChart, cx: &Cx<'_>) -> Result<Node, DrawFailure>
     let frame = cx.authored_frame() * props.speed;
     let duration = cx.authored_duration() * props.speed;
     let (width, height) = (f64::from(props.width), f64::from(props.height));
-    let inner_width = width - PADDING * 2.0;
-    let inner_height = height - PADDING * 2.0;
+    let inner_width = PADDING.mul_add(-2.0, width);
+    let inner_height = PADDING.mul_add(-2.0, height);
     let data = &props.data;
     let lowest = data.iter().copied().fold(f64::INFINITY, f64::min);
-    let min = if props.start_at_zero { lowest.min(0.0) } else { lowest };
+    let min = if props.start_at_zero {
+        lowest.min(0.0)
+    } else {
+        lowest
+    };
     let max = data.iter().copied().fold(f64::NEG_INFINITY, f64::max);
     let span = max - min;
-    let range = if exact_eq(span, 0.0) || span.is_nan() { 1.0 } else { span };
+    let range = if exact_eq(span, 0.0) || span.is_nan() {
+        1.0
+    } else {
+        span
+    };
     let last = float(data.len()) - 1.0;
     let points: Vec<(f64, f64)> = data
         .iter()
         .enumerate()
         .map(|(i, value)| {
             (
-                PADDING + float(i) / last * inner_width,
-                PADDING + inner_height - (value - min) / range * inner_height,
+                (float(i) / last).mul_add(inner_width, PADDING),
+                f64::mul_add((value - min) / range, -inner_height, PADDING + inner_height),
             )
         })
         .collect();
@@ -155,18 +163,33 @@ pub fn draw(props: &AnimatedLineChart, cx: &Cx<'_>) -> Result<Node, DrawFailure>
         .attr("viewBox", format!("0 0 {} {}", n(width), n(height)));
     let rows = f64::from(props.grid_rows);
     for i in 0..=props.grid_rows {
-        let y = PADDING + f64::from(i) / rows * inner_height;
-        root = root.child(grid_line((PADDING, y), (PADDING + inner_width, y), grid, 1.0));
+        let y = f64::mul_add(f64::from(i) / rows, inner_height, PADDING);
+        root = root.child(grid_line(
+            (PADDING, y),
+            (PADDING + inner_width, y),
+            grid,
+            1.0,
+        ));
     }
     if props.show_columns {
         let columns = data.len().saturating_sub(1);
         for i in 0..=columns {
-            let x = PADDING + float(i) / float(columns) * inner_width;
-            root = root.child(grid_line((x, PADDING), (x, PADDING + inner_height), grid, 1.0));
+            let x = (float(i) / float(columns)).mul_add(inner_width, PADDING);
+            root = root.child(grid_line(
+                (x, PADDING),
+                (x, PADDING + inner_height),
+                grid,
+                1.0,
+            ));
         }
     }
     root = root
-        .child(grid_line((PADDING, PADDING), (PADDING, PADDING + inner_height), grid, 2.0))
+        .child(grid_line(
+            (PADDING, PADDING),
+            (PADDING, PADDING + inner_height),
+            grid,
+            2.0,
+        ))
         .child(grid_line(
             (PADDING, PADDING + inner_height),
             (PADDING + inner_width, PADDING + inner_height),
@@ -198,7 +221,10 @@ pub fn draw(props: &AnimatedLineChart, cx: &Cx<'_>) -> Result<Node, DrawFailure>
                 .attr("cy", dot_y)
                 .attr("r", f64::from(props.stroke_width) * 2.0)
                 .attr("fill", props.stroke_color.as_str())
-                .attr("filter", format!("drop-shadow(0 0 8px {})", props.stroke_color)),
+                .attr(
+                    "filter",
+                    format!("drop-shadow(0 0 8px {})", props.stroke_color),
+                ),
         );
     }
     Ok(div(Style::default()

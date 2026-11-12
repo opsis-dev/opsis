@@ -1,5 +1,5 @@
-use opsis_macros::{choice, settings};
 use kurbo::Point;
+use opsis_macros::{choice, settings};
 use opsis_scene::node::{Node, SvgElement, svg};
 use opsis_scene::paint::{ClipPath, FillRule, Filter};
 use opsis_scene::style::{Position, Style};
@@ -155,10 +155,14 @@ fn warp_filter(frequency: f64, seed: f64, scale: f64) -> SvgElement {
         )
 }
 
-pub fn present(props: &TransitionMorphShape, side: Transition, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+pub fn present(
+    props: &TransitionMorphShape,
+    side: Transition,
+    cx: &Cx<'_>,
+) -> Result<Node, DrawFailure> {
     let phase = transition_phase(side.progress, side.entering, 1.0, false)?;
     if !phase.entering {
-        return Ok(filled(Style::default(), side.children));
+        return Ok(filled(&Style::default(), side.children));
     }
     let (width, height) = (cx.at.stage.width, cx.at.stage.height);
     let displace = phase.displace.clamp(0.0, 1.0);
@@ -167,16 +171,19 @@ pub fn present(props: &TransitionMorphShape, side: Transition, cx: &Cx<'_>) -> R
     let wants_filter = scale >= WARP_FLOOR;
     let wants_mask = coverage < 1.0;
     if !wants_filter && !wants_mask {
-        return Ok(filled(Style::default(), side.children));
+        return Ok(filled(&Style::default(), side.children));
     }
     let mut outer = Style::default();
     if wants_mask {
         let overshoot = props.overshoot.unwrap_or_else(|| overshoot_for(props.to));
-        let size = width.hypot(height) * overshoot * coverage;
+        let reach = width.hypot(height) * overshoot * coverage;
         let (center_x, center_y) = (width * props.origin_x, height * props.origin_y);
         let pair = prepare_morph(props.from, props.to);
         let data = path_data(&morphed(coverage, &pair), pair.closed, |p| {
-            Point::new((p.x - 0.5).mul_add(size, center_x), (p.y - 0.5).mul_add(size, center_y))
+            Point::new(
+                (p.x - 0.5).mul_add(reach, center_x),
+                (p.y - 0.5).mul_add(reach, center_y),
+            )
         });
         outer = outer.clip_path(ClipPath::Path {
             fill: FillRule::Nonzero,
@@ -192,7 +199,11 @@ pub fn present(props: &TransitionMorphShape, side: Transition, cx: &Cx<'_>) -> R
                 SvgElement::new("svg")
                     .attr("width", 0)
                     .attr("height", 0)
-                    .child(SvgElement::new("defs").child(warp_filter(props.warp_detail, seed, scale))),
+                    .child(SvgElement::new("defs").child(warp_filter(
+                        props.warp_detail,
+                        seed,
+                        scale,
+                    ))),
                 Style::default().position(Position::Absolute),
             )
             .into(),
@@ -202,6 +213,6 @@ pub fn present(props: &TransitionMorphShape, side: Transition, cx: &Cx<'_>) -> R
             .filter(vec![Filter::Url(WARP_ID.to_owned())])
             .scale(overscan, overscan);
     }
-    layers.push(filled(inner, side.children));
-    Ok(filled(outer, layers))
+    layers.push(filled(&inner, side.children));
+    Ok(filled(&outer, layers))
 }

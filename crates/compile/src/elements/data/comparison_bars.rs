@@ -4,9 +4,7 @@ use opsis_scene::color::Color;
 use opsis_scene::css::with_background;
 use opsis_scene::node::{Node, div, span};
 use opsis_scene::random::js_number_text;
-use opsis_scene::style::{
-    Align, BoxSizing, Display, NumericVariant, Style, TextAlign, WhiteSpace,
-};
+use opsis_scene::style::{Align, BoxSizing, Display, NumericVariant, Style, TextAlign, WhiteSpace};
 use opsis_scene::timeline::absolute_fill;
 use opsis_scene::values::Length;
 use opsis_types::looks::NodeLook;
@@ -17,8 +15,8 @@ use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
 use crate::elements::fonts::{FontRole, font_or};
 use crate::elements::number_text::{Direction, format_number, read_delta};
-use crate::elements::text_split::easing_enter;
 use crate::elements::shared::NumberFormat;
+use crate::elements::text_split::easing_enter;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -187,15 +185,17 @@ pub fn definition() -> ElementMeta {
 const DELTA_SHIFT: f64 = -12.0;
 
 fn value_text(text: String, color: Color, size: f64, opacity: f64) -> Node {
-    span(Style::default()
-        .color(color)
-        .font_size(size)
-        .font_weight(700.0)
-        .font_variant_numeric(NumericVariant {
-            tabular: true,
-            ..NumericVariant::default()
-        })
-        .opacity(opacity))
+    span(
+        Style::default()
+            .color(color)
+            .font_size(size)
+            .font_weight(700.0)
+            .font_variant_numeric(NumericVariant {
+                tabular: true,
+                ..NumericVariant::default()
+            })
+            .opacity(opacity),
+    )
     .child(text)
     .into()
 }
@@ -230,7 +230,8 @@ pub fn draw(props: &ComparisonBars, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     let bar_height = (props.row_height - 8.0) / 2.0;
     let chip = bar_height * 0.5;
     let duration = f64::from(props.duration_in_frames);
-    let grow = |start: f64| clamped_eased(frame, [start, start + duration], [0.0, 1.0], easing_enter());
+    let grow =
+        |start: f64| clamped_eased(frame, [start, start + duration], [0.0, 1.0], easing_enter());
     let label_color = cx.color(&props.label_color);
     let ink = cx.color(&props.bar_ink_color);
     let mut grid = div(Style::default()
@@ -244,10 +245,12 @@ pub fn draw(props: &ComparisonBars, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         .filter_map(|(i, swatch)| {
             let text = props.series_labels.get(i).filter(|t| !t.is_empty())?;
             Some(
-                span(Style::default()
-                    .display(Display::Flex)
-                    .align_items(Align::Center)
-                    .gap(8.0))
+                span(
+                    Style::default()
+                        .display(Display::Flex)
+                        .align_items(Align::Center)
+                        .gap(8.0),
+                )
                 .child(span(with_background(
                     Style::default()
                         .width(bar_height * 0.42)
@@ -329,17 +332,23 @@ pub fn draw(props: &ComparisonBars, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         if props.show_delta && !delta.is_empty() {
             let shown = ((after - 0.86) / 0.14).clamp(0.0, 1.0);
             after_row = after_row.child(
-                span(Style::default()
-                    .color(cx.color(if falls { &props.down_color } else { &props.after_color }))
-                    .font_size(chip)
-                    .font_weight(700.0)
-                    .font_variant_numeric(NumericVariant {
-                        tabular: true,
-                        ..NumericVariant::default()
-                    })
-                    .white_space(WhiteSpace::Nowrap)
-                    .opacity(shown)
-                    .translate(Length::px((1.0 - shown) * DELTA_SHIFT), Length::ZERO))
+                span(
+                    Style::default()
+                        .color(cx.color(if falls {
+                            &props.down_color
+                        } else {
+                            &props.after_color
+                        }))
+                        .font_size(chip)
+                        .font_weight(700.0)
+                        .font_variant_numeric(NumericVariant {
+                            tabular: true,
+                            ..NumericVariant::default()
+                        })
+                        .white_space(WhiteSpace::Nowrap)
+                        .opacity(shown)
+                        .translate(Length::px((1.0 - shown) * DELTA_SHIFT), Length::ZERO),
+                )
                 .child(delta),
             );
         }
@@ -351,14 +360,16 @@ pub fn draw(props: &ComparisonBars, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
                 .opacity(1.0)
                 .translate(Length::ZERO, Length::ZERO))
             .child(
-                span(Style::default()
-                    .width(props.label_width)
-                    .padding_right(20.0)
-                    .box_sizing(BoxSizing::BorderBox)
-                    .color(label_color.clone())
-                    .font_size(bar_height * 0.5)
-                    .font_weight(600.0)
-                    .text_align(TextAlign::Right))
+                span(
+                    Style::default()
+                        .width(props.label_width)
+                        .padding_right(20.0)
+                        .box_sizing(BoxSizing::BorderBox)
+                        .color(label_color.clone())
+                        .font_size(bar_height * 0.5)
+                        .font_weight(600.0)
+                        .text_align(TextAlign::Right),
+                )
                 .child(row.label.as_str()),
             )
             .child(

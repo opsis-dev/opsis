@@ -95,7 +95,15 @@ pub fn depth(time: f64, timing: KeyTiming) -> f64 {
         return press(time - timing.press);
     }
     let bottom = press(timing.release - timing.press);
-    bottom * (1.0 - settle(RELEASE_RISE, RELEASE_DAMPING, RELEASE_TAPER, RELEASE, time - timing.release))
+    bottom
+        * (1.0
+            - settle(
+                RELEASE_RISE,
+                RELEASE_DAMPING,
+                RELEASE_TAPER,
+                RELEASE,
+                time - timing.release,
+            ))
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

@@ -14,9 +14,9 @@ use opsis_types::numbers::float;
 
 use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
-use crate::elements::warm_theme::{resolve_font, warm_theme};
 use crate::elements::shared::FontWeight;
 use crate::elements::theme::{Theme, warm_themes};
+use crate::elements::warm_theme::{resolve_font, warm_theme};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -238,7 +238,10 @@ fn slide_swing(from: f64, kick: f64, settle: f64) -> f64 {
 }
 
 fn list(text: &str) -> Vec<&str> {
-    text.split(',').map(str::trim).filter(|v| !v.is_empty()).collect()
+    text.split(',')
+        .map(str::trim)
+        .filter(|v| !v.is_empty())
+        .collect()
 }
 
 fn numbers(text: &str) -> Vec<f64> {
@@ -330,33 +333,43 @@ fn measure_faces(props: &PunchLines, beats: &[Planned], face: &[String], cx: &Cx
             .white_space(WhiteSpace::Nowrap))
     };
     let probe = hidden().child(
-        span(Style::default()
-            .font_size(PROBE_SIZE)
-            .line_height(LineHeight::Length(Length::px(props.line_height * PROBE_SIZE))))
+        span(
+            Style::default()
+                .font_size(PROBE_SIZE)
+                .line_height(LineHeight::Length(Length::px(
+                    props.line_height * PROBE_SIZE,
+                ))),
+        )
         .child("Hxg")
-        .child(span(Style::default()
-            .display(Display::InlineBlock)
-            .width(Length::ZERO)
-            .height(Length::ZERO))),
+        .child(span(
+            Style::default()
+                .display(Display::InlineBlock)
+                .width(Length::ZERO)
+                .height(Length::ZERO),
+        )),
     );
     let mut lines = hidden();
     for beat in beats {
         for words in &beat.lines {
             lines = lines.child(
-                span(Style::default()
-                    .display(Display::InlineBlock)
-                    .font_size(f64::from(props.font_size) * beat.size)
-                    .line_height(LineHeight::Length(Length::em(props.line_height)))
-                    .letter_spacing(spacing(&props.letter_spacing))
-                    .word_spacing(spacing(&props.word_spacing)))
+                span(
+                    Style::default()
+                        .display(Display::InlineBlock)
+                        .font_size(f64::from(props.font_size) * beat.size)
+                        .line_height(LineHeight::Length(Length::em(props.line_height)))
+                        .letter_spacing(spacing(&props.letter_spacing))
+                        .word_spacing(spacing(&props.word_spacing)),
+                )
                 .child(words.join(" ")),
             );
         }
     }
-    let root: Node = div(absolute_fill().font_family(face.to_vec()).font_weight(weight))
-        .child(probe)
-        .child(lines)
-        .into();
+    let root: Node = div(absolute_fill()
+        .font_family(face.to_vec())
+        .font_weight(weight))
+    .child(probe)
+    .child(lines)
+    .into();
     let boxes = cx.measure.boxes(&root);
     let find = |path: &[usize]| boxes.iter().find(|b| b.path == path);
     let count: usize = beats.iter().map(|b| b.lines.len()).sum();
@@ -366,7 +379,7 @@ fn measure_faces(props: &PunchLines, beats: &[Planned], face: &[String], cx: &Cx
         weight: Num(weight),
         italic: false,
     };
-    let joined = |words: Option<&Vec<String>>| words.map(|w| w.join(" ")).unwrap_or_default();
+    let joined = |words: Option<&Vec<String>>| words.map_or_default(|w| w.join(" "));
     Faces {
         baseline: find(&[0, 0, 1]).map_or(DEFAULT_BASELINE, |b| b.y),
         ascents: beats
@@ -378,7 +391,12 @@ fn measure_faces(props: &PunchLines, beats: &[Planned], face: &[String], cx: &Cx
             .collect(),
         descents: beats
             .iter()
-            .map(|b| cx.measure.text_ink(&joined(b.lines.last()), &font).1.max(0.0))
+            .map(|b| {
+                cx.measure
+                    .text_ink(&joined(b.lines.last()), &font)
+                    .1
+                    .max(0.0)
+            })
             .collect(),
         widths: (0..count)
             .map(|i| find(&[1, i]).map_or(0.0, |b| b.width))
@@ -408,7 +426,9 @@ fn card(
     let t = (frame - beat.start) / fps;
     let natural = widths.iter().copied().fold(0.0, f64::max);
     let max_push = if beat.style == Beat::Punch {
-        props.push_rate.mul_add((beat.end - beat.start) / fps, props.push_from)
+        props
+            .push_rate
+            .mul_add((beat.end - beat.start) / fps, props.push_from)
     } else {
         1.0
     };
@@ -428,7 +448,11 @@ fn card(
     let baseline = faces.baseline / PROBE_SIZE * em;
     let rise = faces.ascents.get(index).copied().unwrap_or(DEFAULT_ASCENT) / PROBE_SIZE * em;
     let fall = faces.descents.get(index).copied().unwrap_or(0.0) / PROBE_SIZE * em;
-    let drop = if beat.style == Beat::Slide { props.slide_drop * em } else { 0.0 };
+    let drop = if beat.style == Beat::Slide {
+        props.slide_drop * em
+    } else {
+        0.0
+    };
     let dy = line_box / 2.0 - baseline + (rise - fall) / 2.0 + drop;
     let push = if beat.style == Beat::Punch {
         props.push_rate.mul_add(t.max(0.0), props.push_from)
@@ -437,7 +461,10 @@ fn card(
     };
     let rush_t = (frame - (beat.end - props.rush_lead)) / fps;
     let rush = if beat.style == Beat::Slide && rush_t > 0.0 {
-        1.0 / (1.0 - props.rush_travel * rush_ease((rush_t / (props.rush_frames / fps)).min(1.0)))
+        1.0 / props.rush_travel.mul_add(
+            -rush_ease((rush_t / (props.rush_frames / fps)).min(1.0)),
+            1.0,
+        )
     } else {
         1.0
     };
@@ -451,7 +478,8 @@ fn card(
             } else if u <= 0.0 {
                 props.slide_from * em
             } else {
-                (props.slide_kick * em).mul_add(u, props.slide_from * em) * (-props.slide_settle * u).exp()
+                (props.slide_kick * em).mul_add(u, props.slide_from * em)
+                    * (-props.slide_settle * u).exp()
             }
         };
         let x = slide(lt);
@@ -463,7 +491,11 @@ fn card(
             .line_height(LineHeight::Length(Length::px(line_box)))
             .letter_spacing(spacing(&props.letter_spacing))
             .word_spacing(spacing(&props.word_spacing))
-            .transform(vec![Transform::Translate(Length::px(x), Length::ZERO, Length::ZERO)]);
+            .transform(vec![Transform::Translate(
+                Length::px(x),
+                Length::ZERO,
+                Length::ZERO,
+            )]);
         let mut row: Vec<Node> = Vec::new();
         if sigma > MIN_SIGMA {
             row_style = row_style.filter(vec![Filter::Url(blur_id.clone())]);
@@ -498,14 +530,16 @@ fn card(
                 row.push(Node::from(" "));
             }
             row.push(
-                span(Style::default()
-                    .display(Display::InlineBlock)
-                    .transform(vec![Transform::Scale(Num(scale), Num(scale), Num(1.0))])
-                    .transform_origin((
-                        Length::percent(50.0),
-                        Length::px(line_box / 2.0),
-                        Length::ZERO,
-                    )))
+                span(
+                    Style::default()
+                        .display(Display::InlineBlock)
+                        .transform(vec![Transform::Scale(Num(scale), Num(scale), Num(1.0))])
+                        .transform_origin((
+                            Length::percent(50.0),
+                            Length::px(line_box / 2.0),
+                            Length::ZERO,
+                        )),
+                )
                 .child(word.as_str())
                 .into(),
             );
@@ -525,7 +559,11 @@ fn card(
                 .display(Display::Flex)
                 .flex_direction(FlexDirection::Column)
                 .align_items(Align::Center)
-                .transform(vec![Transform::Translate(Length::ZERO, Length::px(dy), Length::ZERO)]))
+                .transform(vec![Transform::Translate(
+                    Length::ZERO,
+                    Length::px(dy),
+                    Length::ZERO,
+                )]))
             .children(rows),
         )
         .into(),
@@ -541,8 +579,16 @@ pub fn draw(props: &PunchLines, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         &props.font_family
     };
     let face = font_family(&resolve_font(face_name).unwrap_or_else(|| SANS.to_owned()));
-    let paper = if props.ground.is_empty() { theme.get("background") } else { &props.ground };
-    let ink = if props.ink.is_empty() { theme.get("foreground") } else { &props.ink };
+    let paper = if props.ground.is_empty() {
+        theme.get("background")
+    } else {
+        &props.ground
+    };
+    let ink = if props.ink.is_empty() {
+        theme.get("foreground")
+    } else {
+        &props.ink
+    };
     let beats = plan(props);
     let faces = measure_faces(props, &beats, &face, cx);
     let mut cards = Vec::new();
@@ -554,7 +600,11 @@ pub fn draw(props: &PunchLines, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
             .get(first_line..first_line + lines)
             .unwrap_or_default();
         first_line += lines;
-        let color = cx.color(if beat.accent { &props.accent_color } else { ink });
+        let color = cx.color(if beat.accent {
+            &props.accent_color
+        } else {
+            ink
+        });
         cards.extend(card(props, beat, i, widths, &faces, (frame, color), cx));
     }
     Ok(div(absolute_fill()

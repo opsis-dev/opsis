@@ -8,8 +8,8 @@ use opsis_scene::values::{Edges, Length};
 use opsis_types::looks::NodeLook;
 
 use crate::elements::draw::{Cx, DrawFailure, Transition};
-use crate::elements::transition::present::{filled, transition_phase};
 use crate::elements::entry::{element, meta};
+use crate::elements::transition::present::{filled, transition_phase};
 use crate::elements::units::to_fixed;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
@@ -70,20 +70,44 @@ pub fn definition() -> ElementMeta {
     )
 }
 
-pub fn present(props: &FrostedGlassWipe, side: Transition, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+pub fn present(
+    props: &FrostedGlassWipe,
+    side: Transition,
+    cx: &Cx<'_>,
+) -> Result<Node, DrawFailure> {
     let phase = transition_phase(side.progress, side.entering, 1.0, false)?;
     if !phase.entering {
-        return Ok(filled(Style::default(), side.children));
+        return Ok(filled(&Style::default(), side.children));
     }
     let swept = 1.0 - phase.displace;
     let vertical = matches!(props.direction, WipeFrom::FromTop | WipeFrom::FromBottom);
     let hidden = Length::percent((1.0 - swept) * 100.0);
     let zero = Length::ZERO;
     let edges = match props.direction {
-        WipeFrom::FromTop => Edges { top: zero.clone(), right: zero.clone(), bottom: hidden, left: zero },
-        WipeFrom::FromBottom => Edges { top: hidden, right: zero.clone(), bottom: zero.clone(), left: zero },
-        WipeFrom::FromLeft => Edges { top: zero.clone(), right: hidden, bottom: zero.clone(), left: zero },
-        WipeFrom::FromRight => Edges { top: zero.clone(), right: zero.clone(), bottom: zero, left: hidden },
+        WipeFrom::FromTop => Edges {
+            top: zero.clone(),
+            right: zero.clone(),
+            bottom: hidden,
+            left: zero,
+        },
+        WipeFrom::FromBottom => Edges {
+            top: hidden,
+            right: zero.clone(),
+            bottom: zero.clone(),
+            left: zero,
+        },
+        WipeFrom::FromLeft => Edges {
+            top: zero.clone(),
+            right: hidden,
+            bottom: zero.clone(),
+            left: zero,
+        },
+        WipeFrom::FromRight => Edges {
+            top: zero.clone(),
+            right: zero.clone(),
+            bottom: zero,
+            left: hidden,
+        },
     };
     let reveal = Style::default().clip_path(ClipPath::Inset { edges, round: None });
     let width = props.panel_width * 100.0;
@@ -116,7 +140,11 @@ pub fn present(props: &FrostedGlassWipe, side: Transition, cx: &Cx<'_>) -> Resul
                 .right(Length::ZERO)
                 .top(Length::percent(offset))
                 .height(Length::percent(width)),
-            if props.direction == WipeFrom::FromTop { Side::Bottom } else { Side::Top },
+            if props.direction == WipeFrom::FromTop {
+                Side::Bottom
+            } else {
+                Side::Top
+            },
         )
     } else {
         (
@@ -126,7 +154,11 @@ pub fn present(props: &FrostedGlassWipe, side: Transition, cx: &Cx<'_>) -> Resul
                 .bottom(Length::ZERO)
                 .left(Length::percent(offset))
                 .width(Length::percent(width)),
-            if props.direction == WipeFrom::FromLeft { Side::Right } else { Side::Left },
+            if props.direction == WipeFrom::FromLeft {
+                Side::Right
+            } else {
+                Side::Left
+            },
         )
     };
     let mut borders = Edges::all(BorderSide {
@@ -145,7 +177,11 @@ pub fn present(props: &FrostedGlassWipe, side: Transition, cx: &Cx<'_>) -> Resul
         WipeFrom::FromTop => Side::Bottom,
         WipeFrom::FromBottom => Side::Top,
     };
-    let (horizontal, vertical_side) = if vertical { (None, Some(toward)) } else { (Some(toward), None) };
+    let (horizontal, vertical_side) = if vertical {
+        (None, Some(toward))
+    } else {
+        (Some(toward), None)
+    };
     let frost = Gradient::Linear {
         direction: LinearDirection::ToSide {
             horizontal,
@@ -173,7 +209,7 @@ pub fn present(props: &FrostedGlassWipe, side: Transition, cx: &Cx<'_>) -> Resul
         }])
         .opacity(glow);
     Ok(filled(
-        Style::default(),
-        vec![filled(reveal, side.children), div(panel).into()],
+        &Style::default(),
+        vec![filled(&reveal, side.children), div(panel).into()],
     ))
 }

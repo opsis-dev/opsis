@@ -43,11 +43,17 @@ fn rounded(decimal: Decimal, places: usize) -> Decimal {
         add_one(&mut digits);
     }
     let split = digits.len() - places;
-    let fraction = String::from_utf8_lossy(&digits[split..]).trim_end_matches('0').to_owned();
+    let fraction = String::from_utf8_lossy(&digits[split..])
+        .trim_end_matches('0')
+        .to_owned();
     let whole = String::from_utf8_lossy(&digits[..split]).to_string();
     Decimal {
         negative: decimal.negative,
-        whole: if whole.is_empty() { "0".to_owned() } else { whole },
+        whole: if whole.is_empty() {
+            "0".to_owned()
+        } else {
+            whole
+        },
         fraction,
     }
 }
@@ -75,7 +81,13 @@ fn text_of(decimal: &Decimal, separator: &str) -> String {
 
 pub fn format_plain(value: f64, max_fraction: usize) -> String {
     if !value.is_finite() {
-        return if value.is_nan() { "NaN".to_owned() } else if value > 0.0 { "∞".to_owned() } else { "-∞".to_owned() };
+        return if value.is_nan() {
+            "NaN".to_owned()
+        } else if value > 0.0 {
+            "∞".to_owned()
+        } else {
+            "-∞".to_owned()
+        };
     }
     text_of(&rounded(decimal_of(value), max_fraction), ",")
 }
@@ -120,7 +132,7 @@ pub fn format_number(value: f64, format: NumberFormat) -> String {
 }
 
 pub fn format_axis_value(value: f64) -> String {
-    format_compact(value, if value.abs() < 10.0 { 1 } else { 0 })
+    format_compact(value, usize::from(value.abs() < 10.0))
 }
 
 pub const fn separator_text(separator: GroupSeparator) -> &'static str {
@@ -138,7 +150,10 @@ pub fn group_digits(digits: &str, separator: GroupSeparator) -> String {
     let chars: Vec<char> = digits.chars().collect();
     for (i, c) in chars.iter().enumerate() {
         out.push(*c);
-        let run = chars[i + 1..].iter().take_while(|d| d.is_ascii_digit()).count();
+        let run = chars[i + 1..]
+            .iter()
+            .take_while(|d| d.is_ascii_digit())
+            .count();
         let word = c.is_ascii_alphanumeric() || *c == '_';
         if word && run > 0 && run % 3 == 0 {
             out.push_str(mark);

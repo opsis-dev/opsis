@@ -1,6 +1,6 @@
-use opsis_macros::settings;
 use std::f64::consts::PI;
 
+use opsis_macros::settings;
 use opsis_scene::color::Color;
 use opsis_scene::easing::Easing;
 use opsis_scene::interpolate::{Interpolation, interpolate};
@@ -144,7 +144,7 @@ fn hashed(seed: i32, i: i32) -> f64 {
     t ^= t >> 15;
     t = t.wrapping_mul(0x85eb_ca6b);
     t ^= t >> 13;
-    f64::from(t) / 4_294_967_296.0 * 2.0 - 1.0
+    f64::mul_add(f64::from(t) / 4_294_967_296.0, 2.0, -1.0)
 }
 
 #[expect(
@@ -246,7 +246,11 @@ fn half(lens: Lens, props: &LensZoom, size: (f64, f64), scene: &[Node]) -> Node 
     let center = (size.0 / 2.0, size.1 / 2.0);
     let base = lens.scale / 100.0;
     let peak = lens_magnification(0.0, lens.fov);
-    let steps = if peak <= PEAK_FLOOR { 0 } else { props.lens_steps };
+    let steps = if peak <= PEAK_FLOOR {
+        0
+    } else {
+        props.lens_steps
+    };
     let rings: Vec<(f64, f64)> = (0..steps)
         .map(|i| {
             let s = 1.0 + (peak - 1.0) * (f64::from(i) + 0.5) / f64::from(steps);
@@ -263,7 +267,7 @@ fn half(lens: Lens, props: &LensZoom, size: (f64, f64), scene: &[Node]) -> Node 
         .collect();
     let copy = |clip: ClipPath, k: f64| -> Node {
         filled(
-            centered(
+            &centered(
                 Style::default()
                     .clip_path(clip)
                     .rotate(Angle::deg(lens.rotation))
@@ -282,19 +286,22 @@ fn half(lens: Lens, props: &LensZoom, size: (f64, f64), scene: &[Node]) -> Node 
             let g = if samples == 1 {
                 1.0
             } else {
-                1.0 + lens.blur / 100.0 * (f64::from(j) / f64::from(samples - 1))
+                (lens.blur / 100.0).mul_add(f64::from(j) / f64::from(samples - 1), 1.0)
             };
             let half_width = size.0 / 2.0 * g;
             let first = rings.first().map_or(0.0, |r| r.1 * half_width);
             let mut copies = vec![copy(ring_clip(first, None, size, center), g * base)];
             for (i, (s, r)) in rings.iter().enumerate() {
                 let inner = rings.get(i + 1).map_or(0.0, |next| next.1 * half_width);
-                copies.push(copy(ring_clip(inner, Some(r * half_width), size, center), g * s * base));
+                copies.push(copy(
+                    ring_clip(inner, Some(r * half_width), size, center),
+                    g * s * base,
+                ));
             }
-            filled(Style::default().opacity(weight / running), copies)
+            filled(&Style::default().opacity(weight / running), copies)
         })
         .collect();
-    filled(Style::default(), groups)
+    filled(&Style::default(), groups)
 }
 
 fn shake(cx: &Cx<'_>, props: &LensZoom, envelope: f64) -> (f64, f64, f64) {
@@ -327,17 +334,26 @@ fn stage(lens: Lens, props: &LensZoom, envelope: f64, scene: &[Node], cx: &Cx<'_
     let background = cx.color(&props.background);
     let mut layers: Vec<Node> = Vec::new();
     let composited = if split {
-        let defs = CHANNELS.iter().fold(SvgElement::new("defs"), |defs, (id, matrix)| {
-            defs.child(
-                SvgElement::new("filter")
-                    .attr("id", format!("{FILTER_ID}-{id}"))
-                    .attr("color-interpolation-filters", "sRGB")
-                    .child(SvgElement::new("feColorMatrix").attr("type", "matrix").attr("values", *matrix)),
-            )
-        });
+        let defs = CHANNELS
+            .iter()
+            .fold(SvgElement::new("defs"), |defs, (id, matrix)| {
+                defs.child(
+                    SvgElement::new("filter")
+                        .attr("id", format!("{FILTER_ID}-{id}"))
+                        .attr("color-interpolation-filters", "sRGB")
+                        .child(
+                            SvgElement::new("feColorMatrix")
+                                .attr("type", "matrix")
+                                .attr("values", *matrix),
+                        ),
+                )
+            });
         layers.push(
             svg(
-                SvgElement::new("svg").attr("width", 0).attr("height", 0).child(defs),
+                SvgElement::new("svg")
+                    .attr("width", 0)
+                    .attr("height", 0)
+                    .child(defs),
                 Style::default().position(Position::Absolute),
             )
             .into(),
@@ -347,7 +363,7 @@ fn stage(lens: Lens, props: &LensZoom, envelope: f64, scene: &[Node], cx: &Cx<'_
             .zip(scales)
             .map(|((id, _), scale)| {
                 filled(
-                    centered(
+                    &centered(
                         Style::default()
                             .mix_blend_mode(BlendMode::Screen)
                             .filter(vec![Filter::Url(format!("{FILTER_ID}-{id}"))])
@@ -358,13 +374,13 @@ fn stage(lens: Lens, props: &LensZoom, envelope: f64, scene: &[Node], cx: &Cx<'_
                 )
             })
             .collect();
-        filled(Style::default().background_color(Color::BLACK), channels)
+        filled(&Style::default().background_color(Color::BLACK), channels)
     } else {
         core
     };
     let (x, y, turn) = shake(cx, props, envelope);
     layers.push(filled(
-        centered(
+        &centered(
             Style::default()
                 .translate(Length::px(x), Length::px(y))
                 .rotate(Angle::deg(turn)),
@@ -385,12 +401,16 @@ fn stage(lens: Lens, props: &LensZoom, envelope: f64, scene: &[Node], cx: &Cx<'_
                 .right(Length::ZERO)
                 .height(Length::px(bar))
                 .background_color(background.clone());
-            let place = if top { place.top(Length::ZERO) } else { place.bottom(Length::ZERO) };
+            let place = if top {
+                place.top(Length::ZERO)
+            } else {
+                place.bottom(Length::ZERO)
+            };
             layers.push(div(place).into());
         }
     }
     filled(
-        Style::default()
+        &Style::default()
             .width(Length::px(size.0))
             .height(Length::px(size.1))
             .overflow(Overflow::Hidden)
@@ -400,10 +420,15 @@ fn stage(lens: Lens, props: &LensZoom, envelope: f64, scene: &[Node], cx: &Cx<'_
 }
 
 pub fn present(props: &LensZoom, side: Transition, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
-    let exiting = !side.entering;
-    let progress = side.progress;
+    let Transition {
+        entering,
+        progress,
+        children,
+        ..
+    } = side;
+    let exiting = !entering;
     if (exiting && progress >= 0.5) || (!exiting && progress < 0.5) {
-        return Ok(filled(Style::default(), Vec::new()));
+        return Ok(filled(&Style::default(), Vec::new()));
     }
     let eased = |from: [f64; 2], easing: Easing| {
         interpolate(
@@ -416,10 +441,19 @@ pub fn present(props: &LensZoom, side: Transition, cx: &Cx<'_>) -> Result<Node, 
             },
         )
     };
-    let p = if exiting { eased([0.0, 0.5], EASE_IN)? } else { eased([0.5, 1.0], EASE_OUT)? };
+    let p = if exiting {
+        eased([0.0, 0.5], EASE_IN)?
+    } else {
+        eased([0.5, 1.0], EASE_OUT)?
+    };
     let anticipating = exiting && props.pull_back < 100.0;
     let p_fx = if anticipating {
-        interpolate(p, &[ANTICIPATE_PORTION, 1.0], &[0.0, 1.0], &Interpolation::clamped())?
+        interpolate(
+            p,
+            &[ANTICIPATE_PORTION, 1.0],
+            &[0.0, 1.0],
+            &Interpolation::clamped(),
+        )?
     } else {
         p
     };
@@ -459,5 +493,5 @@ pub fn present(props: &LensZoom, side: Transition, cx: &Cx<'_>) -> Result<Node, 
             rotation: lerp(360.0 + props.twist, 360.0),
         }
     };
-    Ok(stage(lens, props, envelope, &side.children, cx))
+    Ok(stage(lens, props, envelope, &children, cx))
 }

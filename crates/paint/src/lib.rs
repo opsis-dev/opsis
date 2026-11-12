@@ -17,8 +17,8 @@ use opsis_layout::Viewport;
 use opsis_layout::computed::{Context, ROOT_FONT_SIZE};
 use opsis_layout::output::{Laid, Placed, PlacedKind};
 use opsis_scene::node::{Element, Kind, Node};
-use opsis_scene::prop;
 use opsis_scene::paint::{BlendMode, Filter};
+use opsis_scene::prop;
 use opsis_scene::style::{Overflow, Position, Style, Visibility};
 use opsis_scene::values::Length;
 use opsis_skia::{Matrix44, Paint, RectF, Rgba, Sampling, Surface};
@@ -52,7 +52,7 @@ enum Entry<'n> {
         element: &'n Element,
         path: Vec<usize>,
         clips: Vec<usize>,
-        flow: Vec<Entry<'n>>,
+        flow: Vec<Self>,
     },
 }
 
@@ -297,10 +297,11 @@ impl<'n> Painter<'_, '_, '_> {
 
     fn faces_back(&self, element: &Element, path: &[usize]) -> bool {
         prop!(&element.style, BackfaceVisibility) == Some(&Visibility::Hidden)
-            && self
-                .index
-                .get(path)
-                .is_some_and(|&i| self.laid.boxes[i].matrix.faces_back(self.laid.boxes[i].border_box))
+            && self.index.get(path).is_some_and(|&i| {
+                self.laid.boxes[i]
+                    .matrix
+                    .faces_back(self.laid.boxes[i].border_box)
+            })
     }
 
     fn filter_reach(&self, element: &Element, path: &[usize]) -> f64 {
@@ -319,15 +320,22 @@ impl<'n> Painter<'_, '_, '_> {
             .iter()
             .map(|filter| match filter {
                 Filter::Blur(radius) => 3.0 * length(radius),
-                Filter::DropShadow(shadow) => {
-                    3.0f64.mul_add(length(&shadow.blur), length(&shadow.x).abs().max(length(&shadow.y).abs()))
-                }
+                Filter::DropShadow(shadow) => 3.0f64.mul_add(
+                    length(&shadow.blur),
+                    length(&shadow.x).abs().max(length(&shadow.y).abs()),
+                ),
                 _ => 0.0,
             })
             .sum()
     }
 
-    fn paint_offscreen(&mut self, element: &'n Element, path: &[usize], clips: &[usize], reach: f64) {
+    fn paint_offscreen(
+        &mut self,
+        element: &'n Element,
+        path: &[usize],
+        clips: &[usize],
+        reach: f64,
+    ) {
         let margin = reach.ceil();
         let grow: u32 = opsis_types::numbers::whole(margin * 2.0);
         let (width, height) = (self.surface.width() + grow, self.surface.height() + grow);

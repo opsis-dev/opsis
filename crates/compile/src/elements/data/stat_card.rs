@@ -21,8 +21,8 @@ use crate::elements::draw::{Cx, DrawFailure, css_color};
 use crate::elements::entry::{element, meta};
 use crate::elements::fonts::{FontRole, font_or};
 use crate::elements::number_text::group_digits;
-use crate::elements::text_split::easing_enter;
 use crate::elements::shared::GroupSeparator;
+use crate::elements::text_split::easing_enter;
 use crate::elements::theme::{Theme, ThemeMode, stat_card_themes};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
@@ -192,7 +192,10 @@ fn format_value(value: f64, decimals: usize, separator: GroupSeparator) -> Strin
 }
 
 fn safe_padding(width: f64, height: f64) -> (f64, f64) {
-    ((80.0 / 1080.0 * width).round(), (100.0 / 1080.0 * height).round())
+    (
+        (80.0 / 1080.0 * width).round(),
+        (100.0 / 1080.0 * height).round(),
+    )
 }
 
 fn tinted(color: &str, share: f64) -> Color {
@@ -207,7 +210,11 @@ fn tinted(color: &str, share: f64) -> Color {
 }
 
 fn perceptual(input: f64, to: [f64; 2], clamp: bool) -> Result<f64, DrawFailure> {
-    let mut options = if clamp { Interpolation::clamped() } else { Interpolation::default() };
+    let mut options = if clamp {
+        Interpolation::clamped()
+    } else {
+        Interpolation::default()
+    };
     options.output = Output::PerceptualScale;
     Ok(interpolate(input, &[0.0, 1.0], &to, &options)?)
 }
@@ -229,9 +236,10 @@ pub fn draw(props: &StatCard, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     let palette = code_palette(props.theme.mode, &[], &props.theme.colors);
     let (side, edge) = safe_padding(width, height);
     let at = |seconds: f64| seconds * fps / props.speed;
-    let ease = |from: f64, to: f64| clamped_eased(frame, [at(from), at(to)], [0.0, 1.0], easing_enter());
-    let stage_w = width - side * 2.0;
-    let stage_h = height - edge * 2.0;
+    let ease =
+        |from: f64, to: f64| clamped_eased(frame, [at(from), at(to)], [0.0, 1.0], easing_enter());
+    let stage_w = f64::mul_add(side, -2.0, width);
+    let stage_h = f64::mul_add(edge, -2.0, height);
     let u = if height > width {
         (stage_w / 620.0).min(stage_h / 1120.0)
     } else {
@@ -244,7 +252,11 @@ pub fn draw(props: &StatCard, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     let ring = ease(RING_AT, RING_AT + RING_FOR)? * share;
     let counted = ease(COUNT_AT, COUNT_AT + COUNT_FOR)? * props.value;
     let label_in = ease(LABEL_AT, LABEL_AT + FADE_FOR)?;
-    let caption_in = if props.caption.is_empty() { 0.0 } else { ease(CAPTION_AT, CAPTION_AT + FADE_FOR)? };
+    let caption_in = if props.caption.is_empty() {
+        0.0
+    } else {
+        ease(CAPTION_AT, CAPTION_AT + FADE_FOR)?
+    };
     let delta_in = if delta.is_some() {
         sprung(frame - at(DELTA_AT), fps, DELTA_SPRING)?
     } else {
@@ -255,18 +267,18 @@ pub fn draw(props: &StatCard, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         [at(RING_AT + RING_FOR), at(RING_AT + RING_FOR + FADE_FOR)],
         [1.0, 0.0],
     )?;
-    let size = (stage_w * 0.62).min(stage_h * 0.62).min(380.0 * u);
+    let diameter = (stage_w * 0.62).min(stage_h * 0.62).min(380.0 * u);
     let stroke = f64::from(props.ring_thickness) * u;
-    let radius = size / 2.0 - stroke;
+    let radius = diameter / 2.0 - stroke;
     let circumference = 2.0 * PI * radius;
     let accent = props.accent_color.as_str();
     let ring_svg = SvgElement::new("svg")
-        .attr("width", size)
-        .attr("height", size)
+        .attr("width", diameter)
+        .attr("height", diameter)
         .child(
             SvgElement::new("circle")
-                .attr("cx", size / 2.0)
-                .attr("cy", size / 2.0)
+                .attr("cx", diameter / 2.0)
+                .attr("cy", diameter / 2.0)
                 .attr("r", radius)
                 .attr("fill", "none")
                 .attr("stroke", palette.get("band"))
@@ -274,8 +286,8 @@ pub fn draw(props: &StatCard, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         )
         .child(
             SvgElement::new("circle")
-                .attr("cx", size / 2.0)
-                .attr("cy", size / 2.0)
+                .attr("cx", diameter / 2.0)
+                .attr("cy", diameter / 2.0)
                 .attr("r", radius)
                 .attr("fill", "none")
                 .attr("stroke", accent)
@@ -310,10 +322,12 @@ pub fn draw(props: &StatCard, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         .scale(digits_scale, digits_scale));
     if !props.prefix.is_empty() {
         figure = figure.child(
-            span(Style::default()
-                .font_size(54.0 * u)
-                .align_self(Align::FlexStart)
-                .margin_top(20.0 * u))
+            span(
+                Style::default()
+                    .font_size(54.0 * u)
+                    .align_self(Align::FlexStart)
+                    .margin_top(20.0 * u),
+            )
             .child(props.prefix.as_str()),
         );
     }
@@ -321,8 +335,12 @@ pub fn draw(props: &StatCard, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     figure = figure.child(format_value(counted, decimals, props.group_separator));
     if !props.suffix.is_empty() {
         figure = figure.child(
-            span(Style::default().font_size(54.0 * u).color(css_color(accent)))
-                .child(props.suffix.as_str()),
+            span(
+                Style::default()
+                    .font_size(54.0 * u)
+                    .color(css_color(accent)),
+            )
+            .child(props.suffix.as_str()),
         );
     }
     let mut column = div(Style::default()
@@ -336,15 +354,15 @@ pub fn draw(props: &StatCard, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     .child(
         div(Style::default()
             .position(Position::Relative)
-            .width(size)
-            .height(size))
+            .width(diameter)
+            .height(diameter))
         .child(svg(ring_svg, Style::default().rotate(Angle::deg(-90.0))))
         .child(figure),
     );
     if !props.label.is_empty() {
         column = column.child(
             div(Style::default()
-                .color(fg.clone())
+                .color(fg)
                 .font_size(34.0 * u)
                 .font_weight(600.0)
                 .letter_spacing(Length::em(-0.01))
@@ -375,7 +393,11 @@ pub fn draw(props: &StatCard, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
                 SvgElement::new("path")
                     .attr(
                         "d",
-                        if delta < 0 { "M8 3v10m0 0 4-4m-4 4-4-4" } else { "M8 13V3m0 0 4 4M8 3 4 7" },
+                        if delta < 0 {
+                            "M8 3v10m0 0 4-4m-4 4-4-4"
+                        } else {
+                            "M8 13V3m0 0 4 4M8 3 4 7"
+                        },
                     )
                     .attr("stroke", delta_color)
                     .attr("stroke-width", 2)

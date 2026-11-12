@@ -12,8 +12,8 @@ use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
 use crate::elements::fonts::{FontRole, font_or};
 use crate::elements::number_text::format_number;
-use crate::elements::text_split::easing_enter;
 use crate::elements::shared::NumberFormat;
+use crate::elements::text_split::easing_enter;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export, eq)]
@@ -162,13 +162,20 @@ pub fn draw(props: &FunnelChart, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     let frame = cx.frame();
     let stages = &props.stages;
     let count = float(stages.len().max(1));
-    let highest = stages.iter().map(|s| f64::from(s.value)).fold(0.0, f64::max);
+    let highest = stages
+        .iter()
+        .map(|s| f64::from(s.value))
+        .fold(0.0, f64::max);
     let peak = if highest > 0.0 { highest } else { 1.0 };
     let (width, height) = (props.width, props.height);
     let band_height = (height - props.gap * (count - 1.0)) / count;
     let label_size = (band_height * 0.34).min(width * 0.028).max(12.0);
     let gutter = props.label_width.map_or(width * 0.3, f64::from);
-    let dropoff_gutter = if props.show_dropoff { width * 0.13 } else { 0.0 };
+    let dropoff_gutter = if props.show_dropoff {
+        width * 0.13
+    } else {
+        0.0
+    };
     let funnel_width = width - gutter - dropoff_gutter;
     let centre = gutter + funnel_width / 2.0;
     let band_width = |value: f64| value.max(0.0) / peak * funnel_width;
@@ -179,7 +186,10 @@ pub fn draw(props: &FunnelChart, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         .attr("width", width)
         .attr("height", height)
         .attr("viewBox", format!("0 0 {} {}", n(width), n(height)))
-        .attr("font-family", font_or(&props.font_family, FontRole::Main).join(", "));
+        .attr(
+            "font-family",
+            font_or(&props.font_family, FontRole::Main).join(", "),
+        );
     for (index, stage) in stages.iter().enumerate() {
         let value = f64::from(stage.value);
         let top = float(index) * (band_height + props.gap);
@@ -206,22 +216,31 @@ pub fn draw(props: &FunnelChart, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
             n(reveal_bottom)
         );
         let conversion = js_round(value / (if first > 0.0 { first } else { 1.0 }) * 100.0);
-        let dropoff = next.map_or(0.0, |s| js_round((f64::from(s.value) - value) / value * 100.0));
+        let dropoff = next.map_or(0.0, |s| {
+            js_round((f64::from(s.value) - value) / value * 100.0)
+        });
         let dropoff_start = start + stagger + duration * 0.6;
-        let dropoff_progress =
-            clamped_eased(frame, [dropoff_start, dropoff_start + 12.0], [0.0, 1.0], easing_enter())?;
+        let dropoff_progress = clamped_eased(
+            frame,
+            [dropoff_start, dropoff_start + 12.0],
+            [0.0, 1.0],
+            easing_enter(),
+        )?;
         let fill = stage.color.as_deref().unwrap_or(&props.color);
         let fade = 1.0 - float(index) / (count - 1.0).max(1.0);
         let mut figures = format_number(value, props.number_format);
         if props.show_conversion {
-            figures.push_str(&format!(" · {}%", js_number_text(conversion)));
+            figures = format!("{figures} · {}%", js_number_text(conversion));
         }
         let mut group = SvgElement::new("g")
             .child(
                 SvgElement::new("path")
                     .attr("d", path)
                     .attr("fill", fill)
-                    .attr("opacity", props.tail_opacity + (1.0 - props.tail_opacity) * fade),
+                    .attr(
+                        "opacity",
+                        props.tail_opacity + (1.0 - props.tail_opacity) * fade,
+                    ),
             )
             .child(
                 label(

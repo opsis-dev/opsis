@@ -67,5 +67,5 @@ pub fn path_draw(progress: f64, d: &str) -> (f64, f64) {
         let dash = length * 1.5;
         return (dash, dash);
     }
-    (length, length - shown * length)
+    (length, shown.mul_add(-length, length))
 }

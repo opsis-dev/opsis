@@ -124,24 +124,52 @@ pub fn presentation(
         "slide" => presented(kind, params, transition, cx, transition::slide::present),
         "wipe" => presented(kind, params, transition, cx, transition::wipe::present),
         "flip" => presented(kind, params, transition, cx, transition::flip::present),
-        "clock-wipe" => presented(kind, params, transition, cx, transition::clock_wipe::present),
+        "clock-wipe" => presented(
+            kind,
+            params,
+            transition,
+            cx,
+            transition::clock_wipe::present,
+        ),
         "iris" => presented(kind, params, transition, cx, transition::iris::present),
         "whip-pan" => presented(kind, params, transition, cx, transition::whip_pan::present),
-        "push-through" => {
-            presented(kind, params, transition, cx, transition::push_through::present)
-        }
+        "push-through" => presented(
+            kind,
+            params,
+            transition,
+            cx,
+            transition::push_through::present,
+        ),
         "zoom-blur" => presented(kind, params, transition, cx, transition::zoom_blur::present),
-        "focus-pull" => presented(kind, params, transition, cx, transition::focus_pull::present),
+        "focus-pull" => presented(
+            kind,
+            params,
+            transition,
+            cx,
+            transition::focus_pull::present,
+        ),
         "page-turn" => presented(kind, params, transition, cx, transition::page_turn::present),
-        "grid-pixelate-wipe" => {
-            presented(kind, params, transition, cx, transition::grid_pixelate_wipe::present)
-        }
-        "transition-blinds" => {
-            presented(kind, params, transition, cx, transition::transition_blinds::present)
-        }
-        "frosted-glass-wipe" => {
-            presented(kind, params, transition, cx, transition::frosted_glass_wipe::present)
-        }
+        "grid-pixelate-wipe" => presented(
+            kind,
+            params,
+            transition,
+            cx,
+            transition::grid_pixelate_wipe::present,
+        ),
+        "transition-blinds" => presented(
+            kind,
+            params,
+            transition,
+            cx,
+            transition::transition_blinds::present,
+        ),
+        "frosted-glass-wipe" => presented(
+            kind,
+            params,
+            transition,
+            cx,
+            transition::frosted_glass_wipe::present,
+        ),
         "chromatic-aberration-wipe" => presented(
             kind,
             params,
@@ -150,9 +178,13 @@ pub fn presentation(
             transition::chromatic_aberration_wipe::present,
         ),
         "lens-zoom" => presented(kind, params, transition, cx, transition::lens_zoom::present),
-        "transition-morph-shape" => {
-            presented(kind, params, transition, cx, transition::transition_morph_shape::present)
-        }
+        "transition-morph-shape" => presented(
+            kind,
+            params,
+            transition,
+            cx,
+            transition::transition_morph_shape::present,
+        ),
         _ => Ok(None),
     }
 }
@@ -166,6 +198,8 @@ pub fn element(component: &str, props: &Map<String, Value>, cx: &Cx<'_>) -> Draw
         "paper" => drawn(component, props, cx, background::paper::draw),
         "noise" => drawn(component, props, cx, background::noise::draw),
         "aurora-bg" => drawn(component, props, cx, background::aurora_bg::draw),
+        "backdrop" => drawn(component, props, cx, background::backdrop::draw),
+        "particle-field" => drawn(component, props, cx, background::particle_field::draw),
         "tracking-in" => drawn(component, props, cx, text::tracking_in::draw),
         "staggered-fade-up" => drawn(component, props, cx, text::staggered_fade_up::draw),
         "soft-blur-in" => drawn(component, props, cx, text::soft_blur_in::draw),
@@ -204,9 +238,7 @@ pub fn element(component: &str, props: &Map<String, Value>, cx: &Cx<'_>) -> Draw
         "lottie" => drawn(component, props, cx, overlay::lottie::draw),
         "keystroke" => drawn(component, props, cx, overlay::keystroke::draw),
         "captions" => drawn(component, props, cx, overlay::captions::draw),
-        "notification-stack" => {
-            drawn(component, props, cx, overlay::notification_stack::draw)
-        }
+        "notification-stack" => drawn(component, props, cx, overlay::notification_stack::draw),
         "gradient-scale-cut-text" => {
             drawn(component, props, cx, text::gradient_scale_cut_text::draw)
         }

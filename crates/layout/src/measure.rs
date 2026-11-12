@@ -2,18 +2,18 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 
 use opsis_scene::drawing::Font;
+use opsis_scene::measure::{Measure, MeasuredBox};
+use opsis_scene::node::Node;
 use parley::PositionedLayoutItem;
 use skrifa::instance::{LocationRef, NormalizedCoord, Size};
 use skrifa::{FontRef, GlyphId, MetadataProvider};
-use opsis_scene::measure::{Measure, MeasuredBox};
-use opsis_scene::node::Node;
 
-use crate::{Images, Viewport, lay_out};
 use crate::computed::{Context, ROOT_FONT_SIZE};
 use crate::drawing::style_of;
 use crate::fonts::Fonts;
 use crate::inline::probe;
 use crate::tree::Tree;
+use crate::{Images, Viewport, lay_out};
 
 pub struct Measurer<'f> {
     fonts: RefCell<&'f mut Fonts>,
@@ -92,7 +92,8 @@ impl Measure for Measurer<'_> {
                     .iter()
                     .map(|c| NormalizedCoord::from_bits(c.to_bits()))
                     .collect();
-                let metrics = face.glyph_metrics(Size::new(run.font_size()), LocationRef::new(&coords));
+                let metrics =
+                    face.glyph_metrics(Size::new(run.font_size()), LocationRef::new(&coords));
                 for glyph in glyph_run.glyphs() {
                     if let Some(bounds) = metrics.bounds(GlyphId::new(glyph.id)) {
                         ascent = ascent.max(f64::from(bounds.y_max - glyph.y));
@@ -106,7 +107,12 @@ impl Measure for Measurer<'_> {
 
     fn boxes(&self, root: &Node) -> Vec<MeasuredBox> {
         let mut fonts = self.fonts.borrow_mut();
-        let laid = lay_out(root, self.viewport, &mut fonts, &Images { size_of: &|_| None });
+        let laid = lay_out(
+            root,
+            self.viewport,
+            &mut fonts,
+            &Images { size_of: &|_| None },
+        );
         laid.boxes
             .into_iter()
             .map(|placed| MeasuredBox {

@@ -113,7 +113,10 @@ fn spine(width: f64, thickness: f64, seed: &str, wobble_size: f64) -> Vec<Point>
     let wobble = random_between(&format!("{seed}:w"), -wobble_size, wobble_size);
     let mid = thickness / 2.0 + EDGE_INSET;
     sample_cubic(
-        Point { x: EDGE_INSET, y: mid },
+        Point {
+            x: EDGE_INSET,
+            y: mid,
+        },
         Point {
             x: width * 0.3,
             y: mid + wobble,

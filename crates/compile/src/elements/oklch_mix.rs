@@ -1,6 +1,6 @@
 use color::{ColorSpaceTag, parse_color};
 use opsis_scene::color::Color;
-use opsis_scene::interpolate::{Interpolation, InterpolateError, interpolate};
+use opsis_scene::interpolate::{InterpolateError, Interpolation, interpolate};
 use opsis_types::numbers::{exact_eq, float, truncate};
 
 const CHROMA_RANGE: f64 = 0.4;
@@ -61,10 +61,17 @@ fn sign_or_one(c: f64) -> f64 {
 )]
 pub fn rgb_to_oklch(rgb: Rgb) -> Oklch {
     let (r, g, b) = (to_linear(rgb.r), to_linear(rgb.g), to_linear(rgb.b));
-    let l_ = (0.412_221_469_470_763 * r + 0.536_332_537_261_734_8 * g + 0.051_445_993_267_502_2 * b).cbrt();
-    let m_ = (0.211_903_495_817_825_2 * r + 0.680_699_550_645_234_4 * g + 0.107_396_953_536_940_6 * b).cbrt();
-    let s_ = (0.088_302_459_190_056_4 * r + 0.281_718_839_136_121_5 * g + 0.629_978_701_673_822_2 * b).cbrt();
-    let l = 0.210_454_268_309_314 * l_ + 0.793_617_774_702_305_4 * m_ - 0.004_072_043_011_619_3 * s_;
+    let l_ =
+        (0.412_221_469_470_763 * r + 0.536_332_537_261_734_8 * g + 0.051_445_993_267_502_2 * b)
+            .cbrt();
+    let m_ =
+        (0.211_903_495_817_825_2 * r + 0.680_699_550_645_234_4 * g + 0.107_396_953_536_940_6 * b)
+            .cbrt();
+    let s_ =
+        (0.088_302_459_190_056_4 * r + 0.281_718_839_136_121_5 * g + 0.629_978_701_673_822_2 * b)
+            .cbrt();
+    let l =
+        0.210_454_268_309_314 * l_ + 0.793_617_774_702_305_4 * m_ - 0.004_072_043_011_619_3 * s_;
     let (mut a, mut lab_b) = (
         1.977_998_532_431_168_4 * l_ - 2.428_592_242_048_58 * m_ + 0.450_593_709_617_411 * s_,
         0.025_904_042_465_547_8 * l_ + 0.782_771_712_457_529_6 * m_ - 0.808_675_754_923_077_4 * s_,
@@ -93,16 +100,33 @@ fn lab_to_lch(l: f64, a: f64, b: f64, alpha: Option<f64>) -> Oklch {
 pub fn oklch_to_rgb(color: Oklch) -> Rgb {
     let h = color.h.unwrap_or(0.0);
     let chroma = !exact_eq(color.c, 0.0) && !color.c.is_nan();
-    let a = if chroma { color.c * (h / 180.0 * std::f64::consts::PI).cos() } else { 0.0 };
-    let b = if chroma { color.c * (h / 180.0 * std::f64::consts::PI).sin() } else { 0.0 };
+    let a = if chroma {
+        color.c * (h / 180.0 * std::f64::consts::PI).cos()
+    } else {
+        0.0
+    };
+    let b = if chroma {
+        color.c * (h / 180.0 * std::f64::consts::PI).sin()
+    } else {
+        0.0
+    };
     let l = color.l;
     let l_ = (l + 0.396_337_777_376_174_9 * a + 0.215_803_757_309_913_6 * b).powi(3);
     let m_ = (l - 0.105_561_345_815_658_6 * a - 0.063_854_172_825_813_3 * b).powi(3);
     let s_ = (l - 0.089_484_177_529_811_9 * a - 1.291_485_548_019_409_2 * b).powi(3);
     Rgb {
-        r: from_linear(4.076_741_636_075_957 * l_ - 3.307_711_539_258_061_6 * m_ + 0.230_969_903_182_104_4 * s_),
-        g: from_linear(-1.268_437_973_285_031_7 * l_ + 2.609_757_349_287_688_7 * m_ - 0.341_319_376_002_657_3 * s_),
-        b: from_linear(-0.004_196_076_138_675_6 * l_ - 0.703_418_617_935_936_2 * m_ + 1.707_614_694_074_611_7 * s_),
+        r: from_linear(
+            4.076_741_636_075_957 * l_ - 3.307_711_539_258_061_6 * m_
+                + 0.230_969_903_182_104_4 * s_,
+        ),
+        g: from_linear(
+            -1.268_437_973_285_031_7 * l_ + 2.609_757_349_287_688_7 * m_
+                - 0.341_319_376_002_657_3 * s_,
+        ),
+        b: from_linear(
+            -0.004_196_076_138_675_6 * l_ - 0.703_418_617_935_936_2 * m_
+                + 1.707_614_694_074_611_7 * s_,
+        ),
         alpha: color.alpha,
     }
 }
@@ -126,20 +150,35 @@ pub fn css_oklch(css: &str) -> Oklch {
         css
     };
     let Ok(parsed) = parse_color(css.trim()) else {
-        return Oklch { l: 0.0, c: 0.0, h: None, alpha: Some(1.0) };
+        return Oklch {
+            l: 0.0,
+            c: 0.0,
+            h: None,
+            alpha: Some(1.0),
+        };
     };
     let alpha = Some(f64::from(parsed.components[3]));
     match parsed.cs {
         ColorSpaceTag::Oklch => {
             let [l, c, h, _] = parsed.components.map(f64::from);
-            Oklch { l, c, h: Some(h), alpha }
+            Oklch {
+                l,
+                c,
+                h: Some(h),
+                alpha,
+            }
         }
         ColorSpaceTag::Oklab => {
             let [l, a, b, _] = parsed.components.map(f64::from);
             lab_to_lch(l, a, b, alpha)
         }
         _ => parsed_rgb(css).map_or(
-            Oklch { l: 0.0, c: 0.0, h: None, alpha: Some(1.0) },
+            Oklch {
+                l: 0.0,
+                c: 0.0,
+                h: None,
+                alpha: Some(1.0),
+            },
             rgb_to_oklch,
         ),
     }
@@ -150,7 +189,11 @@ fn shorter_hues(a: Option<f64>, b: Option<f64>) -> (Option<f64>, Option<f64>) {
         (Some(a), Some(b)) => {
             let first = normalize_hue(a);
             let d = normalize_hue(b) - first;
-            let step = if d.abs() <= 180.0 { d } else { 360.0f64.mul_add(-d.signum(), d) };
+            let step = if d.abs() <= 180.0 {
+                d
+            } else {
+                360.0f64.mul_add(-d.signum(), d)
+            };
             (Some(first), Some(step + first))
         }
         (a, b) => (a.map(normalize_hue), b.map(normalize_hue)),
@@ -181,7 +224,9 @@ pub fn mix(first: Oklch, second: Oklch, t: f64) -> Oklch {
 }
 
 fn displayable(rgb: Rgb) -> bool {
-    [rgb.r, rgb.g, rgb.b].iter().all(|v| (0.0..=1.0).contains(v))
+    [rgb.r, rgb.g, rgb.b]
+        .iter()
+        .all(|v| (0.0..=1.0).contains(v))
 }
 
 const fn clipped(rgb: Rgb) -> Rgb {
@@ -220,12 +265,20 @@ pub fn clamp_chroma(color: Oklch) -> Rgb {
     if displayable(oklch_to_rgb(clamped)) {
         oklch_to_rgb(clamped)
     } else {
-        oklch_to_rgb(Oklch { c: last_good, ..clamped })
+        oklch_to_rgb(Oklch {
+            c: last_good,
+            ..clamped
+        })
     }
 }
 
 fn channel(value: f64) -> u8 {
-    let scaled = (if value.is_nan() { 0.0 } else { value.clamp(0.0, 1.0) } * 255.0).round();
+    let scaled = (if value.is_nan() {
+        0.0
+    } else {
+        value.clamp(0.0, 1.0)
+    } * 255.0)
+        .round();
     truncate(scaled)
 }
 
@@ -234,7 +287,10 @@ pub fn rgb_text(rgb: Rgb) -> String {
     match rgb.alpha {
         Some(alpha) if !exact_eq(alpha, 1.0) => {
             let alpha = (alpha.clamp(0.0, 1.0) * 100.0).round() / 100.0;
-            format!("rgba({r}, {g}, {b}, {})", opsis_scene::random::js_number_text(alpha))
+            format!(
+                "rgba({r}, {g}, {b}, {})",
+                opsis_scene::random::js_number_text(alpha)
+            )
         }
         _ => format!("rgb({r}, {g}, {b})"),
     }
@@ -258,21 +314,38 @@ pub fn interpolate_colors(
     Ok(mix_oklch(from, to, position - float(index)))
 }
 
-pub fn interpolated_color(input: f64, range: &[f64], colors: &[&str]) -> Result<Color, InterpolateError> {
+pub fn interpolated_color(
+    input: f64,
+    range: &[f64],
+    colors: &[&str],
+) -> Result<Color, InterpolateError> {
     interpolate_colors(input, range, colors).map(|text| Color::css(&text).unwrap_or_default())
 }
 
 fn parsed_or_black(css: &str) -> Rgb {
     let text = css.trim();
     if text.starts_with("var(") {
-        return Rgb { r: 0.0, g: 0.0, b: 0.0, alpha: Some(1.0) };
+        return Rgb {
+            r: 0.0,
+            g: 0.0,
+            b: 0.0,
+            alpha: Some(1.0),
+        };
     }
-    parsed_rgb(text).unwrap_or(Rgb { r: 0.0, g: 0.0, b: 0.0, alpha: Some(1.0) })
+    parsed_rgb(text).unwrap_or(Rgb {
+        r: 0.0,
+        g: 0.0,
+        b: 0.0,
+        alpha: Some(1.0),
+    })
 }
 
 pub fn with_alpha(css: &str, alpha: f64) -> String {
     let rgb = parsed_or_black(css);
-    rgb_text(Rgb { alpha: Some(alpha), ..rgb })
+    rgb_text(Rgb {
+        alpha: Some(alpha),
+        ..rgb
+    })
 }
 
 pub fn lightness(css: &str) -> f64 {

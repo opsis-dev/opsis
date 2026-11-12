@@ -5,8 +5,8 @@ use opsis_scene::values::{Angle, Length};
 use opsis_types::looks::NodeLook;
 
 use crate::elements::draw::{Cx, DrawFailure, Transition};
-use crate::elements::transition::present::filled;
 use crate::elements::entry::{element, meta};
+use crate::elements::transition::present::filled;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -60,13 +60,13 @@ fn pose_of(progress: f64, poses: u32) -> f64 {
 
 pub fn present(props: &PageTurn, side: Transition, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     if side.entering {
-        return Ok(filled(Style::default(), side.children));
+        return Ok(filled(&Style::default(), side.children));
     }
     let pose = pose_of(side.progress, props.poses);
     let angle = f64::from(props.angle);
     let lift = page_turn_lift(cx.at.stage.width, cx.at.stage.height, props.hinge_x, angle);
     Ok(filled(
-        Style::default()
+        &Style::default()
             .z_index(2)
             .transform_origin((
                 Length::percent(props.hinge_x * 100.0),

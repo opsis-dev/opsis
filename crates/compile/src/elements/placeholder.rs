@@ -2,7 +2,9 @@ use opsis_scene::color::Color;
 use opsis_scene::interpolate::{Interpolation, interpolate};
 use opsis_scene::node::{Node, div};
 use opsis_scene::paint::{ColorStop, Gradient};
-use opsis_scene::style::{Align, BorderSide, BorderStyle, FlexDirection, Display, Style, TextAlign};
+use opsis_scene::style::{
+    Align, BorderSide, BorderStyle, Display, FlexDirection, Style, TextAlign,
+};
 use opsis_scene::timeline::absolute_fill;
 use opsis_scene::values::{Angle, Edges, Length};
 use serde::Deserialize;
@@ -53,9 +55,15 @@ pub fn draw(props: &Placeholder, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     let band = Gradient::linear(
         Angle::deg(100.0),
         vec![
-            ColorStop::at(Color::TRANSPARENT, Length::percent(sweep - SWEEP_BAND_PERCENT)),
+            ColorStop::at(
+                Color::TRANSPARENT,
+                Length::percent(sweep - SWEEP_BAND_PERCENT),
+            ),
             ColorStop::at(css_color(SWEEP_SHINE), Length::percent(sweep)),
-            ColorStop::at(Color::TRANSPARENT, Length::percent(sweep + SWEEP_BAND_PERCENT)),
+            ColorStop::at(
+                Color::TRANSPARENT,
+                Length::percent(sweep + SWEEP_BAND_PERCENT),
+            ),
         ],
     );
     let mut card = div(Style::default()

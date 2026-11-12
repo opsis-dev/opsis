@@ -2,7 +2,10 @@ use opsis_scene::random::js_number_text;
 
 pub fn polar(cx: f64, cy: f64, radius: f64, degrees: f64) -> (f64, f64) {
     let radians = (degrees - 90.0).to_radians();
-    (radius.mul_add(radians.cos(), cx), radius.mul_add(radians.sin(), cy))
+    (
+        radius.mul_add(radians.cos(), cx),
+        radius.mul_add(radians.sin(), cy),
+    )
 }
 
 pub fn arc_path(cx: f64, cy: f64, radius: f64, start: f64, end: f64) -> String {

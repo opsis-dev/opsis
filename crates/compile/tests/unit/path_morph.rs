@@ -8,7 +8,11 @@ const FIXTURE: &str = "scene/path-morph.json";
 fn segments(list: &[Segment]) -> Value {
     list.iter()
         .map(|segment| {
-            let command = if matches!(segment, Segment::Move(_)) { "M" } else { "C" };
+            let command = if matches!(segment, Segment::Move(_)) {
+                "M"
+            } else {
+                "C"
+            };
             let mut row = vec![json!(command)];
             row.extend(segment.numbers().into_iter().map(Value::from));
             Value::Array(row)

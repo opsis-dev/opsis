@@ -14,7 +14,13 @@ pub fn random_between(seed: &str, lo: f64, hi: f64) -> f64 {
     random(seed).mul_add(hi - lo, lo)
 }
 
-pub fn stepped_ramp(frame: f64, from: f64, to: f64, step: f64, ease: Option<&dyn Fn(f64) -> f64>) -> f64 {
+pub fn stepped_ramp(
+    frame: f64,
+    from: f64,
+    to: f64,
+    step: f64,
+    ease: Option<&dyn Fn(f64) -> f64>,
+) -> f64 {
     let f = quantised_frame(frame, step);
     if f <= from {
         return 0.0;

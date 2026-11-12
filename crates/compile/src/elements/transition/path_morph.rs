@@ -65,6 +65,10 @@ pub const fn outline(shape: MorphShape) -> &'static str {
     }
 }
 
+#[expect(
+    clippy::many_single_char_names,
+    reason = "the six numbers are a cubic's two control points and end, named as the film's path code names them"
+)]
 fn parsed(d: &str) -> (Vec<Segment>, bool) {
     let mut numbers = Vec::new();
     let mut segments = Vec::new();
@@ -102,6 +106,10 @@ fn bez_path(segments: &[Segment]) -> BezPath {
     path
 }
 
+#[expect(
+    clippy::suboptimal_flops,
+    reason = "the film fits each shape with separate multiplies and adds, and the fitted corners have to land on exactly 0 as its do"
+)]
 fn fitted(segments: &[Segment]) -> Vec<Segment> {
     let bounds = bez_path(segments).bounding_box();
     let (width, height) = (bounds.width().max(MIN_BOX), bounds.height().max(MIN_BOX));
@@ -111,7 +119,7 @@ fn fitted(segments: &[Segment]) -> Vec<Segment> {
     let (tx, ty) = (left - bounds.x0 * scale, top - bounds.y0 * scale);
     segments
         .iter()
-        .map(|s| s.mapped(|p| Point::new(p.x.mul_add(scale, tx), p.y.mul_add(scale, ty))))
+        .map(|s| s.mapped(|p| Point::new(p.x * scale + tx, p.y * scale + ty)))
         .collect()
 }
 
@@ -207,6 +215,10 @@ fn path_splits(path: &[Segment], target: usize) -> Vec<usize> {
     splits
 }
 
+#[expect(
+    clippy::many_single_char_names,
+    reason = "the six numbers are a cubic's two control points and end, named as the film's path code names them"
+)]
 fn split_cubic(points: [Point; 4], t: f64) -> ([Point; 4], [Point; 4]) {
     let [p0, p1, p2, p3] = points;
     let (a, b, c) = (along(p0, p1, t), along(p1, p2, t), along(p2, p3, t));
@@ -296,7 +308,7 @@ pub fn prepare_morph(from: MorphShape, to: MorphShape) -> MorphPair {
     let first = curved(&fitted(&start), start_closed);
     let second = curved(&fitted(&end), end_closed);
     let least = first.len().max(second.len());
-    let average = (total_length(&first) + total_length(&second)) / 2.0;
+    let average = f64::midpoint(total_length(&first), total_length(&second));
     let per_segment = average / float(least);
     let ideal = least.max(truncate(js_round(average / per_segment.max(1.0))));
     let target = ideal.min(least * TARGET_GROWTH);
@@ -317,19 +329,25 @@ fn blended(a: f64, b: f64, t: f64) -> f64 {
     a * (1.0 - t) + b * t
 }
 
+#[expect(
+    clippy::many_single_char_names,
+    reason = "the six numbers are a cubic's two control points and end, named as the film's path code names them"
+)]
 pub fn morphed(progress: f64, pair: &MorphPair) -> Vec<Segment> {
     let t = progress.clamp(0.0, 1.0);
     let mix = |a: Point, b: Point| Point::new(blended(a.x, b.x, t), blended(a.y, b.y, t));
     pair.from
         .iter()
         .enumerate()
-        .map(|(i, from)| match (*from, pair.to.get(i).copied().unwrap_or(*from)) {
-            (Segment::Move(a), other) => Segment::Move(mix(a, other.end())),
-            (Segment::Cubic(a, b, c), Segment::Cubic(x, y, z)) => {
-                Segment::Cubic(mix(a, x), mix(b, y), mix(c, z))
-            }
-            (cubic @ Segment::Cubic(..), Segment::Move(_)) => cubic,
-        })
+        .map(
+            |(i, from)| match (*from, pair.to.get(i).copied().unwrap_or(*from)) {
+                (Segment::Move(a), other) => Segment::Move(mix(a, other.end())),
+                (Segment::Cubic(a, b, c), Segment::Cubic(x, y, z)) => {
+                    Segment::Cubic(mix(a, x), mix(b, y), mix(c, z))
+                }
+                (cubic @ Segment::Cubic(..), Segment::Move(_)) => cubic,
+            },
+        )
         .collect()
 }
 
@@ -338,7 +356,11 @@ pub fn path_data(segments: &[Segment], closed: bool, map: impl Fn(Point) -> Poin
         .iter()
         .map(|segment| {
             let mapped = segment.mapped(&map);
-            let command = if matches!(segment, Segment::Move(_)) { "M" } else { "C" };
+            let command = if matches!(segment, Segment::Move(_)) {
+                "M"
+            } else {
+                "C"
+            };
             let numbers: Vec<String> = mapped.numbers().iter().map(f64::to_string).collect();
             format!("{command}{}", numbers.join(" "))
         })

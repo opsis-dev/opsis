@@ -4,7 +4,9 @@ use opsis_scene::style::{Overflow, Style};
 use opsis_types::numbers::{float, whole};
 
 use crate::elements::anim::{clamped, clamped_eased};
-use crate::elements::chart_utils::{area_path, line_path, nice_domain, plot_area, plot_points, smooth_path};
+use crate::elements::chart_utils::{
+    area_path, line_path, nice_domain, plot_area, plot_points, smooth_path,
+};
 use crate::elements::draw::DrawFailure;
 use crate::elements::number_text::format_axis_value;
 use crate::elements::path_utils::{path_draw, sample_path};
@@ -37,7 +39,12 @@ pub struct LineChart {
 }
 
 impl LineChart {
-    pub fn new(points: Vec<(f64, f64, Option<String>)>, width: f64, height: f64, frame: f64) -> Self {
+    pub fn new(
+        points: Vec<(f64, f64, Option<String>)>,
+        width: f64,
+        height: f64,
+        frame: f64,
+    ) -> Self {
         Self {
             points,
             width,
@@ -86,7 +93,11 @@ pub fn line_chart(chart: &LineChart) -> Result<Element, DrawFailure> {
     let ys: Vec<f64> = chart.points.iter().map(|p| p.1).collect();
     let (domain, ticks) = nice_domain(&ys, chart.include_zero, 4.0);
     let labels: Vec<String> = ticks.iter().map(|t| format_axis_value(*t)).collect();
-    let longest = labels.iter().map(|l| l.encode_utf16().count()).max().unwrap_or(0);
+    let longest = labels
+        .iter()
+        .map(|l| l.encode_utf16().count())
+        .max()
+        .unwrap_or(0);
     let gutter = if chart.show_axis {
         f64::from(whole(float(longest) * label_size * 0.62)) + scale(18.0)
     } else {
@@ -98,13 +109,21 @@ pub fn line_chart(chart: &LineChart) -> Result<Element, DrawFailure> {
         (
             scale(if chart.show_end_label { 34.0 } else { 16.0 }),
             scale(if chart.show_end_label { 44.0 } else { 12.0 }),
-            if chart.show_x_labels { label_size + scale(20.0) } else { scale(10.0) },
+            if chart.show_x_labels {
+                label_size + scale(20.0)
+            } else {
+                scale(10.0)
+            },
             gutter,
         ),
     );
     let plotted = plot_points(&chart.points, &plot, &domain);
     let xy: Vec<(f64, f64)> = plotted.iter().map(|p| (p.x, p.y)).collect();
-    let line = if chart.smooth { smooth_path(&xy, SMOOTH_TENSION) } else { line_path(&xy) };
+    let line = if chart.smooth {
+        smooth_path(&xy, SMOOTH_TENSION)
+    } else {
+        line_path(&xy)
+    };
     let area = area_path(&line, &xy, plot.bottom);
     let progress = clamped_eased(
         chart.frame,
@@ -124,7 +143,10 @@ pub fn line_chart(chart: &LineChart) -> Result<Element, DrawFailure> {
     let mut root = SvgElement::new("svg")
         .attr("width", chart.width)
         .attr("height", chart.height)
-        .attr("viewBox", format!("0 0 {} {}", n(chart.width), n(chart.height)))
+        .attr(
+            "viewBox",
+            format!("0 0 {} {}", n(chart.width), n(chart.height)),
+        )
         .child(
             SvgElement::new("defs")
                 .child(
@@ -159,7 +181,7 @@ pub fn line_chart(chart: &LineChart) -> Result<Element, DrawFailure> {
         );
     if chart.show_axis {
         for (index, tick) in ticks.iter().enumerate() {
-            let y = plot.bottom - (tick - domain.min) / domain.span * plot.height;
+            let y = f64::mul_add((tick - domain.min) / domain.span, -plot.height, plot.bottom);
             root = root.child(
                 SvgElement::new("g")
                     .child(
@@ -173,8 +195,15 @@ pub fn line_chart(chart: &LineChart) -> Result<Element, DrawFailure> {
                             .attr("opacity", if index == 0 { 1.8 } else { 1.0 }),
                     )
                     .child(
-                        text(plot.left - scale(12.0), y, &chart.label_color, label_size, 600, "end")
-                            .text(labels[index].as_str()),
+                        text(
+                            plot.left - scale(12.0),
+                            y,
+                            &chart.label_color,
+                            label_size,
+                            600,
+                            "end",
+                        )
+                        .text(labels[index].as_str()),
                     ),
             );
         }
@@ -261,9 +290,16 @@ pub fn line_chart(chart: &LineChart) -> Result<Element, DrawFailure> {
         && let Some(end) = plotted.last()
     {
         root = root.child(
-            text(end.x, end.y - scale(22.0), &chart.color, scale(28.0), 700, "end")
-                .attr("opacity", clamped(progress, [0.88, 1.0], [0.0, 1.0])?)
-                .text(format_axis_value(end.value)),
+            text(
+                end.x,
+                end.y - scale(22.0),
+                &chart.color,
+                scale(28.0),
+                700,
+                "end",
+            )
+            .attr("opacity", clamped(progress, [0.88, 1.0], [0.0, 1.0])?)
+            .text(format_axis_value(end.value)),
         );
     }
     Ok(svg(root, Style::default().overflow(Overflow::Visible)))

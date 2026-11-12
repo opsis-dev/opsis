@@ -48,16 +48,40 @@ enum Modifier {
 
 pub const fn icon_shape(icon: Icon) -> (&'static str, &'static [&'static str]) {
     match icon {
-        Icon::Command => ("0 0 24 24", &["M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"]),
+        Icon::Command => (
+            "0 0 24 24",
+            &["M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"],
+        ),
         Icon::Option => ("0 0 24 24", &["M3 3h6l6 18h6", "M14 3h7"]),
-        Icon::Shift => ("0 0 24 24", &["M9 19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-7.086-7.086a1 1 0 0 0-1.414 0l-7.086 7.086a.707.707 0 0 0 .5 1.207H8a1 1 0 0 1 1 1z"]),
+        Icon::Shift => (
+            "0 0 24 24",
+            &[
+                "M9 19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-7.086-7.086a1 1 0 0 0-1.414 0l-7.086 7.086a.707.707 0 0 0 .5 1.207H8a1 1 0 0 1 1 1z",
+            ],
+        ),
         Icon::Control => ("0 0 24 24", &["m18 15-6-6-6 6"]),
         Icon::Return => ("0 0 24 24", &["M20 4v7a4 4 0 0 1-4 4H4", "m9 10-5 5 5 5"]),
-        Icon::Delete => ("0 0 24 24", &["M10 5a2 2 0 0 0-1.344.519l-6.328 5.74a1 1 0 0 0 0 1.481l6.328 5.741A2 2 0 0 0 10 19h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z", "m12 9 6 6", "m18 9-6 6"]),
-        Icon::Escape => ("0 0 24 24", &["M2 8V2h6", "m2 2 10 10", "M12 2A10 10 0 1 1 2 12"]),
+        Icon::Delete => (
+            "0 0 24 24",
+            &[
+                "M10 5a2 2 0 0 0-1.344.519l-6.328 5.74a1 1 0 0 0 0 1.481l6.328 5.741A2 2 0 0 0 10 19h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z",
+                "m12 9 6 6",
+                "m18 9-6 6",
+            ],
+        ),
+        Icon::Escape => (
+            "0 0 24 24",
+            &["M2 8V2h6", "m2 2 10 10", "M12 2A10 10 0 1 1 2 12"],
+        ),
         Icon::Tab => ("0 0 24 24", &["M17 12H3", "m11 18 6-6-6-6", "M21 5v14"]),
         Icon::Space => ("0 6 24 24", &["M22 17v1c0 .5-.5 1-1 1H3c-.5 0-1-.5-1-1v-1"]),
-        Icon::CapsLock => ("0 0 24 24", &["M14 16a1 1 0 0 0 1-1v-2a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-6.939-6.939a1.207 1.207 0 0 0-1.708 0l-6.94 6.94a.707.707 0 0 0 .5 1.206H8a1 1 0 0 1 1 1v2a1 1 0 0 0 1 1z", "M9 20h6"]),
+        Icon::CapsLock => (
+            "0 0 24 24",
+            &[
+                "M14 16a1 1 0 0 0 1-1v-2a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-6.939-6.939a1.207 1.207 0 0 0-1.708 0l-6.94 6.94a.707.707 0 0 0 .5 1.206H8a1 1 0 0 1 1 1v2a1 1 0 0 0 1 1z",
+                "M9 20h6",
+            ],
+        ),
         Icon::Up => ("0 0 24 24", &["m5 12 7-7 7 7", "M12 19V5"]),
         Icon::Down => ("0 0 24 24", &["M12 5v14", "m19 12-7 7-7-7"]),
         Icon::Left => ("0 0 24 24", &["m12 19-7-7 7-7", "M19 12H5"]),
@@ -78,8 +102,20 @@ fn modifier_of(name: &str) -> Option<Modifier> {
 
 const fn modifier_order(platform: KeyboardPlatform) -> [Modifier; 5] {
     match platform {
-        KeyboardPlatform::Mac => [Modifier::Fn, Modifier::Ctrl, Modifier::Alt, Modifier::Shift, Modifier::Meta],
-        KeyboardPlatform::Windows => [Modifier::Fn, Modifier::Meta, Modifier::Ctrl, Modifier::Alt, Modifier::Shift],
+        KeyboardPlatform::Mac => [
+            Modifier::Fn,
+            Modifier::Ctrl,
+            Modifier::Alt,
+            Modifier::Shift,
+            Modifier::Meta,
+        ],
+        KeyboardPlatform::Windows => [
+            Modifier::Fn,
+            Modifier::Meta,
+            Modifier::Ctrl,
+            Modifier::Alt,
+            Modifier::Shift,
+        ],
     }
 }
 

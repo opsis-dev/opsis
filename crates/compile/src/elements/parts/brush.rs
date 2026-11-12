@@ -1,10 +1,10 @@
 use std::fmt::Write;
 
 use opsis_scene::node::{Element, Node, SvgElement, div, svg};
+use opsis_scene::random::{js_number_text, random};
 use opsis_scene::style::{Display, Overflow, Position, Style};
 use opsis_scene::timeline::{Stage, absolute_fill};
 use opsis_scene::values::Length;
-use opsis_scene::random::{js_number_text, random};
 use opsis_types::numbers::{exact_eq, float};
 
 const GRAIN_RATIO: f64 = 0.5;
@@ -90,7 +90,11 @@ pub fn sample_line(from: Point, to: Point, points: usize) -> Vec<Point> {
 
 fn normal_at(points: &[Point], i: usize) -> Point {
     let here = points[i];
-    let before = i.checked_sub(1).and_then(|j| points.get(j)).copied().unwrap_or(here);
+    let before = i
+        .checked_sub(1)
+        .and_then(|j| points.get(j))
+        .copied()
+        .unwrap_or(here);
     let after = points.get(i + 1).copied().unwrap_or(here);
     let (tx, ty) = (after.x - before.x, after.y - before.y);
     let length = length_or_one(tx, ty);
@@ -179,7 +183,10 @@ pub fn grain_defs(seed: &str, stroke_width: f64, grain: f64) -> SvgElement {
                     .attr("type", "fractalNoise")
                     .attr("baseFrequency", GRAIN_FREQUENCY)
                     .attr("numOctaves", GRAIN_OCTAVES)
-                    .attr("seed", (random(format!("{seed}:grain")) * SEED_SCALE).floor())
+                    .attr(
+                        "seed",
+                        (random(format!("{seed}:grain")) * SEED_SCALE).floor(),
+                    )
                     .attr("result", "brushGrain"),
             )
             .child(
@@ -216,7 +223,10 @@ pub fn brush_view(view: BrushView<'_>) -> Element {
     if view.grain > 0.0 {
         path = path.attr(
             "filter",
-            format!("url(#{})", filter_id(view.seed, view.stroke_width, view.grain)),
+            format!(
+                "url(#{})",
+                filter_id(view.seed, view.stroke_width, view.grain)
+            ),
         );
     }
     let root = SvgElement::new("svg")

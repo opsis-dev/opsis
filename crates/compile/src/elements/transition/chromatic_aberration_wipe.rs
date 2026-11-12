@@ -7,9 +7,9 @@ use opsis_scene::values::Length;
 use opsis_types::looks::NodeLook;
 
 use crate::elements::draw::{Cx, DrawFailure, Transition};
-use crate::elements::transition::present::{filled, transition_phase};
 use crate::elements::entry::{element, meta};
 use crate::elements::shared::Orientation;
+use crate::elements::transition::present::{filled, transition_phase};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -69,22 +69,29 @@ pub fn present(
     let travel = phase.displace * if phase.entering { 100.0 } else { -100.0 } * props.slide;
     let horizontal = props.axis == Orientation::Horizontal;
     let id = format!("{FILTER_ID}-{}", if side.entering { "in" } else { "out" });
-    let defs = CHANNELS.iter().fold(SvgElement::new("defs"), |defs, (channel, matrix, _)| {
-        defs.child(
-            SvgElement::new("filter")
-                .attr("id", format!("{id}-{channel}"))
-                .child(
-                    SvgElement::new("feColorMatrix")
-                        .attr("type", "matrix")
-                        .attr("values", *matrix),
-                ),
+    let defs = CHANNELS
+        .iter()
+        .fold(SvgElement::new("defs"), |defs, (channel, matrix, _)| {
+            defs.child(
+                SvgElement::new("filter")
+                    .attr("id", format!("{id}-{channel}"))
+                    .child(
+                        SvgElement::new("feColorMatrix")
+                            .attr("type", "matrix")
+                            .attr("values", *matrix),
+                    ),
+            )
+        });
+    let mut layers: Vec<Node> = vec![
+        svg(
+            SvgElement::new("svg")
+                .attr("width", 0)
+                .attr("height", 0)
+                .child(defs),
+            Style::default().position(Position::Absolute),
         )
-    });
-    let mut layers: Vec<Node> = vec![svg(
-        SvgElement::new("svg").attr("width", 0).attr("height", 0).child(defs),
-        Style::default().position(Position::Absolute),
-    )
-    .into()];
+        .into(),
+    ];
     if separation >= 0.1 {
         for (channel, _, direction) in CHANNELS {
             let offset = Length::px(direction * separation);
@@ -94,7 +101,7 @@ pub fn present(
                 (Length::ZERO, offset)
             };
             layers.push(filled(
-                Style::default()
+                &Style::default()
                     .filter(vec![Filter::Url(format!("{id}-{channel}"))])
                     .mix_blend_mode(BlendMode::Screen)
                     .translate(shift.0, shift.1),
@@ -102,7 +109,7 @@ pub fn present(
             ));
         }
     } else {
-        layers.push(filled(Style::default(), side.children));
+        layers.push(filled(&Style::default(), side.children));
     }
     let shift = if horizontal {
         (Length::percent(travel), Length::percent(0.0))
@@ -110,7 +117,7 @@ pub fn present(
         (Length::percent(0.0), Length::percent(travel))
     };
     Ok(filled(
-        Style::default()
+        &Style::default()
             .opacity(phase.opacity)
             .translate(shift.0, shift.1)
             .isolation(true),
