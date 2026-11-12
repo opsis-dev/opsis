@@ -1,6 +1,7 @@
 import { interpolate } from "@opsis/runtime/interpolate.ts";
 import { spring } from "@opsis/runtime/spring.ts";
 import type React from "react";
+import { MAIN_FONT } from "#video/common/fonts.ts";
 import { isTheme, themeColors } from "#video/common/theme.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
@@ -78,9 +79,7 @@ function TextHighlightView({
   const { fps } = useAuthoredConfig();
   const t = useWarmTheme(colors, mode);
   const ground = background ?? t.background;
-  const face =
-    resolveFont(fontFamily || t.fontFamily) ??
-    "Inter, -apple-system, BlinkMacSystemFont, sans-serif";
+  const face = resolveFont(fontFamily || t.fontFamily) ?? MAIN_FONT;
   const base = baseColor ?? t.foreground;
   const accent = accentColor ?? t.primary;
   const shine = shineColor || lighterOf(t.card, t.foreground);

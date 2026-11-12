@@ -1,3 +1,4 @@
+import { MAIN_FONT } from "#video/common/fonts.ts";
 import { type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
 
 export type ToastState = "hidden" | "visible";
@@ -105,7 +106,7 @@ export function Toast({
         opacity: v.opacity,
         transform: `translateY(${v.translateY}px) scale(${v.scale})`,
         transformOrigin: "bottom center",
-        fontFamily: "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+        fontFamily: MAIN_FONT,
       }}
     >
       <span

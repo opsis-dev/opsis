@@ -1,6 +1,7 @@
 import React from "react";
 import { useDesignScale } from "#video/camera/lib/design-scale.ts";
 import { ink, WINDOW_RADIUS } from "#video/camera/lib/style.ts";
+import { MAIN_FONT } from "#video/common/fonts.ts";
 import {
   DEFAULT_ADDRESS_BAR,
   DEFAULT_FRAME_THEME,
@@ -11,7 +12,6 @@ import type { FrameTheme, WindowStyle } from "#video/generated/spec.ts";
 export const CHROME_H = 38;
 const PILL_RADIUS = 9999;
 const WINDOW_FILTER = "saturate(1.05) contrast(1.025) brightness(1.01)";
-const SYSTEM_FONT = 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif';
 
 const FRAME_COLORS = {
   light: {
@@ -268,7 +268,7 @@ export function WindowFrame({
   addressBar = DEFAULT_ADDRESS_BAR,
   radius,
   lift = true,
-  font = SYSTEM_FONT,
+  font = MAIN_FONT,
   children,
 }: {
   chrome?: boolean;

@@ -189,7 +189,7 @@ fn the_font_picker_lists_each_family_once_with_the_project_first() {
     assert_eq!(choices.project.len(), 1);
     assert!(choices.project[0].selected);
     assert_eq!(choices.project[0].preview, "df-preview-file-lora");
-    assert_eq!(choices.project[0].stack, "\"df-preview-file-lora\", serif");
+    assert_eq!(choices.project[0].stack, "\"df-preview-file-lora\"");
     assert_eq!(
         choices
             .library

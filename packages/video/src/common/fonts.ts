@@ -1,8 +1,7 @@
 type FontRole = "main" | "heading" | "code";
 
 function roleStack(role: FontRole): string {
-  const fallback = role === "code" ? "ui-monospace, monospace" : "system-ui, sans-serif";
-  return `"df-${role}", ${fallback}`;
+  return `"df-${role}"`;
 }
 
 export function fontOr(family: string | undefined, role: FontRole): string {

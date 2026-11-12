@@ -1,3 +1,4 @@
+import { MAIN_FONT } from "#video/common/fonts.ts";
 import { type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
 import { mixOklch } from "#video/lib/ui-kit/color.ts";
 import { revealedText } from "#video/lib/ui-kit/timeline.ts";
@@ -157,7 +158,7 @@ export function Input({
         alignItems: "center",
         justifyContent: "center",
         background: "transparent",
-        fontFamily: "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+        fontFamily: MAIN_FONT,
       }}
     >
       <div

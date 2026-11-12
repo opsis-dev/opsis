@@ -46956,7 +46956,7 @@
    },
    "outcome": {
     "ok": false,
-    "problem": "Fade out must be at least 0 s"
+    "problem": "Fade out must be at least 0.033 s"
    }
   },
   {
@@ -46967,9 +46967,8 @@
     "set": 0
    },
    "outcome": {
-    "ok": true,
-    "value": 0,
-    "keys": 22
+    "ok": false,
+    "problem": "Fade out must be at least 0.033 s"
    }
   },
   {

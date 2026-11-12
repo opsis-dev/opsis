@@ -2,7 +2,7 @@ import { Easing } from "@opsis/runtime/easing.ts";
 import { random } from "@opsis/runtime/random.ts";
 import { type CSSProperties, useMemo } from "react";
 import type React from "react";
-import { fontOr } from "#video/common/fonts.ts";
+import { CODE_FONT, MAIN_FONT, fontOr } from "#video/common/fonts.ts";
 import { clamp, clamp01, easeOutCubic, numberOr, round3, smoothstep } from "#video/common/math.ts";
 import { type ElementProps } from "#video/common/spec.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
@@ -232,11 +232,6 @@ const HEADINGS: Record<1 | 2, { size: number; line: number }> = {
   1: { size: 22, line: 32 },
   2: { size: 20, line: 30 },
 };
-
-const SANS =
-  'Inter, "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
-const MONO =
-  '"JetBrains Mono", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace';
 
 const EXPO = Easing.bezier(0.16, 1, 0.3, 1);
 
@@ -1878,7 +1873,7 @@ function spanStyle(span: AgentRunSpan, palette: AgentRunPalette): CSSProperties 
   if (span.kind === "bold") return { fontWeight: 600 };
   if (span.kind === "code") {
     return {
-      fontFamily: MONO,
+      fontFamily: CODE_FONT,
       fontSize: "0.875em",
       padding: "1px 5px",
       borderRadius: 5,
@@ -1954,7 +1949,7 @@ function AnswerBlock({ block, palette }: { block: AgentRunBlockState; palette: A
             justifyContent: "space-between",
             padding: "0 12px 0 16px",
             borderBottom: `1px solid ${palette.divider}`,
-            fontFamily: MONO,
+            fontFamily: CODE_FONT,
             fontSize: 12.5,
             color: palette.muted,
           }}
@@ -1971,7 +1966,7 @@ function AnswerBlock({ block, palette }: { block: AgentRunBlockState; palette: A
               left: 16,
               height: line.height,
               lineHeight: `${line.height}px`,
-              fontFamily: MONO,
+              fontFamily: CODE_FONT,
               fontSize: CODE_SIZE,
               whiteSpace: "pre",
               color: palette.fg,
@@ -2478,7 +2473,7 @@ function AgentRunView({
             borderRadius: cornerRadius,
             boxShadow: palette.shadow,
             color: palette.fg,
-            fontFamily: font ? fontOr(font, "main") : SANS,
+            fontFamily: font ? fontOr(font, "main") : MAIN_FONT,
             fontSize: BODY_SIZE,
             WebkitFontSmoothing: "antialiased",
           }}

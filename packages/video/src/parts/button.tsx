@@ -1,3 +1,4 @@
+import { MAIN_FONT } from "#video/common/fonts.ts";
 import { type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
 import { mixOklch } from "#video/lib/ui-kit/color.ts";
 import { Spinner } from "#video/parts/spinner.tsx";
@@ -193,7 +194,7 @@ export function Button({
         alignItems: "center",
         justifyContent: justify(align),
         background: "transparent",
-        fontFamily: "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+        fontFamily: MAIN_FONT,
       }}
     >
       <button

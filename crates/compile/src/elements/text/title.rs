@@ -132,7 +132,7 @@ pub struct Title {
     #[setting(
         "Fade out",
         default = 0.3333,
-        range(min = 0, max = 2),
+        range(min = 0.0333, max = 2),
         unit = "s",
         advanced
     )]

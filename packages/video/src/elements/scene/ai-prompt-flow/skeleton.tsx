@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { MAIN_FONT } from "#video/common/fonts.ts";
 import { SkeletonBlock } from "#video/elements/scene/ai-prompt-flow/skeleton-block.tsx";
 import { type NeutralTheme, useNeutralTheme } from "#video/lib/neutral-ui/index.ts";
 
@@ -84,7 +85,7 @@ export function Skeleton({
       style={{
         position: "relative",
         display: "inline-block",
-        fontFamily: "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+        fontFamily: MAIN_FONT,
       }}
     >
       <div style={{ opacity: v.contentOpacity }}>{children}</div>

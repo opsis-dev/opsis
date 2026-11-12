@@ -77,7 +77,8 @@ export function zoomOver(frame: number, frames: number, to: number): number {
 }
 
 export function exitOpacity(frame: number, duration: number, frames = 10): number {
-  return interpolate(frame, [duration - frames, duration], [1, 0], {
+  const length = Math.max(1, frames);
+  return interpolate(frame, [duration - length, duration], [1, 0], {
     ...CLAMPED,
     easing: Easing.in(Easing.quad),
   });

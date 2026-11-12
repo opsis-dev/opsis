@@ -46,6 +46,7 @@ describe("terminal view", () => {
     const bundled = JSON.parse(
       readFileSync(path.join(ROOT, "crates/compile/src/fonts/bundled.generated.json"), "utf8"),
     ) as Array<{ family: string; hidden?: boolean }>;
-    expect(bundled.filter((f) => f.hidden).map((f) => f.family)).toEqual([...TERMINAL_FONTS]);
+    const terminal = bundled.filter((f) => f.hidden && f.family.startsWith("Opsis Terminal"));
+    expect(terminal.map((f) => f.family)).toEqual([...TERMINAL_FONTS]);
   });
 });

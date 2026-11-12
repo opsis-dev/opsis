@@ -408,7 +408,7 @@ pub fn installed_families(system: &fontdb::Database) -> Vec<InstalledFamily> {
     counts
         .into_iter()
         .map(|(family, faces)| InstalledFamily {
-            stack: font_stack(&family, &[]),
+            stack: font_stack(&family),
             family,
             faces,
         })

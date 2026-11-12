@@ -2,6 +2,7 @@ import { Easing } from "@opsis/runtime/easing.ts";
 import { isRendering } from "@opsis/runtime/environment.ts";
 import { interpolate } from "@opsis/runtime/interpolate.ts";
 import { Img } from "@opsis/runtime/parts.tsx";
+import { MAIN_FONT } from "#video/common/fonts.ts";
 import { themeColors } from "#video/common/theme.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
@@ -14,8 +15,6 @@ type LogoAssembleProps = Omit<ElementSettings["logo-assemble"], "theme"> & {
   theme: Partial<WarmTheme>;
   mode: "light" | "dark";
 };
-
-const FONT_FAMILY = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
 type Beats = {
   contractStart: number;
@@ -142,7 +141,7 @@ function LogoAssembleView({
   const frame = useAuthoredFrame() * speed;
   const { width, height } = useAuthoredConfig();
   const t = useWarmTheme(theme, mode);
-  const face = resolveFont(fontFamily || t.fontFamily) ?? FONT_FAMILY;
+  const face = resolveFont(fontFamily || t.fontFamily) ?? MAIN_FONT;
   const stage = background || t.background;
   const cardShadow = withAlpha(mixOklch(stage, "#000", 0.75), shadowAlpha);
   const beats = beatsFrom(orbitSeconds);

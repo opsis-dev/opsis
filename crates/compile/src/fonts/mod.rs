@@ -2,8 +2,8 @@ use std::collections::BTreeSet;
 use std::sync::LazyLock;
 
 use opsis_types::fonts::{
-    DEFAULT_CODE_FONT, DEFAULT_MAIN_FONT, FilmFonts, FontCategory, FontChoice, FontChoices,
-    FontFamilyDef, FontRole, ProjectFonts,
+    DEFAULT_CODE_FONT, DEFAULT_MAIN_FONT, FilmFonts, FontChoice, FontChoices, FontFamilyDef,
+    FontRole, ProjectFonts,
 };
 use opsis_types::recording::ScreenProps;
 use opsis_types::timeline::{TimelineItem, TimelineTrack};
@@ -63,27 +63,13 @@ pub fn find_family<'a>(name: &str, families: &'a [FontFamilyDef]) -> Option<&'a 
         .find(|f| same_family(&f.family, wanted))
 }
 
-const fn generic(category: FontCategory) -> &'static str {
-    match category {
-        FontCategory::SansSerif | FontCategory::Display => "sans-serif",
-        FontCategory::Serif => "serif",
-        FontCategory::Monospace => "monospace",
-        FontCategory::Handwriting => "cursive",
-    }
-}
-
-fn stack_of(name: &str, category: FontCategory) -> String {
-    format!("\"{}\", {}", name.replace('"', ""), generic(category))
-}
-
-pub fn font_stack(name: &str, families: &[FontFamilyDef]) -> String {
-    let category = find_family(name, families).map_or(FontCategory::SansSerif, |f| f.category);
-    stack_of(name, category)
+pub fn font_stack(name: &str) -> String {
+    format!("\"{}\"", name.replace('"', ""))
 }
 
 pub fn font_prop(value: &str) -> Option<String> {
     let name = value.trim();
-    (!name.is_empty()).then(|| font_stack(name, &[]))
+    (!name.is_empty()).then(|| font_stack(name))
 }
 
 pub fn role_family_name(role: FontRole, fonts: &ProjectFonts) -> &str {
@@ -172,7 +158,7 @@ pub fn preview_name(def: &FontFamilyDef) -> String {
 pub fn font_choice(def: &FontFamilyDef, value: &str) -> FontChoice {
     let preview = preview_name(def);
     FontChoice {
-        stack: stack_of(&preview, def.category),
+        stack: font_stack(&preview),
         preview,
         selected: same_family(&def.family, value),
         def: def.clone(),

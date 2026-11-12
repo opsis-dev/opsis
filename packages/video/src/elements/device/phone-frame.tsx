@@ -1,6 +1,7 @@
 import { Easing } from "@opsis/runtime/easing.ts";
 import { interpolate } from "@opsis/runtime/interpolate.ts";
 import type { ReactNode } from "react";
+import { MAIN_FONT } from "#video/common/fonts.ts";
 import { themeColors } from "#video/common/theme.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
@@ -16,8 +17,6 @@ type PhoneFrameProps = Omit<ElementSettings["phone-frame"], "theme"> & {
   theme: Partial<WarmTheme>;
   mode: "light" | "dark";
 };
-
-const FONT_FAMILY = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
 const DEVICE_WIDTH = 320;
 const DEVICE_HEIGHT = 656;
@@ -112,7 +111,7 @@ function PhoneFrameView({
   const frame = useAuthoredFrame() * speed;
   const { fps } = useAuthoredConfig();
   const t = useWarmTheme(theme, mode);
-  const face = resolveFont(fontFamily || t.fontFamily) ?? FONT_FAMILY;
+  const face = resolveFont(fontFamily || t.fontFamily) ?? MAIN_FONT;
   const island = useWarmTheme(theme, "dark");
   const body = bezelColor || t.foreground;
   const glass = screenColor || t.card;

@@ -1,4 +1,5 @@
 import { spring } from "@opsis/runtime/spring.ts";
+import { MAIN_FONT } from "#video/common/fonts.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { ElementSettings } from "#video/generated/spec.ts";
 
@@ -84,7 +85,7 @@ export function AnimatedLineChart({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontFamily: "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+        fontFamily: MAIN_FONT,
       }}
     >
       <svg

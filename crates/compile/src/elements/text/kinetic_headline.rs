@@ -64,7 +64,7 @@ pub struct KineticHeadline {
     #[setting(
         "Fade out",
         default = 10,
-        range(min = 0, max = 60),
+        range(min = 1, max = 60),
         step = 1,
         unit = "frames",
         advanced

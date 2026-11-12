@@ -19,7 +19,7 @@ export const TERMINAL_FONTS = [
   "Opsis Terminal Emoji",
 ] as const;
 
-export const TERMINAL_FONT_STACK = `${TERMINAL_FONTS.map((f) => `"${f}"`).join(", ")}, monospace`;
+export const TERMINAL_FONT_STACK = `${TERMINAL_FONTS.map((f) => `"${f}"`).join(", ")}`;
 
 const CELL_WIDTH_EM = 0.6;
 const BLUR_SHARE = 0.35;

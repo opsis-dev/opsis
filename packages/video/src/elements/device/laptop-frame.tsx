@@ -2,6 +2,7 @@ import { Easing } from "@opsis/runtime/easing.ts";
 import { isRendering } from "@opsis/runtime/environment.ts";
 import { interpolate } from "@opsis/runtime/interpolate.ts";
 import type { CSSProperties, ReactNode } from "react";
+import { MAIN_FONT } from "#video/common/fonts.ts";
 import { themeColors } from "#video/common/theme.ts";
 import { CLAMPED } from "#video/core/anim.ts";
 import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
@@ -20,8 +21,6 @@ type LaptopFrameProps = Omit<ElementSettings["laptop-frame"], "theme"> & {
   theme: Partial<WarmTheme>;
   mode: "light" | "dark";
 };
-
-const FONT_FAMILY = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
 const LID_WIDTH = 820;
 const LID_HEIGHT = 500;
@@ -317,7 +316,7 @@ function LaptopFrameView({
 }: LaptopFrameProps) {
   const frame = useAuthoredFrame() * speed;
   const t = useWarmTheme(theme, mode);
-  const face = resolveFont(fontFamily || t.fontFamily) ?? FONT_FAMILY;
+  const face = resolveFont(fontFamily || t.fontFamily) ?? MAIN_FONT;
   const shell = useWarmTheme(theme, "dark");
   const lid = bezelColor || mixOklch(shell.background, shell.foreground, 0.09);
   const glass = screenColor || t.card;

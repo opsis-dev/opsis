@@ -67,8 +67,8 @@ export function RGBGlitchText({
             fontSize,
             fontWeight,
             color,
-            letterSpacing: "-0.03em",
-            fontFamily,
+            letterSpacing: `${letterSpacing}em`,
+            fontFamily: fontOr(fontFamily, "main"),
             whiteSpace: "pre",
           }}
         >
