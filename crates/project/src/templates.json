@@ -579,9 +579,9 @@
             "zoomScale": 0,
             "travelMs": 0,
             "hoverMs": 220,
-            "target": "Get started"
+            "target": "Learn more"
           },
-          "label": "Get started"
+          "label": "Learn more"
         },
         {
           "id": "record",
@@ -617,7 +617,7 @@
             "y": 200
           },
           "params": {
-            "match": "Get started",
+            "match": "Learn more",
             "color": "rgba(0,0,0,0.55)",
             "padding": 10,
             "leadMs": 250,
