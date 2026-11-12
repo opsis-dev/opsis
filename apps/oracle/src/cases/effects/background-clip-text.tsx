@@ -31,9 +31,9 @@ export function Case() {
             lineHeight: 1,
             letterSpacing: "-0.03em",
             color: "transparent",
+            ...style,
             WebkitBackgroundClip: "text",
             backgroundClip: "text",
-            ...style,
           })}
         >
           Big type
