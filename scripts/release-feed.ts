@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
+import { FFMPEG_NOTICE, NOTICES, noticeSection } from "./lib/notices";
 import { readJsonWith } from "./lib/read-json";
 import { ROOT } from "./lib/tool-config";
 
@@ -31,6 +32,10 @@ export function releaseNotes(changelog: string, version: string): string {
   return (end === -1 ? rest : rest.slice(0, end)).join("\n").trim();
 }
 
+export function githubNotes(notes: string, notices: string): string {
+  return `${notes}\n\n${noticeSection(notices, FFMPEG_NOTICE)}\n`;
+}
+
 export function feed(version: string, notes: string, files: UpdateFile[], date: string) {
   const platforms = Object.fromEntries(
     files.map((update) => [
@@ -48,8 +53,10 @@ export function feed(version: string, notes: string, files: UpdateFile[], date: 
 }
 
 function main(): void {
-  const [dir, out] = process.argv.slice(2);
-  if (!dir || !out) throw new Error("bun scripts/release-feed.ts <artifacts folder> <latest.json>");
+  const [dir, out, notesOut] = process.argv.slice(2);
+  if (!dir || !out || !notesOut) {
+    throw new Error("bun scripts/release-feed.ts <artifacts folder> <latest.json> <notes.md>");
+  }
   const version = workspaceVersion(readFileSync(path.join(ROOT, "Cargo.toml"), "utf8"));
   const tag = process.env.GITHUB_REF_NAME;
   if (tag && tag !== `v${version}`) throw new Error(`The tag ${tag} isn't v${version}.`);
@@ -62,7 +69,8 @@ function main(): void {
   const notes = releaseNotes(readFileSync(path.join(ROOT, "CHANGELOG.md"), "utf8"), version);
   const written = feed(version, notes, files, new Date().toISOString());
   writeFileSync(out, `${JSON.stringify(written, null, 2)}\n`);
-  console.log(`wrote ${out} with ${files.length} update files for ${version}`);
+  writeFileSync(notesOut, githubNotes(notes, readFileSync(NOTICES, "utf8")));
+  console.log(`wrote ${out} with ${files.length} update files for ${version}, and ${notesOut}`);
 }
 
 if (import.meta.main) main();

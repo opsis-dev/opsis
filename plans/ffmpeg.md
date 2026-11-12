@@ -1,22 +1,21 @@
 # FFmpeg
 
-Replace the ffmpeg-static program the app ships as its `opsis-ffmpeg` sidecar with Opsis's own build, and finish the sidecar's two loose ends: macOS and the release notes. The media code doesn't change: it keeps starting the same program with the same arguments, so every argument builder, filter graph and log reader stays as it is. Building FFmpeg into the app through its C API was looked at and is not planned (section 4).
+Replace the ffmpeg-static program the app ships as its `opsis-ffmpeg` sidecar with Opsis's own build, and finish the sidecar's loose end on macOS. The media code doesn't change: it keeps starting the same program with the same arguments, so every argument builder, filter graph and log reader stays as it is. Building FFmpeg into the app through its C API was looked at and is not planned (section 3).
 
 ## How to read this plan
 
-- Sections 1 and 2 are the sidecar's loose ends. Section 3, Opsis's own build, swaps the program without touching the app. Section 4 records the option not chosen.
+- Section 1 is the sidecar's loose end. Section 2, Opsis's own build, swaps the program without touching the app. Section 3 records the option not chosen.
 - Each section has the same parts where they apply: **Work** (numbered, only what is left), **Decided**.
 - Each piece of work ends with the usual checks: `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, and the tests of the crates that start FFmpeg (`bun run test:rust -p opsis-media -p opsis-footage -p opsis-render -p opsis-capture -- --ignored`, which sets `OPSIS_FFMPEG`).
 - This plan changes the docs on purpose (the generated-code table in `AGENTS.md`, `agent-docs/engine.md`, `agent-docs/packaging.md`); every such change updates those docs, `README.md`, `THIRD_PARTY_NOTICES.md` and `plans/release.md` in the same commit.
 
 ## Summary
 
-| Topic                        | What users get                                             | Left to do                                            | Status             |
-| ---------------------------- | ---------------------------------------------------------- | ----------------------------------------------------- | ------------------ |
-| 1. The sidecar on macOS      | Exports that work on a signed Mac app                      | check it under the hardened runtime                   | waiting on signing |
-| 2. Source notice in releases | Where FFmpeg's source is, in each release's notes          | the release notes                                     | not built          |
-| 3. Own build                 | One FFmpeg version on every platform, only what Opsis uses | pinned sources, the build script, CI builds, the swap | not started        |
-| 4. FFmpeg inside the app     | Nothing                                                    | not planned                                           | not chosen         |
+| Topic                    | What users get                                             | Left to do                                            | Status             |
+| ------------------------ | ---------------------------------------------------------- | ----------------------------------------------------- | ------------------ |
+| 1. The sidecar on macOS  | Exports that work on a signed Mac app                      | check it under the hardened runtime                   | waiting on signing |
+| 2. Own build             | One FFmpeg version on every platform, only what Opsis uses | pinned sources, the build script, CI builds, the swap | not started        |
+| 3. FFmpeg inside the app | Nothing                                                    | not planned                                           | not chosen         |
 
 ## 1. The sidecar on macOS
 
@@ -26,19 +25,11 @@ Replace the ffmpeg-static program the app ships as its `opsis-ffmpeg` sidecar wi
 
 **Decided.**
 
-- ffmpeg-static b6.1.1 is the sidecar on every platform, macOS included, until section 3's build replaces it.
+- ffmpeg-static b6.1.1 is the sidecar on every platform, macOS included, until section 2's build replaces it.
 - About shows nothing about FFmpeg.
 - No CI export run on macOS: the sidecar ships there untested.
 
-## 2. Source notice in releases
-
-**Work.**
-
-1. **Release notes.** Put the source notice in each GitHub release's notes: the `draft` job in `.github/workflows/release.yml` writes them from `latest.json`, whose notes `scripts/release-feed.ts` takes from `CHANGELOG.md` only.
-
-**Decided.** Upstream links only; no source tarballs attached to releases. Until the release notes carry it, the notice lives in `THIRD_PARTY_NOTICES.md` only.
-
-## 3. Own build
+## 2. Own build
 
 The aim is one FFmpeg version on every platform, configured with only what the `REQUIRED_*` lists name, from sources Opsis pins. A separate program needs none of the work FFmpeg inside the app would: no bindings, no link order, no matching C runtime.
 
@@ -55,16 +46,16 @@ The aim is one FFmpeg version on every platform, configured with only what the `
 6. **Size.** Measure the trimmed program on every platform and update `plans/release.md`.
 7. **ffprobe (undecided).** The build disables ffprobe, but today each target's pins in `scripts/lib/ffmpeg.generated.json` include a `probe` (required by the schema in `scripts/lib/ffmpeg.ts`), `stageFfprobe` stages it for `bun run ffprobe:stage`, and the parity test `crates/probe/tests/ffprobe.rs` compares `opsis-probe` with it ([engine.md](../agent-docs/engine.md)). Either keep pinning ffprobe from ffmpeg-static for that test only, or build ffprobe too; the schema, `scripts/ffprobe-stage.ts` and engine.md follow the choice.
 
-## 4. Not chosen: FFmpeg inside the app
+## 3. Not chosen: FFmpeg inside the app
 
 Linking FFmpeg into the Rust program (owned bindgen bindings and a small C file built with `cc` for the `va_list` log callback and the C macros; `cxx` isn't needed, since FFmpeg's API is C) keeps the filter graph strings but means rewriting what the `ffmpeg` program does: reading inputs, feeding many inputs into one graph, stream copies, seeks and trims, `concat`, chapters and metadata, `faststart`, encoder options and progress, for the ~50 options Opsis passes. It also needs every library built statically against MSVC's C runtime on Windows, routing FFmpeg's process-wide log callback per job, and it gives up crash isolation: a crash in an encoder or filter would end the app. The sidecar gets the same shipped FFmpeg without any of it. Look at it again only if starting processes is measured to cost real time, for example footage decoders restarting on every seek.
 
-## 5. Risks
+## 4. Risks
 
-- **Different FFmpeg per platform.** ffmpeg-static b6.1.1 is FFmpeg 7.0.2 on Linux and 6.1.1 on Windows, so until section 3 exports and golden results can differ between platforms.
+- **Different FFmpeg per platform.** ffmpeg-static b6.1.1 is FFmpeg 7.0.2 on Linux and 6.1.1 on Windows, so until section 2 exports and golden results can differ between platforms.
 - **Warnings on Windows.** An unsigned `opsis-ffmpeg.exe` inside the installer may be flagged by SmartScreen or virus scanners; sign it with the app once code signing exists (`plans/release.md` section 4).
-- **Package size.** The download grows by the compressed program (about 19–30 MB) and the install by the program (about 80 MB on Linux x64) until section 3 trims it.
+- **Package size.** The download grows by the compressed program (about 19–30 MB) and the install by the program (about 80 MB on Linux x64) until section 2 trims it.
 
-## 6. Sources
+## 5. Sources
 
 - ffmpeg-static b6.1.1 release assets: `linux-x64.README`, `win32-x64.README`; `ffmpeg -version` of the downloaded Linux program.

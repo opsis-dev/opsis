@@ -1,6 +1,9 @@
+import { readFileSync } from "node:fs";
 import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { feed, releaseNotes, workspaceVersion } from "./release-feed";
+import { readFfmpegPins } from "./lib/ffmpeg";
+import { NOTICES } from "./lib/notices";
+import { feed, githubNotes, releaseNotes, workspaceVersion } from "./release-feed";
 
 const version = fc
   .tuple(fc.nat(40), fc.nat(40), fc.nat(40))
@@ -59,6 +62,38 @@ describe("the release feed", () => {
         expect(releaseNotes(changelog, shipped)).toBe(notes.join("\n").trim());
       }),
     );
+  });
+
+  it("follows the changelog notes with the FFmpeg notice and nothing else", () => {
+    const body = fc.array(line, { minLength: 1, maxLength: 4 }).map((lines) => lines.join("\n"));
+    fc.assert(
+      fc.property(
+        fc.array(line, { minLength: 1, maxLength: 5 }),
+        body,
+        fc.array(fc.tuple(fc.stringMatching(/^[A-EG-Z][a-z]{1,10}$/), body), { maxLength: 3 }),
+        fc.array(fc.tuple(fc.stringMatching(/^[A-EG-Z][a-z]{1,10}$/), body), { maxLength: 3 }),
+        (notes, ffmpegBody, before, after) => {
+          const section = `## FFmpeg (opsis-ffmpeg)\n\n${ffmpegBody}`;
+          const notices = [
+            "# Third-party notices",
+            ...before.map(([heading, text]) => `## ${heading}\n\n${text}`),
+            section,
+            ...after.map(([heading, text]) => `## ${heading}\n\n${text}`),
+          ].join("\n\n");
+          const changelog = notes.join("\n");
+          expect(githubNotes(changelog, notices)).toBe(`${changelog}\n\n${section.trim()}\n`);
+        },
+      ),
+    );
+  });
+
+  it("puts both FFmpeg source links of the shipped notice in the release notes", () => {
+    const written = githubNotes("- notes", readFileSync(NOTICES, "utf8"));
+    expect(written).toContain("https://ffmpeg.org/download.html");
+    expect(written).toContain(
+      `https://github.com/eugeneware/ffmpeg-static/releases/tag/${readFfmpegPins().release}`,
+    );
+    expect(written).not.toContain("## Chrome Headless Shell");
   });
 
   it("reads the workspace version from the manifest", () => {

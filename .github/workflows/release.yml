@@ -165,13 +165,12 @@ jobs:
           path: ${{ runner.temp }}/artifacts
           merge-multiple: true
       - name: Write the update feed
-        run: bun scripts/release-feed.ts "$RUNNER_TEMP/artifacts" "$RUNNER_TEMP/artifacts/latest.json"
+        run: bun scripts/release-feed.ts "$RUNNER_TEMP/artifacts" "$RUNNER_TEMP/artifacts/latest.json" "$RUNNER_TEMP/notes.md"
       - name: Create the draft release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           cd "$RUNNER_TEMP/artifacts"
-          jq -r .notes latest.json > notes.md
           gh release create "$GITHUB_REF_NAME" --draft --verify-tag \
-            --repo "$GITHUB_REPOSITORY" --title "Opsis ${GITHUB_REF_NAME#v}" --notes-file notes.md \
+            --repo "$GITHUB_REPOSITORY" --title "Opsis ${GITHUB_REF_NAME#v}" --notes-file "$RUNNER_TEMP/notes.md" \
             ./*.deb ./*.rpm ./*.pkg.tar.zst ./*.AppImage ./*-setup.exe ./*.msi ./*.app.tar.gz ./*.dmg latest.json

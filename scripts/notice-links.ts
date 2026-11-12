@@ -1,16 +1,10 @@
 import { readFileSync } from "node:fs";
-import path from "node:path";
-import { ROOT } from "./lib/tool-config";
+import { FFMPEG_NOTICE, NOTICES, noticeSection } from "./lib/notices";
 
-const NOTICES = path.join(ROOT, "THIRD_PARTY_NOTICES.md");
-
-const SECTIONS = ["## FFmpeg"];
+const SECTIONS = [FFMPEG_NOTICE];
 
 function sectionLinks(text: string, heading: string): string[] {
-  const start = text.indexOf(`\n${heading}`);
-  if (start === -1) throw new Error(`THIRD_PARTY_NOTICES.md has no "${heading}" section.`);
-  const end = text.indexOf("\n## ", start + 1);
-  const section = text.slice(start, end === -1 ? undefined : end);
+  const section = noticeSection(text, heading);
   return [...section.matchAll(/https:\/\/[^\s)`]+/g)].map((found) => found[0]);
 }
 
