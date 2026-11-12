@@ -28,7 +28,12 @@ pub struct BoxReader {
 }
 
 impl BoxReader {
-    pub async fn open(shell: &Path, temp: &Path, width: u32, height: u32) -> Result<Self, BoxesError> {
+    pub async fn open(
+        shell: &Path,
+        temp: &Path,
+        width: u32,
+        height: u32,
+    ) -> Result<Self, BoxesError> {
         let switches = film_switches(ORACLE_GL, Capture::Screenshot, width, height);
         Ok(Self {
             launched: launch_with(shell, temp, switches).await?,

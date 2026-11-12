@@ -113,7 +113,10 @@ impl Oracle {
         }
         let file = self.out.join("elements.json");
         let all = merged(&file, "elements", "key", drawn);
-        write_json(&file, &json!({ "positions": ORACLE_POSITIONS, "elements": all }));
+        write_json(
+            &file,
+            &json!({ "positions": ORACLE_POSITIONS, "elements": all }),
+        );
     }
 
     async fn cases(&mut self) {
