@@ -111,10 +111,9 @@ impl Oracle {
         for meta in chosen {
             drawn.extend(self.element(meta).await);
         }
-        write_json(
-            &self.out.join("elements.json"),
-            &json!({ "positions": ORACLE_POSITIONS, "elements": drawn }),
-        );
+        let file = self.out.join("elements.json");
+        let all = merged(&file, "elements", "key", drawn);
+        write_json(&file, &json!({ "positions": ORACLE_POSITIONS, "elements": all }));
     }
 
     async fn cases(&mut self) {
@@ -138,14 +137,16 @@ impl Oracle {
             match draw_frames(&drawing, &[(0, file)]).await {
                 Ok(()) => {
                     println!("ok   {id}");
-                    drawn.push(id.clone());
+                    drawn.push(json!(id));
                 }
                 Err(error) => self.fail(id, &error),
             }
         }
+        let file = self.out.join("cases.json");
+        let all = merged(&file, "cases", "id", drawn);
         write_json(
-            &self.out.join("cases.json"),
-            &json!({ "width": CASE_WIDTH, "height": CASE_HEIGHT, "fonts": spec.fonts, "cases": drawn }),
+            &file,
+            &json!({ "width": CASE_WIDTH, "height": CASE_HEIGHT, "fonts": spec.fonts, "cases": all }),
         );
     }
 
@@ -223,8 +224,35 @@ impl Oracle {
         for name in &names {
             drawn.extend(self.film(name).await);
         }
-        write_json(&self.out.join("films.json"), &json!({ "films": drawn }));
+        let file = self.out.join("films.json");
+        let films = merged(&file, "films", "example", drawn);
+        write_json(&file, &json!({ "films": films }));
     }
+}
+
+fn entry_id(entry: &Value, id: &str) -> String {
+    entry
+        .get(id)
+        .unwrap_or(entry)
+        .as_str()
+        .unwrap_or_default()
+        .to_owned()
+}
+
+fn merged(file: &Path, list: &str, id: &str, drawn: Vec<Value>) -> Vec<Value> {
+    let earlier: Vec<Value> = std::fs::read_to_string(file)
+        .ok()
+        .and_then(|text| serde_json::from_str::<Value>(&text).ok())
+        .and_then(|value| value.get(list).and_then(Value::as_array).cloned())
+        .unwrap_or_default();
+    let fresh: Vec<String> = drawn.iter().map(|e| entry_id(e, id)).collect();
+    let mut all: Vec<Value> = earlier
+        .into_iter()
+        .filter(|e| !fresh.contains(&entry_id(e, id)))
+        .chain(drawn)
+        .collect();
+    all.sort_by_key(|e| entry_id(e, id));
+    all
 }
 
 fn copy_exports(from: &Path, to: &Path) {
