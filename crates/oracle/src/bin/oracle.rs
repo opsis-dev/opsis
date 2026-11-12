@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 
 use opsis_compile::asset_ref::FILM_FOLDER;
 use opsis_compile::elements::{ElementMeta, elements};
+use opsis_oracle::boxes::BoxReader;
 use opsis_oracle::cases::{CASE_HEIGHT, CASE_WIDTH, case_ids, case_spec, case_url, cases_dir};
 use opsis_oracle::elements::{ORACLE_POSITIONS, element_spec, frames_at};
 use opsis_oracle::films::{EXPORT_FOLDER, ExampleRun, example_names, prepare_example, run_example};
@@ -15,6 +16,7 @@ const COMMIT_ENV: &str = "OPSIS_ORACLE_COMMIT";
 enum Part {
     Elements,
     Cases,
+    Boxes,
     Films,
 }
 
@@ -23,9 +25,19 @@ impl Part {
         match word {
             "elements" => vec![Self::Elements],
             "cases" => vec![Self::Cases],
+            "boxes" => vec![Self::Boxes],
             "films" => vec![Self::Films],
-            "all" => vec![Self::Cases, Self::Elements, Self::Films],
-            other => panic!("Unknown part “{other}”: say elements, cases, films or all."),
+            "all" => vec![Self::Cases, Self::Boxes, Self::Elements, Self::Films],
+            other => panic!("Unknown part “{other}”: say elements, cases, boxes, films or all."),
+        }
+    }
+
+    const fn name(self) -> &'static str {
+        match self {
+            Self::Elements => "elements",
+            Self::Cases => "cases",
+            Self::Boxes => "boxes",
+            Self::Films => "films",
         }
     }
 }
@@ -137,6 +149,34 @@ impl Oracle {
         );
     }
 
+    async fn boxes(&mut self) {
+        let spec = case_spec().expect("the case page's fonts");
+        let ids: Vec<String> = case_ids(&cases_dir())
+            .expect("the case list")
+            .into_iter()
+            .filter(|id| id.contains(&self.only))
+            .collect();
+        let reader = match BoxReader::open(&self.shell, &self.temp, CASE_WIDTH, CASE_HEIGHT).await {
+            Ok(reader) => reader,
+            Err(error) => {
+                self.fail("boxes", &error);
+                return;
+            }
+        };
+        for id in &ids {
+            let file = self.out.join("cases").join(format!("{id}.boxes.json"));
+            std::fs::create_dir_all(file.parent().expect("a case group")).expect("a case folder");
+            match reader.boxes(&case_url(&self.base, id), &spec).await {
+                Ok(boxes) => {
+                    write_json(&file, &boxes);
+                    println!("ok   {id} boxes");
+                }
+                Err(error) => self.fail(id, &error),
+            }
+        }
+        reader.close().await;
+    }
+
     async fn film(&mut self, name: &str) -> Option<Value> {
         let exported = self.out.join("films").join(name);
         let project = self.out.join("projects").join(name);
@@ -199,9 +239,25 @@ fn copy_exports(from: &Path, to: &Path) {
     }
 }
 
+fn record(out: &Path, shell: &Path, parts: &[Part]) {
+    let file = out.join("oracle.json");
+    let mut recorded: Value = std::fs::read_to_string(&file)
+        .ok()
+        .and_then(|text| serde_json::from_str(&text).ok())
+        .unwrap_or_else(|| json!({}));
+    let commit = std::env::var(COMMIT_ENV).unwrap_or_default();
+    recorded["browser"] = json!(shell);
+    recorded["drawWith"] = json!(ORACLE_GL);
+    recorded["elementPositions"] = json!(ORACLE_POSITIONS);
+    for part in parts {
+        recorded["parts"][part.name()] = json!(commit);
+    }
+    write_json(&file, &recorded);
+}
+
 fn usage() -> ! {
     eprintln!(
-        "usage: oracle <out folder> <FFmpeg program> <elements|cases|films|all> [part of a name]"
+        "usage: oracle <out folder> <FFmpeg program> <elements|cases|boxes|films|all> [part of a name]"
     );
     std::process::exit(2);
 }
@@ -219,15 +275,8 @@ async fn main() {
     std::fs::create_dir_all(&project).expect("the oracle folder");
     let server = serve(&project, film_page().merge(oracle_page())).await;
     let shell = headless_shell();
-    write_json(
-        &out.join("oracle.json"),
-        &json!({
-            "commit": std::env::var(COMMIT_ENV).unwrap_or_default(),
-            "browser": shell,
-            "drawWith": ORACLE_GL,
-            "elementPositions": ORACLE_POSITIONS,
-        }),
-    );
+    let parts = Part::parse(&what);
+    record(&out, &shell, &parts);
     let mut oracle = Oracle {
         out: out.clone(),
         shell,
@@ -237,10 +286,11 @@ async fn main() {
         only: args.next().unwrap_or_default(),
         failures: Vec::new(),
     };
-    for part in Part::parse(&what) {
+    for part in parts {
         match part {
             Part::Elements => oracle.elements().await,
             Part::Cases => oracle.cases().await,
+            Part::Boxes => oracle.boxes().await,
             Part::Films => oracle.films().await,
         }
     }

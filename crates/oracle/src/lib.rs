@@ -1,3 +1,4 @@
+pub mod boxes;
 pub mod cases;
 pub mod elements;
 pub mod films;
