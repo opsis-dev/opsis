@@ -29,6 +29,7 @@ export const IGNORED_PATHS = [
   "scripts/lib/ffmpeg.generated.json",
   "crates/capture/src/playwright/*.generated.*",
   "film-bundle/**",
+  "oracle-bundle/**",
   "terminal-bundle/**",
   "resources/**",
   "packages/*/dist/**",

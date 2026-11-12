@@ -10,7 +10,9 @@
     "./generated/spec": "./src/generated/spec.ts",
     "./film": "./src/film.tsx",
     "./terminal/frames": "./src/terminal/frames.ts",
-    "./terminal/view": "./src/terminal/view.tsx"
+    "./terminal/view": "./src/terminal/view.tsx",
+    "./video.css": "./src/video.css",
+    "./fonts/font-provider": "./src/fonts/font-provider.tsx"
   },
   "imports": {
     "#video/*": "./src/*"

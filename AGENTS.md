@@ -46,6 +46,7 @@
 | `crates/capture/src/playwright/*.generated.*`                                                                                               | `playwright-core`: its injected page script, its fake clock, the US keyboard layout, the Chromium switches and fonts it launches with                                                                                          | `bun run playwright:scripts`                                                                         |
 | `film-bundle/**`                                                                                                                            | the film page (Vite, `apps/film`), with the repository's `public/`                                                                                                                                                             | `bun run film:bundle` (`-- --mode release` for no source maps)                                       |
 | `terminal-bundle/**`                                                                                                                        | the terminal page (Vite, `apps/terminal`), without `public/`                                                                                                                                                                   | `bun run terminal:bundle` (`-- --mode release` for no source maps)                                   |
+| `oracle-bundle/**`                                                                                                                          | the oracle's case page (Vite, `apps/oracle`), with the repository's `public/`                                                                                                                                                  | `bun run oracle:bundle` (`bun run oracle` builds it first)                                           |
 
 - **Golden files in `fixtures/**` are recorded, never edited by hand.** They hold what the code made for fixed inputs, stored with those inputs, compared through `opsis-golden` (`crates/golden`: numbers within one part in a billion, every difference listed by its path).
   - When a change is intended, record them with `OPSIS_WRITE_GOLDEN=1` (`cargo test -p <crate>`, plus `-- --ignored` for those that need the dev engine, the film page or the internet) and review the diff.
@@ -112,14 +113,14 @@
 ## 6. Workspace and layout
 
 - **A Bun workspace run by turbo (`turbo.json`) beside a Cargo workspace** (`Cargo.toml`, members `crates/*`, `Cargo.lock` at the root).
-- **Apps build things and nothing imports them**: `apps/film` (`@opsis/film`, the film page the frame driver renders, mounting `@opsis/video/film`), `apps/terminal` (`@opsis/terminal`, the page that paints live terminal pictures, on `@opsis/video/terminal/view`).
+- **Apps build things and nothing imports them**: `apps/film` (`@opsis/film`, the film page the frame driver renders, mounting `@opsis/video/film`), `apps/terminal` (`@opsis/terminal`, the page that paints live terminal pictures, on `@opsis/video/terminal/view`), `apps/oracle` (`@opsis/oracle`, dev-only: the CSS and SVG cases the native renderer is checked against, drawn by the frame driver on the film's runtime, [native-renderer.md](plans/native-renderer.md) **Oracle**).
 - **`packages/video` (`@opsis/video`) is source the apps compile**: the film (`film.tsx`, `DemoTimeline`), the elements, and its plain helpers (`src/common`).
 - **`packages/runtime` (`@opsis/runtime`) is the film's page runtime**: the frame clock, the render holds, the render environment, the maths (our own, property-tested), the page protocol and the test harness, one file each in `packages/runtime/src`.
 - **Each member declares the dependencies it imports and has its own `tsconfig.json` (extending `tsconfig.base.json`) and `oxlint.config.ts`, and each package its `vitest.config.ts`**; root scripts run each check everywhere plus the root's own (`typecheck:app`, `lint:app`, `test:app` cover `scripts`).
 - **Installs are bun's isolated layout**: a folder imports only what it or the root declares, and scripts read a package's files from the package that owns it.
 - **A member imports another member only by package name and its own files only through its own prefix:**
   - Members import each other only by package name, through their `exports` (`@opsis/video/common/*`, `@opsis/video/generated/spec`, `@opsis/video/film`…).
-  - A member imports its own files through its `package.json` `imports` with its own prefix (`#video/…`, `#runtime/…`, `#film/…`, `#terminal/…`), never `#/`. `video` and `runtime` mix `.ts` and `.tsx` and import with the extension (`#video/core/frame.ts`, `#video/demo-timeline.tsx`).
+  - A member imports its own files through its `package.json` `imports` with its own prefix (`#video/…`, `#runtime/…`, `#film/…`, `#terminal/…`, `#oracle/…`), never `#/`. `video` and `runtime` mix `.ts` and `.tsx` and import with the extension (`#video/core/frame.ts`, `#video/demo-timeline.tsx`).
   - No source file of a member imports by a relative path; only the member's `*.config.ts` files reach `scripts/lib/` by one. oxlint rejects `@/` in every member's `src`.
 - **Use the shared helpers before writing a local copy**: `packages/video/src/common` (`math.ts`, `geometry.ts`…) for plain helpers, `packages/video/src/lib/<purpose>/` for the video's helpers, `packages/video/src/parts/` for parts several elements share.
 
@@ -127,6 +128,7 @@
 crates/                Rust, one domain per crate (table below)
 apps/film/src/         the film page: mounts the film for the frame driver
 apps/terminal/src/     the terminal page: paints live terminal frames for the editor
+apps/oracle/src/       dev-only: the oracle's CSS and SVG cases, one file per case
 packages/runtime/src/  the film's page runtime
 packages/video/src/    the film: film.tsx, DemoTimeline, registry/, core/, camera/, three/, terminal/, common/, generated/, elements/, parts/, lib/, fonts/
 fixtures/              golden files
@@ -171,6 +173,7 @@ agent-docs/            the domain docs (§8)
 | `opsis-ui`        | the native editor's state and logic behind the views, implementing `Host` over `opsis-session`; the `opsis` binary                                                                                                                                                           |
 | `opsis-e2e-input` | dev-only: holds a virtual pointer and keyboard on a headless Wayland compositor and carries out the e2e's real input requests                                                                                                                                                |
 | `opsis-golden`    | dev-only: the golden-file helper, `dev_cache`, `ffmpeg()`, and the readers and builders more than one crate's tests use (`crates/golden/src/lib.rs`)                                                                                                                         |
+| `opsis-oracle`    | dev-only: the reference pictures `main`'s film page draws for the native renderer (elements, CSS and SVG cases, example films, `bun run oracle`) and the element stills (`render-elements`)                                                                                  |
 | `opsis-macros`    | procedural macros (`proc-macro2`, `syn`, `quote`; no `paste` or `pastey`, since `quote` and `format_ident!` build every name)                                                                                                                                                |
 | `opsis-packager`  | dev-only: the installers `bun run make` builds with each format's own tool (deb, rpm, pacman, AppImage, NSIS, MSI, the macOS app and dmg), each program marked with its installer, and the signed update files, after checking the program loads no Qt, ICU or KDDockWidgets |
 

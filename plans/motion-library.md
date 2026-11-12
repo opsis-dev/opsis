@@ -278,7 +278,7 @@ In place:
 
 - The hover card: the node list's `HoverCard` (`crates/qt/cpp/node_list.cc`) shows the title, category, description and ports.
 - `ElementMeta.thumbnail` exists in `crates/compile/src/elements/mod.rs` and is never filled.
-- `render-elements` (`crates/render/src/bin/render-elements.rs`, `bun run elements:render`) already compiles each registry element with its defaults in Rust, wires transitions, wrappers and sequencers to solid clips, and renders one frame through the frame driver into `~/.cache/opsis-dev/element-stills` as 480 px JPEG.
+- `render-elements` (`crates/oracle/src/bin/render-elements.rs`, `bun run elements:render`) already compiles each registry element with its defaults in Rust, wires transitions, wrappers and sequencers to solid clips, and renders one frame through the frame driver into `~/.cache/opsis-dev/element-stills` as 480 px JPEG.
 
 Missing:
 
@@ -342,7 +342,7 @@ No new packages.
 
 ### Sources
 
-- `.github/workflows/build.yml`, `crates/render/src/bin/render-elements.rs` (read 2026-10-26)
+- `.github/workflows/build.yml`, `crates/oracle/src/bin/render-elements.rs` (read 2026-10-26)
 - [FFmpeg filters: ssim](https://ffmpeg.org/ffmpeg-filters.html#ssim) (checked 2026-10-16)
 
 ## Decided

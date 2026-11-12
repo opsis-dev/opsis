@@ -67,6 +67,16 @@
         "@opsis/video": "workspace:*",
       },
     },
+    "apps/oracle": {
+      "name": "@opsis/oracle",
+      "version": "0.1.0",
+      "dependencies": {
+        "@opsis/runtime": "workspace:*",
+        "@opsis/video": "workspace:*",
+        "react": "^19.3.1",
+        "react-dom": "^19.3.1",
+      },
+    },
     "apps/terminal": {
       "name": "@opsis/terminal",
       "version": "0.1.0",
@@ -179,6 +189,8 @@
     "@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@1.2.5", "", { "dependencies": { "@tybys/wasm-util": "^0.10.3" }, "peerDependencies": { "@emnapi/core": "^1.7.1 || ^2.0.0-alpha.4", "@emnapi/runtime": "^1.7.1 || ^2.0.0-alpha.4" } }, "sha512-HshSvXzmBxNzqejd3k/KemgQ3hdREUYFRRrgxOZ+gPljDIsO2SDZrVZMd4Z/HsxudQbE62OVyVFE8z9BCurfjA=="],
 
     "@opsis/film": ["@opsis/film@workspace:apps/film"],
+
+    "@opsis/oracle": ["@opsis/oracle@workspace:apps/oracle"],
 
     "@opsis/runtime": ["@opsis/runtime@workspace:packages/runtime"],
 

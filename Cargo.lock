@@ -4298,6 +4298,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "opsis-oracle"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "env_logger",
+ "opsis-capture",
+ "opsis-compile",
+ "opsis-engine",
+ "opsis-media",
+ "opsis-prepare",
+ "opsis-render",
+ "opsis-runner",
+ "opsis-terminal",
+ "opsis-types",
+ "proptest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+ "tokio",
+ "tokio-util",
+]
+
+[[package]]
 name = "opsis-packager"
 version = "0.1.0"
 dependencies = [

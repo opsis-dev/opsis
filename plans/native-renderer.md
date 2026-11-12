@@ -70,14 +70,20 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Fit with Opsis
 
-- **In place:** `bun run elements:render` (`crates/render/src/bin/render-elements.rs`) draws one still per element; `examples/` holds ten projects; `opsis_golden::dev_cache` names the folder.
-- **Missing:** several frames per element, the example films as frames, the property cases, the recorded commit.
+- **In place:** the branch's first commit, built in release, is the oracle; `main` itself stays untouched so the branch fast-forwards onto it at the cut-over.
+  - `bun run oracle [elements|cases|films|all] [part of a name]` (`scripts/oracle.ts`) refuses a working tree with changes (`--dirty` for a trial run, into `<commit>-dirty`), builds the film and oracle pages, stages FFmpeg and runs `crates/oracle/src/bin/oracle.rs` in release with its own target folder, `~/.cache/opsis-dev/oracle/target`, so later builds on the branch never replace it.
+  - Everything draws on Software (`ORACLE_GL`, `crates/oracle/src/pictures.rs`) through the frame driver at full size as PNG, so the pictures don't depend on the graphics card.
+  - Elements: each element as `render-elements` builds it (`crates/oracle/src/elements.rs` → `workflow_for`, `element_spec`), at `ORACLE_POSITIONS`, into `elements/<key>/<frame>.png` beside the `spec.json` it drew; `elements.json` lists them.
+  - Cases: one TSX file per construct in `apps/oracle/src/cases/<group>/<name>.tsx`, drawn by the oracle page (`apps/oracle`, `oracle-bundle`) on the film's own runtime, `video.css` and bundled fonts (`CASE_FONTS`, `crates/oracle/src/cases.rs`) at 640×360, into `cases/<group>/<name>.png`; `cases.json` lists them with the fonts they loaded. The scene-node version of each case is written beside the part that draws it.
+  - Films: each example copied into `projects/<name>`, every Render node set to MKV lossless on Software (`lossless_renders`, `crates/oracle/src/films.rs`), run once with the browser, terminal, media and output executors, and its exports copied into `films/<name>`. The project keeps its takes in `.opsis/cache`, so the native renderer draws the same takes without recording again.
+  - `oracle.json` records the commit, the browser and the drawing choice.
+- **Missing:** nothing.
 
 ### Work
 
-1. `render-elements` takes a list of frame positions and writes each picture with its element, frame and settings.
-2. The example films rendered to frames.
-3. The property cases, grouped as the appendix groups them.
+1. Done: `render-elements` takes a comma-separated list of positions (`bun run elements:render -- <key> 0,0.5,1`), and the oracle writes each element's frames with the spec it drew.
+2. Done: the example films as lossless MKV with their recorded takes.
+3. Done: the property cases, grouped as the appendix groups them.
 
 ### Decisions
 
@@ -89,7 +95,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Sources
 
-- `crates/render/src/bin/render-elements.rs`, `crates/project/src/templates.rs` → `examples()`, `crates/golden/src/lib.rs` → `dev_cache`.
+- `crates/oracle/src/`, `apps/oracle/src/`, `scripts/oracle.ts`, `crates/project/src/templates.rs` → `examples()`.
 
 ## Wrappers
 
@@ -447,7 +453,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 ### Work
 
 1. Move or drop each of those uses of `packages/video` (Fit with Opsis, Missing) before it goes.
-2. Delete the listed apps, packages, bundles and Rust paths, and `plans/native-renderer-transforms.md`; remove their scripts (`film:bundle`, `terminal:bundle`) and their table rows in AGENTS.md.
+2. Delete the listed apps, packages, bundles and Rust paths, the oracle's page and crate (`apps/oracle`, `oracle-bundle`, `crates/oracle`, `scripts/oracle.ts`, with `render-elements` moving onto the renderer as **Output** says) and `plans/native-renderer-transforms.md`; remove their scripts (`film:bundle`, `terminal:bundle`, `oracle:bundle`, `oracle`) and their table rows in AGENTS.md.
 3. In AGENTS.md: add `opsis-skia`, `opsis-filament`, `opsis-scene`, `opsis-layout`, `opsis-paint`, `opsis-effects` and `opsis-stage3d` to the crate table, name `opsis-skia` and `opsis-filament` in the rule on the crates allowed `unsafe`, and add the Filament pin to the table of generated files.
 4. Rewrite the docs named above in the same change.
 
