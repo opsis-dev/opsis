@@ -370,6 +370,7 @@ pub mod ffi {
         fn add_path(self: Pin<&mut Path>, other: &Path, matrix: Matrix33);
         fn set_even_odd(self: Pin<&mut Path>, even_odd: bool);
         fn bounds(self: &Path) -> RectF;
+        fn length(self: &Path) -> f32;
 
         fn make_typeface(bytes: &[u8], index: u32, axes: &[Axis]) -> UniquePtr<Typeface>;
         fn glyph_outlines(

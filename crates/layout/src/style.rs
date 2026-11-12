@@ -212,15 +212,24 @@ const fn display(value: SceneDisplay) -> Display {
     }
 }
 
-pub fn border_widths(style: &SceneStyle, lengths: &mut Lengths<'_>) -> Rect<LengthPercentage> {
+pub fn device_border(px: f64) -> f64 {
+    if px > 0.0 && px < 1.0 {
+        return 1.0;
+    }
+    px.floor()
+}
+
+pub fn border_widths(style: &SceneStyle, lengths: &Lengths<'_>) -> Rect<LengthPercentage> {
     let Some(border) = prop!(style, Border) else {
         return Rect::zero();
     };
-    let mut side = |side: &opsis_scene::style::BorderSide| {
+    let side = |side: &opsis_scene::style::BorderSide| {
         if side.style == BorderStyle::None {
-            LengthPercentage::length(0.0)
-        } else {
-            lengths.lp(&side.width)
+            return LengthPercentage::length(0.0);
+        }
+        match lengths.resolved(&side.width) {
+            Resolved::Px(px) => LengthPercentage::length(narrow(device_border(px))),
+            _ => LengthPercentage::length(0.0),
         }
     };
     Rect {
@@ -299,7 +308,7 @@ pub fn taffy_style(
     if let Some(padding) = prop!(scene, Padding) {
         style.padding = lengths.edges_lp(padding);
     }
-    style.border = border_widths(scene, &mut lengths);
+    style.border = border_widths(scene, &lengths);
     style.overflow = taffy::Point {
         x: prop!(scene, OverflowX)
             .copied()

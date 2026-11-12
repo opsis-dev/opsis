@@ -17,3 +17,10 @@ pub fn to_fixed(value: f64, digits: i32) -> f64 {
     let scale = 10_f64.powi(digits);
     (value * scale).round() / scale
 }
+
+pub fn graphemes(text: &str) -> Vec<&str> {
+    let breaks: Vec<usize> = icu_segmenter::GraphemeClusterSegmenter::new()
+        .segment_str(text)
+        .collect();
+    breaks.windows(2).map(|w| &text[w[0]..w[1]]).collect()
+}

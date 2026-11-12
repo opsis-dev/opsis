@@ -1,5 +1,6 @@
 #include "convert.h"
 #include "include/core/SkPath.h"
+#include "include/core/SkPathMeasure.h"
 #include "opsis_skia.h"
 
 namespace opsis::skia {
@@ -23,7 +24,7 @@ void Path::close() { builder_.close(); }
 void Path::add_rect(RectF rect) { builder_.addRect(rect_of(rect)); }
 
 void Path::add_round_rect(RoundRect rect) {
-  builder_.addRRect(round_rect_of(rect));
+  builder_.addRRect(round_rect_of(rect), SkPathDirection::kCW, 0);
 }
 
 void Path::add_oval(RectF rect) { builder_.addOval(rect_of(rect)); }
@@ -38,6 +39,15 @@ void Path::set_even_odd(bool even_odd) {
 }
 
 RectF Path::bounds() const { return rect_from(snapshot().getBounds()); }
+
+float Path::length() const {
+  SkPathMeasure measure(snapshot(), false);
+  float total = 0;
+  do {
+    total += measure.getLength();
+  } while (measure.nextContour());
+  return total;
+}
 
 SkPath Path::snapshot() const { return builder_.snapshot(); }
 

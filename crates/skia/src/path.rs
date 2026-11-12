@@ -71,4 +71,8 @@ impl Path {
     pub fn bounds(&self) -> RectF {
         self.inner.bounds()
     }
+
+    pub fn length(&self) -> f32 {
+        self.inner.length()
+    }
 }

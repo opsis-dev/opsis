@@ -4,6 +4,7 @@ mod canvas;
 mod catalogue;
 mod checks;
 mod clip;
+mod code_syntax;
 mod compile;
 mod edits;
 mod files;

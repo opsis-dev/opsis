@@ -1,7 +1,7 @@
 use std::f64::consts::PI;
 
 use opsis_macros::settings;
-use opsis_scene::color::{Color, ColorSpace, Interpolation as ColorInterpolation};
+use opsis_scene::color::{Color, Interpolation as ColorInterpolation};
 use opsis_scene::css::with_background;
 use opsis_scene::interpolate::{Interpolation, Output, interpolate};
 use opsis_scene::node::{Node, SvgElement, div, span, svg};
@@ -17,9 +17,10 @@ use opsis_types::looks::NodeLook;
 
 use crate::elements::anim::{clamped, clamped_eased, sprung};
 use crate::elements::code_theme::code_palette;
-use crate::elements::draw::{Cx, DrawFailure, css_color};
+use crate::elements::draw::{Cx, DrawFailure, css_color, tinted};
 use crate::elements::entry::{element, meta};
 use crate::elements::fonts::{FontRole, font_or};
+use crate::elements::geometry::safe_padding;
 use crate::elements::number_text::group_digits;
 use crate::elements::shared::GroupSeparator;
 use crate::elements::text_split::easing_enter;
@@ -189,24 +190,6 @@ fn format_value(value: f64, decimals: usize, separator: GroupSeparator) -> Strin
         Some((whole, fraction)) => format!("{}.{fraction}", group_digits(whole, separator)),
         None => group_digits(&text, separator),
     }
-}
-
-fn safe_padding(width: f64, height: f64) -> (f64, f64) {
-    (
-        (80.0 / 1080.0 * width).round(),
-        (100.0 / 1080.0 * height).round(),
-    )
-}
-
-fn tinted(color: &str, share: f64) -> Color {
-    Color::mix(
-        ColorInterpolation {
-            space: ColorSpace::Srgb,
-            ..ColorInterpolation::DEFAULT
-        },
-        (css_color(color), Some(share)),
-        (Color::TRANSPARENT, None),
-    )
 }
 
 fn perceptual(input: f64, to: [f64; 2], clamp: bool) -> Result<f64, DrawFailure> {

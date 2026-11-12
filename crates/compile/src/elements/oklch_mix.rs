@@ -322,7 +322,7 @@ pub fn interpolated_color(
     interpolate_colors(input, range, colors).map(|text| Color::css(&text).unwrap_or_default())
 }
 
-fn parsed_or_black(css: &str) -> Rgb {
+pub fn parsed_or_black(css: &str) -> Rgb {
     let text = css.trim();
     if text.starts_with("var(") {
         return Rgb {

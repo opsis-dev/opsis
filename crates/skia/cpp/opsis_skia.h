@@ -106,6 +106,7 @@ class Path {
   void add_path(const Path& other, Matrix33 matrix);
   void set_even_odd(bool even_odd);
   RectF bounds() const;
+  float length() const;
   SkPath snapshot() const;
   SkPathBuilder& builder();
 

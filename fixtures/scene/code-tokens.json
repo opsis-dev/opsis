@@ -1,0 +1,1185 @@
+{
+ "samples": [
+  "export async function publish(draft: Draft) {\n  const page = await render(draft);\n  await upload(page, { public: true });\n  return page.url;\n}",
+  "/* a block\n   still inside */ let x = 1; /* open\nclosed */ y",
+  "/*/ odd */ z /*/",
+  "const s = 'it\\'s' + \"a \\\"b\\\"\" + `t ${x}` + 'unterminated",
+  "const bad = 'ends with \\",
+  "n = 0x1F + 12 + 3.14 + 1e10 + 2.5e-3 + 1.5x + 12e + 7.e2 + 0x + 1_000",
+  "<Button onClick={go} />\n</Panel>\nif (a == b) { c = d; e(f) }",
+  "# shell comment\nfn main() -> Result<(), Error> { let mut v: Vec<u8> = vec![]; }",
+  "def run(self):\n    return self.value  # done",
+  "   tabs\tand spaces  ",
+  "naïve café = $value_1 + _priv"
+ ],
+ "tokens": [
+  [
+   [
+    {
+     "text": "export",
+     "kind": "keyword"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "async",
+     "kind": "keyword"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "function",
+     "kind": "keyword"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "publish",
+     "kind": "call"
+    },
+    {
+     "text": "(",
+     "kind": "punct"
+    },
+    {
+     "text": "draft",
+     "kind": "plain"
+    },
+    {
+     "text": ":",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "Draft",
+     "kind": "type"
+    },
+    {
+     "text": ")",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "{",
+     "kind": "punct"
+    }
+   ],
+   [
+    {
+     "text": "  ",
+     "kind": "plain"
+    },
+    {
+     "text": "const",
+     "kind": "keyword"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "page",
+     "kind": "plain"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "=",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "await",
+     "kind": "keyword"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "render",
+     "kind": "call"
+    },
+    {
+     "text": "(",
+     "kind": "punct"
+    },
+    {
+     "text": "draft",
+     "kind": "plain"
+    },
+    {
+     "text": ")",
+     "kind": "punct"
+    },
+    {
+     "text": ";",
+     "kind": "punct"
+    }
+   ],
+   [
+    {
+     "text": "  ",
+     "kind": "plain"
+    },
+    {
+     "text": "await",
+     "kind": "keyword"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "upload",
+     "kind": "call"
+    },
+    {
+     "text": "(",
+     "kind": "punct"
+    },
+    {
+     "text": "page",
+     "kind": "plain"
+    },
+    {
+     "text": ",",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "{",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "public",
+     "kind": "keyword"
+    },
+    {
+     "text": ":",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "true",
+     "kind": "keyword"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "}",
+     "kind": "punct"
+    },
+    {
+     "text": ")",
+     "kind": "punct"
+    },
+    {
+     "text": ";",
+     "kind": "punct"
+    }
+   ],
+   [
+    {
+     "text": "  ",
+     "kind": "plain"
+    },
+    {
+     "text": "return",
+     "kind": "keyword"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "page",
+     "kind": "plain"
+    },
+    {
+     "text": ".",
+     "kind": "punct"
+    },
+    {
+     "text": "url",
+     "kind": "plain"
+    },
+    {
+     "text": ";",
+     "kind": "punct"
+    }
+   ],
+   [
+    {
+     "text": "}",
+     "kind": "punct"
+    }
+   ]
+  ],
+  [
+   [
+    {
+     "text": "/* a block",
+     "kind": "comment"
+    }
+   ],
+   [
+    {
+     "text": "   still inside */",
+     "kind": "comment"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "let",
+     "kind": "keyword"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "x",
+     "kind": "plain"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "=",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "1",
+     "kind": "number"
+    },
+    {
+     "text": ";",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "/* open",
+     "kind": "comment"
+    }
+   ],
+   [
+    {
+     "text": "closed */",
+     "kind": "comment"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "y",
+     "kind": "plain"
+    }
+   ]
+  ],
+  [
+   [
+    {
+     "text": "/*/ odd */",
+     "kind": "comment"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "z",
+     "kind": "plain"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "/*/",
+     "kind": "comment"
+    }
+   ]
+  ],
+  [
+   [
+    {
+     "text": "const",
+     "kind": "keyword"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "s",
+     "kind": "plain"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "=",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "'it\\'s'",
+     "kind": "string"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "+",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "\"a \\\"b\\\"\"",
+     "kind": "string"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "+",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "`t ${x}`",
+     "kind": "string"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "+",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "'unterminated",
+     "kind": "string"
+    }
+   ]
+  ],
+  [
+   [
+    {
+     "text": "const",
+     "kind": "keyword"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "bad",
+     "kind": "plain"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "=",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "'",
+     "kind": "punct"
+    },
+    {
+     "text": "ends",
+     "kind": "plain"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "with",
+     "kind": "plain"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "\\",
+     "kind": "punct"
+    }
+   ]
+  ],
+  [
+   [
+    {
+     "text": "n",
+     "kind": "plain"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "=",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "0x1F",
+     "kind": "number"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "+",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "12",
+     "kind": "number"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "+",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "3.14",
+     "kind": "number"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "+",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "1e10",
+     "kind": "number"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "+",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "2.5e-3",
+     "kind": "number"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "+",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "1",
+     "kind": "number"
+    },
+    {
+     "text": ".",
+     "kind": "punct"
+    },
+    {
+     "text": "5",
+     "kind": "plain"
+    },
+    {
+     "text": "x",
+     "kind": "plain"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "+",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "1",
+     "kind": "plain"
+    },
+    {
+     "text": "2",
+     "kind": "plain"
+    },
+    {
+     "text": "e",
+     "kind": "plain"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "+",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "7",
+     "kind": "number"
+    },
+    {
+     "text": ".",
+     "kind": "punct"
+    },
+    {
+     "text": "e2",
+     "kind": "plain"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "+",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "0",
+     "kind": "plain"
+    },
+    {
+     "text": "x",
+     "kind": "plain"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "+",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "1",
+     "kind": "plain"
+    },
+    {
+     "text": "_000",
+     "kind": "plain"
+    }
+   ]
+  ],
+  [
+   [
+    {
+     "text": "<",
+     "kind": "punct"
+    },
+    {
+     "text": "Button",
+     "kind": "tag"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "onClick",
+     "kind": "prop"
+    },
+    {
+     "text": "=",
+     "kind": "punct"
+    },
+    {
+     "text": "{",
+     "kind": "punct"
+    },
+    {
+     "text": "go",
+     "kind": "plain"
+    },
+    {
+     "text": "}",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "/",
+     "kind": "punct"
+    },
+    {
+     "text": ">",
+     "kind": "punct"
+    }
+   ],
+   [
+    {
+     "text": "<",
+     "kind": "punct"
+    },
+    {
+     "text": "/",
+     "kind": "punct"
+    },
+    {
+     "text": "Panel",
+     "kind": "tag"
+    },
+    {
+     "text": ">",
+     "kind": "punct"
+    }
+   ],
+   [
+    {
+     "text": "if",
+     "kind": "keyword"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "(",
+     "kind": "punct"
+    },
+    {
+     "text": "a",
+     "kind": "plain"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "=",
+     "kind": "punct"
+    },
+    {
+     "text": "=",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "b",
+     "kind": "plain"
+    },
+    {
+     "text": ")",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "{",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "c",
+     "kind": "plain"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "=",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "d",
+     "kind": "plain"
+    },
+    {
+     "text": ";",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "e",
+     "kind": "call"
+    },
+    {
+     "text": "(",
+     "kind": "punct"
+    },
+    {
+     "text": "f",
+     "kind": "plain"
+    },
+    {
+     "text": ")",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "}",
+     "kind": "punct"
+    }
+   ]
+  ],
+  [
+   [
+    {
+     "text": "# shell comment",
+     "kind": "comment"
+    }
+   ],
+   [
+    {
+     "text": "fn",
+     "kind": "keyword"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "main",
+     "kind": "call"
+    },
+    {
+     "text": "(",
+     "kind": "punct"
+    },
+    {
+     "text": ")",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "-",
+     "kind": "punct"
+    },
+    {
+     "text": ">",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "Result",
+     "kind": "type"
+    },
+    {
+     "text": "<",
+     "kind": "punct"
+    },
+    {
+     "text": "(",
+     "kind": "punct"
+    },
+    {
+     "text": ")",
+     "kind": "punct"
+    },
+    {
+     "text": ",",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "Error",
+     "kind": "type"
+    },
+    {
+     "text": ">",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "{",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "let",
+     "kind": "keyword"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "mut",
+     "kind": "plain"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "v",
+     "kind": "plain"
+    },
+    {
+     "text": ":",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "Vec",
+     "kind": "type"
+    },
+    {
+     "text": "<",
+     "kind": "punct"
+    },
+    {
+     "text": "u8",
+     "kind": "plain"
+    },
+    {
+     "text": ">",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "=",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "vec",
+     "kind": "plain"
+    },
+    {
+     "text": "!",
+     "kind": "punct"
+    },
+    {
+     "text": "[",
+     "kind": "punct"
+    },
+    {
+     "text": "]",
+     "kind": "punct"
+    },
+    {
+     "text": ";",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "}",
+     "kind": "punct"
+    }
+   ]
+  ],
+  [
+   [
+    {
+     "text": "def",
+     "kind": "keyword"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "run",
+     "kind": "call"
+    },
+    {
+     "text": "(",
+     "kind": "punct"
+    },
+    {
+     "text": "self",
+     "kind": "plain"
+    },
+    {
+     "text": ")",
+     "kind": "punct"
+    },
+    {
+     "text": ":",
+     "kind": "punct"
+    }
+   ],
+   [
+    {
+     "text": "    ",
+     "kind": "plain"
+    },
+    {
+     "text": "return",
+     "kind": "keyword"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "self",
+     "kind": "plain"
+    },
+    {
+     "text": ".",
+     "kind": "punct"
+    },
+    {
+     "text": "value",
+     "kind": "plain"
+    },
+    {
+     "text": "  ",
+     "kind": "plain"
+    },
+    {
+     "text": "# done",
+     "kind": "comment"
+    }
+   ]
+  ],
+  [
+   [
+    {
+     "text": "   ",
+     "kind": "plain"
+    },
+    {
+     "text": "tabs",
+     "kind": "plain"
+    },
+    {
+     "text": "\t",
+     "kind": "plain"
+    },
+    {
+     "text": "and",
+     "kind": "plain"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "spaces",
+     "kind": "plain"
+    },
+    {
+     "text": "  ",
+     "kind": "plain"
+    }
+   ]
+  ],
+  [
+   [
+    {
+     "text": "na",
+     "kind": "plain"
+    },
+    {
+     "text": "ï",
+     "kind": "punct"
+    },
+    {
+     "text": "ve",
+     "kind": "plain"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "caf",
+     "kind": "plain"
+    },
+    {
+     "text": "é",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "=",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "$value_1",
+     "kind": "plain"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "+",
+     "kind": "punct"
+    },
+    {
+     "text": " ",
+     "kind": "plain"
+    },
+    {
+     "text": "_priv",
+     "kind": "plain"
+    }
+   ]
+  ]
+ ]
+}

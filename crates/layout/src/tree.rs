@@ -160,7 +160,9 @@ fn sized_style(element: &opsis_scene::node::Element) -> Cow<'_, SceneStyle> {
     let Kind::Svg(root) = &element.kind else {
         return Cow::Borrowed(&element.style);
     };
-    let mut base = SceneStyle::default();
+    let mut base = SceneStyle::default()
+        .min_width(SceneLength::ZERO)
+        .min_height(SceneLength::ZERO);
     if let Some(width) = attribute_length(root, "width") {
         base = base.width(width);
     }

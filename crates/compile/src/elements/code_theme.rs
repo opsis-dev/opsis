@@ -1,6 +1,6 @@
 use indexmap::IndexMap;
 
-use crate::elements::theme::ThemeMode;
+use crate::elements::theme::{Theme, ThemeMode};
 
 const DARK: [(&str, &str); 11] = [
     ("page", "#07070B"),
@@ -91,4 +91,27 @@ pub fn palette_of(
         out.insert(k.clone(), v.clone());
     }
     Palette(out)
+}
+
+pub const fn code_tokens(mode: ThemeMode) -> &'static [(&'static str, &'static str)] {
+    match mode {
+        ThemeMode::Dark => &DARK_TOKENS,
+        ThemeMode::Light => &LIGHT_TOKENS,
+    }
+}
+
+pub fn themed_code(theme: &Theme) -> Palette {
+    let tokens = code_tokens(theme.mode);
+    let string = tokens
+        .iter()
+        .find(|(k, _)| *k == "string")
+        .map_or("", |(_, v)| *v);
+    let removed = match theme.mode {
+        ThemeMode::Dark => "#F87171",
+        ThemeMode::Light => "#DC2626",
+    };
+    let mut extra = tokens.to_vec();
+    extra.push(("added", string));
+    extra.push(("removed", removed));
+    code_palette(theme.mode, &extra, &theme.colors)
 }

@@ -1,5 +1,5 @@
 use opsis_scene::clock::AUTHORED_FPS;
-use opsis_scene::color::Color;
+use opsis_scene::color::{Color, ColorSpace, Interpolation as ColorInterpolation};
 use opsis_scene::interpolate::InterpolateError;
 use opsis_scene::measure::Measure;
 use opsis_scene::node::Node;
@@ -8,7 +8,7 @@ use opsis_scene::timeline::{At, DrawError, Drawn};
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
 
-use crate::elements::{background, data, overlay, placeholder, text, transition};
+use crate::elements::{background, data, overlay, placeholder, text, transition, ui};
 
 #[derive(Clone, Copy)]
 pub struct Cx<'a> {
@@ -72,6 +72,17 @@ pub enum DrawFailure {
 
 pub fn css_color(css: &str) -> Color {
     Color::css(css).unwrap_or_default()
+}
+
+pub fn tinted(color: &str, share: f64) -> Color {
+    Color::mix(
+        ColorInterpolation {
+            space: ColorSpace::Srgb,
+            ..ColorInterpolation::DEFAULT
+        },
+        (css_color(color), Some(share)),
+        (Color::TRANSPARENT, None),
+    )
 }
 
 type Draw<T> = fn(&T, &Cx<'_>) -> Result<Node, DrawFailure>;
@@ -229,6 +240,19 @@ pub fn element(component: &str, props: &Map<String, Value>, cx: &Cx<'_>) -> Draw
         "stat-card" => drawn(component, props, cx, data::stat_card::draw),
         "metric-ticker" => drawn(component, props, cx, data::metric_ticker::draw),
         "bar-chart-race" => drawn(component, props, cx, data::bar_chart_race::draw),
+        "glass-code-block" => drawn(component, props, cx, ui::glass_code_block::draw),
+        "terminal-simulator" => drawn(component, props, cx, ui::terminal_simulator::draw),
+        "search-reveal" => drawn(component, props, cx, ui::search_reveal::draw),
+        "check-list" => drawn(component, props, cx, ui::check_list::draw),
+        "commit-graph" => drawn(component, props, cx, ui::commit_graph::draw),
+        "file-tree-reveal" => drawn(component, props, cx, ui::file_tree_reveal::draw),
+        "kanban-move" => drawn(component, props, cx, ui::kanban_move::draw),
+        "code-reveal" => drawn(component, props, cx, ui::code_reveal::draw),
+        "code-diff-wipe" => drawn(component, props, cx, ui::code_diff_wipe::draw),
+        "drag-drop-flow" => drawn(component, props, cx, ui::drag_drop_flow::draw),
+        "code-morph" => drawn(component, props, cx, ui::code_morph::draw),
+        "agent-run" => drawn(component, props, cx, ui::agent_run::draw),
+        "logo-enter" => drawn(component, props, cx, ui::logo_enter::draw),
         "lower-third" => drawn(component, props, cx, overlay::lower_third::draw),
         "ink-underline" => drawn(component, props, cx, overlay::ink_underline::draw),
         "scribble-circle" => drawn(component, props, cx, overlay::scribble_circle::draw),

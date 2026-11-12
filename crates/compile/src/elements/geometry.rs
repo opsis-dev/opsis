@@ -27,3 +27,10 @@ pub fn arc_path(cx: f64, cy: f64, radius: f64, start: f64, end: f64) -> String {
         r = n(radius)
     )
 }
+
+pub fn safe_padding(width: f64, height: f64) -> (f64, f64) {
+    (
+        (80.0 / 1080.0 * width).round(),
+        (100.0 / 1080.0 * height).round(),
+    )
+}

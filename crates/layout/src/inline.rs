@@ -159,7 +159,7 @@ fn span_geometry(
         if side.style == opsis_scene::style::BorderStyle::None {
             0.0
         } else {
-            px(&side.width)
+            crate::style::device_border(px(&side.width))
         }
     };
     let padding = opsis_scene::prop!(style, Padding);
@@ -1177,8 +1177,8 @@ fn hyphenated_lines(tree: &mut Tree<'_>, id: usize, paragraph: &Paragraph<u32>) 
         .enumerate()
         .filter_map(|(index, line)| {
             let end = line.text_range().end;
-            text[..end]
-                .ends_with(SOFT_HYPHEN)
+            text.get(..end)
+                .is_some_and(|t| t.ends_with(SOFT_HYPHEN))
                 .then(|| (index, end - SOFT_HYPHEN.len_utf8()))
         })
         .filter_map(|(line, at)| {

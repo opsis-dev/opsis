@@ -69,3 +69,42 @@ pub fn path_draw(progress: f64, d: &str) -> (f64, f64) {
     }
     (length, shown.mul_add(-length, length))
 }
+
+#[expect(
+    clippy::suboptimal_flops,
+    reason = "the film places each control point with these exact steps, and the paths have to match it"
+)]
+pub fn waypoints_to_path(points: &[(f64, f64)], smoothing: f64) -> String {
+    let n = opsis_scene::random::js_number_text;
+    let Some(first) = points.first() else {
+        return String::new();
+    };
+    let mut out = vec![format!("M {} {}", n(first.0), n(first.1))];
+    for index in 0..points.len().saturating_sub(1) {
+        let previous = points[index.saturating_sub(1)];
+        let (from, to) = (points[index], points[index + 1]);
+        let next = points.get(index + 2).copied().unwrap_or(to);
+        if smoothing <= 0.0 {
+            out.push(format!("L {} {}", n(to.0), n(to.1)));
+            continue;
+        }
+        let c1 = (
+            from.0 + (to.0 - previous.0) / 2.0 * smoothing,
+            from.1 + (to.1 - previous.1) / 2.0 * smoothing,
+        );
+        let c2 = (
+            to.0 - (next.0 - from.0) / 2.0 * smoothing,
+            to.1 - (next.1 - from.1) / 2.0 * smoothing,
+        );
+        out.push(format!(
+            "C {} {} {} {} {} {}",
+            n(c1.0),
+            n(c1.1),
+            n(c2.0),
+            n(c2.1),
+            n(to.0),
+            n(to.1)
+        ));
+    }
+    out.join(" ")
+}

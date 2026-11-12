@@ -6,7 +6,7 @@ use opsis_scene::prop;
 use opsis_scene::style::{BorderSide, BorderStyle, ImageRendering, ObjectFit, Style};
 use opsis_scene::values::{Length, Position2};
 use opsis_skia::{BlendMode, Paint, Path, RectF, Rgba, Sampling, StrokeCap, StrokeJoin};
-use opsis_types::numbers::narrow;
+use opsis_types::numbers::{exact_eq, narrow};
 
 use crate::Painter;
 use crate::color::resolve;
@@ -405,6 +405,35 @@ fn draw_borders(
     }
     let b = areas.border;
     let p = areas.padding;
+    let same_stroke = sides.iter().all(|s| s.style == sides[0].style)
+        && matches!(sides[0].style, BorderStyle::Dashed | BorderStyle::Dotted)
+        && colors.iter().all(|c| *c == colors[0])
+        && widths.iter().all(|w| exact_eq(*w, widths[0]));
+    let rounded = areas.outer.iter().any(|(x, y)| *x > 0.0 || *y > 0.0);
+    if same_stroke && rounded {
+        let path = stroke_path(b, areas, widths[0]);
+        let length = f64::from(path.length());
+        painter.surface.draw_path(
+            &path,
+            &dash_paint(sides[0].style, widths[0], colors[0], length, true),
+        );
+        return;
+    }
+    let reach = areas
+        .outer
+        .iter()
+        .map(|(x, y)| x.max(*y))
+        .fold(0.0_f64, f64::max)
+        .mul_add(2.0, widths.iter().fold(0.0_f64, |m, w| m.max(*w)) * 2.0)
+        .min(b.width.min(b.height) / 2.0);
+    let inward = |(ox, oy): (f64, f64), (ix, iy): (f64, f64)| {
+        let (dx, dy) = (ix - ox, iy - oy);
+        let length = dx.hypot(dy);
+        if length <= 0.0 {
+            return point(ix, iy);
+        }
+        point(ix + dx / length * reach, iy + dy / length * reach)
+    };
     let corners_outer = [
         (b.x, b.y),
         (b.x + b.width, b.y),
@@ -426,30 +455,34 @@ fn draw_borders(
         let far = |(x, y): (f64, f64), (cx, cy): (f64, f64)| {
             point(x + (x - cx) * 4.0, y + (y - cy) * 4.0)
         };
-        wedge.move_to(point(corners_inner[index].0, corners_inner[index].1));
+        wedge.move_to(inward(corners_outer[index], corners_inner[index]));
         wedge.line_to(far(corners_outer[index], corners_inner[index]));
         wedge.line_to(far(corners_outer[next], corners_inner[next]));
-        wedge.line_to(point(corners_inner[next].0, corners_inner[next].1));
+        wedge.line_to(inward(corners_outer[next], corners_inner[next]));
         wedge.close();
         let saved = painter.surface.save();
         painter.surface.clip_path(&wedge, true);
         match side.style {
+            BorderStyle::Dashed | BorderStyle::Dotted if rounded => {
+                let width = widths[index];
+                let path = stroke_path(b, areas, width);
+                let length = f64::from(path.length());
+                painter.surface.draw_path(
+                    &path,
+                    &dash_paint(side.style, width, colors[index], length, true),
+                );
+            }
             BorderStyle::Dashed | BorderStyle::Dotted => {
                 let width = widths[index];
-                let mid = round_rect(outset(b, -width / 2.0), &spread(&areas.outer, -width / 2.0));
-                let mut paint = Paint::filled(colors[index]);
-                let thick = width >= THICK_BORDER;
-                let (dash, gap, cap) = match (side.style, thick) {
-                    (BorderStyle::Dotted, true) => (0.0, 2.0 * width, StrokeCap::Round),
-                    (BorderStyle::Dotted, false) => (width, width, StrokeCap::Butt),
-                    (_, true) => (2.0 * width, width, StrokeCap::Butt),
-                    (_, false) => (3.0 * width, 2.0 * width, StrokeCap::Butt),
-                };
-                paint.set_stroke(narrow(width), cap, StrokeJoin::Miter, 4.0);
-                paint.set_dash(&[narrow(dash.max(0.001)), narrow(gap)], 0.0);
+                let (from, to) = side_line(b, index, width);
+                let length = (to.0 - from.0).hypot(to.1 - from.1);
                 let mut path = Path::new();
-                path.add_round_rect(mid);
-                painter.surface.draw_path(&path, &paint);
+                path.move_to(point(from.0, from.1));
+                path.line_to(point(to.0, to.1));
+                painter.surface.draw_path(
+                    &path,
+                    &dash_paint(side.style, width, colors[index], length, true),
+                );
             }
             _ => {
                 painter
@@ -459,6 +492,64 @@ fn draw_borders(
         }
         painter.surface.restore_to(saved);
     }
+}
+
+fn stroke_path(b: Rect, areas: &Areas, width: f64) -> Path {
+    let mut path = Path::new();
+    path.add_round_rect(round_rect(
+        outset(b, -width / 2.0),
+        &spread(&areas.outer, -width / 2.0),
+    ));
+    path
+}
+
+fn side_line(b: Rect, index: usize, width: f64) -> ((f64, f64), (f64, f64)) {
+    let half = width / 2.0;
+    let (left, top, right, bottom) = (b.x, b.y, b.x + b.width, b.y + b.height);
+    match index {
+        0 => ((left, top + half), (right, top + half)),
+        1 => ((right - half, top), (right - half, bottom)),
+        2 => ((right, bottom - half), (left, bottom - half)),
+        _ => ((left + half, bottom), (left + half, top)),
+    }
+}
+
+fn best_dash_gap(length: f64, dash: f64, gap: f64, closed: bool) -> f64 {
+    let available = if closed { length } else { length + gap };
+    let fewest = (available / (dash + gap)).floor();
+    let most = fewest + 1.0;
+    let (fewest_gaps, most_gaps) = if closed {
+        (fewest, most)
+    } else {
+        (fewest - 1.0, most - 1.0)
+    };
+    let small = fewest.mul_add(-dash, length) / fewest_gaps;
+    let large = most.mul_add(-dash, length) / most_gaps;
+    if large <= 0.0 || (small - gap).abs() < (large - gap).abs() {
+        small
+    } else {
+        large
+    }
+}
+
+fn dash_paint(style: BorderStyle, width: f64, color: Rgba, length: f64, closed: bool) -> Paint {
+    let mut paint = Paint::filled(color);
+    let (dash, gap, cap) = match (style, width >= THICK_BORDER) {
+        (BorderStyle::Dotted, true) => (0.0, 2.0 * width, StrokeCap::Round),
+        (BorderStyle::Dotted, false) => (width, width, StrokeCap::Butt),
+        (_, true) => (2.0 * width, width, StrokeCap::Butt),
+        (_, false) => (3.0 * width, 2.0 * width, StrokeCap::Butt),
+    };
+    paint.set_stroke(narrow(width), cap, StrokeJoin::Miter, 4.0);
+    if style == BorderStyle::Dashed {
+        if length > dash * 2.0 {
+            let fitted = best_dash_gap(length, dash, gap, closed);
+            paint.set_dash(&[narrow(dash), narrow(fitted)], 0.0);
+        }
+        return paint;
+    }
+    paint.set_dash(&[narrow(dash.max(0.001)), narrow(gap)], 0.0);
+    paint
 }
 
 fn draw_outline(
