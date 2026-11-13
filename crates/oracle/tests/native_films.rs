@@ -39,6 +39,15 @@ fn copy_tree(from: &Path, to: &Path) {
         } else {
             std::fs::copy(entry.path(), &target)
                 .unwrap_or_else(|e| panic!("{}: {e}", target.display()));
+            let modified = entry
+                .metadata()
+                .and_then(|m| m.modified())
+                .unwrap_or_else(|e| panic!("{}: {e}", entry.path().display()));
+            std::fs::File::options()
+                .write(true)
+                .open(&target)
+                .and_then(|f| f.set_modified(modified))
+                .unwrap_or_else(|e| panic!("{}: {e}", target.display()));
         }
     }
 }

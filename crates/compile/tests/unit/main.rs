@@ -1,5 +1,6 @@
 mod action_sounds;
 mod areas;
+mod camera_track;
 mod canvas;
 mod catalogue;
 mod checks;

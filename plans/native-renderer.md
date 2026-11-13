@@ -217,7 +217,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Decisions
 
-- Decided: **bundled Noto fallbacks for characters the bundled faces lack.** The bundled faces are Latin subsets; `fonts:bundle` adds Noto Sans's other subsets as the hidden `Opsis Fallback` family (`public/fonts/bundled/fallback`), and the terminal's Noto Sans Symbols 2 (`opsis-terminal-symbols-2`) follows it for symbols such as ⌘. Each subset is registered by `Fonts::register_fallback` in that order (`FALLBACK_FAMILIES`, `crates/film/src/lib.rs`) and appended to every font stack, never the computer's fonts. The oracle's Chrome drew those characters from the computer's fonts, so the mixed-scripts cell of `text/wrapping` stays out of the comparison.
+- Decided: **bundled fallbacks for characters the bundled faces lack: Noto Sans, then Noto Sans Symbols 2, then DejaVu Sans.** The bundled faces are Latin subsets; `fonts:bundle` adds Noto Sans's other subsets as the hidden `Opsis Fallback` family (`public/fonts/bundled/fallback`), the terminal's Noto Sans Symbols 2 (`opsis-terminal-symbols-2`) follows it for symbols such as ⌘, and the whole of DejaVu Sans (`opsis-fallback-dejavu`) comes last for what neither has, such as the block elements (▍). Each subset is registered by `Fonts::register_fallback` in that order (`FALLBACK_FAMILIES`, `crates/film/src/lib.rs`) and appended to every font stack, never the computer's fonts. The oracle's Chrome drew those characters from the computer's fonts, so the mixed-scripts cell of `text/wrapping` stays out of the comparison.
 
 ### Risks
 
@@ -397,7 +397,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 - **All 140 implementations in `ELEMENTS` move**: the 138 elements into their own Rust files, and `placeholder` and `still`, which have no element file or category in Rust, with the camera and takes below. By the capabilities they need ([Appendix: elements](#appendix-elements)): layout 71, text 84, vector 93, layer effects 96, SVG filters 12, perspective 7, pixel programs 24, 3D 6, media 20, canvas drawing 5.
 - **The camera and takes move**: `core/recording-clip.tsx` and `camera/` (stage, cursor with the macOS cursor SVGs, window frame, keycap HUD, annotations, motion blur, demo clip), captions, the still and placeholder elements.
 - **The film's JavaScript libraries are replaced:**
-  - `roughjs` by `roughr` with rough.js's own Park–Miller generator (`Math.imul(48271, seed)`) in place of `rand`'s `StdRng`, so seeded strokes keep today's shapes;
+  - `roughjs` by `roughr` as it is, with its own seeded generator, so a hand-drawn mark keeps its seed but not rough.js's exact strokes (`crates/compile/src/elements/parts/hand_drawn.rs`);
   - `culori` by linebender `color` (CSS Color 4 parsing, OKLCH interpolation) plus our own chroma clamp, since `color` only clips to gamut;
   - `svg-path-commander` by `usvg` and `kurbo`;
   - `simplex-noise` by a port with the same output for the same seed;

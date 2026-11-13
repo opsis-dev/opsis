@@ -2,6 +2,7 @@ pub mod brush;
 pub mod button;
 pub mod caret;
 pub mod device_screen;
+pub mod hand_drawn;
 pub mod handwrite;
 pub mod input;
 pub mod line_chart;

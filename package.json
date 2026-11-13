@@ -101,6 +101,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@fontsource/dejavu-sans": "^5.3.0",
     "@fontsource/noto-color-emoji": "^5.3.2",
     "@fontsource/noto-sans": "^5.3.0",
     "@fontsource/noto-sans-sc": "^5.3.1",

@@ -62,9 +62,10 @@ pub fn case_font_files() -> Vec<(String, PathBuf)> {
     out
 }
 
-pub const FALLBACK_FOLDERS: [&str; 2] = [
+pub const FALLBACK_FOLDERS: [&str; 3] = [
     "public/fonts/bundled/fallback/opsis-fallback",
     "public/fonts/bundled/terminal/opsis-terminal-symbols-2",
+    "public/fonts/bundled/fallback/opsis-fallback-dejavu",
 ];
 
 pub fn fallback_font_files() -> Vec<(String, PathBuf)> {
@@ -86,11 +87,7 @@ fn subset_files(folder: &std::path::Path) -> Vec<(String, PathBuf)> {
         .into_iter()
         .filter_map(|path| {
             let name = path.file_stem()?.to_str()?.to_owned();
-            let subset = name
-                .trim_start_matches("noto-sans-")
-                .rsplitn(3, '-')
-                .nth(2)?
-                .to_owned();
+            let subset = name.rsplitn(3, '-').nth(2)?.to_owned();
             Some((subset, path))
         })
         .collect()

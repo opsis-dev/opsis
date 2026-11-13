@@ -2,6 +2,7 @@ pub mod agent_model;
 pub mod anim;
 pub mod background;
 pub mod backgrounds;
+pub mod camera;
 pub mod chart_utils;
 pub mod code_syntax;
 pub mod code_theme;

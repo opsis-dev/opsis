@@ -16,12 +16,14 @@ use std::collections::HashMap;
 use opsis_layout::Viewport;
 use opsis_layout::computed::{Context, ROOT_FONT_SIZE};
 use opsis_layout::output::{Laid, Placed, PlacedKind};
+use opsis_layout::transform::Matrix;
 use opsis_scene::node::{Element, Kind, Node};
 use opsis_scene::paint::{BlendMode, Filter};
 use opsis_scene::prop;
-use opsis_scene::style::{Overflow, Position, Style, Visibility};
+use opsis_scene::style::{Overflow, Position, Style, Visibility, WillChange};
 use opsis_scene::values::Length;
-use opsis_skia::{Matrix44, Paint, RectF, Rgba, Sampling, Surface};
+use opsis_skia::{Paint, RectF, Rgba, Sampling, Surface};
+use opsis_types::numbers::exact_eq;
 
 use crate::boxes::{Areas, draw_box, draw_replaced};
 use crate::geometry::{is_rounded, matrix44, rect_f, round_rect};
@@ -35,6 +37,7 @@ pub(crate) struct Painter<'s, 'r, 'l> {
     pub index: &'l HashMap<Vec<usize>, usize>,
     pub context: Context,
     pub offscreen: bool,
+    pub base: Matrix,
 }
 
 #[derive(Debug, Clone)]
@@ -83,6 +86,52 @@ fn makes_context(style: &Style) -> bool {
         || prop!(style, ClipPath).is_some()
         || prop!(style, Mask).is_some_and(|m| !m.is_empty())
         || prop!(style, Perspective).is_some()
+        || prop!(style, WillChange) == Some(&WillChange::Transform)
+}
+
+struct Affine {
+    xx: f64,
+    yx: f64,
+    xy: f64,
+    yy: f64,
+    tx: f64,
+    ty: f64,
+}
+
+impl Affine {
+    fn of(matrix: &Matrix) -> Option<Self> {
+        let m = &matrix.0;
+        let zero = [2, 3, 6, 7, 8, 9, 11, 14];
+        let flat = zero.iter().all(|&i| exact_eq(m[i], 0.0)) && exact_eq(m[15], 1.0);
+        flat.then_some(Self {
+            xx: m[0],
+            yx: m[1],
+            xy: m[4],
+            yy: m[5],
+            tx: m[12],
+            ty: m[13],
+        })
+    }
+
+    fn scale(&self) -> f64 {
+        self.xx.hypot(self.yx).max(self.xy.hypot(self.yy))
+    }
+
+    fn inverse(&self) -> Option<Matrix> {
+        let det = self.xx.mul_add(self.yy, -(self.yx * self.xy));
+        if det.abs() <= f64::EPSILON {
+            return None;
+        }
+        let (xx, yx, xy, yy) = (self.yy / det, -self.yx / det, -self.xy / det, self.xx / det);
+        let mut out = Matrix::IDENTITY;
+        out.0[0] = xx;
+        out.0[1] = yx;
+        out.0[4] = xy;
+        out.0[5] = yy;
+        out.0[12] = -xx.mul_add(self.tx, xy * self.ty);
+        out.0[13] = -yx.mul_add(self.tx, yy * self.ty);
+        Some(out)
+    }
 }
 
 fn clips_overflow(style: &Style) -> bool {
@@ -343,7 +392,8 @@ impl<'n> Painter<'_, '_, '_> {
             return;
         };
         let shift = opsis_types::numbers::narrow(margin);
-        let mut surface = surface.with_base(Matrix44::translation(shift, shift));
+        let base = Matrix::translation(margin, margin, 0.0).then(&self.base);
+        let mut surface = surface.with_base(matrix44(&base));
         surface.clear(Rgba::TRANSPARENT);
         {
             let mut sub = Painter {
@@ -354,6 +404,7 @@ impl<'n> Painter<'_, '_, '_> {
                 index: self.index,
                 context: self.context,
                 offscreen: true,
+                base,
             };
             sub.paint_context(element, path, &[]);
         }
@@ -362,7 +413,7 @@ impl<'n> Painter<'_, '_, '_> {
         };
         let saved = self.surface.save();
         self.apply_clips(clips);
-        self.surface.reset_matrix();
+        self.surface.reset_device_matrix();
         let (w, h) = (
             opsis_types::numbers::narrow(f64::from(width)),
             opsis_types::numbers::narrow(f64::from(height)),
@@ -376,8 +427,92 @@ impl<'n> Painter<'_, '_, '_> {
         self.surface.restore_to(saved);
     }
 
+    fn paint_composited(&mut self, element: &'n Element, path: &[usize], clips: &[usize]) -> bool {
+        let Some(&i) = self.index.get(path) else {
+            return false;
+        };
+        let placed = &self.laid.boxes[i];
+        let Some(affine) = Affine::of(&placed.matrix) else {
+            return false;
+        };
+        let Some(inverse) = affine.inverse() else {
+            return false;
+        };
+        let Some(raster) = Affine::of(&self.base.then(&placed.matrix)).map(|a| a.scale()) else {
+            return false;
+        };
+        let Some(from_device) = Affine::of(&self.base).and_then(|a| a.inverse()) else {
+            return false;
+        };
+        if raster <= f64::EPSILON {
+            return false;
+        }
+        let origin = (placed.border_box.x, placed.border_box.y);
+        let to_layer = Matrix::scaling(raster, raster, 1.0)
+            .then(&Matrix::translation(-origin.0, -origin.1, 0.0))
+            .then(&inverse);
+        let view = opsis_layout::output::Rect {
+            x: 0.0,
+            y: 0.0,
+            width: f64::from(self.surface.width()),
+            height: f64::from(self.surface.height()),
+        };
+        let seen = to_layer.then(&from_device).bounds(view);
+        let (left, top) = ((seen.x - 2.0).floor(), (seen.y - 2.0).floor());
+        let width: u32 = opsis_types::numbers::whole((seen.x + seen.width + 2.0).ceil() - left);
+        let height: u32 = opsis_types::numbers::whole((seen.y + seen.height + 2.0).ceil() - top);
+        let Ok(surface) = Surface::new(width.max(1), height.max(1)) else {
+            return false;
+        };
+        let base = Matrix::translation(-left, -top, 0.0).then(&to_layer);
+        let mut surface = surface.with_base(matrix44(&base));
+        surface.clear(Rgba::TRANSPARENT);
+        {
+            let mut sub = Painter {
+                root: self.root,
+                surface: &mut surface,
+                resources: self.resources,
+                laid: self.laid,
+                index: self.index,
+                context: self.context,
+                offscreen: self.offscreen,
+                base,
+            };
+            sub.paint_context_here(element, path, &[]);
+        }
+        let Some(image) = surface.snapshot() else {
+            return true;
+        };
+        let back = placed
+            .matrix
+            .then(&Matrix::translation(origin.0, origin.1, 0.0))
+            .then(&Matrix::scaling(1.0 / raster, 1.0 / raster, 1.0))
+            .then(&Matrix::translation(left, top, 0.0));
+        let saved = self.surface.save();
+        self.apply_clips(clips);
+        self.surface.reset_matrix();
+        self.surface.concat(matrix44(&back));
+        let (w, h) = (
+            opsis_types::numbers::narrow(f64::from(width)),
+            opsis_types::numbers::narrow(f64::from(height)),
+        );
+        self.surface.draw_image_rect(
+            &image,
+            (RectF::new(0.0, 0.0, w, h), RectF::new(0.0, 0.0, w, h)),
+            Sampling::Linear,
+            &Paint::new(),
+        );
+        self.surface.restore_to(saved);
+        true
+    }
+
     fn paint_context(&mut self, element: &'n Element, path: &[usize], clips: &[usize]) {
         if self.faces_back(element, path) {
+            return;
+        }
+        if prop!(&element.style, WillChange) == Some(&WillChange::Transform)
+            && self.paint_composited(element, path, clips)
+        {
             return;
         }
         if !self.offscreen {
@@ -468,6 +603,7 @@ pub fn paint(
         laid,
         index: &index,
         offscreen: false,
+        base: Matrix::translation(0.0, 0.0, 0.0),
         context: Context {
             viewport_width: viewport.width,
             viewport_height: viewport.height,

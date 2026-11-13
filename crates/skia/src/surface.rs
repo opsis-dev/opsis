@@ -110,6 +110,10 @@ impl Surface {
         self.inner.pin_mut().concat(matrix);
     }
 
+    pub fn reset_device_matrix(&mut self) {
+        self.inner.pin_mut().reset_matrix();
+    }
+
     pub fn reset_matrix(&mut self) {
         self.inner.pin_mut().reset_matrix();
         if let Some(base) = self.base {

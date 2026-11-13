@@ -131,7 +131,7 @@ pub fn oklch_to_rgb(color: Oklch) -> Rgb {
     }
 }
 
-fn parsed_rgb(css: &str) -> Option<Rgb> {
+pub fn parsed_rgb(css: &str) -> Option<Rgb> {
     let parsed = parse_color(css.trim()).ok()?;
     let alpha = Some(f64::from(parsed.components[3]));
     let srgb = parsed.convert(ColorSpaceTag::Srgb).components;

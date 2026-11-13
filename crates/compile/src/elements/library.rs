@@ -1,16 +1,19 @@
 use opsis_scene::color::Color;
 use opsis_scene::measure::Measure;
-use opsis_scene::node::Node;
+use opsis_scene::node::{Node, div};
+use opsis_scene::style::Style;
 use opsis_scene::timeline::{At, ChildAt, DrawError, Drawn, Library, Presented, SceneTracks, Side};
 use opsis_types::recording::RecordingProps;
-use opsis_types::timeline::SequencerProps;
+use opsis_types::timeline::{ReframeMode, SequencerProps};
 use serde_json::{Map, Value};
 
+use crate::elements::camera::recording::recording;
 use crate::elements::draw::{self, Cx, css_color};
 
 #[derive(Clone, Copy)]
 pub struct FilmLibrary<'m> {
     pub measure: &'m dyn Measure,
+    pub reframe: ReframeMode,
 }
 
 impl std::fmt::Debug for FilmLibrary<'_> {
@@ -78,11 +81,10 @@ impl Library for FilmLibrary<'_> {
         )
     }
 
-    fn recording(&self, _: &RecordingProps, _: &At) -> Result<Node, DrawError> {
-        Err(DrawError::new(
-            "recording",
-            "takes are not drawn natively yet",
-        ))
+    fn recording(&self, props: &RecordingProps, at: &At) -> Result<Node, DrawError> {
+        recording(props, at, self.reframe)
+            .map(|drawn| drawn.unwrap_or_else(|| div(Style::default()).into()))
+            .map_err(|e| DrawError::new("recording", e))
     }
 
     fn color(&self, css: &str) -> Color {

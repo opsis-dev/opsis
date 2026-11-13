@@ -169,6 +169,14 @@ pub enum ImageRendering {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+pub enum WillChange {
+    #[default]
+    Auto,
+    Transform,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum TextRendering {
     #[default]
     Auto,
@@ -446,6 +454,7 @@ properties! {
     object_fit / ObjectFit: ObjectFit,
     object_position / ObjectPosition: Position2,
     image_rendering / ImageRendering: ImageRendering,
+    will_change / WillChange: WillChange,
     color / Color: Color,
     font_family / FontFamily: Vec<String>,
     font_size / FontSize: Length,

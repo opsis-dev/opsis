@@ -857,6 +857,8 @@ SIL Open Font License 1.1, taken from the Fontsource packages. Each family's lic
 
 The terminal's fonts in `public/fonts/bundled/terminal`, each with its licence next to its files: JetBrains Mono 2.304 from JetBrains' release (https://github.com/JetBrains/JetBrainsMono, SIL Open Font License 1.1) as "Opsis Terminal"; Symbols Nerd Font Mono 3.4.0 (https://github.com/ryanoasis/nerd-fonts, MIT License) as "Opsis Terminal Symbols"; Noto Sans Symbols 2 and Noto Sans SC from the Fontsource packages (The Noto Project Authors, SIL Open Font License 1.1) as "Opsis Terminal Symbols 2" and "Opsis Terminal CJK"; and Noto Color Emoji, the colour bitmap build from Google's noto-emoji release v2026-09-24-unicode18_0 (https://github.com/googlefonts/noto-emoji, commit e20cbc2bbec1926686be9f9bee7d1d2cfa1fea0e, SIL Open Font License 1.1), as "Opsis Terminal Emoji".
 
+The fallback fonts in `public/fonts/bundled/fallback`, each with its licence next to its files: Noto Sans from the Fontsource package (The Noto Project Authors, SIL Open Font License 1.1) as "Opsis Fallback"; and DejaVu Sans 2.37 from the Fontsource package (https://github.com/dejavu-fonts/dejavu-fonts, Bitstream Vera Fonts licence with the Arev Fonts additions, DejaVu changes in the public domain) as "Opsis Fallback DejaVu".
+
 ## Playwright — crates/capture/src/playwright, crates/capture/src/{browser,input,keyboard,locators,overlays,url_match}.rs
 
 The page script, the fake clock and the keyboard and launch tables are taken from `playwright-core`; the input, keyboard, selector, overlay and address-matching code follows Playwright's. Licensed under the Apache License, Version 2.0 (`LICENSE`).

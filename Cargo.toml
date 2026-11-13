@@ -113,6 +113,7 @@ qt-build-utils = "0.10"
 quote = "1"
 regex = "1"
 reqwest = { version = "0.13", default-features = false, features = ["rustls"] }
+roughr = "0.14"
 roxmltree = "0.21"
 sanitize-filename = "0.6"
 schemars = { version = "1", features = ["indexmap2"] }

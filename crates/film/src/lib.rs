@@ -16,7 +16,11 @@ use opsis_types::fonts::FontFamilyDef;
 use opsis_types::numbers::{exact_eq, narrow, whole};
 use opsis_types::timeline::TimelineSpec;
 
-pub const FALLBACK_FAMILIES: [&str; 2] = ["opsis-fallback", "opsis-terminal-symbols-2"];
+pub const FALLBACK_FAMILIES: [&str; 3] = [
+    "opsis-fallback",
+    "opsis-terminal-symbols-2",
+    "opsis-fallback-dejavu",
+];
 
 pub type Files<'a> = &'a (dyn Fn(&str) -> Option<Vec<u8>> + Sync);
 pub type Sizes<'a> = &'a dyn Fn(&str) -> Option<(f64, f64)>;
@@ -97,8 +101,7 @@ impl std::fmt::Debug for Film<'_> {
 
 fn subset_of(file: &str) -> Option<&str> {
     let stem = file.rsplit('/').next()?.strip_suffix(".woff2")?;
-    let rest = stem.strip_prefix("noto-sans-")?;
-    let mut parts = rest.rsplitn(3, '-');
+    let mut parts = stem.rsplitn(3, '-');
     parts.next()?;
     parts.next()?;
     parts.next()
@@ -181,7 +184,14 @@ impl<'a> Film<'a> {
                 files: self.files,
                 animations: &self.animations,
             };
-            draw_film(&FilmLibrary { measure: &measurer }, self.spec, frame)?
+            draw_film(
+                &FilmLibrary {
+                    measure: &measurer,
+                    reframe: self.spec.reframe.unwrap_or_default(),
+                },
+                self.spec,
+                frame,
+            )?
         };
         let laid = lay_out(
             &root,

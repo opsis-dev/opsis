@@ -34,6 +34,7 @@ export const IGNORED_PATHS = [
   "resources/**",
   "packages/*/dist/**",
   "packages/video/src/camera/lib/mac-cursors.generated.ts",
+  "crates/compile/src/elements/camera/mac-cursors.generated.json",
   "packages/video/src/generated/**",
   "packages/video/src/registry/length-cases.generated.json",
   "packages/video/src/registry/default-props.generated.json",

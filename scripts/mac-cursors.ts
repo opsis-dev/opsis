@@ -3,9 +3,18 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { parse } from "smol-toml";
 import { z } from "zod";
-import { VIDEO_DIR } from "./lib/tool-config";
+import { ROOT, VIDEO_DIR } from "./lib/tool-config";
 
 const OUT = path.join(VIDEO_DIR, "camera", "lib", "mac-cursors.generated.ts");
+const RUST_OUT = path.join(
+  ROOT,
+  "crates",
+  "compile",
+  "src",
+  "elements",
+  "camera",
+  "mac-cursors.generated.json",
+);
 const THEME = "macOS";
 const BOX = 256;
 
@@ -104,7 +113,7 @@ function main(): void {
   const { fallback_settings: fallback = {}, ...cursors } = config.cursors;
   const keywords = Object.fromEntries(CSS_KEYWORDS.map((k) => [k, cursorFor(k, cursors)]));
   const used = [...new Set(Object.values(keywords))].toSorted();
-  const art = used.map((name) => {
+  const pictures = used.map((name) => {
     const cursor = cursors[name] ?? {};
     const svg = recoloured(
       readFileSync(sourceOf(source, theme.dir, name, cursor), "utf8"),
@@ -115,14 +124,17 @@ function main(): void {
       cursor.y_hotspot ?? fallback.y_hotspot ?? BOX / 2,
     ];
     const src = `data:image/svg+xml;base64,${Buffer.from(svg.replaceAll(/\s*\n\s*/g, " ").trim()).toString("base64")}`;
-    return `  ${JSON.stringify(name)}: { src: ${JSON.stringify(src)}, hotspot: [${hotspot.join(", ")}] },`;
+    return { name, src, hotspot };
   });
-  const aliases = Object.entries({
+  const art = pictures.map(
+    ({ name, src, hotspot }) =>
+      `  ${JSON.stringify(name)}: { src: ${JSON.stringify(src)}, hotspot: [${hotspot.join(", ")}] },`,
+  );
+  const aliasPairs = Object.entries({
     ...keywords,
     ...Object.fromEntries(Object.entries(SAME_AS).map(([k, v]) => [k, keywords[v]])),
-  })
-    .toSorted(([a], [b]) => a.localeCompare(b))
-    .map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`);
+  }).toSorted(([a], [b]) => a.localeCompare(b));
+  const aliases = aliasPairs.map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`);
   writeFileSync(
     OUT,
     [
@@ -139,6 +151,20 @@ function main(): void {
       "};",
       "",
     ].join("\n"),
+  );
+  writeFileSync(
+    RUST_OUT,
+    `${JSON.stringify(
+      {
+        box: BOX,
+        cursors: Object.fromEntries(
+          pictures.map(({ name, src, hotspot }) => [name, { src, hotspot }]),
+        ),
+        keywords: Object.fromEntries(aliasPairs),
+      },
+      null,
+      1,
+    )}\n`,
   );
   console.log(
     `wrote ${used.length} cursors for ${aliases.length} keywords to ${path.relative(process.cwd(), OUT)}`,

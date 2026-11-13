@@ -309,6 +309,35 @@ function fontsourceSubsets(
   };
 }
 
+const DEJAVU_LICENSE = "Bitstream-Vera";
+
+function dejavuSans(): FontFamilyDef {
+  const pkg = "@fontsource/dejavu-sans";
+  const dir = path.join(ROOT, "node_modules", pkg);
+  const meta = readJsonWith(metadataSchema, path.join(dir, "metadata.json"));
+  const id = "opsis-fallback-dejavu";
+  const dest = path.join(OUT, FALLBACK_GROUP.folder, id);
+  mkdirSync(dest, { recursive: true });
+  const faces: Face[] = meta.weights.map((weight) => {
+    const name = `${meta.id}-latin-${weight}-normal.woff2`;
+    const src = path.join(dir, "files", name);
+    if (!existsSync(src)) throw new Error(`${pkg}: missing ${name}`);
+    copyFileSync(src, path.join(dest, name));
+    return {
+      file: `app:fonts/bundled/${FALLBACK_GROUP.folder}/${id}/${name}`,
+      weight: String(weight),
+      style: "normal",
+      format: "woff2",
+    };
+  });
+  copyFileSync(path.join(dir, "LICENSE"), path.join(dest, "LICENSE"));
+  return {
+    ...terminalFamily(id, "Opsis Fallback DejaVu", faces, DEJAVU_LICENSE),
+    category: FALLBACK_GROUP.category,
+    licenseFile: `app:fonts/bundled/${FALLBACK_GROUP.folder}/${id}/LICENSE`,
+  };
+}
+
 function fallbackFonts(): FontFamilyDef[] {
   return [
     fontsourceSubsets(
@@ -318,6 +347,7 @@ function fallbackFonts(): FontFamilyDef[] {
       [400, 700],
       FALLBACK_GROUP,
     ),
+    dejavuSans(),
   ];
 }
 

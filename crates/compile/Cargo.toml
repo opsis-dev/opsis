@@ -24,6 +24,7 @@ opsis-scene.workspace = true
 opsis-types.workspace = true
 percent-encoding.workspace = true
 regex.workspace = true
+roughr.workspace = true
 schemars.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, features = ["preserve_order"] }
