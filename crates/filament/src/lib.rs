@@ -47,8 +47,14 @@ pub enum FilamentError {
     },
     #[error("the setting name {0} can't be passed on")]
     Name(String),
-    #[error("the setting {name} has {count} numbers, and a setting holds one to four")]
-    Uniform { name: String, count: usize },
+    #[error(
+        "the setting {name} has {count} numbers, which isn't a whole number of {columns}-number values"
+    )]
+    Uniform {
+        name: String,
+        count: usize,
+        columns: usize,
+    },
     #[error("the pass couldn't be drawn")]
     Pass,
 }
@@ -57,6 +63,24 @@ pub enum FilamentError {
 pub struct Uniform<'a> {
     pub name: &'a str,
     pub values: &'a [f32],
+    pub columns: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Input<'a> {
+    pub pixels: &'a [u8],
+    pub width: u32,
+    pub height: u32,
+}
+
+const ARRAY_COLUMNS: [usize; 3] = [1, 2, 4];
+
+fn shaped_well(uniform: &Uniform<'_>) -> bool {
+    let (count, columns) = (uniform.values.len(), uniform.columns);
+    if count == 0 || columns == 0 || count % columns != 0 {
+        return false;
+    }
+    count == columns && columns <= MAX_UNIFORM_SIZE || ARRAY_COLUMNS.contains(&columns)
 }
 
 const MAX_UNIFORM_SIZE: usize = 4;
@@ -115,26 +139,27 @@ impl Filament {
     pub fn pass(
         &mut self,
         material: MaterialId,
-        inputs: &[&[u8]],
+        inputs: &[Input<'_>],
         (width, height): (u32, u32),
         uniforms: &[Uniform<'_>],
     ) -> Result<Vec<u8>, FilamentError> {
         let expected = picture_size(width, height);
-        if let Some(wrong) = inputs.iter().find(|input| input.len() != expected) {
+        if let Some(wrong) = inputs
+            .iter()
+            .find(|input| input.pixels.len() != picture_size(input.width, input.height))
+        {
             return Err(FilamentError::Picture {
-                width,
-                height,
-                expected,
-                given: wrong.len(),
+                width: wrong.width,
+                height: wrong.height,
+                expected: picture_size(wrong.width, wrong.height),
+                given: wrong.pixels.len(),
             });
         }
-        if let Some(wrong) = uniforms
-            .iter()
-            .find(|u| u.values.is_empty() || u.values.len() > MAX_UNIFORM_SIZE)
-        {
+        if let Some(wrong) = uniforms.iter().find(|u| !shaped_well(u)) {
             return Err(FilamentError::Uniform {
                 name: wrong.name.to_owned(),
                 count: wrong.values.len(),
+                columns: wrong.columns,
             });
         }
         let names = uniforms
@@ -150,9 +175,17 @@ impl Filament {
                 name: name.as_ptr(),
                 values: u.values.as_ptr(),
                 count: u.values.len(),
+                columns: u.columns,
             })
             .collect();
-        let pointers: Vec<*const u8> = inputs.iter().map(|input| input.as_ptr()).collect();
+        let pointers: Vec<ffi::OpsisInput> = inputs
+            .iter()
+            .map(|input| ffi::OpsisInput {
+                pixels: input.pixels.as_ptr(),
+                width: input.width,
+                height: input.height,
+            })
+            .collect();
         let mut out = vec![0u8; expected];
         let drawn = unsafe {
             ffi::opsis_filament_pass(

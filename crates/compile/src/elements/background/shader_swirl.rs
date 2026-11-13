@@ -1,7 +1,12 @@
 use opsis_macros::settings;
+use opsis_scene::node::Node;
 use opsis_types::looks::NodeLook;
 
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::shader::{
+    PAPER_SCALE, PaperSizing, generated, paper_color, paper_colors, paper_sizing, quads, value,
+};
 use crate::elements::shared::Colour;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
@@ -54,4 +59,28 @@ pub fn definition() -> ElementMeta {
         .authored_clock()
         .look(NodeLook::of("tabler:spiral")),
     )
+}
+
+const MAX_COLORS: usize = 10;
+
+pub fn draw(props: &ShaderSwirl, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let colors: Vec<String> = props.colors.iter().map(|c| c.0.clone()).collect();
+    let mut settings = paper_sizing(PaperSizing {
+        scale: props.scale,
+        rotation: 0.0,
+        offset: (0.0, 0.0),
+    });
+    settings.extend(paper_colors(&colors, MAX_COLORS));
+    settings.extend([
+        value("time", vec![cx.frame() / cx.fps() * props.speed]),
+        quads("colorBack", paper_color(&props.color_back).to_vec()),
+        value("bandCount", vec![f64::from(props.band_count)]),
+        value("twist", vec![props.twist]),
+        value("center", vec![props.center]),
+        value("proportion", vec![props.proportion]),
+        value("softness", vec![props.softness]),
+        value("noise", vec![props.noise]),
+        value("noiseFrequency", vec![props.noise_frequency]),
+    ]);
+    Ok(generated("shader-swirl", settings, PAPER_SCALE))
 }

@@ -62,6 +62,7 @@
     "elements:render": "cargo run -q --release -p opsis-oracle --bin render-elements --",
     "glyphs:bundle": "bun scripts/node-glyphs.ts",
     "cursors:bundle": "bun scripts/mac-cursors.ts",
+    "paper:noise": "bun scripts/paper-noise.ts",
     "script:themes": "bun scripts/script-themes.ts",
     "terminal:themes": "bun scripts/terminal-themes.ts",
     "db:prepare": "bun scripts/sqlx-prepare.ts",

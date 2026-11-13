@@ -1,0 +1,196 @@
+material {
+    name : shaderDithering,
+    shadingModel : unlit,
+    blending : transparent,
+    parameters : [
+        #include "paper-parameters.mat"
+        { type : float, name : pxSize },
+        { type : float4, name : colorBack },
+        { type : float4, name : colorFront },
+        { type : float, name : shape },
+        { type : float, name : ditherType }
+    ],
+    requires : [ uv0 ],
+    vertexDomain : device,
+    depthWrite : false,
+    depthCulling : false,
+    culling : none
+}
+
+fragment {
+    #include "paper-simplex.glsl"
+
+    float hash11(float p) {
+        p = fract(p * 0.3183099) + 0.1;
+        p *= p + 19.19;
+        return fract(p * p);
+    }
+
+    float hash21(vec2 p) {
+        p = fract(p * vec2(0.3183099, 0.3678794)) + 0.1;
+        p += dot(p, p + 19.19);
+        return fract(p.x * p.y);
+    }
+
+    float getSimplexNoise(vec2 uv, float t) {
+        float noise = 0.5 * snoise(uv - vec2(0.0, 0.3 * t));
+        noise += 0.5 * snoise(2.0 * uv + vec2(0.0, 0.32 * t));
+        return noise;
+    }
+
+    const int bayer2x2[4] = int[4](0, 2, 3, 1);
+    const int bayer4x4[16] = int[16](0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5);
+    const int bayer8x8[64] = int[64](
+        0, 32, 8, 40, 2, 34, 10, 42,
+        48, 16, 56, 24, 50, 18, 58, 26,
+        12, 44, 4, 36, 14, 46, 6, 38,
+        60, 28, 52, 20, 62, 30, 54, 22,
+        3, 35, 11, 43, 1, 33, 9, 41,
+        51, 19, 59, 27, 49, 17, 57, 25,
+        15, 47, 7, 39, 13, 45, 5, 37,
+        63, 31, 55, 23, 61, 29, 53, 21);
+
+    float getBayerValue(vec2 uv, int size) {
+        ivec2 pos = ivec2(fract(uv / float(size)) * float(size));
+        int index = pos.y * size + pos.x;
+        if (size == 2) {
+            return float(bayer2x2[index]) / 4.0;
+        } else if (size == 4) {
+            return float(bayer4x4[index]) / 16.0;
+        } else if (size == 8) {
+            return float(bayer8x8[index]) / 64.0;
+        }
+        return 0.0;
+    }
+
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        float twoPi = 6.28318530718;
+        vec2 resolution = materialParams.size;
+        float pixelRatio = materialParams.scale;
+        vec2 uv0 = getUV0();
+        vec2 fragCoord = vec2(uv0.x * resolution.x, (1.0 - uv0.y) * resolution.y);
+        float t = 0.5 * materialParams.time;
+        float pxSize = materialParams.pxSize * pixelRatio;
+        vec2 pxSizeUV = fragCoord - 0.5 * resolution;
+        pxSizeUV /= pxSize;
+        vec2 canvasPixelizedUV = (floor(pxSizeUV) + 0.5) * pxSize;
+        vec2 normalizedUV = canvasPixelizedUV / resolution;
+        vec2 ditheringNoiseUV = canvasPixelizedUV;
+        vec2 shapeUV = normalizedUV;
+        vec2 boxOrigin = vec2(0.5 - materialParams.originX, materialParams.originY - 0.5);
+        vec2 givenBoxSize = max(vec2(materialParams.worldWidth, materialParams.worldHeight), vec2(1.0)) * pixelRatio;
+        float r = materialParams.rotation * 3.14159265358979323846 / 180.0;
+        mat2 graphicRotation = mat2(cos(r), sin(r), -sin(r), cos(r));
+        float patternBoxRatio = givenBoxSize.x / givenBoxSize.y;
+        vec2 boxSize = vec2(
+            (materialParams.worldWidth == 0.0) ? resolution.x : givenBoxSize.x,
+            (materialParams.worldHeight == 0.0) ? resolution.y : givenBoxSize.y);
+        float fit = materialParams.fit;
+        float sizingScale = materialParams.sizingScale;
+        vec2 offset = vec2(-materialParams.offsetX, materialParams.offsetY);
+        if (materialParams.shape > 3.5) {
+            vec2 objectBoxSize = vec2(0.0);
+            objectBoxSize.x = min(boxSize.x, boxSize.y);
+            if (fit == 1.0) {
+                objectBoxSize.x = min(resolution.x, resolution.y);
+            } else if (fit == 2.0) {
+                objectBoxSize.x = max(resolution.x, resolution.y);
+            }
+            objectBoxSize.y = objectBoxSize.x;
+            vec2 objectWorldScale = resolution / objectBoxSize;
+            shapeUV *= objectWorldScale;
+            shapeUV += boxOrigin * (objectWorldScale - 1.0);
+            shapeUV += offset;
+            shapeUV /= sizingScale;
+            shapeUV = graphicRotation * shapeUV;
+        } else {
+            vec2 patternBoxSize = vec2(0.0);
+            patternBoxSize.x = patternBoxRatio * min(boxSize.x / patternBoxRatio, boxSize.y);
+            float patternWorldNoFitBoxWidth = patternBoxSize.x;
+            if (fit == 1.0) {
+                patternBoxSize.x = patternBoxRatio * min(resolution.x / patternBoxRatio, resolution.y);
+            } else if (fit == 2.0) {
+                patternBoxSize.x = patternBoxRatio * max(resolution.x / patternBoxRatio, resolution.y);
+            }
+            patternBoxSize.y = patternBoxSize.x / patternBoxRatio;
+            vec2 patternWorldScale = resolution / patternBoxSize;
+            shapeUV += offset / patternWorldScale;
+            shapeUV += boxOrigin;
+            shapeUV -= boxOrigin / patternWorldScale;
+            shapeUV *= resolution;
+            shapeUV /= pixelRatio;
+            if (fit > 0.0) {
+                shapeUV *= (patternWorldNoFitBoxWidth / patternBoxSize.x);
+            }
+            shapeUV /= sizingScale;
+            shapeUV = graphicRotation * shapeUV;
+            shapeUV += boxOrigin / patternWorldScale;
+            shapeUV -= boxOrigin;
+            shapeUV += 0.5;
+        }
+        float shapeKind = materialParams.shape;
+        float shape = 0.0;
+        if (shapeKind < 1.5) {
+            shapeUV *= 0.001;
+            shape = 0.5 + 0.5 * getSimplexNoise(shapeUV, t);
+            shape = smoothstep(0.3, 0.9, shape);
+        } else if (shapeKind < 2.5) {
+            shapeUV *= 0.003;
+            for (float i = 1.0; i < 6.0; i++) {
+                shapeUV.x += 0.6 / i * cos(i * 2.5 * shapeUV.y + t);
+                shapeUV.y += 0.6 / i * cos(i * 1.5 * shapeUV.x + t);
+            }
+            shape = 0.15 / max(0.001, abs(sin(t - shapeUV.y - shapeUV.x)));
+            shape = smoothstep(0.02, 1.0, shape);
+        } else if (shapeKind < 3.5) {
+            shapeUV *= 0.05;
+            float stripeIdx = floor(2.0 * shapeUV.x / twoPi);
+            float rand = hash11(stripeIdx * 10.0);
+            rand = sign(rand - 0.5) * pow(0.1 + abs(rand), 0.4);
+            shape = sin(shapeUV.x) * cos(shapeUV.y - 5.0 * rand * t);
+            shape = pow(abs(shape), 6.0);
+        } else if (shapeKind < 4.5) {
+            shapeUV *= 4.0;
+            float wave = cos(0.5 * shapeUV.x - 2.0 * t) * sin(1.5 * shapeUV.x + t) * (0.75 + 0.25 * cos(3.0 * t));
+            shape = 1.0 - smoothstep(-1.0, 1.0, shapeUV.y + wave);
+        } else if (shapeKind < 5.5) {
+            float dist = length(shapeUV);
+            shape = sin(pow(dist, 1.7) * 7.0 - 3.0 * t) * 0.5 + 0.5;
+        } else if (shapeKind < 6.5) {
+            float l = length(shapeUV);
+            float angle = 6.0 * atan(shapeUV.y, shapeUV.x) + 4.0 * t;
+            float twist = 1.2;
+            float offsetSwirl = 1.0 / pow(max(l, 1e-6), twist) + angle / twoPi;
+            float mid = smoothstep(0.0, 1.0, pow(l, twist));
+            shape = mix(0.0, fract(offsetSwirl), mid);
+        } else {
+            shapeUV *= 2.0;
+            float d = 1.0 - pow(length(shapeUV), 2.0);
+            vec3 pos = vec3(shapeUV, sqrt(max(0.0, d)));
+            vec3 lightPos = normalize(vec3(cos(1.5 * t), 0.8, sin(1.25 * t)));
+            shape = 0.5 + 0.5 * dot(lightPos, pos);
+            shape *= step(0.0, d);
+        }
+        int kind = int(floor(materialParams.ditherType));
+        float dithering = 0.0;
+        if (kind == 1) {
+            dithering = step(hash21(ditheringNoiseUV), shape);
+        } else if (kind == 2) {
+            dithering = getBayerValue(pxSizeUV, 2);
+        } else if (kind == 3) {
+            dithering = getBayerValue(pxSizeUV, 4);
+        } else {
+            dithering = getBayerValue(pxSizeUV, 8);
+        }
+        dithering -= 0.5;
+        float res = step(0.5, shape + dithering);
+        vec4 front = materialParams.colorFront;
+        vec4 back = materialParams.colorBack;
+        vec3 color = front.rgb * front.a * res;
+        float opacity = front.a * res;
+        color += back.rgb * back.a * (1.0 - opacity);
+        opacity += back.a * (1.0 - opacity);
+        material.baseColor = vec4(color, opacity);
+    }
+}

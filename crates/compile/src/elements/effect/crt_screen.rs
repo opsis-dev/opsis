@@ -1,7 +1,11 @@
 use opsis_macros::settings;
+use opsis_scene::node::Node;
+use opsis_scene::timeline::ChildAt;
 use opsis_types::looks::NodeLook;
 
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::shader::{filtered, rgb_uniform};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -44,4 +48,24 @@ pub fn definition() -> ElementMeta {
             )
                 .look(NodeLook::of("lucide:tv-minimal")),
         )
+}
+
+pub fn wrap(props: &CrtScreen, child: ChildAt<'_>, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let inner = child(cx.at.stage)?;
+    Ok(filtered(
+        "crt-screen",
+        vec![
+            ("frame", vec![cx.frame()]),
+            ("curvature", vec![props.curvature]),
+            ("scanlines", vec![props.scanlines]),
+            ("maskScale", vec![f64::from(props.mask_scale)]),
+            ("vignette", vec![props.vignette]),
+            ("scanlineCount", vec![f64::from(props.scanline_count)]),
+            ("mask", vec![props.mask]),
+            ("glow", vec![props.glow]),
+            ("flicker", vec![props.flicker]),
+            ("bezel", rgb_uniform(&props.bezel_color)),
+        ],
+        inner,
+    ))
 }

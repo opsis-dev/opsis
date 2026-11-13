@@ -1,0 +1,76 @@
+material {
+    name : crtScreen,
+    shadingModel : unlit,
+    blending : transparent,
+    parameters : [
+        { type : sampler2d, name : input0 },
+        { type : float, name : aspect },
+        { type : float2, name : size },
+        { type : float, name : frame },
+        { type : float, name : curvature },
+        { type : float, name : scanlines },
+        { type : float, name : maskScale },
+        { type : float, name : vignette },
+        { type : float, name : scanlineCount },
+        { type : float, name : mask },
+        { type : float, name : glow },
+        { type : float, name : flicker },
+        { type : float3, name : bezel }
+    ],
+    requires : [ uv0 ],
+    vertexDomain : device,
+    depthWrite : false,
+    depthCulling : false,
+    culling : none
+}
+
+fragment {
+    const float CRT_PI = 3.141592653589793;
+    const float REFERENCE_ASPECT = 16.0 / 9.0;
+    const float REFERENCE_HEIGHT = 1080.0;
+
+    vec2 warpTube(vec2 uv, float k, float aspect) {
+        vec2 p = uv * 2.0 - 1.0;
+        float x2 = p.x * p.x;
+        float y2 = p.y * p.y;
+        p.x *= 1.0 + k * 0.11 * (REFERENCE_ASPECT / aspect) * y2;
+        p.y *= 1.0 + k * 0.17 * x2;
+        p /= 1.0 + k * 0.045;
+        return p * 0.5 + 0.5;
+    }
+
+    vec3 phosphorMask(float x, float scale) {
+        float sub = mod(floor(x / max(scale, 1.0)), 3.0);
+        vec3 lit = vec3(step(sub, 0.5), step(0.5, sub) * step(sub, 1.5), step(1.5, sub));
+        return mix(vec3(1.0 - materialParams.mask), vec3(1.0), lit);
+    }
+
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        vec2 vuv = getUV0();
+        vec2 size = materialParams.size;
+        float aspect = size.x / max(size.y, 1.0);
+        vec2 uv = warpTube(vuv, materialParams.curvature, aspect);
+        vec2 edge = smoothstep(vec2(0.0), vec2(0.005), uv) * smoothstep(vec2(0.0), vec2(0.005), 1.0 - uv);
+        float inside = edge.x * edge.y;
+        vec4 base = texture(materialParams_input0, uv);
+        vec3 spread = vec3(0.0);
+        for (int i = -2; i <= 2; i++) {
+            spread += texture(materialParams_input0, uv + vec2(float(i) * 0.0018, 0.0)).rgb;
+        }
+        spread /= 5.0;
+        vec3 bloom = max(spread - 0.5, vec3(0.0));
+        vec3 color = base.rgb;
+        color *= phosphorMask(vuv.x * size.x * (REFERENCE_HEIGHT / max(size.y, 1.0)), materialParams.maskScale);
+        color += bloom * materialParams.glow;
+        float scan = mix(1.0, 0.5 + 0.5 * cos(uv.y * materialParams.scanlineCount * CRT_PI * 2.0), 0.55);
+        color *= mix(1.0, scan, clamp(materialParams.scanlines, 0.0, 1.5));
+        vec2 vc = uv * 2.0 - 1.0;
+        float radius = length(vc * vec2(0.86, 1.0));
+        color *= mix(1.0, smoothstep(1.6, 0.35, radius), clamp(materialParams.vignette, 0.0, 1.5));
+        color *= 1.0 + materialParams.flicker * sin(materialParams.frame * CRT_PI / 30.0);
+        color = mix(materialParams.bezel, color, inside);
+        float alpha = max(base.a, 1.0 - inside);
+        material.baseColor = vec4(clamp(color, 0.0, 1.0) * alpha, alpha);
+    }
+}

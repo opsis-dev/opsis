@@ -74,7 +74,36 @@ Texture* upload(Engine* engine, const uint8_t* source, uint32_t width,
   return texture;
 }
 
+bool set_array(MaterialInstance* instance, const OpsisUniform& uniform) {
+  if (uniform.columns == 0 || uniform.count % uniform.columns != 0) {
+    return false;
+  }
+  size_t length = uniform.count / uniform.columns;
+  switch (uniform.columns) {
+    case kScalar:
+      instance->setParameter(uniform.name, uniform.values, length);
+      return true;
+    case kPair:
+      instance->setParameter(
+          uniform.name,
+          reinterpret_cast<const filament::math::float2*>(uniform.values),
+          length);
+      return true;
+    case kQuad:
+      instance->setParameter(
+          uniform.name,
+          reinterpret_cast<const filament::math::float4*>(uniform.values),
+          length);
+      return true;
+    default:
+      return false;
+  }
+}
+
 bool set_uniform(MaterialInstance* instance, const OpsisUniform& uniform) {
+  if (uniform.count != uniform.columns) {
+    return set_array(instance, uniform);
+  }
   const float* v = uniform.values;
   switch (uniform.count) {
     case kScalar:
@@ -207,7 +236,7 @@ extern "C" int32_t opsis_filament_material(OpsisFilament* filament,
 }
 
 extern "C" int32_t opsis_filament_pass(
-    OpsisFilament* filament, int32_t material, const uint8_t* const* inputs,
+    OpsisFilament* filament, int32_t material, const OpsisInput* inputs,
     size_t input_count, uint32_t width, uint32_t height,
     const OpsisUniform* uniforms, size_t uniform_count, uint8_t* out) {
   if (material < 0 ||
@@ -216,18 +245,26 @@ extern "C" int32_t opsis_filament_pass(
   }
   Engine* engine = filament->engine;
   size_t size = static_cast<size_t>(width) * height * 4;
-  MaterialInstance* instance =
-      filament->materials[static_cast<size_t>(material)]->createInstance();
+  Material* chosen = filament->materials[static_cast<size_t>(material)];
+  MaterialInstance* instance = chosen->createInstance();
   std::vector<Texture*> textures;
   for (size_t i = 0; i < input_count; ++i) {
-    Texture* texture = upload(engine, inputs[i], width, height);
+    Texture* texture =
+        upload(engine, inputs[i].pixels, inputs[i].width, inputs[i].height);
     textures.push_back(texture);
-    instance->setParameter(("input" + std::to_string(i)).c_str(), texture,
+    std::string name = "input" + std::to_string(i);
+    if (!chosen->hasParameter(name.c_str())) {
+      continue;
+    }
+    instance->setParameter(name.c_str(), texture,
                            TextureSampler(TextureSampler::MinFilter::LINEAR,
                                           TextureSampler::MagFilter::LINEAR));
   }
   bool shaped = true;
   for (size_t i = 0; i < uniform_count; ++i) {
+    if (!chosen->hasParameter(uniforms[i].name)) {
+      continue;
+    }
     shaped = set_uniform(instance, uniforms[i]) && shaped;
   }
   if (!shaped) {

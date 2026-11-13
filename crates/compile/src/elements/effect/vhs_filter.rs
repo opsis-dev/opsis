@@ -1,7 +1,11 @@
 use opsis_macros::settings;
+use opsis_scene::node::Node;
+use opsis_scene::timeline::ChildAt;
 use opsis_types::looks::NodeLook;
 
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::shader::filtered;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -32,4 +36,22 @@ pub fn definition() -> ElementMeta {
             )
                 .look(NodeLook::of("lucide:cassette-tape")),
         )
+}
+
+pub fn wrap(props: &VhsFilter, child: ChildAt<'_>, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let inner = child(cx.at.stage)?;
+    Ok(filtered(
+        "vhs-filter",
+        vec![
+            ("frame", vec![cx.frame()]),
+            ("time", vec![cx.frame() / cx.fps()]),
+            ("bleed", vec![props.bleed]),
+            ("wobble", vec![props.wobble]),
+            ("noise", vec![props.noise]),
+            ("intensity", vec![props.intensity]),
+            ("headSwitch", vec![props.head_switch]),
+            ("scanlines", vec![props.scanlines]),
+        ],
+        inner,
+    ))
 }

@@ -1,7 +1,11 @@
 use opsis_macros::settings;
+use opsis_scene::node::Node;
+use opsis_scene::timeline::ChildAt;
 use opsis_types::looks::NodeLook;
 
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::shader::filtered;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -45,4 +49,21 @@ pub fn definition() -> ElementMeta {
             )
                 .look(NodeLook::of("lucide:aperture")),
         )
+}
+
+pub fn wrap(props: &CameraLens, child: ChildAt<'_>, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let inner = child(cx.at.stage)?;
+    Ok(filtered(
+        "camera-lens",
+        vec![
+            ("softness", vec![props.softness]),
+            ("bloom", vec![props.bloom]),
+            ("aberration", vec![props.aberration]),
+            ("vignette", vec![props.vignette]),
+            ("distortion", vec![props.distortion]),
+            ("sharpCentre", vec![props.sharp_centre]),
+            ("bloomThreshold", vec![props.bloom_threshold]),
+        ],
+        inner,
+    ))
 }

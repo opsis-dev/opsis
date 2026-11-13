@@ -1,0 +1,103 @@
+material {
+    name : vhsFilter,
+    shadingModel : unlit,
+    blending : transparent,
+    parameters : [
+        { type : sampler2d, name : input0 },
+        { type : float, name : aspect },
+        { type : float2, name : size },
+        { type : float, name : frame },
+        { type : float, name : time },
+        { type : float, name : bleed },
+        { type : float, name : wobble },
+        { type : float, name : noise },
+        { type : float, name : intensity },
+        { type : float, name : headSwitch },
+        { type : float, name : scanlines }
+    ],
+    requires : [ uv0 ],
+    vertexDomain : device,
+    depthWrite : false,
+    depthCulling : false,
+    culling : none
+}
+
+fragment {
+    const float VHS_PI = 3.141592653589793;
+    const float LINES = 486.0;
+    const int TAPS = 6;
+
+    uvec2 pcg2d(uvec2 v) {
+        v = v * 1664525u + 1013904223u;
+        v.x += v.y * 1664525u;
+        v.y += v.x * 1664525u;
+        v = v ^ (v >> 16u);
+        v.x += v.y * 1664525u;
+        v.y += v.x * 1664525u;
+        v = v ^ (v >> 16u);
+        return v;
+    }
+
+    float hash(vec2 p) {
+        return float(pcg2d(floatBitsToUint(p)).x) / 4294967295.0;
+    }
+
+    float valueNoise(float x) {
+        float i = floor(x);
+        float f = fract(x);
+        float a = hash(vec2(i, 7.0));
+        float b = hash(vec2(i + 1.0, 7.0));
+        return mix(a, b, f * f * (3.0 - 2.0 * f));
+    }
+
+    vec3 rgb2yiq(vec3 c) {
+        return vec3(
+            dot(c, vec3(0.299, 0.587, 0.114)),
+            dot(c, vec3(0.5959, -0.2746, -0.3213)),
+            dot(c, vec3(0.2115, -0.5227, 0.3112)));
+    }
+
+    vec3 yiq2rgb(vec3 c) {
+        return vec3(
+            c.x + 0.956 * c.y + 0.619 * c.z,
+            c.x - 0.272 * c.y - 0.647 * c.z,
+            c.x - 1.106 * c.y + 1.703 * c.z);
+    }
+
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        vec2 vuv = getUV0();
+        float intensity = materialParams.intensity;
+        float time = materialParams.time;
+        float line = floor(vuv.y * LINES);
+        float clock = mod(materialParams.frame, 64.0);
+        float drift = sin(vuv.y * 37.0 + time * 2.3) * 0.55 + sin(vuv.y * 96.0 - time * 1.1) * 0.25;
+        float jitter = valueNoise(line * 0.61 + time * 24.0) - 0.5;
+        float wobble = (drift * 0.35 + jitter * 0.9) * 0.007 * materialParams.wobble * intensity;
+        float band = smoothstep(0.955, 0.994, vuv.y) * materialParams.headSwitch;
+        float tear = valueNoise(line * 2.7 + time * 43.0) - 0.5;
+        float headSwitch = band * tear * 0.085 * intensity;
+        vec2 uv = vec2(vuv.x + wobble + headSwitch, vuv.y);
+        vec4 base = texture(materialParams_input0, uv);
+        float luma = rgb2yiq(base.rgb).x;
+        float smear = materialParams.bleed * 0.02 * intensity;
+        vec2 chroma = vec2(0.0);
+        float total = 0.0;
+        for (int i = 0; i < TAPS; i++) {
+            float t = float(i) / float(TAPS - 1);
+            float weight = 1.0 - t * 0.72;
+            vec3 tap = texture(materialParams_input0, vec2(uv.x - smear * t, uv.y)).rgb;
+            chroma += rgb2yiq(tap).yz * weight;
+            total += weight;
+        }
+        vec3 color = yiq2rgb(vec3(luma, chroma / total));
+        float scanlines = materialParams.scanlines;
+        float scan = 1.0 - 0.06 * scanlines + 0.06 * scanlines * cos(vuv.y * LINES * VHS_PI);
+        color *= mix(1.0, scan, intensity);
+        float grain = hash(vec2(vuv.x * 640.0 + clock * 13.0, line + clock * 5.0)) - 0.5;
+        color += grain * 0.07 * materialParams.noise * intensity;
+        color = mix(color, vec3(luma), band * 0.55 * intensity);
+        color += band * (hash(vec2(line, clock * 3.0)) - 0.5) * 0.26 * intensity;
+        material.baseColor = vec4(clamp(color, 0.0, 1.0) * base.a, base.a);
+    }
+}

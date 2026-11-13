@@ -5,6 +5,7 @@ material {
     parameters : [
         { type : sampler2d, name : input0 },
         { type : float, name : aspect },
+        { type : float2, name : size },
         { type : float, name : cell },
         { type : float, name : angle },
         { type : float, name : shift },

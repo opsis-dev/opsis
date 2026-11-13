@@ -25,7 +25,13 @@ struct Allowance {
     reason: &'static str,
 }
 
-const ALLOWANCES: [Allowance; 3] = [
+const ALLOWANCES: [Allowance; 4] = [
+    Allowance {
+        key: "shader-perlin-noise",
+        frames: &[0, 37, 74, 111, 149],
+        wrong_share: 0.008,
+        reason: "its lattice hash, fract(p * 0.3183099) and its products, rounds differently on the GPU than in the browser's software renderer, so a few cells pick another gradient",
+    },
     Allowance {
         key: "punch-lines",
         frames: &[0, 35, 107, 143],
@@ -45,6 +51,25 @@ const ALLOWANCES: [Allowance; 3] = [
         reason: "the 3D receding plane is drawn as vectors through the perspective, where Chrome rasterises the layer first and projects it with stair-stepped edges",
     },
 ];
+
+struct Grain {
+    key: &'static str,
+    mean: f32,
+    reason: &'static str,
+}
+
+const GRAIN: [Grain; 1] = [Grain {
+    key: "vhs-filter",
+    mean: 0.08,
+    reason: "its grain and head-switch tear hash with PCG, where the browser hashes with fract(sin(...)), so the noise differs pixel for pixel while the blurred pictures agree",
+}];
+
+fn mean_for(key: &str) -> f32 {
+    GRAIN
+        .iter()
+        .find(|g| g.key == key && !g.reason.is_empty())
+        .map_or(TOLERANCE, |g| g.mean)
+}
 
 fn wrong_share_for(key: &str, frame: u32) -> f64 {
     ALLOWANCES
@@ -181,8 +206,8 @@ struct Score {
 }
 
 impl Score {
-    fn passes(self, wrong_share: f64) -> bool {
-        self.mean <= TOLERANCE && self.wrong <= wrong_share
+    fn passes(self, mean: f32, wrong_share: f64) -> bool {
+        self.mean <= mean && self.wrong <= wrong_share
     }
 }
 
@@ -293,7 +318,7 @@ fn every_drawn_element_matches_the_browser() {
     for (key, results) in scored {
         for (frame, score) in results {
             let line = format!("{:.4} {:.5}  {key} {frame}", score.mean, score.wrong);
-            if !score.passes(wrong_share_for(&key, frame)) {
+            if !score.passes(mean_for(&key), wrong_share_for(&key, frame)) {
                 failing.push(line.clone());
             }
             lines.push(line);

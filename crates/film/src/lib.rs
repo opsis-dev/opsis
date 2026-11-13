@@ -74,9 +74,10 @@ impl Programs for FilmPrograms<'_> {
         let settings: Vec<Setting> = pass
             .uniforms
             .iter()
-            .map(|(name, values)| Setting {
-                name: name.clone(),
-                values: values.clone(),
+            .map(|s| Setting {
+                name: s.name.clone(),
+                values: s.values.clone(),
+                columns: s.columns,
             })
             .collect();
         effects

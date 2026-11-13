@@ -4358,6 +4358,7 @@ dependencies = [
 name = "opsis-effects"
 version = "0.1.0"
 dependencies = [
+ "image",
  "opsis-filament",
  "thiserror 2.0.21",
 ]

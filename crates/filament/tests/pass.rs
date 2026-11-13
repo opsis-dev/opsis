@@ -1,4 +1,4 @@
-use opsis_filament::{Backend, Filament, TINT_MATERIAL, Uniform};
+use opsis_filament::{Backend, Filament, Input, TINT_MATERIAL, Uniform};
 
 const WIDTH: u32 = 64;
 const HEIGHT: u32 = 32;
@@ -32,11 +32,16 @@ fn a_tint_pass_halves_the_picture_and_keeps_it_upright() {
     let out = filament
         .pass(
             tint,
-            &[&picture()],
+            &[Input {
+                pixels: &picture(),
+                width: WIDTH,
+                height: HEIGHT,
+            }],
             (WIDTH, HEIGHT),
             &[Uniform {
                 name: "amount",
                 values: &[0.5],
+                columns: 1,
             }],
         )
         .expect("a pass");
@@ -55,11 +60,16 @@ fn a_picture_of_the_wrong_size_is_refused() {
         filament
             .pass(
                 tint,
-                &[&[0; 12]],
+                &[Input {
+                    pixels: &[0; 12],
+                    width: WIDTH,
+                    height: HEIGHT,
+                }],
                 (WIDTH, HEIGHT),
                 &[Uniform {
                     name: "amount",
                     values: &[1.0],
+                    columns: 1,
                 }],
             )
             .is_err()

@@ -1,7 +1,12 @@
 use opsis_macros::{choice, settings};
+use opsis_scene::node::Node;
 use opsis_types::looks::NodeLook;
 
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::shader::{
+    PAPER_SCALE, PaperSizing, generated, paper_colors, paper_sizing, value,
+};
 use crate::elements::shared::Colour;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
@@ -71,4 +76,35 @@ pub fn definition() -> ElementMeta {
         .authored_clock()
         .look(NodeLook::of("lucide:droplets")),
     )
+}
+
+const MAX_COLORS: usize = 10;
+
+const fn shape_code(shape: WarpShape) -> f64 {
+    match shape {
+        WarpShape::Checks => 0.0,
+        WarpShape::Stripes => 1.0,
+        WarpShape::Edge => 2.0,
+    }
+}
+
+pub fn draw(props: &ShaderWarp, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let colors: Vec<String> = props.colors.iter().map(|c| c.0.clone()).collect();
+    let mut settings = paper_sizing(PaperSizing {
+        scale: props.scale,
+        rotation: 0.0,
+        offset: (0.0, 0.0),
+    });
+    settings.extend(paper_colors(&colors, MAX_COLORS));
+    settings.extend([
+        value("time", vec![cx.frame() / cx.fps() * props.speed]),
+        value("proportion", vec![props.proportion]),
+        value("softness", vec![props.softness]),
+        value("shape", vec![shape_code(props.shape)]),
+        value("shapeScale", vec![props.shape_scale]),
+        value("distortion", vec![props.distortion]),
+        value("swirl", vec![props.swirl]),
+        value("swirlIterations", vec![f64::from(props.swirl_iterations)]),
+    ]);
+    Ok(generated("shader-warp", settings, PAPER_SCALE))
 }

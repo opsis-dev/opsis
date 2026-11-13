@@ -1,7 +1,12 @@
 use opsis_macros::{choice, settings};
+use opsis_scene::node::Node;
 use opsis_types::looks::NodeLook;
 
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::shader::{
+    PAPER_SCALE, PaperSizing, generated, paper_color, paper_sizing, quads, value,
+};
 use crate::elements::shared::DitherShape;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
@@ -59,4 +64,42 @@ pub fn definition() -> ElementMeta {
         .authored_clock()
         .look(NodeLook::of("lucide:grip")),
     )
+}
+
+const fn shape_code(shape: DitherShape) -> f64 {
+    match shape {
+        DitherShape::Simplex => 1.0,
+        DitherShape::Warp => 2.0,
+        DitherShape::Dots => 3.0,
+        DitherShape::Wave => 4.0,
+        DitherShape::Ripple => 5.0,
+        DitherShape::Swirl => 6.0,
+        DitherShape::Sphere => 7.0,
+    }
+}
+
+const fn pattern_code(pattern: DitherPattern) -> f64 {
+    match pattern {
+        DitherPattern::Random => 1.0,
+        DitherPattern::Grid2x2 => 2.0,
+        DitherPattern::Grid4x4 => 3.0,
+        DitherPattern::Grid8x8 => 4.0,
+    }
+}
+
+pub fn draw(props: &ShaderDithering, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let mut settings = paper_sizing(PaperSizing {
+        scale: props.scale,
+        rotation: props.rotation,
+        offset: (0.0, 0.0),
+    });
+    settings.extend([
+        value("time", vec![cx.frame() / cx.fps() * props.speed]),
+        value("pxSize", vec![f64::from(props.size)]),
+        quads("colorBack", paper_color(&props.color_back).to_vec()),
+        quads("colorFront", paper_color(&props.color_front).to_vec()),
+        value("shape", vec![shape_code(props.shape)]),
+        value("ditherType", vec![pattern_code(props.r#type)]),
+    ]);
+    Ok(generated("shader-dithering", settings, PAPER_SCALE))
 }

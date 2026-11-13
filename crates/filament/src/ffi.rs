@@ -8,6 +8,14 @@ pub struct OpsisUniform {
     pub name: *const std::ffi::c_char,
     pub values: *const f32,
     pub count: usize,
+    pub columns: usize,
+}
+
+#[repr(C)]
+pub struct OpsisInput {
+    pub pixels: *const u8,
+    pub width: u32,
+    pub height: u32,
 }
 
 unsafe extern "C" {
@@ -22,7 +30,7 @@ unsafe extern "C" {
     pub fn opsis_filament_pass(
         filament: *mut OpsisFilament,
         material: i32,
-        inputs: *const *const u8,
+        inputs: *const OpsisInput,
         input_count: usize,
         width: u32,
         height: u32,

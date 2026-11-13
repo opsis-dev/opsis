@@ -1,0 +1,102 @@
+material {
+    name : shaderWarp,
+    shadingModel : unlit,
+    blending : transparent,
+    parameters : [
+        { type : sampler2d, name : input0 },
+        #include "paper-parameters.mat"
+        { type : float4[10], name : colors },
+        { type : float, name : colorsCount },
+        { type : float, name : proportion },
+        { type : float, name : softness },
+        { type : float, name : shape },
+        { type : float, name : shapeScale },
+        { type : float, name : distortion },
+        { type : float, name : swirl },
+        { type : float, name : swirlIterations }
+    ],
+    requires : [ uv0 ],
+    vertexDomain : device,
+    depthWrite : false,
+    depthCulling : false,
+    culling : none
+}
+
+fragment {
+    #include "paper-sizing.glsl"
+    #include "paper-colors.glsl"
+
+    float randomG(vec2 p) {
+        vec2 uv = floor(p) / 100.0 + 0.5;
+        return texture(materialParams_input0, fract(uv)).g;
+    }
+
+    float valueNoise(vec2 st) {
+        vec2 i = floor(st);
+        vec2 f = fract(st);
+        float a = randomG(i);
+        float b = randomG(i + vec2(1.0, 0.0));
+        float c = randomG(i + vec2(0.0, 1.0));
+        float d = randomG(i + vec2(1.0, 1.0));
+        vec2 u = f * f * (3.0 - 2.0 * f);
+        float x1 = mix(a, b, u.x);
+        float x2 = mix(c, d, u.x);
+        return mix(x1, x2, u.y);
+    }
+
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        vec2 uv = paperPatternUV();
+        uv *= 0.5;
+        float t = 0.0625 * (materialParams.time + 118.0);
+        float n1 = valueNoise(uv * 1.0 + t);
+        float n2 = valueNoise(uv * 2.0 - t);
+        float angle = n1 * 6.28318530718;
+        uv.x += 4.0 * materialParams.distortion * n2 * cos(angle);
+        uv.y += 4.0 * materialParams.distortion * n2 * sin(angle);
+        float swirl = materialParams.swirl;
+        for (int i = 1; i <= 20; i++) {
+            if (i >= int(materialParams.swirlIterations)) break;
+            float iFloat = float(i);
+            uv.x += swirl / iFloat * cos(t + iFloat * 1.5 * uv.y);
+            uv.y += swirl / iFloat * cos(t + iFloat * 1.0 * uv.x);
+        }
+        float proportion = clamp(materialParams.proportion, 0.0, 1.0);
+        float shapeScale = materialParams.shapeScale;
+        float shape = 0.0;
+        if (materialParams.shape < 0.5) {
+            vec2 checks = uv * (0.5 + 3.5 * shapeScale);
+            shape = 0.5 + 0.5 * sin(checks.x) * cos(checks.y);
+            shape += 0.48 * sign(proportion - 0.5) * pow(abs(proportion - 0.5), 0.5);
+        } else if (materialParams.shape < 1.5) {
+            vec2 stripes = uv * (2.0 * shapeScale);
+            float f = fract(stripes.y);
+            shape = smoothstep(0.0, 0.55, f) * (1.0 - smoothstep(0.45, 1.0, f));
+            shape += 0.48 * sign(proportion - 0.5) * pow(abs(proportion - 0.5), 0.5);
+        } else {
+            float shapeScaling = 5.0 * (1.0 - shapeScale);
+            float e0 = 0.45 - shapeScaling;
+            float e1 = 0.55 + shapeScaling;
+            shape = smoothstep(min(e0, e1), max(e0, e1), 1.0 - uv.y + 0.3 * (proportion - 0.5));
+        }
+        float colorsCount = materialParams.colorsCount;
+        float mixer = shape * (colorsCount - 1.0);
+        vec4 gradient = paperColor(0);
+        gradient.rgb *= gradient.a;
+        float aa = fwidth(shape);
+        for (int i = 1; i < 10; i++) {
+            if (i >= int(colorsCount)) break;
+            float m = clamp(mixer - float(i - 1), 0.0, 1.0);
+            float localMixerStart = floor(m);
+            float softness = 0.5 * materialParams.softness + fwidth(m);
+            float smoothed = smoothstep(max(0.0, 0.5 - softness - aa), min(1.0, 0.5 + softness + aa), m - localMixerStart);
+            float stepped = localMixerStart + smoothed;
+            m = mix(stepped, m, materialParams.softness);
+            vec4 c = paperColor(i);
+            c.rgb *= c.a;
+            gradient = mix(gradient, c, m);
+        }
+        vec3 color = paperBandingFix(gradient.rgb);
+        material.baseColor = vec4(color, gradient.a);
+    }
+}

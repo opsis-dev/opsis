@@ -16,11 +16,28 @@ pub struct Picture {
 pub type Frames<'a> = &'a (dyn Fn(&str) -> Option<Picture> + Sync);
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct Setting {
+    pub name: String,
+    pub values: Vec<f32>,
+    pub columns: usize,
+}
+
+impl Setting {
+    pub fn of(name: &str, values: Vec<f32>) -> Self {
+        Self {
+            name: name.to_owned(),
+            columns: values.len(),
+            values,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct Pass<'p> {
     pub program: &'p str,
     pub inputs: &'p [Vec<u8>],
     pub size: (u32, u32),
-    pub uniforms: &'p [(String, Vec<f32>)],
+    pub uniforms: &'p [Setting],
 }
 
 pub trait Programs {

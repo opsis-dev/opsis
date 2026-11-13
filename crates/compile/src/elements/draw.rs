@@ -260,6 +260,10 @@ pub fn wrapper(
     match component {
         "polaroid" => wrapped(component, props, child, cx, effect::polaroid::wrap),
         "halftone-print" => wrapped(component, props, child, cx, effect::halftone_print::wrap),
+        "crt-screen" => wrapped(component, props, child, cx, effect::crt_screen::wrap),
+        "vhs-filter" => wrapped(component, props, child, cx, effect::vhs_filter::wrap),
+        "camera-lens" => wrapped(component, props, child, cx, effect::camera_lens::wrap),
+        "tv-power-off" => wrapped(component, props, child, cx, effect::tv_power_off::wrap),
         "phone-frame" => wrapped(component, props, child, cx, device::phone_frame::wrap),
         "laptop-frame" => wrapped(component, props, child, cx, device::laptop_frame::wrap),
         "multi-device-lineup" => wrapped(
@@ -288,6 +292,20 @@ pub fn element(component: &str, props: &Map<String, Value>, cx: &Cx<'_>) -> Draw
         "text-mask-video" => drawn(component, props, cx, text::text_mask_video::draw),
         "framed-image" => drawn(component, props, cx, framed_image::draw),
         "solid" => drawn(component, props, cx, background::solid::draw),
+        "shader-warp" => drawn(component, props, cx, background::shader_warp::draw),
+        "shader-swirl" => drawn(component, props, cx, background::shader_swirl::draw),
+        "shader-grain-gradient" => drawn(
+            component,
+            props,
+            cx,
+            background::shader_grain_gradient::draw,
+        ),
+        "shader-god-rays" => drawn(component, props, cx, background::shader_god_rays::draw),
+        "shader-dithering" => drawn(component, props, cx, background::shader_dithering::draw),
+        "shader-perlin-noise" => drawn(component, props, cx, background::shader_perlin_noise::draw),
+        "shader-mesh-gradient" => {
+            drawn(component, props, cx, background::shader_mesh_gradient::draw)
+        }
         "starburst" => drawn(component, props, cx, background::starburst::draw),
         "gradient" => drawn(component, props, cx, background::gradient::draw),
         "paper" => drawn(component, props, cx, background::paper::draw),

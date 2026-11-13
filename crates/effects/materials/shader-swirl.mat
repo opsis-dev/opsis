@@ -1,0 +1,77 @@
+material {
+    name : shaderSwirl,
+    shadingModel : unlit,
+    blending : transparent,
+    parameters : [
+        #include "paper-parameters.mat"
+        { type : float4, name : colorBack },
+        { type : float4[10], name : colors },
+        { type : float, name : colorsCount },
+        { type : float, name : bandCount },
+        { type : float, name : twist },
+        { type : float, name : center },
+        { type : float, name : proportion },
+        { type : float, name : softness },
+        { type : float, name : noise },
+        { type : float, name : noiseFrequency }
+    ],
+    requires : [ uv0 ],
+    vertexDomain : device,
+    depthWrite : false,
+    depthCulling : false,
+    culling : none
+}
+
+fragment {
+    #include "paper-sizing.glsl"
+    #include "paper-colors.glsl"
+    #include "paper-simplex.glsl"
+
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        vec2 shapeUv = paperObjectUV();
+        float l = max(1e-4, length(shapeUv));
+        float t = materialParams.time;
+        float angle = ceil(materialParams.bandCount) * atan(shapeUv.y, shapeUv.x) + t;
+        float angleNorm = angle / 6.28318530718;
+        float twist = 3.0 * clamp(materialParams.twist, 0.0, 1.0);
+        float offset = pow(l, -twist) + angleNorm;
+        float shape = fract(offset);
+        shape = 1.0 - abs(2.0 * shape - 1.0);
+        if (materialParams.noise > 0.0) {
+            shape += materialParams.noise * snoise(15.0 * pow(materialParams.noiseFrequency, 2.0) * shapeUv);
+        }
+        float mid = smoothstep(0.2, 0.2 + 0.8 * materialParams.center, pow(l, twist));
+        shape = mix(0.0, shape, mid);
+        float proportion = clamp(materialParams.proportion, 0.0, 1.0);
+        float exponent = mix(0.25, 1.0, proportion * 2.0);
+        exponent = mix(exponent, 10.0, max(0.0, proportion * 2.0 - 1.0));
+        shape = pow(shape, exponent);
+        float colorsCount = materialParams.colorsCount;
+        float mixer = shape * colorsCount;
+        vec4 gradient = paperColor(0);
+        gradient.rgb *= gradient.a;
+        float outerShape = 0.0;
+        for (int i = 1; i < 11; i++) {
+            if (i > int(colorsCount)) break;
+            float m = clamp(mixer - float(i - 1), 0.0, 1.0);
+            float aa = fwidth(m);
+            m = smoothstep(0.5 - 0.5 * materialParams.softness - aa, 0.5 + 0.5 * materialParams.softness + aa, m);
+            if (i == 1) {
+                outerShape = m;
+            }
+            vec4 c = paperColor(i - 1);
+            c.rgb *= c.a;
+            gradient = mix(gradient, c, m);
+        }
+        float midAA = 0.1 * fwidth(pow(l, -twist));
+        float outerMid = smoothstep(0.2, 0.2 + midAA, pow(l, twist));
+        outerShape = mix(0.0, outerShape, outerMid);
+        vec3 color = gradient.rgb * outerShape;
+        float opacity = gradient.a * outerShape;
+        vec4 back = materialParams.colorBack;
+        color = color + back.rgb * back.a * (1.0 - opacity);
+        opacity = opacity + back.a * (1.0 - opacity);
+        material.baseColor = vec4(paperBandingFix(color), opacity);
+    }
+}

@@ -1,7 +1,11 @@
 use opsis_macros::settings;
+use opsis_scene::node::Node;
+use opsis_scene::timeline::ChildAt;
 use opsis_types::looks::{NodeLook, NodeMotion};
 
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::shader::{filtered, rgb_uniform};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -30,4 +34,28 @@ pub fn definition() -> ElementMeta {
             )
                 .look(NodeLook::of("lucide:tv").moves(NodeMotion::Collapse)),
         )
+}
+
+fn power_progress(props: &TvPowerOff, frame: f64, film_frames: f64) -> f64 {
+    let frames = f64::from(props.duration_in_frames);
+    let delay = (film_frames - frames).max(0.0);
+    ((frame - delay) / frames.max(1.0)).clamp(0.0, 1.0)
+}
+
+pub fn wrap(props: &TvPowerOff, child: ChildAt<'_>, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let inner = child(cx.at.stage)?;
+    Ok(filtered(
+        "tv-power-off",
+        vec![
+            (
+                "progress",
+                vec![power_progress(props, cx.frame(), cx.duration())],
+            ),
+            ("gain", vec![props.gain]),
+            ("afterglow", vec![props.afterglow]),
+            ("phosphor", rgb_uniform(&props.phosphor)),
+            ("screen", rgb_uniform(&props.screen_color)),
+        ],
+        inner,
+    ))
 }

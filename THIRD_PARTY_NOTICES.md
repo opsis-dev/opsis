@@ -534,6 +534,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## Paper Shaders — crates/effects/materials/shader-_.mat, crates/effects/materials/include/paper-_.glsl, crates/effects/textures/paper-noise.png
+
+The shader backgrounds (dithering, god rays, grain gradient, mesh gradient, Perlin noise, swirl and warp) are ported from Paper Shaders' GLSL, with its sizing and noise helpers, and the noise texture is its own picture (`bun run paper:noise`). Apache License 2.0, https://github.com/paper-design/shaders. Its NOTICE reads: "Paper Shaders. Copyright 2026 Paper. Powered by Paper Shaders: https://shaders.paper.design".
+
 ## 3D and hand-drawn marks — the three, @react-three/fiber and roughjs packages
 
 Draw the 3D elements (3D logo, card, text, model, screen and floating shapes) and draw the hand-drawn marks of Highlight box and Title card. Installed from npm and bundled into the film page, except @remotion/rough-notation, whose rough options, shapes and stroke order the hand-drawn marks follow. All are under the MIT License:

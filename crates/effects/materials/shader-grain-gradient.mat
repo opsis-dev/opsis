@@ -1,0 +1,220 @@
+material {
+    name : shaderGrainGradient,
+    shadingModel : unlit,
+    blending : transparent,
+    parameters : [
+        { type : sampler2d, name : input0 },
+        #include "paper-parameters.mat"
+        { type : float4, name : colorBack },
+        { type : float4[7], name : colors },
+        { type : float, name : colorsCount },
+        { type : float, name : softness },
+        { type : float, name : intensity },
+        { type : float, name : noise },
+        { type : float, name : shape }
+    ],
+    requires : [ uv0 ],
+    vertexDomain : device,
+    depthWrite : false,
+    depthCulling : false,
+    culling : none
+}
+
+fragment {
+    #include "paper-sizing.glsl"
+    #include "paper-colors.glsl"
+    #include "paper-simplex.glsl"
+
+    vec2 rotate(vec2 uv, float th) {
+        return mat2(cos(th), sin(th), -sin(th), cos(th)) * uv;
+    }
+
+    float randomR(vec2 p) {
+        vec2 uv = floor(p) / 100.0 + 0.5;
+        return texture(materialParams_input0, fract(uv)).r;
+    }
+
+    float valueNoiseR(vec2 st) {
+        vec2 i = floor(st);
+        vec2 f = fract(st);
+        float a = randomR(i);
+        float b = randomR(i + vec2(1.0, 0.0));
+        float c = randomR(i + vec2(0.0, 1.0));
+        float d = randomR(i + vec2(1.0, 1.0));
+        vec2 u = f * f * (3.0 - 2.0 * f);
+        float x1 = mix(a, b, u.x);
+        float x2 = mix(c, d, u.x);
+        return mix(x1, x2, u.y);
+    }
+
+    vec4 fbmR(vec2 n0, vec2 n1, vec2 n2, vec2 n3) {
+        float amplitude = 0.2;
+        vec4 total = vec4(0.0);
+        for (int i = 0; i < 3; i++) {
+            n0 = rotate(n0, 0.3);
+            n1 = rotate(n1, 0.3);
+            n2 = rotate(n2, 0.3);
+            n3 = rotate(n3, 0.3);
+            total.x += valueNoiseR(n0) * amplitude;
+            total.y += valueNoiseR(n1) * amplitude;
+            total.z += valueNoiseR(n2) * amplitude;
+            total.z += valueNoiseR(n3) * amplitude;
+            n0 *= 1.99;
+            n1 *= 1.99;
+            n2 *= 1.99;
+            n3 *= 1.99;
+            amplitude *= 0.6;
+        }
+        return total;
+    }
+
+    float hash11(float p) {
+        p = fract(p * 0.3183099) + 0.1;
+        p *= p + 19.19;
+        return fract(p * p);
+    }
+
+    vec2 truchet(vec2 uv, float idx) {
+        idx = fract(((idx - 0.5) * 2.0));
+        if (idx > 0.75) {
+            uv = vec2(1.0) - uv;
+        } else if (idx > 0.5) {
+            uv = vec2(1.0 - uv.x, uv.y);
+        } else if (idx > 0.25) {
+            uv = 1.0 - vec2(1.0 - uv.x, uv.y);
+        }
+        return uv;
+    }
+
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        float twoPi = 6.28318530718;
+        float t = 0.1 * (materialParams.time + 7.0);
+        vec2 shapeUv = vec2(0.0);
+        vec2 grainUv = vec2(0.0);
+        float r = materialParams.rotation * 3.14159265358979323846 / 180.0;
+        float cr = cos(r);
+        float sr = sin(r);
+        mat2 graphicRotation = mat2(cr, sr, -sr, cr);
+        vec2 graphicOffset = vec2(-materialParams.offsetX, materialParams.offsetY);
+        vec2 resolution = materialParams.size;
+        float shapeKind = materialParams.shape;
+        float sizingScale = materialParams.sizingScale;
+        if (shapeKind > 3.5) {
+            shapeUv = paperObjectUV();
+            grainUv = shapeUv;
+            grainUv = transpose(graphicRotation) * grainUv;
+            grainUv *= sizingScale;
+            grainUv -= graphicOffset;
+            grainUv *= paperObjectBoxSize();
+            grainUv *= 0.7;
+        } else {
+            vec2 patternUV = paperPatternUV();
+            vec2 patternBoxSize = paperPatternBoxSize();
+            shapeUv = 0.5 * patternUV;
+            grainUv = 100.0 * patternUV;
+            grainUv = transpose(graphicRotation) * grainUv;
+            grainUv *= sizingScale;
+            if (materialParams.fit > 0.0) {
+                vec2 givenBoxSize = max(vec2(materialParams.worldWidth, materialParams.worldHeight), vec2(1.0)) * materialParams.scale;
+                vec2 patternBoxGivenSize = vec2(
+                    (materialParams.worldWidth == 0.0) ? resolution.x : givenBoxSize.x,
+                    (materialParams.worldHeight == 0.0) ? resolution.y : givenBoxSize.y);
+                float patternBoxRatio = patternBoxGivenSize.x / patternBoxGivenSize.y;
+                float noFitWidth = patternBoxRatio * min(patternBoxGivenSize.x / patternBoxRatio, patternBoxGivenSize.y);
+                grainUv /= (noFitWidth / patternBoxSize.x);
+            }
+            vec2 patternBoxScale = resolution / patternBoxSize;
+            grainUv -= graphicOffset / patternBoxScale;
+            grainUv *= 1.6;
+        }
+        float shape = 0.0;
+        if (shapeKind < 1.5) {
+            float wave = cos(0.5 * shapeUv.x - 4.0 * t) * sin(1.5 * shapeUv.x + 2.0 * t) * (0.75 + 0.25 * cos(6.0 * t));
+            shape = 1.0 - smoothstep(-1.0, 1.0, shapeUv.y + wave);
+        } else if (shapeKind < 2.5) {
+            float stripeIdx = floor(2.0 * shapeUv.x / twoPi);
+            float rand = hash11(stripeIdx * 100.0);
+            rand = sign(rand - 0.5) * pow(4.0 * abs(rand), 0.3);
+            shape = sin(shapeUv.x) * cos(shapeUv.y - 5.0 * rand * t);
+            shape = pow(abs(shape), 4.0);
+        } else if (shapeKind < 3.5) {
+            float n2 = valueNoiseR(shapeUv * 0.4 - 3.75 * t);
+            shapeUv.x += 10.0;
+            shapeUv *= 0.6;
+            vec2 tile = truchet(fract(shapeUv), randomR(floor(shapeUv)));
+            float distance1 = length(tile);
+            float distance2 = length(tile - vec2(1.0));
+            n2 -= 0.5;
+            n2 *= 0.1;
+            shape = smoothstep(0.2, 0.55, distance1 + n2) * (1.0 - smoothstep(0.45, 0.8, distance1 - n2));
+            shape += smoothstep(0.2, 0.55, distance2 + n2) * (1.0 - smoothstep(0.45, 0.8, distance2 - n2));
+            shape = pow(shape, 1.5);
+        } else if (shapeKind < 4.5) {
+            shapeUv *= 0.6;
+            vec2 outer = vec2(0.5);
+            vec2 bl = smoothstep(vec2(0.0), outer, shapeUv + vec2(0.1 + 0.1 * sin(3.0 * t), 0.2 - 0.1 * sin(5.25 * t)));
+            vec2 tr = smoothstep(vec2(0.0), outer, 1.0 - shapeUv);
+            shape = 1.0 - bl.x * bl.y * tr.x * tr.y;
+            shapeUv = -shapeUv;
+            bl = smoothstep(vec2(0.0), outer, shapeUv + vec2(0.1 + 0.1 * sin(3.0 * t), 0.2 - 0.1 * cos(5.25 * t)));
+            tr = smoothstep(vec2(0.0), outer, 1.0 - shapeUv);
+            shape -= bl.x * bl.y * tr.x * tr.y;
+            shape = 1.0 - smoothstep(0.0, 1.0, shape);
+        } else if (shapeKind < 5.5) {
+            shapeUv *= 2.0;
+            float dist = length(0.4 * shapeUv);
+            shape = sin(pow(dist, 1.2) * 5.0 - 3.0 * t) * 0.5 + 0.5;
+        } else if (shapeKind < 6.5) {
+            t *= 2.0;
+            vec2 f1 = 0.25 * vec2(1.3 * sin(t), 0.2 + 1.3 * cos(0.6 * t + 4.0));
+            vec2 f2 = 0.2 * vec2(1.2 * sin(-t), 1.3 * sin(1.6 * t));
+            vec2 f3 = 0.25 * vec2(1.7 * cos(-0.6 * t), cos(-1.6 * t));
+            vec2 f4 = 0.3 * vec2(1.4 * cos(0.8 * t), 1.2 * sin(-0.6 * t - 3.0));
+            shape = 0.5 * pow(1.0 - min(1.0, length(shapeUv + f1)), 5.0);
+            shape += 0.5 * pow(1.0 - min(1.0, length(shapeUv + f2)), 5.0);
+            shape += 0.5 * pow(1.0 - min(1.0, length(shapeUv + f3)), 5.0);
+            shape += 0.5 * pow(1.0 - min(1.0, length(shapeUv + f4)), 5.0);
+            shape = smoothstep(0.0, 0.9, shape);
+            float edge = smoothstep(0.25, 0.3, shape);
+            shape = mix(0.0, shape, edge);
+        } else {
+            shapeUv *= 2.0;
+            float d = 1.0 - pow(length(shapeUv), 2.0);
+            vec3 pos = vec3(shapeUv, sqrt(max(d, 0.0)));
+            vec3 lightPos = normalize(vec3(cos(1.5 * t), 0.8, sin(1.25 * t)));
+            shape = 0.5 + 0.5 * dot(lightPos, pos);
+            shape *= step(0.0, d);
+        }
+        float colorsCount = materialParams.colorsCount;
+        float baseNoise = snoise(grainUv * 0.5);
+        vec4 fbmVals = fbmR(0.002 * grainUv + 10.0, 0.003 * grainUv, 0.001 * grainUv, rotate(0.4 * grainUv, 2.0));
+        float grainDist = baseNoise * snoise(grainUv * 0.2) - fbmVals.x - fbmVals.y;
+        float rawNoise = 0.75 * baseNoise - fbmVals.w - fbmVals.z;
+        float noise = clamp(rawNoise, 0.0, 1.0);
+        shape += materialParams.intensity * 2.0 / colorsCount * (grainDist + 0.5);
+        shape += materialParams.noise * 10.0 / colorsCount * noise;
+        float aa = fwidth(shape);
+        shape = clamp(shape - 0.5 / colorsCount, 0.0, 1.0);
+        float softness = materialParams.softness;
+        float totalShape = smoothstep(0.0, softness + 2.0 * aa, clamp(shape * colorsCount, 0.0, 1.0));
+        float mixer = shape * (colorsCount - 1.0);
+        int cntStop = int(colorsCount) - 1;
+        vec4 gradient = paperColor(0);
+        gradient.rgb *= gradient.a;
+        for (int i = 1; i < 7; i++) {
+            if (i > cntStop) break;
+            float localT = clamp(mixer - float(i - 1), 0.0, 1.0);
+            localT = smoothstep(0.5 - 0.5 * softness - aa, 0.5 + 0.5 * softness + aa, localT);
+            vec4 c = paperColor(i);
+            c.rgb *= c.a;
+            gradient = mix(gradient, c, localT);
+        }
+        vec3 color = gradient.rgb * totalShape;
+        float opacity = gradient.a * totalShape;
+        vec4 back = materialParams.colorBack;
+        color = color + back.rgb * back.a * (1.0 - opacity);
+        opacity = opacity + back.a * (1.0 - opacity);
+        material.baseColor = vec4(color, opacity);
+    }
+}

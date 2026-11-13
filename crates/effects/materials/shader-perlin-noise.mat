@@ -1,0 +1,119 @@
+material {
+    name : shaderPerlinNoise,
+    shadingModel : unlit,
+    blending : transparent,
+    parameters : [
+        #include "paper-parameters.mat"
+        { type : float4, name : colorFront },
+        { type : float4, name : colorBack },
+        { type : float, name : proportion },
+        { type : float, name : softness },
+        { type : float, name : octaveCount },
+        { type : float, name : persistence },
+        { type : float, name : lacunarity }
+    ],
+    requires : [ uv0 ],
+    vertexDomain : device,
+    depthWrite : false,
+    depthCulling : false,
+    culling : none
+}
+
+fragment {
+    #include "paper-sizing.glsl"
+
+    float hash31(vec3 p) {
+        p = fract(p * 0.3183099) + 0.1;
+        p += dot(p, p.yzx + 19.19);
+        return fract(p.x * (p.y + p.z));
+    }
+
+    vec3 gradientPredefined(float hash) {
+        int idx = int(hash * 12.0) % 12;
+        if (idx == 0) return vec3(1.0, 1.0, 0.0);
+        if (idx == 1) return vec3(-1.0, 1.0, 0.0);
+        if (idx == 2) return vec3(1.0, -1.0, 0.0);
+        if (idx == 3) return vec3(-1.0, -1.0, 0.0);
+        if (idx == 4) return vec3(1.0, 0.0, 1.0);
+        if (idx == 5) return vec3(-1.0, 0.0, 1.0);
+        if (idx == 6) return vec3(1.0, 0.0, -1.0);
+        if (idx == 7) return vec3(-1.0, 0.0, -1.0);
+        if (idx == 8) return vec3(0.0, 1.0, 1.0);
+        if (idx == 9) return vec3(0.0, -1.0, 1.0);
+        if (idx == 10) return vec3(0.0, 1.0, -1.0);
+        return vec3(0.0, -1.0, -1.0);
+    }
+
+    float interpolateSafe(float v000, float v001, float v010, float v011, float v100, float v101, float v110, float v111, vec3 t) {
+        t = clamp(t, 0.0, 1.0);
+        float v00 = mix(v000, v100, t.x);
+        float v01 = mix(v001, v101, t.x);
+        float v10 = mix(v010, v110, t.x);
+        float v11 = mix(v011, v111, t.x);
+        float v0 = mix(v00, v10, t.y);
+        float v1 = mix(v01, v11, t.y);
+        return mix(v0, v1, t.z);
+    }
+
+    vec3 fade(vec3 t) {
+        return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+    }
+
+    float perlinNoise(vec3 position, float seed) {
+        position += vec3(seed * 127.1, seed * 311.7, seed * 74.7);
+        vec3 i = floor(position);
+        vec3 f = fract(position);
+        float v000 = dot(gradientPredefined(hash31(i)), f - vec3(0.0, 0.0, 0.0));
+        float v001 = dot(gradientPredefined(hash31(i + vec3(0.0, 0.0, 1.0))), f - vec3(0.0, 0.0, 1.0));
+        float v010 = dot(gradientPredefined(hash31(i + vec3(0.0, 1.0, 0.0))), f - vec3(0.0, 1.0, 0.0));
+        float v011 = dot(gradientPredefined(hash31(i + vec3(0.0, 1.0, 1.0))), f - vec3(0.0, 1.0, 1.0));
+        float v100 = dot(gradientPredefined(hash31(i + vec3(1.0, 0.0, 0.0))), f - vec3(1.0, 0.0, 0.0));
+        float v101 = dot(gradientPredefined(hash31(i + vec3(1.0, 0.0, 1.0))), f - vec3(1.0, 0.0, 1.0));
+        float v110 = dot(gradientPredefined(hash31(i + vec3(1.0, 1.0, 0.0))), f - vec3(1.0, 1.0, 0.0));
+        float v111 = dot(gradientPredefined(hash31(i + vec3(1.0, 1.0, 1.0))), f - vec3(1.0, 1.0, 1.0));
+        return interpolateSafe(v000, v001, v010, v011, v100, v101, v110, v111, fade(f));
+    }
+
+    float pNoise(vec3 position, int octaveCount, float persistence, float lacunarity) {
+        float value = 0.0;
+        float amplitude = 1.0;
+        float frequency = 10.0;
+        octaveCount = clamp(octaveCount, 1, 8);
+        for (int i = 0; i < octaveCount; i++) {
+            float seed = float(i) * 0.7319;
+            value += perlinNoise(position * frequency, seed) * amplitude;
+            amplitude *= persistence;
+            frequency *= lacunarity;
+        }
+        return value;
+    }
+
+    float getMaxAmp(float persistence, float octaveCount) {
+        persistence = clamp(persistence * 0.999, 0.0, 0.999);
+        octaveCount = clamp(octaveCount, 1.0, 8.0);
+        return (1.0 - pow(persistence, octaveCount)) / max(1e-4, (1.0 - persistence));
+    }
+
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        vec2 uv = paperPatternUV();
+        uv *= 0.5;
+        float t = 0.2 * materialParams.time;
+        vec3 p = vec3(uv, t);
+        float octCount = floor(materialParams.octaveCount);
+        float persistence = materialParams.persistence;
+        float noise = pNoise(p, int(octCount), persistence, materialParams.lacunarity);
+        float maxAmp = getMaxAmp(persistence, octCount);
+        float normalized = clamp((noise + maxAmp) / max(1e-4, (2.0 * maxAmp)) + (materialParams.proportion - 0.5), 0.0, 1.0);
+        float sharpness = clamp(materialParams.softness, 0.0, 1.0);
+        float smoothW = 0.5 * max(fwidth(normalized), 0.001);
+        float res = smoothstep(0.5 - 0.5 * sharpness - smoothW, 0.5 + 0.5 * sharpness + smoothW, normalized);
+        vec4 front = materialParams.colorFront;
+        vec4 back = materialParams.colorBack;
+        vec3 color = front.rgb * front.a * res;
+        float opacity = front.a * res;
+        color += back.rgb * back.a * (1.0 - opacity);
+        opacity += back.a * (1.0 - opacity);
+        material.baseColor = vec4(paperBandingFix(color), opacity);
+    }
+}

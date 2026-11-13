@@ -1,7 +1,12 @@
 use opsis_macros::{choice, settings};
+use opsis_scene::node::Node;
 use opsis_types::looks::NodeLook;
 
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::shader::{
+    PAPER_SCALE, PaperSizing, generated, paper_color, paper_colors, paper_sizing, quads, value,
+};
 use crate::elements::shared::Colour;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
@@ -75,4 +80,37 @@ pub fn definition() -> ElementMeta {
         .authored_clock()
         .look(NodeLook::of("tabler:noise-reduction")),
     )
+}
+
+const MAX_COLORS: usize = 7;
+
+const fn shape_code(shape: GrainGradientShape) -> f64 {
+    match shape {
+        GrainGradientShape::Wave => 1.0,
+        GrainGradientShape::Dots => 2.0,
+        GrainGradientShape::Truchet => 3.0,
+        GrainGradientShape::Corners => 4.0,
+        GrainGradientShape::Ripple => 5.0,
+        GrainGradientShape::Blob => 6.0,
+        GrainGradientShape::Sphere => 7.0,
+    }
+}
+
+pub fn draw(props: &ShaderGrainGradient, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let colors: Vec<String> = props.colors.iter().map(|c| c.0.clone()).collect();
+    let mut settings = paper_sizing(PaperSizing {
+        scale: props.scale,
+        rotation: f64::from(props.rotation),
+        offset: (0.0, 0.0),
+    });
+    settings.extend(paper_colors(&colors, MAX_COLORS));
+    settings.extend([
+        value("time", vec![cx.frame() / cx.fps() * props.speed]),
+        quads("colorBack", paper_color(&props.color_back).to_vec()),
+        value("softness", vec![props.softness]),
+        value("intensity", vec![props.intensity]),
+        value("noise", vec![props.noise]),
+        value("shape", vec![shape_code(props.shape)]),
+    ]);
+    Ok(generated("shader-grain-gradient", settings, PAPER_SCALE))
 }

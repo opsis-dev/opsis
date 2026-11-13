@@ -1,7 +1,12 @@
 use opsis_macros::settings;
+use opsis_scene::node::Node;
 use opsis_types::looks::NodeLook;
 
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::shader::{
+    PAPER_SCALE, PaperSizing, generated, paper_colors, paper_sizing, value,
+};
 use crate::elements::shared::Colour;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
@@ -40,4 +45,24 @@ pub fn definition() -> ElementMeta {
         .authored_clock()
         .look(NodeLook::of("lucide:blend")),
     )
+}
+
+const MAX_COLORS: usize = 10;
+
+pub fn draw(props: &ShaderMeshGradient, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let colors: Vec<String> = props.colors.iter().map(|c| c.0.clone()).collect();
+    let mut settings = paper_sizing(PaperSizing {
+        scale: props.scale,
+        rotation: 0.0,
+        offset: (0.0, 0.0),
+    });
+    settings.extend(paper_colors(&colors, MAX_COLORS));
+    settings.extend([
+        value("time", vec![cx.frame() / cx.fps() * props.speed]),
+        value("distortion", vec![props.distortion]),
+        value("swirl", vec![props.swirl]),
+        value("grainMixer", vec![props.grain_mixer]),
+        value("grainOverlay", vec![props.grain_overlay]),
+    ]);
+    Ok(generated("shader-mesh-gradient", settings, PAPER_SCALE))
 }

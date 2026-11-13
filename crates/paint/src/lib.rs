@@ -27,7 +27,7 @@ use opsis_types::numbers::exact_eq;
 
 use crate::boxes::{Areas, draw_box, draw_replaced};
 use crate::geometry::{is_rounded, matrix44, rect_f, round_rect};
-pub use crate::resources::{Frames, Pass, Picture, Programs, Resources};
+pub use crate::resources::{Frames, Pass, Picture, Programs, Resources, Setting};
 
 pub(crate) struct Painter<'s, 'r, 'l> {
     pub root: &'l Node,
@@ -78,6 +78,9 @@ fn has_transform(style: &Style) -> bool {
 }
 
 const ASPECT_UNIFORM: &str = "aspect";
+const SIZE_UNIFORM: &str = "size";
+const SCALE_UNIFORM: &str = "scale";
+const MAX_EFFECT_PIXELS: f64 = 1920.0 * 1080.0 * 4.0;
 
 fn unpremultiplied(mut rgba: Vec<u8>) -> Vec<u8> {
     for pixel in rgba.as_chunks_mut::<4>().0 {
@@ -528,10 +531,13 @@ impl<'n> Painter<'_, '_, '_> {
         path: &[usize],
         placed: &Placed,
         size: (u32, u32),
+        scale: f64,
     ) -> Option<Vec<Vec<u8>>> {
         let inverse = Affine::of(&placed.matrix)?.inverse()?;
         let b = placed.border_box;
-        let base = Matrix::translation(-b.x, -b.y, 0.0).then(&inverse);
+        let base = Matrix::scaling(scale, scale, 1.0)
+            .then(&Matrix::translation(-b.x, -b.y, 0.0))
+            .then(&inverse);
         let mut inputs = Vec::new();
         for (c, child) in element.children.iter().enumerate() {
             let Node::Element(child) = child else {
@@ -572,35 +578,39 @@ impl<'n> Painter<'_, '_, '_> {
         let laid = self.laid;
         let placed = &laid.boxes[i];
         let b = placed.border_box;
+        let base = (b.width.round(), b.height.round());
+        let wanted = effect.scale.0.max(1.0);
+        let fitted = (MAX_EFFECT_PIXELS / (base.0 * wanted * base.1 * wanted).max(1.0))
+            .sqrt()
+            .min(1.0);
         let size: (u32, u32) = (
-            opsis_types::numbers::whole(b.width.round()),
-            opsis_types::numbers::whole(b.height.round()),
+            opsis_types::numbers::whole((base.0 * wanted * fitted).round()),
+            opsis_types::numbers::whole((base.1 * wanted * fitted).round()),
         );
         if size.0 == 0 || size.1 == 0 {
             return true;
         }
-        let Some(inputs) = self.effect_inputs(element, path, placed, size) else {
+        let scale = f64::from(size.0) / base.0.max(1.0);
+        let Some(inputs) = self.effect_inputs(element, path, placed, size, scale) else {
             return false;
         };
-        let mut uniforms: Vec<(String, Vec<f32>)> = effect
+        let narrow = opsis_types::numbers::narrow;
+        let mut uniforms: Vec<Setting> = effect
             .uniforms
             .iter()
-            .map(|(name, values)| {
-                (
-                    name.clone(),
-                    values
-                        .iter()
-                        .map(|v| opsis_types::numbers::narrow(v.0))
-                        .collect(),
-                )
+            .map(|u| Setting {
+                name: u.name.clone(),
+                values: u.values.iter().map(|v| narrow(v.0)).collect(),
+                columns: usize::try_from(u.columns).unwrap_or(1),
             })
             .collect();
-        uniforms.push((
-            ASPECT_UNIFORM.to_owned(),
-            vec![opsis_types::numbers::narrow(
-                f64::from(size.0) / f64::from(size.1),
-            )],
+        let (width, height) = (f64::from(size.0), f64::from(size.1));
+        uniforms.push(Setting::of(ASPECT_UNIFORM, vec![narrow(width / height)]));
+        uniforms.push(Setting::of(
+            SIZE_UNIFORM,
+            vec![narrow(width), narrow(height)],
         ));
+        uniforms.push(Setting::of(SCALE_UNIFORM, vec![narrow(scale)]));
         let Some(out) = self.resources.run(&Pass {
             program: &effect.program,
             inputs: &inputs,

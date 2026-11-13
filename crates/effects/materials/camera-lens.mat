@@ -1,0 +1,80 @@
+material {
+    name : cameraLens,
+    shadingModel : unlit,
+    blending : transparent,
+    parameters : [
+        { type : sampler2d, name : input0 },
+        { type : float, name : aspect },
+        { type : float2, name : size },
+        { type : float, name : softness },
+        { type : float, name : bloom },
+        { type : float, name : aberration },
+        { type : float, name : vignette },
+        { type : float, name : distortion },
+        { type : float, name : sharpCentre },
+        { type : float, name : bloomThreshold }
+    ],
+    requires : [ uv0 ],
+    vertexDomain : device,
+    depthWrite : false,
+    depthCulling : false,
+    culling : none
+}
+
+fragment {
+    const int SOFT_TAPS = 6;
+    const int GLARE_TAPS = 8;
+    const float GOLDEN = 2.39996323;
+
+    vec2 lensUv(vec2 direction, float distance) {
+        vec2 q = direction * distance;
+        q.x /= materialParams.aspect;
+        return q * 0.5 + 0.5;
+    }
+
+    vec2 spiral(int index, int count, float radius, float turn) {
+        float angle = float(index) * GOLDEN + turn;
+        float stride = sqrt((float(index) + 0.5) / float(count)) * radius;
+        return vec2(cos(angle) * stride / materialParams.aspect, sin(angle) * stride);
+    }
+
+    vec4 softSample(vec2 uv, float radius) {
+        vec4 sum = texture(materialParams_input0, uv);
+        if (radius <= 0.00002) {
+            return sum;
+        }
+        for (int i = 0; i < SOFT_TAPS; i++) {
+            sum += texture(materialParams_input0, uv + spiral(i, SOFT_TAPS, radius, 0.0));
+        }
+        return sum / float(SOFT_TAPS + 1);
+    }
+
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        float aspect = materialParams.aspect;
+        vec2 p = (getUV0() - 0.5) * 2.0;
+        p.x *= aspect;
+        float span = sqrt(aspect * aspect + 1.0);
+        float reach = length(p);
+        float radius = reach / span;
+        vec2 direction = reach > 0.0001 ? p / reach : vec2(0.0);
+        float bend = 1.0 / (1.0 + clamp(materialParams.distortion, 0.0, 1.0) * radius * radius);
+        float focused = reach * bend;
+        vec2 base = lensUv(direction, focused);
+        float soft = materialParams.softness * 0.011 * smoothstep(materialParams.sharpCentre, 1.0, radius);
+        float split = materialParams.aberration * 0.0035 * radius;
+        vec4 mid = softSample(base, soft);
+        float red = softSample(lensUv(direction, focused * (1.0 + split)), soft).r;
+        float blue = softSample(lensUv(direction, focused * (1.0 - split)), soft).b;
+        vec3 color = vec3(red, mid.g, blue);
+        vec3 glare = vec3(0.0);
+        for (int i = 0; i < GLARE_TAPS; i++) {
+            vec3 tap = texture(materialParams_input0, base + spiral(i, GLARE_TAPS, materialParams.bloom * 0.026, 0.7)).rgb;
+            glare += max(tap - materialParams.bloomThreshold, vec3(0.0));
+        }
+        color += (glare / float(GLARE_TAPS)) * materialParams.bloom * 1.4;
+        float falloff = pow(cos(min(radius, 1.0) * 0.55), 4.0);
+        color *= mix(1.0, falloff, clamp(materialParams.vignette, 0.0, 1.5));
+        material.baseColor = vec4(clamp(color, 0.0, 1.0) * mid.a, mid.a);
+    }
+}

@@ -10,5 +10,6 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
+image = { workspace = true, features = ["png"] }
 opsis-filament.workspace = true
 thiserror.workspace = true

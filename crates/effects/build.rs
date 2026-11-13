@@ -1,8 +1,31 @@
 use std::fmt::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 const MATC_ENV: &str = "DEP_OPSIS_FILAMENT_MATC";
+const INCLUDE: &str = "#include \"";
+
+fn expanded(source: &Path, includes: &Path) -> String {
+    let text =
+        std::fs::read_to_string(source).unwrap_or_else(|e| panic!("{}: {e}", source.display()));
+    text.lines()
+        .map(|line| {
+            line.trim()
+                .strip_prefix(INCLUDE)
+                .and_then(|rest| rest.strip_suffix('"'))
+                .map_or_else(
+                    || line.to_owned(),
+                    |name| {
+                        let file = includes.join(name);
+                        println!("cargo:rerun-if-changed={}", file.display());
+                        std::fs::read_to_string(&file)
+                            .unwrap_or_else(|e| panic!("{}: {e}", file.display()))
+                    },
+                )
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
 
 fn main() {
     let manifest = PathBuf::from(std::env::var_os("CARGO_MANIFEST_DIR").expect("the crate folder"));
@@ -25,12 +48,15 @@ fn main() {
             .and_then(|n| n.to_str())
             .expect("a material name");
         let target = out.join(format!("{name}.filamat"));
+        let flat = out.join(format!("{name}.mat"));
+        std::fs::write(&flat, expanded(source, &materials.join("include")))
+            .unwrap_or_else(|e| panic!("{}: {e}", flat.display()));
         let status = Command::new(&matc)
             .args([
                 "-a", "vulkan", "-a", "opengl", "-a", "metal", "-p", "desktop", "-o",
             ])
             .arg(&target)
-            .arg(source)
+            .arg(&flat)
             .status()
             .unwrap_or_else(|e| panic!("running {}: {e}", matc.display()));
         assert!(

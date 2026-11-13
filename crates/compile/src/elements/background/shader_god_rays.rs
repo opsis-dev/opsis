@@ -1,7 +1,12 @@
 use opsis_macros::settings;
+use opsis_scene::node::Node;
 use opsis_types::looks::NodeLook;
 
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::shader::{
+    PAPER_SCALE, PaperSizing, generated, paper_color, paper_colors, paper_sizing, quads, value,
+};
 use crate::elements::shared::Colour;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
@@ -50,4 +55,28 @@ pub fn definition() -> ElementMeta {
         .authored_clock()
         .look(NodeLook::of("lucide:sunrise")),
     )
+}
+
+const MAX_COLORS: usize = 5;
+
+pub fn draw(props: &ShaderGodRays, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let colors: Vec<String> = props.colors.iter().map(|c| c.0.clone()).collect();
+    let mut settings = paper_sizing(PaperSizing {
+        scale: 1.0,
+        rotation: 0.0,
+        offset: (props.offset_x, props.offset_y),
+    });
+    settings.extend(paper_colors(&colors, MAX_COLORS));
+    settings.extend([
+        value("time", vec![cx.frame() / cx.fps() * props.speed]),
+        quads("colorBack", paper_color(&props.color_back).to_vec()),
+        quads("colorBloom", paper_color(&props.color_bloom).to_vec()),
+        value("density", vec![props.density]),
+        value("spotty", vec![props.spotty]),
+        value("midSize", vec![props.mid_size]),
+        value("midIntensity", vec![props.mid_intensity]),
+        value("intensity", vec![props.intensity]),
+        value("bloom", vec![props.bloom]),
+    ]);
+    Ok(generated("shader-god-rays", settings, PAPER_SCALE))
 }

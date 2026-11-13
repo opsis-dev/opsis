@@ -1,7 +1,12 @@
 use opsis_macros::settings;
+use opsis_scene::node::Node;
 use opsis_types::looks::NodeLook;
 
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::shader::{
+    PAPER_SCALE, PaperSizing, generated, paper_color, paper_sizing, quads, value,
+};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -45,4 +50,23 @@ pub fn definition() -> ElementMeta {
         .authored_clock()
         .look(NodeLook::of("lucide:cloudy")),
     )
+}
+
+pub fn draw(props: &ShaderPerlinNoise, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let mut settings = paper_sizing(PaperSizing {
+        scale: props.scale,
+        rotation: 0.0,
+        offset: (0.0, 0.0),
+    });
+    settings.extend([
+        value("time", vec![cx.frame() / cx.fps() * props.speed]),
+        quads("colorFront", paper_color(&props.color_front).to_vec()),
+        quads("colorBack", paper_color(&props.color_back).to_vec()),
+        value("proportion", vec![props.proportion]),
+        value("softness", vec![props.softness]),
+        value("octaveCount", vec![f64::from(props.octave_count)]),
+        value("persistence", vec![props.persistence]),
+        value("lacunarity", vec![props.lacunarity]),
+    ]);
+    Ok(generated("shader-perlin-noise", settings, PAPER_SCALE))
 }

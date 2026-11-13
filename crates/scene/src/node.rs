@@ -97,7 +97,15 @@ pub struct LottieFrame {
 #[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Effect {
     pub program: String,
-    pub uniforms: Vec<(String, Vec<Num>)>,
+    pub uniforms: Vec<EffectUniform>,
+    pub scale: Num,
+}
+
+#[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
+pub struct EffectUniform {
+    pub name: String,
+    pub values: Vec<Num>,
+    pub columns: u32,
 }
 
 impl Element {
