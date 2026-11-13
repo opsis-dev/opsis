@@ -7,6 +7,19 @@ use opsis_scene::values::{Length, Num};
 
 use crate::elements::draw::DrawFailure;
 
+pub fn smoothstep(value: f64) -> f64 {
+    let t = value.clamp(0.0, 1.0);
+    t * t * 2.0_f64.mul_add(-t, 3.0)
+}
+
+#[expect(
+    clippy::suboptimal_flops,
+    reason = "the film computes this ease with a separate multiply and add"
+)]
+pub fn ease_out_quad(value: f64) -> f64 {
+    1.0 - (1.0 - value.clamp(0.0, 1.0)).powi(2)
+}
+
 pub const FADED_OUT_OPACITY: f64 = 0.001;
 pub const ENTRANCE_FADE_FRAMES: f64 = 14.0;
 const ENTRANCE_SPRING: SpringConfig = SpringConfig {

@@ -8,7 +8,9 @@ use opsis_scene::timeline::{At, DrawError, Drawn};
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
 
-use crate::elements::{background, data, overlay, placeholder, scene, text, transition, ui};
+use crate::elements::{
+    background, data, effect, overlay, placeholder, scene, text, transition, ui,
+};
 
 #[derive(Clone, Copy)]
 pub struct Cx<'a> {
@@ -200,6 +202,29 @@ pub fn presentation(
     }
 }
 
+type Wrap<T> = fn(&T, Node, &Cx<'_>) -> Result<Node, DrawFailure>;
+
+fn wrapped<T: DeserializeOwned>(
+    component: &str,
+    props: &Map<String, Value>,
+    child: Node,
+    cx: &Cx<'_>,
+    wrap: Wrap<T>,
+) -> Drawn {
+    let settings = serde_json::from_value::<T>(Value::Object(props.clone()))
+        .map_err(|e| DrawError::new(component, e))?;
+    wrap(&settings, child, cx)
+        .map(Some)
+        .map_err(|e| DrawError::new(component, e))
+}
+
+pub fn wrapper(component: &str, props: &Map<String, Value>, child: Node, cx: &Cx<'_>) -> Drawn {
+    match component {
+        "polaroid" => wrapped(component, props, child, cx, effect::polaroid::wrap),
+        _ => Ok(None),
+    }
+}
+
 pub fn element(component: &str, props: &Map<String, Value>, cx: &Cx<'_>) -> Drawn {
     match component {
         "placeholder" => drawn(component, props, cx, placeholder::draw),
@@ -266,6 +291,7 @@ pub fn element(component: &str, props: &Map<String, Value>, cx: &Cx<'_>) -> Draw
         "command-menu" => drawn(component, props, cx, scene::command_menu::draw),
         "ai-prompt-flow" => drawn(component, props, cx, scene::ai_prompt_flow::draw),
         "signup-flow" => drawn(component, props, cx, scene::signup_flow::draw),
+        "speed-lines" => drawn(component, props, cx, effect::speed_lines::draw),
         "logo-enter" => drawn(component, props, cx, ui::logo_enter::draw),
         "lower-third" => drawn(component, props, cx, overlay::lower_third::draw),
         "ink-underline" => drawn(component, props, cx, overlay::ink_underline::draw),

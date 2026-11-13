@@ -11,13 +11,14 @@ use opsis_scene::style::{
 use opsis_scene::values::{Edges, Length, Num};
 use opsis_types::numbers::float;
 
+use crate::elements::anim::smoothstep;
 use crate::elements::code_theme::{Palette, palette_of};
 use crate::elements::draw::{Cx, DrawFailure, css_color};
 use crate::elements::fonts::{FontRole, font_or};
 use crate::elements::overlay::keystroke::Keystroke;
 use crate::elements::overlay::keystroke_draw::keys::{Legend, WORD_FONT, icon_shape};
 use crate::elements::overlay::keystroke_draw::timeline::{
-    EXIT, Group, depth, eased, glide, rise, round3, smoothstep, timeline,
+    EXIT, Group, depth, eased, glide, rise, round3, timeline,
 };
 use crate::elements::theme::ThemeMode;
 

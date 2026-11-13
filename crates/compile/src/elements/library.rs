@@ -31,8 +31,16 @@ impl Library for FilmLibrary<'_> {
         )
     }
 
-    fn wrapper(&self, _: &str, _: &Map<String, Value>, _: Node, _: &At) -> Drawn {
-        Ok(None)
+    fn wrapper(&self, component: &str, props: &Map<String, Value>, child: Node, at: &At) -> Drawn {
+        draw::wrapper(
+            component,
+            props,
+            child,
+            &Cx {
+                at,
+                measure: self.measure,
+            },
+        )
     }
 
     fn presentation(&self, presented: &Presented<'_>, children: Vec<Node>, at: &At) -> Drawn {

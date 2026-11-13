@@ -2,6 +2,7 @@ use opsis_scene::clock::js_round;
 use opsis_scene::easing::Easing;
 use opsis_types::numbers::float;
 
+use crate::elements::anim::smoothstep;
 use crate::elements::overlay::keystroke::Keystroke;
 use crate::elements::overlay::keystroke_draw::keys::{Key, parse_keys};
 
@@ -26,11 +27,6 @@ const KEY_GAP: f64 = 0.14;
 
 pub fn round3(value: f64) -> f64 {
     js_round(value * 1000.0) / 1000.0 + 0.0
-}
-
-pub fn smoothstep(value: f64) -> f64 {
-    let t = value.clamp(0.0, 1.0);
-    t * t * 2.0_f64.mul_add(-t, 3.0)
 }
 
 pub fn eased(frames: f64, duration: f64, curve: &dyn Fn(f64) -> f64) -> f64 {

@@ -1,10 +1,12 @@
 use std::path::{Path, PathBuf};
 
-use opsis_compile::elements::draw::{Cx, Transition, element, presentation};
+use opsis_compile::elements::draw::{Cx, Transition, element, presentation, wrapper};
 use opsis_film::Film;
 use opsis_golden::{dev_cache, repo};
 use opsis_scene::clock::Clock;
 use opsis_scene::measure::Unmeasured;
+use opsis_scene::node::div;
+use opsis_scene::style::Style;
 use opsis_scene::timeline::{At, Stage};
 use opsis_skia::{Image, Paint, RectF, Sampling, Surface};
 use opsis_types::numbers::{float, narrow};
@@ -114,8 +116,10 @@ fn items_drawn(tracks: &[TimelineTrack], cx: &Cx<'_>) -> bool {
                     component, props, ..
                 } => element(component, props, cx).is_ok_and(|d| d.is_some()),
                 TimelineItem::Group { props, .. } => {
-                    props.wrapper.is_none()
-                        && props.sequencer.is_none()
+                    props.wrapper.as_ref().is_none_or(|w| {
+                        wrapper(&w.component, &w.props, div(Style::default()).into(), cx)
+                            .is_ok_and(|d| d.is_some())
+                    }) && props.sequencer.is_none()
                         && items_drawn(&props.tracks, cx)
                 }
                 TimelineItem::Recording { .. } => false,
