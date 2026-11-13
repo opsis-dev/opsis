@@ -62,9 +62,20 @@ pub fn case_font_files() -> Vec<(String, PathBuf)> {
     out
 }
 
+pub const FALLBACK_FOLDERS: [&str; 2] = [
+    "public/fonts/bundled/fallback/opsis-fallback",
+    "public/fonts/bundled/terminal/opsis-terminal-symbols-2",
+];
+
 pub fn fallback_font_files() -> Vec<(String, PathBuf)> {
-    let folder = repo().join("public/fonts/bundled/fallback/opsis-fallback");
-    let mut files: Vec<PathBuf> = std::fs::read_dir(&folder)
+    FALLBACK_FOLDERS
+        .iter()
+        .flat_map(|folder| subset_files(&repo().join(folder)))
+        .collect()
+}
+
+fn subset_files(folder: &std::path::Path) -> Vec<(String, PathBuf)> {
+    let mut files: Vec<PathBuf> = std::fs::read_dir(folder)
         .unwrap_or_else(|e| panic!("{}: {e}", folder.display()))
         .filter_map(Result::ok)
         .map(|e| e.path())

@@ -15,7 +15,7 @@ use opsis_skia::{Rgba, Surface, SurfaceError};
 use opsis_types::fonts::FontFamilyDef;
 use opsis_types::timeline::TimelineSpec;
 
-pub const FALLBACK_FAMILY: &str = "opsis-fallback";
+pub const FALLBACK_FAMILIES: [&str; 2] = ["opsis-fallback", "opsis-terminal-symbols-2"];
 
 pub type Files<'a> = &'a (dyn Fn(&str) -> Option<Vec<u8>> + Sync);
 pub type Sizes<'a> = &'a dyn Fn(&str) -> Option<(f64, f64)>;
@@ -116,15 +116,18 @@ fn register_family(
 }
 
 fn register_fallbacks(fonts: &mut Fonts, files: Files<'_>) -> Result<(), FilmError> {
-    let Some(family) = bundled_fonts().iter().find(|f| f.id == FALLBACK_FAMILY) else {
-        return Ok(());
-    };
-    for face in &family.faces {
-        let Some(subset) = subset_of(&face.file) else {
+    for id in FALLBACK_FAMILIES {
+        let Some(family) = bundled_fonts().iter().find(|f| f.id == id) else {
             continue;
         };
-        let bytes = files(&face.file).ok_or_else(|| FilmError::MissingFont(face.file.clone()))?;
-        fonts.register_fallback(subset, &bytes)?;
+        for face in &family.faces {
+            let Some(subset) = subset_of(&face.file) else {
+                continue;
+            };
+            let bytes =
+                files(&face.file).ok_or_else(|| FilmError::MissingFont(face.file.clone()))?;
+            fonts.register_fallback(subset, &bytes)?;
+        }
     }
     Ok(())
 }

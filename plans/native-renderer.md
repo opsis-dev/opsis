@@ -217,7 +217,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Decisions
 
-- Decided: **one bundled fallback font for characters the bundled faces lack.** The bundled faces are Latin subsets; `fonts:bundle` adds Noto Sans's other subsets as the hidden `Opsis Fallback` family (`public/fonts/bundled/fallback`), each subset registered by `Fonts::register_fallback` and appended to every font stack, never the computer's fonts. The oracle's Chrome drew those characters from the computer's fonts, so the mixed-scripts cell of `text/wrapping` stays out of the comparison.
+- Decided: **bundled Noto fallbacks for characters the bundled faces lack.** The bundled faces are Latin subsets; `fonts:bundle` adds Noto Sans's other subsets as the hidden `Opsis Fallback` family (`public/fonts/bundled/fallback`), and the terminal's Noto Sans Symbols 2 (`opsis-terminal-symbols-2`) follows it for symbols such as ⌘. Each subset is registered by `Fonts::register_fallback` in that order (`FALLBACK_FAMILIES`, `crates/film/src/lib.rs`) and appended to every font stack, never the computer's fonts. The oracle's Chrome drew those characters from the computer's fonts, so the mixed-scripts cell of `text/wrapping` stays out of the comparison.
 
 ### Risks
 
