@@ -2,7 +2,6 @@ pub mod cast;
 pub mod colours;
 pub mod driver;
 pub mod executors;
-pub mod frames;
 pub mod import;
 pub mod input;
 pub mod live;

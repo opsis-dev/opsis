@@ -452,7 +452,7 @@ fn a_black_and_white_grade_turns_every_terminal_colour_grey() {
         },
     )]);
     let bytes = footage.terminal_frames("t").unwrap();
-    let frames = opsis_terminal::frames::read(&bytes).unwrap();
+    let frames = opsis_types::terminal_frames::read(&bytes).unwrap();
     let colours = frames.colours();
     assert!(colours.len() > 2);
     for colour in colours {

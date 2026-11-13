@@ -6,9 +6,9 @@ use opsis_compile::terminal::{default_look, default_theme, grid, screen_size};
 use opsis_types::live::{LiveEvent, LiveStep, LiveStepStatus};
 use opsis_types::numbers::millis;
 use opsis_types::terminal::{TerminalStep, TerminalTheme};
+use opsis_types::terminal_frames::write;
 use opsis_vt::Terminal;
 
-use crate::frames::write;
 use crate::prepare::snapshot;
 
 pub trait LiveFeed: Send + Sync {

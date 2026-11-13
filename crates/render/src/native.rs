@@ -4,6 +4,7 @@ use std::sync::Arc;
 use image::ExtendedColorType;
 use image::codecs::jpeg::JpegEncoder;
 use opsis_compile::asset_ref::{FOOTAGE_FOLDER, PREPARED_FOLDER, PreparedRef};
+use opsis_compile::footage::TERMINAL_FRAMES;
 use opsis_compile::nodes::output::StillFormat;
 use opsis_film::{Film, scaled};
 use opsis_footage::footage::Footage;
@@ -42,16 +43,28 @@ impl NativeFiles {
         (!rel.starts_with(".opsis/")).then(|| self.dirs.project.join(rel))
     }
 
-    fn footage_at(source: &str) -> Option<(&str, i64)> {
-        let rest = source
+    fn footage_entry(source: &str) -> Option<(&str, &str)> {
+        source
             .strip_prefix(NATIVE_BASE)?
             .strip_prefix(FOOTAGE_FOLDER)?
-            .strip_prefix('/')?;
-        let (id, time) = rest.rsplit_once('/')?;
+            .strip_prefix('/')?
+            .rsplit_once('/')
+    }
+
+    fn footage_at(source: &str) -> Option<(&str, i64)> {
+        let (id, time) = Self::footage_entry(source)?;
         Some((id, time.parse().ok()?))
     }
 
     pub fn bytes(&self, source: &str) -> Option<Vec<u8>> {
+        if let Some((id, TERMINAL_FRAMES)) = Self::footage_entry(source) {
+            return self
+                .footage
+                .terminal_frames(id)
+                .map_err(|e| log::warn!("terminal frames {source}: {e}"))
+                .ok()
+                .map(|bytes| bytes.as_ref().clone());
+        }
         if let Some(path) = source
             .strip_prefix(NATIVE_BASE)
             .and_then(|rel| rel.strip_prefix(PREPARED_FOLDER))

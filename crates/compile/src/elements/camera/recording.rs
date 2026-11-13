@@ -1,5 +1,6 @@
 use opsis_scene::clock::js_round;
 use opsis_scene::keyed::percent;
+use opsis_scene::measure::Measure;
 use opsis_scene::node::{Node, div, img};
 use opsis_scene::paint::{Filter, Shadow, Transform};
 use opsis_scene::style::{
@@ -25,6 +26,7 @@ use crate::elements::camera::track::{
 use crate::elements::camera::window::{CHROME_H, Chrome, Frame, window_frame};
 use crate::elements::draw::{DrawFailure, css_color};
 use crate::elements::fonts::{FontRole, font_or};
+use crate::elements::terminal::screen::{Fit, TerminalScreen, terminal_screen};
 use crate::recording::{DEFAULT_ADDRESS_BAR, DEFAULT_FRAME_THEME, DEFAULT_WINDOW_STYLE};
 use crate::text::display_address;
 
@@ -197,6 +199,7 @@ fn terminal_title(log: &ActionLog, ms: f64, typed: Option<&str>) -> Option<Strin
 
 struct Clip<'a> {
     props: &'a RecordingProps,
+    measure: &'a dyn Measure,
     log: ClickLog,
     track: Vec<CameraKey>,
     tuning: Tuning,
@@ -206,13 +209,32 @@ struct Clip<'a> {
     marks: Vec<Annotation>,
 }
 
-fn screen(props: &RecordingProps, t: f64, fill: bool) -> Option<Node> {
-    let ScreenProps::Footage {
-        footage_url: Some(url),
-        ..
-    } = &props.screen
-    else {
-        return None;
+fn screen(clip: &Clip<'_>, t: f64, fill: bool, area: Size) -> Option<Node> {
+    let props = clip.props;
+    let url = match &props.screen {
+        ScreenProps::Footage {
+            footage_url: Some(url),
+            ..
+        } => url,
+        ScreenProps::Terminal {
+            frames_url: Some(url),
+            look,
+            effects,
+            ..
+        } => {
+            return terminal_screen(
+                &TerminalScreen {
+                    frames_url: url,
+                    look,
+                    effects: effects.as_ref(),
+                    time_s: t,
+                    fit: if fill { Fit::Fill } else { Fit::Cover },
+                    area: (area.width, area.height),
+                },
+                clip.measure,
+            );
+        }
+        ScreenProps::Footage { .. } | ScreenProps::Terminal { .. } => return None,
     };
     let micros = js_round(t * US_PER_S).max(0.0);
     Some(
@@ -338,7 +360,9 @@ fn window_group(
             |f| font_or(f, FontRole::Main),
         ),
     });
-    let mut children: Vec<Node> = screen(clip.props, t, true).into_iter().collect();
+    let mut children: Vec<Node> = screen(clip, t, true, clip.box_size.unwrap_or(clip.stage))
+        .into_iter()
+        .collect();
     children.extend(overlays(
         clip,
         t,
@@ -442,7 +466,7 @@ fn demo_clip(clip: &Clip<'_>, at: &At, k: f64) -> Result<Node, DrawFailure> {
 
 fn full_bleed(clip: &Clip<'_>, frame: f64, fps: f64, k: f64) -> Result<Node, DrawFailure> {
     let t = log_time_s(frame, fps, clip.props.speed);
-    let mut children: Vec<Node> = screen(clip.props, t, false).into_iter().collect();
+    let mut children: Vec<Node> = screen(clip, t, false, clip.stage).into_iter().collect();
     children.extend(overlays(clip, t, 1.0, k, clip.stage)?);
     Ok(div(absolute_fill()
         .overflow(Overflow::Hidden)
@@ -467,8 +491,10 @@ fn narrow_bleed(clip: &Clip<'_>, frame: f64, fps: f64, k: f64) -> Result<Node, D
             Filter::Saturate(Num(1.2)),
         ])
         .transform(vec![Transform::Scale(Num(1.15), Num(1.15), Num(1.0))]))
-    .children(screen(clip.props, t, false));
-    let mut inner: Vec<Node> = screen(clip.props, t, true).into_iter().collect();
+    .children(screen(clip, t, false, clip.stage));
+    let mut inner: Vec<Node> = screen(clip, t, true, clip.box_size.unwrap_or(clip.stage))
+        .into_iter()
+        .collect();
     inner.extend(overlays(
         clip,
         t,
@@ -515,11 +541,11 @@ fn screen_clip(clip: &Clip<'_>, at: &At, k: f64) -> Result<Node, DrawFailure> {
     let t = log_time_s(frame, fps, clip.props.speed);
     let vp = clip.log.viewport;
     let aspect = f64::from(vp.width) / f64::from(vp.height);
-    let mut inner: Vec<Node> = screen(clip.props, t, true).into_iter().collect();
     let area = Size {
         width: clip.stage.width.max(clip.stage.height * aspect),
         height: clip.stage.height.max(clip.stage.width / aspect),
     };
+    let mut inner: Vec<Node> = screen(clip, t, true, area).into_iter().collect();
     inner.extend(overlays(clip, t, z.scale, k, area)?);
     let cover = |a: Length, b: Length| Length::Calc(Box::new(Calc::Max(vec![a, b])));
     Ok(div(absolute_fill()
@@ -590,6 +616,7 @@ pub fn recording(
     props: &RecordingProps,
     at: &At,
     reframe: ReframeMode,
+    measure: &dyn Measure,
 ) -> Result<Option<Node>, DrawFailure> {
     if !has_screen(props) {
         return Ok(None);
@@ -619,6 +646,7 @@ pub fn recording(
         let track = build_camera_track(&log, props.speed, &tuning);
         let clip = Clip {
             props,
+            measure,
             log,
             track,
             tuning,
@@ -651,6 +679,7 @@ pub fn recording(
     let track = build_camera_track(&log, props.speed, &tuning);
     let clip = Clip {
         props,
+        measure,
         log,
         track,
         tuning,

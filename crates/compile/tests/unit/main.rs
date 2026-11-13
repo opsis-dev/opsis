@@ -39,6 +39,7 @@ mod riser;
 mod small;
 mod takes;
 mod terminal;
+mod terminal_sprites;
 mod time;
 mod timeline;
 mod timeline_edits;

@@ -6,9 +6,9 @@ use std::sync::{Arc, OnceLock};
 use opsis_media::grade::GradeChain;
 use opsis_terminal::cast::read_path;
 use opsis_terminal::colours::{Swatch, read_swatch, swatch};
-use opsis_terminal::frames::{Frames, write};
 use opsis_terminal::prepare::{Mask, PrepareInput, prepare};
 use opsis_types::terminal::TerminalTheme;
+use opsis_types::terminal_frames::{Frames, write};
 
 use crate::FootageError;
 use crate::decoder::FootageTools;

@@ -7,10 +7,12 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
+base64.workspace = true
 color.workspace = true
 csscolorparser.workspace = true
 heck.workspace = true
 icu_segmenter.workspace = true
+image = { workspace = true, features = ["png"] }
 indexmap = { workspace = true, features = ["serde"] }
 jiff.workspace = true
 jsonschema.workspace = true

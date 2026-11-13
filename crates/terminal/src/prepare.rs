@@ -2,12 +2,14 @@ use std::time::Duration;
 
 use opsis_types::numbers::truncate;
 use opsis_types::terminal::TerminalTheme;
+use opsis_types::terminal_frames::{
+    FrameCursor, FrameRecord, Frames, Redaction, RowTable, Run, flag,
+};
 use opsis_vt::{CellWidth, CursorShape, Event as VtEvent, Frame, Terminal, Underline, VtError};
 use regex::Regex;
 
 use crate::cast::{Cast, EventData};
 use crate::colours::{ThemeColours, mix};
-use crate::frames::{FrameCursor, FrameRecord, Frames, Redaction, RowTable, Run, flag};
 use crate::timeline::{SCROLL_PREFIX, Timeline};
 
 const NANOS_PER_SECOND: u128 = 1_000_000_000;

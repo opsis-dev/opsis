@@ -34,6 +34,7 @@ pub mod props;
 pub mod scene;
 pub mod shared;
 pub mod stop_motion;
+pub mod terminal;
 pub mod text;
 pub mod text_split;
 pub mod theme;

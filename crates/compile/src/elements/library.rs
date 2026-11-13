@@ -82,7 +82,7 @@ impl Library for FilmLibrary<'_> {
     }
 
     fn recording(&self, props: &RecordingProps, at: &At) -> Result<Node, DrawError> {
-        recording(props, at, self.reframe)
+        recording(props, at, self.reframe, self.measure)
             .map(|drawn| drawn.unwrap_or_else(|| div(Style::default()).into()))
             .map_err(|e| DrawError::new("recording", e))
     }

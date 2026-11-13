@@ -333,7 +333,8 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 ### Fit with Opsis
 
 - **In place:** `opsis-footage`'s decoders and grade chain (`decoder.rs`, `chain.rs`), Redact's areas in Rust, `opsis-vt` and the frames format, `crates/render/tests/sprites.rs` against Ghostty's atlases.
-- **Missing:** the frame hand-over without JPEG, the native terminal drawing, the sprite port.
+- **In place on the branch:** the terminal screen drawn natively (`crates/compile/src/elements/terminal/`: `view.rs`, `screen.rs`, the lens, vignette and grain as SVG filters in `effects.rs`), the sprites ported (`sprites.rs`, matched against `fixtures/scene/terminal-sprites.json` from `sprites.ts`), the frames format in `opsis-types` (`terminal_frames.rs`) so the film reads it through `Measure::terminal`. The terminal example's frame 150 is 0.29% wrong pixels against the 0.2% limit: rows of text sit 0.3 to 1 px off the browser's inside the zoomed window.
+- **Missing:** the frame hand-over without JPEG, texture and lens as shader passes, live terminal pictures from the native drawing.
 
 ### Work
 

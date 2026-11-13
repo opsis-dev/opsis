@@ -17,6 +17,7 @@ pub mod secrets;
 pub mod settings;
 pub mod shell;
 pub mod terminal;
+pub mod terminal_frames;
 pub mod timeline;
 pub mod trace;
 pub mod ts_export;

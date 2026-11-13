@@ -3,9 +3,9 @@ use std::time::Duration;
 use opsis_compile::terminal::default_theme;
 use opsis_terminal::cast::{Cast, Event, Header, Version};
 use opsis_terminal::colours::ThemeColours;
-use opsis_terminal::frames::{Frames, Redaction, read, write};
 use opsis_terminal::prepare::{Mask, MaskArea, MaskLook, PrepareInput, frame_count, prepare};
 use opsis_terminal::timeline::{END, HIDE, SHOW, START};
+use opsis_types::terminal_frames::{Frames, Redaction, read, write};
 use proptest::prelude::*;
 use regex::Regex;
 

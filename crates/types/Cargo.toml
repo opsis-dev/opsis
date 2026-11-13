@@ -20,6 +20,7 @@ smart-default.workspace = true
 specta = { workspace = true, features = ["indexmap", "serde_json"] }
 specta-serde.workspace = true
 specta-typescript.workspace = true
+thiserror.workspace = true
 
 [dev-dependencies]
 opsis-golden.workspace = true

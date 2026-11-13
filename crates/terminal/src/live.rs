@@ -3,9 +3,9 @@ use std::time::Duration;
 
 use opsis_types::numbers::millis;
 use opsis_types::terminal::{PointerMove, ShellChoice, TerminalInput, TerminalTheme};
+use opsis_types::terminal_frames::{FramesError, write};
 use opsis_vt::{CellPoint, KeyAction, KeyMods, MouseAction, MouseButton};
 
-use crate::frames::{FramesError, write};
 use crate::input::mouse_button;
 use crate::prepare::snapshot;
 use crate::session::{Session, SessionError};

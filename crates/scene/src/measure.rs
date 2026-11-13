@@ -1,3 +1,7 @@
+use std::sync::Arc;
+
+use opsis_types::terminal_frames::Frames;
+
 use crate::drawing::Font;
 use crate::node::Node;
 
@@ -30,6 +34,10 @@ pub trait Measure {
 
     fn text_ink(&self, _text: &str, _font: &Font) -> (f64, f64) {
         (0.0, 0.0)
+    }
+
+    fn terminal(&self, _source: &str) -> Option<Arc<Frames>> {
+        None
     }
 }
 

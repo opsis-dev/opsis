@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use opsis_compile::elements::library::FilmLibrary;
 use opsis_compile::fonts::bundled_fonts;
@@ -14,6 +15,7 @@ use opsis_scene::timeline::{DrawError, draw_film};
 use opsis_skia::{Matrix44, Rgba, Surface, SurfaceError};
 use opsis_types::fonts::FontFamilyDef;
 use opsis_types::numbers::{exact_eq, narrow, whole};
+use opsis_types::terminal_frames::{Frames as TerminalFrames, read as read_frames};
 use opsis_types::timeline::TimelineSpec;
 
 pub const FALLBACK_FAMILIES: [&str; 3] = [
@@ -44,12 +46,14 @@ pub struct Film<'a> {
     sizes: Sizes<'a>,
     frames: Option<Frames<'a>>,
     animations: RefCell<HashMap<String, Option<AnimationTiming>>>,
+    terminals: RefCell<HashMap<String, Option<Arc<TerminalFrames>>>>,
 }
 
 struct FilmMeasure<'f, 'a> {
     layout: Measurer<'f>,
     files: Files<'a>,
     animations: &'f RefCell<HashMap<String, Option<AnimationTiming>>>,
+    terminals: &'f RefCell<HashMap<String, Option<Arc<TerminalFrames>>>>,
 }
 
 fn animation_timing(bytes: &[u8]) -> Option<AnimationTiming> {
@@ -87,6 +91,19 @@ impl Measure for FilmMeasure<'_, '_> {
             .borrow_mut()
             .insert(source.to_owned(), timing);
         timing
+    }
+
+    fn terminal(&self, source: &str) -> Option<Arc<TerminalFrames>> {
+        if let Some(known) = self.terminals.borrow().get(source) {
+            return known.clone();
+        }
+        let frames = (self.files)(source)
+            .and_then(|bytes| read_frames(&bytes).ok())
+            .map(Arc::new);
+        self.terminals
+            .borrow_mut()
+            .insert(source.to_owned(), frames.clone());
+        frames
     }
 }
 
@@ -159,6 +176,7 @@ impl<'a> Film<'a> {
             sizes,
             frames: None,
             animations: RefCell::new(HashMap::new()),
+            terminals: RefCell::new(HashMap::new()),
         })
     }
 
@@ -183,6 +201,7 @@ impl<'a> Film<'a> {
                 layout: Measurer::new(&mut self.fonts, viewport),
                 files: self.files,
                 animations: &self.animations,
+                terminals: &self.terminals,
             };
             draw_film(
                 &FilmLibrary {

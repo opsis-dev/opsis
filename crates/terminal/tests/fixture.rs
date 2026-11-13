@@ -2,12 +2,12 @@ use std::path::PathBuf;
 
 use opsis_compile::terminal::default_theme;
 use opsis_terminal::cast::{read_path, write_v3};
-use opsis_terminal::frames::{Frames, Redaction, write};
 use opsis_terminal::prepare::{PrepareInput, prepare};
 use opsis_terminal::take::{TakeOptions, record_take};
 use opsis_types::terminal::{
     EnvVar, ShellChoice, TerminalAction, TerminalSessionValue, TerminalStep, WaitFor,
 };
+use opsis_types::terminal_frames::{Frames, Redaction, write};
 use serde_json::{Value, json};
 
 const CAST: &str = "terminal/take.cast";
