@@ -159,9 +159,6 @@ fn css_angle(direction: &LinearDirection, width: f64, height: f64) -> f64 {
             };
             if horizontal.is_none() && vertical.is_none() {
                 std::f64::consts::PI
-            } else if horizontal.is_none() || vertical.is_none() {
-                let (sx, sy) = (dx.signum(), dy.signum());
-                sx.atan2(-sy)
             } else {
                 dx.atan2(-dy)
             }

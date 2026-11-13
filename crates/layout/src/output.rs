@@ -161,6 +161,7 @@ pub struct Placed {
     pub border: Sides,
     pub padding: Sides,
     pub matrix: Matrix,
+    pub snap_origin: (f64, f64),
     pub client: Rect,
     pub style: Option<SceneStyle>,
     pub text: TextStyle,
@@ -212,6 +213,7 @@ pub(crate) struct Frame {
     pub origin: (f64, f64),
     pub matrix: Matrix,
     pub perspective: Option<Matrix>,
+    pub snap: (f64, f64),
 }
 
 impl Frame {
@@ -219,6 +221,7 @@ impl Frame {
         origin: (0.0, 0.0),
         matrix: Matrix::IDENTITY,
         perspective: None,
+        snap: (0.0, 0.0),
     };
 
     fn inherited(&self) -> Matrix {
@@ -267,6 +270,11 @@ impl Walk<'_, '_> {
                 )
             },
         );
+        let transformed = node
+            .scene
+            .as_ref()
+            .is_some_and(crate::transform::has_transform);
+        let snap = if transformed { (x, y) } else { frame.snap };
         self.out.push(Placed {
             drawn: node.drawn.clone(),
             path: node.path.clone(),
@@ -275,6 +283,7 @@ impl Walk<'_, '_> {
             border: Sides::of(layout.border),
             padding: Sides::of(layout.padding),
             matrix,
+            snap_origin: snap,
             client: matrix.bounds(border_box),
             style: node.scene.clone(),
             text: node.text.clone(),
@@ -283,6 +292,7 @@ impl Walk<'_, '_> {
             origin: (x, y),
             matrix,
             perspective,
+            snap,
         };
         let children = node.children.clone();
         let hoisted: Vec<usize> = node.hoisted.iter().map(|h| usize::from(*h)).collect();
@@ -503,7 +513,7 @@ impl Walk<'_, '_> {
                             text.runs.extend(item_runs);
                         }
                         _ => {
-                            self.flush(pending.take(), matrix);
+                            self.flush(pending.take(), matrix, frame.snap);
                             let mut text = PendingText {
                                 path: path.clone(),
                                 style: style.clone(),
@@ -521,7 +531,7 @@ impl Walk<'_, '_> {
                     edges,
                     offset,
                 } => {
-                    self.flush(pending.take(), matrix);
+                    self.flush(pending.take(), matrix, frame.snap);
                     spans.push(OpenSpan {
                         path: path.clone(),
                         style: style.clone(),
@@ -531,7 +541,7 @@ impl Walk<'_, '_> {
                     });
                 }
                 InlineItem::SpanEnd => {
-                    self.flush(pending.take(), matrix);
+                    self.flush(pending.take(), matrix, frame.snap);
                     if let Some(span) = spans.pop() {
                         let content = span
                             .rects
@@ -555,6 +565,7 @@ impl Walk<'_, '_> {
                             border: Sides::default(),
                             padding: Sides::default(),
                             matrix,
+                            snap_origin: frame.snap,
                             client: matrix.bounds(border_box),
                             style: None,
                             text: span.style,
@@ -562,7 +573,7 @@ impl Walk<'_, '_> {
                     }
                 }
                 InlineItem::Box { node, .. } => {
-                    self.flush(pending.take(), matrix);
+                    self.flush(pending.take(), matrix, frame.snap);
                     let Some((_, placed)) = boxes.iter().find(|(i, _)| *i == index).copied() else {
                         continue;
                     };
@@ -595,10 +606,10 @@ impl Walk<'_, '_> {
                 }
             }
         }
-        self.flush(pending, matrix);
+        self.flush(pending, matrix, frame.snap);
     }
 
-    fn flush(&mut self, text: Option<PendingText>, matrix: Matrix) {
+    fn flush(&mut self, text: Option<PendingText>, matrix: Matrix, snap: (f64, f64)) {
         let Some(text) = text else {
             return;
         };
@@ -624,6 +635,7 @@ impl Walk<'_, '_> {
             border: Sides::default(),
             padding: Sides::default(),
             matrix,
+            snap_origin: snap,
             client,
             style: None,
             text: text.style,

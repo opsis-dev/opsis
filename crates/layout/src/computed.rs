@@ -3,8 +3,8 @@ use opsis_scene::paint::Shadow;
 use opsis_scene::prop;
 use opsis_scene::style::{
     DecorationLine, DecorationStyle, Direction, FontStyle, LineHeight, NumericVariant,
-    OverflowWrap, PaintOrder, Style, Tag, TextAlign, TextStroke, TextTransform, TextWrap,
-    Visibility, WhiteSpace, WordBreak,
+    OverflowWrap, PaintOrder, Style, Tag, TextAlign, TextRendering, TextStroke, TextTransform,
+    TextWrap, Visibility, WhiteSpace, WordBreak,
 };
 use opsis_scene::values::{Calc, ContainerUnit, Length, Num};
 
@@ -204,6 +204,7 @@ pub struct TextStyle {
     pub text_align: TextAlign,
     pub text_transform: TextTransform,
     pub white_space: WhiteSpace,
+    pub text_rendering: TextRendering,
     pub word_break: WordBreak,
     pub overflow_wrap: OverflowWrap,
     pub text_wrap: TextWrap,
@@ -235,6 +236,7 @@ impl TextStyle {
             text_align: TextAlign::Start,
             text_transform: TextTransform::None,
             white_space: WhiteSpace::Normal,
+            text_rendering: TextRendering::Auto,
             word_break: WordBreak::Normal,
             overflow_wrap: OverflowWrap::Normal,
             text_wrap: TextWrap::Wrap,
@@ -329,6 +331,7 @@ impl TextStyle {
             TextAlign => text_align,
             TextTransform => text_transform,
             WhiteSpace => white_space,
+            TextRendering => text_rendering,
             WordBreak => word_break,
             OverflowWrap => overflow_wrap,
             TextWrap => text_wrap,

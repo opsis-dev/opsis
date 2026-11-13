@@ -32,7 +32,7 @@ pub struct Areas {
 
 impl Areas {
     pub fn of(placed: &Placed, style: &Style, painter: &Painter<'_, '_, '_>) -> Self {
-        let border = placed.border_box;
+        let border = snapped(placed.border_box, placed.snap_origin);
         let padding = placed.border.inset(border);
         let content = placed.padding.inset(padding);
         let outer = radii(
@@ -652,14 +652,14 @@ fn snap(value: f64) -> f64 {
     (value + 0.5).floor()
 }
 
-fn snapped(rect: Rect) -> Rect {
-    let x = snap(rect.x);
-    let y = snap(rect.y);
+fn snapped(rect: Rect, (ox, oy): (f64, f64)) -> Rect {
+    let x = snap(rect.x - ox);
+    let y = snap(rect.y - oy);
     Rect {
-        x,
-        y,
-        width: snap(rect.x + rect.width) - x,
-        height: snap(rect.y + rect.height) - y,
+        x: x + ox,
+        y: y + oy,
+        width: snap(rect.x - ox + rect.width) - x,
+        height: snap(rect.y - oy + rect.height) - y,
     }
 }
 
@@ -723,10 +723,23 @@ pub fn draw_replaced(
             );
         let saved = surface.save();
         clip_content(surface, &areas);
+        let dest = snapped(
+            Rect {
+                x,
+                y,
+                width: w,
+                height: h,
+            },
+            placed.snap_origin,
+        );
         let base = placed
             .matrix
-            .then(&Matrix::translation(x, y, 0.0))
-            .then(&Matrix::scaling(w / intrinsic.0, h / intrinsic.1, 1.0));
+            .then(&Matrix::translation(dest.x, dest.y, 0.0))
+            .then(&Matrix::scaling(
+                dest.width / intrinsic.0,
+                dest.height / intrinsic.1,
+                1.0,
+            ));
         let mut decode = |bytes: &[u8]| opsis_skia::Image::decode(bytes);
         SvgPainter {
             surface,
@@ -761,12 +774,15 @@ pub fn draw_replaced(
     let saved = surface.save();
     clip_content(surface, &areas);
     let full = RectF::new(0.0, 0.0, narrow(intrinsic.0), narrow(intrinsic.1));
-    let target = rect_f(snapped(Rect {
-        x,
-        y,
-        width: w,
-        height: h,
-    }));
+    let target = rect_f(snapped(
+        Rect {
+            x,
+            y,
+            width: w,
+            height: h,
+        },
+        placed.snap_origin,
+    ));
     surface.draw_image_rect(image, (full, target), filtering, &Paint::new());
     surface.restore_to(saved);
 }

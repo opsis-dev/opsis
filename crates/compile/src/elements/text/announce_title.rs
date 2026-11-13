@@ -4,8 +4,8 @@ use opsis_scene::node::{Node, SvgElement, div, span, svg};
 use opsis_scene::paint::{ColorStop, Gradient, Transform};
 use opsis_scene::random::js_number_text;
 use opsis_scene::style::{
-    Align, Display, FlexDirection, LineHeight, Overflow, Position, Style, TransformStyle,
-    Visibility, WhiteSpace,
+    Align, Display, FlexDirection, LineHeight, Overflow, Position, Style, TextRendering,
+    TransformStyle, Visibility, WhiteSpace,
 };
 use opsis_scene::timeline::absolute_fill;
 use opsis_scene::values::{Angle, Length, Num};
@@ -258,6 +258,7 @@ fn line_style(font_size: f64, tracking: f64, face: &[String]) -> Style {
         .letter_spacing(Length::em(tracking))
         .margin_right(Length::em(-tracking))
         .white_space(WhiteSpace::Pre)
+        .text_rendering(TextRendering::GeometricPrecision)
 }
 
 fn stage(offset: f64, align: Align, child: Node) -> Node {

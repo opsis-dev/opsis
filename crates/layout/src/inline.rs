@@ -2,8 +2,8 @@ use std::borrow::Cow;
 
 use opsis_scene::node::Node;
 use opsis_scene::style::{
-    FontStyle as SceneFontStyle, OverflowWrap as SceneOverflowWrap, TextAlign, TextTransform,
-    VerticalAlign as SceneVerticalAlign, WhiteSpace, WordBreak as SceneWordBreak,
+    FontStyle as SceneFontStyle, OverflowWrap as SceneOverflowWrap, TextAlign, TextRendering,
+    TextTransform, VerticalAlign as SceneVerticalAlign, WhiteSpace, WordBreak as SceneWordBreak,
 };
 use opsis_types::numbers::{exact_eq, narrow};
 use parley::{
@@ -253,15 +253,28 @@ pub struct FontExtent {
     pub hyphen: f32,
     pub x_height: f32,
     pub zero: f32,
+    pub subpixel: bool,
 }
 
 impl FontExtent {
+    const fn lends_ascent(self) -> bool {
+        self.subpixel && self.descent.round() < self.descent && self.ascent.round() >= 1.0
+    }
+
     pub const fn rounded_ascent(self) -> f32 {
-        self.ascent.round()
+        if self.lends_ascent() {
+            self.ascent.round() - 1.0
+        } else {
+            self.ascent.round()
+        }
     }
 
     pub const fn rounded_descent(self) -> f32 {
-        self.descent.round()
+        if self.lends_ascent() {
+            self.descent.round() + 1.0
+        } else {
+            self.descent.round()
+        }
     }
 }
 
@@ -607,13 +620,14 @@ pub fn probe(tree: &mut Tree<'_>, style: &TextStyle, text: &str) -> Paragraph<u3
 
 pub fn font_extent(tree: &mut Tree<'_>, style: &TextStyle) -> FontExtent {
     let key = format!(
-        "{:?}|{}|{}|{:?}|{}|{}",
+        "{:?}|{}|{}|{:?}|{}|{}|{:?}",
         style.families,
         style.font_size,
         style.font_weight,
         style.font_style,
         style.letter_spacing,
-        style.word_spacing
+        style.word_spacing,
+        style.text_rendering
     );
     if let Some(found) = tree.extents.get(&key) {
         return *found;
@@ -630,6 +644,7 @@ pub fn font_extent(tree: &mut Tree<'_>, style: &TextStyle) -> FontExtent {
         hyphen,
         x_height: narrow(style.font_size * X_HEIGHT_SHARE),
         zero,
+        subpixel: style.text_rendering == TextRendering::GeometricPrecision,
     };
     if let Some(line) = joined.lines().next() {
         for item in line.items() {
@@ -716,6 +731,7 @@ fn line_boxes(tree: &mut Tree<'_>, id: usize) -> Vec<LineBox> {
                                 hyphen: 0.0,
                                 x_height: 0.0,
                                 zero: 0.0,
+                                subpixel: style.text_rendering == TextRendering::GeometricPrecision,
                             },
                             *shift,
                         ));

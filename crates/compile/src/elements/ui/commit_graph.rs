@@ -578,11 +578,12 @@ pub fn draw(props: &CommitGraph, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     let mut window = div(code_window(
         &palette,
         CodeWindow {
-            u,
             width: window_w,
             radius: f64::from(props.corner_radius) * u,
             open,
             rise: (1.0 - window_in) * 22.0 * u,
+            clip_round: 18.0 * u,
+            shadow: (24.0 * u, 60.0 * u),
         },
     ));
     if !props.window_title.is_empty() {

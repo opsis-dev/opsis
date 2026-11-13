@@ -6,7 +6,9 @@ use opsis_scene::easing::Easing;
 use opsis_scene::node::{Node, SvgElement, div, span, svg};
 use opsis_scene::paint::{Filter, Transform};
 use opsis_scene::random::js_number_text;
-use opsis_scene::style::{Align, Display, FlexDirection, LineHeight, Position, Style, WhiteSpace};
+use opsis_scene::style::{
+    Align, Display, FlexDirection, LineHeight, Position, Style, TextRendering, WhiteSpace,
+};
 use opsis_scene::timeline::absolute_fill;
 use opsis_scene::values::{Length, Num};
 use opsis_types::looks::{NodeLook, NodeMotion};
@@ -610,7 +612,8 @@ pub fn draw(props: &PunchLines, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     Ok(div(absolute_fill()
         .background_color(cx.color(paper))
         .font_family(face)
-        .font_weight(props.font_weight.value()))
+        .font_weight(props.font_weight.value())
+        .text_rendering(TextRendering::GeometricPrecision))
     .children(cards)
     .into())
 }

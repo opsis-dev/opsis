@@ -8,7 +8,7 @@ use opsis_scene::timeline::{At, DrawError, Drawn};
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
 
-use crate::elements::{background, data, overlay, placeholder, text, transition, ui};
+use crate::elements::{background, data, overlay, placeholder, scene, text, transition, ui};
 
 #[derive(Clone, Copy)]
 pub struct Cx<'a> {
@@ -252,6 +252,20 @@ pub fn element(component: &str, props: &Map<String, Value>, cx: &Cx<'_>) -> Draw
         "drag-drop-flow" => drawn(component, props, cx, ui::drag_drop_flow::draw),
         "code-morph" => drawn(component, props, cx, ui::code_morph::draw),
         "agent-run" => drawn(component, props, cx, ui::agent_run::draw),
+        "logo-wall" => drawn(component, props, cx, scene::logo_wall::draw),
+        "changelog-entry" => drawn(component, props, cx, scene::changelog_entry::draw),
+        "logo-reveal" => drawn(component, props, cx, scene::logo_reveal::draw),
+        "comparison-table" => drawn(component, props, cx, scene::comparison_table::draw),
+        "end-card" => drawn(component, props, cx, scene::end_card::draw),
+        "pricing-card" => drawn(component, props, cx, scene::pricing_card::draw),
+        "logo-wipe" => drawn(component, props, cx, scene::logo_wipe::draw),
+        "logo-drift" => drawn(component, props, cx, scene::logo_drift::draw),
+        "hero-launch" => drawn(component, props, cx, scene::hero_launch::draw),
+        "logo-assemble" => drawn(component, props, cx, scene::logo_assemble::draw),
+        "steps-timeline" => drawn(component, props, cx, scene::steps_timeline::draw),
+        "command-menu" => drawn(component, props, cx, scene::command_menu::draw),
+        "ai-prompt-flow" => drawn(component, props, cx, scene::ai_prompt_flow::draw),
+        "signup-flow" => drawn(component, props, cx, scene::signup_flow::draw),
         "logo-enter" => drawn(component, props, cx, ui::logo_enter::draw),
         "lower-third" => drawn(component, props, cx, overlay::lower_third::draw),
         "ink-underline" => drawn(component, props, cx, overlay::ink_underline::draw),

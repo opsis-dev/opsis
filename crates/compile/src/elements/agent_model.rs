@@ -2,6 +2,8 @@ use opsis_scene::easing::Easing;
 use opsis_scene::random::random;
 use opsis_types::numbers::{float, truncate};
 
+use crate::elements::units::js_fixed;
+
 pub const PANEL_IN: f64 = 14.0;
 pub const PANEL_RISE: f64 = 14.0;
 pub const BUBBLE_AT: f64 = 4.0;
@@ -138,17 +140,6 @@ pub fn eased(value: f64) -> f64 {
 pub fn back_out(value: f64, overshoot: f64) -> f64 {
     let t = progress(value) - 1.0;
     1.0 + (overshoot + 1.0) * t.powi(3) + overshoot * t.powi(2)
-}
-
-pub fn js_fixed(value: f64, digits: i32) -> String {
-    let scale = 10f64.powi(digits);
-    let scaled = value * scale;
-    let width = usize::try_from(digits).unwrap_or(0);
-    if value >= 0.0 && (scaled - scaled.floor() - 0.5).abs() < f64::EPSILON * scaled.abs().max(1.0)
-    {
-        return format!("{:.width$}", (scaled.floor() + 1.0) / scale);
-    }
-    format!("{value:.width$}")
 }
 
 pub fn format_seconds(seconds: f64) -> String {

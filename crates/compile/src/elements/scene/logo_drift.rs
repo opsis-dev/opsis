@@ -1,9 +1,26 @@
 use opsis_macros::settings;
+use opsis_scene::css::{font_family, with_background};
+use opsis_scene::easing::Easing;
+use opsis_scene::interpolate::{Interpolation, interpolate};
+use opsis_scene::node::{Node, div, span};
+use opsis_scene::paint::{Filter, Transform};
+use opsis_scene::random::js_number_text;
+use opsis_scene::style::{
+    Align, Display, FlexDirection, FlexWrap, LineHeight, Overflow, Position, Style, TextRendering,
+    WhiteSpace,
+};
+use opsis_scene::timeline::absolute_fill;
+use opsis_scene::values::{Length, Num};
 use opsis_types::looks::NodeLook;
+use opsis_types::numbers::float;
 
+use crate::elements::anim::clamped;
+use crate::elements::draw::{Cx, DrawFailure, css_color};
 use crate::elements::entry::{element, meta};
+use crate::elements::oklch_mix::with_alpha;
 use crate::elements::shared::FontWeight;
 use crate::elements::theme::{Theme, warm_themes};
+use crate::elements::warm_theme::{resolve_font, warm_theme};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -298,4 +315,221 @@ pub fn definition() -> ElementMeta {
                 .fonts(&["Geist", "Instrument Serif", "Inter", "Montserrat", "Outfit", "Space Grotesk"])
                 .look(NodeLook::of("lucide:cloud")),
         )
+}
+
+const SANS: &str = "\"Inter\"";
+const REF: (f64, f64) = (810.0, 458.0);
+const PULLBACK_FLOOR: f64 = 0.02;
+
+struct Placed {
+    left: f64,
+    top: f64,
+    size: f64,
+    opacity: f64,
+}
+
+#[expect(
+    clippy::suboptimal_flops,
+    reason = "the film places each tile with separate multiplies and adds"
+)]
+fn place_tile(props: &LogoDrift, tile: &LogoDriftTile, t: f64) -> Placed {
+    let k = PULLBACK_FLOOR.max(1.0 - props.pullback * t);
+    let wx = f64::from(tile.x) + f64::from(tile.vx) * props.tile_speed * t;
+    let wy = f64::from(tile.y) + f64::from(tile.vy) * props.tile_speed * t;
+    let size = k * f64::from(tile.size) * props.tile_scale;
+    let age = t - tile.at;
+    let opacity = if age <= 0.0 {
+        0.0
+    } else {
+        1.0 - (-age / props.tile_fade.max(1e-3)).exp()
+    };
+    Placed {
+        left: REF.0 / 2.0 + k * wx - size / 2.0,
+        top: REF.1 / 2.0 + k * wy - size / 2.0,
+        size,
+        opacity,
+    }
+}
+
+struct Word {
+    scale: f64,
+    blur: f64,
+    opacity: f64,
+}
+
+#[expect(
+    clippy::suboptimal_flops,
+    reason = "the film eases each word with separate multiplies and adds"
+)]
+fn word_state(props: &LogoDrift, t: f64, index: usize) -> Result<Word, DrawFailure> {
+    let start = props.word_at + float(index) * props.word_stagger;
+    if t < start {
+        return Ok(Word {
+            scale: props.word_scale,
+            blur: props.word_blur,
+            opacity: 0.0,
+        });
+    }
+    let p = interpolate(
+        t,
+        &[start, start + props.word_duration],
+        &[0.0, 1.0],
+        &Interpolation {
+            easing: Some(Easing::ease_out(Easing::Quad)),
+            ..Interpolation::clamped()
+        },
+    )?;
+    let q = clamped(
+        t,
+        [props.exit_at, props.exit_at + props.exit_duration],
+        [0.0, 1.0],
+    )?;
+    Ok(Word {
+        scale: (props.word_scale + (1.0 - props.word_scale) * p)
+            * (1.0 + (props.exit_scale - 1.0) * q),
+        blur: props.word_blur * (1.0 - p) + props.exit_blur * q,
+        opacity: 1.0 - q,
+    })
+}
+
+const fn or<'a>(value: &'a str, fallback: &'a str) -> &'a str {
+    if value.is_empty() { fallback } else { value }
+}
+
+pub fn draw(props: &LogoDrift, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let (width, height) = (cx.at.stage.width, cx.at.stage.height);
+    let theme = warm_theme(&props.theme);
+    let face = resolve_font(or(&props.font_family, theme.font_family().unwrap_or("")))
+        .map_or_else(|| font_family(SANS), |f| font_family(&f));
+    let accent = or(&props.accent_color, theme.get("primary"));
+    let wash = or(&props.glow_color, accent);
+    let now = cx.authored_frame() * props.speed / Cx::authored_fps();
+    let stage_scale = (width / REF.0).min(height / REF.1);
+    let background = css_color(theme.get("background"));
+    let mut stage = div(Style::default()
+        .position(Position::Absolute)
+        .left(Length::percent(50.0))
+        .top(Length::percent(50.0))
+        .width(Length::px(REF.0))
+        .height(Length::px(REF.1))
+        .transform(vec![
+            Transform::Translate(Length::percent(-50.0), Length::percent(-50.0), Length::ZERO),
+            Transform::Scale(Num(stage_scale), Num(stage_scale), Num(1.0)),
+        ])
+        .overflow(Overflow::Hidden)
+        .background_color(background.clone()));
+    if props.glow {
+        let n = js_number_text;
+        stage = stage.child(div(with_background(
+            Style::default()
+                .position(Position::Absolute)
+                .left(Length::ZERO)
+                .top(Length::ZERO)
+                .width(Length::px(REF.0))
+                .height(Length::px(REF.1)),
+            &format!(
+                "radial-gradient({}px {}px at 50% 49%, {} 0%, transparent 74%)",
+                n(0.45 * props.glow_size * REF.0),
+                n(0.34 * props.glow_size * REF.1),
+                with_alpha(wash, props.glow_opacity)
+            ),
+        )));
+    }
+    for tile in &props.tiles {
+        let p = place_tile(props, tile, now);
+        if p.opacity <= 0.002 || p.size < 1.0 {
+            continue;
+        }
+        let mut card = div(with_background(
+            Style::default()
+                .position(Position::Absolute)
+                .left(Length::px(p.left))
+                .top(Length::px(p.top))
+                .width(Length::px(p.size))
+                .height(Length::px(p.size))
+                .border_radius_all(p.size * props.tile_radius),
+            &tile.background,
+        )
+        .opacity(p.opacity)
+        .display(Display::Flex)
+        .flex_direction(FlexDirection::Column)
+        .align_items(Align::Center)
+        .justify_content(Align::Center)
+        .gap(p.size * 0.04)
+        .color(css_color(or(&tile.color, theme.get("background"))))
+        .font_family(face.clone())
+        .overflow(Overflow::Hidden))
+        .child(
+            span(
+                Style::default()
+                    .font_size(p.size * props.glyph_scale)
+                    .font_weight(f64::from(props.glyph_weight))
+                    .line_height(LineHeight::Number(Num(1.0)))
+                    .letter_spacing(Length::em(-0.03))
+                    .text_rendering(TextRendering::GeometricPrecision),
+            )
+            .child(tile.glyph.clone()),
+        );
+        if let Some(label) = tile.label.as_deref().filter(|l| !l.is_empty())
+            && p.size > 74.0
+        {
+            card = card.child(
+                span(
+                    Style::default()
+                        .font_size(p.size * props.label_scale)
+                        .font_weight(500.0)
+                        .line_height(LineHeight::Number(Num(1.0)))
+                        .opacity(props.label_opacity)
+                        .text_rendering(TextRendering::GeometricPrecision),
+                )
+                .child(label.to_owned()),
+            );
+        }
+        stage = stage.child(card);
+    }
+    let mut words = Vec::new();
+    for (i, word) in props.headline.split_whitespace().enumerate() {
+        let w = word_state(props, now, i)?;
+        let mut style = Style::default()
+            .display(Display::InlineBlock)
+            .opacity(w.opacity)
+            .transform(vec![Transform::Scale(Num(w.scale), Num(w.scale), Num(1.0))]);
+        if w.blur > 0.02 {
+            style = style.filter(vec![Filter::Blur(Length::px(w.blur))]);
+        }
+        words.push(span(style).child(word.to_owned()).into());
+    }
+    let size = props.font_size;
+    stage = stage.child(
+        div(Style::default()
+            .position(Position::Absolute)
+            .left(Length::ZERO)
+            .top(Length::ZERO)
+            .width(Length::px(REF.0))
+            .height(Length::px(REF.1))
+            .display(Display::Flex)
+            .align_items(Align::Center)
+            .justify_content(Align::Center))
+        .child(
+            div(Style::default()
+                .display(Display::Flex)
+                .flex_wrap(FlexWrap::Wrap)
+                .max_width(Length::px(REF.0 * f64::from(props.headline_width) / 100.0))
+                .align_items(Align::Baseline)
+                .justify_content(Align::Center)
+                .column_gap(Length::px(size * 0.28))
+                .row_gap(Length::px(size * 0.08))
+                .font_family(face)
+                .font_size(size)
+                .font_weight(props.font_weight.value())
+                .line_height(LineHeight::Number(Num(1.2)))
+                .letter_spacing(Length::em(-0.012))
+                .color(css_color(theme.get("foreground")))
+                .white_space(WhiteSpace::Pre))
+            .children(words),
+        ),
+    );
+    Ok(div(absolute_fill().background_color(background))
+        .child(stage)
+        .into())
 }

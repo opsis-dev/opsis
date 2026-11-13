@@ -2,12 +2,14 @@ use std::fmt::Write;
 
 use opsis_layout::output::{Placed, Rect};
 use opsis_layout::transform::Matrix;
+use opsis_scene::color::Color;
 use opsis_scene::node::{Kind, Node, SvgChild, SvgElement};
 use opsis_scene::paint::{ClipPath, FillRule, ShapeRadius};
 use opsis_scene::values::Length;
 use opsis_skia::Path;
 
 use crate::Painter;
+use crate::color::resolve;
 use crate::geometry::{point, px, radii, round_rect};
 use crate::svg::SvgPainter;
 
@@ -20,6 +22,42 @@ fn escaped(text: &str) -> String {
         .replace('"', "&quot;")
 }
 
+const COLOR_ATTRIBUTES: [&str; 6] = [
+    "fill",
+    "stroke",
+    "stop-color",
+    "flood-color",
+    "lighting-color",
+    "color",
+];
+
+const UNREADABLE_COLORS: [&str; 7] = [
+    "oklch(",
+    "oklab(",
+    "lab(",
+    "lch(",
+    "hwb(",
+    "color(",
+    "color-mix(",
+];
+
+fn svg_value(name: &str, value: &str) -> String {
+    let lower = value.trim().to_ascii_lowercase();
+    if !COLOR_ATTRIBUTES.contains(&name) || !UNREADABLE_COLORS.iter().any(|f| lower.starts_with(f))
+    {
+        return value.to_owned();
+    }
+    Color::css(value).map_or_else(
+        || value.to_owned(),
+        |color| {
+            let [r, g, b, a] = resolve(&color, &Color::BLACK)
+                .srgb()
+                .map(|c| f64::from(c.clamp(0.0, 1.0)));
+            format!("rgba({}, {}, {}, {a})", r * 255.0, g * 255.0, b * 255.0)
+        },
+    )
+}
+
 fn write(element: &SvgElement, root: bool, size: Option<(f64, f64)>, out: &mut String) {
     out.push('<');
     out.push_str(&element.tag);
@@ -30,7 +68,7 @@ fn write(element: &SvgElement, root: bool, size: Option<(f64, f64)>, out: &mut S
         if root && size.is_some() && (name == "width" || name == "height") {
             continue;
         }
-        let _ = write!(out, " {name}=\"{}\"", escaped(value));
+        let _ = write!(out, " {name}=\"{}\"", escaped(&svg_value(name, value)));
     }
     if root && let Some((w, h)) = size {
         let _ = write!(out, " width=\"{w}\" height=\"{h}\"");

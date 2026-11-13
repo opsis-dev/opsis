@@ -15,11 +15,12 @@ use crate::elements::draw::{DrawFailure, css_color, tinted};
 
 #[derive(Debug, Clone, Copy)]
 pub struct CodeWindow {
-    pub u: f64,
     pub width: f64,
     pub radius: f64,
     pub open: f64,
     pub rise: f64,
+    pub clip_round: f64,
+    pub shadow: (f64, f64),
 }
 
 pub fn bottom_line(color: &str) -> Edges<BorderSide> {
@@ -36,7 +37,6 @@ pub fn bottom_line(color: &str) -> Edges<BorderSide> {
 }
 
 pub fn code_window(palette: &Palette, window: CodeWindow) -> Style {
-    let u = window.u;
     Style::default()
         .width(Length::px(window.width))
         .border_radius_all(window.radius)
@@ -58,8 +58,8 @@ pub fn code_window(palette: &Palette, window: CodeWindow) -> Style {
             Shadow {
                 inset: false,
                 x: Length::ZERO,
-                y: Length::px(24.0 * u),
-                blur: Length::px(60.0 * u),
+                y: Length::px(window.shadow.0),
+                blur: Length::px(window.shadow.1),
                 spread: Length::ZERO,
                 color: css_color(palette.get("shadow")),
             },
@@ -72,7 +72,10 @@ pub fn code_window(palette: &Palette, window: CodeWindow) -> Style {
                 bottom: Length::percent((1.0 - window.open) * 100.0),
                 left: Length::ZERO,
             },
-            round: Some(Corners::all((Length::px(18.0 * u), Length::px(18.0 * u)))),
+            round: Some(Corners::all((
+                Length::px(window.clip_round),
+                Length::px(window.clip_round),
+            ))),
         })
         .translate(Length::ZERO, Length::px(window.rise))
 }

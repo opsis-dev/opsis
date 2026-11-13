@@ -8,7 +8,7 @@ use opsis_scene::paint::Transform;
 use opsis_scene::spring::{Spring, SpringConfig, spring};
 use opsis_scene::style::{
     Align, BorderSide, BorderStyle, Display, FlexDirection, LineHeight, Overflow, Position, Style,
-    WhiteSpace,
+    TextRendering, WhiteSpace,
 };
 use opsis_scene::timeline::absolute_fill;
 use opsis_scene::values::{Edges, Length, Num};
@@ -378,6 +378,7 @@ fn type_style(face: &[String], weight: f64) -> Style {
     Style::default()
         .font_family(face.to_vec())
         .font_weight(weight)
+        .text_rendering(TextRendering::GeometricPrecision)
         .white_space(WhiteSpace::Nowrap)
 }
 

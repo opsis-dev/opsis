@@ -405,11 +405,12 @@ pub fn draw(props: &FileTreeReveal, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     let mut window = div(code_window(
         &palette,
         CodeWindow {
-            u,
             width: panel_w,
             radius: 18.0 * u,
             open,
             rise: (1.0 - panel) * 22.0 * u,
+            clip_round: 18.0 * u,
+            shadow: (24.0 * u, 60.0 * u),
         },
     ));
     if !props.title.is_empty() {

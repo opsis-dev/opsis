@@ -35,6 +35,15 @@ pub enum Corner {
 }
 
 #[choice(export)]
+pub enum ButtonVariant {
+    Default,
+    Secondary,
+    Destructive,
+    Outline,
+    Ghost,
+}
+
+#[choice(export)]
 pub enum LegendValue {
     #[label("Share")]
     Percent,

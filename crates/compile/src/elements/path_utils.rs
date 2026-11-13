@@ -108,3 +108,27 @@ pub fn waypoints_to_path(points: &[(f64, f64)], smoothing: f64) -> String {
     }
     out.join(" ")
 }
+
+pub fn fit_view_box(paths: &[&str], padding: f64) -> String {
+    let boxes: Vec<kurbo::Rect> = paths
+        .iter()
+        .filter(|d| !d.is_empty())
+        .filter_map(|d| BezPath::from_svg(d).ok())
+        .map(|path| kurbo::Shape::bounding_box(&path))
+        .collect();
+    if boxes.is_empty() {
+        return "0 0 100 100".to_owned();
+    }
+    let x1 = boxes.iter().map(|b| b.x0).fold(f64::INFINITY, f64::min);
+    let y1 = boxes.iter().map(|b| b.y0).fold(f64::INFINITY, f64::min);
+    let x2 = boxes.iter().map(|b| b.x1).fold(f64::NEG_INFINITY, f64::max);
+    let y2 = boxes.iter().map(|b| b.y1).fold(f64::NEG_INFINITY, f64::max);
+    let n = opsis_scene::random::js_number_text;
+    format!(
+        "{} {} {} {}",
+        n(x1 - padding),
+        n(y1 - padding),
+        n(padding.mul_add(2.0, x2 - x1).max(1.0)),
+        n(padding.mul_add(2.0, y2 - y1).max(1.0))
+    )
+}

@@ -169,6 +169,14 @@ pub enum ImageRendering {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+pub enum TextRendering {
+    #[default]
+    Auto,
+    GeometricPrecision,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum FontStyle {
     #[default]
     Normal,
@@ -452,6 +460,7 @@ properties! {
     text_align / TextAlign: TextAlign,
     text_transform / TextTransform: TextTransform,
     white_space / WhiteSpace: WhiteSpace,
+    text_rendering / TextRendering: TextRendering,
     word_break / WordBreak: WordBreak,
     overflow_wrap / OverflowWrap: OverflowWrap,
     text_overflow / TextOverflow: TextOverflow,

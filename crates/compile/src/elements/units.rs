@@ -24,3 +24,14 @@ pub fn graphemes(text: &str) -> Vec<&str> {
         .collect();
     breaks.windows(2).map(|w| &text[w[0]..w[1]]).collect()
 }
+
+pub fn js_fixed(value: f64, digits: i32) -> String {
+    let scale = 10f64.powi(digits);
+    let scaled = value * scale;
+    let width = usize::try_from(digits).unwrap_or(0);
+    if value >= 0.0 && (scaled - scaled.floor() - 0.5).abs() < f64::EPSILON * scaled.abs().max(1.0)
+    {
+        return format!("{:.width$}", (scaled.floor() + 1.0) / scale);
+    }
+    format!("{value:.width$}")
+}
