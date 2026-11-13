@@ -1,7 +1,16 @@
-use opsis_macros::settings;
-use opsis_types::looks::NodeLook;
+use std::collections::HashMap;
 
+use opsis_macros::settings;
+use opsis_scene::node::{Node, div};
+use opsis_scene::style::Style;
+use opsis_scene::timeline::absolute_fill;
+use opsis_types::looks::NodeLook;
+use serde::Deserialize;
+
+use crate::elements::backgrounds::backgrounded;
+use crate::elements::draw::{Cx, DrawFailure, css_color};
 use crate::elements::entry::{element, meta};
+use crate::elements::media::image::{filled, footage_frame_url};
 use crate::elements::shared::Fit;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
@@ -59,4 +68,35 @@ pub fn definition() -> ElementMeta {
         )
         .look(NodeLook::of("lucide:video")),
     )
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Shown {
+    #[serde(flatten)]
+    pub settings: Video,
+    #[serde(default)]
+    pub footage_urls: HashMap<String, String>,
+}
+
+pub fn draw(props: &Shown, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let video = &props.settings;
+    let Some(url) = props
+        .footage_urls
+        .get("src")
+        .filter(|_| !video.src.is_empty())
+    else {
+        return Ok(div(Style::default()).into());
+    };
+    let time_s = cx.frame() / cx.fps() * video.playback_rate;
+    let mut children = vec![filled(footage_frame_url(url, time_s), video.fit, None)];
+    if video.dim > 0.0 {
+        children.push(
+            div(absolute_fill()
+                .background_color(css_color(&video.dim_color))
+                .opacity(video.dim))
+            .into(),
+        );
+    }
+    Ok(backgrounded(&video.background, children))
 }

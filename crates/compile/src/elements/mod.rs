@@ -14,6 +14,7 @@ pub mod draw;
 pub mod effect;
 pub mod entry;
 pub mod fonts;
+pub mod framed_image;
 pub mod geometry;
 pub mod introspect;
 pub mod length_cases;

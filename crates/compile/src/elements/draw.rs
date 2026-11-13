@@ -9,7 +9,8 @@ use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
 
 use crate::elements::{
-    background, data, device, effect, overlay, placeholder, scene, text, transition, ui,
+    background, data, device, effect, framed_image, media, overlay, placeholder, scene, text,
+    transition, ui,
 };
 
 #[derive(Clone, Copy)]
@@ -281,6 +282,10 @@ pub fn wrapper(
 pub fn element(component: &str, props: &Map<String, Value>, cx: &Cx<'_>) -> Drawn {
     match component {
         "placeholder" => drawn(component, props, cx, placeholder::draw),
+        "image" => drawn(component, props, cx, media::image::draw),
+        "video" => drawn(component, props, cx, media::video::draw),
+        "text-mask-video" => drawn(component, props, cx, text::text_mask_video::draw),
+        "framed-image" => drawn(component, props, cx, framed_image::draw),
         "solid" => drawn(component, props, cx, background::solid::draw),
         "starburst" => drawn(component, props, cx, background::starburst::draw),
         "gradient" => drawn(component, props, cx, background::gradient::draw),

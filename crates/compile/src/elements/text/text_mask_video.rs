@@ -1,8 +1,34 @@
-use opsis_macros::{choice, settings};
-use opsis_types::looks::NodeLook;
+use std::collections::HashMap;
 
+use opsis_macros::{choice, settings};
+use opsis_scene::css::with_background;
+use opsis_scene::easing::Easing;
+use opsis_scene::interpolate::{Interpolation, interpolate};
+use opsis_scene::node::{Node, SvgElement, div, svg};
+use opsis_scene::paint::{ClipPath, Transform};
+use opsis_scene::style::{Align, Position, Style, TextAlign};
+use opsis_scene::timeline::absolute_fill;
+use opsis_scene::values::{Edges, Length, Num};
+use opsis_types::looks::NodeLook;
+use opsis_types::numbers::float;
+use opsis_types::values::MediaKind;
+use serde::Deserialize;
+
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::fonts::{FontRole, font_or};
+use crate::elements::media::image::{filled, footage_frame_url};
+use crate::elements::parts::split_chars::scale_font;
+use crate::elements::shared::Fit;
+use crate::elements::units::js_fixed;
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
+
+const GLYPH_WIDTH: f64 = 0.72;
+const ARRIVE: Easing = Easing::Bezier(0.33, 1.0, 0.68, 1.0);
+const ENTER: Easing = Easing::Bezier(0.16, 1.0, 0.3, 1.0);
+const ENTER_OPACITY_LEAD: f64 = 0.55;
+const CLIP_ID: &str = "text-mask";
+const OVERSCAN_PERCENT: f64 = -8.0;
 
 #[choice(export)]
 pub enum MaskReveal {
@@ -114,4 +140,190 @@ pub fn definition() -> ElementMeta {
         .kind_prop("media", "src")
         .look(NodeLook::of("lucide:type-outline")),
     )
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Shown {
+    #[serde(flatten)]
+    pub settings: TextMaskVideo,
+    #[serde(default)]
+    pub media: Option<MediaKind>,
+    #[serde(default)]
+    pub footage_urls: HashMap<String, String>,
+}
+
+fn reveal_clip(reveal: MaskReveal, hidden: f64) -> Option<ClipPath> {
+    let cut = Length::percent(hidden);
+    let edges = match reveal {
+        MaskReveal::Left => Edges {
+            top: Length::ZERO,
+            right: cut,
+            bottom: Length::ZERO,
+            left: Length::ZERO,
+        },
+        MaskReveal::Right => Edges {
+            top: Length::ZERO,
+            right: Length::ZERO,
+            bottom: Length::ZERO,
+            left: cut,
+        },
+        MaskReveal::Up => Edges {
+            top: Length::ZERO,
+            right: Length::ZERO,
+            bottom: cut,
+            left: Length::ZERO,
+        },
+        MaskReveal::Down => Edges {
+            top: cut,
+            right: Length::ZERO,
+            bottom: Length::ZERO,
+            left: Length::ZERO,
+        },
+        MaskReveal::None => return None,
+    };
+    Some(ClipPath::Inset { edges, round: None })
+}
+
+fn fill_of(props: &Shown, cx: &Cx<'_>) -> Node {
+    let mask = &props.settings;
+    let fill = Style::default()
+        .width(Length::percent(100.0))
+        .height(Length::percent(100.0));
+    if mask.src.is_empty() {
+        return div(with_background(fill, &mask.gradient)).into();
+    }
+    if props.media == Some(MediaKind::Image) {
+        return filled(mask.src.clone(), Fit::Cover, None);
+    }
+    match props.footage_urls.get("src") {
+        Some(url) => filled(
+            footage_frame_url(url, mask.start_from + cx.frame() / cx.fps()),
+            Fit::Cover,
+            None,
+        ),
+        None => div(with_background(fill, &mask.gradient)).into(),
+    }
+}
+
+#[expect(
+    clippy::suboptimal_flops,
+    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+)]
+pub fn draw(props: &Shown, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let mask = &props.settings;
+    let (video_width, video_height) = (cx.at.stage.width, cx.at.stage.height);
+    let lines: Vec<&str> = mask
+        .text
+        .split('\n')
+        .map(|l| l.strip_suffix('\r').unwrap_or(l))
+        .collect();
+    let count = float(lines.len());
+    let longest = lines
+        .iter()
+        .map(|l| float(l.chars().count()))
+        .fold(1.0f64, f64::max);
+    let fitted_size = scale_font(mask.fit_max, video_width)
+        .min(video_width * 0.9 / longest / GLYPH_WIDTH - mask.letter_spacing / GLYPH_WIDTH)
+        .min(video_height * 0.85 / (count * mask.line_height * 1.25));
+    let font_size = mask.font_size.unwrap_or_else(|| fitted_size.max(1.0));
+    let width = opsis_scene::clock::js_round(
+        (font_size * 6.2).max(longest * (font_size * GLYPH_WIDTH + mask.letter_spacing)),
+    );
+    let height = opsis_scene::clock::js_round(font_size * mask.line_height * count * 1.25);
+    let duration = f64::from(mask.duration_in_frames).round().max(1.0);
+    let frame = cx.frame();
+    let enter_time = interpolate(
+        frame,
+        &[0.0, duration],
+        &[0.0, 1.0],
+        &Interpolation::clamped(),
+    )?;
+    let motion = interpolate(
+        enter_time,
+        &[0.0, 1.0],
+        &[0.0, 1.0],
+        &Interpolation::clamped().eased(ARRIVE),
+    )?;
+    let opacity = interpolate(
+        enter_time,
+        &[0.0, ENTER_OPACITY_LEAD],
+        &[0.0, 1.0],
+        &Interpolation::clamped().eased(ENTER),
+    )?;
+    let revealed = if mask.reveal == MaskReveal::None {
+        1.0
+    } else {
+        motion
+    };
+    let hidden = ((1.0 - revealed) * 100.0).clamp(0.0, 100.0);
+    let seconds = frame / cx.fps() * mask.drift_speed;
+    let pan = (seconds * 0.62).sin() * mask.drift;
+    let scale = 1.0 + mask.zoom * (0.5 + 0.5 * (seconds * 0.44 + 1.1).sin());
+    let middle_x = width / 2.0;
+    let block_height = (count - 1.0) * font_size * mask.line_height;
+    let first_y = height / 2.0 - block_height / 2.0;
+    let family = font_or(&mask.font_family, FontRole::Heading).join(", ");
+    let mut clip = SvgElement::new("clipPath")
+        .attr("id", CLIP_ID)
+        .attr("clipPathUnits", "userSpaceOnUse");
+    for (index, line) in lines.iter().enumerate() {
+        clip = clip.child(
+            SvgElement::new("text")
+                .attr("x", middle_x)
+                .attr("y", first_y + float(index) * font_size * mask.line_height)
+                .attr("text-anchor", "middle")
+                .attr("dominant-baseline", "central")
+                .attr("font-size", font_size)
+                .attr("font-weight", mask.font_weight)
+                .attr("letter-spacing", mask.letter_spacing)
+                .attr("font-family", family.as_str())
+                .text(*line),
+        );
+    }
+    let defs = svg(
+        SvgElement::new("svg")
+            .attr("width", 0.0)
+            .attr("height", 0.0)
+            .child(SvgElement::new("defs").child(clip)),
+        Style::default()
+            .position(Position::Absolute)
+            .width(Length::ZERO)
+            .height(Length::ZERO),
+    );
+    let pan_text = js_fixed(-pan, 2).parse::<f64>().unwrap_or(0.0);
+    let scale_text = js_fixed(scale, 4).parse::<f64>().unwrap_or(1.0);
+    let moving = div(Style::default()
+        .position(Position::Absolute)
+        .inset(Length::percent(OVERSCAN_PERCENT))
+        .transform(vec![
+            Transform::Translate(Length::px(pan_text), Length::ZERO, Length::ZERO),
+            Transform::Scale(Num(scale_text), Num(scale_text), Num(1.0)),
+        ]))
+    .child(fill_of(props, cx));
+    let mut revealing = Style::default()
+        .position(Position::Absolute)
+        .inset(Length::ZERO);
+    if let Some(cut) = reveal_clip(mask.reveal, hidden) {
+        revealing = revealing.clip_path(cut);
+    }
+    let masked = div(Style::default()
+        .position(Position::Absolute)
+        .inset(Length::ZERO)
+        .clip_path(ClipPath::Url(format!("#{CLIP_ID}"))))
+    .child(div(revealing).child(moving));
+    Ok(div(absolute_fill()
+        .align_items(Align::Center)
+        .justify_content(Align::Center)
+        .text_align(TextAlign::Center))
+    .child(
+        div(Style::default()
+            .position(Position::Relative)
+            .width(Length::px(width))
+            .height(Length::px(height))
+            .opacity(opacity))
+        .child(defs)
+        .child(masked),
+    )
+    .into())
 }
