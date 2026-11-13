@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use opsis_compile::elements::draw::{Cx, Transition, element, presentation, wrapper};
+use opsis_compile::elements::draw::{Cx, Transition, element, is_sequencer, presentation, wrapper};
 use opsis_film::Film;
 use opsis_golden::{dev_cache, repo};
 use opsis_scene::clock::Clock;
@@ -124,7 +124,10 @@ fn items_drawn(tracks: &[TimelineTrack], cx: &Cx<'_>) -> bool {
                             cx,
                         )
                         .is_ok_and(|d| d.is_some())
-                    }) && props.sequencer.is_none()
+                    }) && props
+                        .sequencer
+                        .as_ref()
+                        .is_none_or(|s| is_sequencer(&s.component))
                         && items_drawn(&props.tracks, cx)
                 }
                 TimelineItem::Recording { .. } => false,

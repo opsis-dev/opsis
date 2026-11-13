@@ -66,8 +66,16 @@ impl Library for FilmLibrary<'_> {
         )
     }
 
-    fn scenes(&self, _: &SequencerProps, _: &dyn SceneTracks, _: &At) -> Drawn {
-        Ok(None)
+    fn scenes(&self, sequencer: &SequencerProps, scenes: &dyn SceneTracks, at: &At) -> Drawn {
+        draw::scenes(
+            &sequencer.component,
+            &sequencer.props,
+            scenes,
+            &Cx {
+                at,
+                measure: self.measure,
+            },
+        )
     }
 
     fn recording(&self, _: &RecordingProps, _: &At) -> Result<Node, DrawError> {

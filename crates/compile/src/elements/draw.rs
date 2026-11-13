@@ -4,7 +4,7 @@ use opsis_scene::interpolate::InterpolateError;
 use opsis_scene::measure::Measure;
 use opsis_scene::node::Node;
 use opsis_scene::spring::SpringError;
-use opsis_scene::timeline::{At, ChildAt, DrawError, Drawn};
+use opsis_scene::timeline::{At, ChildAt, DrawError, Drawn, SceneTracks};
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
 
@@ -216,6 +216,38 @@ fn wrapped<T: DeserializeOwned>(
     wrap(&settings, child, cx)
         .map(Some)
         .map_err(|e| DrawError::new(component, e))
+}
+
+type Sequence<T> = fn(&T, &dyn SceneTracks, &Cx<'_>) -> Result<Node, DrawFailure>;
+
+fn sequenced<T: DeserializeOwned>(
+    component: &str,
+    props: &Map<String, Value>,
+    list: &dyn SceneTracks,
+    cx: &Cx<'_>,
+    sequence: Sequence<T>,
+) -> Drawn {
+    let settings = serde_json::from_value::<T>(Value::Object(props.clone()))
+        .map_err(|e| DrawError::new(component, e))?;
+    sequence(&settings, list, cx)
+        .map(Some)
+        .map_err(|e| DrawError::new(component, e))
+}
+
+pub fn is_sequencer(component: &str) -> bool {
+    matches!(component, "spring-settle")
+}
+
+pub fn scenes(
+    component: &str,
+    props: &Map<String, Value>,
+    list: &dyn SceneTracks,
+    cx: &Cx<'_>,
+) -> Drawn {
+    match component {
+        "spring-settle" => sequenced(component, props, list, cx, scene::spring_settle::scenes),
+        _ => Ok(None),
+    }
 }
 
 pub fn wrapper(
