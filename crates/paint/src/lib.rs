@@ -25,7 +25,7 @@ use opsis_skia::{Matrix44, Paint, RectF, Rgba, Sampling, Surface};
 
 use crate::boxes::{Areas, draw_box, draw_replaced};
 use crate::geometry::{is_rounded, matrix44, rect_f, round_rect};
-pub use crate::resources::Resources;
+pub use crate::resources::{Frames, Picture, Resources};
 
 pub(crate) struct Painter<'s, 'r, 'l> {
     pub root: &'l Node,

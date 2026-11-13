@@ -21,6 +21,8 @@ pub enum FilmError {
     Encode(String),
     #[error("Cancelled")]
     Cancelled,
+    #[error("{0}")]
+    Draw(String),
     #[error(
         "This computer can't draw shader and 3D effects with “{}”. Set Draw with to {}.",
         .0.label(),

@@ -7,18 +7,22 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
+image = { workspace = true, features = ["jpeg", "png"] }
 log.workspace = true
 opsis-capture.workspace = true
 opsis-compile.workspace = true
 opsis-engine.workspace = true
+opsis-film.workspace = true
 opsis-footage.workspace = true
 opsis-media.workspace = true
+opsis-paint.workspace = true
 opsis-prepare.workspace = true
 opsis-probe.workspace = true
 opsis-project.workspace = true
 opsis-runner.workspace = true
 opsis-terminal.workspace = true
 opsis-types.workspace = true
+percent-encoding.workspace = true
 regex.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, features = ["preserve_order"] }

@@ -42,7 +42,10 @@ use serde_json::Value;
 
 use crate::film::{Stage, mixed, spec_for};
 use crate::footage::film_footage;
-use crate::frames::{FilmError, FilmRender, FilmRun, StillRender, render_film, render_still};
+use crate::frames::{FilmError, FilmRun};
+use crate::native::{
+    NATIVE_BASE, NativeFiles, NativeRender, NativeStill, render_native, render_native_still,
+};
 use crate::picture::{PictureOptions, cached_picture, picture_key};
 
 const MIX_STAGE: Stage = (0.0, 0.05);
@@ -160,7 +163,7 @@ fn sized(
 struct VariantJob<'a> {
     ctx: &'a ExecutorContext,
     engine: &'a RenderEngine,
-    server: &'a str,
+    files: &'a Arc<NativeFiles>,
     spec: TimelineSpec,
     p: &'a ExportVideo,
     progress: &'a (dyn Fn(f64) + Send + Sync),
@@ -168,10 +171,10 @@ struct VariantJob<'a> {
 
 async fn render_to(job: &VariantJob<'_>, output: &Path) -> Result<(), ExecError> {
     let p = job.p;
-    let film = hosted_film(&job.spec, job.server)?;
-    let render = FilmRender {
-        driver: driver(job.ctx, p.gl)?,
-        page: film.page(p.scale),
+    let render = NativeRender {
+        spec: hosted(&job.spec),
+        files: Arc::clone(job.files),
+        scale: p.scale,
         encoding: FilmEncoding {
             codec: p.codec,
             fps: f64::from(job.spec.fps),
@@ -183,7 +186,7 @@ async fn render_to(job: &VariantJob<'_>, output: &Path) -> Result<(), ExecError>
             gif_loops: p.gif_loops(),
         },
         every_nth_frame: p.every_nth_frame().unwrap_or(1),
-        output,
+        output: output.to_path_buf(),
     };
     let note = |message: String| job.ctx.log(LogLevel::Info, message);
     let run = FilmRun {
@@ -192,7 +195,7 @@ async fn render_to(job: &VariantJob<'_>, output: &Path) -> Result<(), ExecError>
         progress: job.progress,
         note: &note,
     };
-    render_film(&render, &run).await.map_err(film_error)
+    render_native(render, &run).await.map_err(film_error)
 }
 
 async fn picture_for(job: &VariantJob<'_>) -> Result<PathBuf, ExecError> {
@@ -338,6 +341,16 @@ async fn render_variant(
     Ok(artifacts)
 }
 
+fn native_files(ctx: &ExecutorContext, spec: &TimelineSpec) -> Result<Arc<NativeFiles>, ExecError> {
+    Ok(Arc::new(NativeFiles {
+        dirs: PreparedDirs {
+            project: ctx.project_dir.clone(),
+            public: ctx.env.public_dir.clone(),
+        },
+        footage: Arc::new(film_footage(ctx, spec)?),
+    }))
+}
+
 pub(crate) async fn asset_server(
     ctx: &ExecutorContext,
     engine: &RenderEngine,
@@ -363,7 +376,7 @@ async fn export_video(
     let spec = mixed(&ctx, &*engine.tools, spec_for(&ctx)?, MIX_STAGE).await?;
     let names = video_file_names(&export_base_name(&p.file_name), p.codec, &p.variants);
     ctx.progress(0.0, Some("Preparing render engine"));
-    let server = asset_server(&ctx, &engine, &spec).await?;
+    let files = native_files(&ctx, &spec)?;
     let chapters = chapters_for(&ctx, &spec, &p).await?;
     let count = numbers::float(p.variants.len());
     let mut artifacts = Vec::new();
@@ -393,14 +406,13 @@ async fn export_video(
         let job = VariantJob {
             ctx: &ctx,
             engine: &engine,
-            server: &server.url,
-            spec: sized(&spec, size.width, size.height, p.reframe, &server.url),
+            files: &files,
+            spec: sized(&spec, size.width, size.height, p.reframe, NATIVE_BASE),
             p: &p,
             progress: &progress,
         };
         artifacts.extend(render_variant(&job, *variant, &out, &chapters).await?);
     }
-    drop(server);
     let exported = first_artifact(&artifacts)?.path.clone();
     let probe = engine
         .tools
@@ -426,13 +438,12 @@ async fn export_video(
 async fn export_images(
     ctx: Arc<ExecutorContext>,
     _: PortValues,
-    engine: Arc<RenderEngine>,
 ) -> Result<ExecutorOutput, ExecError> {
     let p: ExportImages = ctx.params()?;
     let spec = spec_for(&ctx)?;
     let names = still_file_names(&export_base_name(&p.file_name), &p.presets, p.format);
     ctx.progress(0.0, Some("Preparing render engine"));
-    let server = asset_server(&ctx, &engine, &spec).await?;
+    let files = native_files(&ctx, &spec)?;
     let count = numbers::float(p.presets.len());
     let mut artifacts = Vec::new();
     for (i, (preset, name)) in p.presets.iter().zip(&names).enumerate() {
@@ -442,17 +453,20 @@ async fn export_images(
             lerp(RENDER_STAGE.0, RENDER_STAGE.1, numbers::float(i) / count),
             Some(&format!("Still {}", preset.id())),
         );
-        let film = hosted_film(
-            &sized(&spec, size.width, size.height, p.reframe, &server.url),
-            &server.url,
-        )?;
-        render_still(&StillRender {
-            driver: driver(&ctx, p.gl)?,
-            page: film.page(p.scale),
+        render_native_still(NativeStill {
+            spec: hosted(&sized(
+                &spec,
+                size.width,
+                size.height,
+                p.reframe,
+                NATIVE_BASE,
+            )),
+            files: Arc::clone(&files),
             frame: ms_to_frames_from(f64::from(p.at_ms), spec.fps, 0),
+            scale: p.scale,
             format: p.format,
             jpeg_quality: (p.format == StillFormat::Jpeg).then_some(f64::from(p.jpeg_quality)),
-            output: &out,
+            output: out.clone(),
         })
         .await
         .map_err(film_error)?;
@@ -462,7 +476,6 @@ async fn export_images(
             preset.id(),
         ));
     }
-    drop(server);
     let image = ImageValue {
         src: Some(project_ref(&first_artifact(&artifacts)?.path)),
         width: None,
@@ -481,7 +494,6 @@ async fn export_images(
 async fn frame_image(
     ctx: Arc<ExecutorContext>,
     inputs: PortValues,
-    engine: Arc<RenderEngine>,
 ) -> Result<ExecutorOutput, ExecError> {
     let p: FrameImage = ctx.params()?;
     let src = inputs
@@ -497,30 +509,26 @@ async fn frame_image(
     let source = (f64::from(picture.width), f64::from(picture.height));
     let spec = framed_image_spec(&p, &src, source);
     ctx.progress(0.0, Some("Preparing render engine"));
-    let server = asset_server(&ctx, &engine, &spec).await?;
-    let film = hosted_film(
-        &sized(
+    let files = native_files(&ctx, &spec)?;
+    std::fs::create_dir_all(&ctx.dir).map_err(|e| ExecError::new(e.to_string()))?;
+    let out = ctx.dir.join("framed.png");
+    render_native_still(NativeStill {
+        spec: hosted(&sized(
             &spec,
             spec.width,
             spec.height,
             ReframeMode::default(),
-            &server.url,
-        ),
-        &server.url,
-    )?;
-    std::fs::create_dir_all(&ctx.dir).map_err(|e| ExecError::new(e.to_string()))?;
-    let out = ctx.dir.join("framed.png");
-    render_still(&StillRender {
-        driver: driver(&ctx, Gl::Angle)?,
-        page: film.page(1.0),
+            NATIVE_BASE,
+        )),
+        files,
         frame: FRAMED_AT_FRAME,
+        scale: 1.0,
         format: StillFormat::Png,
         jpeg_quality: None,
-        output: &out,
+        output: out.clone(),
     })
     .await
     .map_err(film_error)?;
-    drop(server);
     let image = ImageValue {
         src: Some(project_ref(&project_path(&ctx, &out)?)),
         width: Some(spec.width),
@@ -598,8 +606,8 @@ where
 pub fn output_executors(engine: &Arc<RenderEngine>) -> Vec<(&'static str, Executor)> {
     vec![
         (RENDER_TYPE, bind(engine, export_video)),
-        (STILL_TYPE, bind(engine, export_images)),
+        (STILL_TYPE, executor(export_images)),
         (SAVE_TAKE_TYPE, executor(save_take)),
-        (FRAME_IMAGE_TYPE, bind(engine, frame_image)),
+        (FRAME_IMAGE_TYPE, executor(frame_image)),
     ]
 }

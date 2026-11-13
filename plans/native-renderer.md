@@ -367,13 +367,14 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 - **In place:** the bundled FFmpeg sidecar and its required-format check (`crates/media/src/capabilities.rs`), the output executors (`crates/render/src/executors.rs`), chapters, sizes per shape (`variant_size`).
   - `rawvideo` is a required format, and `film_raw_encode_args` (`crates/media/src/codecs.rs`) takes RGBA frames raw, converts them to BT.709 limited range for the YUV codecs and tags every output's colour; `crates/media/tests/raw_frames.rs` checks a colour survives each codec.
   - `render_in_order` (`crates/render/src/chunks.rs`) hands contiguous chunks to workers, each keeping its own state (its decoders) across a chunk, and passes frames through a reorder buffer that holds at most `Schedule::held` frames ahead of the encoder.
-- **Missing:** the native frame source behind `render_in_order` and its use in `render_film`, and stills through the renderer.
+  - The exports draw natively: `render_native` and `render_native_still` (`crates/render/src/native.rs`) run `Film` workers through `render_in_order` into `film_raw_encode_args`, resolving `app:`, project and prepared files from disk and footage frames from `Footage::shown` as decoded RGB, with no file server (`NativeFiles`, addresses under `NATIVE_BASE`). `crates/oracle/tests/native_films.rs` runs each example from the oracle's cached takes and compares the films frame by frame.
+- **Missing:** `render-elements` and take previews through the renderer.
 
 ### Work
 
 1. `rawvideo` joins the required formats (`REQUIRED_FORMATS`); `film_encode_args` takes raw input with the tags above.
-2. The chunk scheduler with the reorder buffer and progress per frame.
-3. Stills and `render-elements` through the renderer directly.
+2. Done: the chunk scheduler with the reorder buffer and progress per frame.
+3. Stills through the renderer (done) and `render-elements` through it.
 
 ### Decisions
 

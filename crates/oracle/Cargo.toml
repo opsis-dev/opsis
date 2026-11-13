@@ -28,4 +28,7 @@ tokio-util.workspace = true
 workspace = true
 
 [dev-dependencies]
+nv-flip.workspace = true
+opsis-golden.workspace = true
+opsis-probe.workspace = true
 proptest.workspace = true

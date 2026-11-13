@@ -6,8 +6,18 @@ use opsis_skia::{Axis, Image, Typeface};
 
 type TypefaceKey = (u64, u32, Vec<([u8; 4], u32)>);
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Picture {
+    pub width: u32,
+    pub height: u32,
+    pub rgba: Vec<u8>,
+}
+
+pub type Frames<'a> = &'a (dyn Fn(&str) -> Option<Picture> + Sync);
+
 pub struct Resources<'a> {
     files: &'a (dyn Fn(&str) -> Option<Vec<u8>> + Sync),
+    frames: Option<Frames<'a>>,
     typefaces: HashMap<TypefaceKey, Option<Typeface>>,
     images: HashMap<String, Option<Image>>,
     trees: HashMap<String, Option<usvg::Tree>>,
@@ -106,11 +116,18 @@ impl<'a> Resources<'a> {
         Self {
             options: options(faces, files),
             files,
+            frames: None,
             typefaces: HashMap::new(),
             images: HashMap::new(),
             trees: HashMap::new(),
             animations: HashMap::new(),
         }
+    }
+
+    #[must_use]
+    pub fn with_frames(mut self, frames: Frames<'a>) -> Self {
+        self.frames = Some(frames);
+        self
     }
 
     pub fn typeface(&mut self, run: &TextRun) -> Option<&Typeface> {
@@ -181,9 +198,13 @@ impl<'a> Resources<'a> {
 
     pub fn image(&mut self, source: &str) -> Option<&Image> {
         let files = self.files;
+        let frames = self.frames;
         self.images
             .entry(source.to_owned())
             .or_insert_with(|| {
+                if let Some(picture) = frames.and_then(|frames| frames(source)) {
+                    return Image::from_rgba(picture.width, picture.height, &picture.rgba);
+                }
                 source
                     .strip_prefix("data:")
                     .map_or_else(|| files(source), data_bytes)

@@ -6,13 +6,14 @@ use opsis_compile::fonts::bundled_fonts;
 use opsis_layout::fonts::{FontError, Fonts};
 use opsis_layout::measure::Measurer;
 use opsis_layout::{Images, Viewport, lay_out};
-use opsis_paint::{Resources, paint};
+use opsis_paint::{Frames, Resources, paint};
 use opsis_scene::drawing::Font;
 use opsis_scene::measure::{AnimationTiming, Measure, MeasuredBox};
 use opsis_scene::node::Node;
 use opsis_scene::timeline::{DrawError, draw_film};
-use opsis_skia::{Rgba, Surface, SurfaceError};
+use opsis_skia::{Matrix44, Rgba, Surface, SurfaceError};
 use opsis_types::fonts::FontFamilyDef;
+use opsis_types::numbers::{exact_eq, narrow, whole};
 use opsis_types::timeline::TimelineSpec;
 
 pub const FALLBACK_FAMILIES: [&str; 2] = ["opsis-fallback", "opsis-terminal-symbols-2"];
@@ -37,6 +38,7 @@ pub struct Film<'a> {
     fonts: Fonts,
     files: Files<'a>,
     sizes: Sizes<'a>,
+    frames: Option<Frames<'a>>,
     animations: RefCell<HashMap<String, Option<AnimationTiming>>>,
 }
 
@@ -132,6 +134,10 @@ fn register_fallbacks(fonts: &mut Fonts, files: Files<'_>) -> Result<(), FilmErr
     Ok(())
 }
 
+pub fn scaled(size: u32, scale: f64) -> u32 {
+    whole((f64::from(size) * scale).round()).max(1)
+}
+
 impl<'a> Film<'a> {
     pub fn new(
         spec: &'a TimelineSpec,
@@ -148,11 +154,22 @@ impl<'a> Film<'a> {
             fonts,
             files,
             sizes,
+            frames: None,
             animations: RefCell::new(HashMap::new()),
         })
     }
 
+    #[must_use]
+    pub fn with_frames(mut self, frames: Frames<'a>) -> Self {
+        self.frames = Some(frames);
+        self
+    }
+
     pub fn frame(&mut self, frame: f64) -> Result<Surface, FilmError> {
+        self.scaled_frame(frame, 1.0)
+    }
+
+    pub fn scaled_frame(&mut self, frame: f64, scale: f64) -> Result<Surface, FilmError> {
         let (width, height) = (self.spec.width, self.spec.height);
         let viewport = Viewport {
             width: f64::from(width),
@@ -174,9 +191,18 @@ impl<'a> Film<'a> {
                 size_of: self.sizes,
             },
         );
-        let mut surface = Surface::new(width, height)?;
+        let mut surface = Surface::new(scaled(width, scale), scaled(height, scale))?;
+        if !exact_eq(scale, 1.0) {
+            let s = narrow(scale);
+            surface = surface.with_base(Matrix44::row_major([
+                s, 0.0, 0.0, 0.0, 0.0, s, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+            ]));
+        }
         surface.clear(Rgba::new(0.0, 0.0, 0.0, 1.0));
         let mut resources = Resources::new(self.files, self.fonts.faces());
+        if let Some(frames) = self.frames {
+            resources = resources.with_frames(frames);
+        }
         paint(&root, &laid, viewport, &mut surface, &mut resources);
         Ok(surface)
     }

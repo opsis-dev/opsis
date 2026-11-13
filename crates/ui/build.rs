@@ -6,5 +6,8 @@ fn main() {
     for arg in args.lines().filter(|line| !line.is_empty()) {
         println!("cargo:rustc-link-arg-bins={arg}");
     }
+    if env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("linux") {
+        println!("cargo:rustc-link-arg-bins=-Wl,--exclude-libs,ALL");
+    }
     println!("cargo:rerun-if-changed={file}");
 }
