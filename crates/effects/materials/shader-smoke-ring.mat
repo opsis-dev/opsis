@@ -1,0 +1,115 @@
+material {
+    name : shaderSmokeRing,
+    shadingModel : unlit,
+    blending : transparent,
+    parameters : [
+        { type : sampler2d, name : input0 },
+        #include "paper-parameters.mat"
+        { type : float4, name : colorBack },
+        { type : float4[10], name : colors },
+        { type : float, name : colorsCount },
+        { type : float, name : thickness },
+        { type : float, name : radius },
+        { type : float, name : innerShape },
+        { type : float, name : noiseScale },
+        { type : float, name : noiseIterations }
+    ],
+    requires : [ uv0 ],
+    vertexDomain : device,
+    depthWrite : false,
+    depthCulling : false,
+    culling : none
+}
+
+fragment {
+    #include "paper-sizing.glsl"
+    #include "paper-colors.glsl"
+
+    float randomR(vec2 p) {
+        vec2 uv = floor(p) / 100.0 + 0.5;
+        return texture(materialParams_input0, fract(uv)).r;
+    }
+
+    float valueNoise(vec2 st) {
+        vec2 i = floor(st);
+        vec2 f = fract(st);
+        float a = randomR(i);
+        float b = randomR(i + vec2(1.0, 0.0));
+        float c = randomR(i + vec2(0.0, 1.0));
+        float d = randomR(i + vec2(1.0, 1.0));
+        vec2 u = f * f * (3.0 - 2.0 * f);
+        float x1 = mix(a, b, u.x);
+        float x2 = mix(c, d, u.x);
+        return mix(x1, x2, u.y);
+    }
+
+    vec2 fbm(vec2 n0, vec2 n1) {
+        vec2 total = vec2(0.0);
+        float amplitude = 0.4;
+        for (int i = 0; i < 8; i++) {
+            if (i >= int(materialParams.noiseIterations)) break;
+            total.x += valueNoise(n0) * amplitude;
+            total.y += valueNoise(n1) * amplitude;
+            n0 *= 1.99;
+            n1 *= 1.99;
+            amplitude *= 0.65;
+        }
+        return total;
+    }
+
+    float getNoise(vec2 uv, vec2 pUv, float t) {
+        vec2 pUvLeft = pUv + 0.03 * t;
+        float period = max(abs(materialParams.noiseScale * 6.28318530718), 1e-6);
+        vec2 pUvRight = vec2(fract(pUv.x / period) * period, pUv.y) + 0.03 * t;
+        vec2 noise = fbm(pUvLeft, pUvRight);
+        return mix(noise.y, noise.x, smoothstep(-0.25, 0.25, uv.x));
+    }
+
+    float getRingShape(vec2 uv) {
+        float radius = materialParams.radius;
+        float thickness = materialParams.thickness;
+        float distance = length(uv);
+        float ringValue = 1.0 - smoothstep(radius, radius + thickness, distance);
+        ringValue *= smoothstep(radius - pow(materialParams.innerShape, 3.0) * thickness, radius, distance);
+        return ringValue;
+    }
+
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        float pi = 3.14159265358979323846;
+        vec2 shapeUv = paperObjectUV();
+        float t = materialParams.time;
+        float cycleDuration = 3.0;
+        float period2 = 2.0 * cycleDuration;
+        float localTime1 = fract((0.1 * t + cycleDuration) / period2) * period2;
+        float localTime2 = fract((0.1 * t) / period2) * period2;
+        float timeBlend = 0.5 + 0.5 * sin(0.1 * t * pi / cycleDuration - 0.5 * pi);
+        float atg = atan(shapeUv.y, shapeUv.x) + 0.001;
+        float l = length(shapeUv);
+        float radialOffset = 0.5 * l - inversesqrt(max(1e-4, l));
+        vec2 polarUv1 = vec2(atg, localTime1 - radialOffset) * materialParams.noiseScale;
+        vec2 polarUv2 = vec2(atg, localTime2 - radialOffset) * materialParams.noiseScale;
+        float noise1 = getNoise(shapeUv, polarUv1, t);
+        float noise2 = getNoise(shapeUv, polarUv2, t);
+        float noise = mix(noise1, noise2, timeBlend);
+        shapeUv *= (0.8 + 1.2 * noise);
+        float ringShape = getRingShape(shapeUv);
+        float colorsCount = materialParams.colorsCount;
+        float mixer = ringShape * ringShape * (colorsCount - 1.0);
+        int idxLast = int(colorsCount) - 1;
+        vec4 gradient = paperColor(idxLast);
+        gradient.rgb *= gradient.a;
+        for (int i = 8; i >= 0; i--) {
+            float localT = clamp(mixer - float(idxLast - i - 1), 0.0, 1.0);
+            vec4 c = paperColor(i);
+            c.rgb *= c.a;
+            gradient = mix(gradient, c, localT);
+        }
+        vec3 color = gradient.rgb * ringShape;
+        float opacity = gradient.a * ringShape;
+        vec4 back = materialParams.colorBack;
+        color = color + back.rgb * back.a * (1.0 - opacity);
+        opacity = opacity + back.a * (1.0 - opacity);
+        material.baseColor = vec4(paperBandingFix(color), opacity);
+    }
+}

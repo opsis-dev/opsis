@@ -21,32 +21,58 @@ const WRONG_SHARE: f64 = 0.002;
 struct Allowance {
     key: &'static str,
     frames: &'static [u32],
+    mean: f32,
     wrong_share: f64,
     reason: &'static str,
 }
 
-const ALLOWANCES: [Allowance; 4] = [
+const ALLOWANCES: [Allowance; 7] = [
+    Allowance {
+        key: "light-leak",
+        frames: &[11, 22, 33, 44],
+        mean: 1.0,
+        wrong_share: 1.0,
+        reason: "where each glow starts, ends and warps comes from a hash, PCG here and fract(sin(...)) in the browser, and the browser's own hash gives other glows on a GPU, so a lit frame can't be compared pixel for pixel",
+    },
+    Allowance {
+        key: "particle-dissolve",
+        frames: &[71],
+        mean: 1.0,
+        wrong_share: 1.0,
+        reason: "the dust's order, flow and motes come from a hash, PCG here and fract(sin(...)) in the browser, and the browser's own hash breaks into blocks on a GPU, so the middle of the dissolve can't be compared pixel for pixel; its ends are",
+    },
+    Allowance {
+        key: "glitch-cut",
+        frames: &[83],
+        mean: 1.0,
+        wrong_share: 1.0,
+        reason: "which rows tear and which blocks corrupt is chosen by a hash, PCG here and fract(sin(...)) in the browser, and even the browser's own hash picks other rows on a GPU, so the middle of the cut can't be compared pixel for pixel; its ends are",
+    },
     Allowance {
         key: "shader-perlin-noise",
         frames: &[0, 37, 74, 111, 149],
+        mean: TOLERANCE,
         wrong_share: 0.008,
         reason: "its lattice hash, fract(p * 0.3183099) and its products, rounds differently on the GPU than in the browser's software renderer, so a few cells pick another gradient",
     },
     Allowance {
         key: "punch-lines",
         frames: &[0, 35, 107, 143],
+        mean: TOLERANCE,
         wrong_share: 0.006,
         reason: "fractional glyph advances; the Linux oracle rounds each advance to a whole pixel, which moves very large words by up to a pixel",
     },
     Allowance {
         key: "announce-title",
         frames: &[84, 169],
+        mean: TOLERANCE,
         wrong_share: 0.012,
         reason: "fractional glyph advances; the Linux oracle rounds each advance to a whole pixel, which moves the 1166 px tagline by about a pixel",
     },
     Allowance {
         key: "announce-title",
         frames: &[0],
+        mean: TOLERANCE,
         wrong_share: 0.016,
         reason: "the 3D receding plane is drawn as vectors through the perspective, where Chrome rasterises the layer first and projects it with stair-stepped edges",
     },
@@ -58,17 +84,31 @@ struct Grain {
     reason: &'static str,
 }
 
-const GRAIN: [Grain; 1] = [Grain {
-    key: "vhs-filter",
-    mean: 0.08,
-    reason: "its grain and head-switch tear hash with PCG, where the browser hashes with fract(sin(...)), so the noise differs pixel for pixel while the blurred pictures agree",
-}];
+const GRAIN: [Grain; 2] = [
+    Grain {
+        key: "vhs-filter",
+        mean: 0.08,
+        reason: "its grain and head-switch tear hash with PCG, where the browser hashes with fract(sin(...)), so the noise differs pixel for pixel while the blurred pictures agree",
+    },
+    Grain {
+        key: "ripple-zoom",
+        mean: 0.08,
+        reason: "the grain gradient's fine grain is simplex noise at a thousand times the pattern's scale, which rounds differently on the GPU than in the browser's software renderer; the blurred pictures agree",
+    },
+];
 
-fn mean_for(key: &str) -> f32 {
-    GRAIN
+fn mean_for(key: &str, frame: u32) -> f32 {
+    ALLOWANCES
         .iter()
-        .find(|g| g.key == key && !g.reason.is_empty())
-        .map_or(TOLERANCE, |g| g.mean)
+        .find(|a| a.key == key && a.frames.contains(&frame) && !a.reason.is_empty())
+        .map(|a| a.mean)
+        .or_else(|| {
+            GRAIN
+                .iter()
+                .find(|g| g.key == key && !g.reason.is_empty())
+                .map(|g| g.mean)
+        })
+        .unwrap_or(TOLERANCE)
 }
 
 fn wrong_share_for(key: &str, frame: u32) -> f64 {
@@ -129,6 +169,7 @@ fn items_drawn(tracks: &[TimelineTrack], cx: &Cx<'_>) -> bool {
                         entering: true,
                         progress: 0.0,
                         duration: 1.0,
+                        cut: 0,
                         children: Vec::new(),
                     },
                     cx,
@@ -318,7 +359,7 @@ fn every_drawn_element_matches_the_browser() {
     for (key, results) in scored {
         for (frame, score) in results {
             let line = format!("{:.4} {:.5}  {key} {frame}", score.mean, score.wrong);
-            if !score.passes(mean_for(&key), wrong_share_for(&key, frame)) {
+            if !score.passes(mean_for(&key, frame), wrong_share_for(&key, frame)) {
                 failing.push(line.clone());
             }
             lines.push(line);

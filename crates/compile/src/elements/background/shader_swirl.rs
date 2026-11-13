@@ -63,24 +63,54 @@ pub fn definition() -> ElementMeta {
 
 const MAX_COLORS: usize = 10;
 
-pub fn draw(props: &ShaderSwirl, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
-    let colors: Vec<String> = props.colors.iter().map(|c| c.0.clone()).collect();
+#[derive(Debug, Clone, PartialEq)]
+pub struct Swirl {
+    pub time: f64,
+    pub colors: Vec<String>,
+    pub color_back: String,
+    pub band_count: f64,
+    pub twist: f64,
+    pub center: f64,
+    pub proportion: f64,
+    pub softness: f64,
+    pub noise: f64,
+    pub noise_frequency: f64,
+    pub scale: f64,
+}
+
+pub fn swirl_field(swirl: &Swirl) -> Node {
     let mut settings = paper_sizing(PaperSizing {
-        scale: props.scale,
+        scale: swirl.scale,
         rotation: 0.0,
         offset: (0.0, 0.0),
     });
-    settings.extend(paper_colors(&colors, MAX_COLORS));
+    settings.extend(paper_colors(&swirl.colors, MAX_COLORS));
     settings.extend([
-        value("time", vec![cx.frame() / cx.fps() * props.speed]),
-        quads("colorBack", paper_color(&props.color_back).to_vec()),
-        value("bandCount", vec![f64::from(props.band_count)]),
-        value("twist", vec![props.twist]),
-        value("center", vec![props.center]),
-        value("proportion", vec![props.proportion]),
-        value("softness", vec![props.softness]),
-        value("noise", vec![props.noise]),
-        value("noiseFrequency", vec![props.noise_frequency]),
+        value("time", vec![swirl.time]),
+        quads("colorBack", paper_color(&swirl.color_back).to_vec()),
+        value("bandCount", vec![swirl.band_count]),
+        value("twist", vec![swirl.twist]),
+        value("center", vec![swirl.center]),
+        value("proportion", vec![swirl.proportion]),
+        value("softness", vec![swirl.softness]),
+        value("noise", vec![swirl.noise]),
+        value("noiseFrequency", vec![swirl.noise_frequency]),
     ]);
-    Ok(generated("shader-swirl", settings, PAPER_SCALE))
+    generated("shader-swirl", settings, PAPER_SCALE)
+}
+
+pub fn draw(props: &ShaderSwirl, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    Ok(swirl_field(&Swirl {
+        time: cx.frame() / cx.fps() * props.speed,
+        colors: props.colors.iter().map(|c| c.0.clone()).collect(),
+        color_back: props.color_back.clone(),
+        band_count: f64::from(props.band_count),
+        twist: props.twist,
+        center: props.center,
+        proportion: props.proportion,
+        softness: props.softness,
+        noise: props.noise,
+        noise_frequency: props.noise_frequency,
+        scale: props.scale,
+    }))
 }

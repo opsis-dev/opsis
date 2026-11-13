@@ -1,4 +1,4 @@
-use opsis_scene::node::{Effect, EffectUniform, Element, Kind, Node};
+use opsis_scene::node::{Effect, EffectUniform, Element, Kind, Node, div};
 use opsis_scene::style::Style;
 use opsis_scene::timeline::absolute_fill;
 use opsis_scene::values::Num;
@@ -147,4 +147,68 @@ pub fn paper_sizing(sizing: PaperSizing) -> Vec<Setting> {
         value("worldWidth", vec![0.0]),
         value("worldHeight", vec![0.0]),
     ]
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct SmokeRing {
+    pub time: f64,
+    pub color_back: String,
+    pub colors: Vec<String>,
+    pub radius: f64,
+    pub scale: f64,
+    pub thickness: f64,
+    pub noise_scale: f64,
+    pub offset_x: f64,
+}
+
+const SMOKE_COLORS: usize = 10;
+const SMOKE_INNER_SHAPE: f64 = 0.7;
+const SMOKE_NOISE_ITERATIONS: f64 = 8.0;
+
+pub fn smoke_ring(ring: &SmokeRing) -> Node {
+    let mut settings = paper_sizing(PaperSizing {
+        scale: ring.scale,
+        rotation: 0.0,
+        offset: (ring.offset_x, 0.0),
+    });
+    settings.extend(paper_colors(&ring.colors, SMOKE_COLORS));
+    settings.extend([
+        value("time", vec![ring.time]),
+        quads("colorBack", paper_color(&ring.color_back).to_vec()),
+        value("thickness", vec![ring.thickness]),
+        value("radius", vec![ring.radius]),
+        value("innerShape", vec![SMOKE_INNER_SHAPE]),
+        value("noiseScale", vec![ring.noise_scale]),
+        value("noiseIterations", vec![SMOKE_NOISE_ITERATIONS]),
+    ]);
+    generated("shader-smoke-ring", settings, PAPER_SCALE)
+}
+
+fn cut_slot(cut: u32) -> String {
+    format!("cut-{cut}")
+}
+
+pub fn paired(
+    program: &str,
+    settings: Vec<Setting>,
+    entering: bool,
+    cut: u32,
+    children: Vec<Node>,
+) -> Node {
+    let name = cut_slot(cut);
+    if !entering {
+        return Element::new(Kind::Slot(name), absolute_fill())
+            .children(children)
+            .into();
+    }
+    effect(program, settings, FILTER_SCALE, absolute_fill())
+        .child(Element::new(Kind::Slot(name), absolute_fill()))
+        .child(div(absolute_fill()).children(children))
+        .into()
+}
+
+pub fn generated_from(program: &str, settings: Vec<Setting>, child: Node) -> Node {
+    effect(program, settings, FILTER_SCALE, absolute_fill())
+        .child(child)
+        .into()
 }

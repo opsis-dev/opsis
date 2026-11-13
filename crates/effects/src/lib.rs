@@ -5,7 +5,12 @@ use opsis_filament::{Backend, Filament, FilamentError, Input, MaterialId, Unifor
 include!(concat!(env!("OUT_DIR"), "/materials.rs"));
 
 const PAPER_NOISE: &[u8] = include_bytes!("../textures/paper-noise.png");
-const NOISE_PROGRAMS: [&str; 3] = ["shader-warp", "shader-god-rays", "shader-grain-gradient"];
+const NOISE_PROGRAMS: [&str; 4] = [
+    "shader-warp",
+    "shader-god-rays",
+    "shader-grain-gradient",
+    "shader-smoke-ring",
+];
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum EffectsError {

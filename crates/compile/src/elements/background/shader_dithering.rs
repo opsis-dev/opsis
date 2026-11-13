@@ -87,19 +87,44 @@ const fn pattern_code(pattern: DitherPattern) -> f64 {
     }
 }
 
-pub fn draw(props: &ShaderDithering, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Dither<'a> {
+    pub time: f64,
+    pub size: f64,
+    pub color_back: &'a str,
+    pub color_front: &'a str,
+    pub shape: DitherShape,
+    pub pattern: DitherPattern,
+    pub scale: f64,
+    pub rotation: f64,
+}
+
+pub fn dither_field(d: &Dither<'_>) -> Node {
     let mut settings = paper_sizing(PaperSizing {
-        scale: props.scale,
-        rotation: props.rotation,
+        scale: d.scale,
+        rotation: d.rotation,
         offset: (0.0, 0.0),
     });
     settings.extend([
-        value("time", vec![cx.frame() / cx.fps() * props.speed]),
-        value("pxSize", vec![f64::from(props.size)]),
-        quads("colorBack", paper_color(&props.color_back).to_vec()),
-        quads("colorFront", paper_color(&props.color_front).to_vec()),
-        value("shape", vec![shape_code(props.shape)]),
-        value("ditherType", vec![pattern_code(props.r#type)]),
+        value("time", vec![d.time]),
+        value("pxSize", vec![d.size]),
+        quads("colorBack", paper_color(d.color_back).to_vec()),
+        quads("colorFront", paper_color(d.color_front).to_vec()),
+        value("shape", vec![shape_code(d.shape)]),
+        value("ditherType", vec![pattern_code(d.pattern)]),
     ]);
-    Ok(generated("shader-dithering", settings, PAPER_SCALE))
+    generated("shader-dithering", settings, PAPER_SCALE)
+}
+
+pub fn draw(props: &ShaderDithering, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    Ok(dither_field(&Dither {
+        time: cx.frame() / cx.fps() * props.speed,
+        size: f64::from(props.size),
+        color_back: &props.color_back,
+        color_front: &props.color_front,
+        shape: props.shape,
+        pattern: props.r#type,
+        scale: props.scale,
+        rotation: props.rotation,
+    }))
 }

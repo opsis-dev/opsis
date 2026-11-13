@@ -84,7 +84,21 @@ pub fn definition() -> ElementMeta {
 
 const MAX_COLORS: usize = 7;
 
-const fn shape_code(shape: GrainGradientShape) -> f64 {
+#[derive(Debug, Clone, PartialEq)]
+pub struct Grain {
+    pub time: f64,
+    pub colors: Vec<String>,
+    pub color_back: String,
+    pub softness: f64,
+    pub intensity: f64,
+    pub noise: f64,
+    pub shape: f64,
+    pub scale: f64,
+    pub rotation: f64,
+    pub offset: (f64, f64),
+}
+
+pub const fn shape_code(shape: GrainGradientShape) -> f64 {
     match shape {
         GrainGradientShape::Wave => 1.0,
         GrainGradientShape::Dots => 2.0,
@@ -96,21 +110,35 @@ const fn shape_code(shape: GrainGradientShape) -> f64 {
     }
 }
 
-pub fn draw(props: &ShaderGrainGradient, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
-    let colors: Vec<String> = props.colors.iter().map(|c| c.0.clone()).collect();
+pub fn grain_field(grain: &Grain) -> Node {
     let mut settings = paper_sizing(PaperSizing {
+        scale: grain.scale,
+        rotation: grain.rotation,
+        offset: grain.offset,
+    });
+    settings.extend(paper_colors(&grain.colors, MAX_COLORS));
+    settings.extend([
+        value("time", vec![grain.time]),
+        quads("colorBack", paper_color(&grain.color_back).to_vec()),
+        value("softness", vec![grain.softness]),
+        value("intensity", vec![grain.intensity]),
+        value("noise", vec![grain.noise]),
+        value("shape", vec![grain.shape]),
+    ]);
+    generated("shader-grain-gradient", settings, PAPER_SCALE)
+}
+
+pub fn draw(props: &ShaderGrainGradient, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    Ok(grain_field(&Grain {
+        time: cx.frame() / cx.fps() * props.speed,
+        colors: props.colors.iter().map(|c| c.0.clone()).collect(),
+        color_back: props.color_back.clone(),
+        softness: props.softness,
+        intensity: props.intensity,
+        noise: props.noise,
+        shape: shape_code(props.shape),
         scale: props.scale,
         rotation: f64::from(props.rotation),
         offset: (0.0, 0.0),
-    });
-    settings.extend(paper_colors(&colors, MAX_COLORS));
-    settings.extend([
-        value("time", vec![cx.frame() / cx.fps() * props.speed]),
-        quads("colorBack", paper_color(&props.color_back).to_vec()),
-        value("softness", vec![props.softness]),
-        value("intensity", vec![props.intensity]),
-        value("noise", vec![props.noise]),
-        value("shape", vec![shape_code(props.shape)]),
-    ]);
-    Ok(generated("shader-grain-gradient", settings, PAPER_SCALE))
+    }))
 }

@@ -38,6 +38,57 @@ pub(crate) struct Painter<'s, 'r, 'l> {
     pub context: Context,
     pub offscreen: bool,
     pub base: Matrix,
+    pub slots: &'l Slots,
+}
+
+#[derive(Debug, Default)]
+pub(crate) struct Slots {
+    sources: HashMap<String, Vec<usize>>,
+    referenced: std::collections::HashSet<String>,
+}
+
+impl Slots {
+    fn gather(&mut self, node: &Node, path: &mut Vec<usize>) {
+        let Node::Element(element) = node else {
+            return;
+        };
+        if let Kind::Slot(name) = &element.kind {
+            if element.children.is_empty() {
+                self.referenced.insert(name.clone());
+            } else {
+                self.sources.insert(name.clone(), path.clone());
+            }
+        }
+        for (i, child) in element.children.iter().enumerate() {
+            path.push(i);
+            self.gather(child, path);
+            path.pop();
+        }
+    }
+
+    fn of(root: &Node) -> Self {
+        let mut slots = Self::default();
+        slots.gather(root, &mut Vec::new());
+        slots
+    }
+
+    fn hidden(&self, element: &Element) -> bool {
+        matches!(&element.kind, Kind::Slot(name) if !element.children.is_empty() && self.referenced.contains(name))
+    }
+}
+
+fn element_at<'n>(root: &'n Node, path: &[usize]) -> Option<&'n Element> {
+    let Node::Element(first) = root else {
+        return None;
+    };
+    let mut element = first;
+    for &i in path {
+        let Node::Element(next) = element.children.get(i)? else {
+            return None;
+        };
+        element = next;
+    }
+    Some(element)
 }
 
 #[derive(Debug, Clone)]
@@ -80,6 +131,7 @@ fn has_transform(style: &Style) -> bool {
 const ASPECT_UNIFORM: &str = "aspect";
 const SIZE_UNIFORM: &str = "size";
 const SCALE_UNIFORM: &str = "scale";
+const PROGRESS_UNIFORM: &str = "progress";
 const MAX_EFFECT_PIXELS: f64 = 1920.0 * 1080.0 * 4.0;
 
 fn unpremultiplied(mut rgba: Vec<u8>) -> Vec<u8> {
@@ -424,6 +476,7 @@ impl<'n> Painter<'_, '_, '_> {
                 context: self.context,
                 offscreen: true,
                 base,
+                slots: self.slots,
             };
             sub.paint_context(element, path, &[]);
         }
@@ -496,6 +549,7 @@ impl<'n> Painter<'_, '_, '_> {
                 context: self.context,
                 offscreen: self.offscreen,
                 base,
+                slots: self.slots,
             };
             sub.paint_context_here(element, path, &[]);
         }
@@ -532,7 +586,7 @@ impl<'n> Painter<'_, '_, '_> {
         placed: &Placed,
         size: (u32, u32),
         scale: f64,
-    ) -> Option<Vec<Vec<u8>>> {
+    ) -> Option<Vec<Option<Vec<u8>>>> {
         let inverse = Affine::of(&placed.matrix)?.inverse()?;
         let b = placed.border_box;
         let base = Matrix::scaling(scale, scale, 1.0)
@@ -543,7 +597,26 @@ impl<'n> Painter<'_, '_, '_> {
             let Node::Element(child) = child else {
                 continue;
             };
-            let child_path: Vec<usize> = path.iter().copied().chain([c]).collect();
+            let own: Vec<usize> = path.iter().copied().chain([c]).collect();
+            let referenced = match &child.kind {
+                Kind::Slot(name) if child.children.is_empty() => Some(name),
+                _ => None,
+            };
+            let (source, child_path, revealed) = match referenced {
+                None => (child, own, false),
+                Some(name) => {
+                    let found = self
+                        .slots
+                        .sources
+                        .get(name)
+                        .and_then(|p| Some((element_at(self.root, p)?, p.clone())));
+                    let Some((found, found_path)) = found else {
+                        inputs.push(None);
+                        continue;
+                    };
+                    (found, found_path, true)
+                }
+            };
             let surface = Surface::new(size.0, size.1).ok()?;
             let mut surface = surface.with_base(matrix44(&base));
             surface.clear(Rgba::TRANSPARENT);
@@ -557,10 +630,15 @@ impl<'n> Painter<'_, '_, '_> {
                     context: self.context,
                     offscreen: false,
                     base,
+                    slots: self.slots,
                 };
-                sub.paint_context(child, &child_path, &[]);
+                if revealed {
+                    sub.paint_context_here(source, &child_path, &[]);
+                } else {
+                    sub.paint_context(source, &child_path, &[]);
+                }
             }
-            inputs.push(surface.rgba());
+            inputs.push(Some(surface.rgba()));
         }
         Some(inputs)
     }
@@ -611,6 +689,17 @@ impl<'n> Painter<'_, '_, '_> {
             vec![narrow(width), narrow(height)],
         ));
         uniforms.push(Setting::of(SCALE_UNIFORM, vec![narrow(scale)]));
+        if inputs.iter().any(Option::is_none) {
+            for u in uniforms.iter_mut().filter(|u| u.name == PROGRESS_UNIFORM) {
+                u.values = vec![1.0];
+            }
+        }
+        let blank =
+            vec![0u8; usize::try_from(u64::from(size.0) * u64::from(size.1) * 4).unwrap_or(0)];
+        let inputs: Vec<Vec<u8>> = inputs
+            .into_iter()
+            .map(|input| input.unwrap_or_else(|| blank.clone()))
+            .collect();
         let Some(out) = self.resources.run(&Pass {
             program: &effect.program,
             inputs: &inputs,
@@ -641,7 +730,7 @@ impl<'n> Painter<'_, '_, '_> {
     }
 
     fn paint_context(&mut self, element: &'n Element, path: &[usize], clips: &[usize]) {
-        if self.faces_back(element, path) {
+        if self.faces_back(element, path) || self.slots.hidden(element) {
             return;
         }
         if let Kind::Effect(effect) = &element.kind
@@ -735,6 +824,7 @@ pub fn paint(
         .enumerate()
         .map(|(i, placed)| (placed.path.clone(), i))
         .collect();
+    let slots = Slots::of(root);
     let mut painter = Painter {
         root,
         surface,
@@ -743,6 +833,7 @@ pub fn paint(
         index: &index,
         offscreen: false,
         base: Matrix::translation(0.0, 0.0, 0.0),
+        slots: &slots,
         context: Context {
             viewport_width: viewport.width,
             viewport_height: viewport.height,

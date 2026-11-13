@@ -1,0 +1,82 @@
+material {
+    name : lightLeak,
+    shadingModel : unlit,
+    blending : transparent,
+    parameters : [
+        { type : float, name : aspect },
+        { type : float2, name : size },
+        { type : float, name : scale },
+        { type : float, name : progress },
+        { type : float, name : seed },
+        { type : float4[4], name : colors },
+        { type : float, name : colorsCount }
+    ],
+    requires : [ uv0 ],
+    vertexDomain : device,
+    depthWrite : false,
+    depthCulling : false,
+    culling : none
+}
+
+fragment {
+    #include "pcg-hash.glsl"
+
+    float hash1(float n) {
+        return hash(vec2(n, materialParams.seed));
+    }
+
+    float valueNoise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        vec2 u = f * f * (3.0 - 2.0 * f);
+        float a = hash1(i.x + i.y * 57.0);
+        float b = hash1(i.x + 1.0 + i.y * 57.0);
+        float c = hash1(i.x + (i.y + 1.0) * 57.0);
+        float d = hash1(i.x + 1.0 + (i.y + 1.0) * 57.0);
+        return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+    }
+
+    float fbm(vec2 p) {
+        float sum = 0.0;
+        float amp = 0.5;
+        for (int i = 0; i < 4; i++) {
+            sum += valueNoise(p) * amp;
+            p *= 2.03;
+            amp *= 0.5;
+        }
+        return sum;
+    }
+
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        vec2 vuv = getUV0();
+        float aspect = materialParams.aspect;
+        float progress = materialParams.progress;
+        vec2 p = vec2(vuv.x * aspect, vuv.y);
+        vec3 tint = vec3(0.0);
+        float share = 0.0;
+        float cover = 0.0;
+        for (int i = 0; i < 4; i++) {
+            if (i >= int(materialParams.colorsCount)) break;
+            float fi = float(i);
+            float lag = fi * 0.12;
+            float t = clamp((progress - lag) / (1.0 - lag * 0.5), 0.0, 1.0);
+            float bloom = smoothstep(0.0, 0.45, t) * (1.0 - smoothstep(0.55, 1.0, t));
+            vec2 from = vec2(hash1(fi + 1.0) < 0.5 ? -0.2 : aspect + 0.2, hash1(fi + 2.0));
+            vec2 to = vec2(aspect * hash1(fi + 3.0), hash1(fi + 4.0));
+            vec2 centre = mix(from, to, smoothstep(0.0, 1.0, t));
+            vec2 warp = vec2(
+                fbm(p * 1.6 + vec2(fi * 3.1, progress * 1.5)),
+                fbm(p * 1.6 + vec2(progress * 1.2, fi * 5.7))) - 0.5;
+            float d = length(p + warp * 0.35 - centre);
+            float radius = mix(0.35, 0.95, hash1(fi + 5.0)) * (0.6 + 0.6 * bloom);
+            float glow = exp(-(d * d) / (radius * radius)) * bloom;
+            float lead = glow * glow * glow;
+            tint += materialParams.colors[i].rgb * lead;
+            share += lead;
+            cover = 1.0 - (1.0 - cover) * (1.0 - glow);
+        }
+        vec3 colour = share > 0.000001 ? tint / share : vec3(0.0);
+        material.baseColor = vec4(colour * cover, cover);
+    }
+}

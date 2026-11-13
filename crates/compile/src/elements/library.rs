@@ -60,6 +60,7 @@ impl Library for FilmLibrary<'_> {
                 entering: presented.side == Side::Entering,
                 progress: presented.progress,
                 duration: f64::from(presented.transition.duration_in_frames),
+                cut: presented.cut,
                 children,
             },
             &Cx {

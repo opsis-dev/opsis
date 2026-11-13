@@ -1,7 +1,12 @@
 use opsis_macros::settings;
+use opsis_scene::node::{Node, div};
+use opsis_scene::paint::BlendMode as SceneBlend;
+use opsis_scene::timeline::absolute_fill;
 use opsis_types::looks::NodeLook;
 
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::shader::{generated, quads, rgb_uniform, value};
 use crate::elements::shared::{BlendMode, Colour};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
@@ -48,4 +53,49 @@ pub fn definition() -> ElementMeta {
         )
         .look(NodeLook::of("lucide:sun-dim")),
     )
+}
+
+const MAX_COLOURS: usize = 4;
+const CANVAS_SCALE: f64 = 1.0;
+
+const fn blend_of(blend: BlendMode) -> SceneBlend {
+    match blend {
+        BlendMode::Multiply => SceneBlend::Multiply,
+        BlendMode::Screen => SceneBlend::Screen,
+        BlendMode::Normal => SceneBlend::Normal,
+    }
+}
+
+pub fn draw(props: &LightLeak, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let duration = cx.duration();
+    let progress = if duration > 1.0 {
+        cx.frame() / (duration - 1.0)
+    } else {
+        1.0
+    };
+    let shown: Vec<&Colour> = props.colors.iter().take(MAX_COLOURS).collect();
+    let colours: Vec<f64> = shown
+        .iter()
+        .flat_map(|c| {
+            let mut rgb = rgb_uniform(&c.0);
+            rgb.push(1.0);
+            rgb
+        })
+        .collect();
+    let mut settings = vec![
+        value("progress", vec![progress]),
+        value("seed", vec![f64::from(props.seed)]),
+        value(
+            "colorsCount",
+            vec![opsis_types::numbers::float(shown.len())],
+        ),
+    ];
+    if !colours.is_empty() {
+        settings.push(quads("colors", colours));
+    }
+    Ok(div(absolute_fill()
+        .opacity(props.strength / 100.0)
+        .mix_blend_mode(blend_of(props.blend)))
+    .child(generated("light-leak", settings, CANVAS_SCALE))
+    .into())
 }

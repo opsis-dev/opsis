@@ -1,7 +1,10 @@
 use opsis_macros::{choice, settings};
+use opsis_scene::node::Node;
 use opsis_types::looks::NodeLook;
 
+use crate::elements::draw::{Cx, DrawFailure, Transition};
 use crate::elements::entry::{element, meta};
+use crate::elements::shader::{paired, value};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[choice(export)]
@@ -69,4 +72,47 @@ pub fn definition() -> ElementMeta {
             )
                 .look(NodeLook::of("lucide:sparkles")),
         )
+}
+
+const MAX_STAGGER: f64 = 0.92;
+
+const fn axis(direction: ParticleDissolveDirection) -> (f64, f64) {
+    match direction {
+        ParticleDissolveDirection::Reveal => (0.0, 0.0),
+        ParticleDissolveDirection::Up => (0.0, -1.0),
+        ParticleDissolveDirection::Down => (0.0, 1.0),
+        ParticleDissolveDirection::Left => (-1.0, 0.0),
+        ParticleDissolveDirection::Right => (1.0, 0.0),
+    }
+}
+
+pub fn present(
+    props: &ParticleDissolve,
+    side: Transition,
+    _: &Cx<'_>,
+) -> Result<Node, DrawFailure> {
+    let (dx, dy) = axis(props.direction);
+    let radial = if props.direction == ParticleDissolveDirection::Reveal {
+        1.0
+    } else {
+        0.0
+    };
+    Ok(paired(
+        "particle-dissolve",
+        vec![
+            value("progress", vec![side.progress]),
+            value("particleSize", vec![f64::from(props.particle_size)]),
+            value("scatter", vec![props.scatter]),
+            value("shimmer", vec![props.shimmer]),
+            value("aberration", vec![props.aberration]),
+            value("stagger", vec![props.stagger.clamp(0.0, MAX_STAGGER)]),
+            value("dir", vec![dx, dy]),
+            value("radial", vec![radial]),
+            value("grey", vec![1.0 - props.dust_color / 100.0]),
+            value("ragged", vec![props.raggedness]),
+        ],
+        side.entering,
+        side.cut,
+        side.children,
+    ))
 }

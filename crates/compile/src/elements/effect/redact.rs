@@ -1,7 +1,14 @@
 use opsis_macros::settings;
+use opsis_scene::node::{Node, div};
+use opsis_scene::paint::Filter;
+use opsis_scene::style::{Position, Style};
+use opsis_scene::timeline::{ChildAt, absolute_fill};
+use opsis_scene::values::Length;
 use opsis_types::looks::NodeLook;
 
+use crate::elements::draw::{Cx, DrawFailure, css_color};
 use crate::elements::entry::{element, meta};
+use crate::elements::shader::{generated_from, quads, value};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 use crate::nodes::image::RedactStyle;
 
@@ -87,4 +94,84 @@ pub fn definition() -> ElementMeta {
         )
         .look(NodeLook::of("lucide:grid-3x3")),
     )
+}
+
+const MAX_REGIONS: usize = 8;
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct Region {
+    x: f64,
+    y: f64,
+    width: f64,
+    height: f64,
+}
+
+fn cover(region: Region, style: Style) -> Node {
+    div(style
+        .position(Position::Absolute)
+        .left(Length::px(region.x))
+        .top(Length::px(region.y))
+        .width(Length::px(region.width))
+        .height(Length::px(region.height)))
+    .into()
+}
+
+pub fn wrap(props: &Redact, child: ChildAt<'_>, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let inner = child(cx.at.stage)?;
+    let (width, height) = (cx.at.stage.width, cx.at.stage.height);
+    let regions: Vec<Region> = props
+        .boxes
+        .iter()
+        .filter(|b| b.width > 0.0 && b.height > 0.0)
+        .take(MAX_REGIONS)
+        .map(|b| Region {
+            x: b.x * width,
+            y: b.y * height,
+            width: b.width * width,
+            height: b.height * height,
+        })
+        .collect();
+    if regions.is_empty() {
+        return Ok(inner);
+    }
+    if props.style == RedactStyle::Pixelate {
+        let cell = f64::from(props.block_size);
+        let packed: Vec<f64> = regions
+            .iter()
+            .flat_map(|r| {
+                [
+                    r.x / width,
+                    r.y / height,
+                    r.width / width,
+                    r.height / height,
+                ]
+            })
+            .collect();
+        return Ok(generated_from(
+            "redact-pixelate",
+            vec![
+                quads("regions", packed),
+                value(
+                    "regionCount",
+                    vec![opsis_types::numbers::float(regions.len())],
+                ),
+                value("cell", vec![cell / width, cell / height]),
+            ],
+            inner,
+        ));
+    }
+    let covers = regions.iter().map(|r| {
+        let style = if props.style == RedactStyle::Blur {
+            Style::default().backdrop_filter(vec![Filter::Blur(Length::px(props.blur))])
+        } else {
+            Style::default()
+                .background_color(css_color(&props.color))
+                .border_radius_all(props.radius)
+        };
+        cover(*r, style)
+    });
+    Ok(div(absolute_fill())
+        .child(inner)
+        .child(div(absolute_fill()).children(covers))
+        .into())
 }

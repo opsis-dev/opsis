@@ -108,6 +108,7 @@ pub struct Transition {
     pub entering: bool,
     pub progress: f64,
     pub duration: f64,
+    pub cut: u32,
     pub children: Vec<Node>,
 }
 
@@ -135,6 +136,56 @@ pub fn presentation(
 ) -> Drawn {
     match kind {
         "fade" => presented(kind, params, transition, cx, transition::fade::present),
+        "dither-dissolve" => presented(
+            kind,
+            params,
+            transition,
+            cx,
+            transition::dither_dissolve::present,
+        ),
+        "grain-dissolve" => presented(
+            kind,
+            params,
+            transition,
+            cx,
+            transition::grain_dissolve::present,
+        ),
+        "swirl-dissolve" => presented(
+            kind,
+            params,
+            transition,
+            cx,
+            transition::swirl_dissolve::present,
+        ),
+        "smoke-dissolve" => presented(
+            kind,
+            params,
+            transition,
+            cx,
+            transition::smoke_dissolve::present,
+        ),
+        "wave-wipe" => presented(kind, params, transition, cx, transition::wave_wipe::present),
+        "ripple-zoom" => presented(
+            kind,
+            params,
+            transition,
+            cx,
+            transition::ripple_zoom::present,
+        ),
+        "glitch-cut" => presented(
+            kind,
+            params,
+            transition,
+            cx,
+            transition::glitch_cut::present,
+        ),
+        "particle-dissolve" => presented(
+            kind,
+            params,
+            transition,
+            cx,
+            transition::particle_dissolve::present,
+        ),
         "slide" => presented(kind, params, transition, cx, transition::slide::present),
         "wipe" => presented(kind, params, transition, cx, transition::wipe::present),
         "flip" => presented(kind, params, transition, cx, transition::flip::present),
@@ -261,6 +312,7 @@ pub fn wrapper(
         "polaroid" => wrapped(component, props, child, cx, effect::polaroid::wrap),
         "halftone-print" => wrapped(component, props, child, cx, effect::halftone_print::wrap),
         "crt-screen" => wrapped(component, props, child, cx, effect::crt_screen::wrap),
+        "redact" => wrapped(component, props, child, cx, effect::redact::wrap),
         "vhs-filter" => wrapped(component, props, child, cx, effect::vhs_filter::wrap),
         "camera-lens" => wrapped(component, props, child, cx, effect::camera_lens::wrap),
         "tv-power-off" => wrapped(component, props, child, cx, effect::tv_power_off::wrap),
@@ -292,6 +344,7 @@ pub fn element(component: &str, props: &Map<String, Value>, cx: &Cx<'_>) -> Draw
         "text-mask-video" => drawn(component, props, cx, text::text_mask_video::draw),
         "framed-image" => drawn(component, props, cx, framed_image::draw),
         "solid" => drawn(component, props, cx, background::solid::draw),
+        "light-leak" => drawn(component, props, cx, overlay::light_leak::draw),
         "shader-warp" => drawn(component, props, cx, background::shader_warp::draw),
         "shader-swirl" => drawn(component, props, cx, background::shader_swirl::draw),
         "shader-grain-gradient" => drawn(

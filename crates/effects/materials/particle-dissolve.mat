@@ -1,0 +1,130 @@
+material {
+    name : particleDissolve,
+    shadingModel : unlit,
+    blending : transparent,
+    parameters : [
+        { type : sampler2d, name : input0 },
+        { type : sampler2d, name : input1 },
+        { type : float, name : aspect },
+        { type : float2, name : size },
+        { type : float, name : scale },
+        { type : float, name : progress },
+        { type : float, name : particleSize },
+        { type : float, name : scatter },
+        { type : float, name : shimmer },
+        { type : float, name : aberration },
+        { type : float, name : stagger },
+        { type : float, name : grey },
+        { type : float, name : ragged },
+        { type : float2, name : dir },
+        { type : float, name : radial }
+    ],
+    requires : [ uv0 ],
+    vertexDomain : device,
+    depthWrite : false,
+    depthCulling : false,
+    culling : none
+}
+
+fragment {
+    #include "pcg-hash.glsl"
+
+    float noise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        vec2 u = f * f * (3.0 - 2.0 * f);
+        return mix(
+            mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+            mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x),
+            u.y);
+    }
+
+    float fbm(vec2 p) {
+        float sum = 0.0;
+        float amp = 0.5;
+        for (int i = 0; i < 4; i++) {
+            sum += noise(p) * amp;
+            p *= 2.03;
+            amp *= 0.5;
+        }
+        return sum * 1.0667;
+    }
+
+    float luma(vec3 c) {
+        return dot(c, vec3(0.2126, 0.7152, 0.0722));
+    }
+
+    vec4 grabFrom(vec2 uv, vec2 dir, float amount) {
+        vec4 centre = texture(materialParams_input0, uv);
+        float r = texture(materialParams_input0, uv + dir * amount).r;
+        float b = texture(materialParams_input0, uv - dir * amount).b;
+        return vec4(r, centre.g, b, centre.a);
+    }
+
+    vec4 grabTo(vec2 uv, vec2 dir, float amount) {
+        vec4 centre = texture(materialParams_input1, uv);
+        float r = texture(materialParams_input1, uv + dir * amount).r;
+        float b = texture(materialParams_input1, uv - dir * amount).b;
+        return vec4(r, centre.g, b, centre.a);
+    }
+
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        float pi = 3.141592653589793;
+        vec2 vuv = getUV0();
+        float aspect = materialParams.aspect;
+        float progress = materialParams.progress;
+        float cells = materialParams.size.y / max(materialParams.particleSize, 1.0);
+        vec2 grid = vec2(cells * aspect, cells);
+        vec2 skewed = vec2(vuv.x * aspect, vuv.y);
+        vec2 centred = skewed - vec2(0.5 * aspect, 0.5);
+        vec2 dir = materialParams.dir;
+        float radial = materialParams.radial;
+        float stagger = materialParams.stagger;
+        float spatial = radial > 0.5
+            ? clamp(length(centred) / 0.62, 0.0, 1.0)
+            : clamp(dot(vuv - 0.5, dir) + 0.5, 0.0, 1.0);
+        float blob = fbm(skewed * 2.2);
+        float order = mix(blob, spatial, 1.0 - materialParams.ragged) * stagger;
+        float span = max(1.0 - stagger, 0.08);
+        float phase = clamp((progress - order) / span, 0.0, 1.0);
+        float dust = sin(phase * pi);
+        vec2 flow = vec2(
+            fbm(skewed * 3.0 + vec2(0.0, progress * 0.8)),
+            fbm(skewed * 3.0 + vec2(5.3, 2.7 - progress * 0.7))) - 0.5;
+        vec2 aim = flow * 2.0 + normalize(centred + 0.0001) * 0.7 * radial + dir;
+        vec2 heading = aim / max(length(aim), 0.0001);
+        float bright = luma(texture(materialParams_input0, vuv).rgb);
+        float travel = materialParams.scatter * dust * (0.18 + bright * 1.25);
+        vec2 drift = vec2(heading.x / aspect, heading.y) * travel;
+        float split = materialParams.aberration * dust * 0.35;
+        vec4 leaving = grabFrom(vuv - drift, drift, split);
+        vec4 arriving = grabTo(vuv + drift, -drift, split);
+        vec4 base = mix(leaving, arriving, smoothstep(0.25, 0.75, phase));
+        base.rgb = mix(base.rgb, vec3(luma(base.rgb)), dust * materialParams.grey);
+        base.rgb *= 1.0 - dust * 0.25;
+        vec2 g = (vuv - drift) * grid;
+        vec2 origin = floor(g);
+        float cover = 0.0;
+        float light = 0.0;
+        for (int oy = -1; oy <= 1; oy++) {
+            for (int ox = -1; ox <= 1; ox++) {
+                vec2 cell = origin + vec2(float(ox), float(oy));
+                vec2 jitter = vec2(hash(cell + 3.1), hash(cell + 8.7));
+                float mote = hash(cell + 13.7);
+                float twinkle = 0.5 + 0.5 * sin(progress * (12.0 + mote * 30.0) + mote * 6.2831);
+                float radius = (0.36 + 0.46 * hash(cell + 21.3)) * (0.65 + 0.6 * twinkle);
+                float reach = length(g - (cell + jitter));
+                float hit = 1.0 - smoothstep(radius * 0.45, radius, reach);
+                cover = max(cover, hit);
+                light = max(light, hit * mote * twinkle);
+            }
+        }
+        cover = mix(1.0, cover, dust);
+        light *= dust;
+        vec4 speck = vec4(base.rgb + vec3(0.36 * light * materialParams.shimmer) * base.a, base.a);
+        vec4 gap = vec4(base.rgb * (1.0 - dust * 0.6), base.a);
+        vec4 color = mix(gap, speck, cover);
+        material.baseColor = vec4(color.rgb * color.a, color.a);
+    }
+}
