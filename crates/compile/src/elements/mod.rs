@@ -33,6 +33,7 @@ pub mod placeholder;
 pub mod prepared;
 pub mod props;
 pub mod scene;
+pub mod shader;
 pub mod shared;
 pub mod stop_motion;
 pub mod terminal;

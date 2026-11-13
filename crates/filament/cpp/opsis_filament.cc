@@ -15,6 +15,9 @@
 #include <filament/VertexBuffer.h>
 #include <filament/View.h>
 #include <filament/Viewport.h>
+#include <math/vec2.h>
+#include <math/vec3.h>
+#include <math/vec4.h>
 #include <utils/EntityManager.h>
 
 #include <cstring>
@@ -45,6 +48,53 @@ constexpr uint16_t kIndices[] = {0, 1, 2};
 constexpr int32_t kFailed = -1;
 constexpr uint32_t kVertexStride = 16;
 constexpr uint32_t kUvOffset = 8;
+constexpr size_t kScalar = 1;
+constexpr size_t kPair = 2;
+constexpr size_t kTriple = 3;
+constexpr size_t kQuad = 4;
+
+Texture* upload(Engine* engine, const uint8_t* source, uint32_t width,
+                uint32_t height) {
+  size_t size = static_cast<size_t>(width) * height * 4;
+  auto* pixels = new uint8_t[size];
+  std::memcpy(pixels, source, size);
+  Texture* texture = Texture::Builder()
+                         .width(width)
+                         .height(height)
+                         .levels(1)
+                         .format(Texture::InternalFormat::RGBA8)
+                         .sampler(Texture::Sampler::SAMPLER_2D)
+                         .build(*engine);
+  texture->setImage(*engine, 0,
+                    Texture::PixelBufferDescriptor(
+                        pixels, size, Texture::Format::RGBA,
+                        Texture::Type::UBYTE, [](void* buffer, size_t, void*) {
+                          delete[] static_cast<uint8_t*>(buffer);
+                        }));
+  return texture;
+}
+
+bool set_uniform(MaterialInstance* instance, const OpsisUniform& uniform) {
+  const float* v = uniform.values;
+  switch (uniform.count) {
+    case kScalar:
+      instance->setParameter(uniform.name, v[0]);
+      return true;
+    case kPair:
+      instance->setParameter(uniform.name, filament::math::float2{v[0], v[1]});
+      return true;
+    case kTriple:
+      instance->setParameter(uniform.name,
+                             filament::math::float3{v[0], v[1], v[2]});
+      return true;
+    case kQuad:
+      instance->setParameter(uniform.name,
+                             filament::math::float4{v[0], v[1], v[2], v[3]});
+      return true;
+    default:
+      return false;
+  }
+}
 
 Engine::Backend backend_of(int32_t backend) {
   switch (backend) {
@@ -156,39 +206,36 @@ extern "C" int32_t opsis_filament_material(OpsisFilament* filament,
   return static_cast<int32_t>(filament->materials.size() - 1);
 }
 
-extern "C" int32_t opsis_filament_pass(OpsisFilament* filament,
-                                       int32_t material, const uint8_t* source,
-                                       uint32_t width, uint32_t height,
-                                       const float* floats, size_t float_count,
-                                       uint8_t* out) {
+extern "C" int32_t opsis_filament_pass(
+    OpsisFilament* filament, int32_t material, const uint8_t* const* inputs,
+    size_t input_count, uint32_t width, uint32_t height,
+    const OpsisUniform* uniforms, size_t uniform_count, uint8_t* out) {
   if (material < 0 ||
       static_cast<size_t>(material) >= filament->materials.size()) {
     return kFailed;
   }
   Engine* engine = filament->engine;
   size_t size = static_cast<size_t>(width) * height * 4;
-  auto* pixels = new uint8_t[size];
-  std::memcpy(pixels, source, size);
-  Texture* texture = Texture::Builder()
-                         .width(width)
-                         .height(height)
-                         .levels(1)
-                         .format(Texture::InternalFormat::RGBA8)
-                         .sampler(Texture::Sampler::SAMPLER_2D)
-                         .build(*engine);
-  texture->setImage(*engine, 0,
-                    Texture::PixelBufferDescriptor(
-                        pixels, size, Texture::Format::RGBA,
-                        Texture::Type::UBYTE, [](void* buffer, size_t, void*) {
-                          delete[] static_cast<uint8_t*>(buffer);
-                        }));
   MaterialInstance* instance =
       filament->materials[static_cast<size_t>(material)]->createInstance();
-  instance->setParameter("source", texture,
-                         TextureSampler(TextureSampler::MinFilter::LINEAR,
-                                        TextureSampler::MagFilter::LINEAR));
-  for (size_t i = 0; i < float_count; ++i) {
-    instance->setParameter(("value" + std::to_string(i)).c_str(), floats[i]);
+  std::vector<Texture*> textures;
+  for (size_t i = 0; i < input_count; ++i) {
+    Texture* texture = upload(engine, inputs[i], width, height);
+    textures.push_back(texture);
+    instance->setParameter(("input" + std::to_string(i)).c_str(), texture,
+                           TextureSampler(TextureSampler::MinFilter::LINEAR,
+                                          TextureSampler::MagFilter::LINEAR));
+  }
+  bool shaped = true;
+  for (size_t i = 0; i < uniform_count; ++i) {
+    shaped = set_uniform(instance, uniforms[i]) && shaped;
+  }
+  if (!shaped) {
+    engine->destroy(instance);
+    for (Texture* texture : textures) {
+      engine->destroy(texture);
+    }
+    return kFailed;
   }
   RenderableManager::Builder(1)
       .boundingBox({{-1, -1, -1}, {1, 1, 1}})
@@ -215,6 +262,8 @@ extern "C" int32_t opsis_filament_pass(OpsisFilament* filament,
   engine->getRenderableManager().destroy(filament->quad);
   engine->destroy(swap);
   engine->destroy(instance);
-  engine->destroy(texture);
+  for (Texture* texture : textures) {
+    engine->destroy(texture);
+  }
   return 0;
 }

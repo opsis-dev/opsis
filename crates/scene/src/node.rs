@@ -97,7 +97,6 @@ pub struct LottieFrame {
 #[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Effect {
     pub program: String,
-    pub inputs: Vec<Node>,
     pub uniforms: Vec<(String, Vec<Num>)>,
 }
 

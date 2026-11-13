@@ -259,6 +259,7 @@ pub fn wrapper(
 ) -> Drawn {
     match component {
         "polaroid" => wrapped(component, props, child, cx, effect::polaroid::wrap),
+        "halftone-print" => wrapped(component, props, child, cx, effect::halftone_print::wrap),
         "phone-frame" => wrapped(component, props, child, cx, device::phone_frame::wrap),
         "laptop-frame" => wrapped(component, props, child, cx, device::laptop_frame::wrap),
         "multi-device-lineup" => wrapped(

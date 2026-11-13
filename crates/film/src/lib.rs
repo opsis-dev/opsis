@@ -4,10 +4,12 @@ use std::sync::Arc;
 
 use opsis_compile::elements::library::FilmLibrary;
 use opsis_compile::fonts::bundled_fonts;
+use opsis_effects::{Effects, Setting, has_program};
+use opsis_filament::Backend;
 use opsis_layout::fonts::{FontError, Fonts};
 use opsis_layout::measure::Measurer;
 use opsis_layout::{Images, Viewport, lay_out};
-use opsis_paint::{Frames, Resources, paint};
+use opsis_paint::{Frames, Pass, Programs, Resources, paint};
 use opsis_scene::drawing::Font;
 use opsis_scene::measure::{AnimationTiming, Measure, MeasuredBox};
 use opsis_scene::node::Node;
@@ -47,6 +49,41 @@ pub struct Film<'a> {
     frames: Option<Frames<'a>>,
     animations: RefCell<HashMap<String, Option<AnimationTiming>>>,
     terminals: RefCell<HashMap<String, Option<Arc<TerminalFrames>>>>,
+    effects: Option<Effects>,
+    effects_tried: bool,
+}
+
+struct FilmPrograms<'e> {
+    effects: &'e mut Option<Effects>,
+    tried: &'e mut bool,
+}
+
+impl Programs for FilmPrograms<'_> {
+    fn run(&mut self, pass: &Pass<'_>) -> Option<Vec<u8>> {
+        if !has_program(pass.program) {
+            return None;
+        }
+        if self.effects.is_none() && !*self.tried {
+            *self.tried = true;
+            *self.effects = Effects::new(Backend::Vulkan)
+                .map_err(|e| log::warn!("shader effects: {e}"))
+                .ok();
+        }
+        let effects = self.effects.as_mut()?;
+        let inputs: Vec<&[u8]> = pass.inputs.iter().map(Vec::as_slice).collect();
+        let settings: Vec<Setting> = pass
+            .uniforms
+            .iter()
+            .map(|(name, values)| Setting {
+                name: name.clone(),
+                values: values.clone(),
+            })
+            .collect();
+        effects
+            .run(pass.program, &inputs, pass.size, &settings)
+            .map_err(|e| log::warn!("the {} effect: {e}", pass.program))
+            .ok()
+    }
 }
 
 struct FilmMeasure<'f, 'a> {
@@ -177,6 +214,8 @@ impl<'a> Film<'a> {
             frames: None,
             animations: RefCell::new(HashMap::new()),
             terminals: RefCell::new(HashMap::new()),
+            effects: None,
+            effects_tried: false,
         })
     }
 
@@ -228,7 +267,12 @@ impl<'a> Film<'a> {
             ]));
         }
         surface.clear(Rgba::new(0.0, 0.0, 0.0, 1.0));
-        let mut resources = Resources::new(self.files, self.fonts.faces());
+        let mut programs = FilmPrograms {
+            effects: &mut self.effects,
+            tried: &mut self.effects_tried,
+        };
+        let mut resources =
+            Resources::new(self.files, self.fonts.faces()).with_programs(&mut programs);
         if let Some(frames) = self.frames {
             resources = resources.with_frames(frames);
         }

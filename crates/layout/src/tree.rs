@@ -103,12 +103,12 @@ impl std::fmt::Debug for Tree<'_> {
 
 const fn kind_tag(kind: &Kind) -> Tag {
     match kind {
-        Kind::Div => Tag::Div,
+        Kind::Div | Kind::Effect(_) => Tag::Div,
         Kind::Span => Tag::Span,
         Kind::Image(_) => Tag::Image,
         Kind::Svg(_) => Tag::Svg,
         Kind::Drawing(_) => Tag::Canvas,
-        Kind::Footage(_) | Kind::Lottie(_) | Kind::Effect(_) | Kind::Slot(_) => Tag::Leaf,
+        Kind::Footage(_) | Kind::Lottie(_) | Kind::Slot(_) => Tag::Leaf,
     }
 }
 

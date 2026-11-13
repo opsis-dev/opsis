@@ -2,8 +2,8 @@ material {
     name : tint,
     shadingModel : unlit,
     parameters : [
-        { type : sampler2d, name : source },
-        { type : float, name : value0 }
+        { type : sampler2d, name : input0 },
+        { type : float, name : amount }
     ],
     requires : [ uv0 ],
     vertexDomain : device,
@@ -15,7 +15,7 @@ material {
 fragment {
     void material(inout MaterialInputs material) {
         prepareMaterial(material);
-        vec4 color = texture(materialParams_source, getUV0());
-        material.baseColor = vec4(color.rgb * materialParams.value0, color.a);
+        vec4 color = texture(materialParams_input0, getUV0());
+        material.baseColor = vec4(color.rgb * materialParams.amount, color.a);
     }
 }

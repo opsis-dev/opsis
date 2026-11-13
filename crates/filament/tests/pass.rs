@@ -1,4 +1,4 @@
-use opsis_filament::{Backend, Filament, TINT_MATERIAL};
+use opsis_filament::{Backend, Filament, TINT_MATERIAL, Uniform};
 
 const WIDTH: u32 = 64;
 const HEIGHT: u32 = 32;
@@ -30,7 +30,15 @@ fn a_tint_pass_halves_the_picture_and_keeps_it_upright() {
     assert_eq!(filament.backend(), Backend::Vulkan);
     let tint = filament.material(TINT_MATERIAL).expect("the tint material");
     let out = filament
-        .pass(tint, &picture(), WIDTH, HEIGHT, &[0.5])
+        .pass(
+            tint,
+            &[&picture()],
+            (WIDTH, HEIGHT),
+            &[Uniform {
+                name: "amount",
+                values: &[0.5],
+            }],
+        )
         .expect("a pass");
     let (top, bottom) = (pixel(&out, 10, 4), pixel(&out, 10, 28));
     assert!(near(top, [100, 50, 0, 255]), "{top:?}");
@@ -45,7 +53,15 @@ fn a_picture_of_the_wrong_size_is_refused() {
     let tint = filament.material(TINT_MATERIAL).expect("the tint material");
     assert!(
         filament
-            .pass(tint, &[0; 12], WIDTH, HEIGHT, &[1.0])
+            .pass(
+                tint,
+                &[&[0; 12]],
+                (WIDTH, HEIGHT),
+                &[Uniform {
+                    name: "amount",
+                    values: &[1.0],
+                }],
+            )
             .is_err()
     );
 }

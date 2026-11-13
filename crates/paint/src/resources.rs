@@ -15,9 +15,22 @@ pub struct Picture {
 
 pub type Frames<'a> = &'a (dyn Fn(&str) -> Option<Picture> + Sync);
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct Pass<'p> {
+    pub program: &'p str,
+    pub inputs: &'p [Vec<u8>],
+    pub size: (u32, u32),
+    pub uniforms: &'p [(String, Vec<f32>)],
+}
+
+pub trait Programs {
+    fn run(&mut self, pass: &Pass<'_>) -> Option<Vec<u8>>;
+}
+
 pub struct Resources<'a> {
     files: &'a (dyn Fn(&str) -> Option<Vec<u8>> + Sync),
     frames: Option<Frames<'a>>,
+    programs: Option<&'a mut dyn Programs>,
     typefaces: HashMap<TypefaceKey, Option<Typeface>>,
     images: HashMap<String, Option<Image>>,
     trees: HashMap<String, Option<usvg::Tree>>,
@@ -117,6 +130,7 @@ impl<'a> Resources<'a> {
             options: options(faces, files),
             files,
             frames: None,
+            programs: None,
             typefaces: HashMap::new(),
             images: HashMap::new(),
             trees: HashMap::new(),
@@ -128,6 +142,16 @@ impl<'a> Resources<'a> {
     pub fn with_frames(mut self, frames: Frames<'a>) -> Self {
         self.frames = Some(frames);
         self
+    }
+
+    #[must_use]
+    pub fn with_programs(mut self, programs: &'a mut dyn Programs) -> Self {
+        self.programs = Some(programs);
+        self
+    }
+
+    pub fn run(&mut self, pass: &Pass<'_>) -> Option<Vec<u8>> {
+        self.programs.as_deref_mut()?.run(pass)
     }
 
     pub fn typeface(&mut self, run: &TextRun) -> Option<&Typeface> {

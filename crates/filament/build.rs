@@ -132,6 +132,10 @@ fn main() {
         "crates/filament/cpp changed since the last Filament build. Run `bun run filament:build` again."
     );
     compile_materials(&manifest, &filament, &out);
+    println!(
+        "cargo:matc={}",
+        filament.join("filament").join("bin").join("matc").display()
+    );
     println!("cargo:rustc-link-search=native={}", build.display());
     println!("cargo:rustc-link-lib=static=opsis_filament");
     for library in &sealed.links {

@@ -133,6 +133,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 - **Filament calls `readPixels` "intended for debugging and testing. It will impact performance significantly"** (`Renderer.h`), and every frame with a shader effect or a 3D layer needs one. Work 3 measured it as affordable; reading back while the next frame draws would hide part of the 4–7 ms it costs.
 - **The libc++ object stays sealed**: every C++ name in it is local after `objcopy`, so no Filament or libc++ type may cross into the app's C++; only the `opsis_*` C functions do.
+  - `objcopy` also renames `DW.ref.__gxx_personality_v0` (`PERSONALITY_REF`, `scripts/filament-build.ts`): it sits in a COMDAT group, and when Skia's libstdc++ objects bring a group of the same name the linker keeps theirs and the sealed object's exception tables point into a discarded section.
 - **Skia's C++ API moves between milestones** (at m159 the gradient factories live only in `include/effects/SkGradient.h`); the pinned tree is m157.
 - **Linking the system FreeType** can crash when the version differs from the one Skia was built with (rust-skia #1345); the font manager in **Paint** avoids the system's.
 
@@ -160,7 +161,8 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 ### Fit with Opsis
 
 - **In place:** `spring` is closed form (`springProgress`), `random(seed)` is a hash, `interpolate` is stateless (`packages/runtime/src`), so frame n needs no earlier frame. Compile already produces a `TimelineSpec` that one `DemoTimeline` draws (`packages/video/src/demo-timeline.tsx`), and the flattener, cuts, remaps and envelopes are Rust (`crates/compile/src`). The film styles inline: its one stylesheet, `video.css`, is a reset, so there is no selector or cascade to carry over.
-- **Missing:** the scene crate, the style struct, the clock maps, the hashing, both caches and the resolve pass. `DemoTimeline`'s tracks, `TransitionWrap`, `EnvelopeWrap`, `Group`, `CropBox`, `DesignBox` and `SceneSequence` become Rust that walks the spec and calls element functions.
+- **In place on the branch:** `opsis-scene` with the style struct, the clock maps and the timeline walker (`draw_film`) for tracks, transitions, envelopes, groups, wrappers and sequencers.
+- **Missing:** both caches, the resolve pass and the property tests.
 
 ### Work
 
@@ -296,7 +298,8 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 ### Fit with Opsis
 
 - **In place:** `crates/prepare` makes typeface JSON with `skrifa`, normalises SVG with `usvg` and prepares GLB (Draco decoded with `draco-gltf`), so the 3D inputs are Rust already. The film's shaders are GLSL ES 3.00 today (`packages/video/src/lib/shaders/quad.ts`), with constant-bound loops and `texture()` samples. The pinned Chrome Headless Shell ships SwiftShader on every platform (`libvk_swiftshader.so` 3,986,104 B on linux64).
-- **Missing:** every material, the layer transfer, the 3D scene code, the child process.
+- **In place on the branch:** `opsis-effects` (materials in `crates/effects/materials`, compiled by `matc` from `DEP_OPSIS_FILAMENT_MATC`), the effect node painting its children into layers, running the program through `Resources::run` and drawing the result back (`paint_effect`, `crates/paint/src/lib.rs`), the film starting Filament the first time a frame has an effect, and `halftone-print` as the first program.
+- **Missing:** the other materials, the 3D scene code, the child process.
 
 ### Work
 
@@ -410,7 +413,8 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 ### Fit with Opsis
 
 - **In place:** every element's settings, defaults, lengths, design size, fonts and themes are Rust already (`crates/compile/src/elements`, `lengths.rs`, `theme.rs`, `props.rs`). `colors.test.ts`'s allow-list and the theme presets carry over. Most of the film is stateless: `useState` is in 15 of its 275 files and `useEffect` in 11.
-- **Missing:** the transform table, every draw function, the builder, the camera and terminal code in Rust.
+- **In place on the branch:** the transform table, the builder, the camera, takes and terminal, and 105 of the film's 132 implementations drawn natively.
+- **Missing:** the shader effects, shader backgrounds and shader transitions, and the 3D elements (the 27 listed under **Effects and 3D**).
 
 ### Work
 

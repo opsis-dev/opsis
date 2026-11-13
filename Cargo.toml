@@ -74,7 +74,9 @@ opsis-capture = { path = "crates/capture" }
 opsis-cases = { path = "crates/cases" }
 opsis-compile = { path = "crates/compile" }
 opsis-document = { path = "crates/document" }
+opsis-effects = { path = "crates/effects" }
 opsis-engine = { path = "crates/engine" }
+opsis-filament = { path = "crates/filament" }
 opsis-film = { path = "crates/film" }
 opsis-fonts = { path = "crates/fonts" }
 opsis-footage = { path = "crates/footage" }

@@ -17,7 +17,7 @@ use opsis_layout::Viewport;
 use opsis_layout::computed::{Context, ROOT_FONT_SIZE};
 use opsis_layout::output::{Laid, Placed, PlacedKind};
 use opsis_layout::transform::Matrix;
-use opsis_scene::node::{Element, Kind, Node};
+use opsis_scene::node::{Effect, Element, Kind, Node};
 use opsis_scene::paint::{BlendMode, Filter};
 use opsis_scene::prop;
 use opsis_scene::style::{Overflow, Position, Style, Visibility, WillChange};
@@ -27,7 +27,7 @@ use opsis_types::numbers::exact_eq;
 
 use crate::boxes::{Areas, draw_box, draw_replaced};
 use crate::geometry::{is_rounded, matrix44, rect_f, round_rect};
-pub use crate::resources::{Frames, Picture, Resources};
+pub use crate::resources::{Frames, Pass, Picture, Programs, Resources};
 
 pub(crate) struct Painter<'s, 'r, 'l> {
     pub root: &'l Node,
@@ -75,6 +75,22 @@ fn has_transform(style: &Style) -> bool {
         || prop!(style, Translate).is_some()
         || prop!(style, Rotate).is_some()
         || prop!(style, Scale).is_some()
+}
+
+const ASPECT_UNIFORM: &str = "aspect";
+
+fn unpremultiplied(mut rgba: Vec<u8>) -> Vec<u8> {
+    for pixel in rgba.as_chunks_mut::<4>().0 {
+        let alpha = pixel[3];
+        if alpha == 0 || alpha == u8::MAX {
+            continue;
+        }
+        for channel in &mut pixel[..3] {
+            let straight = u32::from(*channel) * u32::from(u8::MAX) / u32::from(alpha);
+            *channel = u8::try_from(straight.min(u32::from(u8::MAX))).unwrap_or(u8::MAX);
+        }
+    }
+    rgba
 }
 
 fn makes_context(style: &Style) -> bool {
@@ -178,7 +194,7 @@ impl<'n> Painter<'_, '_, '_> {
                     };
                     let style = &el.style;
                     let z = prop!(style, ZIndex).copied();
-                    let context = makes_context(style);
+                    let context = makes_context(style) || matches!(el.kind, Kind::Effect(_));
                     match z {
                         Some(z) if z < 0 && context => into.negative.push((z, entry)),
                         Some(z) if z > 0 && context => into.positive.push((z, entry)),
@@ -506,8 +522,121 @@ impl<'n> Painter<'_, '_, '_> {
         true
     }
 
+    fn effect_inputs(
+        &mut self,
+        element: &'n Element,
+        path: &[usize],
+        placed: &Placed,
+        size: (u32, u32),
+    ) -> Option<Vec<Vec<u8>>> {
+        let inverse = Affine::of(&placed.matrix)?.inverse()?;
+        let b = placed.border_box;
+        let base = Matrix::translation(-b.x, -b.y, 0.0).then(&inverse);
+        let mut inputs = Vec::new();
+        for (c, child) in element.children.iter().enumerate() {
+            let Node::Element(child) = child else {
+                continue;
+            };
+            let child_path: Vec<usize> = path.iter().copied().chain([c]).collect();
+            let surface = Surface::new(size.0, size.1).ok()?;
+            let mut surface = surface.with_base(matrix44(&base));
+            surface.clear(Rgba::TRANSPARENT);
+            {
+                let mut sub = Painter {
+                    root: self.root,
+                    surface: &mut surface,
+                    resources: self.resources,
+                    laid: self.laid,
+                    index: self.index,
+                    context: self.context,
+                    offscreen: false,
+                    base,
+                };
+                sub.paint_context(child, &child_path, &[]);
+            }
+            inputs.push(surface.rgba());
+        }
+        Some(inputs)
+    }
+
+    fn paint_effect(
+        &mut self,
+        element: &'n Element,
+        effect: &Effect,
+        path: &[usize],
+        clips: &[usize],
+    ) -> bool {
+        let Some(&i) = self.index.get(path) else {
+            return false;
+        };
+        let laid = self.laid;
+        let placed = &laid.boxes[i];
+        let b = placed.border_box;
+        let size: (u32, u32) = (
+            opsis_types::numbers::whole(b.width.round()),
+            opsis_types::numbers::whole(b.height.round()),
+        );
+        if size.0 == 0 || size.1 == 0 {
+            return true;
+        }
+        let Some(inputs) = self.effect_inputs(element, path, placed, size) else {
+            return false;
+        };
+        let mut uniforms: Vec<(String, Vec<f32>)> = effect
+            .uniforms
+            .iter()
+            .map(|(name, values)| {
+                (
+                    name.clone(),
+                    values
+                        .iter()
+                        .map(|v| opsis_types::numbers::narrow(v.0))
+                        .collect(),
+                )
+            })
+            .collect();
+        uniforms.push((
+            ASPECT_UNIFORM.to_owned(),
+            vec![opsis_types::numbers::narrow(
+                f64::from(size.0) / f64::from(size.1),
+            )],
+        ));
+        let Some(out) = self.resources.run(&Pass {
+            program: &effect.program,
+            inputs: &inputs,
+            size,
+            uniforms: &uniforms,
+        }) else {
+            return false;
+        };
+        let Some(image) = opsis_skia::Image::from_rgba(size.0, size.1, &unpremultiplied(out))
+        else {
+            return true;
+        };
+        let saved = self.surface.save();
+        self.apply_clips(clips);
+        self.with_matrix(placed);
+        let (w, h) = (
+            opsis_types::numbers::narrow(f64::from(size.0)),
+            opsis_types::numbers::narrow(f64::from(size.1)),
+        );
+        self.surface.draw_image_rect(
+            &image,
+            (RectF::new(0.0, 0.0, w, h), rect_f(b)),
+            Sampling::Linear,
+            &Paint::new(),
+        );
+        self.surface.restore_to(saved);
+        true
+    }
+
     fn paint_context(&mut self, element: &'n Element, path: &[usize], clips: &[usize]) {
         if self.faces_back(element, path) {
+            return;
+        }
+        if let Kind::Effect(effect) = &element.kind
+            && self.paint_effect(element, effect, path, clips)
+        {
             return;
         }
         if prop!(&element.style, WillChange) == Some(&WillChange::Transform)

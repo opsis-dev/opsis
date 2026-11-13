@@ -4355,6 +4355,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "opsis-effects"
+version = "0.1.0"
+dependencies = [
+ "opsis-filament",
+ "thiserror 2.0.21",
+]
+
+[[package]]
 name = "opsis-engine"
 version = "0.1.0"
 dependencies = [
@@ -4394,8 +4402,11 @@ dependencies = [
 name = "opsis-film"
 version = "0.1.0"
 dependencies = [
+ "log",
  "nv-flip",
  "opsis-compile",
+ "opsis-effects",
+ "opsis-filament",
  "opsis-golden",
  "opsis-layout",
  "opsis-paint",

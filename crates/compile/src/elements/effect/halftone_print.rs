@@ -1,7 +1,11 @@
 use opsis_macros::settings;
+use opsis_scene::node::Node;
+use opsis_scene::timeline::ChildAt;
 use opsis_types::looks::NodeLook;
 
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
+use crate::elements::shader::{filtered, rgb_uniform};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[settings(export)]
@@ -40,4 +44,35 @@ pub fn definition() -> ElementMeta {
             )
                 .look(NodeLook::of("lucide:newspaper")),
         )
+}
+
+const PROGRAM: &str = "halftone-print";
+
+fn absorb(ink: &str) -> Vec<f64> {
+    rgb_uniform(ink).into_iter().map(|c| 1.0 - c).collect()
+}
+
+#[expect(
+    clippy::suboptimal_flops,
+    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+)]
+pub fn wrap(props: &HalftonePrint, child: ChildAt<'_>, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let inner = child(cx.at.stage)?;
+    let height = cx.at.stage.height;
+    Ok(filtered(
+        PROGRAM,
+        vec![
+            ("cell", vec![f64::from(props.dot_size.max(1)) / height]),
+            (
+                "angle",
+                vec![f64::from(props.angle) * std::f64::consts::PI / 180.0],
+            ),
+            ("shift", vec![props.misregistration / height]),
+            ("paper", rgb_uniform(&props.paper_tint)),
+            ("cyanAbsorb", absorb(&props.cyan_ink)),
+            ("magentaAbsorb", absorb(&props.magenta_ink)),
+            ("yellowAbsorb", absorb(&props.yellow_ink)),
+        ],
+        inner,
+    ))
 }

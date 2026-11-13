@@ -10,7 +10,10 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
+log.workspace = true
 opsis-compile.workspace = true
+opsis-effects.workspace = true
+opsis-filament.workspace = true
 opsis-layout.workspace = true
 opsis-paint.workspace = true
 opsis-scene.workspace = true

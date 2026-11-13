@@ -29,6 +29,7 @@ const LIBRARIES = [
   "zstd",
 ];
 const LIBRARY_ARCH: Record<string, string> = { x64: "x86_64", arm64: "aarch64" };
+const PERSONALITY_REF = "DW.ref.__gxx_personality_v0";
 
 function run(command: string, args: string[], cwd: string) {
   execFileSync(command, args, { cwd, stdio: "inherit" });
@@ -106,7 +107,17 @@ function build(filament: string, out: string, version: string) {
     out,
   );
   const sealed = path.join(out, "sealed.o");
-  run("objcopy", ["--wildcard", "--keep-global-symbol=opsis_*", joined, sealed], out);
+  run(
+    "objcopy",
+    [
+      "--wildcard",
+      "--keep-global-symbol=opsis_*",
+      `--redefine-sym=${PERSONALITY_REF}=opsis.${PERSONALITY_REF}`,
+      joined,
+      sealed,
+    ],
+    out,
+  );
   run("ar", ["rcs", path.join(out, "libopsis_filament.a"), sealed], out);
   rmSync(joined);
   rmSync(sealed);
