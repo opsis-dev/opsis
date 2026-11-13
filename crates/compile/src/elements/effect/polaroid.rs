@@ -3,7 +3,7 @@ use opsis_scene::color::Color;
 use opsis_scene::node::{Node, div};
 use opsis_scene::paint::Shadow;
 use opsis_scene::style::{Align, Overflow, Position, Style, TextAlign};
-use opsis_scene::timeline::absolute_fill;
+use opsis_scene::timeline::{ChildAt, absolute_fill};
 use opsis_scene::values::{Edges, Length};
 use opsis_types::looks::NodeLook;
 use opsis_types::numbers::float;
@@ -132,7 +132,8 @@ const fn photo_height(shape: PhotoShape) -> f64 {
     }
 }
 
-pub fn wrap(props: &Polaroid, child: Node, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+pub fn wrap(props: &Polaroid, child: ChildAt<'_>, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    let child = child(cx.at.stage)?;
     let width = f64::from(props.width);
     let scale = width / BASE_WIDTH;
     let pad = BASE_PAD * scale;

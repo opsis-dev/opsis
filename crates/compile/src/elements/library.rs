@@ -1,7 +1,7 @@
 use opsis_scene::color::Color;
 use opsis_scene::measure::Measure;
 use opsis_scene::node::Node;
-use opsis_scene::timeline::{At, DrawError, Drawn, Library, Presented, SceneTracks, Side};
+use opsis_scene::timeline::{At, ChildAt, DrawError, Drawn, Library, Presented, SceneTracks, Side};
 use opsis_types::recording::RecordingProps;
 use opsis_types::timeline::SequencerProps;
 use serde_json::{Map, Value};
@@ -31,7 +31,13 @@ impl Library for FilmLibrary<'_> {
         )
     }
 
-    fn wrapper(&self, component: &str, props: &Map<String, Value>, child: Node, at: &At) -> Drawn {
+    fn wrapper(
+        &self,
+        component: &str,
+        props: &Map<String, Value>,
+        child: ChildAt<'_>,
+        at: &At,
+    ) -> Drawn {
         draw::wrapper(
             component,
             props,

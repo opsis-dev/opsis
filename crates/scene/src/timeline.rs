@@ -66,6 +66,7 @@ impl DrawError {
 
 pub type Drawn = Result<Option<Node>, DrawError>;
 pub type Nodes = Result<Vec<Node>, DrawError>;
+pub type ChildAt<'a> = &'a dyn Fn(Stage) -> Result<Node, DrawError>;
 
 pub trait SceneTracks {
     fn len(&self) -> usize;
@@ -81,7 +82,13 @@ pub trait SceneTracks {
 
 pub trait Library {
     fn element(&self, component: &str, props: &Map<String, Value>, at: &At) -> Drawn;
-    fn wrapper(&self, component: &str, props: &Map<String, Value>, child: Node, at: &At) -> Drawn;
+    fn wrapper(
+        &self,
+        component: &str,
+        props: &Map<String, Value>,
+        child: ChildAt<'_>,
+        at: &At,
+    ) -> Drawn;
     fn presentation(&self, presented: &Presented<'_>, child: Vec<Node>, at: &At) -> Drawn;
     fn scenes(&self, sequencer: &SequencerProps, scenes: &dyn SceneTracks, at: &At) -> Drawn;
     fn recording(&self, props: &RecordingProps, at: &At) -> Result<Node, DrawError>;
@@ -425,14 +432,15 @@ fn layers(library: &dyn Library, props: &GroupProps, at: &At) -> Nodes {
 }
 
 fn wrapped(library: &dyn Library, props: &GroupProps, at: &At) -> Nodes {
-    let layers = layers(library, props, at)?;
     let Some(wrapper) = &props.wrapper else {
-        return Ok(layers);
+        return layers(library, props, at);
     };
-    let child = fill(layers.clone());
-    match library.wrapper(&wrapper.component, &wrapper.props, child, at)? {
+    let child = |stage: Stage| -> Result<Node, DrawError> {
+        Ok(fill(layers(library, props, &At { stage, ..*at })?))
+    };
+    match library.wrapper(&wrapper.component, &wrapper.props, &child, at)? {
         Some(node) => Ok(vec![node]),
-        None => Ok(layers
+        None => Ok(layers(library, props, at)?
             .into_iter()
             .chain([missing(library, &wrapper.component)])
             .collect()),

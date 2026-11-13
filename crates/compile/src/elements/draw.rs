@@ -4,12 +4,12 @@ use opsis_scene::interpolate::InterpolateError;
 use opsis_scene::measure::Measure;
 use opsis_scene::node::Node;
 use opsis_scene::spring::SpringError;
-use opsis_scene::timeline::{At, DrawError, Drawn};
+use opsis_scene::timeline::{At, ChildAt, DrawError, Drawn};
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
 
 use crate::elements::{
-    background, data, effect, overlay, placeholder, scene, text, transition, ui,
+    background, data, device, effect, overlay, placeholder, scene, text, transition, ui,
 };
 
 #[derive(Clone, Copy)]
@@ -67,7 +67,7 @@ pub enum DrawFailure {
     #[error(transparent)]
     Spring(#[from] SpringError),
     #[error(transparent)]
-    Element(DrawError),
+    Element(#[from] DrawError),
     #[error("Couldn't read the animation {0}.")]
     Animation(String),
 }
@@ -202,12 +202,12 @@ pub fn presentation(
     }
 }
 
-type Wrap<T> = fn(&T, Node, &Cx<'_>) -> Result<Node, DrawFailure>;
+type Wrap<T> = fn(&T, ChildAt<'_>, &Cx<'_>) -> Result<Node, DrawFailure>;
 
 fn wrapped<T: DeserializeOwned>(
     component: &str,
     props: &Map<String, Value>,
-    child: Node,
+    child: ChildAt<'_>,
     cx: &Cx<'_>,
     wrap: Wrap<T>,
 ) -> Drawn {
@@ -218,9 +218,30 @@ fn wrapped<T: DeserializeOwned>(
         .map_err(|e| DrawError::new(component, e))
 }
 
-pub fn wrapper(component: &str, props: &Map<String, Value>, child: Node, cx: &Cx<'_>) -> Drawn {
+pub fn wrapper(
+    component: &str,
+    props: &Map<String, Value>,
+    child: ChildAt<'_>,
+    cx: &Cx<'_>,
+) -> Drawn {
     match component {
         "polaroid" => wrapped(component, props, child, cx, effect::polaroid::wrap),
+        "phone-frame" => wrapped(component, props, child, cx, device::phone_frame::wrap),
+        "laptop-frame" => wrapped(component, props, child, cx, device::laptop_frame::wrap),
+        "multi-device-lineup" => wrapped(
+            component,
+            props,
+            child,
+            cx,
+            device::multi_device_lineup::wrap,
+        ),
+        "device-mockup-zoom" => wrapped(
+            component,
+            props,
+            child,
+            cx,
+            device::device_mockup_zoom::wrap,
+        ),
         _ => Ok(None),
     }
 }

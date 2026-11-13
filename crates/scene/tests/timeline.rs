@@ -3,7 +3,9 @@ use opsis_scene::hash::full_hash;
 use opsis_scene::node::{Node, div};
 use opsis_scene::random::js_number_text;
 use opsis_scene::style::Style;
-use opsis_scene::timeline::{At, DrawError, Drawn, Library, Presented, SceneTracks, draw_film};
+use opsis_scene::timeline::{
+    At, ChildAt, DrawError, Drawn, Library, Presented, SceneTracks, draw_film,
+};
 use opsis_types::recording::RecordingProps;
 use opsis_types::timeline::{
     GroupProps, ItemBase, SequencerProps, TimelineItem, TimelineSpec, TimelineTrack,
@@ -24,11 +26,17 @@ impl Library for Labels {
         Ok(Some(label(component, at)))
     }
 
-    fn wrapper(&self, component: &str, _: &Map<String, Value>, child: Node, at: &At) -> Drawn {
+    fn wrapper(
+        &self,
+        component: &str,
+        _: &Map<String, Value>,
+        child: ChildAt<'_>,
+        at: &At,
+    ) -> Drawn {
         Ok(Some(
             div(Style::default())
                 .child(label(component, at))
-                .child(child)
+                .child(child(at.stage)?)
                 .into(),
         ))
     }

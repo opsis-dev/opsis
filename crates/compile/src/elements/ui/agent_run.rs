@@ -3,9 +3,9 @@ use std::f64::consts::{PI, SQRT_2};
 use indexmap::IndexMap;
 use opsis_macros::{choice, settings};
 use opsis_scene::color::{Color, ColorSpace, Interpolation as ColorInterpolation};
-use opsis_scene::css::length;
+use opsis_scene::css::shadows;
 use opsis_scene::node::{Node, SvgElement, div, span, svg};
-use opsis_scene::paint::{Shadow, Transform};
+use opsis_scene::paint::Transform;
 use opsis_scene::random::js_number_text;
 use opsis_scene::style::{
     Align, BorderSide, BorderStyle, BoxSizing, Display, LineHeight, NumericVariant, Overflow,
@@ -253,21 +253,6 @@ fn palette_of<'a>(theme: &'a Theme, accent: &str) -> Palette<'a> {
             css_color(accent)
         },
     }
-}
-
-fn shadow_of(text: &str) -> Option<Shadow> {
-    let tokens: Vec<&str> = text.split_whitespace().collect();
-    let lengths: Vec<Length> = tokens.iter().map_while(|t| length(t)).collect();
-    let color = Color::css(&tokens[lengths.len()..].join(" "))?;
-    let at = |i: usize| lengths.get(i).cloned().unwrap_or(Length::ZERO);
-    Some(Shadow {
-        inset: false,
-        x: at(0),
-        y: at(1),
-        blur: at(2),
-        spread: at(3),
-        color,
-    })
 }
 
 fn icon_nodes(name: &str) -> Vec<SvgElement> {
@@ -996,8 +981,8 @@ pub fn draw(props: &AgentRun, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         .color(palette.color("fg"))
         .font_family(font_or(&props.font, FontRole::Main))
         .font_size(BODY_SIZE);
-    if let Some(shadow) = shadow_of(palette.get("shadow")) {
-        inner = inner.box_shadow(vec![shadow]);
+    if let Some(shadow) = shadows(palette.get("shadow")) {
+        inner = inner.box_shadow(shadow);
     }
     let viewport = div(Style::default()
         .position(Position::Relative)

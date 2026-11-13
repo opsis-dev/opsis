@@ -3,7 +3,7 @@ use opsis_types::numbers::exact_eq;
 use crate::color::{Color, ColorSpace, HueMethod, Interpolation};
 use crate::paint::{
     ColorStop, Gradient, Image, ImageLayer, LayerSize, LinearDirection, RadialShape, RadialSize,
-    Repeat, Side,
+    Repeat, Shadow, Side,
 };
 use crate::style::Style;
 use crate::values::{Angle, Length, Num, Position2};
@@ -37,7 +37,7 @@ pub fn split_top(text: &str, at: impl Fn(char) -> bool) -> Vec<&str> {
         .collect()
 }
 
-fn words(text: &str) -> Vec<&str> {
+pub(crate) fn words(text: &str) -> Vec<&str> {
     split_top(text, char::is_whitespace)
 }
 
@@ -171,7 +171,7 @@ fn hue(word: &str) -> Option<HueMethod> {
     })
 }
 
-fn take_interpolation<'a>(parts: &[&'a str]) -> Option<(Interpolation, Vec<&'a str>)> {
+pub(crate) fn take_interpolation<'a>(parts: &[&'a str]) -> Option<(Interpolation, Vec<&'a str>)> {
     let Some(at) = parts.iter().position(|w| w.eq_ignore_ascii_case("in")) else {
         return Some((Interpolation::DEFAULT, parts.to_vec()));
     };
@@ -496,6 +496,44 @@ pub fn with_background(style: Style, text: &str) -> Style {
         Some(color) => style.background_color(color),
         None => style,
     }
+}
+
+fn shadow(text: &str) -> Option<Shadow> {
+    let mut inset = false;
+    let mut color = None;
+    let mut lengths = Vec::new();
+    for word in words(text) {
+        if word.eq_ignore_ascii_case("inset") {
+            inset = true;
+        } else if let Some(l) = length(word).filter(|l| *l != Length::Auto) {
+            lengths.push(l);
+        } else {
+            color = Some(Color::css(word)?);
+        }
+    }
+    if !(2..=4).contains(&lengths.len()) {
+        return None;
+    }
+    let at = |i: usize| lengths.get(i).cloned().unwrap_or(Length::ZERO);
+    Some(Shadow {
+        inset,
+        x: at(0),
+        y: at(1),
+        blur: at(2),
+        spread: at(3),
+        color: color.unwrap_or(Color::CurrentColor),
+    })
+}
+
+pub fn shadows(text: &str) -> Option<Vec<Shadow>> {
+    let text = text.trim();
+    if text.is_empty() || text.eq_ignore_ascii_case("none") {
+        return Some(Vec::new());
+    }
+    split_top(text, |c| c == ',')
+        .into_iter()
+        .map(shadow)
+        .collect()
 }
 
 pub fn font_family(text: &str) -> Vec<String> {

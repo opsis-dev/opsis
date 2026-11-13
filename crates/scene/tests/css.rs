@@ -1,6 +1,8 @@
 use opsis_scene::color::{Color, ColorSpace, HueMethod, Interpolation};
-use opsis_scene::css::{background, gradient, length};
-use opsis_scene::paint::{ColorStop, Gradient, Image, LinearDirection, RadialShape, RadialSize};
+use opsis_scene::css::{background, gradient, length, shadows};
+use opsis_scene::paint::{
+    ColorStop, Gradient, Image, LinearDirection, RadialShape, RadialSize, Shadow,
+};
 use opsis_scene::values::{Angle, Length, Num, Position2};
 use proptest::prelude::*;
 
@@ -254,5 +256,64 @@ proptest! {
             };
             prop_assert_eq!(gradient_text(got), gradient_text(want));
         }
+    }
+
+    #[test]
+    fn a_printed_color_mix_reads_back_as_that_mix(
+        first in colors(),
+        second in colors(),
+        share in prop::option::of(0u32..=100),
+        method in interpolations(),
+    ) {
+        let share = share.map(f64::from);
+        let first_text = share.map_or_else(|| color_text(&first), |p| format!("{} {p}%", color_text(&first)));
+        let text = format!(
+            "color-mix({}, {first_text}, {})",
+            if method == Interpolation::DEFAULT {
+                "in srgb".to_owned()
+            } else {
+                interpolation_text(method).trim_start().to_owned()
+            },
+            color_text(&second),
+        );
+        let want = Color::mix(
+            method,
+            (Color::css(&color_text(&first)).expect("a colour"), share),
+            (Color::css(&color_text(&second)).expect("a colour"), None),
+        );
+        prop_assert_eq!(Color::css(&text), Some(want));
+    }
+
+    #[test]
+    fn a_printed_shadow_list_reads_back_the_same(
+        list in prop::collection::vec((any::<bool>(), lengths(), lengths(), lengths(), lengths(), colors()), 1..4),
+    ) {
+        let text = list
+            .iter()
+            .map(|(inset, x, y, blur, spread, color)| {
+                format!(
+                    "{}{} {} {} {} {}",
+                    if *inset { "inset " } else { "" },
+                    length_text(x),
+                    length_text(y),
+                    length_text(blur),
+                    length_text(spread),
+                    color_text(color),
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(", ");
+        let want: Vec<Shadow> = list
+            .into_iter()
+            .map(|(inset, x, y, blur, spread, color)| Shadow {
+                inset,
+                x,
+                y,
+                blur,
+                spread,
+                color: Color::css(&color_text(&color)).expect("a colour"),
+            })
+            .collect();
+        prop_assert_eq!(shadows(&text), Some(want));
     }
 }

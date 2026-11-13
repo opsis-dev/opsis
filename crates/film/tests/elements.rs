@@ -117,8 +117,13 @@ fn items_drawn(tracks: &[TimelineTrack], cx: &Cx<'_>) -> bool {
                 } => element(component, props, cx).is_ok_and(|d| d.is_some()),
                 TimelineItem::Group { props, .. } => {
                     props.wrapper.as_ref().is_none_or(|w| {
-                        wrapper(&w.component, &w.props, div(Style::default()).into(), cx)
-                            .is_ok_and(|d| d.is_some())
+                        wrapper(
+                            &w.component,
+                            &w.props,
+                            &|_| Ok(div(Style::default()).into()),
+                            cx,
+                        )
+                        .is_ok_and(|d| d.is_some())
                     }) && props.sequencer.is_none()
                         && items_drawn(&props.tracks, cx)
                 }

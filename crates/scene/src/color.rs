@@ -134,11 +134,51 @@ fn as_written(component: f32) -> f64 {
         .unwrap_or_else(|_| f64::from(component))
 }
 
+fn function_body<'a>(text: &'a str, name: &str) -> Option<&'a str> {
+    let open = text.get(..=name.len())?;
+    if !open.eq_ignore_ascii_case(&format!("{name}(")) {
+        return None;
+    }
+    text.get(name.len() + 1..)?.strip_suffix(')')
+}
+
+fn mix_part(text: &str) -> Option<(Color, Option<f64>)> {
+    let parts = crate::css::words(text);
+    let (share, color) = match parts.as_slice() {
+        [color] => (None, *color),
+        [color, share] | [share, color] if share.ends_with('%') => (
+            Some(share.trim_end_matches('%').parse::<f64>().ok()?),
+            *color,
+        ),
+        _ => return None,
+    };
+    Some((Color::css(color)?, share))
+}
+
+fn mixed(inner: &str) -> Option<Color> {
+    let args = crate::css::split_top(inner, |c| c == ',');
+    let [method, first, second] = args.as_slice() else {
+        return None;
+    };
+    let (interpolation, rest) = crate::css::take_interpolation(&crate::css::words(method))?;
+    if !rest.is_empty() {
+        return None;
+    }
+    Some(Color::mix(
+        interpolation,
+        mix_part(first)?,
+        mix_part(second)?,
+    ))
+}
+
 impl Color {
     pub fn css(text: &str) -> Option<Self> {
         let text = text.trim();
         if text.eq_ignore_ascii_case("currentcolor") {
             return Some(Self::CurrentColor);
+        }
+        if let Some(inner) = function_body(text, "color-mix") {
+            return mixed(inner);
         }
         let parsed = color::parse_color(text).ok()?;
         let (space, parsed) = space_of(parsed.cs).map_or_else(
