@@ -27,9 +27,9 @@ A user docs site for Opsis: a Blume site in `docs/` at the repository root, depl
 
 **Work.**
 
-1. **The member.** Make `docs/` with `blume init`, then make it a workspace member: add `docs` to `workspaces` in the root `package.json`, name it `@opsis/docs`, and add `blume` with `bun add blume` inside it. Its scripts: `dev` (`blume dev`), `build` (`blume build`, output `dist/`), `typecheck` (`blume check`), `validate` (`blume validate --strict`).
+1. **The member.** Make `docs/` with `blume init`, then make it a workspace member: add a `workspaces` list holding `docs` to the root `package.json` (the root has no other members), name it `@opsis/docs`, and add `blume` with `bun add blume` inside it. Its scripts: `dev` (`blume dev`), `build` (`blume build`, output `dist/`), `typecheck` (`blume check`), `validate` (`blume validate --strict`).
 2. **Config.** `docs/blume.config.ts` with the title, the logo from `brand/logo.svg` (the one source for the app icon), `content: { root: "content" }`, and the theme. `.blume/`, `dist/` and `node_modules/` in `.gitignore`.
-3. **Checks.** Its own `tsconfig.json` (extending `tsconfig.base.json`, including Blume's generated types), `oxlint.config.ts` and the oxfmt coverage, so `typecheck`, `lint:fix` and `format:fix` cover it through turbo. `bun run lint:comments` covers `docs` (`scripts/comments.ts`). `validate` joins `bun run test` or runs as its own turbo task.
+3. **Checks.** Its own `tsconfig.json` (extending `tsconfig.base.json`, including Blume's generated types), `oxlint.config.ts` and the oxfmt coverage, and the root's `typecheck`, `lint:fix` and `format:fix` run its own after theirs (`bun run --filter @opsis/docs <task>`, since the root has no turbo). `bun run lint:comments` covers `docs` (`scripts/comments.ts`). `validate` joins `bun run test`.
 4. **Docs.** `agent-docs/docs-site.md`: the code map, the rules the agents carry (customer scope, the style, the `.md`/`.mdx` choice, frontmatter from Blume's schema), and how the screenshots and the deploy work. Add `docs/` to the `AGENTS.md` §6 layout.
 
 **Decided.**
@@ -49,7 +49,7 @@ The Qt scenarios already take a picture of every step: `bun run e2e:qt tour --sh
 **Work.**
 
 1. **The shot list.** `docs/screenshots.json`: one entry per image, with the image's name, the scenario (`tour` or `runs`), the step name and, when it isn't the main window, the window's suffix.
-2. **The script.** `scripts/docs-shots.ts`, run as `bun run docs:shots`: it runs `bun run e2e:qt` with `--shots` for the scenarios the list names (only those), then converts each listed shot into `docs/public/images/<name>.webp` with the staged FFmpeg (`scripts/lib/ffmpeg.ts` → `stageFfmpeg`, `target/ffmpeg/opsis-ffmpeg-<target triple>`) and fails, naming the entry, when a listed shot is missing, which is what a renamed or removed step looks like.
+2. **The script.** `scripts/docs-shots.ts`, run as `bun run docs:shots`: it runs `bun run e2e:qt` with `--shots` for the scenarios the list names (only those), then converts each listed shot into `docs/public/images/<name>.webp` with setup's FFmpeg (`scripts/lib/ffmpeg.ts` → `stagedFfmpeg`, named in `.setup/paths.json`) and fails, naming the entry, when a listed shot is missing, which is what a renamed or removed step looks like.
 3. **Generated code.** Add `docs/public/images/**` to the generated-code table in `AGENTS.md` §2, owned by the shot list and the scenarios, made again with `bun run docs:shots`.
 4. **New shots.** A picture no step reaches yet gets a new step in `tour` (`crates/qt/cpp/e2e_steps.cc` and its parts) or `runs` (`crates/qt/cpp/e2e_runs.cc` and its parts), with a check, then an entry in the list. Never a separate scenario for the docs.
 5. **The agents.** Update the writer and verifier in `.claude/agents/` to the list and the script: the writer adds list entries instead of copying PNGs, the verifier checks each image has an entry and a step.
@@ -59,7 +59,7 @@ The Qt scenarios already take a picture of every step: `bun run e2e:qt tour --sh
 - Screenshots come only from `tour` and `runs`. Each image is one picture: the editor has one look, so there are no light and dark pairs.
 - The converted images are kept in the repository so the site builds without a display or the dev engine.
 - **Lossless WebP, not JPEG.** Screenshots are text, thin lines and flat colour: lossless WebP keeps them exact and comes out smaller than the PNG, where JPEG blurs text edges.
-- **The bundled FFmpeg converts them** (its `libwebp` encoder, listed by `-encoders` on the staged program), so the script adds no dependency.
+- **The bundled FFmpeg converts them** (its `libwebp` encoder, listed by `-encoders` on setup's program), so the script adds no dependency.
 - **Shots are taken at scale 2.** The scenarios run on a `1600x1000` virtual screen (`SCREEN` in `scripts/e2e-qt.ts`) at scale 1, which looks soft on high-density screens; `docs:shots` runs them with `QT_SCALE_FACTOR=2` on a screen twice the size, so the editor keeps its 1600 by 1000 layout and every picture has twice the pixels.
 
 **Risks.**

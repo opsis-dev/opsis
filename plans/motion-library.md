@@ -4,7 +4,7 @@ More elements and better ways to find them: frame-driven rewrites of web motion 
 
 Status: plan only. Nothing here is built yet.
 
-Order with [native-renderer.md](native-renderer.md): this plan's components are written for the film page as it is today, in TS on `@opsis/runtime`. The native renderer replaces the film page in one go. Elements built from this plan before that cut-over join its port to Rust draw functions with every other element; after it, they are written as Rust draw functions from the start. The Rive section loads Rive's canvas runtime into the film page, so after the cut-over it needs Rive's C++ runtime drawing into a layer instead, which no plan covers yet. Element thumbnails and the visual check in CI render through `render-elements` on the film page until the cut-over; after it they come from the renderer (native-renderer.md, Element stills), and the reference stills are recorded again.
+Every element is a Rust draw function on the native renderer ([native-renderer.md](native-renderer.md), cut over): it returns scene nodes ([agent-docs/scene.md](../agent-docs/scene.md)), Skia paints them, and shaders and 3D run on Filament in the renderer program ([agent-docs/film.md](../agent-docs/film.md)). The elements in this plan are written the same way, as [agent-docs/elements.md](../agent-docs/elements.md) describes.
 
 ## How to read this plan
 
@@ -17,17 +17,17 @@ Order with [native-renderer.md](native-renderer.md): this plan's components are 
 
 These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with this plan, they win:
 
-- Packages through `bun add` / `cargo add`, latest release.
+- Packages through `cargo add`, latest release.
 - Never hand-edit installed or generated code (any `*.generated.*`). Code written from an upstream component is Opsis's own source.
-- Element settings are Rust structs in `opsis-compile` with `schemars` attributes (`x-` keywords); components are TS in `packages/video`, keyed separately.
-- Every animation in `packages/video` is a pure function of the runtime's `useFrame()`; randomness through `random(seed)`; async through `holdRender`. Nothing loads from the internet at render time.
+- An element is one Rust file under `crates/compile/src/elements/<category>/`: its settings struct with `schemars` attributes (`x-` keywords), `definition()` and its draw function, with one arm in `draw.rs`.
+- Every frame is a pure function of the element's settings, its `Clock` and its stage (`opsis-scene`): `interpolate`, `spring`, easing and `random(seed)` from `crates/scene/src`, sizes from `Measure`. Nothing reads a wall clock, a random source or the network.
 - No library, tool or format names in titles, descriptions, labels or errors; the Lottie element is "Animation" ("Plays an animation file from your project…") and `nodes_c.rs` refuses "lottie" in a description.
-- No comments anywhere, kebab-case TS file names.
+- No comments anywhere.
 
 **Checks when a feature is done.**
 
 - `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, and the no-comments check.
-- `bun run film:bundle`, then export a short clip with the new feature and compare its frames with stills of the same frames (`bun run elements:render <key> <position>`): a frame drawn on its own must equal the same frame drawn in order.
+- `bun run elements:render <key> <positions>` to look at its stills, its golden recorded with `OPSIS_WRITE_GOLDEN=1` (`crates/render/tests/goldens.rs`), and an export of a short clip: a frame drawn on its own must equal the same frame drawn in order.
 
 ## Summary
 
@@ -38,13 +38,13 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 | Crossed-off highlight | Hand-drawn crossing out of a part of the page in a take                                                           | MIT (`roughjs`)             | partly in place |
 | Rive animations       | Play `.riv` files from the project, offline                                                                       | MIT (Rive runtime)          | not built       |
 | Element thumbnails    | A picture of every element in the node list's hover card                                                          | Opsis's own                 | partly in place |
-| Visual check in CI    | Every element rendered and compared on each change, so a registry update can't silently break one                 | Opsis's own                 | not built       |
+| Visual check in CI    | Every element rendered and compared on each change, so a registry update can't silently break one                 | Opsis's own                 | partly in place |
 
 ## Web motion components
 
 ### What it adds
 
-Opsis's own frame-driven versions of components from web motion libraries. The originals run on Framer Motion (`motion/react`), CSS keyframes, `requestAnimationFrame`, timers and `Math.random()`, none of which survive a render; Opsis's version keeps the look and takes its time from the frame.
+Opsis's own frame-driven versions of components from web motion libraries. The originals run on Framer Motion (`motion/react`), CSS keyframes, `requestAnimationFrame`, timers and `Math.random()`; Opsis's version is a Rust draw function that keeps the look and takes its time from the frame.
 
 For users, 18 elements that product demos use often and that Opsis doesn't have yet (each checked against the elements in `crates/compile/src/elements`):
 
@@ -62,7 +62,7 @@ For users, 18 elements that product demos use often and that Opsis doesn't have 
 | 10  | Connected apps        | Magic UI `animated-beam`                                                                                                                                                                                                                                | `scene`      | Measures icons with `getBoundingClientRect` + `ResizeObserver`, Motion gradient runs along the path. Positions computed from settings, not measured; gradient offset from the frame.                                                                                                                                            |
 | 11  | Orbiting logos        | Magic UI `orbiting-circles`                                                                                                                                                                                                                             | `scene`      | `animate-orbit`. Angle per item from the frame.                                                                                                                                                                                                                                                                                 |
 | 12  | Logo strip            | Magic UI `marquee`                                                                                                                                                                                                                                      | `scene`      | `animate-marquee`. `translateX` from the frame, wrapping by the strip width (logos are project images; width from their set sizes).                                                                                                                                                                                             |
-| 13  | Retro grid            | Magic UI `retro-grid`                                                                                                                                                                                                                                   | `background` | Canvas redrawn in a `requestAnimationFrame` loop. Redraw in a layout effect keyed on the frame.                                                                                                                                                                                                                                 |
+| 13  | Retro grid            | Magic UI `retro-grid`                                                                                                                                                                                                                                   | `background` | Canvas redrawn in a `requestAnimationFrame` loop. The whole grid as a 2D drawing (`Drawing`) each frame.                                                                                                                                                                                                                        |
 | 14  | Flickering grid       | Magic UI `flickering-grid`                                                                                                                                                                                                                              | `background` | Canvas, `Math.random` per tick, `IntersectionObserver` pauses it. Cell opacity from `random(seed + "-" + cell + "-" + floor(t * rate))`; no observer.                                                                                                                                                                           |
 | 15  | Meteors               | Magic UI `meteors`                                                                                                                                                                                                                                      | `background` | `Math.random` delays and `animate-meteor`. Seeded start times; position from `(t - start) mod period`.                                                                                                                                                                                                                          |
 | 16  | Ripple rings          | Magic UI `ripple`                                                                                                                                                                                                                                       | `background` | `animate-ripple`. Ring scale and opacity from the frame, each ring offset.                                                                                                                                                                                                                                                      |
@@ -77,10 +77,10 @@ In place:
 
 - `ElementMeta` (`crates/compile/src/elements/mod.rs`) records nothing about where an element came from; that lives only in `THIRD_PARTY_NOTICES.md`.
 - `elements()` lists every element's `definition()` in one ordered list; every entry becomes a node (`element_node_type`: `fx.<name>`) with its card, length handle and envelope. A file per element and a line in that list is all these elements need on the Rust side.
-- Settings structs: every element's settings are a struct with `schemars` attributes; all of them, collected in `ElementSettings`, are exported to `packages/video/src/generated/spec.ts`, so components get typed props. The `font` widget (`x-widget = "font"`) and `font_stack` (`crates/compile/src/fonts/mod.rs`) turn a family into a CSS stack; `df-main`, `df-heading`, `df-code` follow the project fonts.
-- Loading: `ELEMENTS` (`packages/video/src/elements/index.ts`) imports every element, and `DemoTimeline` looks each up synchronously (`resolveElement`).
-- Each element places itself: centring, a spot's position (a fraction of the frame times its size, `x * width` in `elements/overlay/ink-arrow.tsx`), screen fitting (`ScreenFit`, `packages/video/src/lib/layout/screen-fit.tsx`) and its background are done inside its own component; `packages/video/src/lib/settings/shape.ts` holds the setting conversions.
-- Guardrails already cover any new folder in `packages/video`: `no-restricted-imports` bans `framer-motion`, `motion`, `gsap` and `useFrame` (`scripts/lib/oxlint-base.ts`), `opsis/no-animate-class` bans Tailwind `animate-*` and `opsis/no-three-clock` bans three.js clocks (`packages/video/oxlint.config.ts`, `scripts/oxlint-plugin-opsis.ts`).
+- Settings structs: every element's settings are a struct with `schemars` attributes, collected in `ElementSettings` (`props.rs`); its draw function reads the struct as compile wrote it (`drawn`, `draw.rs`). The `font` widget (`x-widget = "font"`) and `font_stack` (`crates/compile/src/fonts/mod.rs`) turn a family into a stack; `df-main`, `df-heading`, `df-code` follow the project fonts.
+- Drawing: `draw.rs` has one arm per key (`element`, `wrapper`, `presentation`, `scenes`); a draw function returns scene nodes in the film's CSS and SVG subset, with leaves for 2D drawings (`Drawing`, the Canvas 2D calls as data), pictures, Lottie, shader effects and 3D stages (`crates/scene/src/node.rs`).
+- Each element places itself in its own draw function: centring, a spot's position (a fraction of the frame times its size), screen fitting and its background; `parts/` holds what several elements draw (buttons, toasts, hand-drawn marks, device screens).
+- The scene is pure by construction: no clock, random source or file reaches a draw function except through `Clock`, `random(seed)` and `Measure`.
 - Placeholder images in `public/placeholders` (`logo-mark.svg`, `screen-wide.svg`, `screen-tall.svg`) for logo and image defaults.
 
 Missing:
@@ -91,26 +91,22 @@ Missing:
 
 ### Work
 
-1. **Where code goes.**
-   - Components: `packages/video/src/elements/<category>/<name>.tsx`, like every other element; nothing in a path or name says where a component came from.
-   - Settings: one file per element under `crates/compile/src/elements/<category>/`, like every other element, listed in `elements()` and added to the props map exported with the other spec types. Keys are the element's name (node type `fx.<name>`), like every other element; where it came from goes in `THIRD_PARTY_NOTICES.md` only.
-   - Loading: one entry each in `ELEMENTS` (`packages/video/src/elements/index.ts`).
-   - Looks: each element's `.look(…)` in its `definition()`, then `bun run glyphs:bundle`.
+1. **Where code goes.** One file per element under `crates/compile/src/elements/<category>/`, with its settings struct, `definition()` and draw function, listed in `elements()`, `ElementSettings` and `draw.rs` ([elements.md](../agent-docs/elements.md), Adding an element). Keys are the element's name (node type `fx.<name>`); nothing in a path or name says where it came from, which goes in `THIRD_PARTY_NOTICES.md` only. Looks: each element's `.look(…)` in its `definition()`, then `bun run glyphs:bundle`.
 2. **Recipe** (one checklist per element, in the change description):
-   - Copy the upstream file once into the target folder, then rewrite it. Delete `"use client"`, `cn()` imports from the web app and every comment.
-   - `motion.div` with `initial` / `animate` / `transition` → a plain element whose style comes from `interpolate(frame, [start, end], [from, to], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing })` or `spring({ frame, fps, config })`. Keyframe arrays (`rotate: [0, -10, 10, -10, 0]`) → `interpolate` with as many input points, spread over the original `duration` in frames. Motion `ease` names map to `Easing.bezier` with the same control points.
+   - Read the upstream file and write the element in Rust from it; nothing of the upstream file is kept as source.
+   - `motion.div` with `initial` / `animate` / `transition` → a `div` whose style comes from `interpolate` (clamped, with the original easing) or `spring` from `crates/scene/src`. Keyframe arrays (`rotate: [0, -10, 10, -10, 0]`) → `interpolate` with as many input points, spread over the original `duration` in frames. Motion `ease` names map to cubic Bézier easings with the same control points.
    - `variants` + `useAnimation()` / hover handlers → a `start` (seconds, default 0) and `loop` setting; the variant plays from `start`.
-   - CSS `@keyframes` / Tailwind `animate-*` → the same property computed from the frame. Only when a keyframe can't be rewritten (a long multi-stop gradient), a paused CSS animation (`animationPlayState: "paused"`, `animationDelay` set to minus the element's time in seconds) is allowed, with keyframe names prefixed `df-` and never `spin`; record each such case in `AGENTS.md`.
-   - `useEffect` timers, `setInterval`, `requestAnimationFrame` → frame math. Canvas drawing happens in a `useLayoutEffect` keyed on the frame, drawing the whole picture each time (never incrementally).
-   - `Math.random()` → `random(seed + "-" + index)` with a `seed` setting (min 1).
-   - Measuring (`getBoundingClientRect`, `ResizeObserver`, `IntersectionObserver`) → compute layout from settings; when text must be measured, measure once after fonts load under `holdRender`, never per frame.
-   - Fonts: a `font` setting defaulting to the project font; no font loader packages or web font imports. Images: `asset` settings, defaults from `public/placeholders` as `app:` refs. Colours: `x-widget = "color"` settings.
-   - Sizes in pixels at 1920×1080 with `design` set, so `DesignBox` scales them to any shape.
+   - CSS `@keyframes` / Tailwind `animate-*` → the same property computed from the frame; the scene has no CSS animations.
+   - `useEffect` timers, `setInterval`, `requestAnimationFrame` → frame math. Canvas drawing becomes a 2D drawing (`Drawing`) of the whole picture each frame, never incremental.
+   - `Math.random()` → `random(seed)` per index with a `seed` setting (min 1).
+   - Measuring (`getBoundingClientRect`, `ResizeObserver`, `IntersectionObserver`) → compute layout from settings; when text must be measured, ask `Measure` from the same fonts the film draws with.
+   - Fonts: a `font` setting defaulting to the project font, or `.fonts(&[…])` for a family the settings don't name. Images: `asset` settings, defaults from `public/placeholders` as `app:` refs. Colours: `x-widget = "color"` settings.
+   - Sizes in pixels at 1920×1080 with `design` set, so the design box scales them to any shape.
    - Length: an `element_timing` entry (`crates/compile/src/elements/lengths.rs`) when the animation has an end, so Length defaults to "Fit the animation".
 3. **First batch** (one of each kind, to prove the recipe): Running border (6), Morphing words (1), Flickering grid (14), Animated icon (18) with five icons. Check, then do the rest in two batches.
 4. **Copy.** Titles and descriptions in sentence case without source names (the table titles are drafts). `crates/compile/tests/unit/nodes_c.rs` checks the new elements' descriptions and banned words automatically.
 5. **Licences.** One `THIRD_PARTY_NOTICES.md` section per source, listing the Opsis files that started from it like the existing entries, with the upstream copyright line, licence text and the upstream commit, plus Lucide (ISC) for the icon shapes. Settings → Licences shows the file.
-6. **Tests.** Vitest for the pure timing helpers (keyframe table → value, orbit angle, flicker slot); the existing test that every element's defaults pass its own schema covers the settings. Add each element to the visual check (last section).
+6. **Tests.** `proptest` for the pure timing helpers (keyframe table → value, orbit angle, flicker slot); the existing test that every element's defaults pass its own schema covers the settings, and each element's middle frame becomes a golden (`goldens.rs`).
 7. **Check.** Each element at its default length and at half length in 16:9 and 9:16; a still of a frame equals the same frame of an export; a second render of the same frame is pixel-identical.
 
 ### Licence
@@ -133,10 +129,9 @@ The Commons Clause sources and Aceternity are left out because Opsis's repositor
 ### Risks
 
 - **Derived, not copied.** The code is rewritten but still derives from the upstream file; keep the licence file and notice even when little original code is left.
-- **Measuring text.** Morphing letters needs letter positions in two words. Measure with a hidden copy in a `useLayoutEffect` after `FontProvider` has loaded the font (under `holdRender`); measuring before fonts load gives wrong positions only in the render.
-- **Paused CSS animations.** They are frame-exact in Chrome only while the element stays mounted; a remount restarts them at the delay. Prefer frame-computed styles; the escape hatch is for rare cases and must pass the scrub-backwards check.
-- **Upstream drift.** These files don't follow upstream changes (unlike registry elements). The upstream commit in the notice lets a later update diff.
-- **Canvas size.** Canvas backgrounds must size their backing store from `useFilm()` times `window.devicePixelRatio`, which the frame driver sets to the render scale (`Emulation.setDeviceMetricsOverride` in `crates/capture/src/film.rs`), or scaled-down stills and 4K exports blur.
+- **Measuring text.** Morphing letters needs letter positions in two words, from `Measure` (text widths and ink), never from a guess at the font's metrics.
+- **Upstream drift.** These elements don't follow upstream changes. The upstream commit in the notice lets a later update diff.
+- **Drawings and scale.** A 2D drawing is laid out in design pixels and painted at the render scale, so scaled-down stills and 4K exports stay sharp only when the drawing uses no fixed pixel sizes outside the design box.
 
 ### Sources
 
@@ -158,9 +153,9 @@ A flowing background of alternating bands in two colours, like the Remotion Elem
 
 In place:
 
-- Background elements live in `packages/video/src/elements/background/`, one file each, with settings in `crates/compile/src/elements/background/`.
-- WebGL2 full-frame shaders: `createQuadSurface` (`packages/video/src/lib/shaders/quad.ts`) draws a fragment shader over a quad on any canvas, as the canvas transitions do.
-- Export's **Draw with** setting (`Gl` in `crates/compile/src/nodes/output.rs`) chooses software drawing (`swangle`).
+- Background elements live in `crates/compile/src/elements/background/`, one file each; the shader backgrounds (`shader_swirl.rs`, `shader_grain_gradient.rs`, `shader_mesh_gradient.rs`…) return an effect node that runs a Filament material from `crates/effects/materials/*.mat` in the renderer program ([film.md](../agent-docs/film.md), Effects and 3D).
+- Every hash in the materials is integer (PCG), so a pass gives the same pixels on every driver.
+- Export's **Draw with** setting (`Gl` in `crates/compile/src/nodes/output.rs`) chooses the graphics card or Software (the dev engine's SwiftShader).
 
 Missing:
 
@@ -169,7 +164,7 @@ Missing:
 ### Work
 
 1. **Settings.** `crates/compile/src/elements/background/liquid_contours.rs` (`ElementCategory::Background`, 150 frames): `first_color`, `second_color`, `spacing`, `scale`, `complexity`, `smoothness` (advanced), `seed` (min 1), `flow` (how much the phase moves over the element, default 1), with `design` at 1920×1080.
-2. **Component.** `packages/video/src/elements/background/liquid-contours.tsx` draws the shader on a canvas on the page (frames from a canvas given to `transferControlToOffscreen` never reach a capture), with the phase `flow * frame / durationInFrames` from `useFrame()` and `useFilm()`, and holds the frame until the canvas has drawn. It goes in `ELEMENTS` like every other element.
+2. **Drawing.** A material `crates/effects/materials/shader-liquid-contours.mat` with an integer hash, and the element's draw function returning its effect node with the phase `flow * frame / length` from its `Clock`, like the other shader backgrounds.
 3. **Copy.** "Liquid contours", "A flowing background of two-colour bands."
 4. **Check.** Export a still and a video with the default drawing and with Software, 9:16.
 
@@ -179,7 +174,6 @@ Opsis's own shader. The example on the Remotion Elements page states no licence 
 
 ### Risks
 
-- **WebGL2 in software drawing.** If `swangle` can't create a WebGL2 context, the export fails; check, and if so, say so in the **Draw with** help.
 - **Banding.** Smooth bands band under H.264; keep `smoothness` low by default or add a faint grain.
 
 ### Sources
@@ -196,7 +190,7 @@ A hand-drawn cross over a part of the page in a take. The Remotion Elements "Cro
 
 In place:
 
-- Title card already has it: its **Mark a word** look includes "Crossed out" (`MarkLook` in `crates/compile/src/elements/text/title.rs`, drawn by `HandDrawnMark` in `packages/video/src/core/hand-drawn.tsx`). Don't add a separate element.
+- Title card already has it: its **Mark a word** look includes "Crossed out" (`MarkLook` in `crates/compile/src/elements/text/title.rs`, drawn by the hand-drawn marks in `crates/compile/src/elements/parts/hand_drawn.rs`). Don't add a separate element.
 - Close registry elements: Strikethrough Replace and Text Highlight (which includes a strikethrough).
 
 Missing:
@@ -205,7 +199,7 @@ Missing:
 
 ### Work
 
-1. Add `CrossedOff` and `StruckThrough` to `HighlightLook` with their labels ("Crossed out", "Struck through"), run `bun run types:export`, and draw them in `SketchedHighlight` (`packages/video/src/camera/annotations.tsx`) through `HandDrawnMark`, which already draws the crossing out for Title card; struck through is a new look in `markPaths` (`packages/video/src/core/hand-drawn-marks.ts`): strokes back and forth across the middle of the box.
+1. Add `CrossedOff` and `StruckThrough` to `HighlightLook` with their labels ("Crossed out", "Struck through"), and draw them in the highlight annotations (`crates/compile/src/elements/camera/annotations.rs`) through the hand-drawn marks (`parts/hand_drawn.rs`), which already draw the crossing out for Title card; struck through is a new mark there: strokes back and forth across the middle of the box.
 
 ### Licence
 
@@ -213,7 +207,7 @@ MIT (`roughjs`), already listed in `THIRD_PARTY_NOTICES.md`.
 
 ### Risks
 
-- Seed 0 is random in roughjs (`HandDrawnMark` raises it to 1); pass the highlight's own seed. Sizes come from the measured box, as for the other looks.
+- Pass the highlight's own seed to the marks, so each highlight's strokes stay the same on every frame. Sizes come from the measured box, as for the other looks.
 
 ### Sources
 
@@ -229,42 +223,33 @@ A **Rive animation** element that plays a `.riv` file from the project: pick the
 
 In place:
 
-- `LottieElement` (`packages/video/src/elements/overlay/lottie.tsx`) is the pattern: an `asset` setting given the host's project address by `hosted`, `fetch()` under `holdRender`, `failRender` on failure; its settings accept `.json,.lottie` through `x-accept`.
-- `import_assets` (`crates/project/src/import.rs`) copies any file into `assets/`; the file servers are `tower-http`'s `ServeDir` (`crates/engine/src/http_files.rs`), whose MIME table already maps `.wasm` to `application/wasm` and serves unknown types such as `.riv` as `application/octet-stream`.
-- Video code runs only in the headless shell (the film page), never in the editor.
+- The Lottie element is the pattern: an `asset` setting accepting `.json,.lottie` through `x-accept`, drawn as a Lottie leaf (`Kind::Lottie`, `LottieFrame` in `crates/scene/src/node.rs`) that Skia's Skottie paints at the frame's time, with its timing from `Measure`.
+- `import_assets` (`crates/project/src/import.rs`) copies any file into `assets/`.
+- Every film is drawn by the renderer in Rust and C++ (Skia, Filament); nothing runs a web page or WASM.
 
-What the runtime does (from the tarball of `@rive-app/canvas-advanced@2.31.5`, checked 2026-10-19):
+Missing:
 
-- The package ships `rive.wasm` itself (1,449,487 bytes, MIT). Its `package.json` has `main: "canvas_advanced.mjs"` and no `exports` field.
-- `riveCanvas({ locateFile })` loads the runtime, fetching the WASM from wherever `locateFile` points.
-- Without care, the runtime fetches a file's referenced images and fonts from Rive's servers; loading with no asset loader and the CDN off keeps it local.
-
-### Approach (decided)
-
-Opsis's own component on the low-level runtime, with the WASM bundled and every frame a pure function of the frame number: load the runtime with a local `locateFile`, `rive.load(bytes, undefined, false)`, and on each frame set `LinearAnimationInstance.time` from the frame (wrapping for loop), then `apply(1)`, `artboard.advance(0)` and draw. State machines stay out of scope: they need inputs over time.
+- A Rive runtime in the renderer. The web runtime (`@rive-app/canvas-advanced` and its `rive.wasm`) needs a web page, and the renderer runs none. The candidate is Rive's own C++ runtime, built like Skia and drawn into a leaf of its own, which needs its build, its renderer and its licence checked before any work.
 
 ### Work
 
-1. **Dependency.** In `packages/video`: `bun add @rive-app/canvas-advanced`.
-2. **Bundled runtime.** `scripts/rive-runtime.ts` (`bun run rive:runtime`) copies `rive.wasm` from the installed package to `public/rive/rive.wasm`, like `fonts:bundle` copies fonts; add the row to the generated-files table in `AGENTS.md`. A test checks the copy matches the installed package byte for byte, so a version bump can't leave an old runtime behind. `rive_fallback.wasm` isn't needed: the advanced runtime never names it.
-3. **Settings.** `rive` in its own file under `crates/compile/src/elements/`: `src` (`asset`, `x-accept = ".riv"`), `artboard` and `animation` (text, empty = the default), `fit` ("Show all" / "Fill the frame"), `background`; 90 frames.
-4. **Component.** `packages/video/src/elements/<category>/rive.tsx`, in `ELEMENTS`: loads the runtime with `locateFile: () => publicFile("rive/rive.wasm")`, the file like Lottie's, draws the frame's pose on a canvas on the page, and holds the frame until it's drawn.
-5. **Copy.** No tool or format name in the title or description: title "Interactive animation", description in the Lottie element's style: "Plays an interactive animation file from your project." Add "rive" to the banned words in `crates/compile/tests/unit/nodes_c.rs`.
-6. **Licences.** `THIRD_PARTY_NOTICES.md`: `@rive-app/canvas-advanced` (MIT), including the bundled `rive.wasm`.
-7. **Check.** With networking off, an export loads the element and no request goes to unpkg or Rive's servers (the page's network log through CDP); a still of a frame equals the same frame of an export.
+1. **Runtime.** Decide how Rive's C++ runtime draws in the renderer (see **Decisions**), pin and build it through `bun run setup` like Skia, and add a `Rive` leaf to the scene beside `Lottie`.
+2. **Settings.** `rive` in its own file under `crates/compile/src/elements/`: `src` (`asset`, `x-accept = ".riv"`), `artboard` and `animation` (text, empty = the default), `fit` ("Show all" / "Fill the frame"), `background`; 90 frames. Every frame sets the animation's time from the frame (wrapping for loop); state machines stay out of scope, since they need inputs over time.
+3. **Copy.** No tool or format name in the title or description: title "Interactive animation", description in the Lottie element's style: "Plays an interactive animation file from your project." Add "rive" to the banned words in `crates/compile/tests/unit/nodes_c.rs`.
+4. **Licences.** `THIRD_PARTY_NOTICES.md`: the Rive runtime.
+5. **Check.** With networking off, an export draws the element; a still of a frame equals the same frame of an export.
+
+### Decisions
+
+- **How the runtime draws**: through Skia in the renderer, so its frames composite like every other layer, or through a renderer of its own into a picture.
 
 ### Licence
 
-`@rive-app/canvas-advanced` and its `rive.wasm`: MIT (from its `package.json`; the package ships no licence file, so the notice quotes the Rive runtime repository's).
+To check from the C++ runtime's own repository before it is used.
 
 ### Risks
 
-- **Version drift.** The copied `rive.wasm` must match the installed runtime; the copy test catches drift on the next bump.
-
-### Sources
-
-- [Rive: Preloading WASM](https://rive.app/docs/runtimes/web/preloading-wasm) and [Low-level API usage](https://rive.app/docs/runtimes/web/low-level-api-usage) (`locateFile`, self-hosting the WASM with a matching version; checked 2026-10-17)
-- Package source and npm metadata of `@rive-app/canvas-advanced@2.31.5` (`package.json`, `rive.wasm`, `rive_advanced.mjs.d.ts`, MIT) (checked 2026-10-19)
+- **Referenced files.** A `.riv` file can reference images and fonts by URL; the runtime must load only what the file embeds.
 
 ## Element thumbnails
 
@@ -278,15 +263,15 @@ In place:
 
 - The hover card: the node list's `HoverCard` (`crates/qt/cpp/node_list.cc`) shows the title, category, description and ports.
 - `ElementMeta.thumbnail` exists in `crates/compile/src/elements/mod.rs` and is never filled.
-- `render-elements` (`crates/oracle/src/bin/render-elements.rs`, `bun run elements:render`) already compiles each registry element with its defaults in Rust, wires transitions, wrappers and sequencers to solid clips, and renders one frame through the frame driver into `~/.cache/opsis-dev/element-stills` as 480 px JPEG.
+- `render-elements` (`crates/render/src/bin/render-elements.rs`, `bun run elements:render`) already compiles each element with its defaults, wires transitions, wrappers and sequencers to Background clips, and draws one frame through the renderer into `~/.cache/opsis-dev/element-stills` as 480 px JPEG (`STILL_WIDTH`).
 
 Missing:
 
-- WebP output (`StillFormat` has PNG and JPEG; the browser's screenshot also takes `webp`), a fixed drawing mode (`render-elements` draws with `Gl::Angle`), and a place in the app for the stills.
+- WebP output (`StillFormat` has PNG and JPEG), and a place in the app for the stills.
 
 ### Work
 
-1. **Stills.** Extend `render-elements` with a `--thumbnails` mode: every element, overlays and text over a neutral dark `solid`, the frame at 60% of the default length (a per-key override list for exceptions), Software drawing (`Gl::Swangle`) so the result doesn't depend on the graphics card, 320×180, WebP quality 75 (add `Webp` to `StillFormat`; the browser's screenshot takes `webp` as a format).
+1. **Stills.** Extend `render-elements` with a `--thumbnails` mode: every element, overlays and text over a neutral dark `solid`, the frame at 60% of the default length (a per-key override list for exceptions), Software drawing (`Gl::Software`) so the result doesn't depend on the graphics card, 320×180, WebP quality 75 (add `Webp` to `StillFormat`).
 2. **Storage.** `crates/qt/resources/element-stills/<key with "/" as "--">.webp`, editor-only, listed in `crates/qt/resources/resources.qrc` (the one resource file `crates/qt/build.rs` compiles with `rcc`) and read by the hover card from `:/opsis/element-stills/…`.
 3. **Budget.** At most 24 KB per still and 3.5 MB in all (about 140 elements today, 160 with the web motion components, × 15–20 KB); the binary fails above either.
 4. **Hover card.** The node list's hover card (`NodeList::ShowCard`, `crates/qt/cpp/node_list.cc`) shows the still of the hovered element at the top; the element key it needs reaches it through `bridge::PaletteEntry` (`crates/qt/src/bridge.rs`).
@@ -308,27 +293,26 @@ Opsis's own renders of its elements; the elements' own notices already cover the
 
 ### What it adds
 
-On every pull request that touches elements, CI renders one frame of every element and compares it with the stored still, so a registry update, a browser bump or a font change that breaks an element fails the build instead of reaching users.
+On every change that touches elements, CI draws every element and compares it with its stored picture, so a change that breaks an element fails the build instead of reaching users.
 
 ### Fit with Opsis
 
 In place:
 
-- `.github/workflows/build.yml` has a `checks` job and an `e2e` job that already caches the dev engine, installs it with `install-engine` and runs `bun run film:bundle`.
-- The thumbnail stills above are rendered deterministically (software drawing, fixed frame) and are the reference images.
-- `opsis-media` runs the bundled FFmpeg.
+- **Every element's middle frame is a golden picture** (`fixtures/elements/<key>.png`, `crates/render/tests/goldens.rs`), compared through `opsis-golden`, and twelve chosen elements' scenes at three frames (`fixtures/scene/elements`).
+- **The `checks` job of `.github/workflows/build.yml` runs them** on the software graphics driver ("Compare every element with its golden picture on the software graphics driver": `cargo build -p opsis-effects --bin opsis-renderer`, then `cargo test -p opsis-render --test goldens -- --ignored`).
+- A changed picture is recorded again with `OPSIS_WRITE_GOLDEN=1` and reviewed.
 
 Missing:
 
-- Any image comparison.
 - `pull_request` and `workflow_dispatch` triggers: `build.yml` runs on `push` only.
+- A side-by-side picture (stored | new) uploaded for each failing element, so a failure can be seen without running it locally.
 
 ### Work
 
-1. **Compare mode.** `render-elements --check` renders every element as in the thumbnails section into `~/.cache/opsis-dev/element-stills/` and compares each with its stored still with the bundled FFmpeg's `ssim` filter (no new dependency). It fails when SSIM is below a threshold (start at 0.97; measure the spread across a few runs first), when an element has no stored still, or when a still has no element, and writes a side-by-side image (`hstack`: stored | new) for each failure.
-2. **Workflow.** A job `elements` in `build.yml`, `needs: checks`, Linux, only when the change touches `packages/video/**`, `crates/compile/src/elements/**`, `public/fonts/**`, `package.json`, `packages/video/package.json` or `bun.lock` (a paths check step, since a job can't filter on paths by itself). Steps as in `e2e` (engine cache, `install-engine`, `film:bundle`), then `bun run elements:render -- --check`, uploading the side-by-side images on failure. Check the workflow with `actionlint`.
-3. **Updating references.** A `workflow_dispatch` input `update-stills` runs the binary in write mode and uploads the stills as an artifact, so references come from the same machine type as the check. Locally on Linux x64, `bun run elements:render -- --thumbnails` writes them directly.
-4. **Check.** Break one element on purpose (change a default colour); the job fails with its side-by-side image. Revert; it passes twice in a row.
+1. **Failure pictures.** The goldens test writes the new picture beside the stored one for each element that differs, into a folder the workflow uploads on failure.
+2. **Triggers.** `pull_request` on `build.yml`; check the workflow with `actionlint`.
+3. **Check.** Break one element on purpose (change a default colour); the job fails with its pictures. Revert; it passes twice in a row.
 
 ### Licence
 
@@ -336,14 +320,7 @@ No new packages.
 
 ### Risks
 
-- **Time.** About 140 to 160 frames with one tab; shader elements take seconds each, so expect several minutes plus the bundle. Only run when relevant paths change.
-- **Different machines draw differently.** Software drawing keeps CI stable; stills written on macOS or Windows may differ slightly, which is why references come from CI or Linux x64.
-- **Noise is not a bug.** An element that differs between runs isn't seeded somewhere; fix the element, never lower the threshold.
-
-### Sources
-
-- `.github/workflows/build.yml`, `crates/oracle/src/bin/render-elements.rs` (read 2026-10-26)
-- [FFmpeg filters: ssim](https://ffmpeg.org/ffmpeg-filters.html#ssim) (checked 2026-10-16)
+- **Noise is not a bug.** An element that differs between runs isn't seeded somewhere; fix the element, never lower the tolerance.
 
 ## Decided
 

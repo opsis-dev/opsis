@@ -18,7 +18,7 @@ These apply to every feature in this plan. They restate rules from `AGENTS.md` a
 
 - `crates/voice` (`opsis-voice`): the model catalogue and downloads, the speech models, word timing and the online services. Its executors register with the runner like `opsis-media`'s, in both lists that name every executor crate: `executors` in `crates/session/src/run.rs` and `all_executors` in `crates/render/tests/executors.rs`; its nodes are definitions in `opsis-compile`; keys come from `opsis-store`. The crate gets its row in the AGENTS.md crate table, and its rules go in `agent-docs/audio.md` or a new `agent-docs/voice.md` listed in AGENTS.md §8.
 - Node definitions in `crates/compile/src/nodes/` (settings structs with `schemars` attributes, `card`, `compile`). Every node with `executes: true` has an executor (`crates/render/tests/executors.rs`).
-- Speech never runs in `packages/video` or the editor.
+- Speech never runs in the renderer or the editor.
 
 **One inference runtime (decided).** Every model on this computer runs through `ort` (MIT OR Apache-2.0, ONNX Runtime). Nothing else may carry its own inference runtime: no sherpa-onnx (its crate links its own `onnxruntime`, and its program archives ship `libonnxruntime.so`), no whisper.cpp (`whisper-rs` builds ggml).
 
