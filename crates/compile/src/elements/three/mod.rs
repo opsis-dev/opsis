@@ -184,19 +184,28 @@ pub fn stage(lighting: Lighting, background: &str, distance: f64, objects: Vec<O
             lighting: lighting_of(lighting),
             objects,
             textures: Vec::new(),
+            models: Vec::new(),
         },
         background,
     )
 }
 
 pub fn staged(stage: Stage3d, background: &str) -> Node {
+    staged_with(stage, background, None)
+}
+
+pub fn staged_with(stage: Stage3d, background: &str, overlay: Option<Node>) -> Node {
     let canvas = Element::new(Kind::Stage3d(Box::new(stage)), absolute_fill());
     let fill = if background.trim().is_empty() || background.trim() == "transparent" {
         absolute_fill()
     } else {
         with_background(absolute_fill(), background)
     };
-    div(fill).child(canvas).into()
+    let mut root = div(fill).child(canvas);
+    if let Some(overlay) = overlay {
+        root = root.child(overlay);
+    }
+    root.into()
 }
 
 const fn at(x: f64, y: f64) -> [Num; 2] {

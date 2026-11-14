@@ -133,6 +133,9 @@ pub enum Shape3d {
         width: Num,
         height: Num,
     },
+    Box {
+        size: [Num; 3],
+    },
     Flat {
         outline: Outline2d,
         curve_segments: u32,
@@ -216,6 +219,18 @@ pub struct Stage3d {
     pub lighting: Lighting3d,
     pub objects: Vec<Object3d>,
     pub textures: Vec<Texture3d>,
+    pub models: Vec<Model3d>,
+}
+
+#[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
+pub struct Model3d {
+    pub source: AssetRef,
+    pub matrix: [Num; 16],
+    pub size: Num,
+    pub animation: String,
+    pub looped: bool,
+    pub time: Num,
+    pub shadow: Option<Num>,
 }
 
 #[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]

@@ -147,6 +147,7 @@ impl Programs for FilmPrograms<'_, '_> {
                 stage,
                 size,
                 &pictures,
+                &|source: &str| files(source),
                 environment
                     .as_ref()
                     .map(|(reflections, irradiance)| StageEnvironment {

@@ -6,7 +6,7 @@ use opsis_scene::node::Shape3d;
 
 use crate::outline::{extruded, flat, plane};
 pub use crate::primitives::Geometry;
-use crate::primitives::{rounded_box, sphere, torus};
+use crate::primitives::{box_geometry, rounded_box, sphere, torus};
 use crate::tube::tube;
 
 pub fn mesh_of(shape: &Shape3d) -> Geometry {
@@ -28,6 +28,7 @@ pub fn mesh_of(shape: &Shape3d) -> Geometry {
             radius,
         } => rounded_box([size[0].0, size[1].0, size[2].0], *segments, radius.0),
         Shape3d::Plane { width, height } => plane(width.0, height.0),
+        Shape3d::Box { size } => box_geometry([size[0].0, size[1].0, size[2].0], [1, 1, 1]),
         Shape3d::Flat {
             outline,
             curve_segments,

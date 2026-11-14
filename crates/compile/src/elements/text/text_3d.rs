@@ -412,6 +412,7 @@ pub fn draw(drawn: &Typefaced, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
             lighting: lighting_of(props.lighting),
             objects,
             textures: Vec::new(),
+            models: Vec::new(),
         },
         &props.background,
     ))

@@ -158,6 +158,7 @@ fn a_lit_sphere_is_brighter_towards_its_light() {
             up: [0.0, 1.0, 0.0],
         },
         meshes: &meshes,
+        models: &[],
         lights: &lights,
         environment: None,
         samples: 4,

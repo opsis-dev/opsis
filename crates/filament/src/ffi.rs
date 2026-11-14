@@ -64,6 +64,14 @@ pub struct OpsisLight {
 }
 
 #[repr(C)]
+pub struct OpsisModelUse {
+    pub model: i32,
+    pub transform: [f32; 16],
+    pub animation: i32,
+    pub time: f32,
+}
+
+#[repr(C)]
 pub struct OpsisScene {
     pub fov_degrees: f32,
     pub near_plane: f32,
@@ -75,6 +83,8 @@ pub struct OpsisScene {
     pub mesh_count: usize,
     pub lights: *const OpsisLight,
     pub light_count: usize,
+    pub models: *const OpsisModelUse,
+    pub model_count: usize,
     pub reflections: *const u8,
     pub reflections_size: usize,
     pub irradiance: *const f32,
@@ -84,6 +94,22 @@ pub struct OpsisScene {
 }
 
 unsafe extern "C" {
+    pub fn opsis_filament_model(filament: *mut OpsisFilament, bytes: *const u8, size: usize)
+    -> i32;
+    pub fn opsis_filament_model_animations(filament: *mut OpsisFilament, model: i32) -> u32;
+    pub fn opsis_filament_model_animation(
+        filament: *mut OpsisFilament,
+        model: i32,
+        index: u32,
+        duration: *mut f32,
+    ) -> *const std::ffi::c_char;
+    pub fn opsis_filament_model_bounds(
+        filament: *mut OpsisFilament,
+        model: i32,
+        animation: i32,
+        time: f32,
+        out: *mut f32,
+    ) -> i32;
     pub fn opsis_filament_scene(
         filament: *mut OpsisFilament,
         scene: *const OpsisScene,

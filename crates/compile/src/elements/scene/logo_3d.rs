@@ -337,6 +337,7 @@ pub fn draw(props: &Logo3d, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
             lighting: lighting_of(props.lighting),
             objects,
             textures,
+            models: Vec::new(),
         },
         &props.background,
     ))

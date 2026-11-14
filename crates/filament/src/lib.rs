@@ -61,6 +61,8 @@ pub enum FilamentError {
     },
     #[error("the pass couldn't be drawn")]
     Pass,
+    #[error("the 3D model couldn't be read")]
+    Model,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -253,10 +255,28 @@ pub struct Environment<'a> {
     pub intensity: f32,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ModelId(i32);
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Animation {
+    pub name: String,
+    pub duration: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ModelUse {
+    pub model: ModelId,
+    pub transform: [f32; 16],
+    pub animation: Option<u32>,
+    pub time: f32,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Scene<'a> {
     pub camera: Camera,
     pub meshes: &'a [Mesh<'a>],
+    pub models: &'a [ModelUse],
     pub lights: &'a [Light],
     pub environment: Option<Environment<'a>>,
     pub samples: u32,
@@ -264,7 +284,63 @@ pub struct Scene<'a> {
 
 const SH_COLUMNS: usize = 3;
 
+fn animation_index(animation: Option<u32>) -> i32 {
+    animation.and_then(|a| i32::try_from(a).ok()).unwrap_or(-1)
+}
+
 impl Filament {
+    pub fn model(&mut self, glb: &[u8]) -> Result<ModelId, FilamentError> {
+        let id =
+            unsafe { ffi::opsis_filament_model(self.engine.as_ptr(), glb.as_ptr(), glb.len()) };
+        if id < 0 {
+            return Err(FilamentError::Model);
+        }
+        Ok(ModelId(id))
+    }
+
+    pub fn animations(&mut self, model: ModelId) -> Vec<Animation> {
+        let count = unsafe { ffi::opsis_filament_model_animations(self.engine.as_ptr(), model.0) };
+        (0..count)
+            .filter_map(|index| {
+                let mut duration = 0.0f32;
+                let name = unsafe {
+                    ffi::opsis_filament_model_animation(
+                        self.engine.as_ptr(),
+                        model.0,
+                        index,
+                        &raw mut duration,
+                    )
+                };
+                if name.is_null() {
+                    return None;
+                }
+                let name = unsafe { std::ffi::CStr::from_ptr(name) }
+                    .to_string_lossy()
+                    .into_owned();
+                Some(Animation { name, duration })
+            })
+            .collect()
+    }
+
+    pub fn model_bounds(
+        &mut self,
+        model: ModelId,
+        animation: Option<u32>,
+        time: f32,
+    ) -> Option<([f32; 3], [f32; 3])> {
+        let mut out = [0.0f32; 6];
+        let found = unsafe {
+            ffi::opsis_filament_model_bounds(
+                self.engine.as_ptr(),
+                model.0,
+                animation_index(animation),
+                time,
+                out.as_mut_ptr(),
+            )
+        };
+        (found >= 0).then_some(([out[0], out[1], out[2]], [out[3], out[4], out[5]]))
+    }
+
     pub fn scene(
         &mut self,
         scene: &Scene<'_>,
@@ -347,6 +423,16 @@ impl Filament {
                 intensity: l.intensity,
             })
             .collect();
+        let models: Vec<ffi::OpsisModelUse> = scene
+            .models
+            .iter()
+            .map(|m| ffi::OpsisModelUse {
+                model: m.model.0,
+                transform: m.transform,
+                animation: animation_index(m.animation),
+                time: m.time,
+            })
+            .collect();
         let (reflections, reflections_size, irradiance, bands, intensity) = match scene.environment
         {
             Some(e) => {
@@ -376,6 +462,8 @@ impl Filament {
             mesh_count: meshes.len(),
             lights: lights.as_ptr(),
             light_count: lights.len(),
+            models: models.as_ptr(),
+            model_count: models.len(),
             reflections,
             reflections_size,
             irradiance,

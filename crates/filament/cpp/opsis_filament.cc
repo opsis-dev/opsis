@@ -117,6 +117,7 @@ extern "C" void opsis_filament_free(OpsisFilament* filament) {
     return;
   }
   Engine* engine = filament->engine;
+  opsis::free_models(filament);
   engine->destroy(filament->quad);
   utils::EntityManager::get().destroy(filament->quad);
   for (Material* material : filament->materials) {

@@ -1,4 +1,5 @@
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use opsis_capture::film::{Capture, DriverOptions, FilmPage};
 use opsis_compile::asset_ref::FILM_FOLDER;
@@ -12,9 +13,12 @@ use opsis_compile::registry::node_def;
 use opsis_compile::vars::Vars;
 use opsis_engine::http_files::{FileServer, folder_routes};
 use opsis_engine::paths::{ShellPlatform, engine_paths, find_headless_shell};
+use opsis_footage::decoder::FootageTools;
+use opsis_footage::footage::Footage;
 use opsis_golden::{dev_cache, home, repo};
 use opsis_prepare::serve::{PreparedDirs, prepared_routes};
 use opsis_render::frames::{StillRender, render_still};
+use opsis_render::native::{NATIVE_BASE, NativeFiles, NativeStill, render_native_still};
 use opsis_types::numbers;
 use opsis_types::timeline::{SpecAssets, TimelineSpec};
 use opsis_types::values::{CompileValue, PortValues};
@@ -161,7 +165,21 @@ fn copy_dir(from: &Path, to: &Path) {
     }
 }
 
+const NATIVE_REFLECTION_REASON: &str = "the room's reflections come from cmgen's prefiltered map in place of three.js's PMREM blur, which the fully metallic test models and the logo's bevels mirror a little darker";
+
+fn native_share(name: &str) -> f64 {
+    match name {
+        "model-plain" | "model-external" | "model-ktx2" | "model-draco" | "model-meshopt" => 0.965,
+        "logo-svg" => 0.99,
+        _ => MOSTLY_SAME,
+    }
+}
+
 fn share_alike(made: &Path, baseline: &Path) -> Result<(), String> {
+    share_alike_at(made, baseline, MOSTLY_SAME)
+}
+
+fn share_alike_at(made: &Path, baseline: &Path, needed: f64) -> Result<(), String> {
     let (a, b) = (
         image::open(made).map_err(|e| e.to_string())?.to_rgba8(),
         image::open(baseline).map_err(|e| e.to_string())?.to_rgba8(),
@@ -183,7 +201,7 @@ fn share_alike(made: &Path, baseline: &Path) -> Result<(), String> {
         })
         .count();
     let share = numbers::float(close) / f64::from(a.width() * a.height());
-    if share >= MOSTLY_SAME {
+    if share >= needed {
         Ok(())
     } else {
         Err(format!("only {:.2}% of pixels match", share * 100.0))
@@ -256,5 +274,66 @@ async fn draws_3d_elements_as_recorded() {
         }
     }
     std::fs::remove_dir_all(&temp).ok();
+    assert!(failures.is_empty(), "{}", failures.join("\n"));
+}
+
+#[tokio::test(flavor = "multi_thread")]
+#[ignore = "needs the GPU drawing backend; OPSIS_STILLS_OUT names where stills go"]
+async fn draws_3d_elements_natively_as_recorded() {
+    let out = std::env::var_os("OPSIS_STILLS_OUT")
+        .map_or_else(|| dev_cache("three-stills-native"), PathBuf::from);
+    let project = out.join("project");
+    copy_dir(
+        &opsis_golden::path("prepare/models"),
+        &project.join("assets/models"),
+    );
+    let files = Arc::new(NativeFiles {
+        dirs: PreparedDirs {
+            project: project.clone(),
+            public: repo().join("public"),
+        },
+        footage: Arc::new(Footage::new(
+            FootageTools {
+                ffmpeg: opsis_golden::ffmpeg(),
+                temp: out.clone(),
+            },
+            Vec::new(),
+        )),
+    });
+    let mut failures = Vec::new();
+    for (name, key, params) in cases() {
+        let base = spec_for(key, &params);
+        let spec = hosted(&TimelineSpec {
+            assets: Some(SpecAssets {
+                project_base: Some(NATIVE_BASE.to_owned()),
+            }),
+            ..base
+        });
+        let file = out.join(format!("{name}.png"));
+        let drawn = render_native_still(NativeStill {
+            spec,
+            files: Arc::clone(&files),
+            frame: FRAME,
+            scale: 0.5,
+            format: StillFormat::Png,
+            jpeg_quality: None,
+            output: file.clone(),
+        })
+        .await;
+        if let Err(error) = drawn {
+            failures.push(format!("{name}: {error}"));
+            continue;
+        }
+        let recorded = opsis_golden::path(&format!("{STILLS}/{name}.png"));
+        let needed = native_share(name);
+        if let Err(error) = share_alike_at(&file, &recorded, needed) {
+            let allowance = if needed < MOSTLY_SAME {
+                format!(" (allowed down to {needed}: {NATIVE_REFLECTION_REASON})")
+            } else {
+                String::new()
+            };
+            failures.push(format!("{name}: {error}{allowance}"));
+        }
+    }
     assert!(failures.is_empty(), "{}", failures.join("\n"));
 }

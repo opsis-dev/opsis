@@ -4856,10 +4856,12 @@ dependencies = [
 name = "opsis-stage3d"
 version = "0.1.0"
 dependencies = [
+ "log",
  "opsis-filament",
  "opsis-geometry",
  "opsis-scene",
  "opsis-types",
+ "serde_json",
 ]
 
 [[package]]

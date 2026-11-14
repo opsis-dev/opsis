@@ -80,6 +80,7 @@ opsis-engine = { path = "crates/engine" }
 opsis-filament = { path = "crates/filament" }
 opsis-film = { path = "crates/film" }
 opsis-fonts = { path = "crates/fonts" }
+opsis-geometry = { path = "crates/geometry" }
 opsis-footage = { path = "crates/footage" }
 opsis-golden = { path = "crates/golden" }
 opsis-image = { path = "crates/image" }

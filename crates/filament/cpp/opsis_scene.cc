@@ -299,6 +299,17 @@ extern "C" int32_t opsis_filament_scene(OpsisFilament* filament,
     ok = build_mesh(filament, scene->meshes[i], meshes[i]) && ok;
     if (meshes[i].instance != nullptr) world->addEntity(meshes[i].entity);
   }
+  for (size_t i = 0; i < scene->model_count; ++i) {
+    const OpsisModelUse& use = scene->models[i];
+    filament::gltfio::FilamentAsset* asset =
+        opsis::model_of(filament, use.model);
+    if (asset == nullptr) {
+      ok = false;
+      continue;
+    }
+    opsis::pose_model(filament, asset, use.transform, use.animation, use.time);
+    world->addEntities(asset->getEntities(), asset->getEntityCount());
+  }
   std::vector<utils::Entity> lights;
   for (size_t i = 0; i < scene->light_count; ++i) {
     const OpsisLight& light = scene->lights[i];

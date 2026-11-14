@@ -21,7 +21,7 @@ language-tags.workspace = true
 layout-rs.workspace = true
 nanoid.workspace = true
 num-format.workspace = true
-opsis-geometry = { version = "0.1.0", path = "../geometry" }
+opsis-geometry.workspace = true
 opsis-macros.workspace = true
 opsis-scene.workspace = true
 opsis-types.workspace = true

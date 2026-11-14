@@ -12,6 +12,14 @@ const ROOT_FLAG = "--into=";
 const BUILD_JOBS = "8";
 const SOURCES_DIR = path.join(ROOT, "crates", "filament", "cpp");
 const LIBRARIES = [
+  "gltfio_core",
+  "uberarchive",
+  "uberzlib",
+  "dracodec",
+  "meshoptimizer",
+  "basis_transcoder",
+  "stb",
+  "mikktspace",
   "filament",
   "backend",
   "bluevk",

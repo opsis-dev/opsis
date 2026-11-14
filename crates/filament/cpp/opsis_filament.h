@@ -43,6 +43,13 @@ typedef struct OpsisLight {
   float intensity;
 } OpsisLight;
 
+typedef struct OpsisModelUse {
+  int32_t model;
+  float transform[16];
+  int32_t animation;
+  float time;
+} OpsisModelUse;
+
 typedef struct OpsisScene {
   float fov_degrees;
   float near_plane;
@@ -54,6 +61,8 @@ typedef struct OpsisScene {
   size_t mesh_count;
   const OpsisLight* lights;
   size_t light_count;
+  const OpsisModelUse* models;
+  size_t model_count;
   const uint8_t* reflections;
   size_t reflections_size;
   const float* irradiance;
@@ -72,6 +81,15 @@ int32_t opsis_filament_pass(OpsisFilament* filament, int32_t material,
                             uint32_t width, uint32_t height,
                             const OpsisUniform* uniforms, size_t uniform_count,
                             uint8_t* out);
+int32_t opsis_filament_model(OpsisFilament* filament, const uint8_t* bytes,
+                             size_t size);
+uint32_t opsis_filament_model_animations(OpsisFilament* filament,
+                                         int32_t model);
+const char* opsis_filament_model_animation(OpsisFilament* filament,
+                                           int32_t model, uint32_t index,
+                                           float* duration);
+int32_t opsis_filament_model_bounds(OpsisFilament* filament, int32_t model,
+                                    int32_t animation, float time, float* out);
 int32_t opsis_filament_scene(OpsisFilament* filament, const OpsisScene* scene,
                              uint32_t width, uint32_t height, uint8_t* out);
 

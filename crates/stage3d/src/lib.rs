@@ -1,10 +1,16 @@
+mod glb;
+mod model;
+
 use opsis_filament::{
     BASIC_MATERIAL, Camera, Environment as SceneEnvironment, Filament, FilamentError, Input, Light,
     MaterialId, Mesh, STANDARD_DOUBLE_MATERIAL, STANDARD_MATERIAL, Scene, Uniform,
 };
 use opsis_geometry::mesh_of;
 use opsis_scene::node::{Lighting3d, Shading3d, Stage3d, Texture3d};
+use opsis_scene::values::Num;
 use opsis_types::numbers::narrow;
+
+pub use crate::model::{Files, Models};
 
 const NEAR: f64 = 0.1;
 const FAR_SHARE: f64 = 10.0;
@@ -61,6 +67,7 @@ pub struct Picture<'a> {
 
 #[derive(Debug, Default)]
 pub struct Materials {
+    models: Models,
     standard: Option<MaterialId>,
     standard_double: Option<MaterialId>,
     basic: Option<MaterialId>,
@@ -173,23 +180,43 @@ fn ambient_irradiance(base: &[f32], look: &Look) -> Vec<f32> {
     sh
 }
 
+const SHADOW_SIDE: u32 = 256;
+const SHADOW_ALPHA: f64 = 0.55;
+
 pub fn render(
     filament: &mut Filament,
     materials: &mut Materials,
     stage: &Stage3d,
     size: (u32, u32),
     pictures: &[Option<Picture<'_>>],
+    files: Files<'_>,
     environment: Option<Environment<'_>>,
 ) -> Result<Vec<u8>, FilamentError> {
     let look = look_of(stage.lighting);
-    let textures: Vec<Option<Pixels>> = stage
-        .textures
+    let mut objects = stage.objects.clone();
+    let mut texture_list = stage.textures.clone();
+    let glow = u32::try_from(texture_list.len()).unwrap_or(u32::MAX);
+    let mut uses = Vec::new();
+    for model in &stage.models {
+        let Some(placed) = materials.models.place(filament, model, files, glow) else {
+            continue;
+        };
+        uses.push(placed.model);
+        objects.extend(placed.shadow);
+    }
+    if objects.len() > stage.objects.len() {
+        texture_list.push(Texture3d::Glow {
+            side: SHADOW_SIDE,
+            alpha: Num(SHADOW_ALPHA),
+        });
+    }
+    let textures: Vec<Option<Pixels>> = texture_list
         .iter()
         .enumerate()
         .map(|(i, texture)| texture_pixels(texture, pictures.get(i).and_then(Option::as_ref)))
         .collect();
     let mut drawn = Vec::new();
-    for object in &stage.objects {
+    for object in &objects {
         let texture = match object.material.texture {
             None => None,
             Some(index) => {
@@ -309,6 +336,7 @@ pub fn render(
             up: [0.0, 1.0, 0.0],
         },
         meshes: &meshes,
+        models: &uses,
         lights: &lights,
         environment: scene_environment,
         samples: SAMPLES,

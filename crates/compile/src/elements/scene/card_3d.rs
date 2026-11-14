@@ -255,6 +255,7 @@ pub fn draw(props: &Card3d, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
                     alpha: Num(SHADOW_ALPHA),
                 },
             ],
+            models: Vec::new(),
         },
         &props.background,
     ))

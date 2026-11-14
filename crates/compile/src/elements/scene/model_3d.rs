@@ -1,9 +1,16 @@
 use opsis_macros::{choice, settings};
+use opsis_scene::node::{Model3d as StagedModel, Node, Stage3d, div};
+use opsis_scene::paint::AssetRef;
+use opsis_scene::timeline::absolute_fill;
+use opsis_scene::values::Num;
 use opsis_types::looks::{NodeLook, NodeMotion};
 use opsis_types::timeline::CameraPath;
 
+use crate::elements::draw::{Cx, DrawFailure};
 use crate::elements::entry::{element, meta};
-use crate::elements::shared::Lighting;
+use crate::elements::shared::{Lighting, Motion};
+use crate::elements::three::motion::{MotionTime, element_pose};
+use crate::elements::three::{SUBJECT_RADIUS, fit_distance, lighting_of, pose_matrix, staged};
 use crate::elements::{ElementCategory, ElementKind, ElementMeta};
 
 #[choice(export)]
@@ -112,4 +119,61 @@ pub fn definition() -> ElementMeta {
             "A 3D model from your project on a turntable, with studio lighting and its own animation.",
             ElementCategory::Scene,
             150).look(NodeLook::of("lucide:cuboid").moves(NodeMotion::Turn)))
+}
+
+const MODEL_SIZE: f64 = 2.2;
+const SEED: f64 = 1.0;
+
+const fn motion_of(motion: ModelMotion) -> Motion {
+    match motion {
+        ModelMotion::Spin => Motion::Spin,
+        ModelMotion::Orbit => Motion::Orbit,
+        ModelMotion::Swing => Motion::Swing,
+        ModelMotion::Float => Motion::Float,
+        ModelMotion::Still => Motion::Still,
+        ModelMotion::Keyframes => Motion::Keyframes,
+    }
+}
+
+pub fn draw(props: &Model3d, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
+    if props.src.is_empty() {
+        return Ok(div(absolute_fill()).into());
+    }
+    let frame = cx.frame();
+    let fps = cx.fps();
+    let pose = element_pose(
+        motion_of(props.motion),
+        Some(&props.camera),
+        &MotionTime {
+            frame,
+            fps,
+            speed: props.speed,
+            seed: SEED,
+            tilt_deg: f64::from(props.tilt),
+            end_facing: props.end_facing,
+            amount: props.motion_amount,
+            reverse: props.reverse,
+            grow_in: props.grow_in,
+        },
+    );
+    let aspect = cx.at.stage.width / cx.at.stage.height;
+    Ok(staged(
+        Stage3d {
+            fov: Num(props.lens),
+            distance: Num(fit_distance(SUBJECT_RADIUS, props.lens, aspect)),
+            lighting: lighting_of(props.lighting),
+            objects: Vec::new(),
+            textures: Vec::new(),
+            models: vec![StagedModel {
+                source: AssetRef(props.src.clone()),
+                matrix: pose_matrix(&pose).map(Num),
+                size: Num(MODEL_SIZE * props.zoom),
+                animation: props.animation.clone(),
+                looped: props.r#loop,
+                time: Num((frame / fps) * props.animation_speed),
+                shadow: props.shadow.then_some(Num(props.shadow_opacity)),
+            }],
+        },
+        &props.background,
+    ))
 }

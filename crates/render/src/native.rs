@@ -102,7 +102,16 @@ impl NativeFiles {
         if let Some(picture) = Self::footage_at(source).and_then(|_| self.frame(source)) {
             return Some((f64::from(picture.width), f64::from(picture.height)));
         }
-        let probe = opsis_probe::probe(&self.path_of(source)?).ok()?;
+        let Some(path) = self.path_of(source) else {
+            let bytes = self.bytes(source)?;
+            let (width, height) = image::ImageReader::new(std::io::Cursor::new(bytes))
+                .with_guessed_format()
+                .ok()?
+                .into_dimensions()
+                .ok()?;
+            return Some((f64::from(width), f64::from(height)));
+        };
+        let probe = opsis_probe::probe(&path).ok()?;
         let video = probe.video?;
         Some((f64::from(video.width), f64::from(video.height)))
     }

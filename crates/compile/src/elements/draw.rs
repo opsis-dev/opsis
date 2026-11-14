@@ -318,6 +318,7 @@ pub fn wrapper(
         "tv-power-off" => wrapped(component, props, child, cx, effect::tv_power_off::wrap),
         "phone-frame" => wrapped(component, props, child, cx, device::phone_frame::wrap),
         "laptop-frame" => wrapped(component, props, child, cx, device::laptop_frame::wrap),
+        "screen-3d" => wrapped(component, props, child, cx, device::screen_3d::wrap),
         "multi-device-lineup" => wrapped(
             component,
             props,
@@ -347,6 +348,7 @@ pub fn element(component: &str, props: &Map<String, Value>, cx: &Cx<'_>) -> Draw
         "shapes-3d" => drawn(component, props, cx, background::shapes_3d::draw),
         "card-3d" => drawn(component, props, cx, scene::card_3d::draw),
         "logo-3d" => drawn(component, props, cx, scene::logo_3d::draw),
+        "model-3d" => drawn(component, props, cx, scene::model_3d::draw),
         "text-3d" => drawn(component, props, cx, text::text_3d::draw),
         "light-leak" => drawn(component, props, cx, overlay::light_leak::draw),
         "shader-warp" => drawn(component, props, cx, background::shader_warp::draw),
