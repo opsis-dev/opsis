@@ -6,7 +6,7 @@ mod effects;
 mod filters;
 mod geometry;
 mod gradients;
-pub mod lottie;
+
 mod resources;
 mod svg;
 mod text;
@@ -27,7 +27,7 @@ use opsis_types::numbers::exact_eq;
 
 use crate::boxes::{Areas, draw_box, draw_replaced};
 use crate::geometry::{is_rounded, matrix44, rect_f, round_rect};
-pub use crate::resources::{Frames, Pass, Picture, Programs, Resources, Setting};
+pub use crate::resources::{Cache, Frames, Pass, Picture, Programs, Resources, Setting};
 
 pub(crate) struct Painter<'s, 'r, 'l> {
     pub root: &'l Node,
@@ -570,29 +570,33 @@ impl<'n> Painter<'_, '_, '_> {
         let (left, top) = ((seen.x - 2.0).floor(), (seen.y - 2.0).floor());
         let width: u32 = opsis_types::numbers::whole((seen.x + seen.width + 2.0).ceil() - left);
         let height: u32 = opsis_types::numbers::whole((seen.y + seen.height + 2.0).ceil() - top);
-        let Ok(surface) = Surface::new(width.max(1), height.max(1)) else {
-            return false;
-        };
         let base = Matrix::translation(-left, -top, 0.0).then(&to_layer);
-        let mut surface = surface.with_base(matrix44(&base));
-        surface.clear(Rgba::TRANSPARENT);
-        {
-            let mut sub = Painter {
-                root: self.root,
-                surface: &mut surface,
-                resources: self.resources,
-                laid: self.laid,
-                index: self.index,
-                context: self.context,
-                offscreen: self.offscreen,
-                base,
-                slots: self.slots,
+        let key = self.layer_key(element, path, &base, (width, height));
+        if self.resources.layer(key).is_none() {
+            let Ok(surface) = Surface::new(width.max(1), height.max(1)) else {
+                return false;
             };
-            sub.paint_context_here(element, path, &[]);
+            let mut surface = surface.with_base(matrix44(&base));
+            surface.clear(Rgba::TRANSPARENT);
+            {
+                let mut sub = Painter {
+                    root: self.root,
+                    surface: &mut surface,
+                    resources: self.resources,
+                    laid: self.laid,
+                    index: self.index,
+                    context: self.context,
+                    offscreen: self.offscreen,
+                    base,
+                    slots: self.slots,
+                };
+                sub.paint_context_here(element, path, &[]);
+            }
+            let Some(image) = surface.snapshot() else {
+                return true;
+            };
+            self.resources.keep_layer(key, image);
         }
-        let Some(image) = surface.snapshot() else {
-            return true;
-        };
         let back = placed
             .matrix
             .then(&Matrix::translation(origin.0, origin.1, 0.0))
@@ -606,14 +610,31 @@ impl<'n> Painter<'_, '_, '_> {
             opsis_types::numbers::narrow(f64::from(width)),
             opsis_types::numbers::narrow(f64::from(height)),
         );
-        self.surface.draw_image_rect(
-            &image,
-            (RectF::new(0.0, 0.0, w, h), RectF::new(0.0, 0.0, w, h)),
-            Sampling::Linear,
-            &Paint::new(),
-        );
+        if let Some(image) = self.resources.layer(key) {
+            self.surface.draw_image_rect(
+                image,
+                (RectF::new(0.0, 0.0, w, h), RectF::new(0.0, 0.0, w, h)),
+                Sampling::Linear,
+                &Paint::new(),
+            );
+        }
         self.surface.restore_to(saved);
         true
+    }
+
+    fn layer_key(&self, element: &Element, path: &[usize], base: &Matrix, size: (u32, u32)) -> u64 {
+        use std::hash::{Hash, Hasher};
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        element.hash(&mut hasher);
+        path.hash(&mut hasher);
+        size.hash(&mut hasher);
+        for value in base.0 {
+            value.to_bits().hash(&mut hasher);
+        }
+        for placed in self.laid.boxes.iter().filter(|b| b.path.starts_with(path)) {
+            format!("{placed:?}").hash(&mut hasher);
+        }
+        hasher.finish()
     }
 
     fn effect_inputs(

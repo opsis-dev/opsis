@@ -17,6 +17,7 @@ const FRAMES_AHEAD: usize = 3;
 const KEPT_LOG_LINES: usize = 12;
 const EXIT_POLLS: u32 = 200;
 const EXIT_POLL: std::time::Duration = std::time::Duration::from_millis(10);
+const STALL_LIMIT: std::time::Duration = std::time::Duration::from_secs(30);
 
 #[derive(Debug, Clone)]
 pub struct FootageTools {
@@ -138,8 +139,10 @@ impl Decoder {
     }
 
     pub fn next_frame(&mut self) -> Result<Option<RawFrame>, FootageError> {
-        if let Ok(frame) = self.frames.recv() {
-            return Ok(Some(frame));
+        match self.frames.recv_timeout(STALL_LIMIT) {
+            Ok(frame) => return Ok(Some(frame)),
+            Err(mpsc::RecvTimeoutError::Timeout) => return Err(FootageError::Stalled),
+            Err(mpsc::RecvTimeoutError::Disconnected) => {}
         }
         if self.exit_status()?.success() {
             return Ok(None);

@@ -1,5 +1,5 @@
 use std::collections::{HashMap, VecDeque};
-use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -223,6 +223,7 @@ pub struct Footage {
     sources: HashMap<String, Mutex<SourceState>>,
     terminals: HashMap<String, TerminalState>,
     starts: AtomicU32,
+    stalled: AtomicBool,
 }
 
 impl Footage {
@@ -238,6 +239,7 @@ impl Footage {
                 .collect(),
             terminals: HashMap::new(),
             starts: AtomicU32::new(0),
+            stalled: AtomicBool::new(false),
         }
     }
 
@@ -305,7 +307,15 @@ impl Footage {
     }
 
     pub fn shown(&self, id: &str, time_us: i64) -> Result<Shown, FootageError> {
-        self.with_source(id, |state| state.shown(&self.tools, &self.starts, time_us))
+        let shown = self.with_source(id, |state| state.shown(&self.tools, &self.starts, time_us));
+        if matches!(shown, Err(FootageError::Stalled)) {
+            self.stalled.store(true, Ordering::Relaxed);
+        }
+        shown
+    }
+
+    pub fn stalled(&self) -> bool {
+        self.stalled.load(Ordering::Relaxed)
     }
 
     pub fn picture(&self, id: &str, time_us: i64) -> Result<Arc<Vec<u8>>, FootageError> {

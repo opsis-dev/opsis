@@ -15,11 +15,20 @@ pub enum FontError {
     Empty(String),
 }
 
+const KEPT_FRAMES: u64 = 2;
+
+pub(crate) struct Shaped {
+    pub(crate) paragraph: parley::Layout<u32>,
+    used: u64,
+}
+
 pub struct Fonts {
     pub(crate) context: FontContext,
     registered: Vec<String>,
     faces: Vec<(String, Arc<Vec<u8>>)>,
     fallbacks: Vec<String>,
+    shaped: std::collections::HashMap<u64, Shaped>,
+    frame: u64,
 }
 
 impl std::fmt::Debug for Fonts {
@@ -51,6 +60,31 @@ fn sfnt(name: &str, bytes: &[u8]) -> Result<Vec<u8>, FontError> {
 }
 
 impl Fonts {
+    pub fn next_frame(&mut self) {
+        self.frame += 1;
+        let frame = self.frame;
+        self.shaped
+            .retain(|_, kept| kept.used + KEPT_FRAMES >= frame);
+    }
+
+    pub(crate) fn shaped(&mut self, key: u64) -> Option<parley::Layout<u32>> {
+        let frame = self.frame;
+        self.shaped.get_mut(&key).map(|kept| {
+            kept.used = frame;
+            kept.paragraph.clone()
+        })
+    }
+
+    pub(crate) fn keep_shaped(&mut self, key: u64, paragraph: &parley::Layout<u32>) {
+        self.shaped.insert(
+            key,
+            Shaped {
+                paragraph: paragraph.clone(),
+                used: self.frame,
+            },
+        );
+    }
+
     pub fn new() -> Self {
         Self {
             context: FontContext {
@@ -63,6 +97,8 @@ impl Fonts {
             registered: Vec::new(),
             faces: Vec::new(),
             fallbacks: Vec::new(),
+            shaped: std::collections::HashMap::new(),
+            frame: 0,
         }
     }
 

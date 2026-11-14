@@ -815,6 +815,19 @@ pub fn text_of(items: &[InlineItem]) -> (String, Vec<(usize, usize)>) {
     (text, ranges)
 }
 
+fn paragraph_key(
+    items: &[InlineItem],
+    root: &TextStyle,
+    sizes: &[BoxSize],
+    tabs: &[f32],
+    fallbacks: &[String],
+) -> u64 {
+    use std::hash::{Hash, Hasher};
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    format!("{items:?}|{root:?}|{sizes:?}|{tabs:?}|{fallbacks:?}").hash(&mut hasher);
+    hasher.finish()
+}
+
 fn build_paragraph(tree: &mut Tree<'_>, id: usize) -> Option<Paragraph<u32>> {
     let crate::tree::Content::Inline(content) = &tree.nodes[id].content else {
         return None;
@@ -823,14 +836,30 @@ fn build_paragraph(tree: &mut Tree<'_>, id: usize) -> Option<Paragraph<u32>> {
     let root = content.root.clone();
     let sizes = content.box_sizes.clone();
     let tabs = content.tab_widths.clone();
-    let (text, ranges) = text_of(&items);
     let fallbacks = tree.fonts.fallbacks().to_vec();
+    let key = paragraph_key(&items, &root, &sizes, &tabs, &fallbacks);
+    if let Some(paragraph) = tree.fonts.shaped(key) {
+        return Some(paragraph);
+    }
+    let paragraph = shaped_paragraph(tree, &items, &root, (&sizes, &tabs), &fallbacks);
+    tree.fonts.keep_shaped(key, &paragraph);
+    Some(paragraph)
+}
+
+fn shaped_paragraph(
+    tree: &mut Tree<'_>,
+    items: &[InlineItem],
+    root: &TextStyle,
+    (sizes, tabs): (&[BoxSize], &[f32]),
+    fallbacks: &[String],
+) -> Paragraph<u32> {
+    let (text, ranges) = text_of(items);
     let fonts = &mut tree.fonts.context;
     let mut builder = tree.text_layouts.ranged_builder(fonts, &text, 1.0, false);
-    if !breaks_all(&root, &items) {
+    if !breaks_all(root, items) {
         builder.set_line_break_override(Some(CHROMIUM_LINE_BREAK_OVERRIDE));
     }
-    push_root(&mut builder, &root, &fallbacks);
+    push_root(&mut builder, root, fallbacks);
     let mut box_index = 0;
     let mut tab_index = 0;
     for (index, (item, (start, end))) in items.iter().zip(&ranges).enumerate() {
@@ -840,7 +869,7 @@ fn build_paragraph(tree: &mut Tree<'_>, id: usize) -> Option<Paragraph<u32>> {
                     &mut builder,
                     style,
                     *start..*end,
-                    (u32::try_from(index).unwrap_or(u32::MAX), &fallbacks),
+                    (u32::try_from(index).unwrap_or(u32::MAX), fallbacks),
                 );
             }
             InlineItem::Box { .. } => {
@@ -882,7 +911,7 @@ fn build_paragraph(tree: &mut Tree<'_>, id: usize) -> Option<Paragraph<u32>> {
             InlineItem::SpanStart { .. } | InlineItem::SpanEnd => {}
         }
     }
-    Some(builder.build(&text))
+    builder.build(&text)
 }
 
 fn breaks_all(root: &TextStyle, items: &[InlineItem]) -> bool {

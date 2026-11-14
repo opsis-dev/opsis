@@ -53,14 +53,93 @@ pub trait Programs {
     }
 }
 
+const KEPT_FRAMES: u64 = 2;
+
+struct Kept<T> {
+    value: T,
+    used: u64,
+}
+
+type Shelf<K, T> = HashMap<K, Kept<Option<T>>>;
+
+fn kept<K: std::hash::Hash + Eq, T>(
+    shelf: &mut Shelf<K, T>,
+    key: K,
+    frame: u64,
+    make: impl FnOnce(&K) -> Option<T>,
+) -> Option<&mut T> {
+    let entry = shelf.entry(key).or_insert_with_key(|key| Kept {
+        value: make(key),
+        used: frame,
+    });
+    entry.used = frame;
+    entry.value.as_mut()
+}
+
+fn swept<K, T>(shelf: &mut Shelf<K, T>, frame: u64) {
+    shelf.retain(|_, kept| kept.used + KEPT_FRAMES >= frame);
+}
+
+type FontIds = HashMap<String, Vec<usvg::fontdb::ID>>;
+
+#[derive(Default)]
+pub struct Cache {
+    fonts: Option<(Arc<usvg::fontdb::Database>, Arc<FontIds>)>,
+    typefaces: Shelf<TypefaceKey, Typeface>,
+    images: Shelf<String, Image>,
+    trees: Shelf<String, usvg::Tree>,
+    animations: Shelf<String, opsis_skia::Lottie>,
+    layers: Shelf<u64, Image>,
+    frame: u64,
+}
+
+impl std::fmt::Debug for Cache {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Cache")
+            .field("typefaces", &self.typefaces.len())
+            .field("images", &self.images.len())
+            .field("trees", &self.trees.len())
+            .field("animations", &self.animations.len())
+            .field("frame", &self.frame)
+            .finish_non_exhaustive()
+    }
+}
+
+impl Cache {
+    pub fn next_frame(&mut self) {
+        self.frame += 1;
+        let frame = self.frame;
+        swept(&mut self.typefaces, frame);
+        swept(&mut self.images, frame);
+        swept(&mut self.trees, frame);
+        swept(&mut self.animations, frame);
+        swept(&mut self.layers, frame);
+    }
+
+    fn fonts(
+        &mut self,
+        faces: &[(String, Arc<Vec<u8>>)],
+    ) -> (Arc<usvg::fontdb::Database>, Arc<FontIds>) {
+        self.fonts
+            .get_or_insert_with(|| {
+                let mut database = usvg::fontdb::Database::new();
+                let mut by_name: FontIds = HashMap::new();
+                for (name, bytes) in faces {
+                    let source: Arc<dyn AsRef<[u8]> + Send + Sync> = bytes.clone();
+                    let ids = database.load_font_source(usvg::fontdb::Source::Binary(source));
+                    by_name.entry(name.clone()).or_default().extend(ids);
+                }
+                (Arc::new(database), Arc::new(by_name))
+            })
+            .clone()
+    }
+}
+
 pub struct Resources<'a> {
     files: &'a (dyn Fn(&str) -> Option<Vec<u8>> + Sync),
     frames: Option<Frames<'a>>,
     programs: Option<&'a mut dyn Programs>,
-    typefaces: HashMap<TypefaceKey, Option<Typeface>>,
-    images: HashMap<String, Option<Image>>,
-    trees: HashMap<String, Option<usvg::Tree>>,
-    animations: HashMap<String, Option<opsis_skia::Lottie>>,
+    cache: Cache,
     options: usvg::Options<'a>,
 }
 
@@ -84,15 +163,9 @@ fn picture_kind(source: &str, bytes: Vec<u8>) -> Option<usvg::ImageKind> {
 
 fn options<'a>(
     faces: &[(String, Arc<Vec<u8>>)],
+    (database, by_name): (Arc<usvg::fontdb::Database>, Arc<FontIds>),
     files: &'a (dyn Fn(&str) -> Option<Vec<u8>> + Sync),
 ) -> usvg::Options<'a> {
-    let mut database = usvg::fontdb::Database::new();
-    let mut by_name: HashMap<String, Vec<usvg::fontdb::ID>> = HashMap::new();
-    for (name, bytes) in faces {
-        let source: Arc<dyn AsRef<[u8]> + Send + Sync> = bytes.clone();
-        let ids = database.load_font_source(usvg::fontdb::Source::Binary(source));
-        by_name.entry(name.clone()).or_default().extend(ids);
-    }
     let fallback: Option<usvg::fontdb::ID> = faces
         .first()
         .and_then(|(name, _)| by_name.get(name))
@@ -129,7 +202,7 @@ fn options<'a>(
             resolve_data: usvg::ImageHrefResolver::default_data_resolver(),
             resolve_string,
         },
-        fontdb: Arc::new(database),
+        fontdb: database,
         font_resolver: usvg::FontResolver {
             select_font,
             select_fallback: usvg::FontResolver::default_fallback_selector(),
@@ -141,8 +214,7 @@ fn options<'a>(
 impl std::fmt::Debug for Resources<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Resources")
-            .field("typefaces", &self.typefaces.len())
-            .field("images", &self.images.len())
+            .field("cache", &self.cache)
             .finish_non_exhaustive()
     }
 }
@@ -152,16 +224,43 @@ impl<'a> Resources<'a> {
         files: &'a (dyn Fn(&str) -> Option<Vec<u8>> + Sync),
         faces: &[(String, Arc<Vec<u8>>)],
     ) -> Self {
+        Self::with_cache(files, faces, Cache::default())
+    }
+
+    pub fn with_cache(
+        files: &'a (dyn Fn(&str) -> Option<Vec<u8>> + Sync),
+        faces: &[(String, Arc<Vec<u8>>)],
+        mut cache: Cache,
+    ) -> Self {
+        let fonts = cache.fonts(faces);
         Self {
-            options: options(faces, files),
+            options: options(faces, fonts, files),
             files,
             frames: None,
             programs: None,
-            typefaces: HashMap::new(),
-            images: HashMap::new(),
-            trees: HashMap::new(),
-            animations: HashMap::new(),
+            cache,
         }
+    }
+
+    pub fn into_cache(self) -> Cache {
+        self.cache
+    }
+
+    pub fn layer(&mut self, key: u64) -> Option<&Image> {
+        let frame = self.cache.frame;
+        let kept = self.cache.layers.get_mut(&key)?;
+        kept.used = frame;
+        kept.value.as_ref()
+    }
+
+    pub fn keep_layer(&mut self, key: u64, image: Image) {
+        self.cache.layers.insert(
+            key,
+            Kept {
+                value: Some(image),
+                used: self.cache.frame,
+            },
+        );
     }
 
     #[must_use]
@@ -213,17 +312,15 @@ impl<'a> Resources<'a> {
                 .map(|(tag, value)| (*tag, value.to_bits()))
                 .collect(),
         );
-        self.typefaces
-            .entry(key)
-            .or_insert_with(|| {
-                let axes: Vec<Axis> = run
-                    .variations
-                    .iter()
-                    .map(|(tag, value)| Axis::new(*tag, *value))
-                    .collect();
-                Typeface::from_bytes(run.font.data.data(), run.font.index, &axes)
-            })
-            .as_ref()
+        kept(&mut self.cache.typefaces, key, self.cache.frame, |_| {
+            let axes: Vec<Axis> = run
+                .variations
+                .iter()
+                .map(|(tag, value)| Axis::new(*tag, *value))
+                .collect();
+            Typeface::from_bytes(run.font.data.data(), run.font.index, &axes)
+        })
+        .map(|t| &*t)
     }
 
     pub fn is_svg(source: &str) -> bool {
@@ -236,15 +333,18 @@ impl<'a> Resources<'a> {
     pub fn svg(&mut self, source: &str) -> Option<&usvg::Tree> {
         let files = self.files;
         let options = &self.options;
-        self.trees
-            .entry(source.to_owned())
-            .or_insert_with(|| {
+        kept(
+            &mut self.cache.trees,
+            source.to_owned(),
+            self.cache.frame,
+            |_| {
                 let bytes = source
                     .strip_prefix("data:")
                     .map_or_else(|| files(source), data_bytes)?;
                 usvg::Tree::from_data(&bytes, options).ok()
-            })
-            .as_ref()
+            },
+        )
+        .map(|t| &*t)
     }
 
     pub const fn options(&self) -> &usvg::Options<'a> {
@@ -253,29 +353,33 @@ impl<'a> Resources<'a> {
 
     pub fn markup(&mut self, document: String) -> Option<&usvg::Tree> {
         let options = &self.options;
-        self.trees
-            .entry(document)
-            .or_insert_with_key(|text| usvg::Tree::from_str(text, options).ok())
-            .as_ref()
+        kept(&mut self.cache.trees, document, self.cache.frame, |text| {
+            usvg::Tree::from_str(text, options).ok()
+        })
+        .map(|t| &*t)
     }
 
     pub fn animation(&mut self, source: &str) -> Option<&mut opsis_skia::Lottie> {
         let files = self.files;
-        self.animations
-            .entry(source.to_owned())
-            .or_insert_with(|| {
-                let json = crate::lottie::animation_json(&files(source)?)?;
+        kept(
+            &mut self.cache.animations,
+            source.to_owned(),
+            self.cache.frame,
+            |_| {
+                let json = opsis_probe::lottie::animation_json(&files(source)?)?;
                 opsis_skia::Lottie::from_json(&json)
-            })
-            .as_mut()
+            },
+        )
     }
 
     pub fn image(&mut self, source: &str) -> Option<&Image> {
         let files = self.files;
         let frames = self.frames;
-        self.images
-            .entry(source.to_owned())
-            .or_insert_with(|| {
+        kept(
+            &mut self.cache.images,
+            source.to_owned(),
+            self.cache.frame,
+            |_| {
                 if let Some(picture) = frames.and_then(|frames| frames(source)) {
                     return Image::from_rgba(picture.width, picture.height, &picture.rgba);
                 }
@@ -283,8 +387,9 @@ impl<'a> Resources<'a> {
                     .strip_prefix("data:")
                     .map_or_else(|| files(source), data_bytes)
                     .and_then(|bytes| Image::decode(&bytes))
-            })
-            .as_ref()
+            },
+        )
+        .map(|i| &*i)
     }
 }
 
