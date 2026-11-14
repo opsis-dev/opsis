@@ -1,8 +1,12 @@
+mod child;
+
 use std::collections::HashMap;
 
 use opsis_filament::{Backend, Filament, FilamentError, Input, MaterialId, Uniform};
 
 include!(concat!(env!("OUT_DIR"), "/materials.rs"));
+
+pub use crate::child::serve;
 
 const PAPER_NOISE: &[u8] = include_bytes!("../textures/paper-noise.png");
 const NOISE_PROGRAMS: [&str; 4] = [

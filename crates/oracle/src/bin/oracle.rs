@@ -4,7 +4,9 @@ use opsis_compile::asset_ref::FILM_FOLDER;
 use opsis_compile::elements::{ElementMeta, elements};
 use opsis_oracle::boxes::BoxReader;
 use opsis_oracle::cases::{CASE_HEIGHT, CASE_WIDTH, case_ids, case_spec, case_url, cases_dir};
-use opsis_oracle::elements::{ORACLE_POSITIONS, element_spec, frames_at};
+use opsis_render::element_spec::{element_spec, frames_at};
+
+const ORACLE_POSITIONS: [f64; 5] = [0.0, 0.25, 0.5, 0.75, 1.0];
 use opsis_oracle::films::{EXPORT_FOLDER, ExampleRun, example_names, prepare_example, run_example};
 use opsis_oracle::host::{film_page, headless_shell, oracle_page, serve};
 use opsis_oracle::pictures::{Drawing, ORACLE_GL, draw_frames};

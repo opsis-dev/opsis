@@ -40,9 +40,14 @@ tokio-util.workspace = true
 
 [dev-dependencies]
 image = { workspace = true, default-features = true }
+nv-flip.workspace = true
 opsis-capture.workspace = true
 opsis-golden.workspace = true
 opsis-image.workspace = true
+opsis-layout.workspace = true
+opsis-renderer.workspace = true
+opsis-scene.workspace = true
+opsis-skia.workspace = true
 proptest.workspace = true
 tempfile.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

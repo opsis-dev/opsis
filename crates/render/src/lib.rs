@@ -1,4 +1,5 @@
 pub mod chunks;
+pub mod element_spec;
 pub mod executors;
 pub mod film;
 pub mod footage;

@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use crate::app::{AppFiles, FFMPEG, PROGRAM, desktop_entry};
+use crate::app::{AppFiles, FFMPEG, PROGRAM, RENDERER, desktop_entry};
 use crate::error::PackagerError;
 use crate::tools::{copy, write};
 
@@ -51,6 +51,13 @@ pub fn stage_linux(
         &mut owned,
         &app.ffmpeg,
         format!("/usr/bin/{FFMPEG}"),
+        PROGRAM_MODE,
+    )?;
+    put(
+        root,
+        &mut owned,
+        &app.renderer,
+        format!("/usr/bin/{RENDERER}"),
         PROGRAM_MODE,
     )?;
     for placed in app.resource_files()? {

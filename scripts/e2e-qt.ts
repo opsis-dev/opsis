@@ -77,10 +77,14 @@ async function waitFor(file: string, ms: number): Promise<void> {
 }
 
 function build(): void {
-  const built = spawnSync("cargo", ["build", "-q", "-p", "opsis-ui", "-p", "opsis-e2e-input"], {
-    cwd: ROOT,
-    stdio: "inherit",
-  });
+  const built = spawnSync(
+    "cargo",
+    ["build", "-q", "-p", "opsis-ui", "-p", "opsis-e2e-input", "-p", "opsis-effects"],
+    {
+      cwd: ROOT,
+      stdio: "inherit",
+    },
+  );
   if (built.status !== 0) throw new Error("building the native editor failed");
 }
 

@@ -2,8 +2,7 @@ use std::fmt;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use opsis_capture::film::{Capture, DriverOptions, FilmPage};
-use opsis_compile::asset_ref::{FILM_FOLDER, project_ref};
+use opsis_compile::asset_ref::project_ref;
 use opsis_compile::hosted::hosted;
 use opsis_compile::nodes::image::IMAGE_PORT;
 use opsis_compile::nodes::image_frame::{
@@ -20,14 +19,13 @@ use opsis_compile::timeline::chapters::{
     FilmChapter, MIN_LISTED_CHAPTERS, chapter_list, chapter_metadata, film_chapters,
 };
 use opsis_engine::files::write_via_temp;
-use opsis_engine::http_files::{FileServer, folder_routes};
-use opsis_footage::serve::footage_routes;
+use opsis_film::{Drawing, Driver, renderer_program};
 use opsis_media::codecs::{
     FilmEncoding, codec_info, finish_args, has_sound_track, is_image_codec, is_lossless, mux_args,
 };
 use opsis_media::executors::{Tools, tool_error};
 use opsis_media::ffmpeg::RunOptions;
-use opsis_prepare::serve::{PreparedDirs, prepared_routes};
+use opsis_prepare::serve::PreparedDirs;
 use opsis_project::paths::to_posix_rel;
 use opsis_runner::context::{ExecError, Executor, ExecutorContext, ExecutorOutput, executor};
 use opsis_types::events::LogLevel;
@@ -38,7 +36,6 @@ use opsis_types::values::{
     Artifact, ArtifactKind, CompileValue, ImageValue, MediaKind, MediaValue, PortValues, TakeKind,
     TakeSource,
 };
-use serde_json::Value;
 
 use crate::film::{Stage, mixed, spec_for};
 use crate::footage::film_footage;
@@ -68,50 +65,6 @@ pub(crate) fn film_error(error: FilmError) -> ExecError {
     match error {
         FilmError::Cancelled => ExecError::Cancelled,
         other => ExecError::new(other.to_string()),
-    }
-}
-
-fn browser(ctx: &ExecutorContext) -> Result<&Path, ExecError> {
-    ctx.env
-        .engine
-        .browser()
-        .map_err(|e| ExecError::new(e.to_string()))
-}
-
-pub(crate) fn driver(ctx: &ExecutorContext, gl: Gl) -> Result<DriverOptions<'_>, ExecError> {
-    Ok(DriverOptions {
-        executable: browser(ctx)?,
-        temp_dir: &ctx.env.temp_dir,
-        gl,
-        capture: Capture::for_this_computer(),
-    })
-}
-
-pub(crate) struct HostedFilm {
-    url: String,
-    spec: Value,
-    width: u32,
-    height: u32,
-}
-
-pub(crate) fn hosted_film(spec: &TimelineSpec, server: &str) -> Result<HostedFilm, ExecError> {
-    Ok(HostedFilm {
-        url: format!("{server}{FILM_FOLDER}/index.html"),
-        spec: serde_json::to_value(hosted(spec)).map_err(|e| ExecError::new(e.to_string()))?,
-        width: spec.width,
-        height: spec.height,
-    })
-}
-
-impl HostedFilm {
-    pub(crate) fn page(&self, scale: f64) -> FilmPage<'_> {
-        FilmPage {
-            url: &self.url,
-            spec: &self.spec,
-            width: self.width,
-            height: self.height,
-            scale,
-        }
     }
 }
 
@@ -341,30 +294,49 @@ async fn render_variant(
     Ok(artifacts)
 }
 
-fn native_files(ctx: &ExecutorContext, spec: &TimelineSpec) -> Result<Arc<NativeFiles>, ExecError> {
+const SOFTWARE_VULKAN: &str = if cfg!(windows) {
+    "vk_swiftshader.dll"
+} else if cfg!(target_os = "macos") {
+    "libvk_swiftshader.dylib"
+} else {
+    "libvk_swiftshader.so"
+};
+
+fn drawing_for(ctx: &ExecutorContext, gl: Gl) -> Result<Drawing, ExecError> {
+    let driver = if gl.draws_on_graphics_card() {
+        Driver::Card
+    } else {
+        let browser = ctx
+            .env
+            .engine
+            .browser()
+            .map_err(|e| ExecError::new(e.to_string()))?;
+        Driver::Software {
+            library: browser
+                .parent()
+                .map_or_else(PathBuf::new, |dir| dir.join(SOFTWARE_VULKAN)),
+        }
+    };
+    Ok(Drawing {
+        program: renderer_program(),
+        driver,
+        temp: ctx.env.temp_dir.join("drawing"),
+    })
+}
+
+pub(crate) fn native_files(
+    ctx: &ExecutorContext,
+    spec: &TimelineSpec,
+    gl: Gl,
+) -> Result<Arc<NativeFiles>, ExecError> {
     Ok(Arc::new(NativeFiles {
         dirs: PreparedDirs {
             project: ctx.project_dir.clone(),
             public: ctx.env.public_dir.clone(),
         },
         footage: Arc::new(film_footage(ctx, spec)?),
+        drawing: drawing_for(ctx, gl)?,
     }))
-}
-
-pub(crate) async fn asset_server(
-    ctx: &ExecutorContext,
-    engine: &RenderEngine,
-    spec: &TimelineSpec,
-) -> Result<FileServer, ExecError> {
-    let dirs = PreparedDirs {
-        project: ctx.project_dir.clone(),
-        public: ctx.env.public_dir.clone(),
-    };
-    let footage = Arc::new(film_footage(ctx, spec)?);
-    let routes = prepared_routes(dirs)
-        .merge(footage_routes(footage))
-        .merge(folder_routes(FILM_FOLDER, &engine.film_bundle));
-    Ok(FileServer::start_with(&ctx.project_dir, routes).await?)
 }
 
 async fn export_video(
@@ -376,7 +348,7 @@ async fn export_video(
     let spec = mixed(&ctx, &*engine.tools, spec_for(&ctx)?, MIX_STAGE).await?;
     let names = video_file_names(&export_base_name(&p.file_name), p.codec, &p.variants);
     ctx.progress(0.0, Some("Preparing render engine"));
-    let files = native_files(&ctx, &spec)?;
+    let files = native_files(&ctx, &spec, p.gl)?;
     let chapters = chapters_for(&ctx, &spec, &p).await?;
     let count = numbers::float(p.variants.len());
     let mut artifacts = Vec::new();
@@ -443,7 +415,7 @@ async fn export_images(
     let spec = spec_for(&ctx)?;
     let names = still_file_names(&export_base_name(&p.file_name), &p.presets, p.format);
     ctx.progress(0.0, Some("Preparing render engine"));
-    let files = native_files(&ctx, &spec)?;
+    let files = native_files(&ctx, &spec, p.gl)?;
     let count = numbers::float(p.presets.len());
     let mut artifacts = Vec::new();
     for (i, (preset, name)) in p.presets.iter().zip(&names).enumerate() {
@@ -509,7 +481,7 @@ async fn frame_image(
     let source = (f64::from(picture.width), f64::from(picture.height));
     let spec = framed_image_spec(&p, &src, source);
     ctx.progress(0.0, Some("Preparing render engine"));
-    let files = native_files(&ctx, &spec)?;
+    let files = native_files(&ctx, &spec, Gl::Angle)?;
     std::fs::create_dir_all(&ctx.dir).map_err(|e| ExecError::new(e.to_string()))?;
     let out = ctx.dir.join("framed.png");
     render_native_still(NativeStill {

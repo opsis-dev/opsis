@@ -6,7 +6,8 @@ use image::codecs::jpeg::JpegEncoder;
 use opsis_compile::asset_ref::{FOOTAGE_FOLDER, PREPARED_FOLDER, PreparedRef};
 use opsis_compile::footage::TERMINAL_FRAMES;
 use opsis_compile::nodes::output::StillFormat;
-use opsis_film::{Film, scaled};
+use opsis_film::{Drawing, Film, scaled};
+use opsis_footage::FootageError;
 use opsis_footage::footage::Footage;
 use opsis_media::codecs::{FilmEncoding, film_raw_encode_args};
 use opsis_paint::Picture;
@@ -28,6 +29,7 @@ const CHUNK_FRAMES: usize = 30;
 pub struct NativeFiles {
     pub dirs: PreparedDirs,
     pub footage: Arc<Footage>,
+    pub drawing: Drawing,
 }
 
 fn decoded(text: &str) -> String {
@@ -76,6 +78,44 @@ impl NativeFiles {
         std::fs::read(self.path_of(source)?).ok()
     }
 
+    pub fn resolve(&self, spec: &TimelineSpec) -> Result<(), FilmError> {
+        let value = serde_json::to_value(spec).map_err(|e| FilmError::Draw(e.to_string()))?;
+        let mut named = std::collections::BTreeSet::new();
+        collect_refs(&value, &mut named);
+        let missing: Vec<&str> = named
+            .iter()
+            .map(String::as_str)
+            .filter(|source| Self::footage_entry(source).is_none())
+            .filter(|source| !self.present(source))
+            .collect();
+        if missing.is_empty() {
+            Ok(())
+        } else {
+            Err(FilmError::Draw(format!(
+                "The film needs files that aren't there: {}.",
+                missing.join(", ")
+            )))
+        }
+    }
+
+    fn present(&self, source: &str) -> bool {
+        if let Some(rel) = source.strip_prefix(NATIVE_BASE) {
+            if rel.starts_with(PREPARED_FOLDER) {
+                return self.bytes(source).is_some();
+            }
+            return self.dirs.project.join(decoded(rel)).exists();
+        }
+        self.path_of(source).is_some_and(|path| path.exists())
+    }
+
+    pub fn stalled(&self) -> Result<(), String> {
+        if self.footage.stalled() {
+            Err(FootageError::Stalled.to_string())
+        } else {
+            Ok(())
+        }
+    }
+
     pub fn frame(&self, source: &str) -> Option<Picture> {
         let (id, time_us) = Self::footage_at(source)?;
         let shown = self
@@ -117,6 +157,19 @@ impl NativeFiles {
     }
 }
 
+fn collect_refs(value: &serde_json::Value, into: &mut std::collections::BTreeSet<String>) {
+    match value {
+        serde_json::Value::String(text)
+            if text.starts_with("app:") || text.starts_with(NATIVE_BASE) =>
+        {
+            into.insert(text.clone());
+        }
+        serde_json::Value::Array(items) => items.iter().for_each(|item| collect_refs(item, into)),
+        serde_json::Value::Object(map) => map.values().for_each(|item| collect_refs(item, into)),
+        _ => {}
+    }
+}
+
 #[derive(Debug)]
 pub struct NativeRender {
     pub spec: TimelineSpec,
@@ -129,6 +182,7 @@ pub struct NativeRender {
 
 struct Drawer<'a> {
     film: Result<Film<'a>, String>,
+    files: &'a NativeFiles,
     scale: f64,
 }
 
@@ -137,9 +191,12 @@ impl Worker for Drawer<'_> {
 
     fn draw(&mut self, frame: u32) -> Result<Vec<u8>, String> {
         let film = self.film.as_mut().map_err(|e| e.clone())?;
-        film.scaled_frame(f64::from(frame), self.scale)
+        let picture = film
+            .scaled_frame(f64::from(frame), self.scale)
             .map(|surface| surface.rgba())
-            .map_err(|e| e.to_string())
+            .map_err(|e| e.to_string())?;
+        self.files.stalled()?;
+        Ok(picture)
     }
 }
 
@@ -158,8 +215,12 @@ fn draw_all(
     let pictures = |source: &str| files.frame(source);
     let make = || Drawer {
         film: Film::new(&job.spec, &bytes, &sizes)
-            .map(|film| film.with_frames(&pictures))
+            .map(|film| {
+                film.with_frames(&pictures)
+                    .with_drawing(job.files.drawing.clone())
+            })
             .map_err(|e| e.to_string()),
+        files,
         scale: job.scale,
     };
     let schedule = Schedule {
@@ -175,6 +236,7 @@ fn draw_all(
 }
 
 pub async fn render_native(job: NativeRender, run: &FilmRun<'_>) -> Result<(), FilmError> {
+    job.files.resolve(&job.spec)?;
     let every = job.every_nth_frame.max(1);
     let frames: Vec<u32> = (0..job.spec.duration_in_frames)
         .step_by(usize::try_from(every).unwrap_or(1))
@@ -266,16 +328,19 @@ fn jpeg(
 
 fn still_bytes(job: &NativeStill) -> Result<Vec<u8>, FilmError> {
     let files = &job.files;
+    files.resolve(&job.spec)?;
     let bytes = |source: &str| files.bytes(source);
     let sizes = |source: &str| files.size(source);
     let pictures = |source: &str| files.frame(source);
     let mut film = Film::new(&job.spec, &bytes, &sizes)
         .map_err(|e| FilmError::Draw(e.to_string()))?
-        .with_frames(&pictures);
+        .with_frames(&pictures)
+        .with_drawing(job.files.drawing.clone());
     let last = job.spec.duration_in_frames.saturating_sub(1);
     let surface = film
         .scaled_frame(f64::from(job.frame.min(last)), job.scale)
         .map_err(|e| FilmError::Draw(e.to_string()))?;
+    files.stalled().map_err(FilmError::Draw)?;
     match job.format {
         StillFormat::Png => Ok(surface.png()),
         StillFormat::Jpeg => jpeg(

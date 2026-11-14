@@ -5,6 +5,7 @@ use crate::error::PackagerError;
 pub const PRODUCT: &str = "Opsis";
 pub const PROGRAM: &str = "opsis";
 pub const FFMPEG: &str = "opsis-ffmpeg";
+pub const RENDERER: &str = "opsis-renderer";
 pub const IDENTIFIER: &str = "app.opsis.desktop";
 pub const PUBLISHER: &str = "Bismit Panda";
 pub const COPYRIGHT: &str = "Copyright 2026 Bismit Panda";
@@ -27,6 +28,7 @@ const ICON_SIZES: [u32; 8] = [16, 24, 32, 48, 64, 128, 256, 512];
 pub struct AppFiles {
     pub program: PathBuf,
     pub ffmpeg: PathBuf,
+    pub renderer: PathBuf,
     pub target_triple: String,
     pub root: PathBuf,
 }
@@ -39,14 +41,18 @@ pub struct Placed {
 
 impl AppFiles {
     pub fn check(&self) -> Result<(), PackagerError> {
-        let needed = [self.program.clone(), self.ffmpeg.clone()]
-            .into_iter()
-            .chain(
-                self.resource_roots()
-                    .into_iter()
-                    .map(|placed| placed.source),
-            )
-            .chain(self.icons().into_iter().map(|(_, path)| path));
+        let needed = [
+            self.program.clone(),
+            self.ffmpeg.clone(),
+            self.renderer.clone(),
+        ]
+        .into_iter()
+        .chain(
+            self.resource_roots()
+                .into_iter()
+                .map(|placed| placed.source),
+        )
+        .chain(self.icons().into_iter().map(|(_, path)| path));
         for path in needed {
             if !path.exists() {
                 return Err(PackagerError::Missing(path));

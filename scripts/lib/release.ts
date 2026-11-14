@@ -16,10 +16,12 @@ export function releaseTargetDir(): string {
     : path.join(ROOT, "target", "trixie");
 }
 
-export function releaseBinary(): string {
+export function releaseBinary(name = "opsis"): string {
   const exe = process.platform === "win32" ? ".exe" : "";
-  return path.join(releaseTargetDir(), "release", `opsis${exe}`);
+  return path.join(releaseTargetDir(), "release", `${name}${exe}`);
 }
+
+export const RENDERER_PROGRAM = "opsis-renderer";
 
 export function cargoProfileVariables(env: NodeJS.ProcessEnv): Record<string, string> {
   return Object.fromEntries(
@@ -58,6 +60,8 @@ function packagerArgs(run: PackageRun, tools: string[]): string[] {
     releaseBinary(),
     "--ffmpeg",
     stagedFfmpeg(target),
+    "--renderer",
+    releaseBinary(RENDERER_PROGRAM),
     "--target-triple",
     target,
     "--root",
@@ -74,7 +78,16 @@ export async function buildAndPackage(run: PackageRun): Promise<void> {
   const qt = await ensureStaticQt();
   const jobs = process.env.CARGO_BUILD_JOBS ?? "8";
   const tools = await toolArgs(run, hostTarget());
-  const build = ["cargo", "build", "--release", "-p", "opsis-ui", ...run.cargoArgs];
+  const build = [
+    "cargo",
+    "build",
+    "--release",
+    "-p",
+    "opsis-ui",
+    "-p",
+    "opsis-effects",
+    ...run.cargoArgs,
+  ];
   const packager = [
     "cargo",
     "run",

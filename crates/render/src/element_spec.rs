@@ -19,8 +19,6 @@ use serde_json::{Value, json};
 const SOLID_FRAMES: u32 = 90;
 const ELEMENT_NODE: &str = "element";
 
-pub const ORACLE_POSITIONS: [f64; 5] = [0.0, 0.25, 0.5, 0.75, 1.0];
-
 fn node(id: &str, kind: &str, params: Value) -> Value {
     let mut node = json!({ "id": id, "type": kind, "position": { "x": 0, "y": 0 } });
     node["params"] = params;

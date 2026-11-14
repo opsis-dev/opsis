@@ -63,9 +63,12 @@ fn fixture(dir: &Path) -> AppFiles {
     unmarked_program(&bin.join("opsis"));
     let ffmpeg = bin.join(format!("opsis-ffmpeg-{}", triple()));
     std::fs::copy("/usr/bin/true", &ffmpeg).unwrap();
+    let renderer = bin.join("opsis-renderer");
+    std::fs::copy("/usr/bin/true", &renderer).unwrap();
     AppFiles {
         program: bin.join("opsis"),
         ffmpeg,
+        renderer,
         target_triple: triple(),
         root,
     }
@@ -75,6 +78,7 @@ fn expected_files() -> BTreeSet<String> {
     let mut files: BTreeSet<String> = [
         "usr/bin/opsis",
         "usr/bin/opsis-ffmpeg",
+        "usr/bin/opsis-renderer",
         "usr/share/applications/opsis.desktop",
     ]
     .into_iter()

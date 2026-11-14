@@ -1,7 +1,7 @@
 import { copyFileSync, cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { stagedFfmpeg } from "./ffmpeg";
-import { releaseBinary } from "./release";
+import { RENDERER_PROGRAM, releaseBinary } from "./release";
 import { ROOT } from "./tool-config";
 
 const FFMPEG_PROGRAM = "opsis-ffmpeg";
@@ -10,9 +10,13 @@ const FILES = ["LICENSE", "THIRD_PARTY_NOTICES.md", "QT_NOTICES.generated.md"];
 
 export function assembleAppFolder(folder: string): string {
   const program = releaseBinary();
-  const missing = [program, stagedFfmpeg(), ...FOLDERS.map((name) => path.join(ROOT, name))].filter(
-    (needed) => !existsSync(needed),
-  );
+  const renderer = releaseBinary(RENDERER_PROGRAM);
+  const missing = [
+    program,
+    renderer,
+    stagedFfmpeg(),
+    ...FOLDERS.map((name) => path.join(ROOT, name)),
+  ].filter((needed) => !existsSync(needed));
   if (missing.length > 0)
     throw new Error(
       `Run bun run make first; missing ${missing.map((file) => path.relative(ROOT, file)).join(", ")}.`,
@@ -21,6 +25,7 @@ export function assembleAppFolder(folder: string): string {
   mkdirSync(folder, { recursive: true });
   copyFileSync(program, path.join(folder, "opsis"));
   copyFileSync(stagedFfmpeg(), path.join(folder, FFMPEG_PROGRAM));
+  copyFileSync(renderer, path.join(folder, path.basename(renderer)));
   for (const name of FOLDERS)
     cpSync(path.join(ROOT, name), path.join(folder, name), { recursive: true });
   for (const name of FILES) copyFileSync(path.join(ROOT, name), path.join(folder, name));

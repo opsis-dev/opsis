@@ -1,25 +1,25 @@
+mod terminal;
 mod vector;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use opsis_compile::elements::library::FilmLibrary;
 use opsis_compile::fonts::bundled_fonts;
-use opsis_effects::{Effects, Setting, has_program};
-use opsis_filament::Backend;
 use opsis_layout::fonts::{FontError, Fonts};
 use opsis_layout::measure::Measurer;
 use opsis_layout::{Images, Viewport, lay_out};
-use opsis_paint::{Frames, Pass, Programs, Resources, paint};
+use opsis_paint::{Cache, Frames, Pass, Programs, Resources, paint};
+use opsis_renderer::{Renderer, RendererError, Setting as RendererSetting, StageInputs};
 use opsis_scene::drawing::Font;
 use opsis_scene::measure::{AnimationTiming, Measure, MeasuredBox};
 use opsis_scene::node::{Node, Stage3d};
 use opsis_scene::timeline::{DrawError, draw_film};
 use opsis_scene::typeface::Typeface;
 use opsis_scene::vector::Vector;
-use opsis_skia::{Matrix44, Rgba, Surface, SurfaceError};
-use opsis_stage3d::{Environment as StageEnvironment, Materials};
+use opsis_skia::{BlendMode, Matrix44, Paint, RectF, Rgba, Sampling, Surface, SurfaceError};
 use opsis_types::fonts::FontFamilyDef;
 use opsis_types::numbers::{exact_eq, narrow, whole};
 use opsis_types::terminal_frames::{Frames as TerminalFrames, read as read_frames};
@@ -44,7 +44,13 @@ pub enum FilmError {
     Draw(#[from] DrawError),
     #[error(transparent)]
     Surface(#[from] SurfaceError),
+    #[error("the terminal picture has no frame")]
+    EmptyTerminal,
 }
+
+pub use opsis_renderer::{Driver, renderer_program};
+
+pub use crate::terminal::TerminalPainter;
 
 pub struct Film<'a> {
     spec: &'a TimelineSpec,
@@ -56,24 +62,53 @@ pub struct Film<'a> {
     terminals: RefCell<HashMap<String, Option<Arc<TerminalFrames>>>>,
     typefaces: RefCell<HashMap<String, Option<Arc<Typeface>>>>,
     vectors: RefCell<HashMap<String, Option<Arc<Vector>>>>,
-    effects: Option<Effects>,
-    effects_tried: bool,
-    staging: Staging,
+    drawing: Drawing,
+    renderer: Option<Renderer>,
+    renderer_tried: bool,
+    environment: std::cell::OnceCell<Option<(Vec<u8>, Vec<f32>)>>,
+    cache: Cache,
+    known_sizes: RefCell<HashMap<String, Option<(f64, f64)>>>,
+    last: Option<Shown>,
+}
+
+struct Shown {
+    hash: u64,
+    scale: u64,
+    picture: opsis_skia::Image,
+}
+
+fn scene_hash(root: &opsis_scene::node::Node) -> u64 {
+    use std::hash::{Hash, Hasher};
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    root.hash(&mut hasher);
+    hasher.finish()
 }
 
 const ROOM_REFLECTIONS: &str = "app:environments/room/ibl.ktx";
 const ROOM_IRRADIANCE: &str = "app:environments/room/sh.json";
 
-#[derive(Debug, Default)]
-struct Staging {
-    materials: Materials,
-    environment: std::cell::OnceCell<Option<(Vec<u8>, Vec<f32>)>>,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Drawing {
+    pub program: Option<PathBuf>,
+    pub driver: Driver,
+    pub temp: PathBuf,
+}
+
+impl Default for Drawing {
+    fn default() -> Self {
+        Self {
+            program: renderer_program(),
+            driver: Driver::Card,
+            temp: PathBuf::new(),
+        }
+    }
 }
 
 struct FilmPrograms<'e, 'a> {
-    effects: &'e mut Option<Effects>,
+    drawing: &'e Drawing,
+    renderer: &'e mut Option<Renderer>,
     tried: &'e mut bool,
-    staging: &'e mut Staging,
+    environment: &'e std::cell::OnceCell<Option<(Vec<u8>, Vec<f32>)>>,
     files: Files<'a>,
 }
 
@@ -84,36 +119,48 @@ fn room_environment(files: Files<'_>) -> Option<(Vec<u8>, Vec<f32>)> {
 }
 
 impl FilmPrograms<'_, '_> {
-    fn engine(&mut self) -> Option<&mut Effects> {
-        if self.effects.is_none() && !*self.tried {
+    fn renderer(&mut self) -> Option<&mut Renderer> {
+        if self.renderer.is_none() && !*self.tried {
             *self.tried = true;
-            *self.effects = Effects::new(Backend::Vulkan)
-                .map_err(|e| log::warn!("shader effects: {e}"))
+            *self.renderer = self
+                .drawing
+                .program
+                .as_deref()
+                .ok_or(RendererError::Missing)
+                .and_then(|program| {
+                    Renderer::start(program, &self.drawing.driver, &self.drawing.temp)
+                })
+                .map_err(|e| log::warn!("shader effects and 3D: {e}"))
                 .ok();
         }
-        self.effects.as_mut()
+        self.renderer.as_mut()
+    }
+
+    fn failed(&mut self, what: &str, error: &RendererError) {
+        log::warn!("{what}: {error}");
+        if !matches!(error, RendererError::Failed(_)) {
+            *self.renderer = None;
+        }
     }
 }
 
 impl Programs for FilmPrograms<'_, '_> {
     fn run(&mut self, pass: &Pass<'_>) -> Option<Vec<u8>> {
-        if !has_program(pass.program) {
-            return None;
-        }
-        let effects = self.engine()?;
         let inputs: Vec<&[u8]> = pass.inputs.iter().map(Vec::as_slice).collect();
-        let settings: Vec<Setting> = pass
+        let settings: Vec<RendererSetting> = pass
             .uniforms
             .iter()
-            .map(|s| Setting {
+            .map(|s| RendererSetting {
                 name: s.name.clone(),
                 values: s.values.clone(),
                 columns: s.columns,
             })
             .collect();
-        effects
-            .run(pass.program, &inputs, pass.size, &settings)
-            .map_err(|e| log::warn!("the {} effect: {e}", pass.program))
+        let drawn = self
+            .renderer()?
+            .run(pass.program, &inputs, pass.size, &settings);
+        drawn
+            .map_err(|e| self.failed(&format!("the {} effect", pass.program), &e))
             .ok()
     }
 
@@ -123,41 +170,23 @@ impl Programs for FilmPrograms<'_, '_> {
         size: (u32, u32),
         textures: &[Option<opsis_paint::Picture>],
     ) -> Option<Vec<u8>> {
-        let pictures: Vec<Option<opsis_stage3d::Picture<'_>>> = textures
+        let pictures: Vec<Option<(&[u8], u32, u32)>> = textures
             .iter()
-            .map(|t| {
-                t.as_ref().map(|p| opsis_stage3d::Picture {
-                    rgba: &p.rgba,
-                    width: p.width,
-                    height: p.height,
-                })
-            })
+            .map(|t| t.as_ref().map(|p| (p.rgba.as_slice(), p.width, p.height)))
             .collect();
         let files = self.files;
-        let environment = self
-            .staging
-            .environment
-            .get_or_init(|| room_environment(files))
-            .clone();
-        let mut materials = std::mem::take(&mut self.staging.materials);
-        let drawn = self.engine().map(|effects| {
-            opsis_stage3d::render(
-                effects.filament(),
-                &mut materials,
-                stage,
-                size,
-                &pictures,
-                &|source: &str| files(source),
-                environment
-                    .as_ref()
-                    .map(|(reflections, irradiance)| StageEnvironment {
-                        reflections,
-                        irradiance,
-                    }),
-            )
-        });
-        self.staging.materials = materials;
-        drawn?.map_err(|e| log::warn!("a 3D stage: {e}")).ok()
+        let environment = self.environment.get_or_init(|| room_environment(files));
+        let inputs = StageInputs {
+            stage,
+            size,
+            pictures: &pictures,
+            files: &|source: &str| files(source),
+            environment: environment
+                .as_ref()
+                .map(|(reflections, irradiance)| (reflections.as_slice(), irradiance.as_slice())),
+        };
+        let drawn = self.renderer()?.stage(&inputs);
+        drawn.map_err(|e| self.failed("a 3D stage", &e)).ok()
     }
 }
 
@@ -172,7 +201,7 @@ struct FilmMeasure<'f, 'a> {
 }
 
 fn animation_timing(bytes: &[u8]) -> Option<AnimationTiming> {
-    let json = opsis_paint::lottie::animation_json(bytes)?;
+    let json = opsis_probe::lottie::animation_json(bytes)?;
     let value: serde_json::Value = serde_json::from_slice(&json).ok()?;
     Some(AnimationTiming {
         in_point: value
@@ -324,10 +353,20 @@ impl<'a> Film<'a> {
             terminals: RefCell::new(HashMap::new()),
             typefaces: RefCell::new(HashMap::new()),
             vectors: RefCell::new(HashMap::new()),
-            effects: None,
-            effects_tried: false,
-            staging: Staging::default(),
+            drawing: Drawing::default(),
+            renderer: None,
+            renderer_tried: false,
+            environment: std::cell::OnceCell::new(),
+            cache: Cache::default(),
+            known_sizes: RefCell::new(HashMap::new()),
+            last: None,
         })
+    }
+
+    #[must_use]
+    pub fn with_drawing(mut self, drawing: Drawing) -> Self {
+        self.drawing = drawing;
+        self
     }
 
     #[must_use]
@@ -340,39 +379,90 @@ impl<'a> Film<'a> {
         self.scaled_frame(frame, 1.0)
     }
 
+    fn viewport(&self) -> Viewport {
+        Viewport {
+            width: f64::from(self.spec.width),
+            height: f64::from(self.spec.height),
+        }
+    }
+
+    fn drawn_scene(
+        &mut self,
+        frame: f64,
+        size_of: Sizes<'_>,
+    ) -> Result<opsis_scene::node::Node, FilmError> {
+        let viewport = self.viewport();
+        let measurer = FilmMeasure {
+            layout: Measurer::new(&mut self.fonts, viewport),
+            files: self.files,
+            animations: &self.animations,
+            terminals: &self.terminals,
+            sizes: size_of,
+            typefaces: &self.typefaces,
+            vectors: &self.vectors,
+        };
+        Ok(draw_film(
+            &FilmLibrary {
+                measure: &measurer,
+                reframe: self.spec.reframe.unwrap_or_default(),
+            },
+            self.spec,
+            frame,
+        )?)
+    }
+
+    pub fn scene(&mut self, frame: f64) -> Result<opsis_scene::node::Node, FilmError> {
+        let sizes = self.sizes;
+        self.drawn_scene(frame, sizes)
+    }
+
     pub fn scaled_frame(&mut self, frame: f64, scale: f64) -> Result<Surface, FilmError> {
         let (width, height) = (self.spec.width, self.spec.height);
-        let viewport = Viewport {
-            width: f64::from(width),
-            height: f64::from(height),
+        let viewport = self.viewport();
+        let known_sizes = std::mem::take(&mut self.known_sizes);
+        let sizes = self.sizes;
+        let size_of = |source: &str| {
+            if let Some(known) = known_sizes.borrow().get(source) {
+                return *known;
+            }
+            let size = sizes(source);
+            known_sizes.borrow_mut().insert(source.to_owned(), size);
+            size
         };
-        let root = {
-            let measurer = FilmMeasure {
-                layout: Measurer::new(&mut self.fonts, viewport),
-                files: self.files,
-                animations: &self.animations,
-                terminals: &self.terminals,
-                sizes: self.sizes,
-                typefaces: &self.typefaces,
-                vectors: &self.vectors,
-            };
-            draw_film(
-                &FilmLibrary {
-                    measure: &measurer,
-                    reframe: self.spec.reframe.unwrap_or_default(),
-                },
-                self.spec,
-                frame,
-            )?
+        let drawn = self.drawn_scene(frame, &size_of);
+        let root = match drawn {
+            Ok(root) => root,
+            Err(error) => {
+                self.known_sizes = known_sizes;
+                return Err(error);
+            }
         };
+        let hash = scene_hash(&root);
+        if let Some(last) = &self.last
+            && last.hash == hash
+            && last.scale == scale.to_bits()
+        {
+            self.known_sizes = known_sizes;
+            let mut surface = Surface::new(last.picture.width(), last.picture.height())?;
+            let full = RectF::new(
+                0.0,
+                0.0,
+                narrow(f64::from(last.picture.width())),
+                narrow(f64::from(last.picture.height())),
+            );
+            let mut paint = Paint::new();
+            paint.set_blend(BlendMode::Src);
+            surface.draw_image_rect(&last.picture, (full, full), Sampling::Nearest, &paint);
+            return Ok(surface);
+        }
+        self.fonts.next_frame();
         let laid = lay_out(
             &root,
             viewport,
             &mut self.fonts,
-            &Images {
-                size_of: self.sizes,
-            },
+            &Images { size_of: &size_of },
         );
+        self.known_sizes = known_sizes;
         let mut surface = Surface::new(scaled(width, scale), scaled(height, scale))?;
         if !exact_eq(scale, 1.0) {
             let s = narrow(scale);
@@ -382,17 +472,26 @@ impl<'a> Film<'a> {
         }
         surface.clear(Rgba::new(0.0, 0.0, 0.0, 1.0));
         let mut programs = FilmPrograms {
-            effects: &mut self.effects,
-            tried: &mut self.effects_tried,
-            staging: &mut self.staging,
+            drawing: &self.drawing,
+            renderer: &mut self.renderer,
+            tried: &mut self.renderer_tried,
+            environment: &self.environment,
             files: self.files,
         };
-        let mut resources =
-            Resources::new(self.files, self.fonts.faces()).with_programs(&mut programs);
+        let mut cache = std::mem::take(&mut self.cache);
+        cache.next_frame();
+        let mut resources = Resources::with_cache(self.files, self.fonts.faces(), cache)
+            .with_programs(&mut programs);
         if let Some(frames) = self.frames {
             resources = resources.with_frames(frames);
         }
         paint(&root, &laid, viewport, &mut surface, &mut resources);
+        self.cache = resources.into_cache();
+        self.last = surface.snapshot().map(|picture| Shown {
+            hash,
+            scale: scale.to_bits(),
+            picture,
+        });
         Ok(surface)
     }
 }

@@ -299,6 +299,7 @@ async fn draws_3d_elements_natively_as_recorded() {
             },
             Vec::new(),
         )),
+        drawing: opsis_film::Drawing::default(),
     });
     let mut failures = Vec::new();
     for (name, key, params) in cases() {

@@ -4370,6 +4370,9 @@ version = "0.1.0"
 dependencies = [
  "image",
  "opsis-filament",
+ "opsis-renderer",
+ "opsis-scene",
+ "opsis-stage3d",
  "thiserror 2.0.21",
 ]
 
@@ -4416,16 +4419,14 @@ dependencies = [
  "log",
  "nv-flip",
  "opsis-compile",
- "opsis-effects",
- "opsis-filament",
  "opsis-golden",
  "opsis-layout",
  "opsis-paint",
  "opsis-prepare",
  "opsis-probe",
+ "opsis-renderer",
  "opsis-scene",
  "opsis-skia",
- "opsis-stage3d",
  "opsis-types",
  "serde_json",
  "thiserror 2.0.21",
@@ -4642,7 +4643,6 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.21",
  "usvg",
- "zip",
 ]
 
 [[package]]
@@ -4673,6 +4673,7 @@ dependencies = [
 name = "opsis-probe"
 version = "0.1.0"
 dependencies = [
+ "base64 0.23.1",
  "opsis-golden",
  "opsis-types",
  "proptest",
@@ -4680,6 +4681,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "thiserror 2.0.21",
+ "zip",
 ]
 
 [[package]]
@@ -4723,6 +4725,7 @@ version = "0.1.0"
 dependencies = [
  "image",
  "log",
+ "nv-flip",
  "opsis-capture",
  "opsis-compile",
  "opsis-engine",
@@ -4730,12 +4733,16 @@ dependencies = [
  "opsis-footage",
  "opsis-golden",
  "opsis-image",
+ "opsis-layout",
  "opsis-media",
  "opsis-paint",
  "opsis-prepare",
  "opsis-probe",
  "opsis-project",
+ "opsis-renderer",
  "opsis-runner",
+ "opsis-scene",
+ "opsis-skia",
  "opsis-terminal",
  "opsis-types",
  "percent-encoding",
@@ -4747,6 +4754,17 @@ dependencies = [
  "thiserror 2.0.21",
  "tokio",
  "tokio-util",
+]
+
+[[package]]
+name = "opsis-renderer"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "opsis-scene",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
 ]
 
 [[package]]
@@ -4810,6 +4828,7 @@ name = "opsis-session"
 version = "0.1.0"
 dependencies = [
  "futures",
+ "image",
  "indexmap",
  "log",
  "opsis-api",
@@ -4817,6 +4836,7 @@ dependencies = [
  "opsis-compile",
  "opsis-document",
  "opsis-engine",
+ "opsis-film",
  "opsis-fonts",
  "opsis-image",
  "opsis-media",

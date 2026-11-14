@@ -1,16 +1,20 @@
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
-use opsis_capture::film::{Capture, DriverOptions, FilmPage};
-use opsis_compile::asset_ref::FILM_FOLDER;
 use opsis_compile::elements::{ElementMeta, elements};
-use opsis_compile::nodes::output::{Gl, StillFormat};
-use opsis_oracle::elements::{ElementError, element_spec, frame_at};
-use opsis_oracle::host::{film_page, headless_shell, home, serve};
-use opsis_render::frames::{FilmError, StillRender, render_still};
+use opsis_compile::nodes::output::StillFormat;
+use opsis_engine::ffmpeg::bundled_ffmpeg;
+use opsis_footage::decoder::FootageTools;
+use opsis_footage::footage::Footage;
+use opsis_prepare::serve::PreparedDirs;
+use opsis_render::element_spec::{ElementError, element_spec, frame_at};
+use opsis_render::frames::FilmError;
+use opsis_render::native::{NATIVE_BASE, NativeFiles, NativeStill, render_native_still};
 
 const STILL_WIDTH: f64 = 480.0;
 const JPEG_QUALITY: f64 = 82.0;
 const DEFAULT_POSITION: f64 = 0.5;
+const PUBLIC_DIR: &str = "public";
 
 #[derive(Debug, thiserror::Error)]
 enum StillError {
@@ -18,13 +22,6 @@ enum StillError {
     Element(#[from] ElementError),
     #[error(transparent)]
     Render(#[from] FilmError),
-}
-
-struct Host {
-    shell: PathBuf,
-    temp: PathBuf,
-    project_base: String,
-    out: PathBuf,
 }
 
 fn positions(arg: Option<String>) -> Vec<f64> {
@@ -46,33 +43,34 @@ fn still_file(out: &Path, key: &str, at: f64, several: bool) -> PathBuf {
     }
 }
 
-async fn stills_for(meta: &ElementMeta, positions: &[f64], host: &Host) -> Result<(), StillError> {
-    let spec = element_spec(meta, &host.project_base)?;
-    let json = serde_json::to_value(&spec).expect("a spec as JSON");
-    let url = format!("{}{FILM_FOLDER}/index.html", host.project_base);
+async fn stills_for(
+    meta: &ElementMeta,
+    positions: &[f64],
+    files: &Arc<NativeFiles>,
+    out: &Path,
+) -> Result<(), StillError> {
+    let spec = element_spec(meta, NATIVE_BASE)?;
     for &at in positions {
-        render_still(&StillRender {
-            driver: DriverOptions {
-                executable: &host.shell,
-                temp_dir: &host.temp,
-                gl: Gl::Angle,
-                capture: Capture::for_this_computer(),
-            },
-            page: FilmPage {
-                url: &url,
-                spec: &json,
-                width: spec.width,
-                height: spec.height,
-                scale: (STILL_WIDTH / f64::from(spec.width)).min(1.0),
-            },
+        render_native_still(NativeStill {
             frame: frame_at(spec.duration_in_frames, at),
+            scale: (STILL_WIDTH / f64::from(spec.width)).min(1.0),
+            spec: spec.clone(),
+            files: Arc::clone(files),
             format: StillFormat::Jpeg,
             jpeg_quality: Some(JPEG_QUALITY),
-            output: &still_file(&host.out, &meta.key, at, positions.len() > 1),
+            output: still_file(out, &meta.key, at, positions.len() > 1),
         })
         .await?;
     }
     Ok(())
+}
+
+fn repo_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(2)
+        .map(Path::to_path_buf)
+        .expect("the repository folder")
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -80,24 +78,34 @@ async fn main() {
     let mut args = std::env::args().skip(1);
     let only = args.next().unwrap_or_default();
     let positions = positions(args.next());
-    let out = home().join(".cache/opsis-dev/element-stills");
+    let home = std::env::var_os("HOME")
+        .map(PathBuf::from)
+        .expect("a home folder");
+    let out = home.join(".cache/opsis-dev/element-stills");
     let temp = out.join("tmp");
     let project = temp.join("project");
     std::fs::create_dir_all(&project).expect("the output folder");
-    let server = serve(&project, film_page()).await;
-    let host = Host {
-        shell: headless_shell(),
-        temp: temp.clone(),
-        project_base: server.url.clone(),
-        out: out.clone(),
-    };
+    let files = Arc::new(NativeFiles {
+        dirs: PreparedDirs {
+            project,
+            public: repo_root().join(PUBLIC_DIR),
+        },
+        footage: Arc::new(Footage::new(
+            FootageTools {
+                ffmpeg: bundled_ffmpeg().unwrap_or_default(),
+                temp: temp.clone(),
+            },
+            Vec::new(),
+        )),
+        drawing: opsis_film::Drawing::default(),
+    });
     let chosen: Vec<&ElementMeta> = elements()
         .iter()
         .filter(|m| m.key.contains(&only))
         .collect();
     let mut failures = Vec::new();
     for meta in &chosen {
-        match stills_for(meta, &positions, &host).await {
+        match stills_for(meta, &positions, &files, &out).await {
             Ok(()) => println!("ok   {}", meta.key),
             Err(error) => {
                 println!("FAIL {}", meta.key);
