@@ -8602,7 +8602,7 @@
    "scale": 1.0,
    "chapters": true,
    "chapterList": false,
-   "gl": "angle",
+   "gl": "card",
    "firstChapter": "Intro",
    "preset": "medium",
    "fullColour": false,
@@ -8655,7 +8655,7 @@
     "og"
    ],
    "format": "png",
-   "gl": "angle",
+   "gl": "card",
    "reframe": "follow",
    "jpegQuality": 80,
    "scale": 1.0

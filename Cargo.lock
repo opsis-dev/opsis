@@ -2616,12 +2616,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "http-range-header"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9171a2ea8a68358193d15dd5d70c1c10a2afc3e7e4c5bc92bc9f025cebd7359c"
-
-[[package]]
 name = "httparse"
 version = "1.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3238,12 +3232,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "jpeg-encoder"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0370574b86f7eca156b9f298392b5e69a23f8c86f3f865add60bbc2e79467a6"
-
-[[package]]
 name = "js-sys"
 version = "0.3.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3609,16 +3597,6 @@ name = "mime"
 version = "0.3.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d5848f5a9e8117cf94f2f90faac24a87ff81600ff8628c1e3deaab572e76bfa1"
-
-[[package]]
-name = "mime_guess"
-version = "2.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7c44f8e672c00fe5308fa235f821cb4198414e1c77935c1ab6948d3fd78550e"
-dependencies = [
- "mime",
- "unicase",
-]
 
 [[package]]
 name = "minisign"
@@ -4380,11 +4358,9 @@ dependencies = [
 name = "opsis-engine"
 version = "0.1.0"
 dependencies = [
- "axum",
  "filetime",
  "futures-util",
  "hex",
- "http-body-util",
  "log",
  "opsis-types",
  "proptest",
@@ -4397,8 +4373,6 @@ dependencies = [
  "thiserror 2.0.21",
  "tokio",
  "tokio-util",
- "tower",
- "tower-http 0.7.1",
  "zip",
 ]
 
@@ -4417,12 +4391,9 @@ name = "opsis-film"
 version = "0.1.0"
 dependencies = [
  "log",
- "nv-flip",
  "opsis-compile",
- "opsis-golden",
  "opsis-layout",
  "opsis-paint",
- "opsis-prepare",
  "opsis-probe",
  "opsis-renderer",
  "opsis-scene",
@@ -4464,9 +4435,7 @@ dependencies = [
 name = "opsis-footage"
 version = "0.1.0"
 dependencies = [
- "axum",
  "image",
- "jpeg-encoder",
  "log",
  "opsis-compile",
  "opsis-golden",
@@ -4478,7 +4447,6 @@ dependencies = [
  "proptest",
  "thiserror 2.0.21",
  "tokio",
- "tower",
 ]
 
 [[package]]
@@ -4494,6 +4462,9 @@ dependencies = [
 name = "opsis-golden"
 version = "0.1.0"
 dependencies = [
+ "image",
+ "nv-flip",
+ "opsis-types",
  "serde",
  "serde_json",
 ]
@@ -4583,32 +4554,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "opsis-oracle"
-version = "0.1.0"
-dependencies = [
- "axum",
- "env_logger",
- "nv-flip",
- "opsis-capture",
- "opsis-compile",
- "opsis-engine",
- "opsis-golden",
- "opsis-media",
- "opsis-prepare",
- "opsis-probe",
- "opsis-render",
- "opsis-runner",
- "opsis-terminal",
- "opsis-types",
- "proptest",
- "serde",
- "serde_json",
- "thiserror 2.0.21",
- "tokio",
- "tokio-util",
-]
-
-[[package]]
 name = "opsis-packager"
 version = "0.1.0"
 dependencies = [
@@ -4630,7 +4575,6 @@ version = "0.1.0"
 dependencies = [
  "base64 0.23.1",
  "color",
- "nv-flip",
  "opsis-cases",
  "opsis-golden",
  "opsis-layout",
@@ -4649,9 +4593,7 @@ dependencies = [
 name = "opsis-prepare"
 version = "0.1.0"
 dependencies = [
- "axum",
  "draco-gltf",
- "http-body-util",
  "image",
  "log",
  "opsis-compile",
@@ -4664,7 +4606,6 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.21",
  "tokio",
- "tower",
  "usvg",
  "wuff",
 ]
@@ -6033,7 +5974,7 @@ dependencies = [
  "tokio-rustls",
  "tokio-util",
  "tower",
- "tower-http 0.6.11",
+ "tower-http",
  "tower-service",
  "url",
  "wasm-bindgen",
@@ -7466,31 +7407,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tower-http"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08a05a66a4fdd61cbbe0a1d755ffe0ca6aba159dd4820936a0ff8a8278245b9c"
-dependencies = [
- "bitflags 2.13.2",
- "bytes",
- "futures-core",
- "futures-util",
- "http",
- "http-body",
- "http-body-util",
- "http-range-header",
- "httpdate",
- "mime",
- "mime_guess",
- "percent-encoding",
- "pin-project-lite",
- "tokio",
- "tokio-util",
- "tower-layer",
- "tower-service",
-]
-
-[[package]]
 name = "tower-layer"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7664,12 +7580,6 @@ checksum = "e1b88fcfe09e89d3866a5c11019378088af2d24c3fbd4f0543f96b479ec90697"
 dependencies = [
  "version_check",
 ]
-
-[[package]]
-name = "unicase"
-version = "2.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "357cc3acc6a036009fd6c973ed009037c732d60d0b4f6c673e9041497482a28f"
 
 [[package]]
 name = "unicode-bidi"

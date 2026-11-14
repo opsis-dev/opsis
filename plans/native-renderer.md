@@ -2,7 +2,7 @@
 
 How Opsis stops drawing films in the recording browser: every element, the camera, the terminal and the transitions become Rust that returns scene nodes written in the CSS and SVG subset the film uses today, Taffy and Parley lay them out, Skia draws them on the CPU, Filament runs the shader effects and the 3D, and finished frames go straight into the bundled FFmpeg. Node packs draw through the same scene contract ([node-packs.md](node-packs.md)).
 
-Status: plan only. Nothing here is built yet. Facts were checked on 5 and 12 November 2026, in the libraries' own repositories and the Opsis code; everything this plan relies on is in it or linked from it.
+Status: built on Linux x64 and cut over; the film page, the terminal page, the frame driver and the oracle are gone, and the design lives in `agent-docs/scene.md` and `agent-docs/film.md`. Still missing: Skia and Filament on the other platforms (**Wrappers**) and the planned raster scale (**Scene**). Facts were checked on 5 and 12 November 2026, in the libraries' own repositories and the Opsis code; everything this plan relies on is in it or linked from it.
 
 ## How to read this plan
 
@@ -492,11 +492,8 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Fit with Opsis
 
-- **In place:** everything above, by then.
-- **Missing:** the deletions, the doc rewrite, and a place for what code outside the film still takes from `packages/video`:
-  - `bun run types:export` writes into it: `SPEC_TYPES_FILE` (`crates/compile/src/ts_export.rs`), `DEFAULT_PROPS_FILE` and `LENGTH_CASES_FILE` (`crates/compile/src/elements/default_props.rs`, `length_cases.rs`);
-  - `scripts/fonts-bundle.ts` imports its font types from `@opsis/video/generated/spec`, and `scripts/lib/e2e-api.ts` `findById` from `@opsis/video/common/lists`;
-  - `scripts/lib/tool-config.ts` lists its generated files as ignored.
+- **In place:** the deletions (`apps/`, `packages/`, the bundles, `crates/oracle`, `scripts/oracle.ts`, the frame driver and the page painter, the footage and prepared-file HTTP routes, the JPEG footage frames, turbo), `scripts/lib/common` and the narrowed `scripts/lib/generated/spec.ts` for what the scripts still took from `packages/video`, `public/` shipped in place of the bundles, the colour check as `scripts/element-colors.test.ts`, the oracle comparisons recorded as goldens (`fixtures/layout`, `fixtures/cases`, `fixtures/sprites`), and the docs (`scene.md`, `film.md` and every doc that named the page).
+- **Missing:** nothing.
 
 ### Work
 

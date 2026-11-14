@@ -1,7 +1,6 @@
 pub mod chain;
 pub mod decoder;
 pub mod footage;
-pub mod serve;
 pub mod terminal;
 
 #[derive(Debug, thiserror::Error)]

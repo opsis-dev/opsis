@@ -4,10 +4,6 @@ import { IGNORED_PATHS, ROOT } from "./tool-config.ts";
 
 type Override = NonNullable<OxlintConfig["overrides"]>[number];
 
-const WALL_CLOCK_LIBS = ["framer-motion", "motion", "motion/react", "motion/react-client", "gsap"];
-
-const NODE_ONLY = ["node:*", "playwright-core"];
-
 export function lintConfig(dir: string, overrides: Override[] = []): OxlintConfig {
   const prefix = path.relative(dir, ROOT).split(path.sep).join("/");
   function fromRoot(rel: string) {
@@ -15,7 +11,7 @@ export function lintConfig(dir: string, overrides: Override[] = []): OxlintConfi
   }
   const own = path.relative(ROOT, dir).split(path.sep).join("/");
   return {
-    plugins: ["typescript", "react", "unicorn", "oxc", "import", "vitest"],
+    plugins: ["typescript", "unicorn", "oxc", "import", "vitest"],
     jsPlugins: [fromRoot("scripts/oxlint-plugin-opsis.ts")],
     categories: {
       correctness: "error",
@@ -28,72 +24,29 @@ export function lintConfig(dir: string, overrides: Override[] = []): OxlintConfi
     },
     ignorePatterns: own
       ? IGNORED_PATHS.filter((p) => p.startsWith(`${own}/`)).map((p) => p.slice(own.length + 1))
-      : [...IGNORED_PATHS, "packages/**", "apps/**"],
+      : IGNORED_PATHS,
     rules: {
-      "react/react-in-jsx-scope": "off",
-      "react/exhaustive-deps": "warn",
-      "react/rules-of-hooks": "error",
       "typescript/consistent-type-imports": "error",
       "typescript/no-explicit-any": "warn",
       "unicorn/no-array-sort": "off",
       "unicorn/consistent-function-scoping": "off",
       "unicorn/require-post-message-target-origin": "off",
       "no-underscore-dangle": ["warn", { allow: ["_zod"] }],
-      "import/no-unassigned-import": ["warn", { allow: ["**/*.css"] }],
-      "react/hooks": "off",
       "import/no-cycle": "off",
-      "unicorn/filename-case": ["error", { case: "kebabCase", ignore: ["^__root\\.tsx$"] }],
+      "unicorn/filename-case": ["error", { case: "kebabCase" }],
       "opsis/use-find-by-id": "error",
-      "opsis/use-function-components": "error",
       "opsis/use-function-declarations": "error",
       "opsis/use-parse-json-with": "error",
-      "opsis/use-percent-text": "error",
       "opsis/use-type-guards": "error",
     },
     overrides: [
       ...overrides,
       {
-        files: ["**/*.test.ts", "**/*.test.tsx"],
+        files: ["**/*.test.ts"],
         rules: {
           "vitest/require-mock-type-parameters": "off",
         },
       },
     ],
-  };
-}
-
-export function runtimeNeutral(who: string): Override {
-  return {
-    files: ["src/**/*.ts", "src/**/*.tsx"],
-    excludeFiles: ["**/*.test.ts", "**/*.test.tsx"],
-    rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            {
-              group: NODE_ONLY,
-              message: `${who} becomes a page the recording browser loads, so it must stay runtime-neutral (AGENTS.md, Boundaries and types).`,
-            },
-            {
-              group: ["@/**"],
-              message: `${who} imports its own files through its package.json imports prefix and other members by package name (AGENTS.md, Workspace and layout).`,
-            },
-          ],
-          paths: [
-            ...WALL_CLOCK_LIBS.map((name) => ({
-              name,
-              message: `Animations in ${who} must be a pure function of the runtime's useFrame() (AGENTS.md, The film).`,
-            })),
-            {
-              name: "@react-three/fiber",
-              importNames: ["useFrame"],
-              message:
-                "Fiber's useFrame runs on the wall clock. Derive the scene from the runtime's useFrame() instead (AGENTS.md).",
-            },
-          ],
-        },
-      ],
-    },
   };
 }

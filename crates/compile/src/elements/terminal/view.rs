@@ -41,7 +41,7 @@ pub struct CellBox {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 pub fn cell_box(look: &TerminalLook) -> CellBox {
     let size = f64::from(look.font_size);
@@ -53,7 +53,7 @@ pub fn cell_box(look: &TerminalLook) -> CellBox {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 pub fn screen_size(look: &TerminalLook, cols: u16, rows: u16) -> CellBox {
     let cell = cell_box(look);
@@ -279,7 +279,7 @@ fn boxed_shapes(id: &str, b: &Boxed) -> Vec<SvgElement> {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn sprite_layer(placed: &[Placed], look: &TerminalLook, size: CellBox, id: &str) -> Node {
     let cell = cell_box(look);
@@ -467,7 +467,7 @@ struct RunAt<'a> {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn run_view(run: &Run, at: &RunAt<'_>) -> Option<Node> {
     let cell = cell_box(at.look);
@@ -549,7 +549,7 @@ fn run_at(runs: &[Run], x: u16) -> Option<&Run> {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn cursor(frame: &FrameRecord, runs: &[Run], look: &TerminalLook, thickness: f64) -> Node {
     let cell = cell_box(look);

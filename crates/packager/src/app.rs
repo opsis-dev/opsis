@@ -16,7 +16,7 @@ pub const DESCRIPTION: &str = "Opsis records a real website, then turns the take
 pub const MACOS_MINIMUM: &str = "14.4";
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-const RESOURCE_FOLDERS: [&str; 3] = ["film-bundle", "terminal-bundle", "resources"];
+const RESOURCE_FOLDERS: [&str; 2] = ["public", "resources"];
 const RESOURCE_FILES: [&str; 3] = [
     "LICENSE",
     "THIRD_PARTY_NOTICES.md",

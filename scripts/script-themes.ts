@@ -2,9 +2,9 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { isString } from "@opsis/video/common/guards";
 import { parse } from "smol-toml";
 import { z } from "zod";
+import { isString } from "./lib/common/guards";
 import { fetchOk } from "./lib/download";
 import { devCache, ROOT } from "./lib/tool-config";
 

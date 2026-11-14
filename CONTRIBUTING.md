@@ -10,12 +10,13 @@ You need [Bun](https://bun.sh), Node.js 22.12 or later for the TypeScript tests,
 bun install
 bun run zig:install      # then put the folder it prints on your PATH
 bun run qt:install
-bun run film:bundle
-bun run terminal:bundle
+bun run skia:build
+bun run filament:pin --fetch
+bun run filament:build
 bun start
 ```
 
-Then open **Settings → Engine** and download the recording browser, or choose one you already have. Editing works without it; recordings and exports need it. `bun start` stages the pinned FFmpeg itself.
+Then open **Settings → Engine** and download the recording browser, or choose one you already have. Editing works without it; recordings need it, and so do the tests that draw with its software graphics driver. `bun start` stages the pinned FFmpeg itself.
 
 ## Before you send a change
 
@@ -34,7 +35,7 @@ They cover the TypeScript, Rust, Zig and C++ code (`cargo fmt`, `cargo clippy --
 bun run e2e:qt
 ```
 
-The `tour`, `runs` and `api` scenarios, and the Rust tests that are ignored by default, need the dev engine: the recording browser in `~/.config/Opsis/engine`, set up once through **Settings → Engine**. Run those tests with `bun run test:rust -p <crate> -- --ignored`; render tests also need `bun run film:bundle`, and the terminal ones `bun run terminal:bundle`; each test's `#[ignore]` reason says what it needs. One of them, `crates/probe/tests/ffprobe.rs`, compares Opsis's media reader with ffprobe, which the app doesn't use: `bun run ffprobe:stage` puts the pinned ffprobe in `~/.cache/opsis-dev/ffmpeg`, where the test looks for it.
+The `tour`, `runs` and `api` scenarios, and the Rust tests that are ignored by default, need the dev engine: the recording browser in `~/.config/Opsis/engine`, set up once through **Settings → Engine**. Run those tests with `bun run test:rust -p <crate> -- --ignored`; the golden and 3D picture tests also draw with its software graphics driver and the renderer program; each test's `#[ignore]` reason says what it needs. One of them, `crates/probe/tests/ffprobe.rs`, compares Opsis's media reader with ffprobe, which the app doesn't use: `bun run ffprobe:stage` puts the pinned ffprobe in `~/.cache/opsis-dev/ffmpeg`, where the test looks for it.
 
 ## Rules the code follows
 

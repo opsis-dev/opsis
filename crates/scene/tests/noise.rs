@@ -9,7 +9,7 @@ fn list(value: &Value) -> &[Value] {
 }
 
 #[test]
-fn the_noise_field_gives_what_the_film_page_gives() {
+fn the_noise_field_gives_the_recorded_values() {
     let recorded = read(FIXTURE);
     let made = Value::Array(
         list(&recorded)

@@ -404,7 +404,7 @@ fn frame_for(c: &ClickEvent, vp: Viewport, s_max: f64, narrow: bool, t: &Tuned) 
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn depart_s(c: &ClickEvent) -> f64 {
     c.t_depart_ms.unwrap_or(c.t_ms - LEAD_FALLBACK_S * 1000.0) / 1000.0

@@ -326,10 +326,9 @@ extern "C" int32_t opsis_filament_scene(OpsisFilament* filament,
   Texture* reflections = nullptr;
   filament::IndirectLight* indirect = nullptr;
   if (scene->reflections != nullptr && scene->reflections_size > 0) {
-    image::Ktx1Bundle bundle(scene->reflections,
-                             static_cast<uint32_t>(scene->reflections_size));
-    reflections = ktxreader::Ktx1Reader::createTexture(engine, bundle, false,
-                                                       nullptr, nullptr);
+    auto* bundle = new image::Ktx1Bundle(
+        scene->reflections, static_cast<uint32_t>(scene->reflections_size));
+    reflections = ktxreader::Ktx1Reader::createTexture(engine, bundle, false);
   }
   if (reflections != nullptr || scene->irradiance_bands > 0) {
     auto builder = filament::IndirectLight::Builder().intensity(

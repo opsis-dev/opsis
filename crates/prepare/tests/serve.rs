@@ -1,32 +1,14 @@
-use axum::body::Body;
-use axum::http::{Request, StatusCode, header};
-use http_body_util::BodyExt;
+use opsis_compile::asset_ref::PreparedRef;
 use opsis_golden::repo;
-use opsis_prepare::serve::{PreparedDirs, prepared_routes};
-use tower::ServiceExt;
+use opsis_prepare::serve::{PreparedDirs, prepare};
 
-async fn get(dirs: &PreparedDirs, path: &str) -> (StatusCode, String, Vec<u8>) {
-    let response = prepared_routes(dirs.clone())
-        .oneshot(Request::get(path).body(Body::empty()).unwrap())
-        .await
-        .unwrap();
-    let kind = response
-        .headers()
-        .get(header::CONTENT_TYPE)
-        .map_or_default(|v| v.to_str().unwrap().to_owned());
-    let status = response.status();
-    let bytes = response
-        .into_body()
-        .collect()
-        .await
-        .unwrap()
-        .to_bytes()
-        .to_vec();
-    (status, kind, bytes)
+fn made(dirs: &PreparedDirs, path: &str) -> Option<Vec<u8>> {
+    let prepared = PreparedRef::from_path(path)?;
+    prepare(dirs, &prepared).ok().map(|made| made.bytes)
 }
 
-#[tokio::test]
-async fn prepares_once_keeps_the_file_and_refuses_what_it_cant_read() {
+#[test]
+fn prepares_once_keeps_the_file_and_refuses_what_it_cant_read() {
     let project = tempfile::tempdir().unwrap();
     std::fs::create_dir_all(project.path().join("assets")).unwrap();
     std::fs::copy(
@@ -39,32 +21,21 @@ async fn prepares_once_keeps_the_file_and_refuses_what_it_cant_read() {
         project: project.path().to_path_buf(),
         public: repo().join("public"),
     };
-    let (status, kind, bytes) = get(
+    let bytes = made(
         &dirs,
-        "/.opsis/prepared/typeface/700/app/fonts/bundled/inter/inter-latin-wght-normal.woff2",
+        "typeface/700/app/fonts/bundled/inter/inter-latin-wght-normal.woff2",
     )
-    .await;
-    assert_eq!(
-        (status, kind.as_str()),
-        (StatusCode::OK, "application/json")
-    );
+    .unwrap();
     let typeface: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
     assert_eq!(typeface["familyName"], "Inter");
-    let (status, kind, bytes) = get(&dirs, "/.opsis/prepared/model/project/assets/draco.glb").await;
-    assert_eq!(
-        (status, kind.as_str(), &bytes[..4]),
-        (StatusCode::OK, "model/gltf-binary", &b"glTF"[..])
-    );
+    let model = made(&dirs, "model/project/assets/draco.glb").unwrap();
+    assert_eq!(&model[..4], b"glTF");
     let kept = std::fs::read_dir(project.path().join(".opsis/cache/prepared"))
         .unwrap()
         .count();
     assert_eq!(kept, 2);
-    let (again, _, same) = get(&dirs, "/.opsis/prepared/model/project/assets/draco.glb").await;
-    assert_eq!((again, same), (StatusCode::OK, bytes));
-    let (status, _, _) = get(&dirs, "/.opsis/prepared/model/project/assets/broken.glb").await;
-    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
-    let (status, _, _) = get(&dirs, "/.opsis/prepared/model/project/../secrets/x.glb").await;
-    assert_eq!(status, StatusCode::NOT_FOUND);
-    let (status, _, _) = get(&dirs, "/.opsis/prepared/video/project/assets/a.mp4").await;
-    assert_eq!(status, StatusCode::NOT_FOUND);
+    assert_eq!(made(&dirs, "model/project/assets/draco.glb"), Some(model));
+    assert_eq!(made(&dirs, "model/project/assets/broken.glb"), None);
+    assert_eq!(made(&dirs, "model/project/../secrets/x.glb"), None);
+    assert_eq!(made(&dirs, "video/project/assets/a.mp4"), None);
 }

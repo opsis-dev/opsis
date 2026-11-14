@@ -168,7 +168,7 @@ fn interpolations(recorded: &Value) -> Value {
 }
 
 #[test]
-fn the_ports_give_what_the_film_page_gives() {
+fn the_ports_give_the_recorded_values() {
     let recorded = read(FIXTURE);
     let made = json!({
         "randoms": randoms(&recorded["randoms"]),

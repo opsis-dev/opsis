@@ -9,8 +9,8 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { gunzipSync } from "node:zlib";
-import type { FontCategory, FontFamilyDef } from "@opsis/video/generated/spec";
 import { z } from "zod";
+import type { FontCategory, FontFamilyDef } from "./lib/generated/spec";
 import { type Pinned, verifiedDownload } from "./lib/pins";
 import { readJsonWith } from "./lib/read-json";
 import { devCache, ROOT } from "./lib/tool-config";

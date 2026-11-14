@@ -36,10 +36,6 @@ const WAYLAND_SOCKET = /^wayland-\d+$/;
 const LOG_DIR = path.join(ROOT, "target", "e2e-qt");
 const SHOTS_DIR = devCache("qt-shots");
 const SHOTS_FLAG = "--shots";
-const BUNDLES = [
-  ["film-bundle", "film:bundle"],
-  ["terminal-bundle", "terminal:bundle"],
-] as const;
 const PAGE = [
   "<!doctype html><html><head><title>Test page</title></head>",
   '<body style="margin:0;background:#fff;font:16px sans-serif">',
@@ -152,7 +148,6 @@ function exitConfirmed(userData: string): boolean | undefined {
 }
 
 async function runApi(screen: Screen, ffmpeg: string, page: string): Promise<boolean> {
-  ensureBundles();
   const userData = seedApi();
   const handoff = path.join(API_DIR, "api-done");
   const app = runScenario(screen, ffmpeg, "api", userData, {
@@ -202,14 +197,6 @@ async function servePage(): Promise<{ url: string; close: () => void }> {
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const { port } = server.address() as AddressInfo;
   return { url: `http://127.0.0.1:${port}/`, close: () => server.close() };
-}
-
-function ensureBundles(): void {
-  for (const [folder, script] of BUNDLES) {
-    if (existsSync(path.join(ROOT, folder, "index.html"))) continue;
-    const made = spawnSync("bun", ["run", script], { cwd: ROOT, stdio: "inherit" });
-    if (made.status !== 0) throw new Error(`bun run ${script} failed`);
-  }
 }
 
 function runScenario(
@@ -307,7 +294,6 @@ async function runOne(screen: Screen, ffmpeg: string, scenario: ScenarioName): P
     extra.OPSIS_QT_FIXTURES = FIXTURES_DIR;
     extra.OPSIS_QT_PAGE = page.url;
   } else {
-    ensureBundles();
     userData = seedRuns();
     extra.OPSIS_QT_PROJECTS = path.join(RUNS_DIR, "projects");
     extra.OPSIS_QT_PAGE = page.url;

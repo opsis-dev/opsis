@@ -1,6 +1,6 @@
 #![expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pose has to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 
 use std::f64::consts::TAU;

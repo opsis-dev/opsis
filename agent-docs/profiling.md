@@ -39,7 +39,7 @@ How Opsis is measured for size, CPU and memory with development tools only: the 
 - **`--profiler` (one of `PROFILERS`) runs the app bare (`none`, the default) or under samply, perf or heaptrack**, writing `samply.json.gz` (with `.syms.json` beside it), `perf.data` (DWARF stacks; Rust keeps no frame pointers) or `heaptrack.raw.gz` to the run's `out/`. heaptrack follows only the app's own process.
   - heaptrack records with `--raw`: interpreting as it records makes the app wait on heaptrack's pipe for minutes at startup while it reads the line tables.
   - Interpreting a whole pass afterwards (`heaptrack_interpret`) doesn't finish on a 14 GiB machine: against the line-tables build it reads about 90 KB a minute, against a symbols-only copy (`objcopy --strip-debug`, mounted over the app folder's `opsis`) it runs out of memory. Record short passes, or use the app's `/proc` files below.
-- **`--gpu` passes `/dev/dri` into the container with its device groups, and `--render-gl <choice>` sets every Render node's `gl`**; only `vulkan` reaches the GPU from the container (see Deliberate limits).
+- **`--gpu` passes `/dev/dri` into the container with its device groups, and `--render-gl <card|software>` sets every Render node's `gl`** (see Deliberate limits).
 - **`--app-env NAME=VALUE` (repeatable) sets a variable for the app**, such as `MALLOC_ARENA_MAX`.
 - **`OPSIS_QT_NO_ITEM_CACHE`, set to anything but empty, turns off the canvas cards' pixel cache** (`DeviceCoordinateCache` on `CardItem`), to measure the canvas without it.
 - **When the pass ends, the app's `/proc/<pid>/status` and `smaps_rollup` are saved as `app-status.txt` and `app-smaps_rollup.txt`**: resident, anonymous and file-backed memory and the peak.
@@ -59,7 +59,7 @@ How Opsis is measured for size, CPU and memory with development tools only: the 
   - the binary by crate: `cargo bloat --release -p opsis-ui --bin opsis --crates -n 40`, then `--filter <crate>`, with the same profile variables as the profiling build;
   - generic code: `cargo llvm-lines -p <crate>` on the dev profile;
   - duplicates and unused crates: `cargo tree -d --workspace -e normal --depth 0` and `cargo machete` (it misses crates used only through a macro's expansion, like `smart-default` behind `#[settings]`);
-  - the pages by package: `vite build --sourcemap --outDir <folder in ~/.cache>` in `apps/film` or `apps/terminal`, then `bunx source-map-explorer '<folder>/assets/*.js' --json`. Building into a cache folder keeps source maps out of `film-bundle/` and `terminal-bundle/`, which the app ships;
+  - the renderer program the same way: `cargo bloat --release -p opsis-effects --bin opsis-renderer --crates -n 40`;
   - unused TS files, exports and dependencies: `bun run knip`.
 
 ## How it works
@@ -71,6 +71,6 @@ How Opsis is measured for size, CPU and memory with development tools only: the 
 
 ## Deliberate limits
 
-- **In the container a Render's default "Graphics card" WebGL draws in software, with or without `--gpu`**: ANGLE's default backend goes through the X display, and Xvfb has no DRI3. It is SwiftShader without Mesa in the image and Mesa's llvmpipe with it. Shader, 3D and particle elements then take several times longer than on a desktop, where the same setting reaches the GPU; `--gpu --render-gl vulkan` measures them on the GPU.
+- **In the container a Render's default Graphics card draws its shader effects and 3D on whatever Vulkan driver the image's Mesa finds**: Mesa's lavapipe on the CPU without `--gpu`, the GPU's own driver with it. `--render-gl software` uses the engine's SwiftShader instead. On the CPU those elements take several times longer than on a desktop with a graphics card.
 - **Play tape runs from the tape file (`recordLive: false`)**: with Record it live on and the node run on its own, it waits for a person to type a new tape.
 - **The editor's own work (canvas, Inspector, Timeline) isn't sampled per node**; every e2e scenario logs the app's resident memory at its end, and the `bench` scenario logs how long generating, dragging and undoing a large project take ([e2e.md](e2e.md)).

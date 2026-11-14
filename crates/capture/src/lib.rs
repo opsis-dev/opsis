@@ -6,7 +6,7 @@ pub mod drag_path;
 pub mod ease;
 pub mod encoder;
 pub mod executors;
-pub mod film;
+
 pub mod input;
 pub mod keyboard;
 pub mod live;
@@ -23,6 +23,6 @@ pub mod still;
 pub mod still_layout;
 pub mod take;
 pub mod take_clock;
-pub mod terminal_paint;
+
 pub mod trace;
 pub mod url_match;

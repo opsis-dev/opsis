@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 use std::sync::Arc;
 
 use opsis_capture::executors::{CaptureDeps, Login, LoginRequest, SignInStore, capture_executors};
@@ -33,7 +32,6 @@ fn all_executors() -> Vec<(&'static str, Executor)> {
     let tools: Tools = Arc::new(Ffmpeg::new(&EngineFiles::default()));
     let engine = Arc::new(RenderEngine {
         tools: Arc::clone(&tools),
-        film_bundle: PathBuf::new(),
     });
     let capture = Arc::new(CaptureDeps {
         tools: Arc::clone(&tools),

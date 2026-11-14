@@ -7,8 +7,7 @@ use crate::startup::StartupError;
 
 const APP_FOLDER: &str = "Opsis";
 const USER_DATA_ENV: &str = "OPSIS_USER_DATA";
-const FILM_BUNDLE_DIR: &str = "film-bundle";
-const TERMINAL_BUNDLE_DIR: &str = "terminal-bundle";
+const PUBLIC_DIR: &str = "public";
 
 #[derive(Debug, Clone)]
 pub struct HostFolders {
@@ -24,8 +23,6 @@ pub struct AppPaths {
     pub resources: PathBuf,
     pub packaged: bool,
     pub public_dir: PathBuf,
-    pub film_bundle: PathBuf,
-    pub terminal_bundle: PathBuf,
     pub temp_root: PathBuf,
     pub views_temp: PathBuf,
     pub platform: ShellPlatform,
@@ -48,15 +45,9 @@ impl AppPaths {
             repo_root()
         };
         let platform = ShellPlatform::current()?;
-        let public_dir = if packaged {
-            resources.join(FILM_BUNDLE_DIR)
-        } else {
-            resources.join("public")
-        };
+        let public_dir = resources.join(PUBLIC_DIR);
         Ok(Self {
             public_dir,
-            film_bundle: resources.join(FILM_BUNDLE_DIR),
-            terminal_bundle: resources.join(TERMINAL_BUNDLE_DIR),
             temp_root: user_data.join("tmp"),
             views_temp: user_data.join("tmp").join(child_temp_name(
                 ChildKind::Shell,

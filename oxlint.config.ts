@@ -8,5 +8,7 @@ export default defineConfig(
       excludeFiles: ["scripts/lib/tool-config.ts"],
       rules: { "opsis/use-root": "error" },
     },
+    { files: ["scripts/lib/common/lists.ts"], rules: { "opsis/use-find-by-id": "off" } },
+    { files: ["scripts/lib/common/guards.ts"], rules: { "opsis/use-type-guards": "off" } },
   ]),
 );

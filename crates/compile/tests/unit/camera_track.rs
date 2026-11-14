@@ -80,7 +80,7 @@ fn keys(list: &[CameraKey]) -> Value {
 }
 
 #[test]
-fn camera_tracks_match_what_the_film_page_makes() {
+fn camera_tracks_match_the_recorded_tracks() {
     let recorded = read(FIXTURE);
     let cases = recorded["cases"].as_array().map_or(&[][..], Vec::as_slice);
     let made = json!({

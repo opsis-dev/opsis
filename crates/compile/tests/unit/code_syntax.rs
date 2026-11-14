@@ -5,7 +5,7 @@ use serde_json::{Value, json};
 const FIXTURE: &str = "scene/code-tokens.json";
 
 #[test]
-fn code_tokens_match_what_the_film_page_makes() {
+fn code_tokens_match_the_recorded_tokens() {
     let recorded = read(FIXTURE);
     let samples: Vec<&str> = recorded["samples"]
         .as_array()

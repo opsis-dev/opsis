@@ -5,7 +5,7 @@ import { parseSync } from "oxc-parser";
 import { ROOT } from "./lib/tool-config";
 
 const CHECKED =
-  /^(apps|packages|crates|scripts)\/.*\.(ts|tsx|mts|css|rs|zig|zon|cc|h|qss|lua)$|^[^/]+\.config\.ts$/;
+  /^(crates|scripts)\/.*\.(ts|tsx|mts|css|rs|zig|zon|cc|h|qss|lua|mat|glsl)$|^[^/]+\.config\.ts$/;
 const SKIPPED = [/\/generated\//];
 const DIRECTIVE = /^\/\/\/ <reference|^\/[/*]\s*(oxlint-|@ts-)/;
 const LINE_COMMENT = /^\s*\/\/|\/\*|\*\//;
@@ -60,7 +60,7 @@ const found = files.flatMap((file) => {
   const text = readFileSync(path.join(ROOT, file), "utf8");
   const lines = /\.(ts|tsx|mts)$/.test(file)
     ? scriptComments(file, text)
-    : /\.(cc|h)$/.test(file)
+    : /\.(cc|h|mat|glsl)$/.test(file)
       ? cppComments(text)
       : file.endsWith(".lua")
         ? luaComments(text)

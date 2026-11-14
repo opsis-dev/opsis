@@ -50,7 +50,7 @@ fn cursor_shown(time_s: f64, blink: bool) -> bool {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn fitted(fit: Fit, (width, height): (f64, f64), (area_w, area_h): (f64, f64)) -> Vec<Transform> {
     let (sx, sy) = match fit {

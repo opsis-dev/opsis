@@ -1,6 +1,6 @@
 # Image nodes
 
-The Image category: how pictures are loaded and passed between nodes, the pure planning functions the executors and cards share, framing an image on the film page, and text drawn into images. Node definitions are in `crates/compile/src/nodes/image.rs` and `image_frame.rs`, executors in `crates/image/src/` and, for Frame image, `crates/render/src/executors.rs`; paths are relative to the repository root. See also [nodes.md](nodes.md), [fonts.md](fonts.md) and [AGENTS.md](../AGENTS.md).
+The Image category: how pictures are loaded and passed between nodes, the pure planning functions the executors and cards share, framing an image with the film's frames, and text drawn into images. Node definitions are in `crates/compile/src/nodes/image.rs` and `image_frame.rs`, executors in `crates/image/src/` and, for Frame image, `crates/render/src/executors.rs`; paths are relative to the repository root. See also [nodes.md](nodes.md), [fonts.md](fonts.md) and [AGENTS.md](../AGENTS.md).
 
 ## Code map
 
@@ -8,7 +8,7 @@ The Image category: how pictures are loaded and passed between nodes, the pure p
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Definitions and pure planning | `crates/compile/src/nodes/image.rs`: the `*_size`, `*_rect` and `*_plan` functions beside each node, `area_rect`                                                                                                                                              |
 | Inputs and results            | `crates/image/src/executors.rs` → `input`, `saved`, `saved_png`; `crates/types` → `ImageValue`                                                                                                                                                                |
-| Frame image                   | `crates/compile/src/nodes/image_frame.rs` → `FrameImage`, `framed_placement`, `framed_image_props`, `framed_image_spec`, `FRAMED_AT_FRAME`; `crates/render/src/executors.rs` → `frame_image`; page `packages/video/src/core/framed-image.tsx` → `FramedImage` |
+| Frame image                   | `crates/compile/src/nodes/image_frame.rs` → `FrameImage`, `framed_placement`, `framed_image_props`, `framed_image_spec`, `FRAMED_AT_FRAME`; `crates/render/src/executors.rs` → `frame_image`; drawn by `crates/compile/src/elements/framed_image.rs` → `draw` |
 | Loading                       | `crates/image/src/load.rs` → `load_image`                                                                                                                                                                                                                     |
 | Pixel operations              | `crates/image/src/ops.rs` (`is_deep`, `on_each_depth`, `in_depth`, `encode`)                                                                                                                                                                                  |
 | Executors                     | `crates/image/src/executors.rs` → `image_executors`; the shared node builder `crates/compile/src/nodes/image.rs` → `image_node`                                                                                                                               |
@@ -25,11 +25,10 @@ The Image category: how pictures are loaded and passed between nodes, the pure p
 - **Between nodes an image is a PNG, except the file Image format writes** (`encode`): PNG, JPEG at its quality (see-through parts filled with a background), lossless WebP, or AVIF at its quality and speed.
   - JPEG, WebP and AVIF are written in 8 bits, so only PNG keeps a 16-bit picture.
 - **Inputs are `media` ports and outputs are images** (`image_node`), so imported pictures, screenshots, grabbed frames, framed images and Sound picture all connect; nodes that take two pictures add their own ports (`AFTER_PORT`, `OVERLAY_PORT`, `DIFFERENCES_PORT`).
-- **Frame image draws on the film page, as a still render of one `framed-image` item** (`framed_image_spec`, rendered at `FRAMED_AT_FRAME` by `frame_image`), so a picture framed with a window or a device is drawn by the same `WindowFrame` and device elements as a take in the film ([film.md](film.md), Window frames).
+- **Frame image draws through the renderer, as a still of one `framed-image` item** (`framed_image_spec`, rendered at `FRAMED_AT_FRAME` by `frame_image` through `render_native_still`), so a picture framed with a window or a device is drawn by the same `window_frame` and device elements as a take in the film ([film.md](film.md), Window frames).
   - Its kind is plain, window or device; plain and window can be tilted (turn, tilt, lean and perspective), and a device is drawn flat.
-  - `framed_placement` sizes the picture's canvas from the picture, the tilt, the padding and the shape, and places the picture in it; the same numbers go to the page, so the canvas is exactly as large as the frame needs.
+  - `framed_placement` sizes the picture's canvas from the picture, the tilt, the padding and the shape, and places the picture in it; the same numbers go to the drawing, so the canvas is exactly as large as the frame needs.
   - Its background is none, a studio image, a colour, a gradient or a project picture (`background_css`).
-  - It needs the recording browser, as every render does; a framed image costs one page load.
 - **Colour fixes on an image are the grade nodes into Apply grade**, which takes image files and writes a PNG ([footage.md](footage.md)); the Image category has no colour nodes of its own.
 - **Areas drawn on a picture become pixels through one function, `area_rect`, kept inside the picture**: Redact, Spotlight, Crop and Magnify use it; Annotate places its marks itself (`marks.rs`).
 - **Operations that change pixels keep a 16-bit picture 16-bit**: they check the depth (`is_deep`) and work at that depth, or give `on_each_depth` one closure per depth; `in_depth` puts the result back in the matching picture type.

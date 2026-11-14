@@ -135,7 +135,7 @@
         "scale": 1,
         "chapters": true,
         "chapterList": false,
-        "gl": "angle"
+        "gl": "card"
       }
     }
   ],

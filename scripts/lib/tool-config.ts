@@ -7,12 +7,6 @@ export function devCache(name: string): string {
   return path.join(homedir(), ".cache", "opsis-dev", name);
 }
 
-const PACKAGES_DIR = path.join(ROOT, "packages");
-
-const VIDEO_PACKAGE_DIR = path.join(PACKAGES_DIR, "video");
-
-export const VIDEO_DIR = path.join(VIDEO_PACKAGE_DIR, "src");
-
 export const IGNORED_PATHS = [
   "target/**",
   ".sqlx/**",
@@ -28,14 +22,7 @@ export const IGNORED_PATHS = [
   "QT_NOTICES.generated.md",
   "scripts/lib/ffmpeg.generated.json",
   "crates/capture/src/playwright/*.generated.*",
-  "film-bundle/**",
-  "oracle-bundle/**",
-  "terminal-bundle/**",
   "resources/**",
-  "packages/*/dist/**",
-  "packages/video/src/camera/lib/mac-cursors.generated.ts",
   "crates/compile/src/elements/camera/mac-cursors.generated.json",
-  "packages/video/src/generated/**",
-  "packages/video/src/registry/length-cases.generated.json",
-  "packages/video/src/registry/default-props.generated.json",
+  "scripts/lib/generated/**",
 ];

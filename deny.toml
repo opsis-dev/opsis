@@ -32,7 +32,6 @@ allow = [
   "bzip2-1.0.6",
   "CC0-1.0",
   "GPL-3.0-or-later",
-  "IJG",
   "ISC",
   "MIT",
   "MIT-0",

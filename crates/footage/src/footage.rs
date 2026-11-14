@@ -4,7 +4,6 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use image::{DynamicImage, RgbImage};
-use jpeg_encoder::{ColorType, Encoder, SamplingFactor};
 use opsis_image::ops::redact;
 
 use crate::FootageError;
@@ -12,8 +11,6 @@ use crate::chain::{FootageSource, JUMP_US, MATCH_TOLERANCE_US, SEEK_MARGIN_US, f
 use crate::decoder::{Decoder, FootageTools, RawFrame};
 use crate::terminal::{TerminalFootage, TerminalState};
 
-const QUALITY: u8 = 92;
-const KEPT_PICTURES: usize = 6;
 const KEPT_FRAMES: usize = 6;
 pub const IDLE: Duration = Duration::from_secs(30);
 
@@ -31,7 +28,6 @@ struct SourceState {
     ahead: Option<RawFrame>,
     first_pts: Option<i64>,
     ended: bool,
-    pictures: VecDeque<(i64, Arc<Vec<u8>>)>,
     last_used: Instant,
 }
 
@@ -53,19 +49,6 @@ fn redacted(source: &FootageSource, frame: &RawFrame) -> RgbImage {
         .into_rgb8()
 }
 
-pub fn jpeg(image: &RgbImage) -> Result<Vec<u8>, FootageError> {
-    let too_big = || FootageError::Encode("The frame is too big for a picture.".to_owned());
-    let width = u16::try_from(image.width()).map_err(|_| too_big())?;
-    let height = u16::try_from(image.height()).map_err(|_| too_big())?;
-    let mut out = Vec::new();
-    let mut encoder = Encoder::new(&mut out, QUALITY);
-    encoder.set_sampling_factor(SamplingFactor::R_4_4_4);
-    encoder
-        .encode(image.as_raw(), width, height, ColorType::Rgb)
-        .map_err(|e| FootageError::Encode(e.to_string()))?;
-    Ok(out)
-}
-
 impl SourceState {
     fn new(source: FootageSource) -> Self {
         Self {
@@ -75,7 +58,6 @@ impl SourceState {
             ahead: None,
             first_pts: None,
             ended: false,
-            pictures: VecDeque::new(),
             last_used: Instant::now(),
         }
     }
@@ -197,24 +179,6 @@ impl SourceState {
         let image = redacted(&self.source, self.frame_at(pts_us)?);
         Ok(Shown { pts_us, image })
     }
-
-    fn picture(
-        &mut self,
-        tools: &FootageTools,
-        starts: &AtomicU32,
-        time_us: i64,
-    ) -> Result<Arc<Vec<u8>>, FootageError> {
-        let pts_us = self.locate(tools, starts, time_us)?;
-        if let Some((_, bytes)) = self.pictures.iter().find(|(at, _)| *at == pts_us) {
-            return Ok(Arc::clone(bytes));
-        }
-        let bytes = Arc::new(jpeg(&redacted(&self.source, self.frame_at(pts_us)?))?);
-        if self.pictures.len() == KEPT_PICTURES {
-            self.pictures.pop_front();
-        }
-        self.pictures.push_back((pts_us, Arc::clone(&bytes)));
-        Ok(bytes)
-    }
 }
 
 #[derive(Debug)]
@@ -316,11 +280,5 @@ impl Footage {
 
     pub fn stalled(&self) -> bool {
         self.stalled.load(Ordering::Relaxed)
-    }
-
-    pub fn picture(&self, id: &str, time_us: i64) -> Result<Arc<Vec<u8>>, FootageError> {
-        self.with_source(id, |state| {
-            state.picture(&self.tools, &self.starts, time_us)
-        })
     }
 }

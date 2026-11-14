@@ -1,14 +1,18 @@
+import path from "node:path";
 import type { Context, ESTree, Fix, Fixer, Rule } from "@oxlint/plugins";
 
 type Node = ESTree.Node;
 type MaybeNode = Node | null | undefined;
 type StaticMember = ESTree.StaticMemberExpression;
 
+const COMMON_DIR = path.join(import.meta.dirname, "lib", "common");
+
 function commonModule(filename: string, module: string): string | null {
   const file = filename.replaceAll("\\", "/");
-  if (file.includes("/packages/video/src/")) return `#video/common/${module}.ts`;
-  if (file.includes("/scripts/")) return `@opsis/video/common/${module}`;
-  return null;
+  if (!file.includes("/scripts/")) return null;
+  const relative = path.relative(path.dirname(filename), path.join(COMMON_DIR, module));
+  const posix = relative.split(path.sep).join("/");
+  return posix.startsWith(".") ? posix : `./${posix}`;
 }
 
 function importing(context: Context, fixer: Fixer, name: string, module: string): Fix[] | null {
@@ -49,65 +53,9 @@ function fixWith(
   };
 }
 
-const ANIMATE_CLASS =
-  /(^|\s)(motion-safe:|motion-reduce:|hover:|group-hover:)?animate-[a-z0-9[\]-]+/;
-const MESSAGE =
-  "Tailwind `animate-*` classes animate on the wall clock and do not render in the film. Derive the style from the runtime's useFrame() instead.";
-
-const noAnimateClass: Rule = {
-  meta: {
-    type: "problem",
-    docs: { description: "Disallow Tailwind animate-* classes inside the film" },
-  },
-  create(context) {
-    return {
-      Literal(node) {
-        if (typeof node.value === "string" && ANIMATE_CLASS.test(node.value))
-          context.report({ node, message: MESSAGE });
-      },
-      TemplateLiteral(node) {
-        if (node.quasis.some((q) => ANIMATE_CLASS.test(q.value.raw)))
-          context.report({ node, message: MESSAGE });
-      },
-    };
-  },
-};
-
 function isIdentifier(node: MaybeNode, name?: string): boolean {
   return node?.type === "Identifier" && (name === undefined || node.name === name);
 }
-
-const THREE_CLOCKS = new Set(["Clock", "Timer"]);
-const THREE_CLOCK_MESSAGE =
-  "Three.js clocks and animation loops run on the wall clock and do not render in the film. Derive the scene from the runtime's useFrame() instead.";
-
-function clockName(node: MaybeNode): string | null {
-  if (node?.type === "Identifier") return node.name;
-  if (node?.type === "MemberExpression" && !node.computed && node.property.type === "Identifier")
-    return node.property.name;
-  return null;
-}
-
-const noThreeClock: Rule = {
-  meta: {
-    type: "problem",
-    docs: {
-      description: "Disallow Three.js clocks and animation loops inside the film",
-    },
-  },
-  create(context) {
-    return {
-      NewExpression(node) {
-        const name = clockName(node.callee);
-        if (name && THREE_CLOCKS.has(name)) context.report({ node, message: THREE_CLOCK_MESSAGE });
-      },
-      CallExpression(node) {
-        if (clockName(node.callee) === "setAnimationLoop")
-          context.report({ node, message: THREE_CLOCK_MESSAGE });
-      },
-    };
-  },
-};
 
 function isMember(node: MaybeNode, property: string): node is StaticMember {
   return (
@@ -152,7 +100,7 @@ function comparesIdOf(fn: MaybeNode): boolean {
 
 const useFindById = callRule(
   "Find an item by id through findById",
-  "Use findById from packages/video/src/common/lists.ts.",
+  "Use findById from scripts/lib/common/lists.ts.",
   (call) => isMember(call.callee, "find") && comparesIdOf(call.arguments[0]),
   (call, context) => {
     const equality = strictEqualityBody(call.arguments[0]);
@@ -173,7 +121,7 @@ const useFindById = callRule(
 
 const useParseJsonWith = callRule(
   "Parse and check JSON through parseJsonWith",
-  "Use parseJsonWith from packages/video/src/common/guards.ts.",
+  "Use parseJsonWith from scripts/lib/common/guards.ts.",
   (call) => {
     const arg: MaybeNode = call.arguments[0];
     return (
@@ -227,131 +175,8 @@ const useTypeGuards: Rule = {
         if (typed && guard)
           context.report({
             node,
-            message: `Use ${guard} from packages/video/src/common/guards.ts.`,
+            message: `Use ${guard} from scripts/lib/common/guards.ts.`,
             fix: fixWith(context, guard, "guards", (fixer) => [fixer.replaceText(node, guard)]),
-          });
-      },
-    };
-  },
-};
-
-const PERCENT_AFTER = /^\s?%/;
-
-function hundredths(node: Node): Node | null {
-  if (node.type !== "BinaryExpression" || node.operator !== "*") return null;
-  function isHundred(side: Node) {
-    return side.type === "Literal" && side.value === 100;
-  }
-  if (isHundred(node.right)) return node.left;
-  if (isHundred(node.left)) return node.right;
-  return null;
-}
-
-const usePercentText: Rule = {
-  meta: {
-    type: "suggestion",
-    fixable: "code",
-    docs: { description: "Write percentages through percentText" },
-  },
-  create(context) {
-    return {
-      TemplateLiteral(node) {
-        const quasis = node.quasis;
-        const rounded = node.expressions.findIndex(
-          (expression, i) =>
-            expression.type === "CallExpression" &&
-            isMember(expression.callee, "round") &&
-            PERCENT_AFTER.test(quasis[i + 1].value.raw),
-        );
-        if (rounded === -1) return;
-        const call = node.expressions[rounded];
-        const fraction =
-          call.type === "CallExpression" && call.arguments.length === 1
-            ? hundredths(call.arguments[0])
-            : null;
-        const text = context.sourceCode.text;
-        const sign = text.indexOf("%", call.range[1]);
-        const exact = fraction && text.slice(call.range[1], sign) === "}";
-        context.report({
-          node,
-          message: "Use percentText from packages/video/src/common/format.ts.",
-          fix:
-            exact && fraction
-              ? fixWith(context, "percentText", "format", (fixer) => [
-                  fixer.replaceText(call, `percentText(${context.sourceCode.getText(fraction)})`),
-                  fixer.removeRange([sign, sign + 1]),
-                ])
-              : undefined,
-        });
-      },
-    };
-  },
-};
-
-const FC_NAMES = new Set(["FC", "FunctionComponent"]);
-
-function isComponentType(node: MaybeNode): boolean {
-  if (node?.type !== "TSTypeReference") return false;
-  const name = node.typeName;
-  if (name.type === "Identifier") return FC_NAMES.has(name.name);
-  return name.type === "TSQualifiedName" && FC_NAMES.has(name.right.name);
-}
-
-function componentFix(
-  context: Context,
-  declarator: ESTree.VariableDeclarator,
-): ((fixer: Fixer) => Fix) | undefined {
-  const declaration = declarator.parent;
-  const init = declarator.init;
-  if (
-    declaration?.type !== "VariableDeclaration" ||
-    declaration.declarations.length !== 1 ||
-    declarator.id.type !== "Identifier" ||
-    (init?.type !== "ArrowFunctionExpression" && init?.type !== "FunctionExpression") ||
-    !init.body ||
-    init.params.length > 1 ||
-    (init.type === "ArrowFunctionExpression" && usesOwnBinding(init.body))
-  )
-    return undefined;
-  function text(node: Node) {
-    return context.sourceCode.getText(node);
-  }
-  const annotation = declarator.id.typeAnnotation?.typeAnnotation;
-  const props =
-    annotation?.type === "TSTypeReference" ? annotation.typeArguments?.params[0] : undefined;
-  const [param] = init.params;
-  const typed =
-    param && "typeAnnotation" in param && param.typeAnnotation
-      ? text(param)
-      : param
-        ? `${text(param)}${props ? `: ${text(props)}` : ""}`
-        : "";
-  const body =
-    init.body.type === "BlockStatement" ? text(init.body) : `{\n  return ${text(init.body)};\n}`;
-  const name = declarator.id.name;
-  return (fixer) => fixer.replaceText(declaration, `function ${name}(${typed}) ${body}`);
-}
-
-const useFunctionComponents: Rule = {
-  meta: {
-    type: "suggestion",
-    fixable: "code",
-    docs: { description: "Write components as named functions, not React.FC constants" },
-  },
-  create(context) {
-    return {
-      VariableDeclarator(node) {
-        const init = node.init;
-        if (
-          node.id.type === "Identifier" &&
-          isComponentType(node.id.typeAnnotation?.typeAnnotation) &&
-          (init?.type === "ArrowFunctionExpression" || init?.type === "FunctionExpression")
-        )
-          context.report({
-            node,
-            message:
-              "Write the component as a named function with its props type on the parameter.",
-            fix: componentFix(context, node),
           });
       },
     };
@@ -427,13 +252,9 @@ const useFunctionDeclarations: Rule = {
 export default {
   meta: { name: "opsis" },
   rules: {
-    "no-animate-class": noAnimateClass,
-    "no-three-clock": noThreeClock,
     "use-find-by-id": useFindById,
-    "use-function-components": useFunctionComponents,
     "use-function-declarations": useFunctionDeclarations,
     "use-parse-json-with": useParseJsonWith,
-    "use-percent-text": usePercentText,
     "use-root": useRoot,
     "use-type-guards": useTypeGuards,
   },

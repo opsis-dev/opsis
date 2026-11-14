@@ -10,7 +10,7 @@ fn list(value: &Value) -> &[Value] {
 }
 
 #[test]
-fn number_text_gives_what_the_film_page_gives() {
+fn number_text_gives_the_recorded_text() {
     let recorded = read(FIXTURE);
     let values: Vec<f64> = list(&recorded["values"]).iter().map(number).collect();
     let groups: Vec<&str> = list(&recorded["groups"]).iter().map(text).collect();

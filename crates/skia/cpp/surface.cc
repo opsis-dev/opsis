@@ -9,6 +9,9 @@
 #include "include/core/SkImage.h"
 #include "include/core/SkImageInfo.h"
 #include "include/core/SkPaint.h"
+#include "include/core/SkPathBuilder.h"
+#include "include/core/SkPathEffect.h"
+#include "include/core/SkPathUtils.h"
 #include "include/core/SkPixmap.h"
 #include "include/core/SkSpan.h"
 #include "include/core/SkStream.h"
@@ -125,8 +128,35 @@ void Surface::draw_nested_round_rect(RoundRect outer, RoundRect inner,
   canvas()->drawDRRect(round_rect_of(outer), round_rect_of(inner), paint.get());
 }
 
+namespace {
+
+bool drawn_as_hairline(const SkPaint& paint, const SkMatrix& ctm) {
+  const SkScalar width = paint.getStrokeWidth();
+  if (paint.getStyle() != SkPaint::kStroke_Style || !paint.isAntiAlias() ||
+      width <= 0) {
+    return false;
+  }
+  const SkVector across = ctm.mapVector(width, 0);
+  const SkVector down = ctm.mapVector(0, width);
+  return across.length() <= 1 && down.length() <= 1;
+}
+
+}
+
 void Surface::draw_path(const Path& path, const Paint& paint) {
-  canvas()->drawPath(path.snapshot(), paint.get());
+  const SkPaint& stroke = paint.get();
+  const SkMatrix ctm = canvas()->getTotalMatrix();
+  if (!drawn_as_hairline(stroke, ctm)) {
+    canvas()->drawPath(path.snapshot(), stroke);
+    return;
+  }
+  SkPathBuilder outline;
+  skpathutils::FillPathWithPaint(path.snapshot(), stroke, &outline, nullptr,
+                                 ctm);
+  SkPaint fill = stroke;
+  fill.setStyle(SkPaint::kFill_Style);
+  fill.setPathEffect(nullptr);
+  canvas()->drawPath(outline.detach(), fill);
 }
 
 void Surface::draw_paint(const Paint& paint) {

@@ -7,10 +7,8 @@ use opsis_packager::appimage::AppImageTools;
 use opsis_packager::{AppFiles, Format, Tools, package};
 use opsis_update::installer::{Installer, MARKER_LEN, UNMARKED, read_marker};
 
-const RESOURCES: [(&str, &str); 7] = [
-    ("film-bundle/index.html", "<html></html>"),
-    ("film-bundle/assets/index.js", "export {}"),
-    ("terminal-bundle/index.html", "<html></html>"),
+const RESOURCES: [(&str, &str); 5] = [
+    ("public/sfx/mouse-click.wav", "sound"),
     ("resources/LICENSE.ffmpeg.txt", "FFmpeg licence"),
     (
         "resources/engine-licences/LICENSES.chromium.html",

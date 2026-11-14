@@ -4,8 +4,6 @@ import { ROOT } from "./lib/tool-config";
 
 const SOURCE = path.join(
   ROOT,
-  "packages",
-  "video",
   "node_modules",
   "@paper-design",
   "shaders",

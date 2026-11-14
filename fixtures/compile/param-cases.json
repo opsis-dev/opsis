@@ -146915,7 +146915,7 @@
      "scale": 1.0,
      "chapters": true,
      "chapterList": false,
-     "gl": "angle",
+     "gl": "card",
      "firstChapter": "Intro",
      "preset": "medium",
      "fullColour": false,
@@ -146943,7 +146943,7 @@
      "scale": 1.0,
      "chapters": true,
      "chapterList": false,
-     "gl": "angle",
+     "gl": "card",
      "firstChapter": "Intro",
      "preset": "medium",
      "fullColour": false,
@@ -147574,7 +147574,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": "angle",
+    "value": "card",
     "keys": 15
    }
   },
@@ -148171,7 +148171,7 @@
       "og"
      ],
      "format": "png",
-     "gl": "angle",
+     "gl": "card",
      "reframe": "follow",
      "jpegQuality": 80,
      "scale": 1.0
@@ -148192,7 +148192,7 @@
       "og"
      ],
      "format": "png",
-     "gl": "angle",
+     "gl": "card",
      "reframe": "follow",
      "jpegQuality": 80,
      "scale": 1.0
@@ -148573,7 +148573,7 @@
    },
    "outcome": {
     "ok": true,
-    "value": "angle",
+    "value": "card",
     "keys": 8
    }
   },

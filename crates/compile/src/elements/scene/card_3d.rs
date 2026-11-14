@@ -141,7 +141,7 @@ pub struct CardLook<'a> {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the card has to sit where it puts it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 pub fn card_objects(
     (width, height): (f64, f64),

@@ -58,7 +58,7 @@ fn motion_of(config: &SpringConfig) -> Motion {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn damped_of(Motion { omega, zeta }: Motion) -> f64 {
     omega * (1.0 - zeta * zeta).sqrt()
@@ -66,7 +66,7 @@ fn damped_of(Motion { omega, zeta }: Motion) -> f64 {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn distance_left(motion: Motion, seconds: f64) -> f64 {
     let Motion { omega, zeta } = motion;
@@ -186,7 +186,7 @@ impl Spring {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 pub fn spring(options: &Spring) -> Result<f64, SpringError> {
     let resolved = options.config.checked()?;

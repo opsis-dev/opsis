@@ -149,11 +149,12 @@ fn codec_and_file_arguments_are_as_recorded() {
     opsis_golden::check(CODECS, &made);
 }
 
+const RECORDED_SIZE: (u32, u32) = (1920, 1080);
+
 fn film_encoding(e: &Value) -> FilmEncoding {
     FilmEncoding {
         codec: typed(&e["codec"]),
         fps: number(&e["fps"]),
-        png_frames: e["pngFrames"] == true,
         crf: e["crf"].as_f64(),
         x264_preset: typed(&e["x264Preset"]),
         pixel_format: typed(&e["pixelFormat"]),
@@ -166,7 +167,7 @@ fn film_encoding(e: &Value) -> FilmEncoding {
 fn film_encoding_arguments_are_as_recorded() {
     let f = opsis_golden::read(FILM_ENCODING);
     let made = cases(&f["cases"], |case| {
-        let args = film_encode_args(&film_encoding(&case["encoding"]), "film.out");
+        let args = film_encode_args(&film_encoding(&case["encoding"]), RECORDED_SIZE, "film.out");
         with(case, &[("args", json(args))])
     });
     opsis_golden::check(FILM_ENCODING, &serde_json::json!({ "cases": made }));

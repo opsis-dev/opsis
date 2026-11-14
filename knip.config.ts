@@ -5,17 +5,16 @@ const FILE_READ_PACKAGES = [
   "@hugeicons/core-free-icons",
   "@lucide/lab",
   "@mynaui/icons",
+  "@paper-design/shaders",
   "@tabler/icons",
   "iconoir",
-  "source-map-explorer",
 ];
 
-function cssImports(text: string): string {
-  return [...text.matchAll(/(?<=@)import[^;]+/g)].join("\n");
-}
-
 export default {
-  ignore: ["**/*.generated.*"],
+  ignoreIssues: {
+    "scripts/lib/common/*.ts": ["exports"],
+    "scripts/lib/generated/*.ts": ["types"],
+  },
   ignoreBinaries: [
     "zig",
     "rustc",
@@ -25,25 +24,14 @@ export default {
     "Xvfb",
     "fc-match",
     "uvx",
+    /^clang\+\+$/,
+    "cmake",
   ],
-  compilers: { css: cssImports },
   workspaces: {
     ".": {
       entry: ["scripts/*.ts", ".claude/skills/*/*.ts"],
       project: ["scripts/**/*.ts", ".claude/skills/**/*.ts"],
       ignoreDependencies: FILE_READ_PACKAGES,
-    },
-    "apps/film": {
-      project: ["src/**/*.{ts,tsx,css}"],
-    },
-    "apps/terminal": {
-      project: ["src/**/*.{ts,tsx,css}"],
-    },
-    "packages/video": {
-      project: ["src/**/*.{ts,tsx,css}"],
-    },
-    "packages/runtime": {
-      project: ["src/**/*.{ts,tsx,css}"],
     },
   },
 } satisfies KnipConfig;

@@ -26,18 +26,14 @@ pub const SAVE_TAKE_TYPE: &str = "output.take";
 #[choice(export)]
 pub enum Gl {
     #[label("Graphics card")]
-    Angle,
+    Card,
     #[label("Software")]
-    Swangle,
-    #[label("Graphics card, newer drivers")]
-    Vulkan,
-    #[label("Software (legacy)")]
-    Swiftshader,
+    Software,
 }
 
 impl Gl {
     pub const fn draws_on_graphics_card(self) -> bool {
-        matches!(self, Self::Angle | Self::Vulkan)
+        matches!(self, Self::Card)
     }
 }
 
@@ -274,7 +270,7 @@ pub struct ExportVideo {
     pub chapter_list: bool,
     #[setting(
         "Draw with",
-        default = Gl::Angle,
+        default = Gl::Card,
         help = "The graphics card is about ten times faster. Use Software if exports fail.",
         advanced
     )]
@@ -409,7 +405,7 @@ pub struct ExportImages {
     pub format: StillFormat,
     #[setting(
         "Draw with",
-        default = Gl::Angle,
+        default = Gl::Card,
         help = "The graphics card is about ten times faster. Use Software if exports fail.",
         advanced
     )]

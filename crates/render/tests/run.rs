@@ -122,7 +122,7 @@ async fn make_clip(ffmpeg: &Path, file: &Path) {
 }
 
 #[tokio::test]
-#[ignore = "needs the dev engine and the film page (bun run film:bundle)"]
+#[ignore = "needs the dev engine and the opsis-renderer program"]
 async fn runs_media_nodes_and_exports_a_film() {
     let engine = EngineFiles::downloaded(&home().join(".config/Opsis/engine"));
     let base = dev_cache("render-test");
@@ -136,7 +136,6 @@ async fn runs_media_nodes_and_exports_a_film() {
     let tools: Tools = Arc::new(Ffmpeg::new(&engine).with_temp(&temp));
     let render = Arc::new(RenderEngine {
         tools: Arc::clone(&tools),
-        film_bundle: repo().join("film-bundle"),
     });
     let mut executors = Executors::default();
     executors.extend(media_executors(&tools)).unwrap();
@@ -205,7 +204,7 @@ async fn runs_media_nodes_and_exports_a_film() {
 }
 
 #[tokio::test]
-#[ignore = "needs the dev engine and the film page (bun run film:bundle)"]
+#[ignore = "needs the dev engine and the opsis-renderer program"]
 async fn draws_a_preview_of_every_terminal_take() {
     let engine = EngineFiles::downloaded(&home().join(".config/Opsis/engine"));
     let base = dev_cache("render-test/preview");
@@ -222,10 +221,7 @@ async fn draws_a_preview_of_every_terminal_take() {
     )
     .unwrap();
     let tools: Tools = Arc::new(Ffmpeg::new(&engine).with_temp(&temp));
-    let render = Arc::new(RenderEngine {
-        tools,
-        film_bundle: repo().join("film-bundle"),
-    });
+    let render = Arc::new(RenderEngine { tools });
     let mut executors = Executors::default();
     executors
         .extend(terminal_executors(&TerminalDeps {

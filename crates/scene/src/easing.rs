@@ -63,7 +63,7 @@ impl Easing {
 
     #[expect(
         clippy::suboptimal_flops,
-        reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+        reason = "each step rounds on its own, and the recorded goldens hold what that draws"
     )]
     pub fn at(&self, t: f64) -> f64 {
         match self {
@@ -105,7 +105,7 @@ impl Easing {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn bounce(t: f64) -> f64 {
     if t < 1.0 / 2.75 {
@@ -125,7 +125,7 @@ fn bounce(t: f64) -> f64 {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn curve_point(at: f64, first: f64, second: f64) -> f64 {
     let rest = 1.0 - at;
@@ -134,7 +134,7 @@ fn curve_point(at: f64, first: f64, second: f64) -> f64 {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn curve_slope(at: f64, first: f64, second: f64) -> f64 {
     let rest = 1.0 - at;

@@ -5,7 +5,7 @@ import { RENDERER_PROGRAM, releaseBinary } from "./release";
 import { ROOT } from "./tool-config";
 
 const FFMPEG_PROGRAM = "opsis-ffmpeg";
-const FOLDERS = ["film-bundle", "terminal-bundle", "resources"];
+const FOLDERS = ["public", "resources"];
 const FILES = ["LICENSE", "THIRD_PARTY_NOTICES.md", "QT_NOTICES.generated.md"];
 
 export function assembleAppFolder(folder: string): string {

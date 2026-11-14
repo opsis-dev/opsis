@@ -1,6 +1,6 @@
 # The engine: browser, FFmpeg and child programs
 
-The one recording browser every capture, view and render launches, the bundled FFmpeg, how media is probed, and the temp folders and process tracking of every child program. Paths are relative to `crates/` unless they name another folder. Packaging the FFmpeg sidecar is in [packaging.md](packaging.md); see also [capture.md](capture.md) and [AGENTS.md](../AGENTS.md).
+The one recording browser every capture and view launches, the bundled FFmpeg, how media is probed, and the temp folders and process tracking of every child program. Paths are relative to `crates/` unless they name another folder. Packaging the FFmpeg sidecar is in [packaging.md](packaging.md); see also [capture.md](capture.md) and [AGENTS.md](../AGENTS.md).
 
 ## Code map
 
@@ -22,7 +22,8 @@ The one recording browser every capture, view and render launches, the bundled F
 
 ### One browser
 
-- **Capture, the streamed views and film renders launch the same Chrome Headless Shell**: Google's Chrome for Testing build, the version pinned for the platform by sha256 and size. The app ships no browser.
+- **Capture and the streamed views launch the same Chrome Headless Shell**: Google's Chrome for Testing build, the version pinned for the platform by sha256 and size. The app ships no browser.
+  - Renders don't launch it; a render drawn with Software takes only the SwiftShader Vulkan driver beside its program ([film.md](film.md), Effects and 3D).
 - **Settings store it as a path (`settings.engine.browser`, with its version, sha256, size and modified time), and nothing else locates it.** Settings → Engine either downloads it into `<data folder>/engine` and saves that path, or saves a browser the user chooses.
 - **The download is checked before anything is replaced**: it goes to a `.download-*` file, a wrong sha256 or size deletes it and fails (`fetch_verified`), and only then is it unpacked into a staging folder, the program looked for there and made executable (`unpack_shell`), and the old browser folder replaced (`install.rs`). Whether it runs is the full check's question, below.
 - **Either way the full check runs before the path is saved**: the browser answers `--version` and opens a page over CDP when started headless (`check_browser`). A failed choice leaves the saved browser as it was.
@@ -31,7 +32,7 @@ The one recording browser every capture, view and render launches, the bundled F
 - **The check app's and the end-to-end seeds save the browser with its full stamp (`browser-stamp.ts`)**, so they start with no check.
 - **A browser of another version than the pinned one is allowed with a warning** (`browser_warning`).
 - **Engine status is complete when the browser is ready.**
-- **Never fall back to Playwright's browsers or the system Chrome for capture or render.**
+- **Never fall back to Playwright's browsers or the system Chrome for capture.**
 
 ### FFmpeg
 
@@ -54,9 +55,9 @@ The one recording browser every capture, view and render launches, the bundled F
 ### Child programs
 
 - **Every child program gets a temp folder under `<data folder>/tmp`, named `<app pid>-<kind>-<id>` (`child_temp_name`, which keeps the first 8 characters of the id), passed as `TMPDIR`, `TEMP` and `TMP`**, so whatever the browser or FFmpeg puts in the system temp folder lands there.
-  - Each run gets its own (`run`, which film renders use too); each open file player decodes through FFmpeg in its own (`analysis`, named by the player's number alone so the 8-character cut never makes two players share one, `ui/src/player.rs`); the streamed views, their browsers, the browser check, the sign-in view and the terminal painter share one per app launch (`shell-views`, `AppPaths::views_temp`).
+  - Each run gets its own (`run`, which film renders and their renderer programs use too, the latter in its `drawing` folder); each open file player decodes through FFmpeg in its own (`analysis`, named by the player's number alone so the 8-character cut never makes two players share one, `ui/src/player.rs`); the streamed views, their browsers, the browser check, and the sign-in view share one per app launch (`shell-views`, `AppPaths::views_temp`).
   - They are made when the app starts (`AppState::new`) or the run begins (`make_child_temp`) and deleted when it ends; at start `clear_stale_child_temps` deletes every folder in `<data folder>/tmp` whose name doesn't start with the pid of a running app.
-  - Each launcher sets the three variables itself: `capture/src/browser.rs`, `terminal/src/shell.rs` and the footage decoders (`footage/src/decoder.rs`, `footage/src/terminal.rs`, which a render's footage and a file player's picture use) do, so a new launcher has to set them too.
+  - Each launcher sets the three variables itself: `capture/src/browser.rs`, `terminal/src/shell.rs`, the renderer program (`renderer/src/client.rs` → `Renderer::start`) and the footage decoders (`footage/src/decoder.rs`, `footage/src/terminal.rs`, which a render's footage and a file player's picture use) do, so a new launcher has to set them too.
   - An FFmpeg run through `MediaTools` (`media/src/ffmpeg.rs`: `run`, `pipe`; `probe` starts no program) gets them through `Ffmpeg::with_temp`, which `engine_tools` (`session/src/engine.rs`) calls with the folder it's given: the run's for a run's executors, the player's for a file player's sound, and the app launch's `views_temp` for file checks, the mix, analysis and the Timeline's sound.
 - **A child started in a folder nobody made fails**, so the folders above are made before anything starts in them, and the `runs` e2e scenario opens the browser picker on a fresh data folder.
 - **Browsers and terminal shells don't end with the app on their own, so each one the app starts is remembered by pid (`remember_child`) until it closes (`forget_child`)**, and `Session::end` ends every one still open when the app exits (`end_remembered_children`).

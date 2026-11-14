@@ -45,7 +45,7 @@ pub fn glide(t: f64) -> f64 {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn settle(rise: f64, damping: f64, taper: f64, end: f64, frames: f64) -> f64 {
     let frequency = (std::f64::consts::PI - damping.acos()) / rise;
@@ -169,7 +169,7 @@ fn layout_of(chords: &[Vec<Key>]) -> Layout {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn schedule(chords: &[Vec<Key>], hold: f64) -> Vec<ChordTiming> {
     let mut timing = Vec::new();

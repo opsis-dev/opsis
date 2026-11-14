@@ -1,23 +1,18 @@
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use opsis_capture::film::{Capture, DriverOptions, FilmPage};
-use opsis_compile::asset_ref::FILM_FOLDER;
 use opsis_compile::clip::clip_to_spec;
 use opsis_compile::elements::element_node_type;
 use opsis_compile::hosted::hosted;
 use opsis_compile::node::{CLIP_PORT, Ctx};
 use opsis_compile::nodes::groups::{KIND, groups};
-use opsis_compile::nodes::output::{Gl, StillFormat};
+use opsis_compile::nodes::output::StillFormat;
 use opsis_compile::registry::node_def;
 use opsis_compile::vars::Vars;
-use opsis_engine::http_files::{FileServer, folder_routes};
-use opsis_engine::paths::{ShellPlatform, engine_paths, find_headless_shell};
 use opsis_footage::decoder::FootageTools;
 use opsis_footage::footage::Footage;
-use opsis_golden::{dev_cache, home, repo};
-use opsis_prepare::serve::{PreparedDirs, prepared_routes};
-use opsis_render::frames::{StillRender, render_still};
+use opsis_golden::{dev_cache, repo};
+use opsis_prepare::serve::PreparedDirs;
 use opsis_render::native::{NATIVE_BASE, NativeFiles, NativeStill, render_native_still};
 use opsis_types::numbers;
 use opsis_types::timeline::{SpecAssets, TimelineSpec};
@@ -165,21 +160,7 @@ fn copy_dir(from: &Path, to: &Path) {
     }
 }
 
-const NATIVE_REFLECTION_REASON: &str = "the room's reflections come from cmgen's prefiltered map in place of three.js's PMREM blur, which the fully metallic test models and the logo's bevels mirror a little darker";
-
-fn native_share(name: &str) -> f64 {
-    match name {
-        "model-plain" | "model-external" | "model-ktx2" | "model-draco" | "model-meshopt" => 0.965,
-        "logo-svg" => 0.99,
-        _ => MOSTLY_SAME,
-    }
-}
-
 fn share_alike(made: &Path, baseline: &Path) -> Result<(), String> {
-    share_alike_at(made, baseline, MOSTLY_SAME)
-}
-
-fn share_alike_at(made: &Path, baseline: &Path, needed: f64) -> Result<(), String> {
     let (a, b) = (
         image::open(made).map_err(|e| e.to_string())?.to_rgba8(),
         image::open(baseline).map_err(|e| e.to_string())?.to_rgba8(),
@@ -201,7 +182,7 @@ fn share_alike_at(made: &Path, baseline: &Path, needed: f64) -> Result<(), Strin
         })
         .count();
     let share = numbers::float(close) / f64::from(a.width() * a.height());
-    if share >= needed {
+    if share >= MOSTLY_SAME {
         Ok(())
     } else {
         Err(format!("only {:.2}% of pixels match", share * 100.0))
@@ -209,77 +190,8 @@ fn share_alike_at(made: &Path, baseline: &Path, needed: f64) -> Result<(), Strin
 }
 
 #[tokio::test(flavor = "multi_thread")]
-#[ignore = "needs the dev engine and the film page (bun run film:bundle); OPSIS_STILLS_OUT names where stills go"]
-async fn draws_3d_elements_as_recorded() {
-    let out = std::env::var_os("OPSIS_STILLS_OUT")
-        .map_or_else(|| dev_cache("three-stills"), PathBuf::from);
-    let temp = out.join("tmp");
-    let project = temp.join("project");
-    copy_dir(
-        &opsis_golden::path("prepare/models"),
-        &project.join("assets/models"),
-    );
-    let dirs = PreparedDirs {
-        project: project.clone(),
-        public: repo().join("public"),
-    };
-    let routes =
-        prepared_routes(dirs).merge(folder_routes(FILM_FOLDER, &repo().join("film-bundle")));
-    let server = FileServer::start_with(&project, routes).await.unwrap();
-    let page_url = format!("{}{FILM_FOLDER}/index.html", server.url);
-    let engine = engine_paths(
-        &home().join(".config/Opsis/engine"),
-        ShellPlatform::current().unwrap(),
-    );
-    let shell = find_headless_shell(&engine).unwrap().to_path_buf();
-    let mut failures = Vec::new();
-    for (name, key, params) in cases() {
-        let spec = hosted(&TimelineSpec {
-            assets: Some(SpecAssets {
-                project_base: Some(server.url.clone()),
-            }),
-            ..spec_for(key, &params)
-        });
-        let file = out.join(format!("{name}.png"));
-        let json = serde_json::to_value(&spec).unwrap();
-        let drawn = render_still(&StillRender {
-            driver: DriverOptions {
-                executable: &shell,
-                temp_dir: &temp,
-                gl: Gl::Angle,
-                capture: Capture::for_this_computer(),
-            },
-            page: FilmPage {
-                url: &page_url,
-                spec: &json,
-                width: spec.width,
-                height: spec.height,
-                scale: 0.5,
-            },
-            frame: FRAME,
-            format: StillFormat::Png,
-            jpeg_quality: None,
-            output: &file,
-        })
-        .await;
-        if let Err(error) = drawn {
-            failures.push(format!("{name}: {error}"));
-            continue;
-        }
-        let recorded = opsis_golden::path(&format!("{STILLS}/{name}.png"));
-        if opsis_golden::writing() {
-            std::fs::copy(&file, &recorded).unwrap_or_else(|e| panic!("{name}: {e}"));
-        } else if let Err(error) = share_alike(&file, &recorded) {
-            failures.push(format!("{name}: {error}"));
-        }
-    }
-    std::fs::remove_dir_all(&temp).ok();
-    assert!(failures.is_empty(), "{}", failures.join("\n"));
-}
-
-#[tokio::test(flavor = "multi_thread")]
 #[ignore = "needs the GPU drawing backend; OPSIS_STILLS_OUT names where stills go"]
-async fn draws_3d_elements_natively_as_recorded() {
+async fn draws_3d_elements_as_recorded() {
     let out = std::env::var_os("OPSIS_STILLS_OUT")
         .map_or_else(|| dev_cache("three-stills-native"), PathBuf::from);
     let project = out.join("project");
@@ -326,14 +238,10 @@ async fn draws_3d_elements_natively_as_recorded() {
             continue;
         }
         let recorded = opsis_golden::path(&format!("{STILLS}/{name}.png"));
-        let needed = native_share(name);
-        if let Err(error) = share_alike_at(&file, &recorded, needed) {
-            let allowance = if needed < MOSTLY_SAME {
-                format!(" (allowed down to {needed}: {NATIVE_REFLECTION_REASON})")
-            } else {
-                String::new()
-            };
-            failures.push(format!("{name}: {error}{allowance}"));
+        if opsis_golden::writing() {
+            std::fs::copy(&file, &recorded).unwrap_or_else(|e| panic!("{name}: {e}"));
+        } else if let Err(error) = share_alike(&file, &recorded) {
+            failures.push(format!("{name}: {error}"));
         }
     }
     assert!(failures.is_empty(), "{}", failures.join("\n"));

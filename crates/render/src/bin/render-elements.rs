@@ -97,7 +97,10 @@ async fn main() {
             },
             Vec::new(),
         )),
-        drawing: opsis_film::Drawing::default(),
+        drawing: opsis_film::Drawing {
+            temp: temp.join("drawing"),
+            ..opsis_film::Drawing::default()
+        },
     });
     let chosen: Vec<&ElementMeta> = elements()
         .iter()

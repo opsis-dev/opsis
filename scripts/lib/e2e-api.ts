@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { request } from "node:http";
 import path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
-import { findById } from "@opsis/video/common/lists";
+import { findById } from "./common/lists";
 
 type Answer = { status: number; body: unknown };
 type Edge = {

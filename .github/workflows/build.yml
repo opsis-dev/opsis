@@ -161,8 +161,6 @@ jobs:
           key: dev-engine-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('crates/engine/src/downloads.generated.json') }}
       - name: Install the engine
         run: cargo run -q --release -p opsis-engine --bin install-engine -- ~/.config/Opsis/engine
-      - run: bun run film:bundle
-      - run: bun run terminal:bundle
       - name: Fetch KDDockWidgets
         run: bun run qt:install
       - name: Cache Skia and Filament

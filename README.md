@@ -10,7 +10,7 @@ Opsis is a desktop app with a node editor. Browser and terminal nodes drive a re
 
 > 🚧 **Early preview.** Opsis hasn't had a release yet. It is built and tested on Linux, where the deb, rpm, AppImage and pacman packages install and run. Windows and macOS builds don't work yet, and the installers aren't code signed. Expect rough edges.
 
-Built with Rust, [Qt](https://www.qt.io) Widgets and [KDDockWidgets](https://github.com/KDAB/KDDockWidgets) for the editor, React for the film page, Ghostty's terminal engine, and FFmpeg. Work that's planned but not built lives in [`plans/`](./plans).
+Built with Rust, [Qt](https://www.qt.io) Widgets and [KDDockWidgets](https://github.com/KDAB/KDDockWidgets) for the editor, Skia and Filament for drawing films, Ghostty's terminal engine, and FFmpeg. Work that's planned but not built lives in [`plans/`](./plans).
 
 ## ✨ What it does
 
@@ -91,14 +91,15 @@ You need:
 bun install
 bun run zig:install      # Zig 0.17 into ~/.cache/opsis-dev/zig; put the folder it prints on your PATH
 bun run qt:install       # Qt 6.12 and KDDockWidgets into ~/.cache/opsis-dev/qt
-bun run film:bundle
-bun run terminal:bundle
+bun run skia:build       # Skia into ~/.cache/opsis-dev/skia (add --docker to build in a container)
+bun run filament:pin --fetch
+bun run filament:build   # the Filament wrapper into ~/.cache/opsis-dev/filament (needs clang and libc++, or --docker)
 bun start
 ```
 
-`bun run film:bundle` builds the film page that exports draw, and `bun run terminal:bundle` the page that draws terminal pictures; run them again after changing `packages/video` or `packages/runtime`. `bun start` downloads the pinned FFmpeg into `target/ffmpeg/` the first time and runs the app with it.
+Skia and Filament build once into `~/.cache`; run `bun run filament:build` again after changing `crates/filament/cpp`. `bun start` downloads the pinned FFmpeg into `target/ffmpeg/` the first time, builds the renderer program and runs the app.
 
-The first time, open **Settings → Engine** and either **Download engine**, which puts the recording browser (Chrome Headless Shell) in the app's data folder, or **Choose file…** for one you already have. Editing and mixing work without it; recording and exporting need it. Then **New project → Sample: to-do app → Run**. 🎉
+The first time, open **Settings → Engine** and either **Download engine**, which puts the recording browser (Chrome Headless Shell) in the app's data folder, or **Choose file…** for one you already have. Editing, mixing and exporting work without it; recording needs it, and so does exporting with **Draw with: Software**, which uses its graphics driver. Then **New project → Sample: to-do app → Run**. 🎉
 
 Ready-made copies of every sample are in [`examples/`](./examples) (**Open project…**).
 
@@ -108,25 +109,25 @@ Ready-made copies of every sample are in [`examples/`](./examples) (**Open proje
 
 - On Linux the static Qt, the release binary and its packages build in a plain `debian:trixie` container, so you need Docker; the program then needs glibc 2.41.
 - The Rust build uses 8 jobs unless `CARGO_BUILD_JOBS` says otherwise.
-- The app ships FFmpeg (the pinned ffmpeg-static build, as the `opsis-ffmpeg` program beside its own) but never the recording browser.
+- The app ships FFmpeg (the pinned ffmpeg-static build, as the `opsis-ffmpeg` program beside its own) and the renderer program (`opsis-renderer`), but never the recording browser.
 - CI checks every push ([`build.yml`](./.github/workflows/build.yml)); the release workflow ([`release.yml`](./.github/workflows/release.yml)) builds the installers on `v*` tags or by hand and drafts the release on tags.
 
 ## 🛠️ Scripts
 
-| Script                    | What it does                                                                                      |
-| ------------------------- | ------------------------------------------------------------------------------------------------- |
-| `bun start`               | Run the app in development                                                                        |
-| `bun run typecheck`       | Type-check every package                                                                          |
-| `bun run lint:fix`        | oxlint, Clippy, `cargo deny`, the Zig wrapper build, clang-tidy and the comment check             |
-| `bun run format:fix`      | oxfmt, `cargo fmt`, `zig fmt` and clang-format                                                    |
-| `bun run test`            | Vitest and `cargo test` (with the staged FFmpeg)                                                  |
-| `bun run e2e:qt`          | The editor driven through its scenarios in a virtual display (needs `xvfb`; `sway` for `wayland`) |
-| `bun run film:bundle`     | Build the film page that exports draw                                                             |
-| `bun run terminal:bundle` | Build the page that draws terminal pictures                                                       |
-| `bun run types:export`    | Write the film's TypeScript types from the Rust code                                              |
-| `bun run make`            | Build the release program and its installers                                                      |
-| `bun run package:check`   | Install each Linux package in a plain `debian:trixie` container and run it                        |
-| `bun run examples`        | Rewrite the projects in `examples/` from the templates                                            |
+| Script                   | What it does                                                                                      |
+| ------------------------ | ------------------------------------------------------------------------------------------------- |
+| `bun start`              | Run the app in development                                                                        |
+| `bun run typecheck`      | Type-check the scripts                                                                            |
+| `bun run lint:fix`       | oxlint, Clippy, `cargo deny`, the Zig wrapper build, clang-tidy and the comment check             |
+| `bun run format:fix`     | oxfmt, `cargo fmt`, `zig fmt` and clang-format                                                    |
+| `bun run test`           | Vitest and `cargo test` (with the staged FFmpeg)                                                  |
+| `bun run e2e:qt`         | The editor driven through its scenarios in a virtual display (needs `xvfb`; `sway` for `wayland`) |
+| `bun run skia:build`     | Build the pinned Skia (`--docker` in a container)                                                 |
+| `bun run filament:build` | Build the sealed Filament wrapper (`--docker` in a container)                                     |
+| `bun run types:export`   | Write the scripts' font types from the Rust code                                                  |
+| `bun run make`           | Build the release program and its installers                                                      |
+| `bun run package:check`  | Install each Linux package in a plain `debian:trixie` container and run it                        |
+| `bun run examples`       | Rewrite the projects in `examples/` from the templates                                            |
 
 ## 🏗️ How it works
 
@@ -137,42 +138,40 @@ Editor (Qt 6 Widgets + KDDockWidgets, C++ views over a cxx bridge)
 Rust: the open project, compiles, runs, settings, fonts, the Local API, updates
    compile (graph → TimelineSpec) · runner (keys → cache → executors → events)
    browser capture over CDP · terminal takes on Ghostty · FFmpeg · images · 3D files
-                          │ CDP
-Chrome Headless Shell: recording, the film page frame by frame, terminal pictures,
-                       sign-in, element picker
+   the renderer: scene → layout (Taffy, Parley) → paint (Skia) → raw frames → FFmpeg
+          │ CDP                                    │ pipe
+Chrome Headless Shell: recording,          opsis-renderer: shader effects and 3D
+sign-in, element picker                    on Filament (graphics card or software)
 ```
 
-- **Nodes never generate film code.** They produce files and compile to a `TimelineSpec`; the film page's one `DemoTimeline` draws any spec, and Rust captures it frame by frame into FFmpeg.
+- **Nodes never generate film code.** They produce files and compile to a `TimelineSpec`; one walker turns any spec into a scene per frame, which Rust lays out, paints and sends to FFmpeg.
 - **Nodes pass resources forward:** a browser or terminal session, a take, a style, clips, files, images, sounds and captions. Browser and terminal actions add to their session, and the record node plays them in one continuous take.
 - **Caching:** every node is hashed from its type, settings and the hashes before it; results are kept in `.opsis/cache/<hash>`, so only changed branches run again.
 
-| Folder             | What's there                                                                                |
-| ------------------ | ------------------------------------------------------------------------------------------- |
-| `crates/`          | Rust, one domain per crate: the session, compile, runs, capture, media, the editor and more |
-| `apps/film`        | The film page the renderer draws                                                            |
-| `apps/terminal`    | The page that paints terminal pictures                                                      |
-| `packages/video`   | The film: `DemoTimeline`, elements, camera, 3D, terminal drawing                            |
-| `packages/runtime` | The film's page runtime: clock, sequences, render holds, maths                              |
-| `scripts/`         | Bundling, pinning, packaging, profiling and the shared tool configs                         |
-| `agent-docs/`      | How each part works, and why                                                                |
+| Folder        | What's there                                                                                |
+| ------------- | ------------------------------------------------------------------------------------------- |
+| `crates/`     | Rust, one domain per crate: the session, compile, runs, capture, media, the editor and more |
+| `fixtures/`   | Golden files: what the code made for fixed inputs, pictures included                        |
+| `scripts/`    | Bundling, pinning, packaging, profiling and the shared tool configs                         |
+| `agent-docs/` | How each part works, and why                                                                |
 
 ## 🤔 Why it's built this way
 
-| Decision          | Choice                                                                                                      | Why                                                                                                                                   |
-| ----------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| App shape         | One native app: Rust for everything that touches the system and owns the state, the editor in Qt Widgets    | A typed boundary, native widgets and docking, and one place (Rust) that owns the project, runs, settings and the state windows share. |
-| Types and logic   | Rust is the source; the editor's views are the bridge's structs, the film's types are generated (specta)    | Views, calls and the timeline spec can't drift apart, and the editor keeps no copy of logic Rust already has.                         |
-| Canvas            | Our own canvas on `QGraphicsView`, with layout and edge lanes worked out in Rust                            | Cards, ports, edges and the minimap drawn natively, and the same maths the Local API and tests use.                                   |
-| Workflow format   | A versioned JSON graph, compiled in Rust to one `TimelineSpec`                                              | The graph is for people; the spec is the single input the video renders from.                                                         |
-| Video engine      | React with Opsis's own small runtime, drawn frame by frame by Rust                                          | One page, `DemoTimeline`, renders every spec; Rust seeks it, captures each frame and encodes with FFmpeg, with no Node at run time.   |
-| Browser           | One Chrome Headless Shell for recording, renders, sign-in and the element picker, driven over CDP from Rust | The same engine everywhere; Playwright's page scripts and keyboard are reused without its Node runtime.                               |
-| Terminal          | Ghostty's terminal engine, drawn by the same page as the film                                               | A real terminal's behaviour, and the editor shows exactly what the export draws.                                                      |
-| Animations        | Frame-driven only: every element and transition                                                             | Every frame has to be a pure function of the frame number; CSS transitions and tween libraries don't survive a render.                |
-| GSAP              | Not used                                                                                                    | The runtime's `interpolate`, `spring` and easing cover it, without GSAP's licence clause on visual builders.                          |
-| FFmpeg            | The ffmpeg-static build, pinned by sha256 and shipped beside the app as a separate program                  | Exports work without setting anything up, and every run starts the same known build.                                                  |
-| Camera and cursor | Built on [programatic-demo](https://github.com/ashrafchowdury/programatic-demo) (MIT)                       | It already solved the click log, auto-zoom camera, vector cursor and motion blur; its notice is kept.                                 |
-| Offline           | Nothing uses the internet unless you ask                                                                    | Engine, font and update downloads sit behind a button or a setting you turn on, and a film never loads anything remote.               |
-| Licensing         | GPLv3 or later                                                                                              | Free software, with no other licence needed to export.                                                                                |
+| Decision          | Choice                                                                                                     | Why                                                                                                                                   |
+| ----------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| App shape         | One native app: Rust for everything that touches the system and owns the state, the editor in Qt Widgets   | A typed boundary, native widgets and docking, and one place (Rust) that owns the project, runs, settings and the state windows share. |
+| Types and logic   | Rust is the source; the editor's views are the bridge's structs, the scripts' types are generated (specta) | Views, calls and the timeline spec can't drift apart, and the editor keeps no copy of logic Rust already has.                         |
+| Canvas            | Our own canvas on `QGraphicsView`, with layout and edge lanes worked out in Rust                           | Cards, ports, edges and the minimap drawn natively, and the same maths the Local API and tests use.                                   |
+| Workflow format   | A versioned JSON graph, compiled in Rust to one `TimelineSpec`                                             | The graph is for people; the spec is the single input the video renders from.                                                         |
+| Video engine      | Our own renderer: scene nodes in a CSS and SVG subset, Taffy and Parley, Skia on the CPU, Filament         | Every frame is drawn the same on every computer, in parallel chunks straight into FFmpeg, with no browser in a render.                |
+| Browser           | One Chrome Headless Shell for recording, sign-in and the element picker, driven over CDP from Rust         | The same engine everywhere; Playwright's page scripts and keyboard are reused without its Node runtime.                               |
+| Terminal          | Ghostty's terminal engine, drawn by the same code as the film                                              | A real terminal's behaviour, and the editor shows exactly what the export draws.                                                      |
+| Animations        | Frame-driven only: every element and transition                                                            | Every frame has to be a pure function of the frame number; CSS transitions and tween libraries don't survive a render.                |
+| GSAP              | Not used                                                                                                   | Opsis's own `interpolate`, `spring` and easing cover it.                                                                              |
+| FFmpeg            | The ffmpeg-static build, pinned by sha256 and shipped beside the app as a separate program                 | Exports work without setting anything up, and every run starts the same known build.                                                  |
+| Camera and cursor | Built on [programatic-demo](https://github.com/ashrafchowdury/programatic-demo) (MIT)                      | It already solved the click log, auto-zoom camera, vector cursor and motion blur; its notice is kept.                                 |
+| Offline           | Nothing uses the internet unless you ask                                                                   | Engine, font and update downloads sit behind a button or a setting you turn on, and a film never loads anything remote.               |
+| Licensing         | GPLv3 or later                                                                                             | Free software, with no other licence needed to export.                                                                                |
 
 ## 🤝 Contributing
 

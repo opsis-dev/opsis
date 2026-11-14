@@ -1,3 +1,5 @@
+pub mod pictures;
+
 use std::path::{Path, PathBuf};
 
 use serde::de::DeserializeOwned;

@@ -64,7 +64,7 @@ pub async fn render_preview(
         }),
         ..spec
     });
-    let files = native_files(ctx, &spec, Gl::Angle)?;
+    let files = native_files(ctx, &spec, Gl::Card)?;
     let progress = |x: f64| ctx.progress(x, Some(DRAWING));
     let note = |message: String| ctx.log(LogLevel::Info, message);
     let run = FilmRun {
@@ -76,7 +76,6 @@ pub async fn render_preview(
     let encoding = FilmEncoding {
         codec: Codec::H264,
         fps: f64::from(spec.fps),
-        png_frames: false,
         crf: Some(PREVIEW_CRF),
         x264_preset: None,
         pixel_format: None,

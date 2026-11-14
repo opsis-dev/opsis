@@ -43,7 +43,7 @@ fn clamped_byte(value: f64) -> u8 {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn bulge_pixels(x: f64, y: f64) -> Vec<u8> {
     let size = f64::from(MAP_SIZE);
@@ -88,7 +88,7 @@ pub fn bulge_map(x: f64, y: f64) -> String {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 pub fn trail_weights(effects: Option<&TerminalEffects>) -> Vec<f64> {
     let Some(effects) = effects.filter(|e| e.trails > 0.0) else {
@@ -112,7 +112,7 @@ pub fn has_lens(effects: Option<&TerminalEffects>) -> bool {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn fringe_shift(effects: &TerminalEffects, size: CellBox) -> (f64, f64) {
     if effects.fringe <= 0.0 {

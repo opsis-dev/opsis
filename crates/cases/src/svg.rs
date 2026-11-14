@@ -149,7 +149,7 @@ pub fn view_box() -> Node {
     stage(cells)
 }
 
-const CSS_FILTERS: &str = "<svg width=\"0\" height=\"0\"><defs><filter id=\"oracle-rough\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.04\" numOctaves=\"3\" seed=\"2\" result=\"noise\"/><feDisplacementMap in=\"SourceGraphic\" in2=\"noise\" scale=\"8\" xChannelSelector=\"R\" yChannelSelector=\"G\"/></filter><filter id=\"oracle-grain\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.8\" numOctaves=\"2\" seed=\"5\" result=\"grain\"/><feColorMatrix in=\"grain\" type=\"saturate\" values=\"0\" result=\"grey\"/><feBlend in=\"SourceGraphic\" in2=\"grey\" mode=\"overlay\"/></filter><filter id=\"oracle-split\"><feOffset in=\"SourceGraphic\" dx=\"-3\" result=\"left\"/><feColorMatrix in=\"left\" type=\"matrix\" values=\"1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0\" result=\"red\"/><feColorMatrix in=\"SourceGraphic\" type=\"matrix\" values=\"0 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0\" result=\"rest\"/><feBlend in=\"red\" in2=\"rest\" mode=\"screen\"/></filter></defs></svg>";
+const CSS_FILTERS: &str = "<svg width=\"0\" height=\"0\"><defs><filter id=\"case-rough\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.04\" numOctaves=\"3\" seed=\"2\" result=\"noise\"/><feDisplacementMap in=\"SourceGraphic\" in2=\"noise\" scale=\"8\" xChannelSelector=\"R\" yChannelSelector=\"G\"/></filter><filter id=\"case-grain\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.8\" numOctaves=\"2\" seed=\"5\" result=\"grain\"/><feColorMatrix in=\"grain\" type=\"saturate\" values=\"0\" result=\"grey\"/><feBlend in=\"SourceGraphic\" in2=\"grey\" mode=\"overlay\"/></filter><filter id=\"case-split\"><feOffset in=\"SourceGraphic\" dx=\"-3\" result=\"left\"/><feColorMatrix in=\"left\" type=\"matrix\" values=\"1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0\" result=\"red\"/><feColorMatrix in=\"SourceGraphic\" type=\"matrix\" values=\"0 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0\" result=\"rest\"/><feBlend in=\"red\" in2=\"rest\" mode=\"screen\"/></filter></defs></svg>";
 
 pub fn css_url_filter() -> Node {
     use opsis_scene::paint::{Filter, Shadow};
@@ -168,7 +168,7 @@ pub fn css_url_filter() -> Node {
         crate::d(crate::cell(
             0,
             &Style::default()
-                .filter(vec![url("oracle-rough")])
+                .filter(vec![url("case-rough")])
                 .background_color(hex(0xf9_7316))
                 .border_radius_all(24.0),
         ))
@@ -176,7 +176,7 @@ pub fn css_url_filter() -> Node {
         crate::d(crate::cell(
             1,
             &Style::default()
-                .filter(vec![url("oracle-grain")])
+                .filter(vec![url("case-grain")])
                 .background(vec![layer(linear(
                     180.0,
                     vec![stop(hex(0x0e_a5e9)), stop(hex(0x7c_3aed))],
@@ -186,7 +186,7 @@ pub fn css_url_filter() -> Node {
         crate::d(crate::cell(
             2,
             &Style::default()
-                .filter(vec![url("oracle-split")])
+                .filter(vec![url("case-split")])
                 .font_size(28.0)
                 .font_weight(900.0)
                 .line_height(LineHeight::Number(Num(1.1))),
@@ -197,7 +197,7 @@ pub fn css_url_filter() -> Node {
             3,
             &Style::default()
                 .filter(vec![
-                    url("oracle-rough"),
+                    url("case-rough"),
                     Filter::DropShadow(Shadow {
                         inset: false,
                         x: Length::ZERO,

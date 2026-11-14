@@ -526,7 +526,7 @@ pub fn clip_path_url() -> Node {
             SvgElement::new("defs")
                 .child(
                     SvgElement::new("clipPath")
-                        .attr("id", "oracle-star")
+                        .attr("id", "case-star")
                         .attr("clipPathUnits", "objectBoundingBox")
                         .child(SvgElement::new("path").attr(
                             "d",
@@ -535,7 +535,7 @@ pub fn clip_path_url() -> Node {
                 )
                 .child(
                     SvgElement::new("clipPath")
-                        .attr("id", "oracle-blobs")
+                        .attr("id", "case-blobs")
                         .child(
                             SvgElement::new("circle")
                                 .attr("cx", "40")
@@ -550,7 +550,7 @@ pub fn clip_path_url() -> Node {
                         ),
                 )
                 .child(
-                    SvgElement::new("clipPath").attr("id", "oracle-text").child(
+                    SvgElement::new("clipPath").attr("id", "case-text").child(
                         SvgElement::new("text")
                             .attr("x", "4")
                             .attr("y", "90")
@@ -572,7 +572,7 @@ pub fn clip_path_url() -> Node {
         svg(defs, Style::default().position(Position::Absolute)).into(),
         clipped(
             0,
-            "oracle-star",
+            "case-star",
             Style::default().background(vec![layer(linear(
                 180.0,
                 vec![stop(hex(0xfa_cc15)), stop(hex(0xf9_7316))],
@@ -580,7 +580,7 @@ pub fn clip_path_url() -> Node {
         ),
         clipped(
             1,
-            "oracle-blobs",
+            "case-blobs",
             Style::default().background(vec![layer(linear(
                 90.0,
                 vec![stop(hex(0x0e_a5e9)), stop(hex(0x7c_3aed))],
@@ -588,7 +588,7 @@ pub fn clip_path_url() -> Node {
         ),
         clipped(
             2,
-            "oracle-text",
+            "case-text",
             Style::default().background(vec![layer(linear(
                 180.0,
                 vec![stop(hex(0x22_c55e)), stop(hex(0x0e_a5e9))],
@@ -596,7 +596,7 @@ pub fn clip_path_url() -> Node {
         ),
         clipped(
             3,
-            "oracle-star",
+            "case-star",
             Style::default()
                 .background_color(hex(0xf8_fafc))
                 .transform(vec![

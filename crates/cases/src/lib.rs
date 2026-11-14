@@ -11,7 +11,7 @@ pub mod values;
 
 use std::path::PathBuf;
 
-use opsis_golden::{dev_cache, repo};
+use opsis_golden::repo;
 use opsis_scene::color::Color;
 use opsis_scene::node::{Element, Node, div, span};
 use opsis_scene::style::{Overflow, Position, Style};
@@ -19,44 +19,31 @@ use opsis_scene::values::Length;
 
 pub const WIDTH: f64 = 640.0;
 pub const HEIGHT: f64 = 360.0;
-const ORACLE_ENV: &str = "OPSIS_ORACLE";
+const BUNDLED_FONTS: &str = "crates/compile/src/fonts/bundled.generated.json";
 const GUTTER: f64 = 24.0;
 const GAP: f64 = 16.0;
 const CELL_WIDTH: f64 = 136.0;
 const CELL_HEIGHT: f64 = 148.0;
 const COLUMNS: usize = 4;
 
-pub fn oracle_dir() -> PathBuf {
-    if let Some(dir) = std::env::var_os(ORACLE_ENV) {
-        return PathBuf::from(dir);
-    }
-    let root = dev_cache("oracle");
-    std::fs::read_dir(&root)
-        .unwrap_or_else(|e| panic!("{}: {e}. Run bun run oracle first.", root.display()))
-        .filter_map(Result::ok)
-        .map(|e| e.path())
-        .filter(|p| p.join("cases.json").is_file())
-        .min()
-        .unwrap_or_else(|| panic!("no oracle with cases in {}", root.display()))
-}
-
 pub fn case_font_files() -> Vec<(String, PathBuf)> {
-    let file = oracle_dir().join("cases.json");
+    let file = repo().join(BUNDLED_FONTS);
     let text = std::fs::read_to_string(&file).unwrap_or_else(|e| panic!("{}: {e}", file.display()));
-    let cases: serde_json::Value =
+    let families: serde_json::Value =
         serde_json::from_str(&text).unwrap_or_else(|e| panic!("{}: {e}", file.display()));
     let mut out = Vec::new();
-    for (name, family) in cases["fonts"]["families"].as_object().into_iter().flatten() {
+    for family in families.as_array().into_iter().flatten() {
+        let id = family["id"].as_str().unwrap_or_default();
+        let Some(name) = family["family"]
+            .as_str()
+            .filter(|_| !id.starts_with("opsis-"))
+        else {
+            continue;
+        };
         for face in family["faces"].as_array().into_iter().flatten() {
-            let Some(source) = face["file"].as_str() else {
-                continue;
-            };
-            out.push((
-                name.clone(),
-                repo()
-                    .join("public")
-                    .join(source.trim_start_matches("app:")),
-            ));
+            if let Some(path) = face["file"].as_str().and_then(app_file) {
+                out.push((name.to_lowercase(), path));
+            }
         }
     }
     out

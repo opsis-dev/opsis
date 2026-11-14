@@ -9,7 +9,7 @@ export const FILAMENT_PIN_FILE = path.join(ROOT, "crates", "filament", "download
 export type FilamentArchive = { url: string; size: number; sha256: string };
 export type FilamentPins = { version: string; archives: Record<string, FilamentArchive> };
 
-export function platformName(): string {
+function platformName(): string {
   return `${process.platform}-${process.arch}`;
 }
 

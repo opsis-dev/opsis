@@ -1,22 +1,17 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 use std::time::Duration;
 
-use axum::body::Body;
-use axum::http::{Request, StatusCode};
 use image::RgbImage;
-use opsis_compile::asset_ref::FOOTAGE_FOLDER;
 use opsis_compile::nodes::effects::Area;
 use opsis_compile::nodes::image::{RedactImage, RedactStyle};
 use opsis_footage::chain::{FootageSource, TimedRedaction};
 use opsis_footage::decoder::FootageTools;
 use opsis_footage::footage::Footage;
-use opsis_footage::serve::footage_routes;
 use opsis_golden::{dev_cache, ffmpeg};
 use opsis_image::ops::redact;
 use opsis_media::grade::GradeChain;
-use tower::ServiceExt;
 
 const RATE: i64 = 30;
 const SECONDS: i64 = 4;
@@ -215,7 +210,7 @@ fn frames_asked_in_order_start_the_decoder_once() {
     let film = footage(vec![("take", plain(&video))]);
     for frame in 0..RATE * SECONDS {
         assert_eq!(film.shown("take", at(frame)).unwrap().pts_us, at(frame));
-        assert!(!film.picture("take", at(frame)).unwrap().is_empty());
+        assert!(film.shown("take", at(frame)).is_ok());
     }
     assert_eq!(film.decoder_starts(), 1);
 }
@@ -380,32 +375,6 @@ fn a_file_that_isnt_a_video_fails_instead_of_showing_nothing() {
     let film = footage(vec![("broken", plain(&video))]);
     assert!(film.shown("broken", 0).is_err());
     assert!(film.shown("missing", 0).is_err());
-}
-
-#[tokio::test]
-#[ignore = "needs the staged FFmpeg"]
-async fn serves_each_frame_as_a_jpeg_of_its_size() {
-    let video = sample("count.mp4", "320x240");
-    let routes = footage_routes(Arc::new(footage(vec![("take", plain(&video))])));
-    let get = |path: String| {
-        routes
-            .clone()
-            .oneshot(Request::get(path).body(Body::empty()).unwrap())
-    };
-    let response = get(format!("/{FOOTAGE_FOLDER}/take/{}", at(12)))
-        .await
-        .unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
-    assert_eq!(response.headers()["content-type"], "image/jpeg");
-    let bytes = axum::body::to_bytes(response.into_body(), usize::MAX)
-        .await
-        .unwrap();
-    let picture = image::load_from_memory(&bytes).unwrap().into_rgb8();
-    assert_eq!(picture.dimensions(), (320, 240));
-    let missing = get(format!("/{FOOTAGE_FOLDER}/nothing/0")).await.unwrap();
-    assert_eq!(missing.status(), StatusCode::NOT_FOUND);
-    let bad = get(format!("/{FOOTAGE_FOLDER}/take/soon")).await.unwrap();
-    assert_eq!(bad.status(), StatusCode::BAD_REQUEST);
 }
 
 #[test]

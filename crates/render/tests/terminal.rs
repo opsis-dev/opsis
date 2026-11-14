@@ -1,32 +1,27 @@
 use std::path::Path;
 use std::sync::Arc;
 
-use opsis_capture::film::{Capture, DriverOptions, FilmPage};
-use opsis_capture::terminal_paint::TerminalPainter;
-use opsis_compile::asset_ref::FILM_FOLDER;
 use opsis_compile::clip::clip_to_spec;
 use opsis_compile::footage::footage_uses;
 use opsis_compile::hosted::hosted;
 use opsis_compile::node::{CLIP_PORT, Ctx};
-use opsis_compile::nodes::output::{Gl, StillFormat};
+use opsis_compile::nodes::output::StillFormat;
 use opsis_compile::registry::node_def;
 use opsis_compile::terminal::{default_look, grid, screen_size, terminal_fonts, theme_named};
 use opsis_compile::vars::Vars;
 use opsis_engine::hash::sha256_hex;
-use opsis_engine::http_files::{FileServer, folder_routes};
-use opsis_engine::tools::EngineFiles;
+use opsis_film::Drawing;
 use opsis_footage::decoder::FootageTools;
 use opsis_footage::footage::Footage;
-use opsis_footage::serve::footage_routes;
 use opsis_footage::terminal::TerminalFootage;
-use opsis_golden::{dev_cache, home};
-use opsis_render::frames::{StillRender, render_still};
+use opsis_golden::{dev_cache, repo};
+use opsis_prepare::serve::PreparedDirs;
+use opsis_render::native::{NATIVE_BASE, NativeFiles, NativeStill, render_native_still};
 use opsis_terminal::cast::read_path;
 use opsis_terminal::prepare::{PrepareInput, prepare};
 use opsis_terminal::timeline::Timeline;
 use opsis_types::numbers;
 use opsis_types::numbers::millis;
-use opsis_types::terminal_frames::write;
 use opsis_types::timeline::{SpecAssets, TimelineSpec};
 use opsis_types::values::{CompileValue, PortValues};
 use opsis_types::workflow::{Workflow, WorkflowSettings};
@@ -82,10 +77,19 @@ fn terminal_clip(length_ms: f64) -> opsis_types::values::ClipValue {
     }
 }
 
+fn exact_setup() -> bool {
+    #[cfg(all(target_arch = "x86_64", target_os = "linux"))]
+    {
+        std::arch::is_x86_feature_detected!("avx2")
+    }
+    #[cfg(not(all(target_arch = "x86_64", target_os = "linux")))]
+    {
+        false
+    }
+}
+
 #[tokio::test]
-#[ignore = "needs the dev engine and the film page (bun run film:bundle)"]
-async fn draws_a_terminal_take_through_the_frame_driver_as_recorded() {
-    let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+async fn draws_a_terminal_take_as_recorded() {
     let out = dev_cache("film-test/terminal");
     let project = out.join("project");
     std::fs::create_dir_all(&project).unwrap();
@@ -119,50 +123,51 @@ async fn draws_a_terminal_take_through_the_frame_driver_as_recorded() {
         Vec::new(),
     )
     .with_terminals(terminals);
-    let routes = footage_routes(Arc::new(footage))
-        .merge(folder_routes(FILM_FOLDER, &repo.join("film-bundle")));
-    let server = FileServer::start_with(&project, routes).await.unwrap();
+    let files = Arc::new(NativeFiles {
+        dirs: PreparedDirs {
+            project: project.clone(),
+            public: repo().join("public"),
+        },
+        footage: Arc::new(footage),
+        drawing: Drawing::default(),
+    });
     let spec = hosted(&TimelineSpec {
         assets: Some(SpecAssets {
-            project_base: Some(server.url.clone()),
+            project_base: Some(NATIVE_BASE.to_owned()),
         }),
         ..spec
     });
-    let json = serde_json::to_value(&spec).unwrap();
-    let engine = EngineFiles::downloaded(&home().join(".config/Opsis/engine"));
     let mut hashes = Map::new();
     for (name, frame) in [
         ("middle.png", spec.duration_in_frames / 2),
         ("last.png", spec.duration_in_frames - 1),
     ] {
         let output = out.join(name);
-        render_still(&StillRender {
-            driver: DriverOptions {
-                executable: engine.browser().unwrap(),
-                temp_dir: &out,
-                gl: Gl::Angle,
-                capture: Capture::for_this_computer(),
-            },
-            page: FilmPage {
-                url: &format!("{}{FILM_FOLDER}/index.html", server.url),
-                spec: &json,
-                width: spec.width,
-                height: spec.height,
-                scale: 1.0,
-            },
+        render_native_still(NativeStill {
+            spec: spec.clone(),
+            files: Arc::clone(&files),
             frame,
+            scale: 1.0,
             format: StillFormat::Png,
             jpeg_quality: None,
-            output: &output,
+            output: output.clone(),
         })
         .await
         .unwrap_or_else(|e| panic!("{name}: {e}"));
+        let picture = image::open(&output).unwrap().to_rgb8();
+        let share = lit_share(&picture, BACKGROUND);
+        assert!(
+            (MIN_LIT..MAX_LIT).contains(&share),
+            "{name}: {share} of the picture is text"
+        );
         hashes.insert(
             name.to_owned(),
             Value::from(sha256_hex(&std::fs::read(&output).unwrap(), WHOLE_HASH)),
         );
     }
-    opsis_golden::check(STILLS, &Value::Object(hashes));
+    if exact_setup() {
+        opsis_golden::check(STILLS, &Value::Object(hashes));
+    }
 }
 
 fn lit_share(picture: &image::RgbImage, background: [u8; 3]) -> f64 {
@@ -178,49 +183,6 @@ fn lit_share(picture: &image::RgbImage, background: [u8; 3]) -> f64 {
         })
         .count();
     numbers::float(lit) / f64::from(picture.width() * picture.height())
-}
-
-#[tokio::test]
-#[ignore = "needs the dev engine and the terminal page (bun run terminal:bundle)"]
-async fn paints_a_live_terminal_frame_at_its_screen_size() {
-    let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let out = dev_cache("film-test/painter");
-    std::fs::create_dir_all(&out).unwrap();
-    let cast = read_path(opsis_golden::path("terminal/take.cast")).unwrap();
-    let theme = theme_named("Default").unwrap();
-    let mut frames = prepare(&PrepareInput {
-        cast: &cast,
-        fps: 2,
-        theme: &theme,
-        masks: &[],
-    })
-    .unwrap();
-    let last = frames.frames.pop().unwrap();
-    frames.frames = vec![last];
-    let engine = EngineFiles::downloaded(&home().join(".config/Opsis/engine"));
-    let painter = TerminalPainter::open(
-        engine.browser().unwrap(),
-        &out,
-        &repo.join("terminal-bundle"),
-        &repo.join("public"),
-        &terminal_fonts(),
-    )
-    .await
-    .unwrap();
-    let look = default_look(Some(theme));
-    let result = painter.paint(&write(&frames).unwrap(), &look).await;
-    painter.close().await;
-    let (size, jpeg) = result.unwrap();
-    let screen = screen_size(&grid(&look, frames.cols, frames.rows));
-    assert_eq!((size.width, size.height), (screen.width, screen.height));
-    let picture = image::load_from_memory(&jpeg).unwrap().to_rgb8();
-    picture.save(out.join("painted.png")).unwrap();
-    assert_eq!(picture.dimensions(), (screen.width, screen.height));
-    let share = lit_share(&picture, BACKGROUND);
-    assert!(
-        (MIN_LIT..MAX_LIT).contains(&share),
-        "{share} of the picture is text"
-    );
 }
 
 #[test]

@@ -118,7 +118,7 @@ struct Placed {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the shapes have to land where it puts them"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn place(props: &Shapes3d, aspect: f64) -> Vec<Placed> {
     let stage_distance = SUBJECT_RADIUS / FOV_HALF.sin();

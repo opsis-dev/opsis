@@ -37,7 +37,7 @@ fn shown(shape: &Shape) -> Value {
 }
 
 #[test]
-fn terminal_sprites_match_what_the_film_page_draws() {
+fn terminal_sprites_match_the_recorded_sprites() {
     let recorded = read(FIXTURE);
     let cells = recorded["cells"].as_array().map_or(&[][..], Vec::as_slice);
     let made = json!({

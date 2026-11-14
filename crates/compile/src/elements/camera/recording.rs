@@ -592,7 +592,7 @@ fn letterboxed(height: f64, width: f64, child: Node) -> Node {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn cropped(box_size: Size, cx: f64, stage: Size, child: Node) -> Node {
     div(absolute_fill().overflow(Overflow::Hidden))

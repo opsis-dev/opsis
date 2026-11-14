@@ -13,6 +13,7 @@ const PROGRAM_ENV: &str = "OPSIS_RENDERER";
 const DRIVER_FILES_ENV: &str = "VK_DRIVER_FILES";
 const ICD_FILE: &str = "software-vulkan.json";
 const SEARCHED_FOLDERS: usize = 5;
+const TEMP_ENV: [&str; 3] = ["TMPDIR", "TEMP", "TMP"];
 
 static STARTED: AtomicUsize = AtomicUsize::new(0);
 
@@ -91,14 +92,18 @@ impl Renderer {
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::inherit());
+        let started = STARTED.fetch_add(1, Ordering::Relaxed);
+        if !temp.as_os_str().is_empty() {
+            let own = temp.join(format!("{PROGRAM}-{}-{started}", std::process::id()));
+            std::fs::create_dir_all(&own).map_err(RendererError::Start)?;
+            for name in TEMP_ENV {
+                command.env(name, &own);
+            }
+        }
         if let Driver::Software { library } = driver {
             std::fs::create_dir_all(temp).map_err(RendererError::Start)?;
             let icd = temp.join(ICD_FILE);
-            let written = temp.join(format!(
-                "{ICD_FILE}.{}.{}",
-                std::process::id(),
-                STARTED.fetch_add(1, Ordering::Relaxed)
-            ));
+            let written = temp.join(format!("{ICD_FILE}.{}.{started}", std::process::id()));
             std::fs::write(&written, icd_json(library)).map_err(RendererError::Start)?;
             std::fs::rename(&written, &icd).map_err(RendererError::Start)?;
             command.env(DRIVER_FILES_ENV, icd);

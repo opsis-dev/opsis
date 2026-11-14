@@ -140,7 +140,6 @@ pub fn codec_video(codec: Codec, crf: f64, preset: EncodePreset) -> Option<Vec<S
 pub struct FilmEncoding {
     pub codec: Codec,
     pub fps: f64,
-    pub png_frames: bool,
     pub crf: Option<f64>,
     pub x264_preset: Option<EncodePreset>,
     pub pixel_format: Option<PixelFormat>,
@@ -159,10 +158,6 @@ const fn film_encoder(codec: Codec) -> &'static str {
         Codec::Ffv1 => "ffv1",
         Codec::Gif => "gif",
     }
-}
-
-pub const fn is_lossless(codec: Codec) -> bool {
-    matches!(codec, Codec::H264Lossless | Codec::Ffv1)
 }
 
 fn film_pixel_format(e: &FilmEncoding) -> String {
@@ -203,25 +198,13 @@ fn gif_loops(loops: u32) -> String {
     }
 }
 
-pub fn film_encode_args(e: &FilmEncoding, output: &str) -> Vec<String> {
-    let mut args = strings(&["-f", "image2pipe", "-framerate"]);
-    args.push(e.fps.to_string());
-    args.extend(strings(&[
-        "-c:v",
-        if e.png_frames { "png" } else { "mjpeg" },
-        "-i",
-        "-",
-    ]));
-    film_output_args(e, output, false, args)
-}
-
 const fn is_rgb_output(codec: Codec) -> bool {
     matches!(codec, Codec::H264Lossless | Codec::Ffv1 | Codec::Gif)
 }
 
 const YUV_FROM_RGB: &str = "scale=out_color_matrix=bt709:out_range=tv";
 
-pub fn film_raw_encode_args(
+pub fn film_encode_args(
     e: &FilmEncoding,
     (width, height): (u32, u32),
     output: &str,
@@ -231,7 +214,7 @@ pub fn film_raw_encode_args(
     args.push("-framerate".to_owned());
     args.push(e.fps.to_string());
     args.extend(strings(&["-i", "-"]));
-    film_output_args(e, output, true, args)
+    film_output_args(e, output, args)
 }
 
 fn colour_tags(codec: Codec) -> Vec<String> {
@@ -258,12 +241,7 @@ fn colour_tags(codec: Codec) -> Vec<String> {
     }
 }
 
-fn film_output_args(
-    e: &FilmEncoding,
-    output: &str,
-    raw: bool,
-    mut args: Vec<String>,
-) -> Vec<String> {
+fn film_output_args(e: &FilmEncoding, output: &str, mut args: Vec<String>) -> Vec<String> {
     let gif = e.codec == Codec::Gif;
     if gif {
         args.extend(strings(&[
@@ -284,17 +262,15 @@ fn film_output_args(
     }
     if !gif {
         args.push("-vf".to_owned());
-        if raw && !is_rgb_output(e.codec) {
-            args.push(format!("{EVEN_FRAME},{YUV_FROM_RGB}"));
-        } else {
+        if is_rgb_output(e.codec) {
             args.push(EVEN_FRAME.to_owned());
+        } else {
+            args.push(format!("{EVEN_FRAME},{YUV_FROM_RGB}"));
         }
         args.push("-pix_fmt".to_owned());
         args.push(film_pixel_format(e));
     }
-    if raw {
-        args.extend(colour_tags(e.codec));
-    }
+    args.extend(colour_tags(e.codec));
     if e.codec == Codec::H264Lossless {
         args.extend(strings(&["-qp", "0"]));
     }

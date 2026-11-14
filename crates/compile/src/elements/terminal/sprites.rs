@@ -1,6 +1,6 @@
 #![expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 
 use opsis_scene::clock::js_round;
@@ -45,7 +45,7 @@ pub struct Path(pub Vec<Seg>);
 impl Path {
     #[expect(
         clippy::many_single_char_names,
-        reason = "the names follow the film page's sprites.ts, which this ports line by line"
+        reason = "the names are the parts of each box-drawing glyph, one term per stroke"
     )]
     fn map(&self, x: impl Fn(f64) -> f64, y: impl Fn(f64) -> f64) -> Self {
         Self(
@@ -651,7 +651,7 @@ enum Align {
 
 #[expect(
     clippy::many_single_char_names,
-    reason = "the names follow the film page's sprites.ts, which this ports line by line"
+    reason = "the names are the parts of each box-drawing glyph, one term per stroke"
 )]
 fn block(c: Cell, align: Align, (width, height): (f64, f64), opacity: f64) -> Shape {
     let w = js_round(c.width * width);
@@ -1125,7 +1125,7 @@ fn spot_y(c: Cell, spot: Spot) -> f64 {
 
 #[expect(
     clippy::many_single_char_names,
-    reason = "the names follow the film page's sprites.ts, which this ports line by line"
+    reason = "the names are the parts of each box-drawing glyph, one term per stroke"
 )]
 fn circle(c: Cell, h: Spot, v: Spot, filled: bool) -> Shape {
     let x = spot_x(c, h);
@@ -1446,7 +1446,7 @@ fn legacy_more(cp: u32, c: Cell) -> Option<Vec<Shape>> {
 
 #[expect(
     clippy::many_single_char_names,
-    reason = "the names follow the film page's sprites.ts, which this ports line by line"
+    reason = "the names are the parts of each box-drawing glyph, one term per stroke"
 )]
 fn separated(c: Cell, rows: u32, bits: u32) -> Vec<Shape> {
     let width = c.width.floor();
@@ -1489,7 +1489,7 @@ struct Piece {
 
 #[expect(
     clippy::many_single_char_names,
-    reason = "the names follow the film page's sprites.ts, which this ports line by line"
+    reason = "the names are the parts of each box-drawing glyph, one term per stroke"
 )]
 fn circle_piece(c: Cell, p: Piece) -> Shape {
     let w = c.width * p.wf;
@@ -1609,7 +1609,7 @@ fn quarter(i: usize) -> f64 {
 
 #[expect(
     clippy::many_single_char_names,
-    reason = "the names follow the film page's sprites.ts, which this ports line by line"
+    reason = "the names are the parts of each box-drawing glyph, one term per stroke"
 )]
 fn supplement(cp: u32, c: Cell) -> Option<Vec<Shape>> {
     let t = c.thickness;

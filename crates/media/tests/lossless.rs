@@ -3,7 +3,7 @@ use std::process::{Command, Stdio};
 
 use opsis_compile::nodes::media::Codec;
 use opsis_golden::ffmpeg;
-use opsis_media::codecs::{FilmEncoding, film_encode_args, is_lossless, mux_args};
+use opsis_media::codecs::{FilmEncoding, film_encode_args, mux_args};
 use proptest::prelude::*;
 
 const LOSSLESS: [Codec; 2] = [Codec::H264Lossless, Codec::Ffv1];
@@ -30,7 +30,6 @@ const fn encoding(codec: Codec) -> FilmEncoding {
     FilmEncoding {
         codec,
         fps: 30.0,
-        png_frames: is_lossless(codec),
         crf: None,
         x264_preset: None,
         pixel_format: None,
@@ -71,21 +70,15 @@ proptest! {
             })
             .collect();
         let dir = tempfile::tempdir().unwrap();
-        let raw = dir.path().join("frames.rgb");
-        std::fs::write(&raw, &pixels).unwrap();
-        let pngs = dir.path().join("frames.png-stream");
-        let dimensions = format!("{width}x{height}");
-        run(
-            &["-f", "rawvideo", "-pix_fmt", "rgb24", "-s", &dimensions, "-i", &text(&raw),
-              "-c:v", "png", "-f", "image2pipe", &text(&pngs)],
-            None,
-        );
+        let rgba: Vec<u8> = pixels.chunks(3).flat_map(|p| [p[0], p[1], p[2], 255]).collect();
+        let frames_file = dir.path().join("frames.rgba");
+        std::fs::write(&frames_file, &rgba).unwrap();
         let sound = dir.path().join("tone.wav");
         run(&["-f", "lavfi", "-i", "sine=frequency=440:duration=1", &text(&sound)], None);
         for codec in LOSSLESS {
             let film = dir.path().join(format!("film.{}", codec.extension()));
-            let args = film_encode_args(&encoding(codec), &text(&film));
-            run(&args.iter().map(String::as_str).collect::<Vec<_>>(), Some(&pngs));
+            let args = film_encode_args(&encoding(codec), (width, height), &text(&film));
+            run(&args.iter().map(String::as_str).collect::<Vec<_>>(), Some(&frames_file));
             let decoded = dir.path().join("decoded.rgb");
             run(&["-i", &text(&film), "-f", "rawvideo", "-pix_fmt", "rgb24", &text(&decoded)], None);
             prop_assert!(std::fs::read(&decoded).unwrap() == pixels, "{codec:?} changed the picture");

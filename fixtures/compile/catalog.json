@@ -49883,18 +49883,14 @@
       "description": "Draw with",
       "type": "string",
       "enum": [
-       "angle",
-       "swangle",
-       "vulkan",
-       "swiftshader"
+       "card",
+       "software"
       ],
       "x-labels": {
-       "angle": "Graphics card",
-       "swangle": "Software",
-       "vulkan": "Graphics card, newer drivers",
-       "swiftshader": "Software (legacy)"
+       "card": "Graphics card",
+       "software": "Software"
       },
-      "default": "angle",
+      "default": "card",
       "x-help": "The graphics card is about ten times faster. Use Software if exports fail.",
       "x-advanced": true
      },
@@ -50034,7 +50030,7 @@
      "scale": 1.0,
      "chapters": true,
      "chapterList": false,
-     "gl": "angle",
+     "gl": "card",
      "firstChapter": "Intro",
      "preset": "medium",
      "fullColour": false,
@@ -50131,18 +50127,14 @@
       "description": "Draw with",
       "type": "string",
       "enum": [
-       "angle",
-       "swangle",
-       "vulkan",
-       "swiftshader"
+       "card",
+       "software"
       ],
       "x-labels": {
-       "angle": "Graphics card",
-       "swangle": "Software",
-       "vulkan": "Graphics card, newer drivers",
-       "swiftshader": "Software (legacy)"
+       "card": "Graphics card",
+       "software": "Software"
       },
-      "default": "angle",
+      "default": "card",
       "x-help": "The graphics card is about ten times faster. Use Software if exports fail.",
       "x-advanced": true
      },
@@ -50201,7 +50193,7 @@
       "og"
      ],
      "format": "png",
-     "gl": "angle",
+     "gl": "card",
      "reframe": "follow",
      "jpegQuality": 80,
      "scale": 1.0

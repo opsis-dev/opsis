@@ -37,7 +37,7 @@ How a node's key is made, how results follow keys as the workflow changes, how M
 
 - **Each constant keys one kind of output**, and once Opsis is released it changes when that output changes; before release they stay as they are ([AGENTS.md](../AGENTS.md) §2):
   - `ENGINE_VERSION`: an executor's output format; it keys every node and every saved picture;
-  - `PICTURE_VERSION`: how a spec is drawn (anything in `packages/video` the spec doesn't record); it keys saved pictures and every render-phase node;
+  - `PICTURE_VERSION`: how a spec is drawn (anything in the element drawings, the scene, layout, paint, the materials or the renderer program that the spec doesn't record); it keys saved pictures and every render-phase node;
   - `PREPARED_VERSION`: a preparer's output; it keys prepared files, saved pictures and every render-phase node;
   - `MIX_VERSION`: the mix's rendered files in `MIX_DIR`;
   - `ANALYSIS_VERSION`: the waveforms and filmstrips in `ANALYSIS_DIR`.

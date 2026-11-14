@@ -145,7 +145,7 @@ const HEAD_MIN_RATIO: f64 = 2.6;
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn controls(from: Point, to: Point, curvature: f64, seed: &str, share: f64) -> (Point, Point) {
     let (dx, dy) = (to.x - from.x, to.y - from.y);
@@ -168,7 +168,7 @@ fn controls(from: Point, to: Point, curvature: f64, seed: &str, share: f64) -> (
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn head(c2: Point, to: Point, size: f64, angle: f64) -> (Point, Point) {
     let (dx, dy) = (to.x - c2.x, to.y - c2.y);
@@ -183,7 +183,7 @@ fn head(c2: Point, to: Point, size: f64, angle: f64) -> (Point, Point) {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn apex(c2: Point, to: Point, reach: f64) -> Point {
     let (dx, dy) = (to.x - c2.x, to.y - c2.y);

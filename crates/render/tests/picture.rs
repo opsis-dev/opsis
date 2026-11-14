@@ -16,7 +16,7 @@ fn spec(extra: Value) -> TimelineSpec {
 }
 
 fn opts(extra: Value) -> PictureOptions {
-    let mut opts = json!({ "codec": "h264", "crf": 18, "scale": 1, "gl": "angle" });
+    let mut opts = json!({ "codec": "h264", "crf": 18, "scale": 1, "gl": "card" });
     let Value::Object(extra) = extra else {
         panic!("expected an object");
     };

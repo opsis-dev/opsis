@@ -10,7 +10,7 @@ fn list(value: &Value) -> &[Value] {
 }
 
 #[test]
-fn colour_mixing_gives_what_the_film_page_gives() {
+fn colour_mixing_gives_the_recorded_colours() {
     let recorded = read(FIXTURE);
     let mixes: Vec<Value> = list(&recorded["mixes"])
         .iter()

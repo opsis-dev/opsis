@@ -40,10 +40,8 @@ void ensure_loader(OpsisFilament* filament) {
       engine, UBERARCHIVE_DEFAULT_DATA, UBERARCHIVE_DEFAULT_SIZE);
   filament->model_loader = filament::gltfio::AssetLoader::create(
       {engine, filament->model_materials});
-  filament->model_resources =
-      new filament::gltfio::ResourceLoader({.engine = engine,
-                                            .gltfPath = nullptr,
-                                            .normalizeSkinningWeights = true});
+  filament->model_resources = new filament::gltfio::ResourceLoader(
+      {.engine = engine, .normalizeSkinningWeights = true});
   filament->stb_textures = filament::gltfio::createStbProvider(engine);
   filament->ktx2_textures = filament::gltfio::createKtx2Provider(engine);
   filament->model_resources->addTextureProvider("image/png",

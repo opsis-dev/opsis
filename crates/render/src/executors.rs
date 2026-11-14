@@ -21,7 +21,7 @@ use opsis_compile::timeline::chapters::{
 use opsis_engine::files::write_via_temp;
 use opsis_film::{Drawing, Driver, renderer_program};
 use opsis_media::codecs::{
-    FilmEncoding, codec_info, finish_args, has_sound_track, is_image_codec, is_lossless, mux_args,
+    FilmEncoding, codec_info, finish_args, has_sound_track, is_image_codec, mux_args,
 };
 use opsis_media::executors::{Tools, tool_error};
 use opsis_media::ffmpeg::RunOptions;
@@ -50,14 +50,11 @@ const RENDER_STAGE: Stage = (0.2, 1.0);
 
 pub struct RenderEngine {
     pub tools: Tools,
-    pub film_bundle: PathBuf,
 }
 
 impl fmt::Debug for RenderEngine {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("RenderEngine")
-            .field("film_bundle", &self.film_bundle)
-            .finish_non_exhaustive()
+        f.debug_struct("RenderEngine").finish_non_exhaustive()
     }
 }
 
@@ -131,7 +128,6 @@ async fn render_to(job: &VariantJob<'_>, output: &Path) -> Result<(), ExecError>
         encoding: FilmEncoding {
             codec: p.codec,
             fps: f64::from(job.spec.fps),
-            png_frames: is_lossless(p.codec),
             crf: codec_info(p.codec).crf.then_some(f64::from(p.crf)),
             x264_preset: p.x264_preset(),
             pixel_format: p.pixel_format(),
@@ -481,7 +477,7 @@ async fn frame_image(
     let source = (f64::from(picture.width), f64::from(picture.height));
     let spec = framed_image_spec(&p, &src, source);
     ctx.progress(0.0, Some("Preparing render engine"));
-    let files = native_files(&ctx, &spec, Gl::Angle)?;
+    let files = native_files(&ctx, &spec, Gl::Card)?;
     std::fs::create_dir_all(&ctx.dir).map_err(|e| ExecError::new(e.to_string()))?;
     let out = ctx.dir.join("framed.png");
     render_native_still(NativeStill {

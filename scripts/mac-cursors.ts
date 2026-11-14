@@ -3,9 +3,8 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { parse } from "smol-toml";
 import { z } from "zod";
-import { ROOT, VIDEO_DIR } from "./lib/tool-config";
+import { ROOT } from "./lib/tool-config";
 
-const OUT = path.join(VIDEO_DIR, "camera", "lib", "mac-cursors.generated.ts");
 const RUST_OUT = path.join(
   ROOT,
   "crates",
@@ -126,32 +125,10 @@ function main(): void {
     const src = `data:image/svg+xml;base64,${Buffer.from(svg.replaceAll(/\s*\n\s*/g, " ").trim()).toString("base64")}`;
     return { name, src, hotspot };
   });
-  const art = pictures.map(
-    ({ name, src, hotspot }) =>
-      `  ${JSON.stringify(name)}: { src: ${JSON.stringify(src)}, hotspot: [${hotspot.join(", ")}] },`,
-  );
   const aliasPairs = Object.entries({
     ...keywords,
     ...Object.fromEntries(Object.entries(SAME_AS).map(([k, v]) => [k, keywords[v]])),
   }).toSorted(([a], [b]) => a.localeCompare(b));
-  const aliases = aliasPairs.map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`);
-  writeFileSync(
-    OUT,
-    [
-      `export const MAC_CURSOR_SOURCE = ${JSON.stringify(`ful1e5/apple_cursor ${commit}, ${THEME} theme`)};`,
-      "",
-      `export const MAC_CURSOR_BOX = ${BOX};`,
-      "",
-      "export const MAC_CURSORS: Readonly<Record<string, { src: string; hotspot: readonly [number, number] }>> = {",
-      ...art,
-      "};",
-      "",
-      "export const MAC_CURSOR_KEYWORDS: Readonly<Record<string, string>> = {",
-      ...aliases,
-      "};",
-      "",
-    ].join("\n"),
-  );
   writeFileSync(
     RUST_OUT,
     `${JSON.stringify(
@@ -167,7 +144,7 @@ function main(): void {
     )}\n`,
   );
   console.log(
-    `wrote ${used.length} cursors for ${aliases.length} keywords to ${path.relative(process.cwd(), OUT)}`,
+    `wrote ${used.length} cursors for ${aliasPairs.length} keywords from ${commit} to ${path.relative(process.cwd(), RUST_OUT)}`,
   );
 }
 

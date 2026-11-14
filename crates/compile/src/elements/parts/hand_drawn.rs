@@ -142,7 +142,7 @@ pub fn mark_paths(shape: MarkShape, b: MarkBox) -> (Vec<String>, Option<f64>) {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 pub fn stroke_shown(progress: f64, stroke: usize, strokes: usize) -> f64 {
     let raw = progress * opsis_types::numbers::float(strokes) - opsis_types::numbers::float(stroke);

@@ -26,7 +26,7 @@ The scenarios that drive the real editor: what each covers, the virtual display 
   - It takes no screenshots unless `--shots` is given (`bun run e2e:qt tour --shots` empties `~/.cache/opsis-dev/qt-shots/<scenario>` and writes one picture per step there), by setting `OPSIS_QT_SHOTS` to `off` or that folder. A scenario started by hand without `OPSIS_QT_SHOTS` writes its shots to `~/.cache/opsis-dev/qt-shots/<name>` (`scenario.cc`).
   - It fails on any failed check, crash, non-zero exit or timeout (a scenario still running after `RUN_TIMEOUT_MS` is stopped), and writes each scenario's full log to `target/e2e-qt/<scenario>.log`.
   - It needs `Xvfb` for every scenario but `wayland`, `sway` for `wayland`, `fc-match` for the tour's sample font and, with `OPSIS_QT_E2E_HANG_MS`, `gdb`.
-  - It builds `opsis-ui` and `opsis-e2e-input` first; for `runs` and `api` it also builds `film-bundle` and `terminal-bundle`, but only when they are missing, so a bundle older than a `packages/video` change has to be made again by hand.
+  - It builds `opsis-ui`, `opsis-e2e-input` and the renderer program (`opsis-effects`) first.
   - A scenario passes only if its log has the `scenario <name> done` line (`Scenario::Next`).
 - **The runner takes the first free X display from `FIRST_DISPLAY` to `LAST_DISPLAY` (`freeDisplay`)** and stops when none is free.
 - **The runner has four scenarios, all by default or the ones named** (`bun run e2e:qt tour`), and refuses any other name:

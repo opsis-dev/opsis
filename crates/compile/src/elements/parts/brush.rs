@@ -54,7 +54,7 @@ pub fn filter_id(seed: &str, stroke_width: f64, grain: f64) -> String {
 #[expect(
     clippy::suboptimal_flops,
     clippy::many_single_char_names,
-    reason = "the film page's JavaScript rounds every step and names its curve terms so, and the pictures have to match it"
+    reason = "each step rounds on its own and the curve terms keep their textbook names; the recorded goldens hold what that draws"
 )]
 pub fn sample_cubic(from: Point, c1: Point, c2: Point, to: Point, points: usize) -> Vec<Point> {
     let count = points.max(2);
@@ -73,7 +73,7 @@ pub fn sample_cubic(from: Point, c1: Point, c2: Point, to: Point, points: usize)
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 pub fn sample_line(from: Point, to: Point, points: usize) -> Vec<Point> {
     let count = points.max(2);

@@ -14,9 +14,9 @@ Seen once during a session and never reproduced or explained.
 Ideas you approved but left for later.
 
 - [ ] A clip-level Reverse that plays a recording backwards through its time mapping, with one encode and no frame buffer (the Reverse node, `media.reverse`, only reverses a whole file).
-  - The time mapping already takes times that run backwards (`remapFrame`, `packages/video/src/common/remap.ts`), but the footage decoder restarts a second before any frame earlier than the few it keeps (`needs_restart`, `KEPT_FRAMES`, `crates/footage/src/footage.rs`), so playing backwards needs decoding in batches; the clip's sound needs reversing too.
+  - The time mapping already takes times that run backwards (`remap_frame`, `crates/scene/src/keyed.rs`), but the footage decoder restarts a second before any frame earlier than the few it keeps (`needs_restart`, `KEPT_FRAMES`, `crates/footage/src/footage.rs`), so playing backwards needs decoding in batches; the clip's sound needs reversing too.
 - [ ] A keep-quality encode option for the file nodes, in place of the fixed H.264 at quality 18 and `yuv420p` they encode with (`EDIT_CRF`, `crates/media/src/codecs.rs`).
-  - The lossless encoders it could use are in place: Export video's lossless formats encode with FFV1 and lossless RGB H.264 (`is_lossless`), and the bundled FFmpeg is checked for them (`REQUIRED_ENCODERS`).
+  - The lossless encoders it could use are in place: Export video's lossless formats encode with FFV1 and lossless RGB H.264 (`film_pixel_format`, `crates/media/src/codecs.rs`), and the bundled FFmpeg is checked for them (`REQUIRED_ENCODERS`).
 - [ ] A lossless checkpoint node that renders a clip's finished picture to a file the rest of the graph plays.
   - Export video (MP4 or MKV lossless) → Media file → Use as clip may already be it, since Export video passes its file on; then this is a template rather than a node.
 - [ ] Recording the page's own sound in a take.
@@ -38,13 +38,11 @@ Ideas that were discussed but never finalized or planned.
 - [ ] An `#[element(…)]` macro that writes the 138 element `definition()` functions from attributes on their settings structs, the third part of the macros research after `#[settings]` and `#[choice]`.
 - [ ] A way to see the film before exporting, in place of the removed Preview (its window, streamed page and Fast/Exact copies). Undecided.
 - [ ] Measuring how fast a low-resolution draft export renders (for example 480p), and whether one can hold more than 20 frames a second.
-- [ ] Skipping static frames in a render: compile marks each frame where nothing can change (every element past its animation end and before its exit, no camera move, no video, no recording, no shader time), and such a frame reuses the previous picture without a seek or capture. Drawing is most of a render's CPU (Chrome's GPU process), so drawing fewer frames is where a render gets faster.
-- [ ] Scaled renders drawn one frame at a time: begin-frame screenshots ignore an emulated scale, so a film with a scale other than 1 takes a screenshot per frame (`launch_film` in `crates/capture/src/film.rs`). Setting the scale at launch (`--force-device-scale-factor`) would let it use begin-frame capture. Moot if `plans/native-renderer.md` replaces the frame driver.
+- [ ] Skipping the scene build for static frames: compile marks each frame where nothing can change (every element past its animation end and before its exit, no camera move, no video, no recording, no shader time), and such a frame reuses the previous picture without building its scene. The renderer already reuses the last picture when a frame's scene hashes the same (`Film::scaled_frame`, `crates/film/src/lib.rs`), skipping layout and paint, but it still builds and hashes every scene.
 - [ ] More image operations in the footage chain (`crates/footage`): crop, rotate and flip, adjust, blur and sharpen, spotlight, magnify. Each needs its own design, since a crop changes the footage's size, which the camera and window frame depend on.
-- [ ] Allowing CSS animations and the Web Animations API in the film. The frame driver owns the page clock (the smooth-take machinery holds it and steps every CSS and web animation), so they could be drawn frame-exactly; `AGENTS.md`'s film rules (every animation a pure function of `useFrame()`, no CSS transitions) rule them out until this is decided, and `plans/motion-library.md` allows a paused CSS animation only where a keyframe can't be rewritten.
 - [ ] Settings the audit left out because the code under them can't take them yet:
   - the transitions our presentations draw with fixed values: the clock wipe's direction and start angle, the iris's centre and direction, a fade through a colour and the lens zoom's centre;
-  - which side a tooltip or callout sits on (needs placement that keeps the box on screen, `packages/video/src/camera/annotations.tsx`);
+  - which side a tooltip or callout sits on (needs placement that keeps the box on screen, `crates/compile/src/elements/camera/annotations.rs`);
   - the agent-run panel's width and text size (they feed its whole layout and length model).
 
 ## Unverified

@@ -10,7 +10,7 @@ import { runInTrixie } from "./trixie";
 
 const SYSTEM_PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
 
-export function releaseTargetDir(): string {
+function releaseTargetDir(): string {
   return buildsNatively() || process.platform !== "linux"
     ? path.join(ROOT, "target")
     : path.join(ROOT, "target", "trixie");
@@ -38,7 +38,7 @@ function zigProgram(): string {
 
 export type PackageRun = { cargoArgs: string[]; formats: string; out: string };
 
-export const UPDATE_KEY_ENV = ["OPSIS_UPDATE_KEY", "OPSIS_UPDATE_KEY_PASSWORD"];
+const UPDATE_KEY_ENV = ["OPSIS_UPDATE_KEY", "OPSIS_UPDATE_KEY_PASSWORD"];
 
 function commit(): string {
   return (

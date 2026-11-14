@@ -162,7 +162,7 @@ fn particle_opacity(tt: f64, lifetime: f64) -> Result<f64, DrawFailure> {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 pub fn draw(props: &Confetti, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
     let tt = cx.authored_frame();

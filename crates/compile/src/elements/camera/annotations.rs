@@ -116,7 +116,7 @@ impl Mark<'_> {
 
     #[expect(
         clippy::suboptimal_flops,
-        reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+        reason = "each step rounds on its own, and the recorded goldens hold what that draws"
     )]
     fn boxed(&self, style: Style) -> Style {
         let a = self.annotation;
@@ -157,7 +157,7 @@ fn spotlight(mark: &Mark<'_>) -> Node {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the pictures have to match it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn sketched(mark: &Mark<'_>) -> Result<Node, DrawFailure> {
     let a = mark.annotation;

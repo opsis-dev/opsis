@@ -3,7 +3,6 @@ pub mod downloads;
 pub mod ffmpeg;
 pub mod files;
 pub mod hash;
-pub mod http_files;
 pub mod install;
 pub mod licences;
 pub mod paths;

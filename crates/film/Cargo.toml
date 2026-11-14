@@ -22,9 +22,3 @@ opsis-types.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 usvg.workspace = true
-
-[dev-dependencies]
-nv-flip.workspace = true
-opsis-golden.workspace = true
-opsis-prepare.workspace = true
-serde_json.workspace = true

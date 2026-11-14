@@ -25,7 +25,7 @@ fn shape(value: &Value) -> MorphShape {
 }
 
 #[test]
-fn shape_morphs_match_what_the_film_page_makes() {
+fn shape_morphs_match_the_recorded_paths() {
     let recorded = read(FIXTURE);
     let pairs = recorded["pairs"].as_array().map_or(&[][..], Vec::as_slice);
     let made = json!({

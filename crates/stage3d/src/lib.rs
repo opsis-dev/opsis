@@ -128,7 +128,7 @@ const WHITE: Input<'static> = Input {
 
 #[expect(
     clippy::imprecise_flops,
-    reason = "the film page draws the glow through a canvas gradient this way, and the shadow has to match it"
+    reason = "the glow is a gradient stop by stop, and the recorded goldens hold what that draws"
 )]
 fn glow(side: u32, alpha: f64) -> Pixels {
     let half = f64::from(side) / 2.0;

@@ -373,7 +373,7 @@ fn prepared_refs_name_their_kind_settings_and_source_and_come_back_whole() {
 }
 
 #[test]
-fn three_d_elements_name_prepared_files_and_text_picks_the_face_the_page_would() {
+fn three_d_elements_name_prepared_files_and_text_picks_the_listed_face() {
     use opsis_compile::elements::prepared::prepare_props;
     use opsis_types::fonts::ProjectFonts;
     use serde_json::{Map, json};

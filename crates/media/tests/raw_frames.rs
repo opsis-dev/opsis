@@ -3,7 +3,7 @@ use std::process::{Command, Stdio};
 
 use opsis_compile::nodes::media::Codec;
 use opsis_golden::ffmpeg;
-use opsis_media::codecs::{FilmEncoding, film_raw_encode_args};
+use opsis_media::codecs::{FilmEncoding, film_encode_args};
 use proptest::prelude::*;
 
 const CODECS: [Codec; 4] = [Codec::H264, Codec::Vp9, Codec::H264Lossless, Codec::Ffv1];
@@ -27,7 +27,6 @@ const fn encoding(codec: Codec) -> FilmEncoding {
     FilmEncoding {
         codec,
         fps: 30.0,
-        png_frames: false,
         crf: Some(1.0),
         x264_preset: None,
         pixel_format: None,
@@ -54,7 +53,7 @@ proptest! {
         std::fs::write(&raw, &pixels).unwrap();
         for codec in CODECS {
             let film = dir.path().join(format!("film.{}", codec.extension()));
-            run(&film_raw_encode_args(&encoding(codec), (width, height), &text(&film)), Some(&raw));
+            run(&film_encode_args(&encoding(codec), (width, height), &text(&film)), Some(&raw));
             let decoded = dir.path().join("decoded.rgb");
             run(
                 &["-i".to_owned(), text(&film), "-frames:v".to_owned(), "1".to_owned(), "-f".to_owned(), "rawvideo".to_owned(), "-pix_fmt".to_owned(), "rgb24".to_owned(), text(&decoded)],

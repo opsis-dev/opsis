@@ -9,7 +9,7 @@ use opsis_compile::nodes::output::StillFormat;
 use opsis_film::{Drawing, Film, scaled};
 use opsis_footage::FootageError;
 use opsis_footage::footage::Footage;
-use opsis_media::codecs::{FilmEncoding, film_raw_encode_args};
+use opsis_media::codecs::{FilmEncoding, film_encode_args};
 use opsis_paint::Picture;
 use opsis_prepare::serve::{PreparedDirs, prepare};
 use opsis_types::numbers;
@@ -249,7 +249,7 @@ pub async fn render_native(job: NativeRender, run: &FilmRun<'_>) -> Result<(), F
         scaled(job.spec.width, job.scale),
         scaled(job.spec.height, job.scale),
     );
-    let args = film_raw_encode_args(&encoding, size, &job.output.to_string_lossy());
+    let args = film_encode_args(&encoding, size, &job.output.to_string_lossy());
     let stop = run.cancel.child_token();
     let pipe = run.tools.pipe(&args, Some(stop.clone()))?;
     let total = f64::from(numbers::count(frames.len()).max(1));

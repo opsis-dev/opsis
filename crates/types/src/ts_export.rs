@@ -2,11 +2,6 @@ use regex::Regex;
 use specta::Types;
 use specta_typescript::Typescript;
 
-use crate::events::RunEvent;
-use crate::timeline::TimelineSpec;
-use crate::values::{CompileValue, LastRun};
-use crate::workflow::Workflow;
-
 fn tidy(text: &str) -> String {
     let optional_null = Regex::new(r"(\w\?: [^;,{}]+?) \| null(\s*[;,}])").expect("pattern");
     let lines: Vec<String> = text
@@ -47,52 +42,9 @@ fn serialize_side(text: &str) -> String {
         .replace("_Serialize", "")
 }
 
-const NUMBER_LITERALS: [(&str, &str, &str); 3] = [
-    ("Workflow", "version", "1"),
-    ("WorkflowSettings", "fps", "30 | 60"),
-    ("LinkedParam", "sign", "1 | -1"),
-];
-
-fn number_literals(text: &str) -> String {
-    let mut out = text.to_owned();
-    for (ty, field, literal) in NUMBER_LITERALS {
-        let start = out
-            .find(&format!("export type {ty} = {{"))
-            .expect("type is exported");
-        let end = start + out[start..].find("\n};").expect("type ends");
-        let block = out[start..end].replace(
-            &format!("\t{field}: number,"),
-            &format!("\t{field}: {literal},"),
-        );
-        out.replace_range(start..end, &block);
-    }
-    out
-}
-
-pub fn boundary_types() -> Types {
-    Types::default()
-        .register::<Workflow>()
-        .register::<TimelineSpec>()
-        .register::<CompileValue>()
-        .register::<LastRun>()
-        .register::<RunEvent>()
-        .register::<crate::cards::CardRow>()
-}
-
 pub fn render_plain(types: &Types) -> String {
     let ts = Typescript::default()
         .export(types, specta_serde::PhasesFormat)
         .expect("types export");
     tidy(&serialize_side(&ts))
-}
-
-pub fn render(types: &Types) -> String {
-    number_literals(&render_plain(types))
-}
-
-pub fn tidy_export(text: &str) -> String {
-    let separated = text.replace("/* Types */\n", "/* Types */\n\n");
-    number_literals(&tidy(
-        &serialize_side(&separated).replace("_Deserialize", ""),
-    ))
 }

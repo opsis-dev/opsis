@@ -178,7 +178,7 @@ const fn start_of(screen_move: ScreenMove) -> Keyed {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page's JavaScript rounds every step, and the screen has to sit where it puts it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn mix(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
     [
@@ -214,7 +214,7 @@ fn screen_pose(props: &Screen3d, cx: &Cx<'_>) -> Result<Pose, DrawFailure> {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page projects the screen's corners this way, and the page has to land on them"
+    reason = "the screen's corners project one step at a time, and the recorded goldens hold where they land"
 )]
 fn screen_quad(
     matrix: &Matrix,
@@ -254,7 +254,7 @@ fn screen_quad(
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page measures the quad's winding this way"
+    reason = "the quad's winding is the textbook shoelace sum"
 )]
 fn faces_camera(quad: &[[f64; 2]; 4]) -> bool {
     let mut area = 0.0;
@@ -273,7 +273,7 @@ fn nine_places(v: f64) -> f64 {
 #[expect(
     clippy::suboptimal_flops,
     clippy::many_single_char_names,
-    reason = "the film page solves the homography this way and names its terms so; the page has to land where it puts it"
+    reason = "the homography is solved in its textbook terms, and the recorded goldens hold where the page lands"
 )]
 fn quad_matrix(width: f64, height: f64, quad: &[[f64; 2]; 4]) -> [Num; 16] {
     let [q0, q1, q2, q3] = *quad;
@@ -322,7 +322,7 @@ fn quad_matrix(width: f64, height: f64, quad: &[[f64; 2]; 4]) -> [Num; 16] {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page slides the glare this way, and it has to sit where it puts it"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn glare(turn: f64, strength: f64, width: f64) -> Node {
     let position = (50.0 + turn * GLARE_TRAVEL) / 100.0;
@@ -358,7 +358,7 @@ struct Part {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page builds the device this way, and its parts have to sit where it puts them"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn slab(width: f64, height: f64, radius: f64, depth: f64) -> Part {
     Part {
@@ -395,7 +395,7 @@ fn rounded_box(size: [f64; 3], radius: f64, at: [f64; 3]) -> Part {
 
 #[expect(
     clippy::suboptimal_flops,
-    reason = "the film page builds the device this way, and its parts have to sit where it puts them"
+    reason = "each step rounds on its own, and the recorded goldens hold what that draws"
 )]
 fn device_parts(device: ScreenDevice, (w, h): (f64, f64)) -> Vec<Part> {
     let unit = w.min(h);

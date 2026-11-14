@@ -267,7 +267,6 @@ pub fn executors(app: &Session, temp: &Path) -> Executors {
     let tools = engine_tools(state, temp);
     let engine = Arc::new(RenderEngine {
         tools: Arc::clone(&tools),
-        film_bundle: state.paths.film_bundle.clone(),
     });
     let capture = Arc::new(CaptureDeps {
         tools: Arc::clone(&tools),
