@@ -1,0 +1,349 @@
+{
+ "element": {
+  "kind": "div",
+  "style": [
+   {
+    "position": "absolute"
+   },
+   {
+    "top": {
+     "px": 0.0
+    }
+   },
+   {
+    "right": {
+     "px": 0.0
+    }
+   },
+   {
+    "bottom": {
+     "px": 0.0
+    }
+   },
+   {
+    "left": {
+     "px": 0.0
+    }
+   },
+   {
+    "width": {
+     "percent": 100.0
+    }
+   },
+   {
+    "height": {
+     "percent": 100.0
+    }
+   },
+   {
+    "display": "flex"
+   },
+   {
+    "flex-direction": "column"
+   },
+   {
+    "background-color": {
+     "components": {
+      "space": "srgb",
+      "components": [
+       0.03529412,
+       0.03529412,
+       0.043137256
+      ],
+      "alpha": 1.0
+     }
+    }
+   },
+   {
+    "overflow-x": "hidden"
+   },
+   {
+    "overflow-y": "hidden"
+   },
+   {
+    "font-family": [
+     "df-main"
+    ]
+   }
+  ],
+  "children": [
+   {
+    "element": {
+     "kind": "div",
+     "style": [
+      {
+       "position": "absolute"
+      },
+      {
+       "top": {
+        "px": 0.0
+       }
+      },
+      {
+       "right": {
+        "px": 0.0
+       }
+      },
+      {
+       "bottom": {
+        "px": 0.0
+       }
+      },
+      {
+       "left": {
+        "px": 0.0
+       }
+      },
+      {
+       "width": {
+        "percent": 100.0
+       }
+      },
+      {
+       "height": {
+        "percent": 100.0
+       }
+      },
+      {
+       "display": "flex"
+      },
+      {
+       "flex-direction": "column"
+      }
+     ],
+     "children": [
+      {
+       "element": {
+        "kind": "div",
+        "style": [
+         {
+          "position": "absolute"
+         },
+         {
+          "top": {
+           "px": 0.0
+          }
+         },
+         {
+          "right": {
+           "px": 0.0
+          }
+         },
+         {
+          "bottom": {
+           "px": 0.0
+          }
+         },
+         {
+          "left": {
+           "px": 0.0
+          }
+         },
+         {
+          "width": {
+           "percent": 100.0
+          }
+         },
+         {
+          "height": {
+           "percent": 100.0
+          }
+         },
+         {
+          "display": "flex"
+         },
+         {
+          "flex-direction": "column"
+         }
+        ],
+        "children": [
+         {
+          "element": {
+           "kind": {
+            "effect": {
+             "program": "shader-mesh-gradient",
+             "uniforms": [
+              {
+               "name": "fit",
+               "values": [
+                2.0
+               ],
+               "columns": 1
+              },
+              {
+               "name": "sizingScale",
+               "values": [
+                1.0
+               ],
+               "columns": 1
+              },
+              {
+               "name": "rotation",
+               "values": [
+                0.0
+               ],
+               "columns": 1
+              },
+              {
+               "name": "originX",
+               "values": [
+                0.5
+               ],
+               "columns": 1
+              },
+              {
+               "name": "originY",
+               "values": [
+                0.5
+               ],
+               "columns": 1
+              },
+              {
+               "name": "offsetX",
+               "values": [
+                0.0
+               ],
+               "columns": 1
+              },
+              {
+               "name": "offsetY",
+               "values": [
+                0.0
+               ],
+               "columns": 1
+              },
+              {
+               "name": "worldWidth",
+               "values": [
+                0.0
+               ],
+               "columns": 1
+              },
+              {
+               "name": "worldHeight",
+               "values": [
+                0.0
+               ],
+               "columns": 1
+              },
+              {
+               "name": "colorsCount",
+               "values": [
+                4.0
+               ],
+               "columns": 1
+              },
+              {
+               "name": "colors",
+               "values": [
+                0.07058823529411765,
+                0.07058823529411765,
+                0.10196078431372549,
+                1.0,
+                0.13725490196078433,
+                0.13725490196078433,
+                0.2196078431372549,
+                1.0,
+                0.22745098039215686,
+                0.22745098039215686,
+                0.3607843137254902,
+                1.0,
+                0.3215686274509804,
+                0.3215686274509804,
+                0.47843137254901963,
+                1.0
+               ],
+               "columns": 4
+              },
+              {
+               "name": "time",
+               "values": [
+                1.2333333333333334
+               ],
+               "columns": 1
+              },
+              {
+               "name": "distortion",
+               "values": [
+                0.6
+               ],
+               "columns": 1
+              },
+              {
+               "name": "swirl",
+               "values": [
+                0.1
+               ],
+               "columns": 1
+              },
+              {
+               "name": "grainMixer",
+               "values": [
+                0.0
+               ],
+               "columns": 1
+              },
+              {
+               "name": "grainOverlay",
+               "values": [
+                0.0
+               ],
+               "columns": 1
+              }
+             ],
+             "scale": 2.0
+            }
+           },
+           "style": [
+            {
+             "position": "absolute"
+            },
+            {
+             "top": {
+              "px": 0.0
+             }
+            },
+            {
+             "right": {
+              "px": 0.0
+             }
+            },
+            {
+             "bottom": {
+              "px": 0.0
+             }
+            },
+            {
+             "left": {
+              "px": 0.0
+             }
+            },
+            {
+             "width": {
+              "percent": 100.0
+             }
+            },
+            {
+             "height": {
+              "percent": 100.0
+             }
+            },
+            {
+             "display": "flex"
+            },
+            {
+             "flex-direction": "column"
+            }
+           ],
+           "children": []
+          }
+         }
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ }
+}

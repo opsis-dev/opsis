@@ -1,0 +1,422 @@
+{
+ "element": {
+  "kind": "div",
+  "style": [
+   {
+    "position": "absolute"
+   },
+   {
+    "top": {
+     "px": 0.0
+    }
+   },
+   {
+    "right": {
+     "px": 0.0
+    }
+   },
+   {
+    "bottom": {
+     "px": 0.0
+    }
+   },
+   {
+    "left": {
+     "px": 0.0
+    }
+   },
+   {
+    "width": {
+     "percent": 100.0
+    }
+   },
+   {
+    "height": {
+     "percent": 100.0
+    }
+   },
+   {
+    "display": "flex"
+   },
+   {
+    "flex-direction": "column"
+   },
+   {
+    "background-color": {
+     "components": {
+      "space": "srgb",
+      "components": [
+       0.03529412,
+       0.03529412,
+       0.043137256
+      ],
+      "alpha": 1.0
+     }
+    }
+   },
+   {
+    "overflow-x": "hidden"
+   },
+   {
+    "overflow-y": "hidden"
+   },
+   {
+    "font-family": [
+     "df-main"
+    ]
+   }
+  ],
+  "children": [
+   {
+    "element": {
+     "kind": "div",
+     "style": [
+      {
+       "position": "absolute"
+      },
+      {
+       "top": {
+        "px": 0.0
+       }
+      },
+      {
+       "right": {
+        "px": 0.0
+       }
+      },
+      {
+       "bottom": {
+        "px": 0.0
+       }
+      },
+      {
+       "left": {
+        "px": 0.0
+       }
+      },
+      {
+       "width": {
+        "percent": 100.0
+       }
+      },
+      {
+       "height": {
+        "percent": 100.0
+       }
+      },
+      {
+       "display": "flex"
+      },
+      {
+       "flex-direction": "column"
+      }
+     ],
+     "children": [
+      {
+       "element": {
+        "kind": "div",
+        "style": [
+         {
+          "position": "absolute"
+         },
+         {
+          "top": {
+           "px": 0.0
+          }
+         },
+         {
+          "right": {
+           "px": 0.0
+          }
+         },
+         {
+          "bottom": {
+           "px": 0.0
+          }
+         },
+         {
+          "left": {
+           "px": 0.0
+          }
+         },
+         {
+          "width": {
+           "percent": 100.0
+          }
+         },
+         {
+          "height": {
+           "percent": 100.0
+          }
+         },
+         {
+          "display": "flex"
+         },
+         {
+          "flex-direction": "column"
+         }
+        ],
+        "children": [
+         {
+          "element": {
+           "kind": "div",
+           "style": [
+            {
+             "position": "absolute"
+            },
+            {
+             "top": {
+              "px": 0.0
+             }
+            },
+            {
+             "right": {
+              "px": 0.0
+             }
+            },
+            {
+             "bottom": {
+              "px": 0.0
+             }
+            },
+            {
+             "left": {
+              "px": 0.0
+             }
+            },
+            {
+             "width": {
+              "percent": 100.0
+             }
+            },
+            {
+             "height": {
+              "percent": 100.0
+             }
+            },
+            {
+             "display": "flex"
+            },
+            {
+             "flex-direction": "column"
+            }
+           ],
+           "children": [
+            {
+             "element": {
+              "kind": "div",
+              "style": [
+               {
+                "position": "absolute"
+               },
+               {
+                "top": {
+                 "px": 0.0
+                }
+               },
+               {
+                "right": {
+                 "px": 0.0
+                }
+               },
+               {
+                "bottom": {
+                 "px": 0.0
+                }
+               },
+               {
+                "left": {
+                 "px": 0.0
+                }
+               },
+               {
+                "width": {
+                 "percent": 100.0
+                }
+               },
+               {
+                "height": {
+                 "percent": 100.0
+                }
+               },
+               {
+                "display": "flex"
+               },
+               {
+                "flex-direction": "column"
+               }
+              ],
+              "children": []
+             }
+            },
+            {
+             "element": {
+              "kind": "div",
+              "style": [
+               {
+                "position": "absolute"
+               },
+               {
+                "top": {
+                 "px": 0.0
+                }
+               },
+               {
+                "right": {
+                 "px": 0.0
+                }
+               },
+               {
+                "bottom": {
+                 "px": 0.0
+                }
+               },
+               {
+                "left": {
+                 "px": 0.0
+                }
+               },
+               {
+                "width": {
+                 "percent": 100.0
+                }
+               },
+               {
+                "height": {
+                 "percent": 100.0
+                }
+               },
+               {
+                "display": "flex"
+               },
+               {
+                "flex-direction": "column"
+               },
+               {
+                "align-items": "center"
+               },
+               {
+                "justify-content": "center"
+               },
+               {
+                "padding": {
+                 "top": {
+                  "px": 0.0
+                 },
+                 "right": {
+                  "percent": 9.0
+                 },
+                 "bottom": {
+                  "px": 0.0
+                 },
+                 "left": {
+                  "percent": 9.0
+                 }
+                }
+               },
+               {
+                "text-align": "center"
+               },
+               {
+                "font-family": [
+                 "df-heading"
+                ]
+               },
+               {
+                "opacity": 1.0
+               },
+               {
+                "row-gap": {
+                 "px": 24.64
+                }
+               },
+               {
+                "column-gap": {
+                 "px": 24.64
+                }
+               }
+              ],
+              "children": [
+               {
+                "element": {
+                 "kind": "div",
+                 "style": [
+                  {
+                   "opacity": 1.0
+                  },
+                  {
+                   "transform": [
+                    {
+                     "translate": [
+                      {
+                       "px": 0.0
+                      },
+                      {
+                       "px": 4.4543151078713095e-6
+                      },
+                      {
+                       "px": 0.0
+                      }
+                     ]
+                    }
+                   ]
+                  },
+                  {
+                   "color": {
+                    "components": {
+                     "space": "srgb",
+                     "components": [
+                      0.9803922,
+                      0.9803922,
+                      0.9803922
+                     ],
+                     "alpha": 1.0
+                    }
+                   }
+                  },
+                  {
+                   "font-size": {
+                    "px": 112.0
+                   }
+                  },
+                  {
+                   "font-weight": 760.0
+                  },
+                  {
+                   "line-height": {
+                    "number": 1.02
+                   }
+                  },
+                  {
+                   "max-width": {
+                    "percent": 100.0
+                   }
+                  },
+                  {
+                   "letter-spacing": {
+                    "em": -0.035
+                   }
+                  }
+                 ],
+                 "children": [
+                  {
+                   "text": "Sign up in 10 seconds"
+                  }
+                 ]
+                }
+               }
+              ]
+             }
+            }
+           ]
+          }
+         }
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ }
+}

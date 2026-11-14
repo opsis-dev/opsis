@@ -1,0 +1,584 @@
+{
+ "element": {
+  "kind": "div",
+  "style": [
+   {
+    "position": "absolute"
+   },
+   {
+    "top": {
+     "px": 0.0
+    }
+   },
+   {
+    "right": {
+     "px": 0.0
+    }
+   },
+   {
+    "bottom": {
+     "px": 0.0
+    }
+   },
+   {
+    "left": {
+     "px": 0.0
+    }
+   },
+   {
+    "width": {
+     "percent": 100.0
+    }
+   },
+   {
+    "height": {
+     "percent": 100.0
+    }
+   },
+   {
+    "display": "flex"
+   },
+   {
+    "flex-direction": "column"
+   },
+   {
+    "background-color": {
+     "components": {
+      "space": "srgb",
+      "components": [
+       0.03529412,
+       0.03529412,
+       0.043137256
+      ],
+      "alpha": 1.0
+     }
+    }
+   },
+   {
+    "overflow-x": "hidden"
+   },
+   {
+    "overflow-y": "hidden"
+   },
+   {
+    "font-family": [
+     "df-main"
+    ]
+   }
+  ],
+  "children": [
+   {
+    "element": {
+     "kind": "div",
+     "style": [
+      {
+       "position": "absolute"
+      },
+      {
+       "top": {
+        "px": 0.0
+       }
+      },
+      {
+       "right": {
+        "px": 0.0
+       }
+      },
+      {
+       "bottom": {
+        "px": 0.0
+       }
+      },
+      {
+       "left": {
+        "px": 0.0
+       }
+      },
+      {
+       "width": {
+        "percent": 100.0
+       }
+      },
+      {
+       "height": {
+        "percent": 100.0
+       }
+      },
+      {
+       "display": "flex"
+      },
+      {
+       "flex-direction": "column"
+      }
+     ],
+     "children": [
+      {
+       "element": {
+        "kind": "div",
+        "style": [
+         {
+          "position": "absolute"
+         },
+         {
+          "top": {
+           "px": 0.0
+          }
+         },
+         {
+          "right": {
+           "px": 0.0
+          }
+         },
+         {
+          "bottom": {
+           "px": 0.0
+          }
+         },
+         {
+          "left": {
+           "px": 0.0
+          }
+         },
+         {
+          "width": {
+           "percent": 100.0
+          }
+         },
+         {
+          "height": {
+           "percent": 100.0
+          }
+         },
+         {
+          "display": "flex"
+         },
+         {
+          "flex-direction": "column"
+         }
+        ],
+        "children": [
+         {
+          "element": {
+           "kind": "div",
+           "style": [
+            {
+             "position": "absolute"
+            },
+            {
+             "top": {
+              "px": 0.0
+             }
+            },
+            {
+             "right": {
+              "px": 0.0
+             }
+            },
+            {
+             "bottom": {
+              "px": 0.0
+             }
+            },
+            {
+             "left": {
+              "px": 0.0
+             }
+            },
+            {
+             "width": {
+              "percent": 100.0
+             }
+            },
+            {
+             "height": {
+              "percent": 100.0
+             }
+            },
+            {
+             "display": "flex"
+            },
+            {
+             "flex-direction": "column"
+            }
+           ],
+           "children": [
+            {
+             "element": {
+              "kind": {
+               "stage3d": {
+                "fov": 30.0,
+                "distance": 4.443258800929714,
+                "lighting": "soft",
+                "objects": [
+                 {
+                  "shape": {
+                   "plane": {
+                    "width": 2.75,
+                    "height": 1.71875
+                   }
+                  },
+                  "matrix": [
+                   1.0,
+                   0.0,
+                   0.0,
+                   0.0,
+                   -0.0,
+                   1.0,
+                   0.0,
+                   0.0,
+                   0.0,
+                   -0.0,
+                   1.0,
+                   0.0,
+                   0.0,
+                   -0.18,
+                   -0.6,
+                   1.0
+                  ],
+                  "material": {
+                   "shading": "unlit",
+                   "double_sided": false,
+                   "color": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                   ],
+                   "metalness": 0.0,
+                   "roughness": 1.0,
+                   "opacity": 0.55,
+                   "texture": 1
+                  }
+                 },
+                 {
+                  "shape": {
+                   "extruded": {
+                    "outlines": [
+                     {
+                      "shape": [
+                       {
+                        "move": [
+                         -1.012,
+                         -0.6875
+                        ]
+                       },
+                       {
+                        "line": [
+                         1.012,
+                         -0.6875
+                        ]
+                       },
+                       {
+                        "quad": [
+                         [
+                          1.1,
+                          -0.6875
+                         ],
+                         [
+                          1.1,
+                          -0.5995
+                         ]
+                        ]
+                       },
+                       {
+                        "line": [
+                         1.1,
+                         0.5995
+                        ]
+                       },
+                       {
+                        "quad": [
+                         [
+                          1.1,
+                          0.6875
+                         ],
+                         [
+                          1.012,
+                          0.6875
+                         ]
+                        ]
+                       },
+                       {
+                        "line": [
+                         -1.012,
+                         0.6875
+                        ]
+                       },
+                       {
+                        "quad": [
+                         [
+                          -1.1,
+                          0.6875
+                         ],
+                         [
+                          -1.1,
+                          0.5995
+                         ]
+                        ]
+                       },
+                       {
+                        "line": [
+                         -1.1,
+                         -0.5995
+                        ]
+                       },
+                       {
+                        "quad": [
+                         [
+                          -1.1,
+                          -0.6875
+                         ],
+                         [
+                          -1.012,
+                          -0.6875
+                         ]
+                        ]
+                       }
+                      ],
+                      "holes": []
+                     }
+                    ],
+                    "curve_segments": 16,
+                    "depth": 0.04,
+                    "bevel": {
+                     "thickness": 0.008,
+                     "size": 0.008,
+                     "offset": 0.0,
+                     "segments": 4
+                    }
+                   }
+                  },
+                  "matrix": [
+                   0.9838999270532006,
+                   -0.01414392287824136,
+                   0.1777799708958444,
+                   0.0,
+                   0.0,
+                   0.9967827889055412,
+                   0.0793026279709435,
+                   0.0,
+                   -0.1783417186361983,
+                   -0.07803112358996397,
+                   0.9808008004720333,
+                   0.0,
+                   0.003566834372723966,
+                   0.0015606224717992796,
+                   -0.02118037285287581,
+                   1.0
+                  ],
+                  "material": {
+                   "shading": "lit",
+                   "double_sided": false,
+                   "color": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                   ],
+                   "metalness": 0.0,
+                   "roughness": 0.45,
+                   "opacity": 1.0,
+                   "texture": null
+                  }
+                 },
+                 {
+                  "shape": {
+                   "flat": {
+                    "outline": {
+                     "shape": [
+                      {
+                       "move": [
+                        -1.012,
+                        -0.6875
+                       ]
+                      },
+                      {
+                       "line": [
+                        1.012,
+                        -0.6875
+                       ]
+                      },
+                      {
+                       "quad": [
+                        [
+                         1.1,
+                         -0.6875
+                        ],
+                        [
+                         1.1,
+                         -0.5995
+                        ]
+                       ]
+                      },
+                      {
+                       "line": [
+                        1.1,
+                        0.5995
+                       ]
+                      },
+                      {
+                       "quad": [
+                        [
+                         1.1,
+                         0.6875
+                        ],
+                        [
+                         1.012,
+                         0.6875
+                        ]
+                       ]
+                      },
+                      {
+                       "line": [
+                        -1.012,
+                        0.6875
+                       ]
+                      },
+                      {
+                       "quad": [
+                        [
+                         -1.1,
+                         0.6875
+                        ],
+                        [
+                         -1.1,
+                         0.5995
+                        ]
+                       ]
+                      },
+                      {
+                       "line": [
+                        -1.1,
+                        -0.5995
+                       ]
+                      },
+                      {
+                       "quad": [
+                        [
+                         -1.1,
+                         -0.6875
+                        ],
+                        [
+                         -1.012,
+                         -0.6875
+                        ]
+                       ]
+                      }
+                     ],
+                     "holes": []
+                    },
+                    "curve_segments": 12,
+                    "uv_span": [
+                     2.2,
+                     1.375
+                    ],
+                    "uv_offset": [
+                     0.5,
+                     0.5
+                    ]
+                   }
+                  },
+                  "matrix": [
+                   0.9838999270532006,
+                   -0.01414392287824136,
+                   0.1777799708958444,
+                   0.0,
+                   0.0,
+                   0.9967827889055412,
+                   0.0793026279709435,
+                   0.0,
+                   -0.1783417186361983,
+                   -0.07803112358996397,
+                   0.9808008004720333,
+                   0.0,
+                   -0.005350251559085949,
+                   -0.0023409337076989193,
+                   0.027859667170725855,
+                   1.0
+                  ],
+                  "material": {
+                   "shading": "lit",
+                   "double_sided": false,
+                   "color": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                   ],
+                   "metalness": 0.0,
+                   "roughness": 0.6,
+                   "opacity": 1.0,
+                   "texture": 0
+                  }
+                 }
+                ],
+                "textures": [
+                 {
+                  "picture": "app:placeholders/screen-wide.svg"
+                 },
+                 {
+                  "glow": {
+                   "side": 256,
+                   "alpha": 0.55
+                  }
+                 }
+                ],
+                "models": []
+               }
+              },
+              "style": [
+               {
+                "position": "absolute"
+               },
+               {
+                "top": {
+                 "px": 0.0
+                }
+               },
+               {
+                "right": {
+                 "px": 0.0
+                }
+               },
+               {
+                "bottom": {
+                 "px": 0.0
+                }
+               },
+               {
+                "left": {
+                 "px": 0.0
+                }
+               },
+               {
+                "width": {
+                 "percent": 100.0
+                }
+               },
+               {
+                "height": {
+                 "percent": 100.0
+                }
+               },
+               {
+                "display": "flex"
+               },
+               {
+                "flex-direction": "column"
+               }
+              ],
+              "children": []
+             }
+            }
+           ]
+          }
+         }
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ }
+}

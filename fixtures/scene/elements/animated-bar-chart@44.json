@@ -1,0 +1,657 @@
+{
+ "element": {
+  "kind": "div",
+  "style": [
+   {
+    "position": "absolute"
+   },
+   {
+    "top": {
+     "px": 0.0
+    }
+   },
+   {
+    "right": {
+     "px": 0.0
+    }
+   },
+   {
+    "bottom": {
+     "px": 0.0
+    }
+   },
+   {
+    "left": {
+     "px": 0.0
+    }
+   },
+   {
+    "width": {
+     "percent": 100.0
+    }
+   },
+   {
+    "height": {
+     "percent": 100.0
+    }
+   },
+   {
+    "display": "flex"
+   },
+   {
+    "flex-direction": "column"
+   },
+   {
+    "background-color": {
+     "components": {
+      "space": "srgb",
+      "components": [
+       0.03529412,
+       0.03529412,
+       0.043137256
+      ],
+      "alpha": 1.0
+     }
+    }
+   },
+   {
+    "overflow-x": "hidden"
+   },
+   {
+    "overflow-y": "hidden"
+   },
+   {
+    "font-family": [
+     "df-main"
+    ]
+   }
+  ],
+  "children": [
+   {
+    "element": {
+     "kind": "div",
+     "style": [
+      {
+       "position": "absolute"
+      },
+      {
+       "top": {
+        "px": 0.0
+       }
+      },
+      {
+       "right": {
+        "px": 0.0
+       }
+      },
+      {
+       "bottom": {
+        "px": 0.0
+       }
+      },
+      {
+       "left": {
+        "px": 0.0
+       }
+      },
+      {
+       "width": {
+        "percent": 100.0
+       }
+      },
+      {
+       "height": {
+        "percent": 100.0
+       }
+      },
+      {
+       "display": "flex"
+      },
+      {
+       "flex-direction": "column"
+      }
+     ],
+     "children": [
+      {
+       "element": {
+        "kind": "div",
+        "style": [
+         {
+          "position": "absolute"
+         },
+         {
+          "top": {
+           "px": 0.0
+          }
+         },
+         {
+          "right": {
+           "px": 0.0
+          }
+         },
+         {
+          "bottom": {
+           "px": 0.0
+          }
+         },
+         {
+          "left": {
+           "px": 0.0
+          }
+         },
+         {
+          "width": {
+           "percent": 100.0
+          }
+         },
+         {
+          "height": {
+           "percent": 100.0
+          }
+         },
+         {
+          "display": "flex"
+         },
+         {
+          "flex-direction": "column"
+         }
+        ],
+        "children": [
+         {
+          "element": {
+           "kind": "div",
+           "style": [
+            {
+             "position": "absolute"
+            },
+            {
+             "top": {
+              "px": 0.0
+             }
+            },
+            {
+             "right": {
+              "px": 0.0
+             }
+            },
+            {
+             "bottom": {
+              "px": 0.0
+             }
+            },
+            {
+             "left": {
+              "px": 0.0
+             }
+            },
+            {
+             "display": "flex"
+            },
+            {
+             "align-items": "center"
+            },
+            {
+             "justify-content": "center"
+            },
+            {
+             "font-family": [
+              "df-main"
+             ]
+            }
+           ],
+           "children": [
+            {
+             "element": {
+              "kind": {
+               "svg": {
+                "tag": "svg",
+                "attributes": [
+                 [
+                  "width",
+                  "1000"
+                 ],
+                 [
+                  "height",
+                  "500"
+                 ],
+                 [
+                  "viewBox",
+                  "0 0 1000 500"
+                 ]
+                ],
+                "children": [
+                 {
+                  "element": {
+                   "tag": "line",
+                   "attributes": [
+                    [
+                     "x1",
+                     "60"
+                    ],
+                    [
+                     "x2",
+                     "940"
+                    ],
+                    [
+                     "y1",
+                     "440"
+                    ],
+                    [
+                     "y2",
+                     "440"
+                    ],
+                    [
+                     "stroke",
+                     "#27272a"
+                    ],
+                    [
+                     "stroke-width",
+                     "2"
+                    ]
+                   ],
+                   "children": []
+                  }
+                 },
+                 {
+                  "element": {
+                   "tag": "g",
+                   "attributes": [],
+                   "children": [
+                    {
+                     "element": {
+                      "tag": "rect",
+                      "attributes": [
+                       [
+                        "x",
+                        "60"
+                       ],
+                       [
+                        "y",
+                        "292.22222222222223"
+                       ],
+                       [
+                        "width",
+                        "96"
+                       ],
+                       [
+                        "height",
+                        "147.77777777777777"
+                       ],
+                       [
+                        "rx",
+                        "6"
+                       ],
+                       [
+                        "fill",
+                        "#0ea5e9"
+                       ],
+                       [
+                        "transform",
+                        "translate(168 732.2222222222222) scale(1 0.9999906104235938) translate(-168 -732.2222222222222)"
+                       ],
+                       [
+                        "filter",
+                        "drop-shadow(0 4px 16px rgba(14, 165, 233, 0.33))"
+                       ]
+                      ],
+                      "children": []
+                     }
+                    }
+                   ]
+                  }
+                 },
+                 {
+                  "element": {
+                   "tag": "g",
+                   "attributes": [],
+                   "children": [
+                    {
+                     "element": {
+                      "tag": "rect",
+                      "attributes": [
+                       [
+                        "x",
+                        "172"
+                       ],
+                       [
+                        "y",
+                        "186.66666666666669"
+                       ],
+                       [
+                        "width",
+                        "96"
+                       ],
+                       [
+                        "height",
+                        "253.33333333333331"
+                       ],
+                       [
+                        "rx",
+                        "6"
+                       ],
+                       [
+                        "fill",
+                        "#0ea5e9"
+                       ],
+                       [
+                        "transform",
+                        "translate(392 626.6666666666667) scale(1 1.000095066171596) translate(-392 -626.6666666666667)"
+                       ],
+                       [
+                        "filter",
+                        "drop-shadow(0 4px 16px rgba(14, 165, 233, 0.33))"
+                       ]
+                      ],
+                      "children": []
+                     }
+                    }
+                   ]
+                  }
+                 },
+                 {
+                  "element": {
+                   "tag": "g",
+                   "attributes": [],
+                   "children": [
+                    {
+                     "element": {
+                      "tag": "rect",
+                      "attributes": [
+                       [
+                        "x",
+                        "284"
+                       ],
+                       [
+                        "y",
+                        "250"
+                       ],
+                       [
+                        "width",
+                        "96"
+                       ],
+                       [
+                        "height",
+                        "190"
+                       ],
+                       [
+                        "rx",
+                        "6"
+                       ],
+                       [
+                        "fill",
+                        "#0ea5e9"
+                       ],
+                       [
+                        "transform",
+                        "translate(616 690) scale(1 1.0001141161702347) translate(-616 -690)"
+                       ],
+                       [
+                        "filter",
+                        "drop-shadow(0 4px 16px rgba(14, 165, 233, 0.33))"
+                       ]
+                      ],
+                      "children": []
+                     }
+                    }
+                   ]
+                  }
+                 },
+                 {
+                  "element": {
+                   "tag": "g",
+                   "attributes": [],
+                   "children": [
+                    {
+                     "element": {
+                      "tag": "rect",
+                      "attributes": [
+                       [
+                        "x",
+                        "396"
+                       ],
+                       [
+                        "y",
+                        "102.22222222222223"
+                       ],
+                       [
+                        "width",
+                        "96"
+                       ],
+                       [
+                        "height",
+                        "337.77777777777777"
+                       ],
+                       [
+                        "rx",
+                        "6"
+                       ],
+                       [
+                        "fill",
+                        "#0ea5e9"
+                       ],
+                       [
+                        "transform",
+                        "translate(840 542.2222222222222) scale(1 0.9980011418816394) translate(-840 -542.2222222222222)"
+                       ],
+                       [
+                        "filter",
+                        "drop-shadow(0 4px 16px rgba(14, 165, 233, 0.33))"
+                       ]
+                      ],
+                      "children": []
+                     }
+                    }
+                   ]
+                  }
+                 },
+                 {
+                  "element": {
+                   "tag": "g",
+                   "attributes": [],
+                   "children": [
+                    {
+                     "element": {
+                      "tag": "rect",
+                      "attributes": [
+                       [
+                        "x",
+                        "508"
+                       ],
+                       [
+                        "y",
+                        "207.77777777777777"
+                       ],
+                       [
+                        "width",
+                        "96"
+                       ],
+                       [
+                        "height",
+                        "232.22222222222223"
+                       ],
+                       [
+                        "rx",
+                        "6"
+                       ],
+                       [
+                        "fill",
+                        "#0ea5e9"
+                       ],
+                       [
+                        "transform",
+                        "translate(1064 647.7777777777778) scale(1 0.9992738981597982) translate(-1064 -647.7777777777778)"
+                       ],
+                       [
+                        "filter",
+                        "drop-shadow(0 4px 16px rgba(14, 165, 233, 0.33))"
+                       ]
+                      ],
+                      "children": []
+                     }
+                    }
+                   ]
+                  }
+                 },
+                 {
+                  "element": {
+                   "tag": "g",
+                   "attributes": [],
+                   "children": [
+                    {
+                     "element": {
+                      "tag": "rect",
+                      "attributes": [
+                       [
+                        "x",
+                        "620"
+                       ],
+                       [
+                        "y",
+                        "144.44444444444446"
+                       ],
+                       [
+                        "width",
+                        "96"
+                       ],
+                       [
+                        "height",
+                        "295.55555555555554"
+                       ],
+                       [
+                        "rx",
+                        "6"
+                       ],
+                       [
+                        "fill",
+                        "#0ea5e9"
+                       ],
+                       [
+                        "transform",
+                        "translate(1288 584.4444444444445) scale(1 1.0407169947877357) translate(-1288 -584.4444444444445)"
+                       ],
+                       [
+                        "filter",
+                        "drop-shadow(0 4px 16px rgba(14, 165, 233, 0.33))"
+                       ]
+                      ],
+                      "children": []
+                     }
+                    }
+                   ]
+                  }
+                 },
+                 {
+                  "element": {
+                   "tag": "g",
+                   "attributes": [],
+                   "children": [
+                    {
+                     "element": {
+                      "tag": "rect",
+                      "attributes": [
+                       [
+                        "x",
+                        "732"
+                       ],
+                       [
+                        "y",
+                        "60"
+                       ],
+                       [
+                        "width",
+                        "96"
+                       ],
+                       [
+                        "height",
+                        "380"
+                       ],
+                       [
+                        "rx",
+                        "6"
+                       ],
+                       [
+                        "fill",
+                        "#0ea5e9"
+                       ],
+                       [
+                        "transform",
+                        "translate(1512 500) scale(1 0.9826848777952606) translate(-1512 -500)"
+                       ],
+                       [
+                        "filter",
+                        "drop-shadow(0 4px 16px rgba(14, 165, 233, 0.33))"
+                       ]
+                      ],
+                      "children": []
+                     }
+                    }
+                   ]
+                  }
+                 },
+                 {
+                  "element": {
+                   "tag": "g",
+                   "attributes": [],
+                   "children": [
+                    {
+                     "element": {
+                      "tag": "rect",
+                      "attributes": [
+                       [
+                        "x",
+                        "844"
+                       ],
+                       [
+                        "y",
+                        "165.55555555555554"
+                       ],
+                       [
+                        "width",
+                        "96"
+                       ],
+                       [
+                        "height",
+                        "274.44444444444446"
+                       ],
+                       [
+                        "rx",
+                        "6"
+                       ],
+                       [
+                        "fill",
+                        "#0ea5e9"
+                       ],
+                       [
+                        "transform",
+                        "translate(1736 605.5555555555555) scale(1 0.19574263379584234) translate(-1736 -605.5555555555555)"
+                       ],
+                       [
+                        "filter",
+                        "drop-shadow(0 4px 16px rgba(14, 165, 233, 0.33))"
+                       ]
+                      ],
+                      "children": []
+                     }
+                    }
+                   ]
+                  }
+                 }
+                ]
+               }
+              },
+              "style": [],
+              "children": []
+             }
+            }
+           ]
+          }
+         }
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ }
+}

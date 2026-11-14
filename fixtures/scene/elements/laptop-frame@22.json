@@ -1,0 +1,1983 @@
+{
+ "element": {
+  "kind": "div",
+  "style": [
+   {
+    "position": "absolute"
+   },
+   {
+    "top": {
+     "px": 0.0
+    }
+   },
+   {
+    "right": {
+     "px": 0.0
+    }
+   },
+   {
+    "bottom": {
+     "px": 0.0
+    }
+   },
+   {
+    "left": {
+     "px": 0.0
+    }
+   },
+   {
+    "width": {
+     "percent": 100.0
+    }
+   },
+   {
+    "height": {
+     "percent": 100.0
+    }
+   },
+   {
+    "display": "flex"
+   },
+   {
+    "flex-direction": "column"
+   },
+   {
+    "background-color": {
+     "components": {
+      "space": "srgb",
+      "components": [
+       0.03529412,
+       0.03529412,
+       0.043137256
+      ],
+      "alpha": 1.0
+     }
+    }
+   },
+   {
+    "overflow-x": "hidden"
+   },
+   {
+    "overflow-y": "hidden"
+   },
+   {
+    "font-family": [
+     "df-main"
+    ]
+   }
+  ],
+  "children": [
+   {
+    "element": {
+     "kind": "div",
+     "style": [
+      {
+       "position": "absolute"
+      },
+      {
+       "top": {
+        "px": 0.0
+       }
+      },
+      {
+       "right": {
+        "px": 0.0
+       }
+      },
+      {
+       "bottom": {
+        "px": 0.0
+       }
+      },
+      {
+       "left": {
+        "px": 0.0
+       }
+      },
+      {
+       "width": {
+        "percent": 100.0
+       }
+      },
+      {
+       "height": {
+        "percent": 100.0
+       }
+      },
+      {
+       "display": "flex"
+      },
+      {
+       "flex-direction": "column"
+      }
+     ],
+     "children": [
+      {
+       "element": {
+        "kind": "div",
+        "style": [
+         {
+          "position": "absolute"
+         },
+         {
+          "top": {
+           "px": 0.0
+          }
+         },
+         {
+          "right": {
+           "px": 0.0
+          }
+         },
+         {
+          "bottom": {
+           "px": 0.0
+          }
+         },
+         {
+          "left": {
+           "px": 0.0
+          }
+         },
+         {
+          "width": {
+           "percent": 100.0
+          }
+         },
+         {
+          "height": {
+           "percent": 100.0
+          }
+         },
+         {
+          "display": "flex"
+         },
+         {
+          "flex-direction": "column"
+         }
+        ],
+        "children": [
+         {
+          "element": {
+           "kind": "div",
+           "style": [
+            {
+             "position": "absolute"
+            },
+            {
+             "top": {
+              "px": 0.0
+             }
+            },
+            {
+             "right": {
+              "px": 0.0
+             }
+            },
+            {
+             "bottom": {
+              "px": 0.0
+             }
+            },
+            {
+             "left": {
+              "px": 0.0
+             }
+            },
+            {
+             "width": {
+              "percent": 100.0
+             }
+            },
+            {
+             "height": {
+              "percent": 100.0
+             }
+            },
+            {
+             "display": "flex"
+            },
+            {
+             "flex-direction": "column"
+            }
+           ],
+           "children": [
+            {
+             "element": {
+              "kind": "div",
+              "style": [
+               {
+                "position": "absolute"
+               },
+               {
+                "top": {
+                 "px": 0.0
+                }
+               },
+               {
+                "right": {
+                 "px": 0.0
+                }
+               },
+               {
+                "bottom": {
+                 "px": 0.0
+                }
+               },
+               {
+                "left": {
+                 "px": 0.0
+                }
+               },
+               {
+                "display": "flex"
+               },
+               {
+                "align-items": "center"
+               },
+               {
+                "justify-content": "center"
+               },
+               {
+                "font-family": [
+                 "df-main"
+                ]
+               }
+              ],
+              "children": [
+               {
+                "element": {
+                 "kind": "div",
+                 "style": [
+                  {
+                   "transform": [
+                    {
+                     "translate": [
+                      {
+                       "px": 0.0
+                      },
+                      {
+                       "px": 0.0
+                      },
+                      {
+                       "px": 0.0
+                      }
+                     ]
+                    },
+                    {
+                     "scale": [
+                      1.0,
+                      1.0,
+                      1.0
+                     ]
+                    }
+                   ]
+                  },
+                  {
+                   "transform-origin": [
+                    {
+                     "percent": 50.0
+                    },
+                    {
+                     "percent": 50.0
+                    },
+                    {
+                     "px": 0.0
+                    }
+                   ]
+                  },
+                  {
+                   "text-rendering": "geometric-precision"
+                  }
+                 ],
+                 "children": [
+                  {
+                   "element": {
+                    "kind": "div",
+                    "style": [
+                     {
+                      "opacity": 1.0
+                     },
+                     {
+                      "translate": [
+                       {
+                        "px": 0.0
+                       },
+                       {
+                        "px": 0.013888888888889284
+                       },
+                       {
+                        "px": 0.0
+                       }
+                      ]
+                     },
+                     {
+                      "scale": [
+                       0.85,
+                       0.85,
+                       1.0
+                      ]
+                     }
+                    ],
+                    "children": [
+                     {
+                      "element": {
+                       "kind": "div",
+                       "style": [
+                        {
+                         "display": "flex"
+                        },
+                        {
+                         "flex-direction": "column"
+                        },
+                        {
+                         "align-items": "center"
+                        },
+                        {
+                         "perspective": 1600.0
+                        }
+                       ],
+                       "children": [
+                        {
+                         "element": {
+                          "kind": "div",
+                          "style": [
+                           {
+                            "width": {
+                             "px": 820.0
+                            }
+                           },
+                           {
+                            "height": {
+                             "px": 500.0
+                            }
+                           },
+                           {
+                            "border-radius": {
+                             "top_left": [
+                              {
+                               "px": 22.0
+                              },
+                              {
+                               "px": 22.0
+                              }
+                             ],
+                             "top_right": [
+                              {
+                               "px": 22.0
+                              },
+                              {
+                               "px": 22.0
+                              }
+                             ],
+                             "bottom_right": [
+                              {
+                               "px": 6.0
+                              },
+                              {
+                               "px": 6.0
+                              }
+                             ],
+                             "bottom_left": [
+                              {
+                               "px": 6.0
+                              },
+                              {
+                               "px": 6.0
+                              }
+                             ]
+                            }
+                           },
+                           {
+                            "background-color": {
+                             "components": {
+                              "space": "srgb",
+                              "components": [
+                               0.1137255,
+                               0.1137255,
+                               0.121568635
+                              ],
+                              "alpha": 1.0
+                             }
+                            }
+                           },
+                           {
+                            "padding": {
+                             "top": {
+                              "px": 14.0
+                             },
+                             "right": {
+                              "px": 14.0
+                             },
+                             "bottom": {
+                              "px": 14.0
+                             },
+                             "left": {
+                              "px": 14.0
+                             }
+                            }
+                           },
+                           {
+                            "transform-origin": [
+                             {
+                              "percent": 50.0
+                             },
+                             {
+                              "percent": 100.0
+                             },
+                             {
+                              "px": 0.0
+                             }
+                            ]
+                           },
+                           {
+                            "transform": [
+                             {
+                              "rotate-x": {
+                               "deg": 1.5549629629629607
+                              }
+                             }
+                            ]
+                           }
+                          ],
+                          "children": [
+                           {
+                            "element": {
+                             "kind": "div",
+                             "style": [
+                              {
+                               "position": "relative"
+                              },
+                              {
+                               "width": {
+                                "percent": 100.0
+                               }
+                              },
+                              {
+                               "height": {
+                                "percent": 100.0
+                               }
+                              },
+                              {
+                               "border-radius": {
+                                "top_left": [
+                                 {
+                                  "px": 8.0
+                                 },
+                                 {
+                                  "px": 8.0
+                                 }
+                                ],
+                                "top_right": [
+                                 {
+                                  "px": 8.0
+                                 },
+                                 {
+                                  "px": 8.0
+                                 }
+                                ],
+                                "bottom_right": [
+                                 {
+                                  "px": 4.0
+                                 },
+                                 {
+                                  "px": 4.0
+                                 }
+                                ],
+                                "bottom_left": [
+                                 {
+                                  "px": 4.0
+                                 },
+                                 {
+                                  "px": 4.0
+                                 }
+                                ]
+                               }
+                              },
+                              {
+                               "background-color": {
+                                "components": {
+                                 "space": "srgb",
+                                 "components": [
+                                  1.0,
+                                  1.0,
+                                  1.0
+                                 ],
+                                 "alpha": 1.0
+                                }
+                               }
+                              },
+                              {
+                               "overflow-x": "hidden"
+                              },
+                              {
+                               "overflow-y": "hidden"
+                              }
+                             ],
+                             "children": [
+                              {
+                               "element": {
+                                "kind": "div",
+                                "style": [
+                                 {
+                                  "position": "absolute"
+                                 },
+                                 {
+                                  "top": {
+                                   "px": 0.0
+                                  }
+                                 },
+                                 {
+                                  "right": {
+                                   "px": 0.0
+                                  }
+                                 },
+                                 {
+                                  "bottom": {
+                                   "px": 0.0
+                                  }
+                                 },
+                                 {
+                                  "left": {
+                                   "px": 0.0
+                                  }
+                                 },
+                                 {
+                                  "width": {
+                                   "percent": 100.0
+                                  }
+                                 },
+                                 {
+                                  "height": {
+                                   "percent": 100.0
+                                  }
+                                 },
+                                 {
+                                  "display": "flex"
+                                 },
+                                 {
+                                  "flex-direction": "column"
+                                 }
+                                ],
+                                "children": [
+                                 {
+                                  "element": {
+                                   "kind": "div",
+                                   "style": [
+                                    {
+                                     "position": "absolute"
+                                    },
+                                    {
+                                     "top": {
+                                      "px": 0.0
+                                     }
+                                    },
+                                    {
+                                     "right": {
+                                      "px": 0.0
+                                     }
+                                    },
+                                    {
+                                     "bottom": {
+                                      "px": 0.0
+                                     }
+                                    },
+                                    {
+                                     "left": {
+                                      "px": 0.0
+                                     }
+                                    },
+                                    {
+                                     "width": {
+                                      "percent": 100.0
+                                     }
+                                    },
+                                    {
+                                     "height": {
+                                      "percent": 100.0
+                                     }
+                                    },
+                                    {
+                                     "display": "flex"
+                                    },
+                                    {
+                                     "flex-direction": "column"
+                                    }
+                                   ],
+                                   "children": [
+                                    {
+                                     "element": {
+                                      "kind": "div",
+                                      "style": [
+                                       {
+                                        "position": "absolute"
+                                       },
+                                       {
+                                        "top": {
+                                         "px": 0.0
+                                        }
+                                       },
+                                       {
+                                        "right": {
+                                         "px": 0.0
+                                        }
+                                       },
+                                       {
+                                        "bottom": {
+                                         "px": 0.0
+                                        }
+                                       },
+                                       {
+                                        "left": {
+                                         "px": 0.0
+                                        }
+                                       },
+                                       {
+                                        "width": {
+                                         "percent": 100.0
+                                        }
+                                       },
+                                       {
+                                        "height": {
+                                         "percent": 100.0
+                                        }
+                                       },
+                                       {
+                                        "display": "flex"
+                                       },
+                                       {
+                                        "flex-direction": "column"
+                                       }
+                                      ],
+                                      "children": [
+                                       {
+                                        "element": {
+                                         "kind": "div",
+                                         "style": [
+                                          {
+                                           "position": "absolute"
+                                          },
+                                          {
+                                           "top": {
+                                            "px": 0.0
+                                           }
+                                          },
+                                          {
+                                           "right": {
+                                            "px": 0.0
+                                           }
+                                          },
+                                          {
+                                           "bottom": {
+                                            "px": 0.0
+                                           }
+                                          },
+                                          {
+                                           "left": {
+                                            "px": 0.0
+                                           }
+                                          },
+                                          {
+                                           "width": {
+                                            "percent": 100.0
+                                           }
+                                          },
+                                          {
+                                           "height": {
+                                            "percent": 100.0
+                                           }
+                                          },
+                                          {
+                                           "display": "flex"
+                                          },
+                                          {
+                                           "flex-direction": "column"
+                                          },
+                                          {
+                                           "background-color": {
+                                            "components": {
+                                             "space": "srgb",
+                                             "components": [
+                                              0.20000002,
+                                              0.25490198,
+                                              0.33333334
+                                             ],
+                                             "alpha": 1.0
+                                            }
+                                           }
+                                          }
+                                         ],
+                                         "children": []
+                                        }
+                                       }
+                                      ]
+                                     }
+                                    }
+                                   ]
+                                  }
+                                 }
+                                ]
+                               }
+                              },
+                              {
+                               "element": {
+                                "kind": "div",
+                                "style": [
+                                 {
+                                  "opacity": 1.0
+                                 }
+                                ],
+                                "children": [
+                                 {
+                                  "element": {
+                                   "kind": "div",
+                                   "style": [
+                                    {
+                                     "position": "absolute"
+                                    },
+                                    {
+                                     "top": {
+                                      "px": 9.0
+                                     }
+                                    },
+                                    {
+                                     "left": {
+                                      "percent": 50.0
+                                     }
+                                    },
+                                    {
+                                     "translate": [
+                                      {
+                                       "percent": -50.0
+                                      },
+                                      {
+                                       "px": 0.0
+                                      },
+                                      {
+                                       "px": 0.0
+                                      }
+                                     ]
+                                    },
+                                    {
+                                     "width": {
+                                      "px": 116.0
+                                     }
+                                    },
+                                    {
+                                     "height": {
+                                      "px": 30.0
+                                     }
+                                    },
+                                    {
+                                     "border-radius": {
+                                      "top_left": [
+                                       {
+                                        "px": 999.0
+                                       },
+                                       {
+                                        "px": 999.0
+                                       }
+                                      ],
+                                      "top_right": [
+                                       {
+                                        "px": 999.0
+                                       },
+                                       {
+                                        "px": 999.0
+                                       }
+                                      ],
+                                      "bottom_right": [
+                                       {
+                                        "px": 999.0
+                                       },
+                                       {
+                                        "px": 999.0
+                                       }
+                                      ],
+                                      "bottom_left": [
+                                       {
+                                        "px": 999.0
+                                       },
+                                       {
+                                        "px": 999.0
+                                       }
+                                      ]
+                                     }
+                                    },
+                                    {
+                                     "background-color": {
+                                      "components": {
+                                       "space": "srgb",
+                                       "components": [
+                                        0.039215688,
+                                        0.039215688,
+                                        0.043137256
+                                       ],
+                                       "alpha": 1.0
+                                      }
+                                     }
+                                    },
+                                    {
+                                     "overflow-x": "hidden"
+                                    },
+                                    {
+                                     "overflow-y": "hidden"
+                                    },
+                                    {
+                                     "z-index": 10
+                                    }
+                                   ],
+                                   "children": [
+                                    {
+                                     "element": {
+                                      "kind": "div",
+                                      "style": [
+                                       {
+                                        "position": "absolute"
+                                       },
+                                       {
+                                        "top": {
+                                         "px": 0.0
+                                        }
+                                       },
+                                       {
+                                        "right": {
+                                         "px": 0.0
+                                        }
+                                       },
+                                       {
+                                        "bottom": {
+                                         "px": 0.0
+                                        }
+                                       },
+                                       {
+                                        "left": {
+                                         "px": 0.0
+                                        }
+                                       },
+                                       {
+                                        "display": "flex"
+                                       },
+                                       {
+                                        "align-items": "center"
+                                       },
+                                       {
+                                        "justify-content": "center"
+                                       },
+                                       {
+                                        "row-gap": {
+                                         "px": 6.0
+                                        }
+                                       },
+                                       {
+                                        "column-gap": {
+                                         "px": 6.0
+                                        }
+                                       },
+                                       {
+                                        "opacity": 1.0
+                                       }
+                                      ],
+                                      "children": [
+                                       {
+                                        "element": {
+                                         "kind": "div",
+                                         "style": [
+                                          {
+                                           "width": {
+                                            "px": 9.0
+                                           }
+                                          },
+                                          {
+                                           "height": {
+                                            "px": 9.0
+                                           }
+                                          },
+                                          {
+                                           "border-radius": {
+                                            "top_left": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ],
+                                            "top_right": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ],
+                                            "bottom_right": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ],
+                                            "bottom_left": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ]
+                                           }
+                                          },
+                                          {
+                                           "background-color": {
+                                            "components": {
+                                             "space": "srgb",
+                                             "components": [
+                                              0.1254902,
+                                              0.1254902,
+                                              0.12941177
+                                             ],
+                                             "alpha": 1.0
+                                            }
+                                           }
+                                          },
+                                          {
+                                           "border": {
+                                            "top": {
+                                             "width": {
+                                              "px": 1.0
+                                             },
+                                             "style": "solid",
+                                             "color": {
+                                              "components": {
+                                               "space": "srgb",
+                                               "components": [
+                                                0.19215687,
+                                                0.19215687,
+                                                0.19607843
+                                               ],
+                                               "alpha": 1.0
+                                              }
+                                             }
+                                            },
+                                            "right": {
+                                             "width": {
+                                              "px": 1.0
+                                             },
+                                             "style": "solid",
+                                             "color": {
+                                              "components": {
+                                               "space": "srgb",
+                                               "components": [
+                                                0.19215687,
+                                                0.19215687,
+                                                0.19607843
+                                               ],
+                                               "alpha": 1.0
+                                              }
+                                             }
+                                            },
+                                            "bottom": {
+                                             "width": {
+                                              "px": 1.0
+                                             },
+                                             "style": "solid",
+                                             "color": {
+                                              "components": {
+                                               "space": "srgb",
+                                               "components": [
+                                                0.19215687,
+                                                0.19215687,
+                                                0.19607843
+                                               ],
+                                               "alpha": 1.0
+                                              }
+                                             }
+                                            },
+                                            "left": {
+                                             "width": {
+                                              "px": 1.0
+                                             },
+                                             "style": "solid",
+                                             "color": {
+                                              "components": {
+                                               "space": "srgb",
+                                               "components": [
+                                                0.19215687,
+                                                0.19215687,
+                                                0.19607843
+                                               ],
+                                               "alpha": 1.0
+                                              }
+                                             }
+                                            }
+                                           }
+                                          }
+                                         ],
+                                         "children": []
+                                        }
+                                       },
+                                       {
+                                        "element": {
+                                         "kind": "div",
+                                         "style": [
+                                          {
+                                           "width": {
+                                            "px": 5.0
+                                           }
+                                          },
+                                          {
+                                           "height": {
+                                            "px": 5.0
+                                           }
+                                          },
+                                          {
+                                           "border-radius": {
+                                            "top_left": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ],
+                                            "top_right": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ],
+                                            "bottom_right": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ],
+                                            "bottom_left": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ]
+                                           }
+                                          },
+                                          {
+                                           "background-color": {
+                                            "components": {
+                                             "space": "srgb",
+                                             "components": [
+                                              0.08235294,
+                                              0.08235294,
+                                              0.08627451
+                                             ],
+                                             "alpha": 1.0
+                                            }
+                                           }
+                                          }
+                                         ],
+                                         "children": []
+                                        }
+                                       }
+                                      ]
+                                     }
+                                    },
+                                    {
+                                     "element": {
+                                      "kind": "div",
+                                      "style": [
+                                       {
+                                        "position": "absolute"
+                                       },
+                                       {
+                                        "top": {
+                                         "px": 0.0
+                                        }
+                                       },
+                                       {
+                                        "right": {
+                                         "px": 0.0
+                                        }
+                                       },
+                                       {
+                                        "bottom": {
+                                         "px": 0.0
+                                        }
+                                       },
+                                       {
+                                        "left": {
+                                         "px": 0.0
+                                        }
+                                       },
+                                       {
+                                        "display": "flex"
+                                       },
+                                       {
+                                        "align-items": "center"
+                                       },
+                                       {
+                                        "justify-content": "center"
+                                       },
+                                       {
+                                        "row-gap": {
+                                         "px": 4.0
+                                        }
+                                       },
+                                       {
+                                        "column-gap": {
+                                         "px": 4.0
+                                        }
+                                       },
+                                       {
+                                        "opacity": 0.0
+                                       }
+                                      ],
+                                      "children": [
+                                       {
+                                        "element": {
+                                         "kind": "div",
+                                         "style": [
+                                          {
+                                           "width": {
+                                            "px": 5.0
+                                           }
+                                          },
+                                          {
+                                           "height": {
+                                            "px": 5.0
+                                           }
+                                          },
+                                          {
+                                           "border-radius": {
+                                            "top_left": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ],
+                                            "top_right": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ],
+                                            "bottom_right": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ],
+                                            "bottom_left": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ]
+                                           }
+                                          },
+                                          {
+                                           "background-color": {
+                                            "components": {
+                                             "space": "srgb",
+                                             "components": [
+                                              0.9803922,
+                                              0.9803922,
+                                              0.9803922
+                                             ],
+                                             "alpha": 1.0
+                                            }
+                                           }
+                                          },
+                                          {
+                                           "opacity": 0.4883379023288824
+                                          }
+                                         ],
+                                         "children": []
+                                        }
+                                       },
+                                       {
+                                        "element": {
+                                         "kind": "div",
+                                         "style": [
+                                          {
+                                           "width": {
+                                            "px": 5.0
+                                           }
+                                          },
+                                          {
+                                           "height": {
+                                            "px": 5.0
+                                           }
+                                          },
+                                          {
+                                           "border-radius": {
+                                            "top_left": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ],
+                                            "top_right": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ],
+                                            "bottom_right": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ],
+                                            "bottom_left": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ]
+                                           }
+                                          },
+                                          {
+                                           "background-color": {
+                                            "components": {
+                                             "space": "srgb",
+                                             "components": [
+                                              0.9803922,
+                                              0.9803922,
+                                              0.9803922
+                                             ],
+                                             "alpha": 1.0
+                                            }
+                                           }
+                                          },
+                                          {
+                                           "opacity": 0.4018926989099607
+                                          }
+                                         ],
+                                         "children": []
+                                        }
+                                       },
+                                       {
+                                        "element": {
+                                         "kind": "div",
+                                         "style": [
+                                          {
+                                           "width": {
+                                            "px": 5.0
+                                           }
+                                          },
+                                          {
+                                           "height": {
+                                            "px": 5.0
+                                           }
+                                          },
+                                          {
+                                           "border-radius": {
+                                            "top_left": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ],
+                                            "top_right": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ],
+                                            "bottom_right": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ],
+                                            "bottom_left": [
+                                             {
+                                              "px": 999.0
+                                             },
+                                             {
+                                              "px": 999.0
+                                             }
+                                            ]
+                                           }
+                                          },
+                                          {
+                                           "background-color": {
+                                            "components": {
+                                             "space": "srgb",
+                                             "components": [
+                                              0.9803922,
+                                              0.9803922,
+                                              0.9803922
+                                             ],
+                                             "alpha": 1.0
+                                            }
+                                           }
+                                          },
+                                          {
+                                           "opacity": 0.541049157727452
+                                          }
+                                         ],
+                                         "children": []
+                                        }
+                                       }
+                                      ]
+                                     }
+                                    },
+                                    {
+                                     "element": {
+                                      "kind": "div",
+                                      "style": [
+                                       {
+                                        "position": "absolute"
+                                       },
+                                       {
+                                        "top": {
+                                         "px": 0.0
+                                        }
+                                       },
+                                       {
+                                        "right": {
+                                         "px": 0.0
+                                        }
+                                       },
+                                       {
+                                        "bottom": {
+                                         "px": 0.0
+                                        }
+                                       },
+                                       {
+                                        "left": {
+                                         "px": 0.0
+                                        }
+                                       },
+                                       {
+                                        "display": "flex"
+                                       },
+                                       {
+                                        "align-items": "center"
+                                       },
+                                       {
+                                        "justify-content": "center"
+                                       },
+                                       {
+                                        "row-gap": {
+                                         "px": 8.0
+                                        }
+                                       },
+                                       {
+                                        "column-gap": {
+                                         "px": 8.0
+                                        }
+                                       },
+                                       {
+                                        "opacity": 0.0
+                                       }
+                                      ],
+                                      "children": [
+                                       {
+                                        "element": {
+                                         "kind": "span",
+                                         "style": [
+                                          {
+                                           "font-size": {
+                                            "px": 12.0
+                                           }
+                                          },
+                                          {
+                                           "font-weight": 500.0
+                                          },
+                                          {
+                                           "letter-spacing": {
+                                            "em": -0.01
+                                           }
+                                          },
+                                          {
+                                           "color": {
+                                            "components": {
+                                             "space": "srgb",
+                                             "components": [
+                                              0.9803922,
+                                              0.9803922,
+                                              0.9803922
+                                             ],
+                                             "alpha": 1.0
+                                            }
+                                           }
+                                          },
+                                          {
+                                           "white-space": "nowrap"
+                                          }
+                                         ],
+                                         "children": [
+                                          {
+                                           "text": "Recording started"
+                                          }
+                                         ]
+                                        }
+                                       },
+                                       {
+                                        "element": {
+                                         "kind": "div",
+                                         "style": [
+                                          {
+                                           "width": {
+                                            "px": 22.0
+                                           }
+                                          },
+                                          {
+                                           "height": {
+                                            "px": 11.0
+                                           }
+                                          },
+                                          {
+                                           "border-radius": {
+                                            "top_left": [
+                                             {
+                                              "px": 3.0
+                                             },
+                                             {
+                                              "px": 3.0
+                                             }
+                                            ],
+                                            "top_right": [
+                                             {
+                                              "px": 3.0
+                                             },
+                                             {
+                                              "px": 3.0
+                                             }
+                                            ],
+                                            "bottom_right": [
+                                             {
+                                              "px": 3.0
+                                             },
+                                             {
+                                              "px": 3.0
+                                             }
+                                            ],
+                                            "bottom_left": [
+                                             {
+                                              "px": 3.0
+                                             },
+                                             {
+                                              "px": 3.0
+                                             }
+                                            ]
+                                           }
+                                          },
+                                          {
+                                           "border": {
+                                            "top": {
+                                             "width": {
+                                              "px": 1.5
+                                             },
+                                             "style": "solid",
+                                             "color": {
+                                              "components": {
+                                               "space": "srgb",
+                                               "components": [
+                                                0.18823531,
+                                                0.8196079,
+                                                0.34509805
+                                               ],
+                                               "alpha": 1.0
+                                              }
+                                             }
+                                            },
+                                            "right": {
+                                             "width": {
+                                              "px": 1.5
+                                             },
+                                             "style": "solid",
+                                             "color": {
+                                              "components": {
+                                               "space": "srgb",
+                                               "components": [
+                                                0.18823531,
+                                                0.8196079,
+                                                0.34509805
+                                               ],
+                                               "alpha": 1.0
+                                              }
+                                             }
+                                            },
+                                            "bottom": {
+                                             "width": {
+                                              "px": 1.5
+                                             },
+                                             "style": "solid",
+                                             "color": {
+                                              "components": {
+                                               "space": "srgb",
+                                               "components": [
+                                                0.18823531,
+                                                0.8196079,
+                                                0.34509805
+                                               ],
+                                               "alpha": 1.0
+                                              }
+                                             }
+                                            },
+                                            "left": {
+                                             "width": {
+                                              "px": 1.5
+                                             },
+                                             "style": "solid",
+                                             "color": {
+                                              "components": {
+                                               "space": "srgb",
+                                               "components": [
+                                                0.18823531,
+                                                0.8196079,
+                                                0.34509805
+                                               ],
+                                               "alpha": 1.0
+                                              }
+                                             }
+                                            }
+                                           }
+                                          },
+                                          {
+                                           "padding": {
+                                            "top": {
+                                             "px": 1.5
+                                            },
+                                            "right": {
+                                             "px": 1.5
+                                            },
+                                            "bottom": {
+                                             "px": 1.5
+                                            },
+                                            "left": {
+                                             "px": 1.5
+                                            }
+                                           }
+                                          },
+                                          {
+                                           "display": "flex"
+                                          },
+                                          {
+                                           "align-items": "center"
+                                          }
+                                         ],
+                                         "children": [
+                                          {
+                                           "element": {
+                                            "kind": "div",
+                                            "style": [
+                                             {
+                                              "width": {
+                                               "percent": 85.0
+                                              }
+                                             },
+                                             {
+                                              "height": {
+                                               "percent": 100.0
+                                              }
+                                             },
+                                             {
+                                              "border-radius": {
+                                               "top_left": [
+                                                {
+                                                 "px": 1.0
+                                                },
+                                                {
+                                                 "px": 1.0
+                                                }
+                                               ],
+                                               "top_right": [
+                                                {
+                                                 "px": 1.0
+                                                },
+                                                {
+                                                 "px": 1.0
+                                                }
+                                               ],
+                                               "bottom_right": [
+                                                {
+                                                 "px": 1.0
+                                                },
+                                                {
+                                                 "px": 1.0
+                                                }
+                                               ],
+                                               "bottom_left": [
+                                                {
+                                                 "px": 1.0
+                                                },
+                                                {
+                                                 "px": 1.0
+                                                }
+                                               ]
+                                              }
+                                             },
+                                             {
+                                              "background-color": {
+                                               "components": {
+                                                "space": "srgb",
+                                                "components": [
+                                                 0.18823531,
+                                                 0.8196079,
+                                                 0.34509805
+                                                ],
+                                                "alpha": 1.0
+                                               }
+                                              }
+                                             }
+                                            ],
+                                            "children": []
+                                           }
+                                          }
+                                         ]
+                                        }
+                                       }
+                                      ]
+                                     }
+                                    }
+                                   ]
+                                  }
+                                 }
+                                ]
+                               }
+                              }
+                             ]
+                            }
+                           }
+                          ]
+                         }
+                        },
+                        {
+                         "element": {
+                          "kind": "div",
+                          "style": [
+                           {
+                            "position": "relative"
+                           },
+                           {
+                            "width": {
+                             "px": 900.0
+                            }
+                           },
+                           {
+                            "height": {
+                             "px": 22.0
+                            }
+                           },
+                           {
+                            "border-radius": {
+                             "top_left": [
+                              {
+                               "px": 6.0
+                              },
+                              {
+                               "px": 6.0
+                              }
+                             ],
+                             "top_right": [
+                              {
+                               "px": 6.0
+                              },
+                              {
+                               "px": 6.0
+                              }
+                             ],
+                             "bottom_right": [
+                              {
+                               "px": 40.0
+                              },
+                              {
+                               "px": 40.0
+                              }
+                             ],
+                             "bottom_left": [
+                              {
+                               "px": 40.0
+                              },
+                              {
+                               "px": 40.0
+                              }
+                             ]
+                            }
+                           },
+                           {
+                            "background": [
+                             {
+                              "image": {
+                               "gradient": {
+                                "linear": {
+                                 "direction": {
+                                  "to-side": {
+                                   "horizontal": null,
+                                   "vertical": "bottom"
+                                  }
+                                 },
+                                 "stops": [
+                                  {
+                                   "color": {
+                                    "components": {
+                                     "space": "srgb",
+                                     "components": [
+                                      0.98039216,
+                                      0.98039216,
+                                      0.98039216
+                                     ],
+                                     "alpha": 0.16
+                                    }
+                                   },
+                                   "at": null,
+                                   "until": null
+                                  },
+                                  {
+                                   "color": {
+                                    "components": {
+                                     "space": "srgb",
+                                     "components": [
+                                      0.039215688,
+                                      0.039215688,
+                                      0.043137256
+                                     ],
+                                     "alpha": 0.0
+                                    }
+                                   },
+                                   "at": {
+                                    "percent": 34.0
+                                   },
+                                   "until": null
+                                  },
+                                  {
+                                   "color": {
+                                    "components": {
+                                     "space": "srgb",
+                                     "components": [
+                                      0.039215688,
+                                      0.039215688,
+                                      0.043137256
+                                     ],
+                                     "alpha": 0.34
+                                    }
+                                   },
+                                   "at": null,
+                                   "until": null
+                                  }
+                                 ],
+                                 "repeating": false,
+                                 "interpolation": {
+                                  "space": "srgb",
+                                  "hue": "shorter"
+                                 }
+                                }
+                               }
+                              },
+                              "size": "auto",
+                              "position": {
+                               "x": {
+                                "px": 0.0
+                               },
+                               "y": {
+                                "px": 0.0
+                               }
+                              },
+                              "repeat": [
+                               "repeat",
+                               "repeat"
+                              ],
+                              "clip": "border-box",
+                              "origin": "padding-box",
+                              "blend": "normal"
+                             }
+                            ]
+                           },
+                           {
+                            "background-color": {
+                             "components": {
+                              "space": "srgb",
+                              "components": [
+                               0.1137255,
+                               0.1137255,
+                               0.121568635
+                              ],
+                              "alpha": 1.0
+                             }
+                            }
+                           },
+                           {
+                            "box-shadow": [
+                             {
+                              "inset": false,
+                              "x": {
+                               "px": 0.0
+                              },
+                              "y": {
+                               "px": 40.0
+                              },
+                              "blur": {
+                               "px": 80.0
+                              },
+                              "spread": {
+                               "px": 0.0
+                              },
+                              "color": {
+                               "components": {
+                                "space": "srgb",
+                                "components": [
+                                 0.039215688,
+                                 0.047058824,
+                                 0.078431375
+                                ],
+                                "alpha": 0.45
+                               }
+                              }
+                             }
+                            ]
+                           }
+                          ],
+                          "children": [
+                           {
+                            "element": {
+                             "kind": "div",
+                             "style": [
+                              {
+                               "position": "absolute"
+                              },
+                              {
+                               "top": {
+                                "px": 0.0
+                               }
+                              },
+                              {
+                               "left": {
+                                "percent": 50.0
+                               }
+                              },
+                              {
+                               "translate": [
+                                {
+                                 "percent": -50.0
+                                },
+                                {
+                                 "px": 0.0
+                                },
+                                {
+                                 "px": 0.0
+                                }
+                               ]
+                              },
+                              {
+                               "width": {
+                                "px": 132.0
+                               }
+                              },
+                              {
+                               "height": {
+                                "px": 8.0
+                               }
+                              },
+                              {
+                               "border-radius": {
+                                "top_left": [
+                                 {
+                                  "px": 0.0
+                                 },
+                                 {
+                                  "px": 0.0
+                                 }
+                                ],
+                                "top_right": [
+                                 {
+                                  "px": 0.0
+                                 },
+                                 {
+                                  "px": 0.0
+                                 }
+                                ],
+                                "bottom_right": [
+                                 {
+                                  "px": 6.0
+                                 },
+                                 {
+                                  "px": 6.0
+                                 }
+                                ],
+                                "bottom_left": [
+                                 {
+                                  "px": 6.0
+                                 },
+                                 {
+                                  "px": 6.0
+                                 }
+                                ]
+                               }
+                              },
+                              {
+                               "background-color": {
+                                "components": {
+                                 "space": "srgb",
+                                 "components": [
+                                  0.039215688,
+                                  0.039215688,
+                                  0.043137256
+                                 ],
+                                 "alpha": 0.28
+                                }
+                               }
+                              }
+                             ],
+                             "children": []
+                            }
+                           }
+                          ]
+                         }
+                        }
+                       ]
+                      }
+                     }
+                    ]
+                   }
+                  }
+                 ]
+                }
+               }
+              ]
+             }
+            }
+           ]
+          }
+         }
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ }
+}

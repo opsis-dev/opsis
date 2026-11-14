@@ -1,0 +1,2459 @@
+{
+ "element": {
+  "kind": "div",
+  "style": [
+   {
+    "position": "absolute"
+   },
+   {
+    "top": {
+     "px": 0.0
+    }
+   },
+   {
+    "right": {
+     "px": 0.0
+    }
+   },
+   {
+    "bottom": {
+     "px": 0.0
+    }
+   },
+   {
+    "left": {
+     "px": 0.0
+    }
+   },
+   {
+    "width": {
+     "percent": 100.0
+    }
+   },
+   {
+    "height": {
+     "percent": 100.0
+    }
+   },
+   {
+    "display": "flex"
+   },
+   {
+    "flex-direction": "column"
+   },
+   {
+    "background-color": {
+     "components": {
+      "space": "srgb",
+      "components": [
+       0.03529412,
+       0.03529412,
+       0.043137256
+      ],
+      "alpha": 1.0
+     }
+    }
+   },
+   {
+    "overflow-x": "hidden"
+   },
+   {
+    "overflow-y": "hidden"
+   },
+   {
+    "font-family": [
+     "df-main"
+    ]
+   }
+  ],
+  "children": [
+   {
+    "element": {
+     "kind": "div",
+     "style": [
+      {
+       "position": "absolute"
+      },
+      {
+       "top": {
+        "px": 0.0
+       }
+      },
+      {
+       "right": {
+        "px": 0.0
+       }
+      },
+      {
+       "bottom": {
+        "px": 0.0
+       }
+      },
+      {
+       "left": {
+        "px": 0.0
+       }
+      },
+      {
+       "width": {
+        "percent": 100.0
+       }
+      },
+      {
+       "height": {
+        "percent": 100.0
+       }
+      },
+      {
+       "display": "flex"
+      },
+      {
+       "flex-direction": "column"
+      }
+     ],
+     "children": [
+      {
+       "element": {
+        "kind": "div",
+        "style": [
+         {
+          "position": "absolute"
+         },
+         {
+          "top": {
+           "px": 0.0
+          }
+         },
+         {
+          "right": {
+           "px": 0.0
+          }
+         },
+         {
+          "bottom": {
+           "px": 0.0
+          }
+         },
+         {
+          "left": {
+           "px": 0.0
+          }
+         },
+         {
+          "width": {
+           "percent": 100.0
+          }
+         },
+         {
+          "height": {
+           "percent": 100.0
+          }
+         },
+         {
+          "display": "flex"
+         },
+         {
+          "flex-direction": "column"
+         }
+        ],
+        "children": [
+         {
+          "element": {
+           "kind": "div",
+           "style": [
+            {
+             "position": "absolute"
+            },
+            {
+             "top": {
+              "px": 0.0
+             }
+            },
+            {
+             "right": {
+              "px": 0.0
+             }
+            },
+            {
+             "bottom": {
+              "px": 0.0
+             }
+            },
+            {
+             "left": {
+              "px": 0.0
+             }
+            },
+            {
+             "width": {
+              "percent": 100.0
+             }
+            },
+            {
+             "height": {
+              "percent": 100.0
+             }
+            },
+            {
+             "flex-direction": "column"
+            },
+            {
+             "font-family": [
+              "df-main"
+             ]
+            },
+            {
+             "display": "flex"
+            },
+            {
+             "align-items": "center"
+            },
+            {
+             "justify-content": "center"
+            },
+            {
+             "padding": {
+              "top": {
+               "px": 100.0
+              },
+              "right": {
+               "px": 142.0
+              },
+              "bottom": {
+               "px": 100.0
+              },
+              "left": {
+               "px": 142.0
+              }
+             }
+            },
+            {
+             "background": []
+            },
+            {
+             "background-color": {
+              "components": {
+               "space": "srgb",
+               "components": [
+                0.027450982,
+                0.027450982,
+                0.043137256
+               ],
+               "alpha": 1.0
+              }
+             }
+            }
+           ],
+           "children": [
+            {
+             "element": {
+              "kind": "div",
+              "style": [
+               {
+                "width": {
+                 "px": 862.5
+                }
+               },
+               {
+                "border-radius": {
+                 "top_left": [
+                  {
+                   "px": 45.0
+                  },
+                  {
+                   "px": 45.0
+                  }
+                 ],
+                 "top_right": [
+                  {
+                   "px": 45.0
+                  },
+                  {
+                   "px": 45.0
+                  }
+                 ],
+                 "bottom_right": [
+                  {
+                   "px": 45.0
+                  },
+                  {
+                   "px": 45.0
+                  }
+                 ],
+                 "bottom_left": [
+                  {
+                   "px": 45.0
+                  },
+                  {
+                   "px": 45.0
+                  }
+                 ]
+                }
+               },
+               {
+                "background-color": {
+                 "components": {
+                  "space": "srgb",
+                  "components": [
+                   0.043137256,
+                   0.04705883,
+                   0.06666667
+                  ],
+                  "alpha": 1.0
+                 }
+                }
+               },
+               {
+                "box-shadow": [
+                 {
+                  "inset": true,
+                  "x": {
+                   "px": 0.0
+                  },
+                  "y": {
+                   "px": 1.0
+                  },
+                  "blur": {
+                   "px": 0.0
+                  },
+                  "spread": {
+                   "px": 0.0
+                  },
+                  "color": {
+                   "components": {
+                    "space": "srgb",
+                    "components": [
+                     1.0,
+                     1.0,
+                     1.0
+                    ],
+                    "alpha": 0.14
+                   }
+                  }
+                 },
+                 {
+                  "inset": false,
+                  "x": {
+                   "px": 0.0
+                  },
+                  "y": {
+                   "px": 52.5
+                  },
+                  "blur": {
+                   "px": 131.25
+                  },
+                  "spread": {
+                   "px": 0.0
+                  },
+                  "color": {
+                   "components": {
+                    "space": "srgb",
+                    "components": [
+                     0.0,
+                     0.0,
+                     0.0
+                    ],
+                    "alpha": 0.55
+                   }
+                  }
+                 }
+                ]
+               },
+               {
+                "overflow-x": "hidden"
+               },
+               {
+                "overflow-y": "hidden"
+               },
+               {
+                "clip-path": {
+                 "inset": {
+                  "edges": {
+                   "top": {
+                    "px": 0.0
+                   },
+                   "right": {
+                    "px": 0.0
+                   },
+                   "bottom": {
+                    "percent": 0.0
+                   },
+                   "left": {
+                    "px": 0.0
+                   }
+                  },
+                  "round": {
+                   "top_left": [
+                    {
+                     "px": 45.0
+                    },
+                    {
+                     "px": 45.0
+                    }
+                   ],
+                   "top_right": [
+                    {
+                     "px": 45.0
+                    },
+                    {
+                     "px": 45.0
+                    }
+                   ],
+                   "bottom_right": [
+                    {
+                     "px": 45.0
+                    },
+                    {
+                     "px": 45.0
+                    }
+                   ],
+                   "bottom_left": [
+                    {
+                     "px": 45.0
+                    },
+                    {
+                     "px": 45.0
+                    }
+                   ]
+                  }
+                 }
+                }
+               },
+               {
+                "translate": [
+                 {
+                  "px": 0.0
+                 },
+                 {
+                  "px": 4.073227255485534e-8
+                 },
+                 {
+                  "px": 0.0
+                 }
+                ]
+               },
+               {
+                "border": {
+                 "top": {
+                  "width": {
+                   "px": 1.0
+                  },
+                  "style": "solid",
+                  "color": {
+                   "mix": {
+                    "interpolation": {
+                     "space": "srgb",
+                     "hue": "shorter"
+                    },
+                    "first": {
+                     "components": {
+                      "space": "srgb",
+                      "components": [
+                       0.909804,
+                       0.72156864,
+                       0.427451
+                      ],
+                      "alpha": 1.0
+                     }
+                    },
+                    "first_share": 23.0,
+                    "second": {
+                     "components": {
+                      "space": "srgb",
+                      "components": [
+                       0.0,
+                       0.0,
+                       0.0
+                      ],
+                      "alpha": 0.0
+                     }
+                    },
+                    "second_share": null
+                   }
+                  }
+                 },
+                 "right": {
+                  "width": {
+                   "px": 1.0
+                  },
+                  "style": "solid",
+                  "color": {
+                   "mix": {
+                    "interpolation": {
+                     "space": "srgb",
+                     "hue": "shorter"
+                    },
+                    "first": {
+                     "components": {
+                      "space": "srgb",
+                      "components": [
+                       0.909804,
+                       0.72156864,
+                       0.427451
+                      ],
+                      "alpha": 1.0
+                     }
+                    },
+                    "first_share": 23.0,
+                    "second": {
+                     "components": {
+                      "space": "srgb",
+                      "components": [
+                       0.0,
+                       0.0,
+                       0.0
+                      ],
+                      "alpha": 0.0
+                     }
+                    },
+                    "second_share": null
+                   }
+                  }
+                 },
+                 "bottom": {
+                  "width": {
+                   "px": 1.0
+                  },
+                  "style": "solid",
+                  "color": {
+                   "mix": {
+                    "interpolation": {
+                     "space": "srgb",
+                     "hue": "shorter"
+                    },
+                    "first": {
+                     "components": {
+                      "space": "srgb",
+                      "components": [
+                       0.909804,
+                       0.72156864,
+                       0.427451
+                      ],
+                      "alpha": 1.0
+                     }
+                    },
+                    "first_share": 23.0,
+                    "second": {
+                     "components": {
+                      "space": "srgb",
+                      "components": [
+                       0.0,
+                       0.0,
+                       0.0
+                      ],
+                      "alpha": 0.0
+                     }
+                    },
+                    "second_share": null
+                   }
+                  }
+                 },
+                 "left": {
+                  "width": {
+                   "px": 1.0
+                  },
+                  "style": "solid",
+                  "color": {
+                   "mix": {
+                    "interpolation": {
+                     "space": "srgb",
+                     "hue": "shorter"
+                    },
+                    "first": {
+                     "components": {
+                      "space": "srgb",
+                      "components": [
+                       0.909804,
+                       0.72156864,
+                       0.427451
+                      ],
+                      "alpha": 1.0
+                     }
+                    },
+                    "first_share": 23.0,
+                    "second": {
+                     "components": {
+                      "space": "srgb",
+                      "components": [
+                       0.0,
+                       0.0,
+                       0.0
+                      ],
+                      "alpha": 0.0
+                     }
+                    },
+                    "second_share": null
+                   }
+                  }
+                 }
+                }
+               },
+               {
+                "padding": {
+                 "top": {
+                  "px": 56.25
+                 },
+                 "right": {
+                  "px": 56.25
+                 },
+                 "bottom": {
+                  "px": 56.25
+                 },
+                 "left": {
+                  "px": 56.25
+                 }
+                }
+               },
+               {
+                "position": "relative"
+               }
+              ],
+              "children": [
+               {
+                "element": {
+                 "kind": "div",
+                 "style": [
+                  {
+                   "position": "absolute"
+                  },
+                  {
+                   "top": {
+                    "px": 0.0
+                   }
+                  },
+                  {
+                   "right": {
+                    "px": 0.0
+                   }
+                  },
+                  {
+                   "bottom": {
+                    "px": 0.0
+                   }
+                  },
+                  {
+                   "left": {
+                    "px": 0.0
+                   }
+                  },
+                  {
+                   "background": [
+                    {
+                     "image": {
+                      "gradient": {
+                       "radial": {
+                        "shape": "ellipse",
+                        "size": {
+                         "explicit": [
+                          {
+                           "percent": 120.0
+                          },
+                          {
+                           "percent": 80.0
+                          }
+                         ]
+                        },
+                        "center": {
+                         "x": {
+                          "percent": 8.0
+                         },
+                         "y": {
+                          "percent": 0.0
+                         }
+                        },
+                        "stops": [
+                         {
+                          "color": {
+                           "mix": {
+                            "interpolation": {
+                             "space": "srgb",
+                             "hue": "shorter"
+                            },
+                            "first": {
+                             "components": {
+                              "space": "srgb",
+                              "components": [
+                               0.909804,
+                               0.72156864,
+                               0.427451
+                              ],
+                              "alpha": 1.0
+                             }
+                            },
+                            "first_share": 12.0,
+                            "second": {
+                             "components": {
+                              "space": "srgb",
+                              "components": [
+                               0.0,
+                               0.0,
+                               0.0
+                              ],
+                              "alpha": 0.0
+                             }
+                            },
+                            "second_share": null
+                           }
+                          },
+                          "at": null,
+                          "until": null
+                         },
+                         {
+                          "color": {
+                           "components": {
+                            "space": "srgb",
+                            "components": [
+                             0.0,
+                             0.0,
+                             0.0
+                            ],
+                            "alpha": 0.0
+                           }
+                          },
+                          "at": {
+                           "percent": 62.0
+                          },
+                          "until": null
+                         }
+                        ],
+                        "repeating": false,
+                        "interpolation": {
+                         "space": "srgb",
+                         "hue": "shorter"
+                        }
+                       }
+                      }
+                     },
+                     "size": "auto",
+                     "position": {
+                      "x": {
+                       "px": 0.0
+                      },
+                      "y": {
+                       "px": 0.0
+                      }
+                     },
+                     "repeat": [
+                      "repeat",
+                      "repeat"
+                     ],
+                     "clip": "border-box",
+                     "origin": "padding-box",
+                     "blend": "normal"
+                    }
+                   ]
+                  }
+                 ],
+                 "children": []
+                }
+               },
+               {
+                "element": {
+                 "kind": "div",
+                 "style": [
+                  {
+                   "position": "relative"
+                  }
+                 ],
+                 "children": [
+                  {
+                   "element": {
+                    "kind": "div",
+                    "style": [
+                     {
+                      "display": "flex"
+                     },
+                     {
+                      "align-items": "center"
+                     },
+                     {
+                      "row-gap": {
+                       "px": 18.75
+                      }
+                     },
+                     {
+                      "column-gap": {
+                       "px": 18.75
+                      }
+                     },
+                     {
+                      "opacity": 1.0
+                     },
+                     {
+                      "translate": [
+                       {
+                        "px": 0.0
+                       },
+                       {
+                        "px": 0.0
+                       },
+                       {
+                        "px": 0.0
+                       }
+                      ]
+                     }
+                    ],
+                    "children": [
+                     {
+                      "element": {
+                       "kind": "span",
+                       "style": [
+                        {
+                         "color": {
+                          "components": {
+                           "space": "srgb",
+                           "components": [
+                            0.8470589,
+                            0.86274517,
+                            0.8941177
+                           ],
+                           "alpha": 1.0
+                          }
+                         }
+                        },
+                        {
+                         "font-size": {
+                          "px": 35.625
+                         }
+                        },
+                        {
+                         "font-weight": 700.0
+                        },
+                        {
+                         "letter-spacing": {
+                          "em": 0.02
+                         }
+                        }
+                       ],
+                       "children": [
+                        {
+                         "text": "Studio"
+                        }
+                       ]
+                      }
+                     },
+                     {
+                      "element": {
+                       "kind": "span",
+                       "style": [
+                        {
+                         "padding": {
+                          "top": {
+                           "px": 6.5625
+                          },
+                          "right": {
+                           "px": 16.875
+                          },
+                          "bottom": {
+                           "px": 6.5625
+                          },
+                          "left": {
+                           "px": 16.875
+                          }
+                         }
+                        },
+                        {
+                         "border-radius": {
+                          "top_left": [
+                           {
+                            "px": 999.0
+                           },
+                           {
+                            "px": 999.0
+                           }
+                          ],
+                          "top_right": [
+                           {
+                            "px": 999.0
+                           },
+                           {
+                            "px": 999.0
+                           }
+                          ],
+                          "bottom_right": [
+                           {
+                            "px": 999.0
+                           },
+                           {
+                            "px": 999.0
+                           }
+                          ],
+                          "bottom_left": [
+                           {
+                            "px": 999.0
+                           },
+                           {
+                            "px": 999.0
+                           }
+                          ]
+                         }
+                        },
+                        {
+                         "background-color": {
+                          "mix": {
+                           "interpolation": {
+                            "space": "srgb",
+                            "hue": "shorter"
+                           },
+                           "first": {
+                            "components": {
+                             "space": "srgb",
+                             "components": [
+                              0.909804,
+                              0.72156864,
+                              0.427451
+                             ],
+                             "alpha": 1.0
+                            }
+                           },
+                           "first_share": 13.0,
+                           "second": {
+                            "components": {
+                             "space": "srgb",
+                             "components": [
+                              0.0,
+                              0.0,
+                              0.0
+                             ],
+                             "alpha": 0.0
+                            }
+                           },
+                           "second_share": null
+                          }
+                         }
+                        },
+                        {
+                         "border": {
+                          "top": {
+                           "width": {
+                            "px": 1.0
+                           },
+                           "style": "solid",
+                           "color": {
+                            "mix": {
+                             "interpolation": {
+                              "space": "srgb",
+                              "hue": "shorter"
+                             },
+                             "first": {
+                              "components": {
+                               "space": "srgb",
+                               "components": [
+                                0.909804,
+                                0.72156864,
+                                0.427451
+                               ],
+                               "alpha": 1.0
+                              }
+                             },
+                             "first_share": 40.0,
+                             "second": {
+                              "components": {
+                               "space": "srgb",
+                               "components": [
+                                0.0,
+                                0.0,
+                                0.0
+                               ],
+                               "alpha": 0.0
+                              }
+                             },
+                             "second_share": null
+                            }
+                           }
+                          },
+                          "right": {
+                           "width": {
+                            "px": 1.0
+                           },
+                           "style": "solid",
+                           "color": {
+                            "mix": {
+                             "interpolation": {
+                              "space": "srgb",
+                              "hue": "shorter"
+                             },
+                             "first": {
+                              "components": {
+                               "space": "srgb",
+                               "components": [
+                                0.909804,
+                                0.72156864,
+                                0.427451
+                               ],
+                               "alpha": 1.0
+                              }
+                             },
+                             "first_share": 40.0,
+                             "second": {
+                              "components": {
+                               "space": "srgb",
+                               "components": [
+                                0.0,
+                                0.0,
+                                0.0
+                               ],
+                               "alpha": 0.0
+                              }
+                             },
+                             "second_share": null
+                            }
+                           }
+                          },
+                          "bottom": {
+                           "width": {
+                            "px": 1.0
+                           },
+                           "style": "solid",
+                           "color": {
+                            "mix": {
+                             "interpolation": {
+                              "space": "srgb",
+                              "hue": "shorter"
+                             },
+                             "first": {
+                              "components": {
+                               "space": "srgb",
+                               "components": [
+                                0.909804,
+                                0.72156864,
+                                0.427451
+                               ],
+                               "alpha": 1.0
+                              }
+                             },
+                             "first_share": 40.0,
+                             "second": {
+                              "components": {
+                               "space": "srgb",
+                               "components": [
+                                0.0,
+                                0.0,
+                                0.0
+                               ],
+                               "alpha": 0.0
+                              }
+                             },
+                             "second_share": null
+                            }
+                           }
+                          },
+                          "left": {
+                           "width": {
+                            "px": 1.0
+                           },
+                           "style": "solid",
+                           "color": {
+                            "mix": {
+                             "interpolation": {
+                              "space": "srgb",
+                              "hue": "shorter"
+                             },
+                             "first": {
+                              "components": {
+                               "space": "srgb",
+                               "components": [
+                                0.909804,
+                                0.72156864,
+                                0.427451
+                               ],
+                               "alpha": 1.0
+                              }
+                             },
+                             "first_share": 40.0,
+                             "second": {
+                              "components": {
+                               "space": "srgb",
+                               "components": [
+                                0.0,
+                                0.0,
+                                0.0
+                               ],
+                               "alpha": 0.0
+                              }
+                             },
+                             "second_share": null
+                            }
+                           }
+                          }
+                         }
+                        },
+                        {
+                         "color": {
+                          "components": {
+                           "space": "srgb",
+                           "components": [
+                            0.909804,
+                            0.72156864,
+                            0.427451
+                           ],
+                           "alpha": 1.0
+                          }
+                         }
+                        },
+                        {
+                         "font-size": {
+                          "px": 27.1875
+                         }
+                        },
+                        {
+                         "font-weight": 600.0
+                        }
+                       ],
+                       "children": [
+                        {
+                         "text": "Most picked"
+                        }
+                       ]
+                      }
+                     }
+                    ]
+                   }
+                  },
+                  {
+                   "element": {
+                    "kind": "div",
+                    "style": [
+                     {
+                      "margin": {
+                       "top": {
+                        "px": 30.0
+                       },
+                       "right": {
+                        "px": 0.0
+                       },
+                       "bottom": {
+                        "px": 0.0
+                       },
+                       "left": {
+                        "px": 0.0
+                       }
+                      }
+                     },
+                     {
+                      "display": "flex"
+                     },
+                     {
+                      "align-items": "baseline"
+                     },
+                     {
+                      "row-gap": {
+                       "px": 15.0
+                      }
+                     },
+                     {
+                      "column-gap": {
+                       "px": 15.0
+                      }
+                     }
+                    ],
+                    "children": [
+                     {
+                      "element": {
+                       "kind": "span",
+                       "style": [
+                        {
+                         "color": {
+                          "components": {
+                           "space": "srgb",
+                           "components": [
+                            0.4784314,
+                            0.50980395,
+                            0.56078434
+                           ],
+                           "alpha": 1.0
+                          }
+                         }
+                        },
+                        {
+                         "font-size": {
+                          "px": 56.25
+                         }
+                        },
+                        {
+                         "font-weight": 600.0
+                        },
+                        {
+                         "opacity": 1.0
+                        }
+                       ],
+                       "children": [
+                        {
+                         "text": "$"
+                        }
+                       ]
+                      }
+                     },
+                     {
+                      "element": {
+                       "kind": "span",
+                       "style": [
+                        {
+                         "color": {
+                          "components": {
+                           "space": "srgb",
+                           "components": [
+                            0.8470589,
+                            0.86274517,
+                            0.8941177
+                           ],
+                           "alpha": 1.0
+                          }
+                         }
+                        },
+                        {
+                         "font-size": {
+                          "px": 127.5
+                         }
+                        },
+                        {
+                         "font-weight": 800.0
+                        },
+                        {
+                         "letter-spacing": {
+                          "em": -0.04
+                         }
+                        },
+                        {
+                         "line-height": {
+                          "number": 1.0
+                         }
+                        },
+                        {
+                         "font-variant-numeric": {
+                          "tabular": true,
+                          "proportional": false,
+                          "slashed_zero": false,
+                          "oldstyle": false,
+                          "lining": false
+                         }
+                        },
+                        {
+                         "translate": [
+                          {
+                           "px": 0.0
+                          },
+                          {
+                           "px": 0.0
+                          },
+                          {
+                           "px": 0.0
+                          }
+                         ]
+                        },
+                        {
+                         "opacity": 1.0
+                        }
+                       ],
+                       "children": [
+                        {
+                         "text": "32"
+                        }
+                       ]
+                      }
+                     },
+                     {
+                      "element": {
+                       "kind": "span",
+                       "style": [
+                        {
+                         "color": {
+                          "components": {
+                           "space": "srgb",
+                           "components": [
+                            0.4784314,
+                            0.50980395,
+                            0.56078434
+                           ],
+                           "alpha": 1.0
+                          }
+                         }
+                        },
+                        {
+                         "font-size": {
+                          "px": 35.625
+                         }
+                        },
+                        {
+                         "font-weight": 600.0
+                        },
+                        {
+                         "opacity": 1.0
+                        }
+                       ],
+                       "children": [
+                        {
+                         "text": "/mo"
+                        }
+                       ]
+                      }
+                     }
+                    ]
+                   }
+                  },
+                  {
+                   "element": {
+                    "kind": "div",
+                    "style": [
+                     {
+                      "margin": {
+                       "top": {
+                        "px": 11.25
+                       },
+                       "right": {
+                        "px": 0.0
+                       },
+                       "bottom": {
+                        "px": 0.0
+                       },
+                       "left": {
+                        "px": 0.0
+                       }
+                      }
+                     },
+                     {
+                      "color": {
+                       "components": {
+                        "space": "srgb",
+                        "components": [
+                         0.4784314,
+                         0.50980395,
+                         0.56078434
+                        ],
+                        "alpha": 1.0
+                       }
+                      }
+                     },
+                     {
+                      "font-size": {
+                       "px": 27.1875
+                      }
+                     },
+                     {
+                      "font-weight": 500.0
+                     },
+                     {
+                      "opacity": 1.0
+                     }
+                    ],
+                    "children": [
+                     {
+                      "text": "Billed annually. Cancel whenever."
+                     }
+                    ]
+                   }
+                  },
+                  {
+                   "element": {
+                    "kind": "div",
+                    "style": [
+                     {
+                      "margin": {
+                       "top": {
+                        "px": 37.5
+                       },
+                       "right": {
+                        "px": 0.0
+                       },
+                       "bottom": {
+                        "px": 0.0
+                       },
+                       "left": {
+                        "px": 0.0
+                       }
+                      }
+                     },
+                     {
+                      "padding": {
+                       "top": {
+                        "px": 33.75
+                       },
+                       "right": {
+                        "px": 0.0
+                       },
+                       "bottom": {
+                        "px": 0.0
+                       },
+                       "left": {
+                        "px": 0.0
+                       }
+                      }
+                     },
+                     {
+                      "border": {
+                       "top": {
+                        "width": {
+                         "px": 1.0
+                        },
+                        "style": "solid",
+                        "color": {
+                         "components": {
+                          "space": "srgb",
+                          "components": [
+                           1.0,
+                           1.0,
+                           1.0
+                          ],
+                          "alpha": 0.09
+                         }
+                        }
+                       },
+                       "right": {
+                        "width": "auto",
+                        "style": "solid",
+                        "color": null
+                       },
+                       "bottom": {
+                        "width": "auto",
+                        "style": "solid",
+                        "color": null
+                       },
+                       "left": {
+                        "width": "auto",
+                        "style": "solid",
+                        "color": null
+                       }
+                      }
+                     },
+                     {
+                      "display": "flex"
+                     },
+                     {
+                      "flex-direction": "column"
+                     },
+                     {
+                      "row-gap": {
+                       "px": 22.5
+                      }
+                     },
+                     {
+                      "column-gap": {
+                       "px": 22.5
+                      }
+                     }
+                    ],
+                    "children": [
+                     {
+                      "element": {
+                       "kind": "div",
+                       "style": [
+                        {
+                         "display": "flex"
+                        },
+                        {
+                         "align-items": "center"
+                        },
+                        {
+                         "row-gap": {
+                          "px": 20.625
+                         }
+                        },
+                        {
+                         "column-gap": {
+                          "px": 20.625
+                         }
+                        },
+                        {
+                         "opacity": 1.0
+                        },
+                        {
+                         "translate": [
+                          {
+                           "px": -0.0
+                          },
+                          {
+                           "px": 0.0
+                          },
+                          {
+                           "px": 0.0
+                          }
+                         ]
+                        }
+                       ],
+                       "children": [
+                        {
+                         "element": {
+                          "kind": {
+                           "svg": {
+                            "tag": "svg",
+                            "attributes": [
+                             [
+                              "width",
+                              "33.75"
+                             ],
+                             [
+                              "height",
+                              "33.75"
+                             ],
+                             [
+                              "viewBox",
+                              "0 0 24 24"
+                             ],
+                             [
+                              "fill",
+                              "none"
+                             ]
+                            ],
+                            "children": [
+                             {
+                              "element": {
+                               "tag": "circle",
+                               "attributes": [
+                                [
+                                 "cx",
+                                 "12"
+                                ],
+                                [
+                                 "cy",
+                                 "12"
+                                ],
+                                [
+                                 "r",
+                                 "11"
+                                ],
+                                [
+                                 "fill",
+                                 "rgba(232, 184, 109, 0.13)"
+                                ]
+                               ],
+                               "children": []
+                              }
+                             },
+                             {
+                              "element": {
+                               "tag": "path",
+                               "attributes": [
+                                [
+                                 "d",
+                                 "M6.5 12.5 L10.5 16.5 L17.5 8"
+                                ],
+                                [
+                                 "stroke",
+                                 "#E8B86D"
+                                ],
+                                [
+                                 "stroke-width",
+                                 "2.6"
+                                ],
+                                [
+                                 "stroke-linecap",
+                                 "round"
+                                ],
+                                [
+                                 "stroke-linejoin",
+                                 "round"
+                                ],
+                                [
+                                 "stroke-dasharray",
+                                 "16.668212022265"
+                                ],
+                                [
+                                 "stroke-dashoffset",
+                                 "0"
+                                ]
+                               ],
+                               "children": []
+                              }
+                             }
+                            ]
+                           }
+                          },
+                          "style": [],
+                          "children": []
+                         }
+                        },
+                        {
+                         "element": {
+                          "kind": "span",
+                          "style": [
+                           {
+                            "color": {
+                             "components": {
+                              "space": "srgb",
+                              "components": [
+                               0.8470589,
+                               0.86274517,
+                               0.8941177
+                              ],
+                              "alpha": 1.0
+                             }
+                            }
+                           },
+                           {
+                            "font-size": {
+                             "px": 29.0625
+                            }
+                           },
+                           {
+                            "font-weight": 500.0
+                           }
+                          ],
+                          "children": [
+                           {
+                            "text": "2,000 render minutes a month"
+                           }
+                          ]
+                         }
+                        }
+                       ]
+                      }
+                     },
+                     {
+                      "element": {
+                       "kind": "div",
+                       "style": [
+                        {
+                         "display": "flex"
+                        },
+                        {
+                         "align-items": "center"
+                        },
+                        {
+                         "row-gap": {
+                          "px": 20.625
+                         }
+                        },
+                        {
+                         "column-gap": {
+                          "px": 20.625
+                         }
+                        },
+                        {
+                         "opacity": 1.0
+                        },
+                        {
+                         "translate": [
+                          {
+                           "px": -0.0
+                          },
+                          {
+                           "px": 0.0
+                          },
+                          {
+                           "px": 0.0
+                          }
+                         ]
+                        }
+                       ],
+                       "children": [
+                        {
+                         "element": {
+                          "kind": {
+                           "svg": {
+                            "tag": "svg",
+                            "attributes": [
+                             [
+                              "width",
+                              "33.75"
+                             ],
+                             [
+                              "height",
+                              "33.75"
+                             ],
+                             [
+                              "viewBox",
+                              "0 0 24 24"
+                             ],
+                             [
+                              "fill",
+                              "none"
+                             ]
+                            ],
+                            "children": [
+                             {
+                              "element": {
+                               "tag": "circle",
+                               "attributes": [
+                                [
+                                 "cx",
+                                 "12"
+                                ],
+                                [
+                                 "cy",
+                                 "12"
+                                ],
+                                [
+                                 "r",
+                                 "11"
+                                ],
+                                [
+                                 "fill",
+                                 "rgba(232, 184, 109, 0.13)"
+                                ]
+                               ],
+                               "children": []
+                              }
+                             },
+                             {
+                              "element": {
+                               "tag": "path",
+                               "attributes": [
+                                [
+                                 "d",
+                                 "M6.5 12.5 L10.5 16.5 L17.5 8"
+                                ],
+                                [
+                                 "stroke",
+                                 "#E8B86D"
+                                ],
+                                [
+                                 "stroke-width",
+                                 "2.6"
+                                ],
+                                [
+                                 "stroke-linecap",
+                                 "round"
+                                ],
+                                [
+                                 "stroke-linejoin",
+                                 "round"
+                                ],
+                                [
+                                 "stroke-dasharray",
+                                 "16.668212022265"
+                                ],
+                                [
+                                 "stroke-dashoffset",
+                                 "0"
+                                ]
+                               ],
+                               "children": []
+                              }
+                             }
+                            ]
+                           }
+                          },
+                          "style": [],
+                          "children": []
+                         }
+                        },
+                        {
+                         "element": {
+                          "kind": "span",
+                          "style": [
+                           {
+                            "color": {
+                             "components": {
+                              "space": "srgb",
+                              "components": [
+                               0.8470589,
+                               0.86274517,
+                               0.8941177
+                              ],
+                              "alpha": 1.0
+                             }
+                            }
+                           },
+                           {
+                            "font-size": {
+                             "px": 29.0625
+                            }
+                           },
+                           {
+                            "font-weight": 500.0
+                           }
+                          ],
+                          "children": [
+                           {
+                            "text": "4K exports, no watermark"
+                           }
+                          ]
+                         }
+                        }
+                       ]
+                      }
+                     },
+                     {
+                      "element": {
+                       "kind": "div",
+                       "style": [
+                        {
+                         "display": "flex"
+                        },
+                        {
+                         "align-items": "center"
+                        },
+                        {
+                         "row-gap": {
+                          "px": 20.625
+                         }
+                        },
+                        {
+                         "column-gap": {
+                          "px": 20.625
+                         }
+                        },
+                        {
+                         "opacity": 1.0
+                        },
+                        {
+                         "translate": [
+                          {
+                           "px": -0.0
+                          },
+                          {
+                           "px": 0.0
+                          },
+                          {
+                           "px": 0.0
+                          }
+                         ]
+                        }
+                       ],
+                       "children": [
+                        {
+                         "element": {
+                          "kind": {
+                           "svg": {
+                            "tag": "svg",
+                            "attributes": [
+                             [
+                              "width",
+                              "33.75"
+                             ],
+                             [
+                              "height",
+                              "33.75"
+                             ],
+                             [
+                              "viewBox",
+                              "0 0 24 24"
+                             ],
+                             [
+                              "fill",
+                              "none"
+                             ]
+                            ],
+                            "children": [
+                             {
+                              "element": {
+                               "tag": "circle",
+                               "attributes": [
+                                [
+                                 "cx",
+                                 "12"
+                                ],
+                                [
+                                 "cy",
+                                 "12"
+                                ],
+                                [
+                                 "r",
+                                 "11"
+                                ],
+                                [
+                                 "fill",
+                                 "rgba(232, 184, 109, 0.13)"
+                                ]
+                               ],
+                               "children": []
+                              }
+                             },
+                             {
+                              "element": {
+                               "tag": "path",
+                               "attributes": [
+                                [
+                                 "d",
+                                 "M6.5 12.5 L10.5 16.5 L17.5 8"
+                                ],
+                                [
+                                 "stroke",
+                                 "#E8B86D"
+                                ],
+                                [
+                                 "stroke-width",
+                                 "2.6"
+                                ],
+                                [
+                                 "stroke-linecap",
+                                 "round"
+                                ],
+                                [
+                                 "stroke-linejoin",
+                                 "round"
+                                ],
+                                [
+                                 "stroke-dasharray",
+                                 "16.668212022265"
+                                ],
+                                [
+                                 "stroke-dashoffset",
+                                 "0"
+                                ]
+                               ],
+                               "children": []
+                              }
+                             }
+                            ]
+                           }
+                          },
+                          "style": [],
+                          "children": []
+                         }
+                        },
+                        {
+                         "element": {
+                          "kind": "span",
+                          "style": [
+                           {
+                            "color": {
+                             "components": {
+                              "space": "srgb",
+                              "components": [
+                               0.8470589,
+                               0.86274517,
+                               0.8941177
+                              ],
+                              "alpha": 1.0
+                             }
+                            }
+                           },
+                           {
+                            "font-size": {
+                             "px": 29.0625
+                            }
+                           },
+                           {
+                            "font-weight": 500.0
+                           }
+                          ],
+                          "children": [
+                           {
+                            "text": "9 team seats"
+                           }
+                          ]
+                         }
+                        }
+                       ]
+                      }
+                     },
+                     {
+                      "element": {
+                       "kind": "div",
+                       "style": [
+                        {
+                         "display": "flex"
+                        },
+                        {
+                         "align-items": "center"
+                        },
+                        {
+                         "row-gap": {
+                          "px": 20.625
+                         }
+                        },
+                        {
+                         "column-gap": {
+                          "px": 20.625
+                         }
+                        },
+                        {
+                         "opacity": 0.9943161951734684
+                        },
+                        {
+                         "translate": [
+                          {
+                           "px": -0.10657134049746816
+                          },
+                          {
+                           "px": 0.0
+                          },
+                          {
+                           "px": 0.0
+                          }
+                         ]
+                        }
+                       ],
+                       "children": [
+                        {
+                         "element": {
+                          "kind": {
+                           "svg": {
+                            "tag": "svg",
+                            "attributes": [
+                             [
+                              "width",
+                              "33.75"
+                             ],
+                             [
+                              "height",
+                              "33.75"
+                             ],
+                             [
+                              "viewBox",
+                              "0 0 24 24"
+                             ],
+                             [
+                              "fill",
+                              "none"
+                             ]
+                            ],
+                            "children": [
+                             {
+                              "element": {
+                               "tag": "circle",
+                               "attributes": [
+                                [
+                                 "cx",
+                                 "12"
+                                ],
+                                [
+                                 "cy",
+                                 "12"
+                                ],
+                                [
+                                 "r",
+                                 "11"
+                                ],
+                                [
+                                 "fill",
+                                 "rgba(232, 184, 109, 0.13)"
+                                ]
+                               ],
+                               "children": []
+                              }
+                             },
+                             {
+                              "element": {
+                               "tag": "path",
+                               "attributes": [
+                                [
+                                 "d",
+                                 "M6.5 12.5 L10.5 16.5 L17.5 8"
+                                ],
+                                [
+                                 "stroke",
+                                 "#E8B86D"
+                                ],
+                                [
+                                 "stroke-width",
+                                 "2.6"
+                                ],
+                                [
+                                 "stroke-linecap",
+                                 "round"
+                                ],
+                                [
+                                 "stroke-linejoin",
+                                 "round"
+                                ],
+                                [
+                                 "stroke-dasharray",
+                                 "16.668212022265"
+                                ],
+                                [
+                                 "stroke-dashoffset",
+                                 "0.09473886394180243"
+                                ]
+                               ],
+                               "children": []
+                              }
+                             }
+                            ]
+                           }
+                          },
+                          "style": [],
+                          "children": []
+                         }
+                        },
+                        {
+                         "element": {
+                          "kind": "span",
+                          "style": [
+                           {
+                            "color": {
+                             "components": {
+                              "space": "srgb",
+                              "components": [
+                               0.8470589,
+                               0.86274517,
+                               0.8941177
+                              ],
+                              "alpha": 1.0
+                             }
+                            }
+                           },
+                           {
+                            "font-size": {
+                             "px": 29.0625
+                            }
+                           },
+                           {
+                            "font-weight": 500.0
+                           }
+                          ],
+                          "children": [
+                           {
+                            "text": "Render API and webhooks"
+                           }
+                          ]
+                         }
+                        }
+                       ]
+                      }
+                     },
+                     {
+                      "element": {
+                       "kind": "div",
+                       "style": [
+                        {
+                         "display": "flex"
+                        },
+                        {
+                         "align-items": "center"
+                        },
+                        {
+                         "row-gap": {
+                          "px": 20.625
+                         }
+                        },
+                        {
+                         "column-gap": {
+                          "px": 20.625
+                         }
+                        },
+                        {
+                         "opacity": 0.48157347948087637
+                        },
+                        {
+                         "translate": [
+                          {
+                           "px": -9.720497259733568
+                          },
+                          {
+                           "px": 0.0
+                          },
+                          {
+                           "px": 0.0
+                          }
+                         ]
+                        }
+                       ],
+                       "children": [
+                        {
+                         "element": {
+                          "kind": {
+                           "svg": {
+                            "tag": "svg",
+                            "attributes": [
+                             [
+                              "width",
+                              "33.75"
+                             ],
+                             [
+                              "height",
+                              "33.75"
+                             ],
+                             [
+                              "viewBox",
+                              "0 0 24 24"
+                             ],
+                             [
+                              "fill",
+                              "none"
+                             ]
+                            ],
+                            "children": [
+                             {
+                              "element": {
+                               "tag": "circle",
+                               "attributes": [
+                                [
+                                 "cx",
+                                 "12"
+                                ],
+                                [
+                                 "cy",
+                                 "12"
+                                ],
+                                [
+                                 "r",
+                                 "11"
+                                ],
+                                [
+                                 "fill",
+                                 "rgba(232, 184, 109, 0.13)"
+                                ]
+                               ],
+                               "children": []
+                              }
+                             },
+                             {
+                              "element": {
+                               "tag": "path",
+                               "attributes": [
+                                [
+                                 "d",
+                                 "M6.5 12.5 L10.5 16.5 L17.5 8"
+                                ],
+                                [
+                                 "stroke",
+                                 "#E8B86D"
+                                ],
+                                [
+                                 "stroke-width",
+                                 "2.6"
+                                ],
+                                [
+                                 "stroke-linecap",
+                                 "round"
+                                ],
+                                [
+                                 "stroke-linejoin",
+                                 "round"
+                                ],
+                                [
+                                 "stroke-dasharray",
+                                 "16.668212022265"
+                                ],
+                                [
+                                 "stroke-dashoffset",
+                                 "8.641243161977869"
+                                ]
+                               ],
+                               "children": []
+                              }
+                             }
+                            ]
+                           }
+                          },
+                          "style": [],
+                          "children": []
+                         }
+                        },
+                        {
+                         "element": {
+                          "kind": "span",
+                          "style": [
+                           {
+                            "color": {
+                             "components": {
+                              "space": "srgb",
+                              "components": [
+                               0.8470589,
+                               0.86274517,
+                               0.8941177
+                              ],
+                              "alpha": 1.0
+                             }
+                            }
+                           },
+                           {
+                            "font-size": {
+                             "px": 29.0625
+                            }
+                           },
+                           {
+                            "font-weight": 500.0
+                           }
+                          ],
+                          "children": [
+                           {
+                            "text": "Priority render queue"
+                           }
+                          ]
+                         }
+                        }
+                       ]
+                      }
+                     }
+                    ]
+                   }
+                  },
+                  {
+                   "element": {
+                    "kind": "div",
+                    "style": [
+                     {
+                      "margin": {
+                       "top": {
+                        "px": 41.25
+                       },
+                       "right": {
+                        "px": 0.0
+                       },
+                       "bottom": {
+                        "px": 0.0
+                       },
+                       "left": {
+                        "px": 0.0
+                       }
+                      }
+                     },
+                     {
+                      "height": {
+                       "px": 90.0
+                      }
+                     },
+                     {
+                      "border-radius": {
+                       "top_left": [
+                        {
+                         "px": 22.5
+                        },
+                        {
+                         "px": 22.5
+                        }
+                       ],
+                       "top_right": [
+                        {
+                         "px": 22.5
+                        },
+                        {
+                         "px": 22.5
+                        }
+                       ],
+                       "bottom_right": [
+                        {
+                         "px": 22.5
+                        },
+                        {
+                         "px": 22.5
+                        }
+                       ],
+                       "bottom_left": [
+                        {
+                         "px": 22.5
+                        },
+                        {
+                         "px": 22.5
+                        }
+                       ]
+                      }
+                     },
+                     {
+                      "background-color": {
+                       "components": {
+                        "space": "srgb",
+                        "components": [
+                         0.909804,
+                         0.72156864,
+                         0.427451
+                        ],
+                        "alpha": 1.0
+                       }
+                      }
+                     },
+                     {
+                      "display": "flex"
+                     },
+                     {
+                      "align-items": "center"
+                     },
+                     {
+                      "justify-content": "center"
+                     },
+                     {
+                      "color": {
+                       "components": {
+                        "space": "srgb",
+                        "components": [
+                         0.078431375,
+                         0.0627451,
+                         0.07450981
+                        ],
+                        "alpha": 1.0
+                       }
+                      }
+                     },
+                     {
+                      "font-size": {
+                       "px": 30.9375
+                      }
+                     },
+                     {
+                      "font-weight": 700.0
+                     },
+                     {
+                      "letter-spacing": {
+                       "em": 0.01
+                      }
+                     },
+                     {
+                      "opacity": 0.0
+                     },
+                     {
+                      "scale": [
+                       0.94,
+                       0.94,
+                       1.0
+                      ]
+                     },
+                     {
+                      "box-shadow": [
+                       {
+                        "inset": false,
+                        "x": {
+                         "px": 0.0
+                        },
+                        "y": {
+                         "px": 18.75
+                        },
+                        "blur": {
+                         "px": 48.75
+                        },
+                        "spread": {
+                         "px": 0.0
+                        },
+                        "color": {
+                         "mix": {
+                          "interpolation": {
+                           "space": "srgb",
+                           "hue": "shorter"
+                          },
+                          "first": {
+                           "components": {
+                            "space": "srgb",
+                            "components": [
+                             0.909804,
+                             0.72156864,
+                             0.427451
+                            ],
+                            "alpha": 1.0
+                           }
+                          },
+                          "first_share": 20.0,
+                          "second": {
+                           "components": {
+                            "space": "srgb",
+                            "components": [
+                             0.0,
+                             0.0,
+                             0.0
+                            ],
+                            "alpha": 0.0
+                           }
+                          },
+                          "second_share": null
+                         }
+                        }
+                       }
+                      ]
+                     }
+                    ],
+                    "children": [
+                     {
+                      "text": "Start rendering"
+                     }
+                    ]
+                   }
+                  }
+                 ]
+                }
+               }
+              ]
+             }
+            }
+           ]
+          }
+         }
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ }
+}
