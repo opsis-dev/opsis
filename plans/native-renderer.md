@@ -162,7 +162,8 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 - **In place:** `spring` is closed form (`springProgress`), `random(seed)` is a hash, `interpolate` is stateless (`packages/runtime/src`), so frame n needs no earlier frame. Compile already produces a `TimelineSpec` that one `DemoTimeline` draws (`packages/video/src/demo-timeline.tsx`), and the flattener, cuts, remaps and envelopes are Rust (`crates/compile/src`). The film styles inline: its one stylesheet, `video.css`, is a reset, so there is no selector or cascade to carry over.
 - **In place on the branch:** `opsis-scene` with the style struct, the clock maps and the timeline walker (`draw_film`) for tracks, transitions, envelopes, groups, wrappers and sequencers.
-- **Missing:** both caches, the resolve pass and the property tests.
+- **In place on the branch too:** the caches. A frame whose scene hashes the same as the last reuses its picture (`Film::scaled_frame`); decoded images, SVG trees, typefaces, Lottie files and composited layers stay in `opsis_paint::Cache` for as long as each was used in the last two frames, a layer keyed by its element, its laid-out subtree and its raster transform; shaped paragraphs stay in `Fonts` the same way, keyed by their text, styles and boxes; picture sizes are kept per film. The resolve pass: `NativeFiles::resolve` checks every file the spec names before the first frame, preparing what is prepared, and fails the render naming what is missing; a footage decoder that sends nothing for 30 s fails the render (`FootageError::Stalled`). The property tests run in `crates/scene/tests/{clock,timeline}.rs` and `crates/render/tests/goldens.rs` → `elements_hold_still_after_their_animation`, which skips the elements that keep moving on purpose (`KEEPS_MOVING`, with reasons) and compares the rest within a hundred-thousandth, so springs settling in their last digits pass.
+- **Missing:** the planned raster scale: a layer is kept only while its raster transform stays the same, so a zoom rasters every frame.
 
 ### Work
 
@@ -208,13 +209,14 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
   - Container units lay the tree out again with each container's measured content box, up to four passes, since a container's size never depends on its contents.
   - Replaced elements keep their picture's ratio when one side is set; picture sizes come from the caller (`Images`).
   - The layout property cases (`crates/layout/tests/{size,flex,text,values,boxes,transforms,media}.rs`) match Chrome's boxes from the oracle, every element's border box within 0.5 px and every text line within 1.5 px; `support::check` reports both sides' lines on a difference.
-- **Missing:** the measurer elements call, results cached by hash, and stacking order, which paint uses.
+- **In place on the branch too:** the measurer elements call (`Measure`, `crates/scene/src/measure.rs`, served by `opsis-layout`'s `Measurer`), and CSS stacking order in paint (`Painter::collect`, `crates/paint/src/lib.rs`: negative, zero and positive `z-index` lists, positioned boxes as their own entries, and the properties that make a stacking context).
+- **Missing:** nothing. Shaped paragraphs are cached across frames and an unchanged scene reuses its picture (**Scene**); Taffy lays the boxes out again each frame.
 
 ### Work
 
 1. Done: Taffy and Parley pinned in the root table.
 2. Styles into Taffy and inline content measured by Parley: done; results cached by hash to do.
-3. Inheritance and units: done; stacking order to do.
+3. Done: inheritance, units and stacking order.
 4. Done: the layout property cases against the oracle (50 cases; the canvas, SVG and paint-only cases are checked by paint).
 
 ### Decisions
@@ -255,7 +257,10 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
   - SVG `<image>` and `feImage` read `app:` pictures through the same file reader (`picture_kind`, `crates/paint/src/resources.rs`); `filter: url(#…)` on an HTML element runs the SVG filter in the element's own coordinates.
   - The paint property cases (`crates/paint/tests/cases.rs`, `every_case_draws_like_the_browser`) draw every case, write ours and the error map into `~/.cache/opsis-dev/paint-cases`, and fail when FLIP's mean against the oracle picture is above 0.05; every case is at 0.046 or below.
   - Skottie plays the Lottie leaf (`opsis_skia::Lottie`, `boxes::draw_lottie`): a `.lottie` file is unpacked with its pictures embedded as data URIs (`crates/paint/src/lottie.rs`), the animation seeks to the leaf's frame and fits the content box by `object-fit`; `uses_expressions` finds the expressions Skottie doesn't evaluate, for the element card's warning.
-- **Missing:** the fixed CPU path for golden runs (a second Skia build limited to SSE4.1 behind an `opsis-skia` feature only golden tests enable, since Skia chooses its code path once at start), the card warning wired to `uses_expressions`, and the SVG primitives no case uses yet (component transfer, convolution, morphology, lighting, tile).
+- Decided: **goldens use the app's own Skia**, recorded and compared exactly on x86 Linux with AVX2, so they test the path users run; no second Skia build.
+- **In place on the branch too:** the Lottie reader moved into `opsis-probe` (`crates/probe/src/lottie.rs`); importing a Lottie file that uses expressions records `Measured::Expressions`, and the Media file card warns that they don't play.
+- **In place on the branch too:** the SVG primitives no element uses (component transfer, convolution, morphology, lighting, tile) through Skia's own filters, checked in `crates/paint/tests/filter_primitives.rs`; no oracle case covers them.
+- **Missing:** nothing.
 
 ### Work
 
@@ -302,12 +307,13 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 - **Also in place on the branch:** `light-leak`, `redact`'s pixelate, and the shader transitions (`dither-`, `grain-`, `swirl-`, `smoke-` and `particle-dissolve`, `glitch-cut`, `wave-wipe`, `ripple-zoom`). A two-scene transition pairs its sides through slots: the outgoing side wraps its scene in a `Kind::Slot` named by the cut, the incoming side's effect holds an empty slot of that name as its first input, and the painter paints the named scene into that input and hides it where it stands (`Slots`, `crates/paint/src/lib.rs`); with no outgoing side the pass runs at progress 1. Hash-driven frames (glitch-cut's and particle-dissolve's middles, light-leak's glows) can't match the browser pixel for pixel, since its `fract(sin(...))` hash also differs on a GPU; `crates/film/tests/elements.rs` lists them with the reason.
 - **3D on the branch:** `opsis_filament_scene` draws meshes with the `standard` lit material, directional lights, the room's prefiltered reflections and SH irradiance (ambient and hemisphere lights added to its first coefficient), four samples and three.js's ACES filmic curve as a custom `ToneMapper`; `opsis-geometry` holds three.js's sphere, torus, rounded-box, plane, shape, extrude (with `earcut` for the lids and `ShapePath.toShapes`'s hole rules) and tube geometry, so compile can measure what it places; `opsis-stage3d` holds the lighting looks and the materials (`standard`, its two-sided copy and the unlit `basic`); `Kind::Stage3d` carries a stage through the scene with its textures (pictures paint resolves, and the card's shadow glow), and `shapes-3d`, `card-3d`, `text-3d` (prepared typefaces through `Measure::typeface`) and `logo-3d` (SVG paths through `Measure::vector`, or a picture on the card) are drawn this way. The room map comes from `bun run room:environment`, which ray-casts three.js's `RoomEnvironment` and runs `cmgen` (mirrored on x to match three.js's lookups).
 - **Models and screens:** `opsis_filament_model` loads a prepared GLB through gltfio (ubershaders from `uberarchive`, stb and KTX2 textures) and reports its clips and its bounds at a clip time; `opsis-stage3d` fits each `Model3d` from the bounds sampled over its clip, as `model-3d.tsx` does, adds the ground shadow, and gives quantized positions unit bounds first, since gltfio reads a normalized accessor's `min` and `max` as they are. `screen-3d` draws the device in Filament and lays the page on the projected quad with a `matrix3d`, the glare's repeated tiles as positioned gradients. `crates/render/tests/three_stills.rs` → `draws_3d_elements_natively_as_recorded` compares the 3D stills, allowing the metallic models and the SVG logo a little for the room's reflections.
-- **Missing:** the child process.
+- **The child process:** Filament runs only in `opsis-renderer` (`crates/effects/src/bin/opsis-renderer.rs`, the loop in `crates/effects/src/child.rs`), one per render worker, started by `opsis-renderer`'s client (`crates/renderer`) with `VK_DRIVER_FILES` pointing at a written driver file when the render draws with Software (the headless shell's SwiftShader). Passes and 3D stages go over its standard input and output as a JSON header and the layer pixels (`crates/renderer/src/protocol.rs`); models and the room's map go once per child. Skia stays on the CPU in the app, so the app links no Filament. `renderer_program` finds the program beside the app or up to five folders above a test; the installers place it beside `opsis` and `opsis-ffmpeg`, `bun start` and the e2e runner build it.
+- **Missing:** nothing.
 
 ### Work
 
-1. The renderer child process, with the backend order and the "Graphics card / Software" render setting becoming the backend choice.
-2. The layer transfer between Skia's buffers and Filament textures.
+1. Done: the renderer child process, with the backend order and the "Graphics card / Software" render setting becoming the backend choice.
+2. Done: the layer transfer between Skia's buffers and Filament textures, as pixel buffers over the child's pipe.
 3. Each program as a material, with PCG hashes, checked against its oracle frames.
 4. The 3D scenes and their geometry, against today's stills in `fixtures/prepare/stills`.
 5. `screen-3d`'s clip drawn with an `SkM44` perspective from `three/project.ts`'s homography.
@@ -341,7 +347,9 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 - **In place:** `opsis-footage`'s decoders and grade chain (`decoder.rs`, `chain.rs`), Redact's areas in Rust, `opsis-vt` and the frames format, `crates/render/tests/sprites.rs` against Ghostty's atlases.
 - **In place on the branch:** the terminal screen drawn natively (`crates/compile/src/elements/terminal/`: `view.rs`, `screen.rs`, the lens, vignette and grain as SVG filters in `effects.rs`), the sprites ported (`sprites.rs`, matched against `fixtures/scene/terminal-sprites.json` from `sprites.ts`), the frames format in `opsis-types` (`terminal_frames.rs`) so the film reads it through `Measure::terminal`. The terminal example's frame 150 is 0.29% wrong pixels against the 0.2% limit: rows of text sit 0.3 to 1 px off the browser's inside the zoomed window.
 - **In place on the branch too:** `image`, `video`, `text-mask-video` and `framed-image` drawn natively (`elements/media/`, `text/text_mask_video.rs`, `elements/framed_image.rs`); the oracle has no case for `framed-image`, so it is not yet compared with the browser.
-- **Missing:** the frame hand-over without JPEG, texture and lens as shader passes, live terminal pictures from the native drawing.
+- **In place on the branch too:** footage frames handed over decoded (`Footage::shown` → `NativeFiles::frame`; the JPEG path serves only the browser page), and live terminal pictures drawn natively (`opsis_film::TerminalPainter`, `crates/film/src/terminal.rs`, run by `crates/session/src/terminal_paint.rs` on a blocking thread; `crates/render/tests/terminal.rs` → `paints_a_live_terminal_frame_natively_at_its_screen_size`).
+- **Texture and lens as shader passes:** `terminal-grain` runs Skia's own Perlin noise (the lattice and gradients from `perlin_tables`, `crates/compile/src/elements/terminal/effects.rs`, ported from `SkPerlinNoiseShader::PaintingData`, sent as uniform arrays) and converts from linear RGB as the SVG filter did; `terminal-lens` displaces through the bulge map and splits the channels, sampling the nearest pixel as Skia's displacement does. `crates/render/tests/terminal_effects.rs` checks both against the SVG filters they replace.
+- **Missing:** nothing.
 
 ### Work
 
@@ -376,13 +384,14 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
   - `rawvideo` is a required format, and `film_raw_encode_args` (`crates/media/src/codecs.rs`) takes RGBA frames raw, converts them to BT.709 limited range for the YUV codecs and tags every output's colour; `crates/media/tests/raw_frames.rs` checks a colour survives each codec.
   - `render_in_order` (`crates/render/src/chunks.rs`) hands contiguous chunks to workers, each keeping its own state (its decoders) across a chunk, and passes frames through a reorder buffer that holds at most `Schedule::held` frames ahead of the encoder.
   - The exports draw natively: `render_native` and `render_native_still` (`crates/render/src/native.rs`) run `Film` workers through `render_in_order` into `film_raw_encode_args`, resolving `app:`, project and prepared files from disk and footage frames from `Footage::shown` as decoded RGB, with no file server (`NativeFiles`, addresses under `NATIVE_BASE`). `crates/oracle/tests/native_films.rs` runs each example from the oracle's cached takes and compares the films frame by frame.
-- **Missing:** `render-elements` and take previews through the renderer.
+- **In place on the branch too:** take previews (`crates/render/src/preview.rs`) and `render-elements` (`crates/render/src/bin/render-elements.rs`, with the element specs in `crates/render/src/element_spec.rs`, which the oracle also uses) through the renderer.
+- **Missing:** nothing.
 
 ### Work
 
 1. `rawvideo` joins the required formats (`REQUIRED_FORMATS`); `film_encode_args` takes raw input with the tags above.
 2. Done: the chunk scheduler with the reorder buffer and progress per frame.
-3. Stills through the renderer (done) and `render-elements` through it.
+3. Done: stills, take previews and `render-elements` through the renderer.
 
 ### Decisions
 
@@ -416,8 +425,8 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 ### Fit with Opsis
 
 - **In place:** every element's settings, defaults, lengths, design size, fonts and themes are Rust already (`crates/compile/src/elements`, `lengths.rs`, `theme.rs`, `props.rs`). `colors.test.ts`'s allow-list and the theme presets carry over. Most of the film is stateless: `useState` is in 15 of its 275 files and `useEffect` in 11.
-- **In place on the branch:** the transform table, the builder, the camera, takes and terminal, and 105 of the film's 132 implementations drawn natively.
-- **Missing:** the shader effects, shader backgrounds and shader transitions, and the 3D elements (the 27 listed under **Effects and 3D**).
+- **In place on the branch:** the transform table, the builder, the camera, takes and terminal, and all 132 of the film's implementations drawn natively.
+- **Missing:** nothing.
 
 ### Work
 
@@ -453,12 +462,13 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 ### Fit with Opsis
 
 - **In place:** `opsis-golden`, `fixtures/render`, `fixtures/prepare/stills`, the `OPSIS_WRITE_GOLDEN=1` flow.
-- **Missing:** picture goldens per element, the exact-vs-tolerance switch, the property tests from **Scene**.
+- **In place on the branch too:** `crates/render/tests/goldens.rs`: every element's middle frame at a quarter size (`fixtures/elements/<key>.png`) and the scenes of twelve chosen elements at three frames (`fixtures/scene/elements/<key>@<frame>.json`), drawn with the effects and 3D on SwiftShader. On x86 Linux with AVX2 the pictures match exactly, except elements drawn through Filament, which may differ in 0.05% of their pixels, since SwiftShader's multisampling moves a few single highlight pixels between runs; elsewhere FLIP's mean stays under 0.05. The app's own Skia is the golden path: no second Skia build. CI (`.github/workflows/build.yml`) builds Skia and the sealed Filament wrapper with a cache, installs the engine and runs the goldens.
+- **Missing:** nothing.
 
 ### Work
 
-1. Picture goldens for every element at its middle frame, and scene goldens at three frames each.
-2. CI on x86 Linux with SwiftShader from the engine download.
+1. Done: picture goldens for every element at its middle frame, and scene goldens at three frames for chosen elements.
+2. Done: CI on x86 Linux with SwiftShader from the engine download.
 
 ### Decisions
 

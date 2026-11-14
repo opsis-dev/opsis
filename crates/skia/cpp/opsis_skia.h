@@ -20,6 +20,9 @@ namespace opsis::skia {
 struct Color4;
 struct RectF;
 struct PointF;
+struct LightSource;
+struct Convolution;
+struct Lighting;
 struct RoundRect;
 struct Matrix33;
 struct Matrix44;
@@ -246,6 +249,19 @@ std::unique_ptr<ImageFilter> crop_filter(RectF rect, TileMode tile,
                                          const ImageFilter& input);
 std::unique_ptr<ImageFilter> matrix_filter(Matrix33 matrix, Sampling sampling,
                                            const ImageFilter& input);
+std::unique_ptr<ImageFilter> table_filter(rust::Slice<const uint8_t> tables,
+                                          const ImageFilter& input);
+std::unique_ptr<ImageFilter> morphology_filter(bool dilate, float radius_x,
+                                               float radius_y,
+                                               const ImageFilter& input);
+std::unique_ptr<ImageFilter> convolution_filter(Convolution convolution,
+                                                rust::Slice<const float> kernel,
+                                                const ImageFilter& input);
+std::unique_ptr<ImageFilter> tile_filter(RectF source, RectF target,
+                                         const ImageFilter& input);
+std::unique_ptr<ImageFilter> lighting_filter(LightSource light,
+                                             Lighting lighting,
+                                             const ImageFilter& input);
 
 std::unique_ptr<Path> make_path();
 

@@ -1,6 +1,7 @@
 pub use crate::bridge::ffi::{
     Axis, BlendMode, Channel, Color4 as Rgba, FontSpec, Gradient, GradientSpace, HueMethod,
-    Matrix33, Matrix44, PointF, RectF, RoundRect, Sampling, StrokeCap, StrokeJoin, TileMode,
+    LightSource, Lighting, Matrix33, Matrix44, PointF, RectF, RoundRect, Sampling, StrokeCap,
+    StrokeJoin, TileMode,
 };
 
 impl Rgba {

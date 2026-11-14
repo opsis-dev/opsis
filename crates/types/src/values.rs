@@ -509,6 +509,7 @@ pub enum Measured {
     Cast {
         events: u32,
     },
+    Expressions,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]

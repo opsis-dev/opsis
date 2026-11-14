@@ -298,10 +298,19 @@ async fn import_media(
         return Err(ExecError::new("Choose a file."));
     }
     let src = project_ref(&p.path);
-    let checked = check_media_file(&*tools, &ctx.ref_to_path(&src)?, &src).await?;
+    let file = ctx.ref_to_path(&src)?;
+    let checked = check_media_file(&*tools, &file, &src).await?;
+    let mut measured = vec![checked.measured];
+    if checked.media.kind == MediaKind::Animation
+        && tokio::fs::read(&file)
+            .await
+            .is_ok_and(|bytes| opsis_probe::lottie::uses_expressions(&bytes))
+    {
+        measured.push(Measured::Expressions);
+    }
     Ok(ExecutorOutput {
         outputs: output(MEDIA_PORT, CompileValue::Media(checked.media)),
-        measured: vec![checked.measured],
+        measured,
         ..ExecutorOutput::default()
     })
 }

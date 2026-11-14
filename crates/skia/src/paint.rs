@@ -3,9 +3,21 @@ use cxx::UniquePtr;
 use crate::bridge::ffi;
 use crate::image::Image;
 use crate::values::{
-    BlendMode, Channel, Gradient, Matrix33, PointF, RectF, Rgba, Sampling, StrokeCap, StrokeJoin,
-    TileMode,
+    BlendMode, Channel, Gradient, LightSource, Lighting, Matrix33, PointF, RectF, Rgba, Sampling,
+    StrokeCap, StrokeJoin, TileMode,
 };
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Kernel<'k> {
+    pub columns: i32,
+    pub rows: i32,
+    pub values: &'k [f32],
+    pub gain: f32,
+    pub bias: f32,
+    pub target: PointF,
+    pub tile: TileMode,
+    pub convolve_alpha: bool,
+}
 
 pub struct Paint {
     pub(crate) inner: UniquePtr<ffi::Paint>,
@@ -311,5 +323,42 @@ impl ImageFilter {
 
     pub fn transform(matrix: Matrix33, sampling: Sampling, input: &Self) -> Self {
         filter(ffi::matrix_filter(matrix, sampling, &input.inner))
+    }
+
+    pub fn table(tables: &[u8; 1024], input: &Self) -> Self {
+        filter(ffi::table_filter(tables, &input.inner))
+    }
+
+    pub fn morphology(dilate: bool, (radius_x, radius_y): (f32, f32), input: &Self) -> Self {
+        filter(ffi::morphology_filter(
+            dilate,
+            radius_x,
+            radius_y,
+            &input.inner,
+        ))
+    }
+
+    pub fn convolution(kernel: &Kernel<'_>, input: &Self) -> Self {
+        filter(ffi::convolution_filter(
+            ffi::Convolution {
+                columns: kernel.columns,
+                rows: kernel.rows,
+                gain: kernel.gain,
+                bias: kernel.bias,
+                target: kernel.target,
+                tile: kernel.tile,
+                convolve_alpha: kernel.convolve_alpha,
+            },
+            kernel.values,
+            &input.inner,
+        ))
+    }
+
+    pub fn tile(source: RectF, target: RectF, input: &Self) -> Self {
+        filter(ffi::tile_filter(source, target, &input.inner))
+    }
+
+    pub fn lighting(light: LightSource, lighting: Lighting, input: &Self) -> Self {
+        filter(ffi::lighting_filter(light, lighting, &input.inner))
     }
 }

@@ -4,6 +4,7 @@ mod caf;
 mod ffv1;
 mod image;
 mod iso;
+pub mod lottie;
 mod matroska;
 mod mpeg;
 mod ogg;

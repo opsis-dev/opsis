@@ -23,6 +23,35 @@ pub mod ffi {
     }
 
     #[derive(Debug, Clone, Copy, PartialEq)]
+    struct LightSource {
+        kind: u8,
+        position: [f32; 3],
+        target: [f32; 3],
+        exponent: f32,
+        cone: f32,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    struct Convolution {
+        columns: i32,
+        rows: i32,
+        gain: f32,
+        bias: f32,
+        target: PointF,
+        tile: TileMode,
+        convolve_alpha: bool,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    struct Lighting {
+        specular: bool,
+        color: Color4,
+        surface_scale: f32,
+        constant: f32,
+        shininess: f32,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
     struct RoundRect {
         rect: RectF,
         radii: [f32; 8],
@@ -355,6 +384,25 @@ pub mod ffi {
         fn matrix_filter(
             matrix: Matrix33,
             sampling: Sampling,
+            input: &ImageFilter,
+        ) -> UniquePtr<ImageFilter>;
+        fn table_filter(tables: &[u8], input: &ImageFilter) -> UniquePtr<ImageFilter>;
+        fn morphology_filter(
+            dilate: bool,
+            radius_x: f32,
+            radius_y: f32,
+            input: &ImageFilter,
+        ) -> UniquePtr<ImageFilter>;
+        fn convolution_filter(
+            convolution: Convolution,
+            kernel: &[f32],
+            input: &ImageFilter,
+        ) -> UniquePtr<ImageFilter>;
+        fn tile_filter(source: RectF, target: RectF, input: &ImageFilter)
+        -> UniquePtr<ImageFilter>;
+        fn lighting_filter(
+            light: LightSource,
+            lighting: Lighting,
             input: &ImageFilter,
         ) -> UniquePtr<ImageFilter>;
 

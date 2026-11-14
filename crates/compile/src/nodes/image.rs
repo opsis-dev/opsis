@@ -1868,7 +1868,8 @@ fn compare() -> NodeDef {
                 | Measured::File { .. }
                 | Measured::Fitted { .. }
                 | Measured::Tape { .. }
-        | Measured::Cast { .. } => None,
+        | Measured::Cast { .. }
+        | Measured::Expressions => None,
             })
         });
         let found = match changes {

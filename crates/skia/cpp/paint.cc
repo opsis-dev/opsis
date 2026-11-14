@@ -296,4 +296,81 @@ std::unique_ptr<ImageFilter> matrix_filter(Matrix33 matrix, Sampling sampling,
       matrix_of(matrix), sampling_of(sampling), input.get()));
 }
 
+std::unique_ptr<ImageFilter> table_filter(rust::Slice<const uint8_t> tables,
+                                          const ImageFilter& input) {
+  constexpr size_t kTable = 256;
+  if (tables.size() != kTable * 4) {
+    return wrap(SkImageFilters::Merge(nullptr, 0));
+  }
+  const uint8_t* data = tables.data();
+  return wrap(SkImageFilters::ColorFilter(
+      SkColorFilters::TableARGB(data + kTable * 3, data, data + kTable,
+                                data + kTable * 2),
+      input.get()));
+}
+
+std::unique_ptr<ImageFilter> morphology_filter(bool dilate, float radius_x,
+                                               float radius_y,
+                                               const ImageFilter& input) {
+  return wrap(dilate ? SkImageFilters::Dilate(radius_x, radius_y, input.get())
+                     : SkImageFilters::Erode(radius_x, radius_y, input.get()));
+}
+
+std::unique_ptr<ImageFilter> convolution_filter(Convolution convolution,
+                                                rust::Slice<const float> kernel,
+                                                const ImageFilter& input) {
+  return wrap(SkImageFilters::MatrixConvolution(
+      SkISize::Make(convolution.columns, convolution.rows), kernel.data(),
+      convolution.gain, convolution.bias,
+      SkIPoint::Make(static_cast<int32_t>(convolution.target.x),
+                     static_cast<int32_t>(convolution.target.y)),
+      tile_of(convolution.tile), convolution.convolve_alpha, input.get()));
+}
+
+std::unique_ptr<ImageFilter> tile_filter(RectF source, RectF target,
+                                         const ImageFilter& input) {
+  return wrap(
+      SkImageFilters::Tile(rect_of(source), rect_of(target), input.get()));
+}
+
+std::unique_ptr<ImageFilter> lighting_filter(LightSource light,
+                                             Lighting lighting,
+                                             const ImageFilter& input) {
+  SkPoint3 position =
+      SkPoint3::Make(light.position[0], light.position[1], light.position[2]);
+  SkPoint3 target =
+      SkPoint3::Make(light.target[0], light.target[1], light.target[2]);
+  SkColor color = color_of(lighting.color).toSkColor();
+  float scale = lighting.surface_scale;
+  float k = lighting.constant;
+  float shine = lighting.shininess;
+  sk_sp<SkImageFilter> source = input.get();
+  if (lighting.specular) {
+    switch (light.kind) {
+      case 0:
+        return wrap(SkImageFilters::DistantLitSpecular(position, color, scale,
+                                                       k, shine, source));
+      case 1:
+        return wrap(SkImageFilters::PointLitSpecular(position, color, scale, k,
+                                                     shine, source));
+      default:
+        return wrap(SkImageFilters::SpotLitSpecular(
+            position, target, light.exponent, light.cone, color, scale, k,
+            shine, source));
+    }
+  }
+  switch (light.kind) {
+    case 0:
+      return wrap(
+          SkImageFilters::DistantLitDiffuse(position, color, scale, k, source));
+    case 1:
+      return wrap(
+          SkImageFilters::PointLitDiffuse(position, color, scale, k, source));
+    default:
+      return wrap(SkImageFilters::SpotLitDiffuse(position, target,
+                                                 light.exponent, light.cone,
+                                                 color, scale, k, source));
+  }
+}
+
 }

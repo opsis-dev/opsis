@@ -261,8 +261,13 @@ fn file_measured(result: Option<&NodeResult>) -> Option<(u64, Option<f64>)> {
         | Measured::Changes { .. }
         | Measured::Fitted { .. }
         | Measured::Tape { .. }
-        | Measured::Cast { .. } => None,
+        | Measured::Cast { .. }
+        | Measured::Expressions => None,
     })
+}
+
+fn uses_expressions(result: Option<&NodeResult>) -> bool {
+    result.is_some_and(|r| r.measured.contains(&Measured::Expressions))
 }
 
 fn file_details_row(media: &MediaValue, path: &str, fps: Option<f64>) -> CardRow {
@@ -545,6 +550,13 @@ fn import() -> NodeDef {
             )),
             length.map(|ms| row(Icon::Clock, format_duration(ms))),
             measured.map(|(bytes, _)| file_size_row(&media, bytes)),
+            uses_expressions(ctx.result).then(|| {
+                row(
+                    Icon::TriangleAlert,
+                    "Its expressions don't play; bake them into keyframes when exporting it",
+                )
+                .warn_if(true)
+            }),
         ]
     })
     .compiles(|ctx: &Ctx<'_, MediaFile>| {
@@ -1339,7 +1351,8 @@ fn fitted_row(result: Option<&NodeResult>) -> Option<CardRow> {
         | Measured::File { .. }
         | Measured::Changes { .. }
         | Measured::Tape { .. }
-        | Measured::Cast { .. } => None,
+        | Measured::Cast { .. }
+        | Measured::Expressions => None,
     })
 }
 
@@ -1402,7 +1415,8 @@ fn noise_level_row(result: Option<&NodeResult>) -> Option<CardRow> {
         | Measured::Changes { .. }
         | Measured::Fitted { .. }
         | Measured::Tape { .. }
-        | Measured::Cast { .. } => None,
+        | Measured::Cast { .. }
+        | Measured::Expressions => None,
     })
 }
 

@@ -14,11 +14,11 @@ mod values;
 
 pub use image::Image;
 pub use lottie::Lottie;
-pub use paint::{ImageFilter, Paint, Shader};
+pub use paint::{ImageFilter, Kernel, Paint, Shader};
 pub use path::Path;
 pub use surface::{Surface, SurfaceError};
 pub use text::Typeface;
 pub use values::{
-    Axis, BlendMode, Channel, FontSpec, Gradient, GradientSpace, HueMethod, Matrix33, Matrix44,
-    PointF, RectF, Rgba, RoundRect, Sampling, StrokeCap, StrokeJoin, TileMode,
+    Axis, BlendMode, Channel, FontSpec, Gradient, GradientSpace, HueMethod, LightSource, Lighting,
+    Matrix33, Matrix44, PointF, RectF, Rgba, RoundRect, Sampling, StrokeCap, StrokeJoin, TileMode,
 };

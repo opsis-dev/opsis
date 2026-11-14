@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use opsis_paint::lottie::{animation_json, uses_expressions};
+use opsis_probe::lottie::{animation_json, uses_expressions};
 use serde_json::{Value, json};
 
 fn packed(animation: &Value, picture: &[u8]) -> Vec<u8> {
