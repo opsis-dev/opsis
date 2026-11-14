@@ -63,6 +63,7 @@
     "glyphs:bundle": "bun scripts/node-glyphs.ts",
     "cursors:bundle": "bun scripts/mac-cursors.ts",
     "paper:noise": "bun scripts/paper-noise.ts",
+    "room:environment": "bun scripts/room-environment.ts",
     "script:themes": "bun scripts/script-themes.ts",
     "terminal:themes": "bun scripts/terminal-themes.ts",
     "db:prepare": "bun scripts/sqlx-prepare.ts",

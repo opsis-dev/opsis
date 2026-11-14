@@ -29,6 +29,7 @@ pub enum Kind {
     Footage(FootageFrame),
     Lottie(LottieFrame),
     Effect(Effect),
+    Stage3d(Box<Stage3d>),
     Drawing(crate::drawing::Drawing),
     Slot(String),
 }
@@ -99,6 +100,57 @@ pub struct Effect {
     pub program: String,
     pub uniforms: Vec<EffectUniform>,
     pub scale: Num,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Lighting3d {
+    Studio,
+    Soft,
+    Dramatic,
+}
+
+#[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Shape3d {
+    Sphere {
+        radius: Num,
+        width_segments: u32,
+        height_segments: u32,
+    },
+    Torus {
+        radius: Num,
+        tube: Num,
+        radial_segments: u32,
+        tubular_segments: u32,
+    },
+    RoundedBox {
+        size: [Num; 3],
+        segments: u32,
+        radius: Num,
+    },
+}
+
+#[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
+pub struct Material3d {
+    pub color: [Num; 4],
+    pub metalness: Num,
+    pub roughness: Num,
+}
+
+#[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
+pub struct Object3d {
+    pub shape: Shape3d,
+    pub matrix: [Num; 16],
+    pub material: Material3d,
+}
+
+#[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
+pub struct Stage3d {
+    pub fov: Num,
+    pub distance: Num,
+    pub lighting: Lighting3d,
+    pub objects: Vec<Object3d>,
 }
 
 #[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]

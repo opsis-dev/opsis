@@ -344,6 +344,7 @@ pub fn element(component: &str, props: &Map<String, Value>, cx: &Cx<'_>) -> Draw
         "text-mask-video" => drawn(component, props, cx, text::text_mask_video::draw),
         "framed-image" => drawn(component, props, cx, framed_image::draw),
         "solid" => drawn(component, props, cx, background::solid::draw),
+        "shapes-3d" => drawn(component, props, cx, background::shapes_3d::draw),
         "light-leak" => drawn(component, props, cx, overlay::light_leak::draw),
         "shader-warp" => drawn(component, props, cx, background::shader_warp::draw),
         "shader-swirl" => drawn(component, props, cx, background::shader_swirl::draw),

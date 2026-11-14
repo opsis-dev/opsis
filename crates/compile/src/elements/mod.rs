@@ -40,6 +40,7 @@ pub mod terminal;
 pub mod text;
 pub mod text_split;
 pub mod theme;
+pub mod three;
 pub mod transition;
 pub mod ui;
 pub mod ui_kit;

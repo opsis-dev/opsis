@@ -1,0 +1,15 @@
+[package]
+name = "opsis-stage3d"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+opsis-filament.workspace = true
+opsis-scene.workspace = true
+opsis-types.workspace = true

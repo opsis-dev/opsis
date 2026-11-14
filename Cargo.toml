@@ -97,6 +97,7 @@ opsis-runner = { path = "crates/runner" }
 opsis-script = { path = "crates/script" }
 opsis-session = { path = "crates/session" }
 opsis-skia = { path = "crates/skia" }
+opsis-stage3d = { path = "crates/stage3d" }
 opsis-store = { path = "crates/store" }
 opsis-stream = { path = "crates/stream" }
 opsis-terminal = { path = "crates/terminal" }

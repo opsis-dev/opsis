@@ -317,8 +317,37 @@ impl<'n> Painter<'_, '_, '_> {
             Kind::Svg(svg) => self.draw_svg(placed, &element.style, svg),
             Kind::Drawing(drawing) => canvas::draw(self, placed, &element.style, drawing),
             Kind::Lottie(frame) => boxes::draw_lottie(self, placed, &element.style, frame),
+            Kind::Stage3d(stage) => self.draw_stage(placed, &element.style, stage),
             _ => {}
         }
+    }
+
+    fn draw_stage(&mut self, placed: &Placed, style: &Style, stage: &opsis_scene::node::Stage3d) {
+        let content = Areas::of(placed, style, self).content;
+        let size: (u32, u32) = (
+            opsis_types::numbers::whole(content.width.round()),
+            opsis_types::numbers::whole(content.height.round()),
+        );
+        if size.0 == 0 || size.1 == 0 {
+            return;
+        }
+        let Some(out) = self.resources.stage(stage, size) else {
+            return;
+        };
+        let Some(image) = opsis_skia::Image::from_rgba(size.0, size.1, &unpremultiplied(out))
+        else {
+            return;
+        };
+        let (w, h) = (
+            opsis_types::numbers::narrow(f64::from(size.0)),
+            opsis_types::numbers::narrow(f64::from(size.1)),
+        );
+        self.surface.draw_image_rect(
+            &image,
+            (RectF::new(0.0, 0.0, w, h), rect_f(content)),
+            Sampling::Linear,
+            &Paint::new(),
+        );
     }
 
     fn draw_svg(&mut self, placed: &Placed, style: &Style, svg: &opsis_scene::node::SvgElement) {

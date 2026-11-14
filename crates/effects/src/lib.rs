@@ -67,6 +67,10 @@ impl Effects {
         })
     }
 
+    pub const fn filament(&mut self) -> &mut Filament {
+        &mut self.filament
+    }
+
     fn material(&mut self, program: &str) -> Result<MaterialId, EffectsError> {
         if let Some(id) = self.loaded.get(program) {
             return Ok(*id);

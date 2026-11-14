@@ -39,3 +39,56 @@ unsafe extern "C" {
         out: *mut u8,
     ) -> i32;
 }
+
+#[repr(C)]
+pub struct OpsisMesh {
+    pub positions: *const f32,
+    pub normals: *const f32,
+    pub uvs: *const f32,
+    pub vertex_count: u32,
+    pub indices: *const u32,
+    pub index_count: u32,
+    pub transform: [f32; 16],
+    pub material: i32,
+    pub uniforms: *const OpsisUniform,
+    pub uniform_count: usize,
+    pub textures: *const OpsisInput,
+    pub texture_count: usize,
+}
+
+#[repr(C)]
+pub struct OpsisLight {
+    pub direction: [f32; 3],
+    pub color: [f32; 3],
+    pub intensity: f32,
+}
+
+#[repr(C)]
+pub struct OpsisScene {
+    pub fov_degrees: f32,
+    pub near_plane: f32,
+    pub far_plane: f32,
+    pub eye: [f32; 3],
+    pub target: [f32; 3],
+    pub up: [f32; 3],
+    pub meshes: *const OpsisMesh,
+    pub mesh_count: usize,
+    pub lights: *const OpsisLight,
+    pub light_count: usize,
+    pub reflections: *const u8,
+    pub reflections_size: usize,
+    pub irradiance: *const f32,
+    pub irradiance_bands: u32,
+    pub environment_intensity: f32,
+    pub samples: u32,
+}
+
+unsafe extern "C" {
+    pub fn opsis_filament_scene(
+        filament: *mut OpsisFilament,
+        scene: *const OpsisScene,
+        width: u32,
+        height: u32,
+        out: *mut u8,
+    ) -> i32;
+}

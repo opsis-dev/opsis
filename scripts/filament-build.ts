@@ -21,6 +21,8 @@ const LIBRARIES = [
   "filaflat",
   "utils",
   "geometry",
+  "ktxreader",
+  "image",
   "ibl-lite",
   "shaders",
   "smol-v",
@@ -76,6 +78,7 @@ function build(filament: string, out: string, version: string) {
         [
           "-std=c++20",
           "-stdlib=libc++",
+          "-fno-rtti",
           "-fPIC",
           "-O2",
           `-I${path.join(filament, "include")}`,

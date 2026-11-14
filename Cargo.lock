@@ -4414,6 +4414,7 @@ dependencies = [
  "opsis-probe",
  "opsis-scene",
  "opsis-skia",
+ "opsis-stage3d",
  "opsis-types",
  "serde_json",
  "thiserror 2.0.21",
@@ -4828,6 +4829,15 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 2.0.21",
+]
+
+[[package]]
+name = "opsis-stage3d"
+version = "0.1.0"
+dependencies = [
+ "opsis-filament",
+ "opsis-scene",
+ "opsis-types",
 ]
 
 [[package]]

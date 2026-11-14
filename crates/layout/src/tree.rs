@@ -108,7 +108,7 @@ const fn kind_tag(kind: &Kind) -> Tag {
         Kind::Image(_) => Tag::Image,
         Kind::Svg(_) => Tag::Svg,
         Kind::Drawing(_) => Tag::Canvas,
-        Kind::Footage(_) | Kind::Lottie(_) => Tag::Leaf,
+        Kind::Footage(_) | Kind::Lottie(_) | Kind::Stage3d(_) => Tag::Leaf,
     }
 }
 

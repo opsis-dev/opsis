@@ -12,9 +12,10 @@ use opsis_layout::{Images, Viewport, lay_out};
 use opsis_paint::{Frames, Pass, Programs, Resources, paint};
 use opsis_scene::drawing::Font;
 use opsis_scene::measure::{AnimationTiming, Measure, MeasuredBox};
-use opsis_scene::node::Node;
+use opsis_scene::node::{Node, Stage3d};
 use opsis_scene::timeline::{DrawError, draw_film};
 use opsis_skia::{Matrix44, Rgba, Surface, SurfaceError};
+use opsis_stage3d::{Environment as StageEnvironment, Materials};
 use opsis_types::fonts::FontFamilyDef;
 use opsis_types::numbers::{exact_eq, narrow, whole};
 use opsis_types::terminal_frames::{Frames as TerminalFrames, read as read_frames};
@@ -51,25 +52,49 @@ pub struct Film<'a> {
     terminals: RefCell<HashMap<String, Option<Arc<TerminalFrames>>>>,
     effects: Option<Effects>,
     effects_tried: bool,
+    staging: Staging,
 }
 
-struct FilmPrograms<'e> {
+const ROOM_REFLECTIONS: &str = "app:environments/room/ibl.ktx";
+const ROOM_IRRADIANCE: &str = "app:environments/room/sh.json";
+
+#[derive(Debug, Default)]
+struct Staging {
+    materials: Materials,
+    environment: std::cell::OnceCell<Option<(Vec<u8>, Vec<f32>)>>,
+}
+
+struct FilmPrograms<'e, 'a> {
     effects: &'e mut Option<Effects>,
     tried: &'e mut bool,
+    staging: &'e mut Staging,
+    files: Files<'a>,
 }
 
-impl Programs for FilmPrograms<'_> {
-    fn run(&mut self, pass: &Pass<'_>) -> Option<Vec<u8>> {
-        if !has_program(pass.program) {
-            return None;
-        }
+fn room_environment(files: Files<'_>) -> Option<(Vec<u8>, Vec<f32>)> {
+    let reflections = files(ROOM_REFLECTIONS)?;
+    let coefficients: Vec<[f32; 3]> = serde_json::from_slice(&files(ROOM_IRRADIANCE)?).ok()?;
+    Some((reflections, coefficients.into_iter().flatten().collect()))
+}
+
+impl FilmPrograms<'_, '_> {
+    fn engine(&mut self) -> Option<&mut Effects> {
         if self.effects.is_none() && !*self.tried {
             *self.tried = true;
             *self.effects = Effects::new(Backend::Vulkan)
                 .map_err(|e| log::warn!("shader effects: {e}"))
                 .ok();
         }
-        let effects = self.effects.as_mut()?;
+        self.effects.as_mut()
+    }
+}
+
+impl Programs for FilmPrograms<'_, '_> {
+    fn run(&mut self, pass: &Pass<'_>) -> Option<Vec<u8>> {
+        if !has_program(pass.program) {
+            return None;
+        }
+        let effects = self.engine()?;
         let inputs: Vec<&[u8]> = pass.inputs.iter().map(Vec::as_slice).collect();
         let settings: Vec<Setting> = pass
             .uniforms
@@ -84,6 +109,32 @@ impl Programs for FilmPrograms<'_> {
             .run(pass.program, &inputs, pass.size, &settings)
             .map_err(|e| log::warn!("the {} effect: {e}", pass.program))
             .ok()
+    }
+
+    fn stage(&mut self, stage: &Stage3d, size: (u32, u32)) -> Option<Vec<u8>> {
+        let files = self.files;
+        let environment = self
+            .staging
+            .environment
+            .get_or_init(|| room_environment(files))
+            .clone();
+        let mut materials = std::mem::take(&mut self.staging.materials);
+        let drawn = self.engine().map(|effects| {
+            opsis_stage3d::render(
+                effects.filament(),
+                &mut materials,
+                stage,
+                size,
+                environment
+                    .as_ref()
+                    .map(|(reflections, irradiance)| StageEnvironment {
+                        reflections,
+                        irradiance,
+                    }),
+            )
+        });
+        self.staging.materials = materials;
+        drawn?.map_err(|e| log::warn!("a 3D stage: {e}")).ok()
     }
 }
 
@@ -217,6 +268,7 @@ impl<'a> Film<'a> {
             terminals: RefCell::new(HashMap::new()),
             effects: None,
             effects_tried: false,
+            staging: Staging::default(),
         })
     }
 
@@ -271,6 +323,8 @@ impl<'a> Film<'a> {
         let mut programs = FilmPrograms {
             effects: &mut self.effects,
             tried: &mut self.effects_tried,
+            staging: &mut self.staging,
+            files: self.files,
         };
         let mut resources =
             Resources::new(self.files, self.fonts.faces()).with_programs(&mut programs);

@@ -42,6 +42,10 @@ pub struct Pass<'p> {
 
 pub trait Programs {
     fn run(&mut self, pass: &Pass<'_>) -> Option<Vec<u8>>;
+
+    fn stage(&mut self, _stage: &opsis_scene::node::Stage3d, _size: (u32, u32)) -> Option<Vec<u8>> {
+        None
+    }
 }
 
 pub struct Resources<'a> {
@@ -169,6 +173,14 @@ impl<'a> Resources<'a> {
 
     pub fn run(&mut self, pass: &Pass<'_>) -> Option<Vec<u8>> {
         self.programs.as_deref_mut()?.run(pass)
+    }
+
+    pub fn stage(
+        &mut self,
+        stage: &opsis_scene::node::Stage3d,
+        size: (u32, u32),
+    ) -> Option<Vec<u8>> {
+        self.programs.as_deref_mut()?.stage(stage, size)
     }
 
     pub fn typeface(&mut self, run: &TextRun) -> Option<&Typeface> {

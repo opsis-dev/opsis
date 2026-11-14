@@ -6,6 +6,7 @@
 mod ffi;
 
 pub const TINT_MATERIAL: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/tint.filamat"));
+pub const STANDARD_MATERIAL: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/standard.filamat"));
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Backend {
@@ -210,5 +211,188 @@ impl Filament {
 impl Drop for Filament {
     fn drop(&mut self) {
         unsafe { ffi::opsis_filament_free(self.engine.as_ptr()) };
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Mesh<'a> {
+    pub positions: &'a [f32],
+    pub normals: &'a [f32],
+    pub uvs: Option<&'a [f32]>,
+    pub indices: &'a [u32],
+    pub transform: [f32; 16],
+    pub material: MaterialId,
+    pub uniforms: &'a [Uniform<'a>],
+    pub textures: &'a [Input<'a>],
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Light {
+    pub direction: [f32; 3],
+    pub color: [f32; 3],
+    pub intensity: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Camera {
+    pub fov_degrees: f32,
+    pub near: f32,
+    pub far: f32,
+    pub eye: [f32; 3],
+    pub target: [f32; 3],
+    pub up: [f32; 3],
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Environment<'a> {
+    pub reflections: &'a [u8],
+    pub irradiance: &'a [f32],
+    pub intensity: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Scene<'a> {
+    pub camera: Camera,
+    pub meshes: &'a [Mesh<'a>],
+    pub lights: &'a [Light],
+    pub environment: Option<Environment<'a>>,
+    pub samples: u32,
+}
+
+const SH_COLUMNS: usize = 3;
+
+impl Filament {
+    pub fn scene(
+        &mut self,
+        scene: &Scene<'_>,
+        (width, height): (u32, u32),
+    ) -> Result<Vec<u8>, FilamentError> {
+        let mut names = Vec::new();
+        for mesh in scene.meshes {
+            if mesh.positions.len() != mesh.normals.len() || mesh.positions.len() % 3 != 0 {
+                return Err(FilamentError::Pass);
+            }
+            for u in mesh.uniforms {
+                if !shaped_well(u) {
+                    return Err(FilamentError::Uniform {
+                        name: u.name.to_owned(),
+                        count: u.values.len(),
+                        columns: u.columns,
+                    });
+                }
+                names.push(
+                    std::ffi::CString::new(u.name)
+                        .map_err(|_| FilamentError::Name(u.name.to_owned()))?,
+                );
+            }
+        }
+        let mut owned_names = names.iter();
+        let uniforms: Vec<Vec<ffi::OpsisUniform>> = scene
+            .meshes
+            .iter()
+            .map(|mesh| {
+                mesh.uniforms
+                    .iter()
+                    .map(|u| ffi::OpsisUniform {
+                        name: owned_names.next().map_or(std::ptr::null(), |n| n.as_ptr()),
+                        values: u.values.as_ptr(),
+                        count: u.values.len(),
+                        columns: u.columns,
+                    })
+                    .collect()
+            })
+            .collect();
+        let textures: Vec<Vec<ffi::OpsisInput>> = scene
+            .meshes
+            .iter()
+            .map(|mesh| {
+                mesh.textures
+                    .iter()
+                    .map(|t| ffi::OpsisInput {
+                        pixels: t.pixels.as_ptr(),
+                        width: t.width,
+                        height: t.height,
+                    })
+                    .collect()
+            })
+            .collect();
+        let meshes: Vec<ffi::OpsisMesh> = scene
+            .meshes
+            .iter()
+            .zip(uniforms.iter().zip(&textures))
+            .map(|(mesh, (u, t))| ffi::OpsisMesh {
+                positions: mesh.positions.as_ptr(),
+                normals: mesh.normals.as_ptr(),
+                uvs: mesh.uvs.map_or(std::ptr::null(), <[f32]>::as_ptr),
+                vertex_count: u32::try_from(mesh.positions.len() / 3).unwrap_or(0),
+                indices: mesh.indices.as_ptr(),
+                index_count: u32::try_from(mesh.indices.len()).unwrap_or(0),
+                transform: mesh.transform,
+                material: mesh.material.0,
+                uniforms: u.as_ptr(),
+                uniform_count: u.len(),
+                textures: t.as_ptr(),
+                texture_count: t.len(),
+            })
+            .collect();
+        let lights: Vec<ffi::OpsisLight> = scene
+            .lights
+            .iter()
+            .map(|l| ffi::OpsisLight {
+                direction: l.direction,
+                color: l.color,
+                intensity: l.intensity,
+            })
+            .collect();
+        let (reflections, reflections_size, irradiance, bands, intensity) = match scene.environment
+        {
+            Some(e) => {
+                let coefficients = e.irradiance.len() / SH_COLUMNS;
+                let bands = (1..=3u32)
+                    .rev()
+                    .find(|b| usize::try_from(b * b).unwrap_or(usize::MAX) <= coefficients)
+                    .unwrap_or(0);
+                (
+                    e.reflections.as_ptr(),
+                    e.reflections.len(),
+                    e.irradiance.as_ptr(),
+                    bands,
+                    e.intensity,
+                )
+            }
+            None => (std::ptr::null(), 0, std::ptr::null(), 0, 0.0),
+        };
+        let described = ffi::OpsisScene {
+            fov_degrees: scene.camera.fov_degrees,
+            near_plane: scene.camera.near,
+            far_plane: scene.camera.far,
+            eye: scene.camera.eye,
+            target: scene.camera.target,
+            up: scene.camera.up,
+            meshes: meshes.as_ptr(),
+            mesh_count: meshes.len(),
+            lights: lights.as_ptr(),
+            light_count: lights.len(),
+            reflections,
+            reflections_size,
+            irradiance,
+            irradiance_bands: bands,
+            environment_intensity: intensity,
+            samples: scene.samples,
+        };
+        let mut out = vec![0u8; picture_size(width, height)];
+        let drawn = unsafe {
+            ffi::opsis_filament_scene(
+                self.engine.as_ptr(),
+                &raw const described,
+                width,
+                height,
+                out.as_mut_ptr(),
+            )
+        };
+        if drawn < 0 {
+            return Err(FilamentError::Pass);
+        }
+        Ok(out)
     }
 }

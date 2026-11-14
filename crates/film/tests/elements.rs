@@ -26,7 +26,14 @@ struct Allowance {
     reason: &'static str,
 }
 
-const ALLOWANCES: [Allowance; 7] = [
+const ALLOWANCES: [Allowance; 8] = [
+    Allowance {
+        key: "shapes-3d",
+        frames: &[37, 149],
+        mean: TOLERANCE,
+        wrong_share: 0.003,
+        reason: "the room's light boxes reflect in the shapes through cmgen's prefiltered map in place of three.js's PMREM blur, which spreads the brightest highlight on a sphere's rim a little differently",
+    },
     Allowance {
         key: "light-leak",
         frames: &[11, 22, 33, 44],
