@@ -69,36 +69,24 @@ jobs:
           key: release-${{ matrix.os }}
           cache-on-failure: true
       - run: bun install --frozen-lockfile
-      - name: Cache Zig and its packages
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: |
-            ~/.cache/opsis-dev/zig
-            ~/.cache/zig
-            ~/Library/Caches/zig
-            ~/AppData/Local/zig
-          key: zig-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/zig-install.ts', 'crates/vt/zig/build.zig.zon') }}
-      - name: Install Zig
-        run: |
-          bun run zig:install | tee "$RUNNER_TEMP/zig-install.log"
-          sed -n 's/^Zig [^:]*: //p' "$RUNNER_TEMP/zig-install.log" >> "$GITHUB_PATH"
-      - name: Fetch the terminal engine
-        working-directory: crates/vt/zig
-        run: zig build --fetch
-      - name: Cache the static Qt
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: ~/.cache/opsis-dev/qt-static
-          key: static-qt-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/static-qt.ts') }}
+      - name: Install the system libraries setup checks for
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y clang libc++-dev libc++abi-dev libasound2-dev libdbus-1-dev libfontconfig1-dev libfreetype-dev libwayland-dev wayland-protocols libx11-dev libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-util-dev libxcb-xfixes0-dev libxcb-xkb-dev libxext-dev libxfixes-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libxrender-dev
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2
+        if: runner.os == 'Linux'
       - name: Install Ninja
         if: runner.os == 'macOS'
         run: command -v ninja || brew install ninja
-      - name: Build the static Qt
-        run: |
-          bun run qt:static | tee "$RUNNER_TEMP/qt-static.log"
-          echo "OPSIS_QT=$(sed -n 's/^Static Qt [^:]*: //p' "$RUNNER_TEMP/qt-static.log")" >> "$GITHUB_ENV"
-      - name: Fetch KDDockWidgets
-        run: bun run qt:install
+      - name: Cache what setup fetches and builds
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: ~/.cache/opsis-dev
+          key: setup-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/setup/**', 'scripts/lib/static-qt.ts', 'scripts/lib/skia.ts') }}
+      - name: Set up the pinned tools, the static Qt, Skia, Filament and FFmpeg
+        run: bun run setup --no-engine
+      - name: Fetch the terminal engine
+        working-directory: crates/vt/zig
+        run: ../../../.setup/bin/zig build --fetch
       - name: Cache the downloaded browser and its licences
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
@@ -106,11 +94,6 @@ jobs:
             ~/.cache/opsis-dev/stage-engine
             ~/.cache/opsis-dev/chromium-credits
           key: stage-engine-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('crates/engine/src/downloads.generated.json') }}
-      - name: Cache the pinned FFmpeg
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: ~/.cache/opsis-dev/ffmpeg
-          key: ffmpeg-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/ffmpeg.generated.json') }}
       - name: Install NSIS
         if: runner.os == 'Windows'
         run: |

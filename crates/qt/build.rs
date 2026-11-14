@@ -5,8 +5,6 @@ use qt_build_utils::{MocArguments, QtBuild, QtInstallationQMake};
 
 const QT_MODULES: [&str; 5] = ["Core", "Gui", "Widgets", "Svg", "Test"];
 const QT_MIN_MINOR: u64 = 12;
-const KDDW_VERSION: &str = "2.5.1";
-const QT_VERSION: &str = "6.12.0";
 
 const DEFINES: [&str; 6] = [
     "KDDW_FRONTEND_QT",
@@ -115,25 +113,16 @@ const SOURCES: [&str; 54] = [
 ];
 
 fn main() {
-    println!("cargo::rustc-env=OPSIS_KDDW_VERSION={KDDW_VERSION}");
     let manifest =
         PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("Cargo sets CARGO_MANIFEST_DIR"));
-    let home = env::var_os("HOME")
-        .or_else(|| env::var_os("USERPROFILE"))
-        .map(PathBuf::from)
-        .expect("a home folder in HOME or USERPROFILE");
+    let kddw_version = pinned_kddw_version(&manifest);
+    println!("cargo::rustc-env=OPSIS_KDDW_VERSION={kddw_version}");
     let toolchain = Toolchain::of_target();
-    let qt_prefix = env::var("OPSIS_QT").map_or_else(
-        |_| {
-            home.join(".cache/opsis-dev/qt")
-                .join(QT_VERSION)
-                .join(qt_folder())
-        },
-        PathBuf::from,
-    );
+    let qt_prefix =
+        env::var("OPSIS_QT").map_or_else(|_| setup_path(&manifest, "qt"), PathBuf::from);
     let installation = QtInstallationQMake::try_from(qmake(&qt_prefix)).unwrap_or_else(|error| {
         panic!(
-            "Qt 6.12 is needed in {} (bun run qt:install, or set OPSIS_QT): {error}",
+            "Qt 6.12 is needed in {} (bun run setup, or set OPSIS_QT): {error}",
             qt_prefix.display()
         )
     });
@@ -147,7 +136,7 @@ fn main() {
         "Qt 6.12 or newer is needed, found {version}"
     );
 
-    let kddw = build_kddw(&qt_prefix, &home, toolchain);
+    let kddw = build_kddw(&qt_prefix, &manifest, &kddw_version, toolchain);
     let cpp = manifest.join("cpp");
     let out = PathBuf::from(env::var("OUT_DIR").expect("Cargo sets OUT_DIR"));
     let bridge_include = out.join("cxxbridge").join("include");
@@ -237,14 +226,42 @@ fn qmake(qt_prefix: &Path) -> PathBuf {
         .unwrap_or_else(|| bin.join("qmake6"))
 }
 
-fn build_kddw(qt_prefix: &Path, home: &Path, toolchain: Toolchain) -> PathBuf {
-    let source = env::var("OPSIS_KDDW_SOURCE").map_or_else(
-        |_| home.join(format!(".cache/opsis-dev/qt/kddockwidgets-{KDDW_VERSION}")),
+fn setup_path(manifest: &Path, key: &str) -> PathBuf {
+    let file = manifest.join("../../.setup/paths.json");
+    println!("cargo:rerun-if-changed={}", file.display());
+    let text = std::fs::read_to_string(&file)
+        .unwrap_or_else(|e| panic!("{}: {e}. Run bun run setup first.", file.display()));
+    let paths: serde_json::Value =
+        serde_json::from_str(&text).unwrap_or_else(|e| panic!("{}: {e}", file.display()));
+    paths[key].as_str().map_or_else(
+        || {
+            panic!(
+                "{} names no {key}. Run bun run setup again.",
+                file.display()
+            )
+        },
         PathBuf::from,
-    );
+    )
+}
+
+fn pinned_kddw_version(manifest: &Path) -> String {
+    let file = manifest.join("../../scripts/lib/setup/pins.generated.json");
+    println!("cargo:rerun-if-changed={}", file.display());
+    let text = std::fs::read_to_string(&file).unwrap_or_else(|e| panic!("{}: {e}", file.display()));
+    let pins: serde_json::Value =
+        serde_json::from_str(&text).unwrap_or_else(|e| panic!("{}: {e}", file.display()));
+    pins["kddw"]["version"]
+        .as_str()
+        .unwrap_or_else(|| panic!("{} pins no KDDockWidgets version", file.display()))
+        .to_owned()
+}
+
+fn build_kddw(qt_prefix: &Path, manifest: &Path, version: &str, toolchain: Toolchain) -> PathBuf {
+    let source =
+        env::var("OPSIS_KDDW_SOURCE").map_or_else(|_| setup_path(manifest, "kddw"), PathBuf::from);
     assert!(
         source.join("CMakeLists.txt").exists(),
-        "KDDockWidgets {KDDW_VERSION} is needed in {} (bun run qt:install, or set OPSIS_KDDW_SOURCE)",
+        "KDDockWidgets {version} is needed in {} (bun run setup, or set OPSIS_KDDW_SOURCE)",
         source.display()
     );
     cmake::Config::new(&source)
@@ -499,17 +516,6 @@ fn static_link_args(
             .collect()
     } else {
         links.group.into_iter().chain(system).collect()
-    }
-}
-
-fn qt_folder() -> &'static str {
-    let os = env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();
-    let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
-    match (os.as_str(), arch.as_str()) {
-        ("macos", _) => "macos",
-        ("windows", _) => "msvc2022_64",
-        (_, "aarch64") => "gcc_arm64",
-        _ => "gcc_64",
     }
 }
 

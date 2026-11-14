@@ -8,7 +8,6 @@ import {
   MACOS_MINIMUM,
   parseSetOutput,
   QT_PLATFORMS,
-  qtFolder,
   shellScript,
 } from "./static-qt";
 import { ROOT } from "./tool-config";
@@ -48,20 +47,12 @@ describe("the static Qt build", () => {
     ]);
   });
 
-  it("names the prefix folder the editor's build script looks for", () => {
-    fc.assert(
-      fc.property(platform, fc.constantFrom("x64", "arm64"), (system, arch) => {
-        const build = readFileSync(path.join(ROOT, "crates", "qt", "build.rs"), "utf8");
-        expect(build).toContain(`"${qtFolder(system, arch)}"`);
-      }),
-    );
-  });
-
   it("runs Qt's own scripts as batch files only on Windows, every step inside the build folder", () => {
     fc.assert(
       fc.property(platform, folder, folder, (system, build, prefix) => {
         const steps = buildSteps(
           system,
+          "6.12.0",
           ["/t/qtbase.tar.xz", "/t/qtsvg.tar.xz"],
           `/${build}`,
           `/${prefix}`,
@@ -81,6 +72,7 @@ describe("the static Qt build", () => {
       fc.property(folder, folder, (build, prefix) => {
         const steps = buildSteps(
           "linux",
+          "6.12.0",
           ["/t/a.tar.xz", "/t/b.tar.xz"],
           `/${build}`,
           `/${prefix}`,

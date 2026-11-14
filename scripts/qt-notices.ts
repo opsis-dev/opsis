@@ -2,7 +2,9 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { QT_VERSION, staticQtPrefix, staticQtReady } from "./lib/static-qt";
+import { cachedName } from "./lib/pins";
+import { readPins } from "./lib/setup/manifest";
+import { downloadsDir, readPaths } from "./lib/setup/store";
 import { ROOT } from "./lib/tool-config";
 
 const OUT = path.join(ROOT, "QT_NOTICES.generated.md");
@@ -111,14 +113,16 @@ function licenceIds(expression: string): string[] {
 function licenceTexts(ids: Set<string>, extracted: Map<string, string>): Map<string, string> {
   const work = mkdtempSync(path.join(tmpdir(), "opsis-qt-licences-"));
   try {
-    const downloads = path.join(path.dirname(path.dirname(staticQtPrefix())), "downloads");
+    const { qt } = readPins();
     const folders = MODULE_SOURCES.map((module) => {
-      const root = `${module}-everywhere-src-${QT_VERSION}`;
+      const root = `${module}-everywhere-src-${qt.version}`;
+      const source = qt.sources.find((s) => s.module === module);
+      if (!source) throw new Error(`The Qt pins have no ${module}.`);
       execFileSync(
         "tar",
         [
           "-xf",
-          path.join(downloads, `${root}.tar.xz`),
+          path.join(downloadsDir(), cachedName(source.url)),
           "-C",
           work,
           "--wildcards",
@@ -153,7 +157,7 @@ function render(found: Component[], texts: Map<string, string>): string {
   const parts = [
     "# Notices for the code Qt compiles in",
     "",
-    `Opsis links Qt ${QT_VERSION} statically. These are the third-party components compiled into the Qt modules and plugins it links, read from that Qt build's software bill of materials by \`bun run qt:notices\`. Each component's licence text follows the list, once per licence.`,
+    `Opsis links Qt ${readPins().qt.version} statically. These are the third-party components compiled into the Qt modules and plugins it links, read from that Qt build's software bill of materials by \`bun run qt:notices\`. Each component's licence text follows the list, once per licence.`,
     "",
   ];
   for (const component of found) {
@@ -171,8 +175,7 @@ function render(found: Component[], texts: Map<string, string>): string {
 }
 
 function main(): void {
-  if (!staticQtReady()) throw new Error("Build the static Qt first: bun run qt:static.");
-  const prefix = staticQtPrefix();
+  const prefix = readPaths().qt;
   const { modules, plugins } = linkedArchives(prefix);
   const { blocks, extracted } = readSbom(prefix);
   const names = new Set(blocks.map((block) => textField(block, "PackageName")));

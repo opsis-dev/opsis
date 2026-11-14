@@ -1,17 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import {
-  FFMPEG_PINS,
-  FFMPEG_RELEASE,
-  FFMPEG_TARGETS,
-  ffmpegLicenceUrl,
-  ffmpegProgramUrl,
-  ffprobeProgramUrl,
-  readFfmpegPins,
-  sidecarFileName,
-} from "./ffmpeg";
-import { generatedJson } from "./pins";
+import { ffmpegReleaseUrl, readFfmpegPins, sidecarFileName } from "./ffmpeg";
 import { ROOT } from "./tool-config";
 
 describe("the pinned FFmpeg", () => {
@@ -24,28 +14,19 @@ describe("the pinned FFmpeg", () => {
     );
   });
 
-  it("pins a program, its ffprobe and its licence for every target, at the addresses built today", () => {
+  it("pins a program, its ffprobe and its licence for every target from the same release", () => {
     const pins = readFfmpegPins();
-    expect(pins.release).toBe(FFMPEG_RELEASE);
-    expect(pins.targets.map((pin) => [pin.target, pin.asset])).toEqual(
-      FFMPEG_TARGETS.map(([target, asset]) => [target, asset]),
-    );
     for (const pin of pins.targets) {
-      expect(pin.program.url).toBe(ffmpegProgramUrl(pin.asset));
-      expect(pin.probe.url).toBe(ffprobeProgramUrl(pin.asset));
-      expect(pin.licence.url).toBe(ffmpegLicenceUrl(pin.asset));
+      for (const file of [pin.program, pin.probe, pin.licence])
+        expect(file.url).toContain(`/releases/download/${pins.release}/`);
+      expect(pin.program.url).toContain(`ffmpeg-${pin.asset}.gz`);
+      expect(pin.probe.url).toContain(`ffprobe-${pin.asset}.gz`);
+      expect(pin.licence.url).toContain(`${pin.asset}.LICENSE`);
     }
-  });
-
-  it("is committed in the form the pin script writes", () => {
-    const text = readFileSync(FFMPEG_PINS, "utf8");
-    expect(generatedJson(readFfmpegPins())).toBe(text);
   });
 
   it("is the release the source notice links", () => {
     const notices = readFileSync(path.join(ROOT, "THIRD_PARTY_NOTICES.md"), "utf8");
-    expect(notices).toContain(
-      `https://github.com/eugeneware/ffmpeg-static/releases/tag/${readFfmpegPins().release}`,
-    );
+    expect(notices).toContain(ffmpegReleaseUrl(readFfmpegPins().release));
   });
 });

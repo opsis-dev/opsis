@@ -1,16 +1,12 @@
 import { execFileSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
-import os from "node:os";
+import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { ROOT, devCache } from "./lib/tool-config";
+import { readPins } from "./setup/manifest";
+import { ROOT } from "./tool-config";
+import { runInTrixie } from "./trixie";
 
-const SKIA_REPO = "https://skia.googlesource.com/skia.git";
-const SKIA_BRANCH = "chrome/m157";
-const SKIA_COMMIT = "fef60e46c522b87e5802ddf0a215a763dd5e0483";
 const BUILD_JOBS = "8";
-const IMAGE = "opsis-skia-build";
-const DOCKER_FLAG = "--docker";
-const ROOT_FLAG = "--into=";
+const INSIDE_FLAG = "--inside";
 
 const TARGETS = [
   "skia",
@@ -43,13 +39,16 @@ const CFLAGS = [
   ...UNSET_DEFINES.map((d) => `-U${d}`),
 ];
 
+const CXXFLAGS = process.platform === "linux" ? ["-stdlib=libc++"] : [];
+
 const ARGS: Record<string, string | boolean> = {
   is_official_build: true,
   is_debug: false,
   is_component_build: false,
-  cc: '"clang"',
-  cxx: '"clang++"',
+  cc: JSON.stringify("clang"),
+  cxx: JSON.stringify("clang++"),
   extra_cflags: JSON.stringify(CFLAGS),
+  extra_cflags_cc: JSON.stringify(CXXFLAGS),
   skia_enable_ganesh: false,
   skia_enable_graphite: false,
   skia_use_gl: false,
@@ -60,6 +59,7 @@ const ARGS: Record<string, string | boolean> = {
   skia_use_fontconfig: false,
   skia_use_freetype: true,
   skia_use_system_freetype2: false,
+  skia_use_freetype_woff2: true,
   skia_enable_fontmgr_custom_empty: true,
   skia_enable_fontmgr_custom_directory: false,
   skia_enable_fontmgr_custom_embedded: false,
@@ -107,30 +107,17 @@ function run(command: string, args: string[], cwd: string, env: NodeJS.ProcessEn
   execFileSync(command, args, { cwd, stdio: "inherit", env });
 }
 
-function platformName(): string {
-  return `${process.platform}-${process.arch}`;
-}
-
-function skiaRoot(): string {
-  const given = process.argv.find((a) => a.startsWith(ROOT_FLAG))?.slice(ROOT_FLAG.length);
-  return given ?? devCache("skia");
-}
-
-function skiaDir(): string {
-  return path.join(skiaRoot(), SKIA_COMMIT);
-}
-
-function fetchSource(src: string) {
+function fetchSource(src: string, repo: string, commit: string) {
   if (existsSync(path.join(src, "BUILD.gn"))) {
     console.log(`Skia: ${src} is already fetched`);
     return;
   }
   mkdirSync(src, { recursive: true });
   run("git", ["init", "-q"], src);
-  run("git", ["remote", "add", "origin", SKIA_REPO], src);
-  run("git", ["fetch", "--depth", "1", "origin", SKIA_COMMIT], src);
+  run("git", ["remote", "add", "origin", repo], src);
+  run("git", ["fetch", "--depth", "1", "origin", commit], src);
   run("git", ["checkout", "-q", "FETCH_HEAD"], src);
-  console.log(`Skia: ${SKIA_BRANCH} at ${SKIA_COMMIT}`);
+  console.log(`Skia: ${commit}`);
 }
 
 const SYNC_ATTEMPTS = 5;
@@ -158,7 +145,7 @@ function gnArgs(): string {
     .join(" ");
 }
 
-function build(src: string, out: string) {
+function build(src: string, out: string, commit: string) {
   const gn = path.join(src, "bin", process.platform === "win32" ? "gn.exe" : "gn");
   run(gn, ["gen", out, `--args=${gnArgs()}`], src);
   const ninja = path.join(
@@ -168,7 +155,7 @@ function build(src: string, out: string) {
     process.platform === "win32" ? "ninja.exe" : "ninja",
   );
   run(existsSync(ninja) ? ninja : "ninja", ["-C", out, "-j", BUILD_JOBS, ...TARGETS], src);
-  writeConsumer(gn, src, out);
+  writeConsumer(gn, src, out, commit);
 }
 
 function described(gn: string, src: string, out: string, what: string): string[] {
@@ -187,7 +174,7 @@ function resolved(src: string, dir: string): string {
   return dir.startsWith("//") ? path.join(src, dir.slice(2)) : dir;
 }
 
-function writeConsumer(gn: string, src: string, out: string) {
+function writeConsumer(gn: string, src: string, out: string, commit: string) {
   const defines = [
     ...described(gn, src, out, "defines").filter(
       (d) => !OWN_DEFINE.test(d) && !UNSET_DEFINES.includes(d),
@@ -201,61 +188,41 @@ function writeConsumer(gn: string, src: string, out: string) {
     .toSorted();
   writeFileSync(
     path.join(out, "consumer.json"),
-    `${JSON.stringify({ commit: SKIA_COMMIT, defines, includes, libraries }, null, 2)}\n`,
+    `${JSON.stringify({ commit, defines, includes, libraries }, null, 2)}\n`,
   );
+}
+
+export const SKIA_RECIPE = { args: ARGS, cflags: CFLAGS, cxxflags: CXXFLAGS, targets: TARGETS };
+
+function buildHere(dir: string) {
+  const { skia } = readPins();
+  const src = path.join(dir, "src");
+  const out = path.join(dir, "out");
+  fetchSource(src, skia.repo, skia.commit);
+  syncDependencies(src);
+  build(src, out, skia.commit);
+  console.log(`Skia: built into ${out}`);
 }
 
 function bunProgram(): string {
   return execFileSync("which", ["bun"], { encoding: "utf8" }).trim();
 }
 
-function buildInDocker() {
-  const context = path.join(devCache("skia"), "image");
-  mkdirSync(context, { recursive: true });
-  copyFileSync(
-    path.join(ROOT, "scripts", "lib", "skia", "Dockerfile"),
-    path.join(context, "Dockerfile"),
-  );
-  run("docker", ["build", "-t", IMAGE, context], ROOT);
-  mkdirSync(skiaDir(), { recursive: true });
-  const user = `${os.userInfo().uid}:${os.userInfo().gid}`;
-  run(
-    "docker",
-    [
-      "run",
-      "--rm",
-      "--init",
-      "--user",
-      user,
-      "--cpus",
-      BUILD_JOBS,
-      "-e",
-      "HOME=/tmp",
-      "-v",
-      `${ROOT}:${ROOT}:ro`,
-      "-v",
-      `${skiaDir()}:${skiaDir()}`,
-      "-v",
-      `${bunProgram()}:/usr/local/bin/bun:ro`,
-      "-w",
-      ROOT,
-      IMAGE,
-      "bun",
-      "scripts/skia-build.ts",
-      `${ROOT_FLAG}${skiaRoot()}`,
-    ],
-    ROOT,
-  );
+export function buildSkia(dir: string): void {
+  if (process.platform !== "linux") {
+    buildHere(dir);
+    return;
+  }
+  const bun = bunProgram();
+  runInTrixie({
+    script: `cd ${ROOT}\n${bun} scripts/lib/skia.ts ${INSIDE_FLAG} ${dir}`,
+    mounts: [dir, ROOT, path.dirname(bun)],
+  });
 }
 
-const args = process.argv.slice(2);
-if (args.includes(DOCKER_FLAG)) {
-  buildInDocker();
-} else {
-  const src = path.join(skiaDir(), "src");
-  const out = path.join(skiaDir(), "out", platformName());
-  fetchSource(src);
-  syncDependencies(src);
-  build(src, out);
-  console.log(`Skia: built into ${out}`);
+const inside = process.argv.indexOf(INSIDE_FLAG);
+if (import.meta.main && inside >= 0) {
+  const dir = process.argv[inside + 1];
+  if (!dir) throw new Error(`${INSIDE_FLAG} needs the folder to build into.`);
+  buildHere(dir);
 }

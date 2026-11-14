@@ -9,5 +9,5 @@ execFileSync("cargo", ["build", "-p", "opsis-effects", "--bin", "opsis-renderer"
 execFileSync("cargo", ["run", "-p", "opsis-ui", "--bin", "opsis", "--", ...process.argv.slice(2)], {
   cwd: ROOT,
   stdio: "inherit",
-  env: await withFfmpeg(),
+  env: withFfmpeg(),
 });

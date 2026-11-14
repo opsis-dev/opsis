@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { copyFileSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { filamentDir, readFilamentPins } from "./lib/filament";
+import { readPaths } from "./lib/setup/store";
 import { ROOT, devCache } from "./lib/tool-config";
 
 const OUT = path.join(ROOT, "public", "environments", "room");
@@ -166,13 +166,7 @@ function main(): void {
   mkdirSync(work, { recursive: true });
   const source = path.join(work, "room.hdr");
   writeFileSync(source, radiance());
-  const pins = readFilamentPins();
-  const cmgen = path.join(
-    filamentDir(devCache("filament"), pins.version),
-    "filament",
-    "bin",
-    "cmgen",
-  );
+  const cmgen = path.join(readPaths().filament, "bin", "cmgen");
   const deployed = path.join(work, "deploy");
   execFileSync(
     cmgen,

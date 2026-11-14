@@ -26,10 +26,24 @@ pub fn dev_cache(name: &str) -> PathBuf {
     home().join(".cache/opsis-dev").join(name)
 }
 
-pub fn ffmpeg() -> PathBuf {
-    std::env::var_os("OPSIS_FFMPEG").map(PathBuf::from).expect(
-        "OPSIS_FFMPEG names the staged FFmpeg: run cargo through bun run test:rust, or set it to what bun run ffmpeg:stage prints",
+pub fn setup_path(key: &str) -> PathBuf {
+    let file = repo().join(".setup").join("paths.json");
+    let text = std::fs::read_to_string(&file)
+        .unwrap_or_else(|e| panic!("{}: {e}. Run bun run setup first.", file.display()));
+    let paths: Value =
+        serde_json::from_str(&text).unwrap_or_else(|e| panic!("{}: {e}", file.display()));
+    paths[key].as_str().map_or_else(
+        || panic!("{} names no {key}", file.display()),
+        PathBuf::from,
     )
+}
+
+pub fn ffmpeg() -> PathBuf {
+    std::env::var_os("OPSIS_FFMPEG").map_or_else(|| setup_path("ffmpeg"), PathBuf::from)
+}
+
+pub fn ffprobe() -> PathBuf {
+    setup_path("ffprobe")
 }
 
 pub fn typed<T: DeserializeOwned>(value: &Value) -> T {

@@ -35,44 +35,22 @@ jobs:
       - uses: taiki-e/install-action@3a3daafd3b7f23b8f65d9f5ba2db203fb59b79e2
         with:
           tool: cargo-deny@0.19.8
-      - name: Install the sound library, the virtual display and headless Wayland
-        run: sudo apt-get update && sudo apt-get install -y libasound2-dev xvfb libxcb-cursor0 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-randr0 libxcb-shape0 libxcb-xkb1 sway
+      - name: Install the system libraries, the virtual display and headless Wayland
+        run: sudo apt-get update && sudo apt-get install -y xvfb sway clang libc++-dev libc++abi-dev libasound2-dev libdbus-1-dev libfontconfig1-dev libfreetype-dev libwayland-dev wayland-protocols libx11-dev libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-util-dev libxcb-xfixes0-dev libxcb-xkb-dev libxext-dev libxfixes-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libxrender-dev
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2
-      - uses: jurplel/install-qt-action@b344308e4483fc892e0d27b3cd1b173ebdd95f06
-        with:
-          version: 6.12.0
-          cache: true
-      - name: Point the native editor at Qt
-        run: echo "OPSIS_QT=$QT_ROOT_DIR" >> "$GITHUB_ENV"
       - run: bun install --frozen-lockfile
-      - name: Cache Zig and its packages
+      - name: Cache what setup fetches and builds
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
-            ~/.cache/opsis-dev/zig
-            ~/.cache/zig
-          key: zig-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/zig-install.ts', 'crates/vt/zig/build.zig.zon') }}
-      - name: Install Zig
-        shell: bash
-        run: |
-          bun run zig:install | tee "$RUNNER_TEMP/zig-install.log"
-          sed -n 's/^Zig [^:]*: //p' "$RUNNER_TEMP/zig-install.log" >> "$GITHUB_PATH"
+            ~/.cache/opsis-dev
+            ~/.config/Opsis/engine
+          key: setup-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/setup/**', 'scripts/lib/static-qt.ts', 'scripts/lib/skia.ts', 'crates/engine/src/downloads.generated.json') }}
+      - name: Set up the pinned tools, Qt, Skia, Filament, FFmpeg and the engine
+        run: bun run setup
       - name: Fetch the terminal engine
         working-directory: crates/vt/zig
-        run: zig build --fetch
-      - name: Fetch KDDockWidgets
-        run: bun run qt:install
-      - name: Cache Skia and Filament
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: |
-            ~/.cache/opsis-dev/skia
-            ~/.cache/opsis-dev/filament
-          key: native-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/skia-build.ts', 'scripts/filament-build.ts', 'scripts/lib/filament.ts', 'scripts/lib/filament/**', 'crates/filament/cpp/**', 'crates/filament/downloads.generated.json') }}
-      - name: Build Skia
-        run: bun run skia:build
-      - name: Build the sealed Filament wrapper
-        run: bun run filament:build --docker
+        run: ../../../.setup/bin/zig build --fetch
       - run: bun run typecheck
       - run: bun run lint
       - run: bun run format
@@ -83,15 +61,8 @@ jobs:
         run: cargo test -p opsis-vt --release
       - name: Check the bundled FFmpeg has everything Opsis uses
         run: bun run test:rust -p opsis-media --lib capabilities
-      - name: Cache the engine
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: ~/.config/Opsis/engine
-          key: dev-engine-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('crates/engine/src/downloads.generated.json') }}
-      - name: Install the engine
-        run: cargo run -q --release -p opsis-engine --bin install-engine -- ~/.config/Opsis/engine
       - name: Compare every element with its golden picture on the software graphics driver
-        run: bun run ffmpeg:stage && cargo build -p opsis-effects --bin opsis-renderer && OPSIS_FFMPEG="$PWD/target/ffmpeg/opsis-ffmpeg-x86_64-unknown-linux-gnu" cargo test -p opsis-render --test goldens -- --ignored
+        run: cargo build -p opsis-effects --bin opsis-renderer && cargo test -p opsis-render --test goldens -- --ignored
 
   scripts:
     name: Script sandbox on ${{ matrix.os }}
@@ -129,50 +100,21 @@ jobs:
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
         with:
           cache-on-failure: true
-      - name: Install the sound library and the virtual display
-        run: sudo apt-get update && sudo apt-get install -y libasound2-dev xvfb xauth libxcb-cursor0 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-randr0 libxcb-shape0 libxcb-xkb1
+      - name: Install the system libraries and the virtual display
+        run: sudo apt-get update && sudo apt-get install -y xvfb xauth clang libc++-dev libc++abi-dev libasound2-dev libdbus-1-dev libfontconfig1-dev libfreetype-dev libwayland-dev wayland-protocols libx11-dev libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-util-dev libxcb-xfixes0-dev libxcb-xkb-dev libxext-dev libxfixes-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libxrender-dev
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2
-      - uses: jurplel/install-qt-action@b344308e4483fc892e0d27b3cd1b173ebdd95f06
-        with:
-          version: 6.12.0
-          cache: true
-      - name: Point the native editor at Qt
-        run: echo "OPSIS_QT=$QT_ROOT_DIR" >> "$GITHUB_ENV"
       - run: bun install --frozen-lockfile
-      - name: Cache Zig and its packages
+      - name: Cache what setup fetches and builds
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
-            ~/.cache/opsis-dev/zig
-            ~/.cache/zig
-          key: zig-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/zig-install.ts', 'crates/vt/zig/build.zig.zon') }}
-      - name: Install Zig
-        shell: bash
-        run: |
-          bun run zig:install | tee "$RUNNER_TEMP/zig-install.log"
-          sed -n 's/^Zig [^:]*: //p' "$RUNNER_TEMP/zig-install.log" >> "$GITHUB_PATH"
+            ~/.cache/opsis-dev
+            ~/.config/Opsis/engine
+          key: setup-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/setup/**', 'scripts/lib/static-qt.ts', 'scripts/lib/skia.ts', 'crates/engine/src/downloads.generated.json') }}
+      - name: Set up the pinned tools, Qt, Skia, Filament, FFmpeg and the engine
+        run: bun run setup
       - name: Fetch the terminal engine
         working-directory: crates/vt/zig
-        run: zig build --fetch
-      - name: Cache the engine
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: ~/.config/Opsis/engine
-          key: dev-engine-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('crates/engine/src/downloads.generated.json') }}
-      - name: Install the engine
-        run: cargo run -q --release -p opsis-engine --bin install-engine -- ~/.config/Opsis/engine
-      - name: Fetch KDDockWidgets
-        run: bun run qt:install
-      - name: Cache Skia and Filament
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: |
-            ~/.cache/opsis-dev/skia
-            ~/.cache/opsis-dev/filament
-          key: native-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/skia-build.ts', 'scripts/filament-build.ts', 'scripts/lib/filament.ts', 'scripts/lib/filament/**', 'crates/filament/cpp/**', 'crates/filament/downloads.generated.json') }}
-      - name: Build Skia
-        run: bun run skia:build
-      - name: Build the sealed Filament wrapper
-        run: bun run filament:build --docker
+        run: ../../../.setup/bin/zig build --fetch
       - name: Drive the native editor through real runs
         run: bun run e2e:qt tour runs api

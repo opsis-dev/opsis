@@ -13,6 +13,7 @@ import { z } from "zod";
 import type { FontCategory, FontFamilyDef } from "./lib/generated/spec";
 import { type Pinned, verifiedDownload } from "./lib/pins";
 import { readJsonWith } from "./lib/read-json";
+import { npmPackage } from "./lib/setup/store";
 import { devCache, ROOT } from "./lib/tool-config";
 import { unzipTo } from "./lib/unzip";
 import { walkFiles } from "./lib/walk";
@@ -70,7 +71,7 @@ const metadataSchema = z.object({
 type Face = FontFamilyDef["faces"][number];
 
 function copyFontFiles({ pkg }: BundledFont): FontFamilyDef {
-  const dir = path.join(ROOT, "node_modules", pkg);
+  const dir = npmPackage(pkg);
   const meta = readJsonWith(metadataSchema, path.join(dir, "metadata.json"));
   const variable = pkg.startsWith("@fontsource-variable/");
   const dest = path.join(OUT, meta.id);
@@ -250,7 +251,7 @@ async function notoEmoji(): Promise<FontFamilyDef> {
   copyFileSync(await verifiedDownload(NOTO_EMOJI_LICENSE, CACHE), path.join(dest, "LICENSE"));
   const ranges = readJsonWith(
     unicodeSchema,
-    path.join(ROOT, "node_modules", EMOJI_RANGES_PACKAGE, "unicode.json"),
+    path.join(npmPackage(EMOJI_RANGES_PACKAGE), "unicode.json"),
   );
   return terminalFamily(
     id,
@@ -280,7 +281,7 @@ function fontsourceSubsets(
   weights: number[],
   group: SubsetGroup = TERMINAL_GROUP,
 ): FontFamilyDef {
-  const dir = path.join(ROOT, "node_modules", pkg);
+  const dir = npmPackage(pkg);
   const meta = readJsonWith(metadataSchema, path.join(dir, "metadata.json"));
   const ranges = readJsonWith(unicodeSchema, path.join(dir, "unicode.json"));
   const dest = path.join(OUT, group.folder, id);
@@ -313,7 +314,7 @@ const DEJAVU_LICENSE = "Bitstream-Vera";
 
 function dejavuSans(): FontFamilyDef {
   const pkg = "@fontsource/dejavu-sans";
-  const dir = path.join(ROOT, "node_modules", pkg);
+  const dir = npmPackage(pkg);
   const meta = readJsonWith(metadataSchema, path.join(dir, "metadata.json"));
   const id = "opsis-fallback-dejavu";
   const dest = path.join(OUT, FALLBACK_GROUP.folder, id);

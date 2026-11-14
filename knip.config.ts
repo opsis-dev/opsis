@@ -1,11 +1,9 @@
 import type { KnipConfig } from "knip";
 
 const FILE_READ_PACKAGES = [
-  /^@fontsource(-variable)?\//,
   "@hugeicons/core-free-icons",
   "@lucide/lab",
   "@mynaui/icons",
-  "@paper-design/shaders",
   "@tabler/icons",
   "iconoir",
 ];

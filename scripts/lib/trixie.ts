@@ -5,16 +5,7 @@ import path from "node:path";
 import { devCache } from "./tool-config";
 
 const IMAGE = "debian:trixie";
-const PACKAGES = [
-  "build-essential",
-  "ca-certificates",
-  "cmake",
-  "ninja-build",
-  "perl",
-  "python3",
-  "pkg-config",
-  "xz-utils",
-  "file",
+export const LINUX_LIBRARIES = [
   "libasound2-dev",
   "libdbus-1-dev",
   "libfontconfig1-dev",
@@ -43,6 +34,23 @@ const PACKAGES = [
   "libxkbcommon-dev",
   "libxkbcommon-x11-dev",
   "libxrender-dev",
+];
+
+const PACKAGES = [
+  "build-essential",
+  "clang",
+  "libc++-dev",
+  "libc++abi-dev",
+  "ca-certificates",
+  "cmake",
+  "git",
+  "ninja-build",
+  "perl",
+  "python3",
+  "pkg-config",
+  "xz-utils",
+  "file",
+  ...LINUX_LIBRARIES,
   "rpm",
   "makepkg",
   "pacman-package-manager",

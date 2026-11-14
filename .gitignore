@@ -36,3 +36,4 @@ examples/**/secrets/
 crates/vt/zig/zig-pkg/
 crates/vt/zig/.zig-cache/
 crates/vt/zig/zig-out/
+/.setup/

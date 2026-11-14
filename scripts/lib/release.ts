@@ -1,11 +1,12 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, realpathSync } from "node:fs";
+import { mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 import { APPIMAGE_TOOLS_CACHE, appImageTools } from "./appimage-tools";
 import { hostTarget, stagedFfmpeg } from "./ffmpeg";
-import { buildsNatively, ensureStaticQt, MACOS_MINIMUM } from "./static-qt";
-import { devCache, ROOT } from "./tool-config";
+import { readPaths } from "./setup/store";
+import { buildsNatively, MACOS_MINIMUM } from "./static-qt";
+import { ROOT } from "./tool-config";
 import { runInTrixie } from "./trixie";
 
 const SYSTEM_PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
@@ -31,11 +32,6 @@ export function cargoProfileVariables(env: NodeJS.ProcessEnv): Record<string, st
   );
 }
 
-function zigProgram(): string {
-  const found = process.env.ZIG ?? execFileSync("which", ["zig"], { encoding: "utf8" }).trim();
-  return realpathSync(found);
-}
-
 export type PackageRun = { cargoArgs: string[]; formats: string; out: string };
 
 const UPDATE_KEY_ENV = ["OPSIS_UPDATE_KEY", "OPSIS_UPDATE_KEY_PASSWORD"];
@@ -59,7 +55,7 @@ function packagerArgs(run: PackageRun, tools: string[]): string[] {
     "--program",
     releaseBinary(),
     "--ffmpeg",
-    stagedFfmpeg(target),
+    stagedFfmpeg(),
     "--renderer",
     releaseBinary(RENDERER_PROGRAM),
     "--target-triple",
@@ -75,7 +71,8 @@ function packagerArgs(run: PackageRun, tools: string[]): string[] {
 }
 
 export async function buildAndPackage(run: PackageRun): Promise<void> {
-  const qt = await ensureStaticQt();
+  const paths = readPaths();
+  const qt = paths.qt;
   const jobs = process.env.CARGO_BUILD_JOBS ?? "8";
   const tools = await toolArgs(run, hostTarget());
   const build = [
@@ -113,7 +110,7 @@ export async function buildAndPackage(run: PackageRun): Promise<void> {
   }
   const cargoHome = process.env.CARGO_HOME ?? path.join(homedir(), ".cargo");
   const rustupHome = process.env.RUSTUP_HOME ?? path.join(homedir(), ".rustup");
-  const zig = zigProgram();
+  const zig = paths.zig;
   const target = releaseTargetDir();
   runInTrixie({
     script: [`cd ${ROOT}`, build.join(" "), packager.map(quoted).join(" ")].join("\n"),
@@ -122,8 +119,11 @@ export async function buildAndPackage(run: PackageRun): Promise<void> {
       cargoHome,
       rustupHome,
       path.dirname(zig),
-      path.dirname(path.dirname(qt)),
-      devCache("qt"),
+      path.dirname(qt),
+      paths.kddw,
+      paths.skia,
+      paths.filament,
+      path.dirname(paths.ffmpeg),
       APPIMAGE_TOOLS_CACHE,
       run.out,
     ],

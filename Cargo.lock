@@ -4380,9 +4380,8 @@ dependencies = [
 name = "opsis-filament"
 version = "0.1.0"
 dependencies = [
- "serde",
+ "cc",
  "serde_json",
- "sha2 0.11.1",
  "thiserror 2.0.21",
 ]
 
@@ -4658,6 +4657,7 @@ dependencies = [
  "cxx",
  "cxx-build",
  "qt-build-utils",
+ "serde_json",
 ]
 
 [[package]]

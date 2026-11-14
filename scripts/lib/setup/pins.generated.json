@@ -1,0 +1,324 @@
+{
+  "zig": {
+    "version": "0.17.1",
+    "archives": {
+      "linux-x64": {
+        "url": "https://ziglang.org/download/0.17.1/zig-x86_64-linux-0.17.1.tar.xz",
+        "sha256": "3581863e3cbcfd0fce0efc682ce7e9e93da96668a977791d356a26d2a7e9b17a",
+        "size": 57411036
+      },
+      "linux-arm64": {
+        "url": "https://ziglang.org/download/0.17.1/zig-aarch64-linux-0.17.1.tar.xz",
+        "sha256": "a1546d5646eb184437918d6635ca6b762a0e889eac09cef720ee7a1ed3fe7795",
+        "size": 52977364
+      },
+      "win32-x64": {
+        "url": "https://ziglang.org/download/0.17.1/zig-x86_64-windows-0.17.1.zip",
+        "sha256": "b03f477a1943673e02aca0f570e8030dffd536ce1f45cbc4d3326ec31159562e",
+        "size": 100343666
+      },
+      "darwin-arm64": {
+        "url": "https://ziglang.org/download/0.17.1/zig-aarch64-macos-0.17.1.tar.xz",
+        "sha256": "75f1bc7a1e9852f17ec9a0c1895f767c4ec56d46bc8a834920eece1d0359dd8d",
+        "size": 54001240
+      },
+      "darwin-x64": {
+        "url": "https://ziglang.org/download/0.17.1/zig-x86_64-macos-0.17.1.tar.xz",
+        "sha256": "9af07b20319fbd0c92ee46ad23e81d6a782b1aaea2cfb8dcbff35f1d2c7ddbb7",
+        "size": 59496824
+      }
+    }
+  },
+  "qt": {
+    "version": "6.12.0",
+    "sources": [
+      {
+        "url": "https://download.qt.io/official_releases/qt/6.12/6.12.0/submodules/qtbase-everywhere-src-6.12.0.tar.xz",
+        "sha256": "a951bd163c7b80fc6b8c88d7668fb56abf91c152373e13c10666763238131307",
+        "size": 51220268,
+        "module": "qtbase"
+      },
+      {
+        "url": "https://download.qt.io/official_releases/qt/6.12/6.12.0/submodules/qtsvg-everywhere-src-6.12.0.tar.xz",
+        "sha256": "e4ab39534ec97987b1b9b60ef7f4d3253d5912a69f8c713a01753174a4029331",
+        "size": 2341876,
+        "module": "qtsvg"
+      }
+    ]
+  },
+  "kddw": {
+    "url": "https://github.com/KDAB/KDDockWidgets/releases/download/v2.5.1/kddockwidgets-2.5.1.tar.gz",
+    "sha256": "d86c86c7a186a16400e08f78da2c6d0ac792d45822ced5cba29e3537edee952a",
+    "size": 4492656,
+    "version": "2.5.1"
+  },
+  "skia": {
+    "repo": "https://skia.googlesource.com/skia.git",
+    "branch": "chrome/m157",
+    "commit": "fef60e46c522b87e5802ddf0a215a763dd5e0483"
+  },
+  "filament": {
+    "version": "v1.80.1",
+    "archives": {
+      "linux-x64": {
+        "url": "https://github.com/google/filament/releases/download/v1.80.1/filament-v1.80.1-linux.tgz",
+        "sha256": "c2f46496ba5707605f0459d8714d34c73296fbfd7fcfdbe4c1a00b76607da193",
+        "size": 76094829
+      },
+      "linux-arm64": {
+        "url": "https://github.com/google/filament/releases/download/v1.80.1/filament-v1.80.1-arm-linux.tgz",
+        "sha256": "730c4f0a17dbda3a57bf8770d2ee5ae15c4fff628878264a6cb296e25775d2a9",
+        "size": 74344133
+      },
+      "darwin-arm64": {
+        "url": "https://github.com/google/filament/releases/download/v1.80.1/filament-v1.80.1-mac.tgz",
+        "sha256": "e8788257ac47d438615fe12773c64aafea7211990e07ea3263c0e8e343ff833f",
+        "size": 45440527
+      },
+      "darwin-x64": {
+        "url": "https://github.com/google/filament/releases/download/v1.80.1/filament-v1.80.1-mac.tgz",
+        "sha256": "e8788257ac47d438615fe12773c64aafea7211990e07ea3263c0e8e343ff833f",
+        "size": 45440527
+      },
+      "win32-x64": {
+        "url": "https://github.com/google/filament/releases/download/v1.80.1/filament-v1.80.1-windows.tgz",
+        "sha256": "28d513447a93b5087a1f30a8109595dd3d29e26536d6ceb35adf194564b8ce1b",
+        "size": 868430825
+      }
+    }
+  },
+  "ffmpeg": {
+    "release": "b6.1.1",
+    "targets": [
+      {
+        "target": "x86_64-unknown-linux-gnu",
+        "asset": "linux-x64",
+        "program": {
+          "url": "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-linux-x64.gz",
+          "sha256": "bfe8a8fc511530457b528c48d77b5737527b504a3797a9bc4866aeca69c2dffa",
+          "size": 29354986
+        },
+        "probe": {
+          "url": "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffprobe-linux-x64.gz",
+          "sha256": "25d9b6ccb05e3d9de9e04e31e2506d8dd7f9f0418981965ac6df12e8d3afd067",
+          "size": 29276839
+        },
+        "licence": {
+          "url": "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/linux-x64.LICENSE",
+          "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+          "size": 35147
+        }
+      },
+      {
+        "target": "aarch64-unknown-linux-gnu",
+        "asset": "linux-arm64",
+        "program": {
+          "url": "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-linux-arm64.gz",
+          "sha256": "754a678672298bc68156adff58aa7385a592c2b30b1d0ae8750c45c915c4bac0",
+          "size": 25568691
+        },
+        "probe": {
+          "url": "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffprobe-linux-arm64.gz",
+          "sha256": "2ab6aba60ee84412dff9188720703376cb4e7aaf7e0b5e43aa8249f2acae5bf8",
+          "size": 25493573
+        },
+        "licence": {
+          "url": "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/linux-arm64.LICENSE",
+          "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+          "size": 35147
+        }
+      },
+      {
+        "target": "x86_64-apple-darwin",
+        "asset": "darwin-x64",
+        "program": {
+          "url": "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-darwin-x64.gz",
+          "sha256": "929b375c1182d956c51f7ac25e0b2b0411fb01f6f407aa15c9758efeb4242106",
+          "size": 25296431
+        },
+        "probe": {
+          "url": "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffprobe-darwin-x64.gz",
+          "sha256": "d4da574d6e2e197bd259b47d69cf262df9e312af24ad960444f6d806d3d4c186",
+          "size": 25239438
+        },
+        "licence": {
+          "url": "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/darwin-x64.LICENSE",
+          "sha256": "2e1d16c72fd74e12063776371da757322f8b77589386532f4fd8634bde7de1af",
+          "size": 4346
+        }
+      },
+      {
+        "target": "aarch64-apple-darwin",
+        "asset": "darwin-arm64",
+        "program": {
+          "url": "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-darwin-arm64.gz",
+          "sha256": "8923876afa8db5585022d7860ec7e589af192f441c56793971276d450ed3bbfa",
+          "size": 19246198
+        },
+        "probe": {
+          "url": "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffprobe-darwin-arm64.gz",
+          "sha256": "d986a8ec7b030899fe66a8a288ed809a3543338705a3ce178cfb85869c5d80be",
+          "size": 19207077
+        },
+        "licence": {
+          "url": "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/darwin-arm64.LICENSE",
+          "sha256": "cb48bf09a11f5fb576cddb0431c8f5ed0a60157a9ec942adffc13907cbe083f2",
+          "size": 4376
+        }
+      },
+      {
+        "target": "x86_64-pc-windows-msvc",
+        "asset": "win32-x64",
+        "program": {
+          "url": "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-win32-x64.gz",
+          "sha256": "8883a3dffbd0a16cf4ef95206ea05283f78908dbfb118f73c83f4951dcc06d77",
+          "size": 29581307
+        },
+        "probe": {
+          "url": "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffprobe-win32-x64.gz",
+          "sha256": "f309e6223ad89d2fe54bccd420a7709b66fd27540674e92309578ed491a43c8d",
+          "size": 29521644
+        },
+        "licence": {
+          "url": "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/win32-x64.LICENSE",
+          "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+          "size": 35147
+        }
+      }
+    ]
+  },
+  "npm": {
+    "@fontsource-variable/caveat": {
+      "url": "https://registry.npmjs.org/@fontsource-variable/caveat/-/caveat-5.3.0.tgz",
+      "sha256": "2f50d55732648330ec8dcb4eef79666ef1131a57e7f0441975657a4b2ff20ba9",
+      "size": 232085,
+      "version": "5.3.0"
+    },
+    "@fontsource-variable/dm-sans": {
+      "url": "https://registry.npmjs.org/@fontsource-variable/dm-sans/-/dm-sans-5.3.0.tgz",
+      "sha256": "cea46ee690c31efea45c0fbee790c6fefefc979656e8515b12f5bdb7c5bc1876",
+      "size": 546109,
+      "version": "5.3.0"
+    },
+    "@fontsource-variable/fraunces": {
+      "url": "https://registry.npmjs.org/@fontsource-variable/fraunces/-/fraunces-5.3.0.tgz",
+      "sha256": "c8bff30211fb6683f7c4c6fa0c298d1f1c7d4e811767de92d26a199c273235fb",
+      "size": 1902853,
+      "version": "5.3.0"
+    },
+    "@fontsource-variable/geist": {
+      "url": "https://registry.npmjs.org/@fontsource-variable/geist/-/geist-5.3.0.tgz",
+      "sha256": "533dd66117795ac12316fb05fce27736c4bc63c31613b302d0a5285ca3a291d7",
+      "size": 165491,
+      "version": "5.3.0"
+    },
+    "@fontsource-variable/geist-mono": {
+      "url": "https://registry.npmjs.org/@fontsource-variable/geist-mono/-/geist-mono-5.3.0.tgz",
+      "sha256": "af7a9f156602b859efa95cd1acb824a5322c51a1eca53afb38ed033885736a70",
+      "size": 155287,
+      "version": "5.3.0"
+    },
+    "@fontsource-variable/google-sans-flex": {
+      "url": "https://registry.npmjs.org/@fontsource-variable/google-sans-flex/-/google-sans-flex-5.3.2.tgz",
+      "sha256": "375b7ad901e7d73317ffe6943644aa59b1123d2a45334c4ef6b1fb2acfd39d0b",
+      "size": 9038509,
+      "version": "5.3.2"
+    },
+    "@fontsource-variable/ibm-plex-sans": {
+      "url": "https://registry.npmjs.org/@fontsource-variable/ibm-plex-sans/-/ibm-plex-sans-5.3.0.tgz",
+      "sha256": "0cdf43f91e27c4dcc53ffee829fd1ebe45c810c24684766bc1e5f5609d3ffc16",
+      "size": 1394120,
+      "version": "5.3.0"
+    },
+    "@fontsource-variable/inter": {
+      "url": "https://registry.npmjs.org/@fontsource-variable/inter/-/inter-5.3.0.tgz",
+      "sha256": "d26710dd38e7217484a1d47ee76c024977ec550548876f26d06ed1844af09a14",
+      "size": 1885281,
+      "version": "5.3.0"
+    },
+    "@fontsource-variable/jetbrains-mono": {
+      "url": "https://registry.npmjs.org/@fontsource-variable/jetbrains-mono/-/jetbrains-mono-5.3.0.tgz",
+      "sha256": "996fe6368a480c9ce15d4de22a2682b7c40b403718fee2b15e7272f244fd993f",
+      "size": 186796,
+      "version": "5.3.0"
+    },
+    "@fontsource-variable/manrope": {
+      "url": "https://registry.npmjs.org/@fontsource-variable/manrope/-/manrope-5.3.0.tgz",
+      "sha256": "9629a2474e2bd73944d83392c856e268193d42c3954455bd6adb3d1ea74aa27a",
+      "size": 82524,
+      "version": "5.3.0"
+    },
+    "@fontsource-variable/montserrat": {
+      "url": "https://registry.npmjs.org/@fontsource-variable/montserrat/-/montserrat-5.3.0.tgz",
+      "sha256": "d51603ef08d0087a07497488cf20007b3499fd4f4466c8a791389468bc941dfb",
+      "size": 359987,
+      "version": "5.3.0"
+    },
+    "@fontsource-variable/outfit": {
+      "url": "https://registry.npmjs.org/@fontsource-variable/outfit/-/outfit-5.3.0.tgz",
+      "sha256": "06ab798b993eda0cfe3c8adf31030be5da4ccaaca3e226d93ab291c4a96e5957",
+      "size": 54099,
+      "version": "5.3.0"
+    },
+    "@fontsource-variable/playfair-display": {
+      "url": "https://registry.npmjs.org/@fontsource-variable/playfair-display/-/playfair-display-5.3.0.tgz",
+      "sha256": "5d9a6609ccc3c3bcba68c5b66981cce7d731bf5bb6e64a2ca6045ab05e527788",
+      "size": 192678,
+      "version": "5.3.0"
+    },
+    "@fontsource-variable/plus-jakarta-sans": {
+      "url": "https://registry.npmjs.org/@fontsource-variable/plus-jakarta-sans/-/plus-jakarta-sans-5.3.0.tgz",
+      "sha256": "271d7863880f0de211d9d44534e16907fba50cf6d47245de1938ff392ab5a30a",
+      "size": 130389,
+      "version": "5.3.0"
+    },
+    "@fontsource-variable/space-grotesk": {
+      "url": "https://registry.npmjs.org/@fontsource-variable/space-grotesk/-/space-grotesk-5.3.0.tgz",
+      "sha256": "47d1b51d64ed541b7e74f38e9e682a8ff1bbfd1b68bfd7fff74ac9175058e73c",
+      "size": 55280,
+      "version": "5.3.0"
+    },
+    "@fontsource/instrument-serif": {
+      "url": "https://registry.npmjs.org/@fontsource/instrument-serif/-/instrument-serif-5.3.0.tgz",
+      "sha256": "b342b7a7844a0025bc6185a28dd23e8b382202d73a5a574e3bf6d969bef3875d",
+      "size": 129569,
+      "version": "5.3.0"
+    },
+    "@fontsource/dejavu-sans": {
+      "url": "https://registry.npmjs.org/@fontsource/dejavu-sans/-/dejavu-sans-5.3.0.tgz",
+      "sha256": "e5b56597f3d5d198428a2fbd0281ab0119867cdbeb6f3ea6c747196f84f8717d",
+      "size": 2261503,
+      "version": "5.3.0"
+    },
+    "@fontsource/noto-color-emoji": {
+      "url": "https://registry.npmjs.org/@fontsource/noto-color-emoji/-/noto-color-emoji-5.3.2.tgz",
+      "sha256": "1bd31f2fb1616c9da2892e385ff9a95a446cecbc045e1354e6b8a64389f77b96",
+      "size": 24633074,
+      "version": "5.3.2"
+    },
+    "@fontsource/noto-sans": {
+      "url": "https://registry.npmjs.org/@fontsource/noto-sans/-/noto-sans-5.3.0.tgz",
+      "sha256": "f62f8ed40e378f15134e32bed2fd5718d81e9ec7a5603d1022d7b385e2297abc",
+      "size": 6927031,
+      "version": "5.3.0"
+    },
+    "@fontsource/noto-sans-sc": {
+      "url": "https://registry.npmjs.org/@fontsource/noto-sans-sc/-/noto-sans-sc-5.3.1.tgz",
+      "sha256": "fd4c218cad77f6f1e9915c45e5d2ede5b0c86dfa0658739684791f50956d1cae",
+      "size": 73551324,
+      "version": "5.3.1"
+    },
+    "@fontsource/noto-sans-symbols-2": {
+      "url": "https://registry.npmjs.org/@fontsource/noto-sans-symbols-2/-/noto-sans-symbols-2-5.3.0.tgz",
+      "sha256": "dd714f47e1ba768274c25d14ac95610ca32e416d70c5455cd11d8995042a4552",
+      "size": 763651,
+      "version": "5.3.0"
+    },
+    "@paper-design/shaders": {
+      "url": "https://registry.npmjs.org/@paper-design/shaders/-/shaders-0.0.82.tgz",
+      "sha256": "0d0f695dcd31445f6ea237a19de18bca56b61d2e7e2de282814912576808b981",
+      "size": 224539,
+      "version": "0.0.82"
+    }
+  }
+}

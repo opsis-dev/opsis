@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { readFfmpegPins } from "./lib/ffmpeg";
+import { ffmpegReleaseUrl, readFfmpegPins } from "./lib/ffmpeg";
 import { NOTICES } from "./lib/notices";
 import { feed, githubNotes, releaseNotes, workspaceVersion } from "./release-feed";
 
@@ -90,9 +90,7 @@ describe("the release feed", () => {
   it("puts both FFmpeg source links of the shipped notice in the release notes", () => {
     const written = githubNotes("- notes", readFileSync(NOTICES, "utf8"));
     expect(written).toContain("https://ffmpeg.org/download.html");
-    expect(written).toContain(
-      `https://github.com/eugeneware/ffmpeg-static/releases/tag/${readFfmpegPins().release}`,
-    );
+    expect(written).toContain(ffmpegReleaseUrl(readFfmpegPins().release));
     expect(written).not.toContain("## Chrome Headless Shell");
   });
 

@@ -1,79 +1,67 @@
-use std::fmt::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use sha2::{Digest, Sha256};
-
 const FILAMENT_ENV: &str = "OPSIS_FILAMENT";
-const PIN_FILE: &str = "downloads.generated.json";
+const SOURCES: [&str; 3] = ["opsis_filament.cc", "opsis_model.cc", "opsis_scene.cc"];
+const HEADERS: [&str; 2] = ["opsis_filament.h", "opsis_internal.h"];
+const LIBRARIES: [&str; 25] = [
+    "gltfio_core",
+    "uberarchive",
+    "uberzlib",
+    "dracodec",
+    "meshoptimizer",
+    "basis_transcoder",
+    "stb",
+    "mikktspace",
+    "filament",
+    "backend",
+    "bluevk",
+    "bluegl",
+    "webgpu_dawn",
+    "filabridge",
+    "filaflat",
+    "utils",
+    "geometry",
+    "ktxreader",
+    "image",
+    "ibl-lite",
+    "shaders",
+    "smol-v",
+    "abseil",
+    "perfetto",
+    "zstd",
+];
+const LINUX_SYSTEM: [&str; 4] = ["X11", "pthread", "dl", "m"];
 
-#[derive(serde::Deserialize)]
-struct Pins {
-    version: String,
-}
-
-#[derive(serde::Deserialize)]
-struct Built {
-    version: String,
-    sources: String,
-    links: Vec<String>,
-}
-
-fn home() -> PathBuf {
-    std::env::var_os("HOME")
-        .or_else(|| std::env::var_os("USERPROFILE"))
-        .map(PathBuf::from)
-        .expect("a home folder")
-}
-
-fn platform() -> String {
-    let os = match std::env::var("CARGO_CFG_TARGET_OS").as_deref() {
-        Ok("macos") => "darwin".to_owned(),
-        Ok("windows") => "win32".to_owned(),
-        Ok(other) => other.to_owned(),
-        Err(_) => "linux".to_owned(),
-    };
-    let arch = match std::env::var("CARGO_CFG_TARGET_ARCH").as_deref() {
-        Ok("x86_64") | Err(_) => "x64".to_owned(),
-        Ok("aarch64") => "arm64".to_owned(),
-        Ok(other) => other.to_owned(),
-    };
-    format!("{os}-{arch}")
-}
-
-fn read<T: serde::de::DeserializeOwned>(file: &Path, missing: &str) -> T {
-    let text = std::fs::read_to_string(file)
-        .unwrap_or_else(|_| panic!("There's no {}. {missing}", file.display()));
-    serde_json::from_str(&text).unwrap_or_else(|e| panic!("{}: {e}", file.display()))
-}
-
-fn sources_hash(dir: &Path) -> String {
-    let mut files: Vec<PathBuf> = std::fs::read_dir(dir)
-        .unwrap_or_else(|e| panic!("{}: {e}", dir.display()))
-        .filter_map(Result::ok)
-        .map(|e| e.path())
-        .filter(|p| p.extension().is_some_and(|e| e == "cc" || e == "h"))
-        .collect();
-    files.sort();
-    let mut hash = Sha256::new();
-    for file in files {
-        let name = file
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or_default();
-        hash.update(name.as_bytes());
-        hash.update(std::fs::read(&file).unwrap_or_else(|e| panic!("{}: {e}", file.display())));
+fn filament_dir(manifest: &Path) -> PathBuf {
+    if let Some(dir) = std::env::var_os(FILAMENT_ENV) {
+        return PathBuf::from(dir);
     }
-    hash.finalize()
-        .iter()
-        .fold(String::new(), |mut text, byte| {
-            write!(text, "{byte:02x}").expect("writing to a string");
-            text
-        })
+    let file = manifest.join("../../.setup/paths.json");
+    println!("cargo:rerun-if-changed={}", file.display());
+    let text = std::fs::read_to_string(&file)
+        .unwrap_or_else(|e| panic!("{}: {e}. Run bun run setup first.", file.display()));
+    let paths: serde_json::Value =
+        serde_json::from_str(&text).unwrap_or_else(|e| panic!("{}: {e}", file.display()));
+    paths["filament"].as_str().map_or_else(
+        || {
+            panic!(
+                "{} names no filament. Run bun run setup again.",
+                file.display()
+            )
+        },
+        PathBuf::from,
+    )
 }
 
-fn compile_materials(manifest: &Path, filament: &Path, out: &Path) {
-    let matc = filament.join("filament").join("bin").join("matc");
+fn library_arch() -> &'static str {
+    match std::env::var("CARGO_CFG_TARGET_ARCH").as_deref() {
+        Ok("aarch64") => "aarch64",
+        _ => "x86_64",
+    }
+}
+
+fn compile_materials(manifest: &Path, matc: &Path, out: &Path) {
     let materials = manifest.join("materials");
     for entry in std::fs::read_dir(&materials)
         .expect("the materials folder")
@@ -88,7 +76,7 @@ fn compile_materials(manifest: &Path, filament: &Path, out: &Path) {
             .and_then(|n| n.to_str())
             .expect("a material name");
         let target = out.join(format!("{name}.filamat"));
-        let status = Command::new(&matc)
+        let status = Command::new(matc)
             .args([
                 "-a", "vulkan", "-a", "opengl", "-a", "metal", "-p", "desktop", "-o",
             ])
@@ -108,44 +96,41 @@ fn compile_materials(manifest: &Path, filament: &Path, out: &Path) {
 fn main() {
     let manifest = PathBuf::from(std::env::var_os("CARGO_MANIFEST_DIR").expect("the crate folder"));
     let out = PathBuf::from(std::env::var_os("OUT_DIR").expect("the build folder"));
-    let pins: Pins = read(
-        &manifest.join(PIN_FILE),
-        "Run `bun scripts/filament-pin.ts` first.",
-    );
-    let root = std::env::var_os(FILAMENT_ENV)
-        .map_or_else(|| home().join(".cache/opsis-dev/filament"), PathBuf::from);
-    let filament = root.join(&pins.version).join(platform());
-    let build = filament.join("build");
-    let sealed: Built = read(
-        &build.join("build.json"),
-        "Run `bun run filament:build` (or `bun run filament:build --docker`) first.",
-    );
-    assert!(
-        sealed.version == pins.version,
-        "The Filament build is {}, not {}. Run `bun run filament:build` again.",
-        sealed.version,
-        pins.version
-    );
+    let filament = filament_dir(&manifest);
+    let matc = filament.join("bin").join("matc");
+    compile_materials(&manifest, &matc, &out);
     let cpp = manifest.join("cpp");
-    assert!(
-        sealed.sources == sources_hash(&cpp),
-        "crates/filament/cpp changed since the last Filament build. Run `bun run filament:build` again."
-    );
-    compile_materials(&manifest, &filament, &out);
-    println!(
-        "cargo:matc={}",
-        filament.join("filament").join("bin").join("matc").display()
-    );
-    println!("cargo:rustc-link-search=native={}", build.display());
-    println!("cargo:rustc-link-lib=static=opsis_filament");
-    for library in &sealed.links {
-        println!("cargo:rustc-link-lib={library}");
+    let mut build = cc::Build::new();
+    build
+        .cpp(true)
+        .std("c++20")
+        .include(&cpp)
+        .include(filament.join("include"))
+        .flag_if_supported("-fno-rtti")
+        .flag_if_supported("-Wno-unused-parameter");
+    for source in SOURCES {
+        build.file(cpp.join(source));
     }
-    println!(
-        "cargo:rerun-if-changed={}",
-        build.join("build.json").display()
-    );
-    println!("cargo:rerun-if-changed={}", cpp.display());
+    build.compile("opsis_filament");
+    let libraries = filament.join("lib").join(library_arch());
+    println!("cargo:rustc-link-search=native={}", libraries.display());
+    let linux = std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("linux");
+    if linux {
+        println!("cargo:rustc-link-arg=-Wl,--start-group");
+    }
+    for library in LIBRARIES {
+        println!("cargo:rustc-link-lib=static={library}");
+    }
+    if linux {
+        println!("cargo:rustc-link-arg=-Wl,--end-group");
+        for library in LINUX_SYSTEM {
+            println!("cargo:rustc-link-lib={library}");
+        }
+    }
+    println!("cargo:matc={}", matc.display());
+    for file in SOURCES.iter().chain(HEADERS.iter()) {
+        println!("cargo:rerun-if-changed={}", cpp.join(file).display());
+    }
     println!(
         "cargo:rerun-if-changed={}",
         manifest.join("materials").display()

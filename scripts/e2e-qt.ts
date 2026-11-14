@@ -15,7 +15,7 @@ import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { setTimeout as sleep } from "node:timers/promises";
 import { runApiChecks } from "./lib/e2e-api";
-import { ensureFfmpeg } from "./lib/ffmpeg";
+import { stagedFfmpeg } from "./lib/ffmpeg";
 import { devCache, ROOT } from "./lib/tool-config";
 import { DEV_ENGINE, browserIn, seedUserData } from "./lib/user-data";
 
@@ -413,7 +413,7 @@ async function main(): Promise<number> {
   build();
   const xvfb = scenarios.some((scenario) => scenario !== "wayland") ? await startXvfb() : null;
   try {
-    const ffmpeg = await ensureFfmpeg();
+    const ffmpeg = stagedFfmpeg();
     let passed = true;
     for (const scenario of scenarios) {
       if (scenario === "wayland") {

@@ -299,7 +299,7 @@ const SAMPLES: &[(&str, &[&str], &[&str])] = &[
 const DURATION_SLACK_MS: f64 = 25.0;
 
 fn ffprobe_program() -> PathBuf {
-    dev_cache("ffmpeg").join(format!("ffprobe{}", std::env::consts::EXE_SUFFIX))
+    opsis_golden::ffprobe()
 }
 
 static MADE: OnceLock<PathBuf> = OnceLock::new();

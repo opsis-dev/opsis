@@ -1,2 +1,10 @@
 [env]
 SQLX_OFFLINE = "true"
+CXX_x86_64_unknown_linux_gnu = "clang++"
+CXX_aarch64_unknown_linux_gnu = "clang++"
+CXXFLAGS_x86_64_unknown_linux_gnu = "-stdlib=libc++"
+CXXFLAGS_aarch64_unknown_linux_gnu = "-stdlib=libc++"
+CXXSTDLIB_x86_64_unknown_linux_gnu = "c++"
+CXXSTDLIB_aarch64_unknown_linux_gnu = "c++"
+CXXSTDLIB_STATIC_x86_64_unknown_linux_gnu = "1"
+CXXSTDLIB_STATIC_aarch64_unknown_linux_gnu = "1"

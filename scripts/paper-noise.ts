@@ -1,12 +1,10 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { readPaths } from "./lib/setup/store";
 import { ROOT } from "./lib/tool-config";
 
 const SOURCE = path.join(
-  ROOT,
-  "node_modules",
-  "@paper-design",
-  "shaders",
+  readPaths().npm["@paper-design/shaders"] ?? "",
   "dist",
   "get-shader-noise-texture.js",
 );

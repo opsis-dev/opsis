@@ -10,7 +10,14 @@ fn main() {
         PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("Cargo sets CARGO_MANIFEST_DIR"));
     let out = PathBuf::from(env::var("OUT_DIR").expect("Cargo sets OUT_DIR"));
     let project = manifest.join("zig");
-    let zig = env::var("ZIG").unwrap_or_else(|_| "zig".to_owned());
+    let linked = manifest.join("../../.setup/bin/zig");
+    let zig = env::var("ZIG").unwrap_or_else(|_| {
+        if linked.exists() {
+            linked.to_string_lossy().into_owned()
+        } else {
+            "zig".to_owned()
+        }
+    });
 
     check_zig(&zig);
     let prefix = out.join("zig-out");
