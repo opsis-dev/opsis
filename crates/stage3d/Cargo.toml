@@ -11,5 +11,6 @@ workspace = true
 
 [dependencies]
 opsis-filament.workspace = true
+opsis-geometry = { version = "0.1.0", path = "../geometry" }
 opsis-scene.workspace = true
 opsis-types.workspace = true

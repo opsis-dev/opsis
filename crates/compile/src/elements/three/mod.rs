@@ -1,6 +1,9 @@
+pub mod motion;
+
 use opsis_scene::css::with_background;
 use opsis_scene::node::{
-    Element, Kind, Lighting3d, Material3d, Node, Object3d, Shape3d, Stage3d, div,
+    Element, Kind, Lighting3d, Material3d, Node, Object3d, Segment2d, Shading3d, Shape3d, Stage3d,
+    div,
 };
 use opsis_scene::timeline::absolute_fill;
 use opsis_scene::values::Num;
@@ -93,6 +96,18 @@ pub fn fit_distance(radius: f64, fov: f64, aspect: f64) -> f64 {
     radius / vertical.min(horizontal).sin()
 }
 
+const BOX_MARGIN: f64 = 1.15;
+
+pub fn box_distance(width: f64, height: f64, fov: f64, aspect: f64) -> f64 {
+    let tan_vertical = (fov * std::f64::consts::PI / 360.0).tan();
+    let tan_horizontal = tan_vertical * aspect;
+    (width / 2.0 / tan_horizontal).max(height / 2.0 / tan_vertical) * BOX_MARGIN
+}
+
+pub fn scaling(s: f64) -> Matrix {
+    compose([0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [s, s, s])
+}
+
 fn linear(channel: f64) -> f64 {
     if channel <= 0.04045 {
         channel / 12.92
@@ -113,9 +128,35 @@ pub fn linear_color(css: &str) -> [Num; 4] {
 
 pub fn standard(css: &str, roughness: f64, metalness: f64) -> Material3d {
     Material3d {
+        shading: Shading3d::Lit,
+        double_sided: false,
         color: linear_color(css),
         metalness: Num(metalness),
         roughness: Num(roughness),
+        opacity: Num(1.0),
+        texture: None,
+    }
+}
+
+pub const fn two_sided(mut material: Material3d) -> Material3d {
+    material.double_sided = true;
+    material
+}
+
+pub const fn textured(mut material: Material3d, texture: u32) -> Material3d {
+    material.texture = Some(texture);
+    material
+}
+
+pub const fn unlit(opacity: f64, texture: u32) -> Material3d {
+    Material3d {
+        shading: Shading3d::Unlit,
+        double_sided: false,
+        color: [Num(1.0), Num(1.0), Num(1.0), Num(1.0)],
+        metalness: Num(0.0),
+        roughness: Num(1.0),
+        opacity: Num(opacity),
+        texture: Some(texture),
     }
 }
 
@@ -136,19 +177,57 @@ pub const fn lighting_of(lighting: Lighting) -> Lighting3d {
 }
 
 pub fn stage(lighting: Lighting, background: &str, distance: f64, objects: Vec<Object3d>) -> Node {
-    let canvas = Element::new(
-        Kind::Stage3d(Box::new(Stage3d {
+    staged(
+        Stage3d {
             fov: Num(STAGE_FOV),
             distance: Num(distance),
             lighting: lighting_of(lighting),
             objects,
-        })),
-        absolute_fill(),
-    );
+            textures: Vec::new(),
+        },
+        background,
+    )
+}
+
+pub fn staged(stage: Stage3d, background: &str) -> Node {
+    let canvas = Element::new(Kind::Stage3d(Box::new(stage)), absolute_fill());
     let fill = if background.trim().is_empty() || background.trim() == "transparent" {
         absolute_fill()
     } else {
         with_background(absolute_fill(), background)
     };
     div(fill).child(canvas).into()
+}
+
+const fn at(x: f64, y: f64) -> [Num; 2] {
+    [Num(x), Num(y)]
+}
+
+pub fn rounded_rect(width: f64, height: f64, radius: f64) -> Vec<Segment2d> {
+    let r = radius.min(width / 2.0).min(height / 2.0);
+    let x = -width / 2.0;
+    let y = -height / 2.0;
+    vec![
+        Segment2d::Move(at(x + r, y)),
+        Segment2d::Line(at(x + width - r, y)),
+        Segment2d::Quad(at(x + width, y), at(x + width, y + r)),
+        Segment2d::Line(at(x + width, y + height - r)),
+        Segment2d::Quad(at(x + width, y + height), at(x + width - r, y + height)),
+        Segment2d::Line(at(x + r, y + height)),
+        Segment2d::Quad(at(x, y + height), at(x, y + height - r)),
+        Segment2d::Line(at(x, y + r)),
+        Segment2d::Quad(at(x, y), at(x + r, y)),
+    ]
+}
+
+pub fn fitted_size(width: f64, height: f64, longest: f64) -> (f64, f64) {
+    if width >= height {
+        (longest, (longest * height) / width)
+    } else {
+        ((longest * width) / height, longest)
+    }
+}
+
+pub fn translation(x: f64, y: f64, z: f64) -> Matrix {
+    compose([x, y, z], [0.0, 0.0, 0.0], [1.0, 1.0, 1.0])
 }

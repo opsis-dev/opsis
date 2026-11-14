@@ -15,4 +15,6 @@ pub mod shutter;
 pub mod spring;
 pub mod style;
 pub mod timeline;
+pub mod typeface;
 pub mod values;
+pub mod vector;

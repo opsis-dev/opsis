@@ -1,13 +1,10 @@
-pub mod geometry;
-
 use opsis_filament::{
-    Camera, Environment as SceneEnvironment, Filament, FilamentError, Light, MaterialId, Mesh,
-    STANDARD_MATERIAL, Scene, Uniform,
+    BASIC_MATERIAL, Camera, Environment as SceneEnvironment, Filament, FilamentError, Input, Light,
+    MaterialId, Mesh, STANDARD_DOUBLE_MATERIAL, STANDARD_MATERIAL, Scene, Uniform,
 };
-use opsis_scene::node::{Lighting3d, Shape3d, Stage3d};
+use opsis_geometry::mesh_of;
+use opsis_scene::node::{Lighting3d, Shading3d, Stage3d, Texture3d};
 use opsis_types::numbers::narrow;
-
-use crate::geometry::{Geometry, rounded_box, sphere, torus};
 
 const NEAR: f64 = 0.1;
 const FAR_SHARE: f64 = 10.0;
@@ -55,40 +52,105 @@ pub struct Environment<'a> {
     pub irradiance: &'a [f32],
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Picture<'a> {
+    pub rgba: &'a [u8],
+    pub width: u32,
+    pub height: u32,
+}
+
 #[derive(Debug, Default)]
 pub struct Materials {
     standard: Option<MaterialId>,
+    standard_double: Option<MaterialId>,
+    basic: Option<MaterialId>,
+}
+
+fn loaded(
+    slot: &mut Option<MaterialId>,
+    filament: &mut Filament,
+    package: &[u8],
+) -> Result<MaterialId, FilamentError> {
+    if let Some(id) = *slot {
+        return Ok(id);
+    }
+    let id = filament.material(package)?;
+    *slot = Some(id);
+    Ok(id)
 }
 
 impl Materials {
-    fn standard(&mut self, filament: &mut Filament) -> Result<MaterialId, FilamentError> {
-        if let Some(id) = self.standard {
-            return Ok(id);
+    fn of(
+        &mut self,
+        filament: &mut Filament,
+        shading: Shading3d,
+        double_sided: bool,
+    ) -> Result<MaterialId, FilamentError> {
+        match (shading, double_sided) {
+            (Shading3d::Lit, false) => loaded(&mut self.standard, filament, STANDARD_MATERIAL),
+            (Shading3d::Lit, true) => loaded(
+                &mut self.standard_double,
+                filament,
+                STANDARD_DOUBLE_MATERIAL,
+            ),
+            (Shading3d::Unlit, _) => loaded(&mut self.basic, filament, BASIC_MATERIAL),
         }
-        let id = filament.material(STANDARD_MATERIAL)?;
-        self.standard = Some(id);
-        Ok(id)
     }
 }
 
-fn geometry_of(shape: &Shape3d) -> Geometry {
-    match shape {
-        Shape3d::Sphere {
-            radius,
-            width_segments,
-            height_segments,
-        } => sphere(radius.0, *width_segments, *height_segments),
-        Shape3d::Torus {
-            radius,
-            tube,
-            radial_segments,
-            tubular_segments,
-        } => torus(radius.0, tube.0, *radial_segments, *tubular_segments),
-        Shape3d::RoundedBox {
-            size,
-            segments,
-            radius,
-        } => rounded_box([size[0].0, size[1].0, size[2].0], *segments, radius.0),
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Pixels {
+    rgba: Vec<u8>,
+    width: u32,
+    height: u32,
+}
+
+fn copied(picture: &Picture<'_>) -> Pixels {
+    Pixels {
+        rgba: picture.rgba.to_vec(),
+        width: picture.width,
+        height: picture.height,
+    }
+}
+
+const WHITE: Input<'static> = Input {
+    pixels: &[255, 255, 255, 255],
+    width: 1,
+    height: 1,
+};
+
+#[expect(
+    clippy::imprecise_flops,
+    reason = "the film page draws the glow through a canvas gradient this way, and the shadow has to match it"
+)]
+fn glow(side: u32, alpha: f64) -> Pixels {
+    let half = f64::from(side) / 2.0;
+    let mut rgba = Vec::with_capacity(usize::try_from(side).unwrap_or(0).pow(2) * 4);
+    for y in 0..side {
+        for x in 0..side {
+            let dx = f64::from(x) + 0.5 - half;
+            let dy = f64::from(y) + 0.5 - half;
+            let t = ((dx * dx + dy * dy).sqrt() / half).min(1.0);
+            let a = (alpha * (1.0 - t) * 255.0).round();
+            rgba.extend([
+                0,
+                0,
+                0,
+                u8::try_from(opsis_types::numbers::whole(a)).unwrap_or(255),
+            ]);
+        }
+    }
+    Pixels {
+        rgba,
+        width: side,
+        height: side,
+    }
+}
+
+fn texture_pixels(texture: &Texture3d, picture: Option<&Picture<'_>>) -> Option<Pixels> {
+    match texture {
+        Texture3d::Picture(_) => picture.map(copied),
+        Texture3d::Glow { side, alpha } => Some(glow(*side, alpha.0)),
     }
 }
 
@@ -116,29 +178,53 @@ pub fn render(
     materials: &mut Materials,
     stage: &Stage3d,
     size: (u32, u32),
+    pictures: &[Option<Picture<'_>>],
     environment: Option<Environment<'_>>,
 ) -> Result<Vec<u8>, FilamentError> {
-    let standard = materials.standard(filament)?;
     let look = look_of(stage.lighting);
-    let geometries: Vec<Geometry> = stage
-        .objects
+    let textures: Vec<Option<Pixels>> = stage
+        .textures
         .iter()
-        .map(|o| geometry_of(&o.shape))
+        .enumerate()
+        .map(|(i, texture)| texture_pixels(texture, pictures.get(i).and_then(Option::as_ref)))
         .collect();
-    let settings: Vec<[Vec<f32>; 3]> = stage
-        .objects
+    let mut drawn = Vec::new();
+    for object in &stage.objects {
+        let texture = match object.material.texture {
+            None => None,
+            Some(index) => {
+                let found = usize::try_from(index)
+                    .ok()
+                    .and_then(|i| textures.get(i))
+                    .and_then(Option::as_ref);
+                if found.is_none() {
+                    continue;
+                }
+                found
+            }
+        };
+        let material = materials.of(
+            filament,
+            object.material.shading,
+            object.material.double_sided,
+        )?;
+        drawn.push((object, mesh_of(&object.shape), texture, material));
+    }
+    let settings: Vec<[Vec<f32>; 5]> = drawn
         .iter()
-        .map(|o| {
+        .map(|(o, _, texture, _)| {
             [
                 o.material.color.iter().map(|c| narrow(c.0)).collect(),
                 vec![narrow(o.material.metalness.0)],
                 vec![narrow(o.material.roughness.0)],
+                vec![narrow(o.material.opacity.0)],
+                vec![if texture.is_some() { 1.0 } else { 0.0 }],
             ]
         })
         .collect();
-    let uniforms: Vec<[Uniform<'_>; 3]> = settings
+    let uniforms: Vec<[Uniform<'_>; 5]> = settings
         .iter()
-        .map(|[color, metallic, roughness]| {
+        .map(|[color, metallic, roughness, opacity, textured]| {
             [
                 Uniform {
                     name: "baseColor",
@@ -155,23 +241,44 @@ pub fn render(
                     values: roughness,
                     columns: 1,
                 },
+                Uniform {
+                    name: "opacity",
+                    values: opacity,
+                    columns: 1,
+                },
+                Uniform {
+                    name: "textured",
+                    values: textured,
+                    columns: 1,
+                },
             ]
         })
         .collect();
-    let meshes: Vec<Mesh<'_>> = stage
-        .objects
+    let inputs: Vec<Vec<Input<'_>>> = drawn
         .iter()
-        .zip(geometries.iter().zip(&uniforms))
-        .map(|(object, (geometry, uniforms))| Mesh {
-            positions: &geometry.positions,
-            normals: &geometry.normals,
-            uvs: Some(&geometry.uvs),
-            indices: &geometry.indices,
-            transform: object.matrix.map(|n| narrow(n.0)),
-            material: standard,
-            uniforms,
-            textures: &[],
+        .map(|(_, _, texture, _)| {
+            vec![texture.map_or(WHITE, |pixels| Input {
+                pixels: &pixels.rgba,
+                width: pixels.width,
+                height: pixels.height,
+            })]
         })
+        .collect();
+    let meshes: Vec<Mesh<'_>> = drawn
+        .iter()
+        .zip(uniforms.iter().zip(&inputs))
+        .map(
+            |((object, geometry, _, material), (uniforms, inputs))| Mesh {
+                positions: &geometry.positions,
+                normals: &geometry.normals,
+                uvs: Some(&geometry.uvs),
+                indices: &geometry.indices,
+                transform: object.matrix.map(|n| narrow(n.0)),
+                material: *material,
+                uniforms,
+                textures: inputs,
+            },
+        )
         .collect();
     let lights: Vec<Light> = look
         .lights

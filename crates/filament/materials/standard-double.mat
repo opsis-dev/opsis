@@ -1,0 +1,26 @@
+material {
+    name : standardDouble,
+    doubleSided : true,
+    shadingModel : lit,
+    parameters : [
+        { type : float4, name : baseColor },
+        { type : float, name : metallic },
+        { type : float, name : roughness },
+        { type : float, name : textured },
+        { type : sampler2d, name : texture0 }
+    ],
+    requires : [ uv0 ]
+}
+
+fragment {
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        vec4 color = materialParams.baseColor;
+        if (materialParams.textured > 0.5) {
+            color *= texture(materialParams_texture0, getUV0());
+        }
+        material.baseColor = color;
+        material.metallic = materialParams.metallic;
+        material.roughness = materialParams.roughness;
+    }
+}

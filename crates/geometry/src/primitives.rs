@@ -26,6 +26,18 @@ impl Geometry {
     pub const fn vertex_count(&self) -> usize {
         self.positions.len() / 3
     }
+
+    pub fn bounds(&self) -> Option<([f64; 3], [f64; 3])> {
+        let mut points = self.positions.as_chunks::<3>().0.iter();
+        let first = points.next()?.map(f64::from);
+        Some(points.fold((first, first), |(low, high), p| {
+            let p = p.map(f64::from);
+            (
+                [low[0].min(p[0]), low[1].min(p[1]), low[2].min(p[2])],
+                [high[0].max(p[0]), high[1].max(p[1]), high[2].max(p[2])],
+            )
+        }))
+    }
 }
 
 fn normalized(v: [f64; 3]) -> [f64; 3] {

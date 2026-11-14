@@ -1,3 +1,5 @@
+mod vector;
+
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -14,6 +16,8 @@ use opsis_scene::drawing::Font;
 use opsis_scene::measure::{AnimationTiming, Measure, MeasuredBox};
 use opsis_scene::node::{Node, Stage3d};
 use opsis_scene::timeline::{DrawError, draw_film};
+use opsis_scene::typeface::Typeface;
+use opsis_scene::vector::Vector;
 use opsis_skia::{Matrix44, Rgba, Surface, SurfaceError};
 use opsis_stage3d::{Environment as StageEnvironment, Materials};
 use opsis_types::fonts::FontFamilyDef;
@@ -50,6 +54,8 @@ pub struct Film<'a> {
     frames: Option<Frames<'a>>,
     animations: RefCell<HashMap<String, Option<AnimationTiming>>>,
     terminals: RefCell<HashMap<String, Option<Arc<TerminalFrames>>>>,
+    typefaces: RefCell<HashMap<String, Option<Arc<Typeface>>>>,
+    vectors: RefCell<HashMap<String, Option<Arc<Vector>>>>,
     effects: Option<Effects>,
     effects_tried: bool,
     staging: Staging,
@@ -111,7 +117,22 @@ impl Programs for FilmPrograms<'_, '_> {
             .ok()
     }
 
-    fn stage(&mut self, stage: &Stage3d, size: (u32, u32)) -> Option<Vec<u8>> {
+    fn stage(
+        &mut self,
+        stage: &Stage3d,
+        size: (u32, u32),
+        textures: &[Option<opsis_paint::Picture>],
+    ) -> Option<Vec<u8>> {
+        let pictures: Vec<Option<opsis_stage3d::Picture<'_>>> = textures
+            .iter()
+            .map(|t| {
+                t.as_ref().map(|p| opsis_stage3d::Picture {
+                    rgba: &p.rgba,
+                    width: p.width,
+                    height: p.height,
+                })
+            })
+            .collect();
         let files = self.files;
         let environment = self
             .staging
@@ -125,6 +146,7 @@ impl Programs for FilmPrograms<'_, '_> {
                 &mut materials,
                 stage,
                 size,
+                &pictures,
                 environment
                     .as_ref()
                     .map(|(reflections, irradiance)| StageEnvironment {
@@ -143,6 +165,9 @@ struct FilmMeasure<'f, 'a> {
     files: Files<'a>,
     animations: &'f RefCell<HashMap<String, Option<AnimationTiming>>>,
     terminals: &'f RefCell<HashMap<String, Option<Arc<TerminalFrames>>>>,
+    sizes: Sizes<'a>,
+    typefaces: &'f RefCell<HashMap<String, Option<Arc<Typeface>>>>,
+    vectors: &'f RefCell<HashMap<String, Option<Arc<Vector>>>>,
 }
 
 fn animation_timing(bytes: &[u8]) -> Option<AnimationTiming> {
@@ -180,6 +205,36 @@ impl Measure for FilmMeasure<'_, '_> {
             .borrow_mut()
             .insert(source.to_owned(), timing);
         timing
+    }
+
+    fn picture_size(&self, source: &str) -> Option<(f64, f64)> {
+        (self.sizes)(source)
+    }
+
+    fn typeface(&self, source: &str) -> Option<Arc<Typeface>> {
+        if let Some(known) = self.typefaces.borrow().get(source) {
+            return known.clone();
+        }
+        let typeface = (self.files)(source)
+            .and_then(|bytes| Typeface::parse(&bytes))
+            .map(Arc::new);
+        self.typefaces
+            .borrow_mut()
+            .insert(source.to_owned(), typeface.clone());
+        typeface
+    }
+
+    fn vector(&self, source: &str) -> Option<Arc<Vector>> {
+        if let Some(known) = self.vectors.borrow().get(source) {
+            return known.clone();
+        }
+        let vector = (self.files)(source)
+            .and_then(|bytes| vector::read(&bytes))
+            .map(Arc::new);
+        self.vectors
+            .borrow_mut()
+            .insert(source.to_owned(), vector.clone());
+        vector
     }
 
     fn terminal(&self, source: &str) -> Option<Arc<TerminalFrames>> {
@@ -266,6 +321,8 @@ impl<'a> Film<'a> {
             frames: None,
             animations: RefCell::new(HashMap::new()),
             terminals: RefCell::new(HashMap::new()),
+            typefaces: RefCell::new(HashMap::new()),
+            vectors: RefCell::new(HashMap::new()),
             effects: None,
             effects_tried: false,
             staging: Staging::default(),
@@ -294,6 +351,9 @@ impl<'a> Film<'a> {
                 files: self.files,
                 animations: &self.animations,
                 terminals: &self.terminals,
+                sizes: self.sizes,
+                typefaces: &self.typefaces,
+                vectors: &self.vectors,
             };
             draw_film(
                 &FilmLibrary {

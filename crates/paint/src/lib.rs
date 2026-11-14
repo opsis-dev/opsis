@@ -331,7 +331,15 @@ impl<'n> Painter<'_, '_, '_> {
         if size.0 == 0 || size.1 == 0 {
             return;
         }
-        let Some(out) = self.resources.stage(stage, size) else {
+        let textures: Vec<Option<resources::Picture>> = stage
+            .textures
+            .iter()
+            .map(|texture| match texture {
+                opsis_scene::node::Texture3d::Picture(source) => self.resources.texture(&source.0),
+                opsis_scene::node::Texture3d::Glow { .. } => None,
+            })
+            .collect();
+        let Some(out) = self.resources.stage(stage, size, &textures) else {
             return;
         };
         let Some(image) = opsis_skia::Image::from_rgba(size.0, size.1, &unpremultiplied(out))

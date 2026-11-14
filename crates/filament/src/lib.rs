@@ -7,6 +7,9 @@ mod ffi;
 
 pub const TINT_MATERIAL: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/tint.filamat"));
 pub const STANDARD_MATERIAL: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/standard.filamat"));
+pub const BASIC_MATERIAL: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/basic.filamat"));
+pub const STANDARD_DOUBLE_MATERIAL: &[u8] =
+    include_bytes!(concat!(env!("OUT_DIR"), "/standard-double.filamat"));
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Backend {

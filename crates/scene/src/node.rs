@@ -129,13 +129,77 @@ pub enum Shape3d {
         segments: u32,
         radius: Num,
     },
+    Plane {
+        width: Num,
+        height: Num,
+    },
+    Flat {
+        outline: Outline2d,
+        curve_segments: u32,
+        uv_span: [Num; 2],
+        uv_offset: [Num; 2],
+    },
+    Extruded {
+        outlines: Vec<Outline2d>,
+        curve_segments: u32,
+        depth: Num,
+        bevel: Option<Bevel3d>,
+    },
+    Tube {
+        points: Vec<[Num; 3]>,
+        closed: bool,
+        tubular_segments: u32,
+        radius: Num,
+        radial_segments: u32,
+    },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Segment2d {
+    Move([Num; 2]),
+    Line([Num; 2]),
+    Quad([Num; 2], [Num; 2]),
+    Cubic([Num; 2], [Num; 2], [Num; 2]),
+}
+
+#[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
+pub struct Outline2d {
+    pub shape: Vec<Segment2d>,
+    pub holes: Vec<Vec<Segment2d>>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Hash, Serialize, Deserialize)]
+pub struct Bevel3d {
+    pub thickness: Num,
+    pub size: Num,
+    pub offset: Num,
+    pub segments: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Shading3d {
+    Lit,
+    Unlit,
 }
 
 #[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Material3d {
+    pub shading: Shading3d,
+    pub double_sided: bool,
     pub color: [Num; 4],
     pub metalness: Num,
     pub roughness: Num,
+    pub opacity: Num,
+    pub texture: Option<u32>,
+}
+
+#[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Texture3d {
+    Picture(AssetRef),
+    Glow { side: u32, alpha: Num },
 }
 
 #[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
@@ -151,6 +215,7 @@ pub struct Stage3d {
     pub distance: Num,
     pub lighting: Lighting3d,
     pub objects: Vec<Object3d>,
+    pub textures: Vec<Texture3d>,
 }
 
 #[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]

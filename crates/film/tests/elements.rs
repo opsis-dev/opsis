@@ -146,7 +146,20 @@ fn app_file(source: &str) -> Option<PathBuf> {
         .map(|file| repo().join("public").join(file))
 }
 
+const PREPARED_TYPEFACE: &str = "/.opsis/prepared/typeface/";
+
+fn prepared_typeface(source: &str) -> Option<Vec<u8>> {
+    let (_, rest) = source.split_once(PREPARED_TYPEFACE)?;
+    let (weight, font) = rest.split_once("/app/")?;
+    let bytes = std::fs::read(app_file(&format!("app:{font}"))?).ok()?;
+    let typeface = opsis_prepare::typeface::typeface(&bytes, weight.parse().ok()?).ok()?;
+    serde_json::to_vec(&typeface).ok()
+}
+
 fn file_bytes(source: &str) -> Option<Vec<u8>> {
+    if source.contains(PREPARED_TYPEFACE) {
+        return prepared_typeface(source);
+    }
     std::fs::read(app_file(source)?).ok()
 }
 

@@ -1,0 +1,25 @@
+material {
+    name : basic,
+    shadingModel : unlit,
+    blending : transparent,
+    parameters : [
+        { type : float4, name : baseColor },
+        { type : float, name : opacity },
+        { type : float, name : textured },
+        { type : sampler2d, name : texture0 }
+    ],
+    requires : [ uv0 ],
+    depthWrite : false
+}
+
+fragment {
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        vec4 color = materialParams.baseColor;
+        if (materialParams.textured > 0.5) {
+            color *= texture(materialParams_texture0, getUV0());
+        }
+        float alpha = color.a * materialParams.opacity;
+        material.baseColor = vec4(color.rgb * alpha, alpha);
+    }
+}

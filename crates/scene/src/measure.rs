@@ -4,6 +4,8 @@ use opsis_types::terminal_frames::Frames;
 
 use crate::drawing::Font;
 use crate::node::Node;
+use crate::typeface::Typeface;
+use crate::vector::Vector;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct MeasuredBox {
@@ -37,6 +39,18 @@ pub trait Measure {
     }
 
     fn terminal(&self, _source: &str) -> Option<Arc<Frames>> {
+        None
+    }
+
+    fn picture_size(&self, _source: &str) -> Option<(f64, f64)> {
+        None
+    }
+
+    fn typeface(&self, _source: &str) -> Option<Arc<Typeface>> {
+        None
+    }
+
+    fn vector(&self, _source: &str) -> Option<Arc<Vector>> {
         None
     }
 }

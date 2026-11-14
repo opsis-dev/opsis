@@ -43,7 +43,12 @@ pub struct Pass<'p> {
 pub trait Programs {
     fn run(&mut self, pass: &Pass<'_>) -> Option<Vec<u8>>;
 
-    fn stage(&mut self, _stage: &opsis_scene::node::Stage3d, _size: (u32, u32)) -> Option<Vec<u8>> {
+    fn stage(
+        &mut self,
+        _stage: &opsis_scene::node::Stage3d,
+        _size: (u32, u32),
+        _textures: &[Option<Picture>],
+    ) -> Option<Vec<u8>> {
         None
     }
 }
@@ -179,8 +184,24 @@ impl<'a> Resources<'a> {
         &mut self,
         stage: &opsis_scene::node::Stage3d,
         size: (u32, u32),
+        textures: &[Option<Picture>],
     ) -> Option<Vec<u8>> {
-        self.programs.as_deref_mut()?.stage(stage, size)
+        self.programs.as_deref_mut()?.stage(stage, size, textures)
+    }
+
+    pub fn texture(&mut self, source: &str) -> Option<Picture> {
+        if Self::is_svg(source) {
+            let tree = self.svg(source)?;
+            let size = tree.size();
+            let mut decode = |bytes: &[u8]| Image::decode(bytes);
+            let image = crate::svg::render_picture(
+                tree.root(),
+                opsis_skia::RectF::new(0.0, 0.0, size.width(), size.height()),
+                &mut decode,
+            )?;
+            return picture_of(&image);
+        }
+        picture_of(self.image(source)?)
     }
 
     pub fn typeface(&mut self, run: &TextRun) -> Option<&Typeface> {
@@ -265,6 +286,26 @@ impl<'a> Resources<'a> {
             })
             .as_ref()
     }
+}
+
+fn picture_of(image: &Image) -> Option<Picture> {
+    let (width, height) = (image.width(), image.height());
+    let mut surface = opsis_skia::Surface::new(width, height).ok()?;
+    surface.clear(opsis_skia::Rgba::TRANSPARENT);
+    let full = opsis_skia::RectF::new(
+        0.0,
+        0.0,
+        opsis_types::numbers::narrow(f64::from(width)),
+        opsis_types::numbers::narrow(f64::from(height)),
+    );
+    let mut paint = opsis_skia::Paint::new();
+    paint.set_blend(opsis_skia::BlendMode::Src);
+    surface.draw_image_rect(image, (full, full), opsis_skia::Sampling::Nearest, &paint);
+    Some(Picture {
+        width,
+        height,
+        rgba: surface.rgba(),
+    })
 }
 
 fn hex_value(digit: u8) -> Option<u8> {
