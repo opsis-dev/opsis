@@ -173,6 +173,13 @@ pub enum WillChange {
     #[default]
     Auto,
     Transform,
+    Scale,
+}
+
+impl WillChange {
+    pub const fn composites(self) -> bool {
+        matches!(self, Self::Transform | Self::Scale)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]

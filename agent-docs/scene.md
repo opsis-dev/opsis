@@ -48,6 +48,10 @@ What every element returns and how a frame is worked out: the scene nodes, the c
 - **A frame whose whole scene hashes the same as the last one, at the same scale, reuses its picture** (`Film::scaled_frame`, `crates/film/src/lib.rs`).
 - **Decoded pictures, SVG trees, typefaces, Lottie files and composited layers stay in `opsis_paint::Cache` for as long as each was used in the last two frames** (`KEPT_FRAMES`, `crates/paint/src/resources.rs`); a layer is keyed by its element, its laid-out subtree and its raster transform. Shaped paragraphs stay in `Fonts` the same way, keyed by text, styles and boxes (`Fonts::next_frame`, `crates/layout/src/fonts.rs`).
 - **Picture sizes are looked up once per film** (`known_sizes`).
+- **An element with `will-change: transform` is painted as a cached layer at its exact scale**, keyed by its whole subtree and raster transform (`paint_composited`, `crates/paint/src/lib.rs`); the recording's camera is one.
+- **A layer marked `will-change: scale` is rastered at its scale stepped up to the next eighth of an octave (`stepped_scale`), over its visible region snapped to a 256 px grid (`LAYER_GRID`), and keyed by its content without its own placement (`stepped_layer_key`)**, so a zoom draws it once per step and a pan inside the region not at all; the picture is drawn down by at most an eighth of an octave.
+  - The camera asks for it only on frames whose scale differs from the next frame's (`camera`, `crates/compile/src/elements/camera/recording.rs`), so a still camera keeps its exact raster.
+  - The choice is a function of the frame alone, never of which frames a worker drew before: a layer drawn from the cache equals the same layer drawn fresh, which `crates/paint/tests/layers.rs` checks.
 
 ## How it works
 
@@ -59,5 +63,4 @@ What every element returns and how a frame is worked out: the scene nodes, the c
 
 ## Deliberate limits
 
-- **A cached layer is kept only while its raster transform stays the same**, so a camera zoom rasters the zoomed layer every frame.
 - **The scene types are Rust only**; node packs will reach them through WIT ([plans/node-packs.md](../plans/node-packs.md)).

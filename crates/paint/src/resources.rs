@@ -82,6 +82,31 @@ fn swept<K, T>(shelf: &mut Shelf<K, T>, frame: u64) {
 
 type FontIds = HashMap<String, Vec<usvg::fontdb::ID>>;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LayerRegion {
+    pub left: i32,
+    pub top: i32,
+    pub width: u32,
+    pub height: u32,
+}
+
+impl LayerRegion {
+    fn right(self) -> i64 {
+        i64::from(self.left) + i64::from(self.width)
+    }
+
+    fn bottom(self) -> i64 {
+        i64::from(self.top) + i64::from(self.height)
+    }
+
+    pub fn holds(self, other: Self) -> bool {
+        self.left <= other.left
+            && self.top <= other.top
+            && self.right() >= other.right()
+            && self.bottom() >= other.bottom()
+    }
+}
+
 #[derive(Default)]
 pub struct Cache {
     fonts: Option<(Arc<usvg::fontdb::Database>, Arc<FontIds>)>,
@@ -89,7 +114,8 @@ pub struct Cache {
     images: Shelf<String, Image>,
     trees: Shelf<String, usvg::Tree>,
     animations: Shelf<String, opsis_skia::Lottie>,
-    layers: Shelf<u64, Image>,
+    layers: Shelf<u64, (LayerRegion, Image)>,
+    layers_drawn: u64,
     frame: u64,
 }
 
@@ -100,12 +126,18 @@ impl std::fmt::Debug for Cache {
             .field("images", &self.images.len())
             .field("trees", &self.trees.len())
             .field("animations", &self.animations.len())
+            .field("layers", &self.layers.len())
+            .field("layers_drawn", &self.layers_drawn)
             .field("frame", &self.frame)
             .finish_non_exhaustive()
     }
 }
 
 impl Cache {
+    pub const fn layers_drawn(&self) -> u64 {
+        self.layers_drawn
+    }
+
     pub fn next_frame(&mut self) {
         self.frame += 1;
         let frame = self.frame;
@@ -246,18 +278,23 @@ impl<'a> Resources<'a> {
         self.cache
     }
 
-    pub fn layer(&mut self, key: u64) -> Option<&Image> {
+    pub fn layer(&mut self, key: u64, needed: LayerRegion) -> Option<(LayerRegion, &Image)> {
         let frame = self.cache.frame;
         let kept = self.cache.layers.get_mut(&key)?;
+        let (region, image) = kept.value.as_ref()?;
+        if !region.holds(needed) {
+            return None;
+        }
         kept.used = frame;
-        kept.value.as_ref()
+        Some((*region, image))
     }
 
-    pub fn keep_layer(&mut self, key: u64, image: Image) {
+    pub fn keep_layer(&mut self, key: u64, region: LayerRegion, image: Image) {
+        self.cache.layers_drawn += 1;
         self.cache.layers.insert(
             key,
             Kept {
-                value: Some(image),
+                value: Some((region, image)),
                 used: self.cache.frame,
             },
         );

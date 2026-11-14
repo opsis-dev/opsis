@@ -9,6 +9,7 @@ use opsis_scene::style::{
 use opsis_scene::timeline::{At, absolute_fill};
 use opsis_scene::values::{Calc, ContainerUnit, Length, Num};
 use opsis_types::actions::{ActionKind, ActionLog};
+use opsis_types::numbers::exact_eq;
 use opsis_types::recording::{AddressMode, CameraStyle, RecordingProps, ScreenProps};
 use opsis_types::timeline::ReframeMode;
 
@@ -278,17 +279,22 @@ fn camera(clip: &Clip<'_>, framing: &Framing, frame: f64, fps: f64, k: f64) -> (
     let chrome_h = if framing.chrome { CHROME_H * k } else { 0.0 };
     let base_h = clip.box_size.map_or(clip.stage.height, |b| b.height);
     let chrome_frac = chrome_h / (base_h + chrome_h);
-    let z = if framing.zoom {
+    let zoom_at_frame = |at: f64| {
         zoom_at(
             &clip.log,
             &clip.track,
-            log_time_s(frame, fps, clip.props.speed),
+            log_time_s(at, fps, clip.props.speed),
             &clip.tuning,
             chrome_frac,
             framing.fit,
         )
+    };
+    let (z, zooming) = if framing.zoom {
+        let z = zoom_at_frame(frame);
+        let zooming = !exact_eq(zoom_at_frame(frame + 1.0).scale, z.scale);
+        (z, zooming)
     } else {
-        pose_to_css(BASE_POSE, chrome_frac, framing.fit)
+        (pose_to_css(BASE_POSE, chrome_frac, framing.fit), false)
     };
     let (width, height) = clip.box_size.map_or_else(
         || {
@@ -308,7 +314,11 @@ fn camera(clip: &Clip<'_>, framing: &Framing, frame: f64, fps: f64, k: f64) -> (
         .flex_shrink(0.0)
         .transform(camera_transform(z))
         .position(Position::Relative)
-        .will_change(WillChange::Transform);
+        .will_change(if zooming {
+            WillChange::Scale
+        } else {
+            WillChange::Transform
+        });
     (z, style)
 }
 
