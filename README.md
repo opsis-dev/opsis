@@ -83,21 +83,17 @@ You need:
 - [Bun](https://bun.sh), and Node.js 22.12 or later for the TypeScript tests
 - [rustup](https://rustup.rs) (the repository pins its nightly, which rustup installs by itself)
 - [cargo-deny](https://github.com/EmbarkStudios/cargo-deny) for `bun run lint:fix` (`cargo install cargo-deny`)
-- [uv](https://docs.astral.sh/uv/), which `bun run qt:install` uses to fetch Qt
-- CMake and a C++ compiler
-- on Linux, the sound library and Qt's X11 libraries (on Ubuntu: `libasound2-dev libxcb-cursor0 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-randr0 libxcb-shape0 libxcb-xkb1`)
+- [uv](https://docs.astral.sh/uv/), for the C++ format and lint tools
+- Docker, CMake, make, pkg-config and git
+- on Linux, the system libraries the static Qt links (on Ubuntu: `libasound2-dev libdbus-1-dev libfontconfig1-dev libfreetype-dev libwayland-dev wayland-protocols libx11-dev libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-util-dev libxcb-xfixes0-dev libxcb-xkb-dev libxext-dev libxfixes-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libxrender-dev`); `bun run setup` checks for them and prints this line when one is missing
 
 ```sh
 bun install
-bun run zig:install      # Zig 0.17 into ~/.cache/opsis-dev/zig; put the folder it prints on your PATH
-bun run qt:install       # Qt 6.12 and KDDockWidgets into ~/.cache/opsis-dev/qt
-bun run skia:build       # Skia into ~/.cache/opsis-dev/skia (add --docker to build in a container)
-bun run filament:pin --fetch
-bun run filament:build   # the Filament wrapper into ~/.cache/opsis-dev/filament (needs clang and libc++, or --docker)
+bun run setup            # every pinned tool and library, Qt and Skia built once, the recording browser
 bun start
 ```
 
-Skia and Filament build once into `~/.cache`; run `bun run filament:build` again after changing `crates/filament/cpp`. `bun start` downloads the pinned FFmpeg into `target/ffmpeg/` the first time, builds the renderer program and runs the app.
+`bun run setup` takes a while the first time: it builds Qt and Skia from source with clang and libc++, in a Docker container on Linux. Run it again after pulling; it only redoes what the pins changed. `bun start` builds the renderer program and runs the app.
 
 The first time, open **Settings → Engine** and either **Download engine**, which puts the recording browser (Chrome Headless Shell) in the app's data folder, or **Choose file…** for one you already have. Editing, mixing and exporting work without it; recording needs it, and so does exporting with **Draw with: Software**, which uses its graphics driver. Then **New project → Sample: to-do app → Run**. 🎉
 
@@ -114,20 +110,19 @@ Ready-made copies of every sample are in [`examples/`](./examples) (**Open proje
 
 ## 🛠️ Scripts
 
-| Script                   | What it does                                                                                      |
-| ------------------------ | ------------------------------------------------------------------------------------------------- |
-| `bun start`              | Run the app in development                                                                        |
-| `bun run typecheck`      | Type-check the scripts                                                                            |
-| `bun run lint:fix`       | oxlint, Clippy, `cargo deny`, the Zig wrapper build, clang-tidy and the comment check             |
-| `bun run format:fix`     | oxfmt, `cargo fmt`, `zig fmt` and clang-format                                                    |
-| `bun run test`           | Vitest and `cargo test` (with the staged FFmpeg)                                                  |
-| `bun run e2e:qt`         | The editor driven through its scenarios in a virtual display (needs `xvfb`; `sway` for `wayland`) |
-| `bun run skia:build`     | Build the pinned Skia (`--docker` in a container)                                                 |
-| `bun run filament:build` | Build the sealed Filament wrapper (`--docker` in a container)                                     |
-| `bun run types:export`   | Write the scripts' font types from the Rust code                                                  |
-| `bun run make`           | Build the release program and its installers                                                      |
-| `bun run package:check`  | Install each Linux package in a plain `debian:trixie` container and run it                        |
-| `bun run examples`       | Rewrite the projects in `examples/` from the templates                                            |
+| Script                  | What it does                                                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------------- |
+| `bun start`             | Run the app in development                                                                        |
+| `bun run typecheck`     | Type-check the scripts                                                                            |
+| `bun run lint:fix`      | oxlint, Clippy, `cargo deny`, the Zig wrapper build, clang-tidy and the comment check             |
+| `bun run format:fix`    | oxfmt, `cargo fmt`, `zig fmt` and clang-format                                                    |
+| `bun run test`          | Vitest and `cargo test` (with `setup`'s FFmpeg)                                                   |
+| `bun run e2e:qt`        | The editor driven through its scenarios in a virtual display (needs `xvfb`; `sway` for `wayland`) |
+| `bun run setup`         | Fetch the pinned tools and libraries, build Qt and Skia once                                      |
+| `bun run types:export`  | Write the scripts' font types from the Rust code                                                  |
+| `bun run make`          | Build the release program and its installers                                                      |
+| `bun run package:check` | Install each Linux package in a plain `debian:trixie` container and run it                        |
+| `bun run examples`      | Rewrite the projects in `examples/` from the templates                                            |
 
 ## 🏗️ How it works
 

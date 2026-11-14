@@ -30,7 +30,7 @@ How a film is drawn and encoded: layout, paint, the shader effects and 3D in the
 ### The renderer
 
 - **Nothing draws a film in a page.** `Film` walks the spec into a scene ([scene.md](scene.md)), Taffy and Parley lay it out from the same font bytes Skia draws, and Skia paints it on the CPU; the shader effects and 3D run on Filament in the renderer program.
-- **Skia is reached only through `opsis-skia` and Filament only through `opsis-filament`**, the two crates allowed `unsafe` besides `opsis-vt` and `opsis-qt`. Filament's wrapper is sealed C functions ([toolchain.md](toolchain.md)).
+- **Skia is reached only through `opsis-skia` and Filament only through `opsis-filament`**, the two crates allowed `unsafe` besides `opsis-vt` and `opsis-qt`. Filament's wrapper exposes plain C functions ([toolchain.md](toolchain.md)).
 - **Fonts come only from font bytes**: the spec's families from `public/` and the project, then the bundled fallbacks in order (`FALLBACK_FAMILIES`: Noto Sans subsets, Noto Sans Symbols 2, DejaVu Sans), never the computer's fonts, so glyphs don't change by machine. Text is greyscale anti-aliased and glyph advances stay fractional.
 - **Paint follows CSS stacking order** (`Painter::collect`): negative, zero and positive `z-index` lists, positioned boxes as their own entries, and the properties that make a stacking context; effects run in CSS order (backdrop filter, clip path, opacity and blend, filter, mask).
 - **A filtered element sees its content beyond the frame**: it is painted unclipped on a surface grown by the filter's reach, then drawn under its ancestors' clips (`paint_offscreen`), as Chrome feeds a filter the element's whole content.

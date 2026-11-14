@@ -21,7 +21,7 @@ The scenarios that drive the real editor: what each covers, the virtual display 
 ## Rules
 
 - **`bun run e2e:qt` drives the editor like a person.**
-  - It runs the app on its own Xvfb on a free display (headless sway for `wayland`), with the staged FFmpeg (`OPSIS_FFMPEG`) and sound sent to the system's null output (`OPSIS_AUDIO_DEVICE=alsa:null`, so nothing plays on the speakers while playback still keeps time).
+  - It runs the app on its own Xvfb on a free display (headless sway for `wayland`), with `setup`'s FFmpeg (`OPSIS_FFMPEG`) and sound sent to the system's null output (`OPSIS_AUDIO_DEVICE=alsa:null`, so nothing plays on the speakers while playback still keeps time).
   - Each scenario gets its data folder through `OPSIS_USER_DATA`; `OPSIS_QT_PROJECTS` names the projects folder of `runs`, `wayland` and `views`, `OPSIS_QT_FIXTURES` the tour's generated clip and sample font, and `OPSIS_QT_PAGE` the test page on localhost that `tour`, `runs` and `api` open.
   - It takes no screenshots unless `--shots` is given (`bun run e2e:qt tour --shots` empties `~/.cache/opsis-dev/qt-shots/<scenario>` and writes one picture per step there), by setting `OPSIS_QT_SHOTS` to `off` or that folder. A scenario started by hand without `OPSIS_QT_SHOTS` writes its shots to `~/.cache/opsis-dev/qt-shots/<name>` (`scenario.cc`).
   - It fails on any failed check, crash, non-zero exit or timeout (a scenario still running after `RUN_TIMEOUT_MS` is stopped), and writes each scenario's full log to `target/e2e-qt/<scenario>.log`.

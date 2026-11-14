@@ -12,7 +12,7 @@ The one recording browser every capture and view launches, the bundled FFmpeg, h
 | Browser check      | `session/src/engine.rs` → `verify_on_start`, `checked_engine_files`, `engine_checking`; `capture/src/browser.rs` → `check_browser`                                                                                        |
 | Engine files       | `session/src/engine.rs` → `engine_files`; `engine/src/tools.rs` → `EngineFiles`, `browser_warning`; `engine/src/paths.rs` → `EngineMissing`                                                                               |
 | Seed stamps        | `scripts/lib/browser-stamp.ts`                                                                                                                                                                                            |
-| Bundled FFmpeg     | `engine/src/ffmpeg.rs` → `bundled_ffmpeg`, `FfmpegMissing`; pins `scripts/lib/ffmpeg.generated.json`                                                                                                                      |
+| Bundled FFmpeg     | `engine/src/ffmpeg.rs` → `bundled_ffmpeg`, `FfmpegMissing`; pins in `scripts/lib/setup/pins.generated.json` (`ffmpeg`)                                                                                                    |
 | FFmpeg contract    | `media/src/capabilities.rs` → `check_ffmpeg`, `REQUIRED_*`                                                                                                                                                                |
 | Probing            | `probe` (`opsis-probe`) behind `MediaTools::probe`; parity test `probe/tests/ffprobe.rs`                                                                                                                                  |
 | Child temp folders | `engine/src/temp.rs` → `ChildKind`, `clear_stale_child_temps`, `temp_env`; `AppPaths::views_temp`                                                                                                                         |
@@ -36,17 +36,17 @@ The one recording browser every capture and view launches, the bundled FFmpeg, h
 
 ### FFmpeg
 
-- **FFmpeg is not part of the engine: the app ships it as the `opsis-ffmpeg` sidecar**, the ffmpeg-static program pinned per target in `scripts/lib/ffmpeg.generated.json`, and users can't choose their own.
+- **FFmpeg is not part of the engine: the app ships it as the `opsis-ffmpeg` sidecar**, the ffmpeg-static program pinned per target in `scripts/lib/setup/pins.generated.json`, and users can't choose their own.
 - **`EngineFiles.ffmpeg` is the program `bundled_ffmpeg()` finds, or none (`.ok()`)**, so analysis and mixing need no setup. How it finds the program, and `OPSIS_FFMPEG` in debug builds, is in [packaging.md](packaging.md).
   - With none, every FFmpeg run through `MediaTools` fails with `FfmpegMissing` when it starts (`Ffmpeg::command`, `media/src/ffmpeg.rs`), and a file player shows no picture.
-- **Nothing checks FFmpeg at run time; `check_ffmpeg` is the contract a replacement program must meet**, run as a test on the staged program (`bun run test:rust`) and on every CI build runner.
+- **Nothing checks FFmpeg at run time; `check_ffmpeg` is the contract a replacement program must meet**, run as a test on `setup`'s program (`bun run test:rust`) and on every CI build runner.
   - It requires every encoder, decoder, format and filter Opsis uses (`REQUIRED_*`; a test fails when a golden filter graph uses one the list lacks), and a configuration line with `--enable-gpl --enable-version3` and without `--enable-nonfree`.
 - **FFmpeg runs and probes sit behind the `MediaTools` trait so tests can fake them.**
 
 ### Probing
 
 - **Nothing reads media through ffprobe: `opsis-probe` reads a file's length, container, picture (codec, size, frame rate, pixel format) and sound (codec, sample rate, channels) from its own bytes**, the way ffprobe reports them, for every probe the app makes.
-- **Its parity test (`probe/tests/ffprobe.rs`, ignored) compares it with ffprobe from the same ffmpeg-static release as the bundled FFmpeg, in `~/.cache/opsis-dev/ffmpeg`** (`bun run ffprobe:stage`, pinned beside FFmpeg in `scripts/lib/ffmpeg.generated.json`), on samples it makes with the staged FFmpeg in `~/.cache/opsis-dev/probe-samples`.
+- **Its parity test (`probe/tests/ffprobe.rs`, ignored) compares it with ffprobe from the same ffmpeg-static release as the bundled FFmpeg**, which `setup` fetches beside FFmpeg (`opsis_golden::ffprobe`), on samples it makes with that FFmpeg in `~/.cache/opsis-dev/probe-samples`.
   - A new sample is made only when its file is missing there, so changing a sample's arguments means deleting its file.
 - **Two pixel formats come from coded headers, not from fields**: an H.264 or HEVC picture whose VUI says matrix coefficients 0 is RGB (`gbrp`, `vui_signal` in `probe/src/pictures.rs`), and FFV1's format is in its range-coded Parameters (`probe/src/ffv1.rs`), read with FFmpeg's state tables (`states`, the same as `ff_build_rac_states`) from the configuration record for version 3 or the first keyframe for versions 0 and 1.
   - FFmpeg writes FFV1 into Matroska as `V_MS/VFW/FOURCC` with an `FFV1` bitmap header (its record after the 40 bytes), not `V_FFV1`; both are read (`ffv1_record`).

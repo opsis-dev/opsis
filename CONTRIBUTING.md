@@ -4,19 +4,15 @@ Thanks for helping. Opsis is an early preview, so the code moves quickly; open a
 
 ## Set up
 
-You need [Bun](https://bun.sh), Node.js 22.12 or later for the TypeScript tests, [rustup](https://rustup.rs) (it installs the pinned nightly by itself), [cargo-deny](https://github.com/EmbarkStudios/cargo-deny) for `bun run lint:fix` (`cargo install cargo-deny`), [uv](https://docs.astral.sh/uv/), CMake and a C++ compiler, and on Linux the sound library and Qt's X11 libraries (on Ubuntu: `libasound2-dev libxcb-cursor0 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-randr0 libxcb-shape0 libxcb-xkb1`).
+You need [Bun](https://bun.sh), Node.js 22.12 or later for the TypeScript tests, [rustup](https://rustup.rs) (it installs the pinned nightly by itself), [cargo-deny](https://github.com/EmbarkStudios/cargo-deny) for `bun run lint:fix` (`cargo install cargo-deny`), [uv](https://docs.astral.sh/uv/), Docker, clang with libc++ and libc++abi, CMake, make, pkg-config and git, and on Linux the system libraries the static Qt links; `bun run setup` checks for them and prints the `apt install` line for any that are missing.
 
 ```sh
 bun install
-bun run zig:install      # then put the folder it prints on your PATH
-bun run qt:install
-bun run skia:build
-bun run filament:pin --fetch
-bun run filament:build
+bun run setup
 bun start
 ```
 
-Then open **Settings → Engine** and download the recording browser, or choose one you already have. Editing works without it; recordings need it, and so do the tests that draw with its software graphics driver. `bun start` stages the pinned FFmpeg itself.
+`bun run setup` also installs the recording browser into `~/.config/Opsis/engine`, where the tests look for it (`--no-engine` skips it). Editing works without it; recordings need it, and so do the tests that draw with its software graphics driver.
 
 ## Before you send a change
 
@@ -35,7 +31,7 @@ They cover the TypeScript, Rust, Zig and C++ code (`cargo fmt`, `cargo clippy --
 bun run e2e:qt
 ```
 
-The `tour`, `runs` and `api` scenarios, and the Rust tests that are ignored by default, need the dev engine: the recording browser in `~/.config/Opsis/engine`, set up once through **Settings → Engine**. Run those tests with `bun run test:rust -p <crate> -- --ignored`; the golden and 3D picture tests also draw with its software graphics driver and the renderer program; each test's `#[ignore]` reason says what it needs. One of them, `crates/probe/tests/ffprobe.rs`, compares Opsis's media reader with ffprobe, which the app doesn't use: `bun run ffprobe:stage` puts the pinned ffprobe in `~/.cache/opsis-dev/ffmpeg`, where the test looks for it.
+The `tour`, `runs` and `api` scenarios, and the Rust tests that are ignored by default, need the dev engine: the recording browser `bun run setup` installs in `~/.config/Opsis/engine`. Run those tests with `bun run test:rust -p <crate> -- --ignored`; the golden and 3D picture tests also draw with its software graphics driver and the renderer program; each test's `#[ignore]` reason says what it needs. One of them, `crates/probe/tests/ffprobe.rs`, compares Opsis's media reader with ffprobe, which the app doesn't use; `bun run setup` fetches the pinned ffprobe beside FFmpeg.
 
 ## Rules the code follows
 

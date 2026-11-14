@@ -28,7 +28,7 @@ CARGO_BUILD_JOBS=8 OPSIS_USER_DATA=$HOME/.cache/opsis-dev/check/user-data OPSIS_
 - `env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=xcb` keeps Qt off the desktop's Wayland display: Qt picks Wayland whenever `WAYLAND_DISPLAY` is set and ignores `DISPLAY`.
 - `OPSIS_AUDIO_DEVICE=alsa:null` keeps the app's sound off the speakers.
 - `-n 99` names the display; check `/tmp/.X11-unix/X99` doesn't exist first, and pick another number if it does.
-- `bun start` stages FFmpeg when missing and runs the editor (`cargo run -p opsis-ui`).
+- `bun start` builds the renderer program and runs the editor (`cargo run -p opsis-ui`) with `setup`'s FFmpeg; run `bun run setup` once first.
 
 The app is ready when the socket exists. Wait for it with one background command, not a polling loop:
 
