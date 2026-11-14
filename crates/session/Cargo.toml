@@ -11,6 +11,7 @@ workspace = true
 
 [dependencies]
 futures.workspace = true
+image = { workspace = true, features = ["jpeg"] }
 indexmap.workspace = true
 log.workspace = true
 opsis-api.workspace = true
@@ -18,6 +19,7 @@ opsis-capture.workspace = true
 opsis-compile.workspace = true
 opsis-document.workspace = true
 opsis-engine.workspace = true
+opsis-film.workspace = true
 opsis-fonts.workspace = true
 opsis-image.workspace = true
 opsis-media.workspace = true

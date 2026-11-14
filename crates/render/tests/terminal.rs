@@ -222,3 +222,45 @@ async fn paints_a_live_terminal_frame_at_its_screen_size() {
         "{share} of the picture is text"
     );
 }
+
+#[test]
+fn paints_a_live_terminal_frame_natively_at_its_screen_size() {
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let out = dev_cache("film-test/painter");
+    std::fs::create_dir_all(&out).unwrap();
+    let cast = read_path(opsis_golden::path("terminal/take.cast")).unwrap();
+    let theme = theme_named("Default").unwrap();
+    let mut frames = prepare(&PrepareInput {
+        cast: &cast,
+        fps: 2,
+        theme: &theme,
+        masks: &[],
+    })
+    .unwrap();
+    let last = frames.frames.pop().unwrap();
+    frames.frames = vec![last];
+    let public = repo.join("public");
+    let files = |source: &str| {
+        let rest = source.strip_prefix("app:")?;
+        std::fs::read(public.join(rest)).ok()
+    };
+    let mut painter = opsis_film::TerminalPainter::new(&files, &terminal_fonts()).unwrap();
+    let look = default_look(Some(theme));
+    let surface = painter.paint(&frames, &look).unwrap();
+    let screen = screen_size(&grid(&look, frames.cols, frames.rows));
+    assert_eq!(
+        (surface.width(), surface.height()),
+        (screen.width, screen.height)
+    );
+    let rgba = surface.rgba();
+    let picture = image::RgbImage::from_fn(surface.width(), surface.height(), |x, y| {
+        let at = usize::try_from((y * surface.width() + x) * 4).unwrap();
+        image::Rgb([rgba[at], rgba[at + 1], rgba[at + 2]])
+    });
+    picture.save(out.join("painted-natively.png")).unwrap();
+    let share = lit_share(&picture, BACKGROUND);
+    assert!(
+        (MIN_LIT..MAX_LIT).contains(&share),
+        "{share} of the picture is text"
+    );
+}

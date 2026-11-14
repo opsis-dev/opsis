@@ -66,6 +66,16 @@ pub fn filtered(program: &str, settings: Vec<(&'static str, Vec<f64>)>, child: N
     .into()
 }
 
+pub fn effect_over(program: &str, settings: Vec<Setting>, scale: f64, children: Vec<Node>) -> Node {
+    effect(program, settings, scale, absolute_fill())
+        .children(children)
+        .into()
+}
+
+pub fn generated_in(program: &str, settings: Vec<Setting>, scale: f64, style: Style) -> Node {
+    effect(program, settings, scale, style).into()
+}
+
 pub fn generated(program: &str, settings: Vec<Setting>, scale: f64) -> Node {
     effect(program, settings, scale, absolute_fill()).into()
 }

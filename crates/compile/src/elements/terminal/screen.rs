@@ -8,7 +8,7 @@ use opsis_types::terminal::TerminalLook;
 use opsis_types::terminal_frames::{FrameRecord, Frames};
 
 use crate::elements::terminal::effects::{
-    effect_defs, effect_layers, has_lens, soften_px, trail_weights,
+    effect_defs, effect_layers, grain, has_lens, lensed, soften_px, trail_weights,
 };
 use crate::elements::terminal::view::{View, lighten_layer, screen_size, terminal_view};
 
@@ -109,22 +109,24 @@ pub fn terminal_screen(screen: &TerminalScreen<'_>, measure: &dyn Measure) -> Op
     if blur > 0.0 {
         softened = softened.filter(vec![Filter::Blur(Length::px(blur))]);
     }
-    let mut lensed = Style::default()
+    let placed = Style::default()
         .position(Position::Absolute)
         .left(Length::ZERO)
         .top(Length::ZERO)
         .width(Length::px(size.width))
         .height(Length::px(size.height));
-    if has_lens(screen.effects) {
-        lensed = lensed.filter(vec![Filter::Url(format!("#{SCREEN_ID}-lens"))]);
-    }
-    let mut layers: Vec<Node> = vec![div(lensed).child(div(softened).children(content)).into()];
+    let screen_content: Node = div(softened).children(content).into();
+    let lensed_content = match screen.effects {
+        Some(effects) if has_lens(Some(effects)) => lensed(effects, size, screen_content),
+        _ => screen_content,
+    };
+    let mut layers: Vec<Node> = vec![div(placed.clone()).child(lensed_content).into()];
     if let Some(effects) = screen.effects {
         let frame_number = opsis_scene::clock::js_round(screen.time_s * fps);
         let mut root = SvgElement::new("svg")
             .attr("width", size.width)
             .attr("height", size.height)
-            .child(effect_defs(SCREEN_ID, effects, size, frame_number));
+            .child(effect_defs(SCREEN_ID, effects, size));
         for layer in effect_layers(SCREEN_ID, effects, size) {
             root = root.child(layer);
         }
@@ -140,6 +142,9 @@ pub fn terminal_screen(screen: &TerminalScreen<'_>, measure: &dyn Measure) -> Op
             )
             .into(),
         );
+        if effects.grain > 0.0 {
+            layers.push(div(placed).child(grain(effects, frame_number)).into());
+        }
     }
     Some(
         div(Style::default()

@@ -1,0 +1,47 @@
+material {
+    name : terminalLens,
+    shadingModel : unlit,
+    blending : transparent,
+    parameters : [
+        { type : sampler2d, name : input0 },
+        { type : sampler2d, name : input1 },
+        { type : float, name : aspect },
+        { type : float2, name : size },
+        { type : float, name : scale },
+        { type : float2, name : shift },
+        { type : float, name : bulge }
+    ],
+    requires : [ uv0 ],
+    vertexDomain : device,
+    depthWrite : false,
+    depthCulling : false,
+    culling : none
+}
+
+fragment {
+    vec4 nearest(vec2 pixel) {
+        vec2 snapped = (floor(pixel) + 0.5) / materialParams.size;
+        return texture(materialParams_input0, snapped);
+    }
+
+    vec4 bent(vec2 pixel) {
+        vec2 offset = vec2(0.0);
+        if (materialParams.bulge != 0.0) {
+            vec4 map = texture(materialParams_input1, (floor(pixel) + 0.5) / materialParams.size);
+            vec2 channels = clamp(map.rg / max(map.a, 0.004), 0.0, 1.0);
+            offset = materialParams.bulge * materialParams.scale * (channels - 0.5);
+        }
+        return nearest(pixel + offset);
+    }
+
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        vec2 pixel = getUV0() * materialParams.size;
+        vec2 step = materialParams.shift * materialParams.scale;
+        vec4 red = bent(pixel - step);
+        vec4 green = bent(pixel);
+        vec4 blue = bent(pixel + step);
+        float alpha = 1.0 - (1.0 - red.a) * (1.0 - green.a) * (1.0 - blue.a);
+        material.baseColor = vec4(red.r, green.g, blue.b, alpha);
+    }
+}

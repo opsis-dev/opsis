@@ -1,0 +1,78 @@
+material {
+    name : terminalGrain,
+    shadingModel : unlit,
+    blending : transparent,
+    parameters : [
+        { type : float, name : aspect },
+        { type : float2, name : size },
+        { type : float, name : scale },
+        { type : float2, name : frequency },
+        { type : float, name : colour },
+        { type : float4[64], name : lattice },
+        { type : float4[512], name : gradients }
+    ],
+    requires : [ uv0 ],
+    vertexDomain : device,
+    depthWrite : false,
+    depthCulling : false,
+    culling : none
+}
+
+fragment {
+    float latticeAt(float index) {
+        int i = int(index) & 255;
+        return materialParams.lattice[i >> 2][i & 3];
+    }
+
+    vec2 gradientAt(int channel, int index) {
+        int position = (channel * 256 + index) * 2;
+        vec4 packed = materialParams.gradients[position >> 2];
+        vec2 raw = (position & 3) == 0 ? packed.xy : packed.zw;
+        return raw * (2.0 / 65535.0) - 1.0;
+    }
+
+    float perlin(int channel, vec2 fractValue, int b00, int b10, int b01, int b11, vec2 smoothed) {
+        vec2 g00 = gradientAt(channel, b00);
+        vec2 g10 = gradientAt(channel, b10);
+        vec2 g01 = gradientAt(channel, b01);
+        vec2 g11 = gradientAt(channel, b11);
+        float u = fractValue.x * g00.x + fractValue.y * g00.y;
+        float v = (fractValue.x - 1.0) * g10.x + fractValue.y * g10.y;
+        float a = mix(u, v, smoothed.x);
+        u = fractValue.x * g01.x + (fractValue.y - 1.0) * g01.y;
+        v = (fractValue.x - 1.0) * g11.x + (fractValue.y - 1.0) * g11.y;
+        float b = mix(u, v, smoothed.x);
+        return mix(a, b, smoothed.y);
+    }
+
+    float srgb(float linear) {
+        return linear <= 0.0031308 ? linear * 12.92 : 1.055 * pow(linear, 1.0 / 2.4) - 0.055;
+    }
+
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        vec2 local = getUV0() * materialParams.size / materialParams.scale;
+        vec2 noiseVec = (local + 0.5) * materialParams.frequency;
+        vec2 floorValue = floor(noiseVec);
+        vec2 fractValue = noiseVec - floorValue;
+        float latticeX = latticeAt(floorValue.x);
+        float latticeY = latticeAt(floorValue.x + 1.0);
+        int b00 = int(latticeX + floorValue.y) & 255;
+        int b10 = int(latticeY + floorValue.y) & 255;
+        int b01 = int(latticeX + floorValue.y + 1.0) & 255;
+        int b11 = int(latticeY + floorValue.y + 1.0) & 255;
+        vec2 smoothed = fractValue * fractValue * (3.0 - 2.0 * fractValue);
+        vec4 noise = vec4(
+            perlin(0, fractValue, b00, b10, b01, b11, smoothed),
+            perlin(1, fractValue, b00, b10, b01, b11, smoothed),
+            perlin(2, fractValue, b00, b10, b01, b11, smoothed),
+            perlin(3, fractValue, b00, b10, b01, b11, smoothed));
+        vec4 colour = clamp(noise * 0.5 + 0.5, 0.0, 1.0);
+        vec3 rgb = colour.rgb;
+        if (materialParams.colour < 0.5) {
+            rgb = vec3(clamp(dot(rgb, vec3(0.213, 0.715, 0.072)), 0.0, 1.0));
+        }
+        rgb = vec3(srgb(rgb.r), srgb(rgb.g), srgb(rgb.b));
+        material.baseColor = vec4(rgb * colour.a, colour.a);
+    }
+}
