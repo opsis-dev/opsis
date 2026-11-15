@@ -2,7 +2,7 @@
 
 More elements and better ways to find them: frame-driven rewrites of web motion components, a Liquid contours background, two more hand-drawn looks, Rive animations, still thumbnails in the node list, and a CI check that renders every element. Every feature has its own section with the same parts, so the plan can grow one section at a time.
 
-Status: plan only. Nothing here is built yet.
+Status: plan only. No feature here is built; the summary marks the ones with pieces already in place.
 
 Every element is a Rust draw function on the native renderer ([native-renderer.md](native-renderer.md), cut over): it returns scene nodes ([agent-docs/scene.md](../agent-docs/scene.md)), Skia paints them, and shaders and 3D run on Filament in the renderer program ([agent-docs/film.md](../agent-docs/film.md)). The elements in this plan are written the same way, as [agent-docs/elements.md](../agent-docs/elements.md) describes.
 
@@ -190,8 +190,8 @@ A hand-drawn cross over a part of the page in a take. The Remotion Elements "Cro
 
 In place:
 
-- Title card already has it: its **Mark a word** look includes "Crossed out" (`MarkLook` in `crates/compile/src/elements/text/title.rs`, drawn by the hand-drawn marks in `crates/compile/src/elements/parts/hand_drawn.rs`). Don't add a separate element.
-- Close registry elements: Strikethrough Replace and Text Highlight (which includes a strikethrough).
+- The hand-drawn marks (`mark_paths`, `crates/compile/src/elements/parts/hand_drawn.rs`) draw Highlight box's Box, Circle, Underline and Marker looks with `roughr`, seeded and stroke by stroke; none crosses anything out.
+- Text highlight (`crates/compile/src/elements/text/text_highlight.rs`) has a Strikethrough preset: a straight line through text in an element, not a mark over a take. Don't add a separate element.
 
 Missing:
 
@@ -199,7 +199,7 @@ Missing:
 
 ### Work
 
-1. Add `CrossedOff` and `StruckThrough` to `HighlightLook` with their labels ("Crossed out", "Struck through"), and draw them in the highlight annotations (`crates/compile/src/elements/camera/annotations.rs`) through the hand-drawn marks (`parts/hand_drawn.rs`), which already draw the crossing out for Title card; struck through is a new mark there: strokes back and forth across the middle of the box.
+1. Add `CrossedOff` and `StruckThrough` to `HighlightLook` with their labels ("Crossed out", "Struck through"), and draw them in the highlight annotations (`crates/compile/src/elements/camera/annotations.rs`) through two new marks in `mark_paths` (`parts/hand_drawn.rs`): crossed out is strokes corner to corner both ways, and struck through is strokes back and forth across the middle of the box.
 
 ### Licence
 

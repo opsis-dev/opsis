@@ -1,8 +1,8 @@
 # Node packs
 
-How nodes and elements install and update apart from the app: reusable subgraphs and templates first, then packs as data, then pack code as WebAssembly components described in WIT and loaded by wasmtime, then third-party packs from a file. Pack elements draw through the scene contract of [native-renderer.md](native-renderer.md).
+How nodes and elements install and update apart from the app: reusable subgraphs and templates first, then packs as data, then pack code as WebAssembly components described in WIT and loaded by wasmtime, then third-party packs from a file. Pack elements draw through the scene contract of the native renderer ([scene.md](../agent-docs/scene.md)).
 
-Status: plan only. Nothing here is built yet. Builds after sections 1–7 of [release.md](release.md); phases 3 and 4 also need the native renderer's **Scene** part. Facts were checked on 5 November 2026.
+Status: plan only. Nothing here is built yet. Builds after sections 1–6 of [release.md](release.md); phases 3 and 4 build on the native renderer's scene types (`opsis-scene`, [scene.md](../agent-docs/scene.md)). Facts were checked on 5 November 2026.
 
 ## How to read this plan
 
@@ -35,18 +35,18 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ## Summary
 
-| Part                    | What it changes                                                                      | Needs                                                |
-| ----------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------- |
-| Phase 1                 | reusable subgraph nodes, project templates, per-node presets                         | —                                                    |
-| Phase 2                 | `pack.json`, first-party packs grouping today's nodes, packs listed per project      | Phase 1                                              |
-| Contract                | the `opsis:pack` WIT: types, host, files, elements, nodes; versioning                | the scene types, shared with native renderer's Scene |
-| Host                    | `opsis-packs`: wasmtime engine, compile cache, linking, limits, instances per worker | Contract                                             |
-| Elements from packs     | pack elements in the catalogue, the resolve pass, `draw` per frame                   | Host                                                 |
-| Nodes from packs        | pack settings schemas, `compile`, `execute` with files and scoped WASI               | Host                                                 |
-| Shaders                 | pack GLSL compiled at load and run like built-in effects                             | Host, native renderer's Effects                      |
-| Permissions and signing | manifest permissions, the warning, signatures                                        | Nodes from packs                                     |
-| Installing              | install from a file, update, remove, the data folder and project packs               | Permissions and signing                              |
-| SDK and checks          | the Rust SDK crate, a template pack, the pack checker                                | Contract                                             |
+| Part                    | What it changes                                                                      | Needs                                                           |
+| ----------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| Phase 1                 | reusable subgraph nodes, project templates, per-node presets                         | —                                                               |
+| Phase 2                 | `pack.json`, first-party packs grouping today's nodes, packs listed per project      | Phase 1                                                         |
+| Contract                | the `opsis:pack` WIT: types, host, files, elements, nodes; versioning                | the scene types of `opsis-scene`                                |
+| Host                    | `opsis-packs`: wasmtime engine, compile cache, linking, limits, instances per worker | Contract                                                        |
+| Elements from packs     | pack elements in the catalogue, the resolve pass, `draw` per frame                   | Host                                                            |
+| Nodes from packs        | pack settings schemas, `compile`, `execute` with files and scoped WASI               | Host                                                            |
+| Shaders                 | pack GLSL compiled at load and run like built-in effects                             | Host, the renderer's effects ([film.md](../agent-docs/film.md)) |
+| Permissions and signing | manifest permissions, the warning, signatures                                        | Nodes from packs                                                |
+| Installing              | install from a file, update, remove, the data folder and project packs               | Permissions and signing                                         |
+| SDK and checks          | the Rust SDK crate, a template pack, the pack checker                                | Contract                                                        |
 
 ## Phase 1
 
@@ -114,7 +114,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 ### What it changes
 
 - **One WIT package, `opsis:pack`, is the contract for pack code.**
-  - `types`: the scene as a flat list of nodes with child indices (WIT has no recursive types), each carrying the CSS and SVG subset of [native-renderer.md](native-renderer.md) **Scene**: the style record under CSS property names, text runs, inline SVG trees, images and footage frames, Lottie, 3D scenes, shader effects, slots for children and transitions; `Clock`, `Stage`, assets, spring settings.
+  - `types`: the scene as a flat list of nodes with child indices (WIT has no recursive types), each carrying the CSS and SVG subset of the scene ([scene.md](../agent-docs/scene.md)): the style record under CSS property names, text runs, inline SVG trees, images and footage frames, Lottie, 3D scenes, shader effects, slots for children and transitions; `Clock`, `Stage`, assets, spring settings.
   - `host`: `measure-text`, `spring`, `random`, `log`.
   - `files`: read inputs, write outputs, report progress.
   - `elements`: `list-elements`, `shaders`, `assets`, and the `element` resource with `open`, `length` and `draw(clock, stage, transition)`.
@@ -142,8 +142,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Decisions
 
-- **Where the scene types are written**: shared with [native-renderer.md](native-renderer.md) **Scene** (generated from the WIT, or hand-written with a test).
-- **Which comes first, this Contract or native-renderer's Scene.** Each is written as waiting on the other: the Summary has Contract needing Scene, and Scene's node types are this plan's WIT `types`. Whichever starts first writes the scene types, and the other builds on them.
+- **How the WIT scene records follow `opsis-scene`'s Rust types** (`crates/scene/src/node.rs`, `style.rs`): generated from the Rust types, or written by hand with a test that they match.
 - **WIT file layout**: one file, or one per interface in a `wit/` folder.
 
 ### Risks
@@ -220,7 +219,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Sources
 
-- [native-renderer.md](native-renderer.md) **Scene** and **Elements**.
+- [scene.md](../agent-docs/scene.md) and [elements.md](../agent-docs/elements.md).
 
 ## Nodes from packs
 
@@ -279,7 +278,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
 
 ### Sources
 
-- Filament v1.80.0 (https://github.com/google/filament): `libs/filamat/include/filamat/MaterialBuilder.h` (`material(code)`, `shading`, `parameter`, `build`), `filament/include/filament/Material.h` (`Builder::package`); [native-renderer.md](native-renderer.md) **Effects and 3D**.
+- Filament v1.80.1 (https://github.com/google/filament): `libs/filamat/include/filamat/MaterialBuilder.h` (`material(code)`, `shading`, `parameter`, `build`), `filament/include/filament/Material.h` (`Builder::package`); [native-renderer.md](native-renderer.md) **Effects and 3D**.
 
 ## Permissions and signing
 

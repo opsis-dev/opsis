@@ -98,7 +98,7 @@ How a film is drawn and encoded: layout, paint, the shader effects and 3D in the
 
 ## Deliberate limits
 
-- **HTML inside SVG (`foreignObject`) is not drawn**; the one place the film used it, the terminal under the lens, is an element with a filter instead.
+- **HTML inside SVG (`foreignObject`) is not drawn**; the terminal under the lens is an element with a filter, not HTML inside SVG.
 - **No `text-wrap: balance` and no automatic hyphenation**; soft hyphens are drawn with `-`.
 - **`vertical-align: top` and `bottom` on text spans align as `baseline`.**
-- **Lottie plays without expressions**: a file that uses them draws its keyframed values, and the Media file card warns (`Measured::Expressions`, `crates/probe/src/lottie.rs`).
+- **Lottie plays without expressions**: a file that uses them draws its keyframed values, and the Media file card warns (`Measured::Expressions`, `crates/types/src/values.rs`, from `uses_expressions`, `crates/probe/src/lottie.rs`).

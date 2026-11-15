@@ -28,8 +28,8 @@ How Opsis is measured for size, CPU and memory with development tools only: the 
 
   - `line-tables-only` keeps function names and lines for samply, perf and heaptrack. Full debug info runs the full-LTO link out of memory on a 14 GiB machine.
   - On Linux the program is built in the trixie container into `target/trixie/release` ([packaging.md](packaging.md)), and `cargoProfileVariables` passes the `CARGO_PROFILE_*` variables into it.
-  - `bun run profile` copies it, the staged `opsis-ffmpeg`, both pages, the staged `resources` and the licences into `~/.cache/opsis-dev/profile/app` (`assembleAppFolder`, `scripts/lib/app-folder.ts`), the layout the release build reads beside itself.
-  - Without the program, FFmpeg, both pages and `resources` from `bun run make` it stops, naming what is missing; by then it has already made the run's folder, inputs and data folder.
+  - `bun run profile` copies it, setup's `opsis-ffmpeg`, `opsis-renderer`, the `public` and staged `resources` folders and the licences and notices into `~/.cache/opsis-dev/profile/app` (`assembleAppFolder`, `scripts/lib/app-folder.ts`), the layout the release build reads beside itself.
+  - Without the program and `opsis-renderer` from `bun run make`, setup's FFmpeg, `public` and `resources` it stops, naming what is missing; by then it has already made the run's folder, inputs and data folder.
 
 - **`bun run profile` runs the app in Docker, never on the host**: Ubuntu 26.04 with Qt's X11 runtime libraries (`scripts/lib/profile/Dockerfile`), fixed cores (`--cpus`, a CPU list passed as `--cpuset-cpus`) and memory (`--memory`, swap equal to it), with the defaults in `scripts/profile.ts`, a larger `/dev/shm` for the browser (`--shm-size`), `--network none`, and the user's uid.
   - samply and perf carry `cap_perfmon,cap_ipc_lock` as file capabilities and the container gets `--cap-add PERFMON --cap-add IPC_LOCK`, so they record whatever the host's `kernel.perf_event_paranoid` is. Without the added capabilities the kernel refuses to start them.

@@ -45,4 +45,4 @@ The HTTP API scripts and agents use to read, change and run the open project. Pa
   - They answer 403 while the switch is off, 409 with no project or while a script runs, 400 for a body that is neither form, and 200 with `ok: false` and the failure for a script that failed.
   - A client that goes away doesn't stop its script; the stop route does.
 - **Every route is documented in `openapi.rs`** (from the `schemars` schemas of the bodies); node settings schemas come from `/nodes/{type}`.
-  - `documents_every_route_it_serves` checks a list of routes written in the test, not the router, so a new route goes in that list too; the list leaves out `/openapi.json`, `/status`, `/nodes` and `/nodes/{type}` (TODO.md). Another test keeps the document under 100 KB.
+  - `documents_every_route_it_serves` checks a list of routes written in the test, not the router, so a new route goes in that list too. Another test keeps the document under 100 KB.

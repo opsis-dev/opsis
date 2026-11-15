@@ -40,7 +40,7 @@ The `tour`, `runs` and `api` scenarios, and the Rust tests that are ignored by d
 - **No comments in code.** If something needs explaining, rename it or split it up. Rules that span the codebase go in AGENTS.md, rules for one part in its doc in `agent-docs/`.
 - **TypeScript file names are kebab-case**; Rust module files are snake_case.
 - **Never hand-edit generated or installed code.** AGENTS.md lists every generated file and the command that writes it (for example, `bun run types:export` after changing a Rust type that crosses into TypeScript).
-- **Rust is the source of types and logic.** Shapes that cross a boundary are Rust types, exported with specta for the film and shared through the `cxx` bridge with the editor; don't write them by hand, and don't copy logic into the editor's C++ that Rust already has.
+- **Rust is the source of types and logic.** Shapes that cross a boundary are Rust types, shared through the `cxx` bridge with the editor and exported with specta for the scripts that need them; don't write them by hand, and don't copy logic into the editor's C++ that Rust already has.
 - **Dependencies go through the package managers** (`bun add`, `cargo add`), at their latest release unless AGENTS.md pins them. A Rust dependency's version lives once in the root `Cargo.toml`'s `[workspace.dependencies]`; AGENTS.md says how to add one.
 - **Scripts run with Bun:** `bun scripts/<name>.ts`.
 - **User-facing text** is in sentence case, names no library or tool a person never works with, and gives durations in seconds.

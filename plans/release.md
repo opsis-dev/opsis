@@ -6,7 +6,7 @@ Status: the Linux packages are built and checked ([packaging.md](../agent-docs/p
 
 ## How to read this plan
 
-- Sections 1–6 come before a first public release. Section 7 runs before every release. Section 8 is later work.
+- Sections 1–5 come before a first public release. Section 6 runs before every release. Section 7 is later work.
 - Each section has the same parts where they apply: **In place**, **Work** (numbered, only what is left), **Decided**, **Decision for the user**, **Risks**. Rules from `AGENTS.md` and `agent-docs/` hold throughout; when they disagree with this plan, they win.
 - Local builds: `bun run make` builds the deb unless `--formats` names more (all four Linux formats build here, in the trixie container), cargo capped at 8 jobs unless `CARGO_BUILD_JOBS` says otherwise, output in `~/.cache/opsis-dev/build`, checked with `bun run package:check`. The Windows and macOS packages are built in CI only.
 
@@ -26,7 +26,7 @@ Status: the Linux packages are built and checked ([packaging.md](../agent-docs/p
 
 **In place.**
 
-- **Size.** Measured 2026-11-15 on the release build (`bun run make` on Linux x64, clang and libc++, the static Qt without ICU): the program 115,192,272 bytes with Qt, KDDockWidgets and Skia linked in, `opsis-renderer` 21,505,232, the deb 112,906,284, and 258,964,171 bytes installed: the two programs, FFmpeg 79,826,272, `public/` 36,799,786, the browser's licences 5,345,493, and the notices, icons and desktop entry. Neither program needs a C++ runtime from the system; the renderer needs only X11, libm, libgcc_s and libc. Against `main`'s build of 2026-11-08 (the program 101,795,856, the deb 101,233,244, 224,746,225 installed with the film and terminal pages), the program is 13,396,416 bytes larger and the install 34,217,946. The rpm, the pacman package and the AppImage aren't measured on this build.
+- **Size.** Measured 2026-11-15 on the release build (`bun run make` on Linux x64, clang and libc++, the static Qt without ICU): the program 115,192,272 bytes with Qt, KDDockWidgets and Skia linked in, `opsis-renderer` 21,505,232, the deb 112,906,284, and 258,964,171 bytes installed: the two programs, FFmpeg 79,826,272, `public/` 36,799,786, the browser's licences 5,345,493, and the notices, icons and desktop entry. Neither program needs a C++ runtime from the system; the renderer needs only X11, libm, libgcc_s and libc. Against `main`'s build of 2026-11-08 (the program 101,795,856, the deb 101,233,244, 224,746,225 installed with the film and terminal pages), the program is 13,396,416 bytes larger and the install 34,217,946. A later build the same day, with the Qt image plugins linked in, made the program 115,868,800 bytes and the deb 113,047,796; its other sizes weren't measured. The rpm, the pacman package and the AppImage aren't measured on these builds.
 - **What ships.** One build, with FFmpeg inside and no recording browser: the app binary (`opt-level = 3`, full LTO, one codegen unit, stripped) with Qt, KDDockWidgets and Skia linked in, the renderer program `opsis-renderer` (Filament) and FFmpeg as the `opsis-ffmpeg` program beside it with `LICENSE.ffmpeg.txt` (`plans/ffmpeg.md`), the repository's `public/` (the app's only copy of the `app:` files, which the app reads through `AppPaths::public_dir`), the recording browser's licences, `LICENSE`, `THIRD_PARTY_NOTICES.md`, `QT_NOTICES.generated.md`, the desktop entry and the icons ([packaging.md](../agent-docs/packaging.md)).
 - **`public/`** 36,799,786 bytes: fonts 21,075,148 (Noto Color Emoji 10,730,124), music 7,923,531, backdrops 4,810,439, the room's lighting 2,096,011, placeholders 542,509, sounds 352,148.
 
@@ -50,7 +50,7 @@ Status: the Linux packages are built and checked ([packaging.md](../agent-docs/p
 
 1. **Push and make it public.** Push `main`, then switch the repository to public (decided below).
 2. **First run.** Start the workflow with `workflow_dispatch`; expect every build job to need fixes at least once (`fail-fast: false` is set).
-3. **Fix failures one system at a time.** Likely places: the static Qt build and the editor's static link on Windows and macOS (written from Qt's docs and the macOS `.prl` files, never run there: the `.prl` text on MSVC and the Windows plugin's system libraries are the least certain), `bun`'s `windowsVerbatimArguments` in `msvcEnv`, `install-engine` on Windows (Chrome for Testing download and unzip), begin-frame control on each platform's browser (the driver falls back to screenshots and says so), the MSI (WiX runs only on Windows and needs the VBSCRIPT feature), long paths on Windows (the downloaded engine sits several folders deep).
+3. **Fix failures one system at a time.** Likely places: the static Qt build and the editor's static link on Windows and macOS (written from Qt's docs and the macOS `.prl` files, never run there: the `.prl` text on MSVC and the Windows plugin's system libraries are the least certain), `bun`'s `windowsVerbatimArguments` in `msvcEnv`, `install-engine` on Windows (Chrome for Testing download and unzip), the MSI (WiX runs only on Windows and needs the VBSCRIPT feature), long paths on Windows (the downloaded engine sits several folders deep).
 4. **Keep the builds** in `~/.cache/opsis-ci/<run id>/` when checking them; sizes go to section 1.
 
 **Decided.** Public repo; CI runners only for Windows and macOS (no manual pass), plus a person on Linux; x64 Windows and separate Apple Silicon and Intel Mac builds, no Windows on Arm or universal build; one build with FFmpeg inside and no recording browser; NSIS and MSI on Windows, the zipped app (for updates and notarization) and a DMG (for first installs) on macOS.
@@ -66,7 +66,7 @@ The native editor has run only on Linux: X11 in a virtual display, and Wayland o
 1. **Windows and macOS.** On their CI runners, run `cargo test -p opsis-ui` (the `views` scenario on the offscreen platform), and start the packaged app with a test data folder (`OPSIS_USER_DATA`, the API on) and drive it through the Local API as the `api` scenario does: open each example, run the changelog, read the export back with `opsis-probe`. List what a runner can't judge (how the window controls look, first-open prompts) as not covered in the release notes.
 2. **macOS shell.** The menu bar is the app's own, inside the window (`AppBar`), and the window has no system title bar, but neither has run on macOS: check the Cmd shortcuts, that Cmd+, opens Settings, that Cmd+Q goes through the exit dialog, moving and maximizing the window, and full screen.
 3. **Timeline sound drift.** The Timeline's sound plays through the sound output (`opsis-audio`), and the playhead follows its clock while the film plays; measure drift over a long film on each system.
-4. **Engine checks.** On each runner, download the recording browser through Settings' installer and run `check_browser` on it: Chrome for Testing must open a page. The release workflow checks the bundled FFmpeg on every package runner (`check_ffmpeg` on the staged program, the step after the build), but it has not run on Windows or macOS yet.
+4. **Engine checks.** On each runner, download the recording browser through Settings' installer and run `check_browser` on it: Chrome for Testing must open a page. The release workflow checks the bundled FFmpeg on every package runner (`check_ffmpeg` on setup's program, the step after the build), but it has not run on Windows or macOS yet.
 5. **Sign-in end to end.** Not in the e2e scenarios, because saving a sign-in writes to the real keyring. `keyring-core`'s mock store is used only by the store's unit tests (`crates/store/src/keys.rs`); add a test-only store for scenario runs and a step in `runs` that signs in and records a take with it.
 
 ## 4. Code signing
@@ -109,7 +109,7 @@ The native editor has run only on Linux: X11 in a virtual display, and Wayland o
 8. **Stopping a run** at every stage, and killing the headless shell or FFmpeg mid-run: the run reports it and the next one starts fresh.
 9. **Pop-out windows** editing at once: edits and undo from each, closing one mid-drag.
 10. **Keyboard only:** create, connect, edit, run and export without a mouse.
-11. **Renders as recorded:** `crates/render/tests/frames.rs` (the same bytes) and `three_stills.rs` against their golden files, rerun on every browser or FFmpeg bump.
+11. **Renders as recorded:** `crates/render/tests/goldens.rs` and `three_stills.rs` against their golden files, rerun on every Skia, Filament or FFmpeg bump.
 
 ## 7. Node packs (long term)
 

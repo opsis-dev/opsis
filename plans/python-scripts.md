@@ -6,7 +6,7 @@ Status: plan only. Nothing here is built yet.
 
 ## Why
 
-- **The TypeScript left is only `scripts/`** (and the `check-app` skill's `seed.ts`): 84 files, 8,375 lines, 12 of them Vitest tests. The film page, `packages/video` and `packages/runtime` are gone with the native renderer, so nothing in the app needs a JavaScript toolchain.
+- **The TypeScript left is only `scripts/`** (and the `check-app` skill's `seed.ts`): 84 files, 8,412 lines, 12 of them Vitest tests. The film page, `packages/video` and `packages/runtime` are gone with the native renderer, so nothing in the app needs a JavaScript toolchain.
 - **bun, TypeScript, oxlint, oxfmt, knip and Vitest are kept only for those scripts**, and `package.json` holds the command list as well as the dependencies.
 - **`uv` is already required** (`uvx` runs `clang-format` and `clang-tidy`, `scripts/cpp.ts`), so Python adds no new program to a development machine.
 

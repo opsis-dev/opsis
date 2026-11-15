@@ -47,7 +47,7 @@ How the editor's Qt Widgets views and the Rust session talk: the `cxx` bridge, w
   - On Linux `App::Run` sets `QT_QPA_PLATFORMTHEME` to `xdgdesktopportal` unless it is set, so the dialog is the desktop portal's; scenario runs use Qt's own dialogs ([e2e.md](e2e.md)).
 - **A new C++ file is listed in `SOURCES` in `crates/qt/build.rs`, and in `MOC_HEADERS` when its header declares a `Q_OBJECT`**: the build compiles only those lists, so a `.cc` left out isn't built.
   - `scripts/cpp.ts` formats every tracked `.cc` and `.h` in `crates/qt/cpp` and lints every tracked `.cc`, reading the compile flags from the `compile_commands.json` that `build.rs` writes from `SOURCES`, so a `.cc` left out of `SOURCES` is linted without its flags.
-- **`opsis-qt` is one of the two crates allowed `unsafe`, for what `cxx` generates** ([AGENTS.md](../AGENTS.md) §7).
+- **`opsis-qt` is one of the crates allowed `unsafe`, for what `cxx` generates** ([AGENTS.md](../AGENTS.md) §7).
 - **`cxx` refuses attributes inside the bridge**, so the lint expectations its generated code needs sit on `mod bridge;` in `crates/qt/src/lib.rs`.
 - **C++ follows the repository's C++ style and checks** ([toolchain.md](toolchain.md), C++).
 

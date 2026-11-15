@@ -17,7 +17,7 @@ pub enum PackagerError {
     #[error("{0} isn't a program this packager reads")]
     NotAProgram(PathBuf),
     #[error(
-        "{program} loads {}; a release links Qt statically, built without ICU (bun run qt:static)",
+        "{program} loads {}; a release links Qt statically, built without ICU (bun run setup)",
         libraries.join(", ")
     )]
     LinksQt {

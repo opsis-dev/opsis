@@ -77,7 +77,7 @@ Lua scripts that drive the open project: the graph, the timeline, the mixer, run
 ### The panel
 
 - **The Script tab sits in the bottom group after Run** (View → Script, Cmd/Ctrl+4) and pops out like the others.
-  - An arrangement saved before the tab existed doesn't name it, and KDDockWidgets floats a dock its saved layout doesn't know (`floatUnknownWidgets`); `BuildDocks` puts it back as a tab of the bottom group (`LayoutKnows`).
+  - KDDockWidgets floats a dock that a saved arrangement doesn't name (`floatUnknownWidgets`), so `BuildDocks` puts the Script tab back as a tab of the bottom group when the arrangement doesn't name it (`LayoutKnows`).
 - **The editor and the output share one splitter, side by side while the panel is at least twice as wide as tall and stacked otherwise** (`kTurnRatio`), following the panel's shape rather than whether it is popped out: the docked bottom bar sits side by side, and a full-screen 16:9 window stacks.
 - **A toolbar button that is disabled while it has focus hands focus to the editor** (`ScriptPanel::Enable`); otherwise Qt passes it to the next control that takes it, the theme box, whenever Run starts a script or Stop ends one.
 - **The text saves itself 600 ms after typing stops, before every run, when another script opens and when the project closes**; there is no Save button. Each save names the project it belongs to (`script_save(dir, …)`), so text typed in one project never lands in the next.
@@ -86,7 +86,7 @@ Lua scripts that drive the open project: the graph, the timeline, the mixer, run
 - **Delete moves the open script to the system trash after asking** (`script_delete`, `ui/src/script_panel.rs` → `discard`, the `trash` crate), and refuses while that script runs. The `views` test points the trash at its own folder through `XDG_DATA_HOME`.
 - **With no scripts the list says so and the editor says to press New.**
 - **A change on disk reloads the open script only while the editor's text is the text last saved or read** (`ScriptEditing::reload`), from a watch on `scripts/`.
-  - The watch reacts only to new, written, renamed and removed files (`changes_files`): `notify` also reports a file or folder being opened, and the panel reads both on every rebuild, which made it rebuild every 300 ms and throw the script list back while it was being chosen.
+  - The watch reacts only to new, written, renamed and removed files (`changes_files`): `notify` also reports a file or folder being opened, and the panel reads both on every rebuild, so reacting to them would rebuild it every 300 ms and throw the script list back while it is being chosen.
   - The list is refilled only when the files or the open script change, and never while its drop-down is open.
 - **A failure marks its line in the editor when it is in the open script, and an output line that names the open script's line moves there when clicked.**
 - **Highlighting is tree-sitter in Rust** (`tree-sitter` 0.27 and `tree-sitter-lua` 0.5, whose `grammar.js` has Lua 5.5's `global` declarations): C++ sends the text as UTF-8 and gets ranges in UTF-16 units, Qt's own, and `ScriptHighlighter` applies them block by block. The captures of the grammar's `highlights.scm` map to nine kinds, each a `syntax-*` colour token.

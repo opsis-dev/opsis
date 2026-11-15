@@ -154,7 +154,7 @@ fn difference(a: &RgbImage, b: &RgbImage) -> f64 {
 }
 
 #[test]
-#[ignore = "needs the staged FFmpeg"]
+#[ignore = "needs setup's FFmpeg (bun run setup)"]
 fn shows_the_frame_ffmpeg_decodes_at_each_time() {
     let video = sample("count.mp4", "320x240");
     let film = footage(vec![("take", plain(&video))]);
@@ -172,7 +172,7 @@ fn shows_the_frame_ffmpeg_decodes_at_each_time() {
 }
 
 #[test]
-#[ignore = "needs the staged FFmpeg"]
+#[ignore = "needs setup's FFmpeg (bun run setup)"]
 fn every_picture_codec_an_mp4_holds_shows_the_frames_ffmpeg_decodes() {
     for (name, codec) in MP4_CODECS {
         let video = sample_in(name, "320x240", codec);
@@ -187,7 +187,7 @@ fn every_picture_codec_an_mp4_holds_shows_the_frames_ffmpeg_decodes() {
 }
 
 #[test]
-#[ignore = "needs the staged FFmpeg"]
+#[ignore = "needs setup's FFmpeg (bun run setup)"]
 fn shows_the_last_frame_at_or_before_the_time() {
     let video = sample("count.mp4", "320x240");
     let film = footage(vec![("take", plain(&video))]);
@@ -204,7 +204,7 @@ fn shows_the_last_frame_at_or_before_the_time() {
 }
 
 #[test]
-#[ignore = "needs the staged FFmpeg"]
+#[ignore = "needs setup's FFmpeg (bun run setup)"]
 fn frames_asked_in_order_start_the_decoder_once() {
     let video = sample("count.mp4", "320x240");
     let film = footage(vec![("take", plain(&video))]);
@@ -216,7 +216,7 @@ fn frames_asked_in_order_start_the_decoder_once() {
 }
 
 #[test]
-#[ignore = "needs the staged FFmpeg"]
+#[ignore = "needs setup's FFmpeg (bun run setup)"]
 fn a_step_back_past_the_kept_frames_or_a_long_jump_starts_the_decoder_again() {
     let video = sample("count.mp4", "320x240");
     let film = footage(vec![("take", plain(&video))]);
@@ -240,7 +240,7 @@ fn a_step_back_past_the_kept_frames_or_a_long_jump_starts_the_decoder_again() {
 }
 
 #[test]
-#[ignore = "needs the staged FFmpeg"]
+#[ignore = "needs setup's FFmpeg (bun run setup)"]
 fn readers_taking_turns_at_two_places_keep_a_decoder_each() {
     let video = sample("count.mp4", "320x240");
     let film = footage(vec![("take", plain(&video))]);
@@ -255,7 +255,7 @@ fn readers_taking_turns_at_two_places_keep_a_decoder_each() {
 }
 
 #[test]
-#[ignore = "needs the staged FFmpeg"]
+#[ignore = "needs setup's FFmpeg (bun run setup)"]
 fn workers_drawing_chunks_at_once_each_decode_forward() {
     let video = sample("count.mp4", "320x240");
     let film = footage(vec![("take", plain(&video))]);
@@ -277,7 +277,7 @@ fn workers_drawing_chunks_at_once_each_decode_forward() {
 }
 
 #[test]
-#[ignore = "needs the staged FFmpeg"]
+#[ignore = "needs setup's FFmpeg (bun run setup)"]
 fn the_grade_chain_and_its_extra_inputs_run_on_each_frame() {
     let video = sample("count.mp4", "320x240");
     let identity = samples().join("identity-look.png");
@@ -330,7 +330,7 @@ fn hidden(style: RedactStyle) -> RedactImage {
 }
 
 #[test]
-#[ignore = "needs the staged FFmpeg"]
+#[ignore = "needs setup's FFmpeg (bun run setup)"]
 fn redaction_is_the_image_redact_on_the_frames_in_its_time_range() {
     let video = sample("count.mp4", "320x240");
     let mut redacted = plain(&video);
@@ -369,7 +369,7 @@ fn redaction_is_the_image_redact_on_the_frames_in_its_time_range() {
 }
 
 #[test]
-#[ignore = "needs the staged FFmpeg"]
+#[ignore = "needs setup's FFmpeg (bun run setup)"]
 fn a_trimmed_looping_source_plays_its_part_of_the_file_again_and_again() {
     let video = sample("count.mp4", "320x240");
     let looped = FootageSource {
@@ -385,7 +385,7 @@ fn a_trimmed_looping_source_plays_its_part_of_the_file_again_and_again() {
 }
 
 #[test]
-#[ignore = "needs the staged FFmpeg"]
+#[ignore = "needs setup's FFmpeg (bun run setup)"]
 fn odd_sized_sources_come_out_even() {
     let video = sample("odd.mp4", "321x241");
     let film = footage(vec![("odd", plain(&video))]);
@@ -396,7 +396,7 @@ fn odd_sized_sources_come_out_even() {
 }
 
 #[test]
-#[ignore = "needs the staged FFmpeg"]
+#[ignore = "needs setup's FFmpeg (bun run setup)"]
 fn idle_decoders_end_and_start_again_when_asked() {
     let video = sample("count.mp4", "320x240");
     let film = footage(vec![("take", plain(&video))]);
@@ -409,7 +409,7 @@ fn idle_decoders_end_and_start_again_when_asked() {
 }
 
 #[test]
-#[ignore = "needs the staged FFmpeg"]
+#[ignore = "needs setup's FFmpeg (bun run setup)"]
 fn a_file_that_isnt_a_video_fails_instead_of_showing_nothing() {
     let video = samples().join("not-a-video.mp4");
     std::fs::write(&video, b"just text").unwrap();

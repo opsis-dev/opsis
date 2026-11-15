@@ -58,7 +58,7 @@ Built with Rust, [Qt](https://www.qt.io) Widgets and [KDDockWidgets](https://git
 
 ### 🧭 The editor
 
-- More than 250 node types, 7 sample projects, undo and redo, groups and auto layout.
+- More than 250 node types, 10 sample projects, undo and redo, groups and auto layout.
 - **Timeline:** the film as bars with filmstrips, waveforms, action marks, chapters, markers and music beats; move, trim, split, ripple, roll, slip, speed and keyframes, each written back to the nodes as one undo step; snapping, J/K/L, in and out points.
 - Timeline, Mixer, Run and Script are tabs, and any panel can pop out into its own window. The canvas has a mouse mode and a touchpad mode and a minimap you can hide.
 - New projects go to `~/OpsisProjects` (changeable in Settings). If the project file changes on disk while it's open, the editor loads it, or asks first when you have unsaved edits; it never saves over a change it hasn't seen.
@@ -84,7 +84,7 @@ You need:
 - [rustup](https://rustup.rs) (the repository pins its nightly, which rustup installs by itself)
 - [cargo-deny](https://github.com/EmbarkStudios/cargo-deny) for `bun run lint:fix` (`cargo install cargo-deny`)
 - [uv](https://docs.astral.sh/uv/), for the C++ format and lint tools
-- Docker, CMake, make, pkg-config and git
+- Docker, clang with libc++ and libc++abi, CMake, make, pkg-config and git
 - on Linux, the system libraries the static Qt links (on Ubuntu: `libasound2-dev libdbus-1-dev libfontconfig1-dev libfreetype-dev libwayland-dev wayland-protocols libx11-dev libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-util-dev libxcb-xfixes0-dev libxcb-xkb-dev libxext-dev libxfixes-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libxrender-dev`); `bun run setup` checks for them and prints this line when one is missing
 
 ```sh

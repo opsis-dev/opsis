@@ -54,7 +54,7 @@ The Rust nightly and how to move it, `bun run setup` and its pins, clang and lib
 
 - **Zig 0.17 builds the wrapper because Ghostty needs the same major and minor version.** `crates/vt/build.rs` runs `zig build` and refuses any other version.
 - **`build.rs` always names the Zig target (`zig_target`)**, because Zig's native target compiles for the building computer's processor.
-- **CI runs `bun run setup` in every job that builds Rust, then `zig build --fetch` through `.setup/bin/zig` before Cargo**: Zig unpacks the packages into `crates/vt/zig/zig-pkg` (ignored by git). Moving Zig is `bun run setup pin zig <version>`, `ZIG_MAJOR_MINOR` in `crates/vt/build.rs`, `minimum_zig_version` in `build.zig.zon`, and a Ghostty pin that builds with it.
+- **CI runs `bun run setup`, then `zig build --fetch` through `.setup/bin/zig`, before Cargo in every job that builds the app** (the Checks and End-to-end jobs and each release package job; the script sandbox job builds only `opsis-script` and needs neither): Zig unpacks the packages into `crates/vt/zig/zig-pkg` (ignored by git). Moving Zig is `bun run setup pin zig <version>`, `ZIG_MAJOR_MINOR` in `crates/vt/build.rs`, `minimum_zig_version` in `build.zig.zon`, and a Ghostty pin that builds with it.
 
 ### clang and libc++
 
@@ -90,6 +90,8 @@ The Rust nightly and how to move it, `bun run setup` and its pins, clang and lib
 
 ### Skia and Filament
 
+- **Why Skia and Filament**: Skia is the only library that covers every 2D feature the film uses on the CPU (all blend modes, layers with backdrop blur, every CSS filter function, turbulence, displacement and colour-matrix filters, `SkM44` perspective, OKLCH gradient interpolation, dithering, F16 surfaces). Filament runs the shader effects (GLSL ES 3.0 materials) and the 3D on a GPU when there is one and otherwise on a software Vulkan driver (the dev engine's SwiftShader, or lavapipe on Linux), and on Metal on macOS.
+  - Both are reached only through Opsis's own wrapper crates (`opsis-skia`, `opsis-filament`), never a third-party sys crate.
 - **Skia is built by `setup` from one pinned commit (`chrome/m157`) with GN, CPU only** (`buildSkia`): its own FreeType, libpng, libjpeg-turbo, libwebp and zlib, Skottie and the primitive shaper; no fontconfig, HarfBuzz, ICU, PartitionAlloc or Perfetto, because PartitionAlloc as `malloc` would replace the whole app's allocator.
   - On Linux it builds inside the `debian:trixie` container with clang and `-stdlib=libc++` (`CXXFLAGS`), like Qt, so it uses the same libc++.
   - It takes Chrome's Linux defines (`CHROME_LINUX_DEFINES`: text gamma and contrast, and the legacy blur, rounded-rect and sampling flags), so its blur, gradient and edge maths stay closest to the browser's.

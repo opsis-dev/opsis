@@ -22,7 +22,7 @@ How an element is written, which node draws it, how its settings reach its drawi
 | Element stills                 | `bun run elements:render` → `crates/render/src/bin/render-elements.rs`, specs `crates/render/src/element_spec.rs`, into `~/.cache/opsis-dev/element-stills`                                        |
 | Goldens                        | `crates/render/tests/goldens.rs`: every element's middle frame (`fixtures/elements`), chosen elements' scenes (`fixtures/scene/elements`)                                                          |
 | 3D                             | `three/mod.rs` → `staged`, `standard`, `textured`, `two_sided`, `unlit`; `three/motion.rs` → `pose_at`, `element_pose`; `crates/stage3d`; `crates/geometry`                                        |
-| 3D stills check                | `crates/render/tests/three_stills.rs` against `fixtures/prepare/stills`; `OPSIS_STILLS_OUT` names where it writes its stills (default `~/.cache/opsis-dev/three-stills`)                           |
+| 3D stills check                | `crates/render/tests/three_stills.rs` against `fixtures/prepare/stills`; `OPSIS_STILLS_OUT` names where it writes its stills (default `~/.cache/opsis-dev/three-stills-native`)                    |
 
 ## Rules
 

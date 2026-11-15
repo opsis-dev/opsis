@@ -445,7 +445,7 @@ fn differences(name: &str, ours: &Probe, theirs: &Probe) -> Vec<String> {
 }
 
 #[test]
-#[ignore = "needs the staged FFmpeg and ffprobe (bun run ffprobe:stage)"]
+#[ignore = "needs setup's FFmpeg and ffprobe (bun run setup)"]
 fn reads_every_file_as_ffprobe_does() {
     let dir = samples();
     let mut found = Vec::new();
@@ -461,7 +461,7 @@ fn reads_every_file_as_ffprobe_does() {
 }
 
 #[test]
-#[ignore = "needs the staged FFmpeg and ffprobe (bun run ffprobe:stage)"]
+#[ignore = "needs setup's FFmpeg and ffprobe (bun run setup)"]
 fn knows_the_length_of_a_stream_written_without_one() {
     let dir = samples();
     let live = probe(&dir.join("live.webm")).expect("a probe");
@@ -472,7 +472,7 @@ fn knows_the_length_of_a_stream_written_without_one() {
 }
 
 #[test]
-#[ignore = "needs the staged FFmpeg and ffprobe (bun run ffprobe:stage)"]
+#[ignore = "needs setup's FFmpeg and ffprobe (bun run setup)"]
 fn answers_files_cut_short_without_panicking() {
     let dir = samples();
     let cut = tempfile::NamedTempFile::new().expect("a temp file");

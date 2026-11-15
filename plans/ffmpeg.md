@@ -21,7 +21,7 @@ Replace the ffmpeg-static program the app ships as its `opsis-ffmpeg` sidecar wi
 
 **Work.**
 
-1. **Hardened runtime.** Once macOS signing is in place (`plans/release.md` section 4), the sidecar is signed with the hardened runtime and notarized with the app. Whether ffmpeg-static runs under it without extra entitlements is unchecked, and nothing tests it in CI: the capability check on the macOS runners starts the staged program, not the signed one in `Contents/MacOS`. Look at it if exports fail on macOS.
+1. **Hardened runtime.** Once macOS signing is in place (`plans/release.md` section 4), the sidecar is signed with the hardened runtime and notarized with the app. Whether ffmpeg-static runs under it without extra entitlements is unchecked, and nothing tests it in CI: the capability check on the macOS runners starts setup's program, not the signed one in `Contents/MacOS`. Look at it if exports fail on macOS.
 
 **Decided.**
 

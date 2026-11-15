@@ -1,6 +1,6 @@
 # Browser capture
 
-Browser sessions and their actions, the take value every recording shares, recording styles and edits, the screencast, smooth takes, the streamed views and sign-in, traces and screenshots. Rust paths are relative to `crates/capture/src/` unless they name another crate; page paths to `packages/video/src/`. Terminal takes are in [terminal.md](terminal.md), the recording browser in [engine.md](engine.md); see also [film.md](film.md) and [AGENTS.md](../AGENTS.md).
+Browser sessions and their actions, the take value every recording shares, recording styles and edits, the screencast, smooth takes, the streamed views and sign-in, traces and screenshots. Paths are relative to `crates/capture/src/` unless they name another crate. Terminal takes are in [terminal.md](terminal.md), the recording browser in [engine.md](engine.md); see also [film.md](film.md) and [AGENTS.md](../AGENTS.md).
 
 ## Code map
 
@@ -20,7 +20,7 @@ Browser sessions and their actions, the take value every recording shares, recor
 | Encoder                    | `encoder.rs` → `FrameEncoder`, `offer`, `FrameImage`                                                                                                                                                 |
 | Drag curves                | `drag_path.rs`                                                                                                                                                                                       |
 | Address log                | `page.rs` → `Lifecycle` (`ActionLog.addresses`)                                                                                                                                                      |
-| Camera events from the log | `camera/action-log.ts` → `toClickLog`; `camera/lib/cursor.ts` → `cursorAt`                                                                                                                           |
+| Camera events from the log | `crates/compile/src/elements/camera/click_log.rs` → `to_click_log`; `crates/compile/src/elements/camera/cursor.rs` → `cursor_at`                                                                     |
 | Streamed views             | `crates/stream/src` → `view.rs` (`StreamView`), `picker.rs`, `sign_in.rs`, `host.rs` (`ViewEnv`); `crates/session/src/views.rs` → `view_input`; `crates/qt/cpp/stream_window.cc` → `StreamWindow`    |
 | Sign-in stamp              | `executors.rs` → `sign_in_stamp`                                                                                                                                                                     |
 | Traces                     | `trace.rs` records; `crates/traces/src/lib.rs` → `read_trace`, `apply_retention`; `crates/qt/cpp/replay_dialog.cc` → `TracePanel`                                                                    |
@@ -42,7 +42,7 @@ Browser sessions and their actions, the take value every recording shares, recor
 - **Capture keeps Playwright's launch switches, injected page script, clock and keyboard but talks CDP itself**; `playwright-core` is only a dev dependency.
 - **Actions that change what the page is told about the computer change it mid-take, from Open browser's values.** Switch theme (`browser.switchTheme`) sends the media features again through `Session::set_color_scheme`, because `Emulation.setEmulatedMedia` replaces every feature at once, so the session keeps Open browser's reduced motion (`Session.reduce_motion`) to send it with the new scheme. Pages see the change live, as when the computer's setting changes.
   - Change language (`browser.changeLanguage`, `Session::set_locale`) clears the session's own language override before setting the new one, then sends the user agent again with the new `acceptLanguage`; it reloads the page by default, because most sites read the language only when a page loads. An empty language is the computer's, as in Open browser.
-  - Go offline (`browser.goOffline`, `Session::set_offline`) uses `Network.emulateNetworkConditionsByRule`, one rule with an empty pattern for every request, and `Network.overrideNetworkState` for what `navigator.onLine` and the `online`/`offline` events report; the older `Network.emulateNetworkConditions` that did both is deprecated. Both replacements are still experimental in the protocol, so a browser move rechecks them (`page_conditions.rs`).
+  - Go offline (`browser.goOffline`, `Session::set_offline`) uses `Network.emulateNetworkConditionsByRule`, one rule with an empty pattern for every request, and `Network.overrideNetworkState` for what `navigator.onLine` and the `online`/`offline` events report; not `Network.emulateNetworkConditions`, which does both and which the protocol marks deprecated. Both replacements are still experimental in the protocol, so a browser move rechecks them (`page_conditions.rs`).
 - **Sign out (`browser.signOut`) undoes Sign in for the rest of the take**: it forgets the sign-in (`signed_in`), removes the scripts Sign in added to restore local storage (`sign_in_scripts`, `Session::remove_script`), clears every cookie and the page's site data (`Session::clear_site_data`) and its session storage, then reloads by default.
   - The restore scripts must go: they restore once per tab by a mark in session storage, so clearing session storage alone would sign the page straight back in on the reload.
 
@@ -50,7 +50,7 @@ Browser sessions and their actions, the take value every recording shares, recor
 
 - **Every take is a `recording` (`RecordingValue`)**: what every take has (log, length, node, `edits`) and a `source` (`TakeSource`: `Browser` with its video and viewport, `Terminal` with its cast file, grid size, theme and preview). The log is in the take's own units (CSS pixels for a browser take).
 - **`RecordingValue::file` names the take's own file and `video` only a browser take's.**
-- **`DemoClip` draws `Screen` everywhere a picture of a take goes**, so every camera style, frame and mark works around any screen.
+- **The recording element draws the take's screen everywhere a picture of a take goes** (`screen`, `crates/compile/src/elements/camera/recording.rs`), so every camera style, frame and mark works around any screen.
 - **Save take (`output.take`) copies a take's own file to the exports and passes the saved file on**: a video, or a `.cast` of the `terminal-take` kind, which every file need refuses with its own message (`FileNeed::refuses`, `TERMINAL_TAKE_FILE`), since it has no picture or sound of its own.
 
 ### Recording style and edits
@@ -66,12 +66,12 @@ Browser sessions and their actions, the take value every recording shares, recor
 
 ### Actions
 
-- **Click presses the left or right button (`ClickButton`) and, for the left, can double-click**: two presses at one point, the second with click count 2, so the page fires `dblclick`. It logs `button` (right only) and `tSecondDown`; the cursor squashes and rings at each press, a right click's ring hollow (`cursorAt`).
+- **Click presses the left or right button (`ClickButton`) and, for the left, can double-click**: two presses at one point, the second with click count 2, so the page fires `dblclick`. It logs `button` (right only) and `tSecondDown`; the cursor squashes and rings at each press, a right click's ring hollow (`cursor_at`).
 - **Drag (`browser.drag`) drags onto an element (measured again after the press, failing when it isn't on screen), by an offset or along a path.**
   - The quick method moves in `QUICK_DRAG_STEPS` steps with no hold or nudge (`quick_onto`, `quick_along`).
   - The smooth method presses, waits `holdMs`, nudges by `DRAG_NUDGE_PX` (pages start drags past a threshold) and walks the points with the same sampler as glides (`SAMPLE_MS`, `cursor.rs`); glides keep their exact samples.
   - The intercepted drag's data is sent back with `items` always present, empty when the page put nothing in `dataTransfer` (`move_watching_drags`): chromiumoxide leaves an empty list out, and Chrome refuses drag data without it (-32602).
-  - It logs `tDown`, `t` (the release), `path` (at most `MAX_PATH_POINTS`) and `drop`. `toClickLog` makes one camera event covering both ends when they fit in half the window, else a pick-up and a drop; `cursorAt` keeps the arrow pressed until `tUpMs`. The baked cursor follows `dragover` too.
+  - It logs `tDown`, `t` (the release), `path` (at most `MAX_PATH_POINTS`) and `drop`. `to_click_log` makes one camera event covering both ends when they fit in half the window, else a pick-up and a drop; `cursor_at` keeps the arrow pressed until `t_up_ms`. The baked cursor follows `dragover` too.
 - **The picker's Shift-click returns a spot as `x, y`, in a window sized to the take's browser.**
 - **The take logs every main-frame address change, loads and in-page route changes alike, with its time** (`ActionLog.addresses`).
 

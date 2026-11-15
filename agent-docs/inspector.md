@@ -41,7 +41,7 @@ How node and element settings are declared in Rust, how their JSON Schema carrie
 
 ### What is a setting
 
-- **Colours, copy, content lists, images, visible sizes and weights, light or dark, and the length of a still are settings.** Only timing the Timeline owns (`delay`, `holdSeconds`, `exitAtInFrames`…), animation tuning and functions stay in code.
+- **Colours, copy, content lists, images, visible sizes and weights, light or dark, and the length of a still are settings.** Only timing the Timeline owns (`delay`), animation tuning and functions stay in code.
 - **Lists of colours are palettes, and colour settings use the `color` widget.**
   - The form also treats a string whose `x-check` rule is `colour` as a colour field without the widget (`is_color`, `crates/ui/src/inspector.rs`); `colour-or-empty` makes one only with the widget, though compile's own test (`is_color_schema`, `elements/introspect.rs`) counts both rules.
 - **Technical settings are `advanced`.** The Inspector shows Basic (the default, shown again when another node is inspected) and Advanced with its count; a node with no advanced settings shows no tabs (`InspectorPanel::AddTabs`), and nested forms list all their fields in order without tabs.
