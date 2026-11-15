@@ -26,13 +26,13 @@ Status: the Linux packages are built and checked ([packaging.md](../agent-docs/p
 
 **In place.**
 
-- **Size.** Measured 2026-11-08 on `main`'s release build, before the native renderer (`bun run make` on Linux x64, linked against the static Qt without ICU): the program 101,795,856 bytes, the deb 101,233,244, the rpm 87,346,674, the pacman package 101,293,373, the AppImage 100,567,544, and 224,746,225 bytes installed, of which the film page and the terminal page were 37,605,846. Those pages are gone and `opsis-renderer` ships beside the app, so every size is measured again on this build.
+- **Size.** Measured 2026-11-15 on the release build (`bun run make` on Linux x64, clang and libc++, the static Qt without ICU): the program 115,192,272 bytes with Qt, KDDockWidgets and Skia linked in, `opsis-renderer` 21,505,232, the deb 112,906,284, and 258,964,171 bytes installed: the two programs, FFmpeg 79,826,272, `public/` 36,799,786, the browser's licences 5,345,493, and the notices, icons and desktop entry. Neither program needs a C++ runtime from the system; the renderer needs only X11, libm, libgcc_s and libc. Against `main`'s build of 2026-11-08 (the program 101,795,856, the deb 101,233,244, 224,746,225 installed with the film and terminal pages), the program is 13,396,416 bytes larger and the install 34,217,946. The rpm, the pacman package and the AppImage aren't measured on this build.
 - **What ships.** One build, with FFmpeg inside and no recording browser: the app binary (`opt-level = 3`, full LTO, one codegen unit, stripped) with Qt, KDDockWidgets and Skia linked in, the renderer program `opsis-renderer` (Filament) and FFmpeg as the `opsis-ffmpeg` program beside it with `LICENSE.ffmpeg.txt` (`plans/ffmpeg.md`), the repository's `public/` (the app's only copy of the `app:` files, which the app reads through `AppPaths::public_dir`), the recording browser's licences, `LICENSE`, `THIRD_PARTY_NOTICES.md`, `QT_NOTICES.generated.md`, the desktop entry and the icons ([packaging.md](../agent-docs/packaging.md)).
-- **`public/`** on 2026-11-08: 34,627,964 bytes: fonts 20,249,083 (the 16 families 1,078,938, the terminal stack 19,170,145, of which Noto Color Emoji is 10,730,124), music 7,923,531, backdrops 4,810,439, placeholders 1,292,763, sounds 352,148.
+- **`public/`** 36,799,786 bytes: fonts 21,075,148 (Noto Color Emoji 10,730,124), music 7,923,531, backdrops 4,810,439, the room's lighting 2,096,011, placeholders 542,509, sounds 352,148.
 
 **Work.**
 
-1. **Measure again.** Build the deb with `bun run make` and record the program, `opsis-renderer`, each package and the installed size.
+1. **The other packages.** Build the rpm, the pacman package and the AppImage on this build and record their sizes.
 2. **Act on the findings.** Each is its own decision: turn off the `image` formats Opsis never reads; keep Qt Test out of the release binary, which links it for the scenario mode; whether every terminal take needs the 10.7 MB colour emoji font shipped rather than downloaded on first use; and building Qt with `-no-feature-timezone_locale`, which leaves out the table of time-zone names Qt compiles in without ICU (3,990,504 bytes in the spike).
 3. **Record** each installer's size per platform from the CI artifacts.
 
