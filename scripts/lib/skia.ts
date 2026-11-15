@@ -6,6 +6,9 @@ import { ROOT } from "./tool-config";
 import { runInTrixie } from "./trixie";
 
 const BUILD_JOBS = "8";
+const NM_BUFFER = 64 * 1024 * 1024;
+const PRIVATE_PREFIX = "opsis_skia_";
+const PRIVATE_LIBRARIES = ["jpeg", "jpeg12", "jpeg16", "png", "freetype2", "webp", "webp_sse41"];
 const INSIDE_FLAG = "--inside";
 
 const TARGETS = [
@@ -59,7 +62,6 @@ const ARGS: Record<string, string | boolean> = {
   skia_use_fontconfig: false,
   skia_use_freetype: true,
   skia_use_system_freetype2: false,
-  skia_use_freetype_woff2: true,
   skia_enable_fontmgr_custom_empty: true,
   skia_enable_fontmgr_custom_directory: false,
   skia_enable_fontmgr_custom_embedded: false,
@@ -155,7 +157,36 @@ function build(src: string, out: string, commit: string) {
     process.platform === "win32" ? "ninja.exe" : "ninja",
   );
   run(existsSync(ninja) ? ninja : "ninja", ["-C", out, "-j", BUILD_JOBS, ...TARGETS], src);
+  if (process.platform === "linux") makePrivate(out);
   writeConsumer(gn, src, out, commit);
+}
+
+function archive(out: string, name: string): string {
+  return path.join(out, `lib${name}.a`);
+}
+
+function definedSymbols(file: string): string[] {
+  const listed = execFileSync("nm", ["-g", "--defined-only", "--format=just-symbols", file], {
+    encoding: "utf8",
+    maxBuffer: NM_BUFFER,
+  });
+  return listed.split("\n").filter((line) => line !== "" && !line.endsWith(":"));
+}
+
+function makePrivate(out: string) {
+  const symbols = new Set(
+    PRIVATE_LIBRARIES.map((name) => archive(out, name))
+      .filter((file) => existsSync(file))
+      .flatMap(definedSymbols),
+  );
+  const renames = path.join(out, "private-symbols.txt");
+  writeFileSync(
+    renames,
+    [...symbols].map((symbol) => `${symbol} ${PRIVATE_PREFIX}${symbol}\n`).join(""),
+  );
+  for (const file of readdirSync(out).filter((f) => f.startsWith("lib") && f.endsWith(".a")))
+    run("objcopy", [`--redefine-syms=${renames}`, path.join(out, file)], out);
+  console.log(`Skia: ${symbols.size} symbols of its own libraries made private`);
 }
 
 function described(gn: string, src: string, out: string, what: string): string[] {
@@ -192,7 +223,13 @@ function writeConsumer(gn: string, src: string, out: string, commit: string) {
   );
 }
 
-export const SKIA_RECIPE = { args: ARGS, cflags: CFLAGS, cxxflags: CXXFLAGS, targets: TARGETS };
+export const SKIA_RECIPE = {
+  args: ARGS,
+  cflags: CFLAGS,
+  cxxflags: CXXFLAGS,
+  targets: TARGETS,
+  private: { prefix: PRIVATE_PREFIX, libraries: PRIVATE_LIBRARIES },
+};
 
 function buildHere(dir: string) {
   const { skia } = readPins();

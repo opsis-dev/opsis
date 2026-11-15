@@ -12,6 +12,7 @@ use crate::decoder::{Decoder, FootageTools, RawFrame};
 use crate::terminal::{TerminalFootage, TerminalState};
 
 const KEPT_FRAMES: usize = 6;
+const KEPT_DECODERS: usize = 4;
 pub const IDLE: Duration = Duration::from_secs(30);
 
 #[derive(Debug)]
@@ -84,6 +85,23 @@ impl SourceState {
 
     fn oldest_is_first(&self) -> bool {
         matches!((self.seen.front(), self.first_pts), (Some(f), Some(first)) if f.pts_us == first)
+    }
+
+    fn newest_pts(&self) -> Option<i64> {
+        self.ahead
+            .as_ref()
+            .or_else(|| self.seen.back())
+            .map(|f| f.pts_us)
+    }
+
+    fn reach(&self, target: i64) -> Option<i64> {
+        if self.needs_restart(target) {
+            return None;
+        }
+        Some(
+            self.newest_pts()
+                .map_or(0, |newest| (target - newest).max(0)),
+        )
     }
 
     fn needs_restart(&self, target: i64) -> bool {
@@ -182,9 +200,58 @@ impl SourceState {
 }
 
 #[derive(Debug)]
+struct Pool {
+    source: FootageSource,
+    idle: Mutex<Vec<SourceState>>,
+}
+
+impl Pool {
+    const fn new(source: FootageSource) -> Self {
+        Self {
+            source,
+            idle: Mutex::new(Vec::new()),
+        }
+    }
+
+    fn check_out(&self, time_us: i64) -> Result<SourceState, FootageError> {
+        let target = file_time(&self.source, time_us) + MATCH_TOLERANCE_US;
+        let mut idle = self
+            .idle
+            .lock()
+            .map_err(|_| FootageError::Decode("An earlier frame failed.".to_owned()))?;
+        let closest = idle
+            .iter()
+            .enumerate()
+            .filter_map(|(index, state)| state.reach(target).map(|reach| (reach, index)))
+            .min()
+            .map(|(_, index)| index);
+        Ok(match closest {
+            Some(index) => idle.swap_remove(index),
+            None => SourceState::new(self.source.clone()),
+        })
+    }
+
+    fn check_in(&self, state: SourceState) {
+        let Ok(mut idle) = self.idle.lock() else {
+            return;
+        };
+        idle.push(state);
+        if idle.len() > KEPT_DECODERS
+            && let Some(oldest) = idle
+                .iter()
+                .enumerate()
+                .min_by_key(|(_, s)| s.last_used)
+                .map(|(index, _)| index)
+        {
+            idle.swap_remove(oldest);
+        }
+    }
+}
+
+#[derive(Debug)]
 pub struct Footage {
     tools: FootageTools,
-    sources: HashMap<String, Mutex<SourceState>>,
+    sources: HashMap<String, Pool>,
     terminals: HashMap<String, TerminalState>,
     starts: AtomicU32,
     stalled: AtomicBool,
@@ -199,7 +266,7 @@ impl Footage {
             tools,
             sources: sources
                 .into_iter()
-                .map(|(id, source)| (id, Mutex::new(SourceState::new(source))))
+                .map(|(id, source)| (id, Pool::new(source)))
                 .collect(),
             terminals: HashMap::new(),
             starts: AtomicU32::new(0),
@@ -234,17 +301,18 @@ impl Footage {
     pub fn running_decoders(&self) -> usize {
         self.sources
             .values()
-            .filter(|state| state.lock().is_ok_and(|s| s.decoder.is_some()))
-            .count()
+            .map(|pool| {
+                pool.idle.lock().map_or(0, |idle| {
+                    idle.iter().filter(|s| s.decoder.is_some()).count()
+                })
+            })
+            .sum()
     }
 
     pub fn end_idle(&self, idle: Duration) {
-        for state in self.sources.values() {
-            if let Ok(mut state) = state.try_lock()
-                && state.decoder.is_some()
-                && state.last_used.elapsed() >= idle
-            {
-                state.stop();
+        for pool in self.sources.values() {
+            if let Ok(mut states) = pool.idle.try_lock() {
+                states.retain(|state| state.last_used.elapsed() < idle);
             }
         }
     }
@@ -252,26 +320,27 @@ impl Footage {
     fn with_source<T>(
         &self,
         id: &str,
+        time_us: i64,
         work: impl FnOnce(&mut SourceState) -> Result<T, FootageError>,
     ) -> Result<T, FootageError> {
         self.end_idle(IDLE);
-        let state = self
+        let pool = self
             .sources
             .get(id)
             .ok_or_else(|| FootageError::Unknown(id.to_owned()))?;
-        let mut state = state
-            .lock()
-            .map_err(|_| FootageError::Decode("An earlier frame failed.".to_owned()))?;
+        let mut state = pool.check_out(time_us)?;
         state.last_used = Instant::now();
         let result = work(&mut state);
-        if result.is_err() {
-            state.stop();
+        if result.is_ok() {
+            pool.check_in(state);
         }
         result
     }
 
     pub fn shown(&self, id: &str, time_us: i64) -> Result<Shown, FootageError> {
-        let shown = self.with_source(id, |state| state.shown(&self.tools, &self.starts, time_us));
+        let shown = self.with_source(id, time_us, |state| {
+            state.shown(&self.tools, &self.starts, time_us)
+        });
         if matches!(shown, Err(FootageError::Stalled)) {
             self.stalled.store(true, Ordering::Relaxed);
         }

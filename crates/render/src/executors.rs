@@ -320,7 +320,7 @@ fn drawing_for(ctx: &ExecutorContext, gl: Gl) -> Result<Drawing, ExecError> {
     })
 }
 
-pub(crate) fn native_files(
+pub(crate) async fn native_files(
     ctx: &ExecutorContext,
     spec: &TimelineSpec,
     gl: Gl,
@@ -330,7 +330,7 @@ pub(crate) fn native_files(
             project: ctx.project_dir.clone(),
             public: ctx.env.public_dir.clone(),
         },
-        footage: Arc::new(film_footage(ctx, spec)?),
+        footage: Arc::new(film_footage(ctx, spec).await?),
         drawing: drawing_for(ctx, gl)?,
     }))
 }
@@ -344,7 +344,7 @@ async fn export_video(
     let spec = mixed(&ctx, &*engine.tools, spec_for(&ctx)?, MIX_STAGE).await?;
     let names = video_file_names(&export_base_name(&p.file_name), p.codec, &p.variants);
     ctx.progress(0.0, Some("Preparing render engine"));
-    let files = native_files(&ctx, &spec, p.gl)?;
+    let files = native_files(&ctx, &spec, p.gl).await?;
     let chapters = chapters_for(&ctx, &spec, &p).await?;
     let count = numbers::float(p.variants.len());
     let mut artifacts = Vec::new();
@@ -411,7 +411,7 @@ async fn export_images(
     let spec = spec_for(&ctx)?;
     let names = still_file_names(&export_base_name(&p.file_name), &p.presets, p.format);
     ctx.progress(0.0, Some("Preparing render engine"));
-    let files = native_files(&ctx, &spec, p.gl)?;
+    let files = native_files(&ctx, &spec, p.gl).await?;
     let count = numbers::float(p.presets.len());
     let mut artifacts = Vec::new();
     for (i, (preset, name)) in p.presets.iter().zip(&names).enumerate() {
@@ -477,7 +477,7 @@ async fn frame_image(
     let source = (f64::from(picture.width), f64::from(picture.height));
     let spec = framed_image_spec(&p, &src, source);
     ctx.progress(0.0, Some("Preparing render engine"));
-    let files = native_files(&ctx, &spec, Gl::Card)?;
+    let files = native_files(&ctx, &spec, Gl::Card).await?;
     std::fs::create_dir_all(&ctx.dir).map_err(|e| ExecError::new(e.to_string()))?;
     let out = ctx.dir.join("framed.png");
     render_native_still(NativeStill {

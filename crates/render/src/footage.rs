@@ -19,6 +19,8 @@ use opsis_types::values::StyleEntry;
 use regex::Regex;
 use serde_json::Value;
 
+use crate::seekable::seekable;
+
 const US_PER_MS: i64 = 1000;
 
 fn redaction(entry: &StyleEntry) -> Result<TimedRedaction, ExecError> {
@@ -31,7 +33,7 @@ fn redaction(entry: &StyleEntry) -> Result<TimedRedaction, ExecError> {
     })
 }
 
-fn source_of(ctx: &ExecutorContext, used: &FootageUse) -> Result<FootageSource, ExecError> {
+async fn source_of(ctx: &ExecutorContext, used: &FootageUse) -> Result<FootageSource, ExecError> {
     let file = ctx.ref_to_path(&used.src)?;
     let probe = opsis_probe::probe(&file)
         .map_err(|e| ExecError::new(format!("Couldn't read {}: {e}", file.display())))?;
@@ -67,7 +69,7 @@ fn source_of(ctx: &ExecutorContext, used: &FootageUse) -> Result<FootageSource, 
         None
     };
     Ok(FootageSource {
-        file,
+        file: seekable(ctx, &file, &probe).await?,
         grade,
         redactions,
         trim_us,
@@ -145,7 +147,10 @@ fn terminal_of(
     })
 }
 
-pub fn film_footage(ctx: &ExecutorContext, spec: &TimelineSpec) -> Result<Footage, ExecError> {
+pub async fn film_footage(
+    ctx: &ExecutorContext,
+    spec: &TimelineSpec,
+) -> Result<Footage, ExecError> {
     let ffmpeg = ctx
         .env
         .engine
@@ -153,11 +158,10 @@ pub fn film_footage(ctx: &ExecutorContext, spec: &TimelineSpec) -> Result<Footag
         .clone()
         .ok_or_else(|| ExecError::new(FfmpegMissing.to_string()))?;
     let uses = footage_uses(&spec.tracks);
-    let sources = uses
-        .iter()
-        .filter(|used| used.terminal.is_none())
-        .map(|used| Ok((used.id.clone(), source_of(ctx, used)?)))
-        .collect::<Result<Vec<_>, ExecError>>()?;
+    let mut sources = Vec::new();
+    for used in uses.iter().filter(|used| used.terminal.is_none()) {
+        sources.push((used.id.clone(), source_of(ctx, used).await?));
+    }
     let terminals = uses
         .iter()
         .filter_map(|used| {

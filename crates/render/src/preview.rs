@@ -58,13 +58,13 @@ pub async fn render_preview(
         .map_err(|e| ExecError::new(e.to_string()))?
         .ok_or_else(|| ExecError::new("The take has nothing to show."))?;
     ctx.progress(0.0, Some(DRAWING));
+    let files = native_files(ctx, &spec, Gl::Card).await?;
     let spec = hosted(&TimelineSpec {
         assets: Some(SpecAssets {
             project_base: Some(NATIVE_BASE.to_owned()),
         }),
         ..spec
     });
-    let files = native_files(ctx, &spec, Gl::Card)?;
     let progress = |x: f64| ctx.progress(x, Some(DRAWING));
     let note = |message: String| ctx.log(LogLevel::Info, message);
     let run = FilmRun {

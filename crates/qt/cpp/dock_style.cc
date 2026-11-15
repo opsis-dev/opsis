@@ -57,9 +57,10 @@ class DockTitleBar : public kdw::QtWidgets::TitleBar {
     const bool docked = group != nullptr && group->isInMainWindow();
     setFixedHeight(docked ? 0 : kTitleHeight);
     kdw::QtWidgets::TitleBar::setVisible(visible);
+    const int side = docked ? 0 : kTitleButton;
     for (QToolButton* button : findChildren<QToolButton*>()) {
       button->setObjectName(QStringLiteral("DockTitleButton"));
-      button->setFixedSize(kTitleButton, kTitleButton);
+      button->setFixedSize(side, side);
       button->setIconSize(QSize(kTitleIcon, kTitleIcon));
     }
   }

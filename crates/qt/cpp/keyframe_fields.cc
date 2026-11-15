@@ -67,6 +67,7 @@ void OnTyped(QLineEdit* line, QObject* context,
 
 Combo* EaseBox(const QJsonArray& eases, const QString& ease, QWidget* parent) {
   auto* combo = new Combo(parent);
+  combo->setIconSize(QSize(0, 0));
   combo->setAccessibleName(QStringLiteral("Easing"));
   for (const QJsonValue& entry : eases) {
     const QJsonArray pair = entry.toArray();

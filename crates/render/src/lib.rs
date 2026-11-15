@@ -7,3 +7,4 @@ pub mod frames;
 pub mod native;
 pub mod picture;
 pub mod preview;
+pub mod seekable;

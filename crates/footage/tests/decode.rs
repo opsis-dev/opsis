@@ -232,7 +232,48 @@ fn a_step_back_past_the_kept_frames_or_a_long_jump_starts_the_decoder_again() {
     film.shown("take", at(15)).unwrap();
     assert_eq!(film.decoder_starts(), 2);
     assert_eq!(film.shown("take", at(115)).unwrap().pts_us, at(115));
-    assert_eq!(film.decoder_starts(), 3);
+    assert_eq!(film.decoder_starts(), 2);
+    let jumped = footage(vec![("take", plain(&video))]);
+    jumped.shown("take", at(0)).unwrap();
+    assert_eq!(jumped.shown("take", at(100)).unwrap().pts_us, at(100));
+    assert_eq!(jumped.decoder_starts(), 2);
+}
+
+#[test]
+#[ignore = "needs the staged FFmpeg"]
+fn readers_taking_turns_at_two_places_keep_a_decoder_each() {
+    let video = sample("count.mp4", "320x240");
+    let film = footage(vec![("take", plain(&video))]);
+    for frame in 0..30 {
+        assert_eq!(film.shown("take", at(frame)).unwrap().pts_us, at(frame));
+        assert_eq!(
+            film.shown("take", at(frame + 60)).unwrap().pts_us,
+            at(frame + 60)
+        );
+    }
+    assert_eq!(film.decoder_starts(), 2);
+}
+
+#[test]
+#[ignore = "needs the staged FFmpeg"]
+fn workers_drawing_chunks_at_once_each_decode_forward() {
+    let video = sample("count.mp4", "320x240");
+    let film = footage(vec![("take", plain(&video))]);
+    std::thread::scope(|scope| {
+        for chunk in 0..4 {
+            let film = &film;
+            scope.spawn(move || {
+                for frame in chunk * 30..(chunk + 1) * 30 {
+                    assert_eq!(film.shown("take", at(frame)).unwrap().pts_us, at(frame));
+                }
+            });
+        }
+    });
+    assert!(
+        film.decoder_starts() <= 4,
+        "{} starts",
+        film.decoder_starts()
+    );
 }
 
 #[test]

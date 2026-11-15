@@ -79,7 +79,7 @@ Browser sessions and their actions, the take value every recording shares, recor
 
 - **Capture timing comes from frames, not markers.** Screencast JPEGs go into `FrameEncoder` through `offer`, which never waits: Chrome sends the next frame only after the last is acknowledged, so waiting on the encoder loses any page change painted during a stall. Encoder errors surface at `finish`.
 - **The screencast starts with the take (`start_screencast`) and runs to its end on the real clock; a smooth take stops it at Start recording and draws its own frames from there (`step_frames`).**
-- **The video starts at `begin_video`**, after the steps before Start recording: the encoder writes a constant-rate stream from there, action timestamps share that origin, and the take then waits Record take's pause before the first action (`establish_ms`) on the take clock.
+- **The video starts at `begin_video`**, after the steps before Start recording: the encoder writes a constant-rate stream from there with a keyframe every second (`encoder_args`, so a render can start reading anywhere cheaply, [footage.md](footage.md)), action timestamps share that origin, and the take then waits Record take's pause before the first action (`establish_ms`) on the take clock.
 - **Live frames for the editor are the same frames**, throttled to the live fps setting, sent as raw bytes to each window that watches ([document.md](document.md)).
 
 ### Smooth takes

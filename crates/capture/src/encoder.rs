@@ -66,7 +66,7 @@ pub fn encoder_args(fps: u32, image: FrameImage, output: &Path) -> Vec<String> {
     args.extend(h264_args(&H264 {
         crf: ENCODE_CRF,
         preset: Some("medium"),
-        keyframe_every: None,
+        keyframe_every: Some(f64::from(fps)),
         faststart: true,
     }));
     args.extend([

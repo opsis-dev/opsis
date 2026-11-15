@@ -429,7 +429,7 @@ impl StaticLinks {
 
 type Plugin = (&'static str, &'static str, &'static str);
 
-const LINUX_PLUGINS: [Plugin; 9] = [
+const LINUX_PLUGINS: [Plugin; 14] = [
     ("platforms", "qxcb", "QXcbIntegrationPlugin"),
     ("platforms", "qwayland", "QWaylandIntegrationPlugin"),
     ("platforms", "qoffscreen", "QOffscreenIntegrationPlugin"),
@@ -459,18 +459,33 @@ const LINUX_PLUGINS: [Plugin; 9] = [
         "QXdgDesktopPortalThemePlugin",
     ),
     ("platforms", "qminimal", "QMinimalIntegrationPlugin"),
+    ("imageformats", "qjpeg", "QJpegPlugin"),
+    ("imageformats", "qgif", "QGifPlugin"),
+    ("imageformats", "qico", "QICOPlugin"),
+    ("imageformats", "qsvg", "QSvgPlugin"),
+    ("iconengines", "qsvgicon", "QSvgIconPlugin"),
 ];
 
-const MACOS_PLUGINS: [Plugin; 3] = [
+const MACOS_PLUGINS: [Plugin; 8] = [
     ("platforms", "qcocoa", "QCocoaIntegrationPlugin"),
     ("platforms", "qoffscreen", "QOffscreenIntegrationPlugin"),
     ("platforms", "qminimal", "QMinimalIntegrationPlugin"),
+    ("imageformats", "qjpeg", "QJpegPlugin"),
+    ("imageformats", "qgif", "QGifPlugin"),
+    ("imageformats", "qico", "QICOPlugin"),
+    ("imageformats", "qsvg", "QSvgPlugin"),
+    ("iconengines", "qsvgicon", "QSvgIconPlugin"),
 ];
 
-const WINDOWS_PLUGINS: [Plugin; 3] = [
+const WINDOWS_PLUGINS: [Plugin; 8] = [
     ("platforms", "qwindows", "QWindowsIntegrationPlugin"),
     ("platforms", "qoffscreen", "QOffscreenIntegrationPlugin"),
     ("platforms", "qminimal", "QMinimalIntegrationPlugin"),
+    ("imageformats", "qjpeg", "QJpegPlugin"),
+    ("imageformats", "qgif", "QGifPlugin"),
+    ("imageformats", "qico", "QICOPlugin"),
+    ("imageformats", "qsvg", "QSvgPlugin"),
+    ("iconengines", "qsvgicon", "QSvgIconPlugin"),
 ];
 
 fn static_link_args(
