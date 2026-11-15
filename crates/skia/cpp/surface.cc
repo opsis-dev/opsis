@@ -101,6 +101,22 @@ void Surface::concat(Matrix44 matrix) { canvas()->concat(matrix_of(matrix)); }
 
 void Surface::reset_matrix() { canvas()->resetMatrix(); }
 
+RectF Surface::device_clip() const {
+  return rect_from(SkRect::Make(canvas()->getDeviceClipBounds()));
+}
+
+RectF Surface::local_rect(RectF rect) const {
+  SkMatrix inverse;
+  if (!canvas()->getLocalToDeviceAs3x3().invert(&inverse)) {
+    return rect;
+  }
+  return rect_from(inverse.mapRect(rect_of(rect)));
+}
+
+RectF Surface::device_rect(RectF rect) const {
+  return rect_from(canvas()->getLocalToDeviceAs3x3().mapRect(rect_of(rect)));
+}
+
 void Surface::clip_rect(RectF rect, bool anti_alias, bool outside) {
   canvas()->clipRect(rect_of(rect),
                      outside ? SkClipOp::kDifference : SkClipOp::kIntersect,

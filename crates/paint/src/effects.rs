@@ -231,14 +231,19 @@ pub fn open_layer(
         let chain = filter_chain(painter, placed, filters);
         let mut paint = Paint::new();
         paint.set_image_filter(&chain);
+        let colours_only = filters.iter().all(|f| color_matrix(f).is_some());
+        let ink = colours_only.then(|| painter.ink(&placed.path)).flatten();
         let b = placed.border_box;
-        painter.surface.reset_matrix();
-        painter.surface.concat(crate::geometry::matrix44(
-            &placed
-                .matrix
-                .then(&opsis_layout::transform::Matrix::translation(b.x, b.y, 0.0)),
-        ));
-        painter.surface.save_layer(None, &paint);
+        let local = placed
+            .matrix
+            .then(&opsis_layout::transform::Matrix::translation(b.x, b.y, 0.0));
+        if let Some(ink) = ink {
+            painter.save_layer_over(ink, &local, &paint);
+        } else {
+            painter.surface.reset_matrix();
+            painter.surface.concat(crate::geometry::matrix44(&local));
+            painter.surface.save_layer(None, &paint);
+        }
         painter.surface.reset_matrix();
         painter
             .surface

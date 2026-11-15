@@ -1,13 +1,13 @@
-use opsis_scene::clock::js_round;
 use opsis_scene::keyed::percent;
 use opsis_scene::measure::Measure;
-use opsis_scene::node::{Node, div, img};
+use opsis_scene::node::{Element, Node, div, img};
 use opsis_scene::paint::{Filter, Shadow, Transform};
+use opsis_scene::shutter::{shutter_layers, shutter_offsets};
 use opsis_scene::style::{
     Align, ContainerType, Display, ObjectFit, Overflow, Position, Style, WillChange,
 };
 use opsis_scene::timeline::{At, absolute_fill};
-use opsis_scene::values::{Calc, ContainerUnit, Length, Num};
+use opsis_scene::values::{Calc, ContainerUnit, Corners, Length, Num};
 use opsis_types::actions::{ActionKind, ActionLog};
 use opsis_types::numbers::exact_eq;
 use opsis_types::recording::{AddressMode, CameraStyle, RecordingProps, ScreenProps};
@@ -24,9 +24,12 @@ use crate::elements::camera::track::{
     BASE_POSE, CameraKey, Tuning, ZoomState, build_camera_track, is_narrow, js_clamp, log_time_s,
     pose_at, pose_to_css, zoom_at,
 };
-use crate::elements::camera::window::{CHROME_H, Chrome, Frame, window_frame};
+use crate::elements::camera::window::{
+    CHROME_H, Chrome, Frame, lifted, window_frame, window_radius,
+};
 use crate::elements::draw::{DrawFailure, css_color};
 use crate::elements::fonts::{FontRole, font_or};
+use crate::elements::media::image::footage_frame_url;
 use crate::elements::terminal::screen::{Fit, TerminalScreen, terminal_screen};
 use crate::recording::{DEFAULT_ADDRESS_BAR, DEFAULT_FRAME_THEME, DEFAULT_WINDOW_STYLE};
 use crate::text::display_address;
@@ -40,7 +43,6 @@ const STAGE_GROUND: &str = "#faf6f1";
 const BLUR_SHUTTER_ANGLE: f64 = 180.0;
 const BLUR_SAMPLES: u32 = 8;
 const SAME_SHAPE_TOLERANCE: f64 = 0.02;
-const US_PER_S: f64 = 1_000_000.0;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum Shot {
@@ -237,10 +239,9 @@ fn screen(clip: &Clip<'_>, t: f64, fill: bool, area: Size) -> Option<Node> {
         }
         ScreenProps::Footage { .. } | ScreenProps::Terminal { .. } => return None,
     };
-    let micros = js_round(t * US_PER_S).max(0.0);
     Some(
         img(
-            format!("{url}{}", opsis_scene::random::js_number_text(micros)),
+            footage_frame_url(url, t, clip.measure),
             Style::default()
                 .width(Length::percent(100.0))
                 .height(Length::percent(100.0))
@@ -275,7 +276,13 @@ struct Framing {
     zoom: bool,
 }
 
-fn camera(clip: &Clip<'_>, framing: &Framing, frame: f64, fps: f64, k: f64) -> (ZoomState, Style) {
+struct Camera {
+    zoom: ZoomState,
+    style: Style,
+    layer: WillChange,
+}
+
+fn camera(clip: &Clip<'_>, framing: &Framing, frame: f64, fps: f64, k: f64) -> Camera {
     let chrome_h = if framing.chrome { CHROME_H * k } else { 0.0 };
     let base_h = clip.box_size.map_or(clip.stage.height, |b| b.height);
     let chrome_frac = chrome_h / (base_h + chrome_h);
@@ -313,13 +320,22 @@ fn camera(clip: &Clip<'_>, framing: &Framing, frame: f64, fps: f64, k: f64) -> (
         .height(height)
         .flex_shrink(0.0)
         .transform(camera_transform(z))
-        .position(Position::Relative)
-        .will_change(if zooming {
+        .position(Position::Relative);
+    Camera {
+        zoom: z,
+        style,
+        layer: if zooming {
             WillChange::Scale
         } else {
             WillChange::Transform
-        });
-    (z, style)
+        },
+    }
+}
+
+impl Camera {
+    fn composited(self) -> (ZoomState, Style) {
+        (self.zoom, self.style.will_change(self.layer))
+    }
 }
 
 fn window_framing(clip: &Clip<'_>, fit: f64, zoom: bool) -> Framing {
@@ -330,6 +346,29 @@ fn window_framing(clip: &Clip<'_>, fit: f64, zoom: bool) -> Framing {
     }
 }
 
+struct Over {
+    t: f64,
+    scale: f64,
+    k: f64,
+    area: Size,
+    lift: bool,
+}
+
+fn lifted_overlays(clip: &Clip<'_>, over: &Over) -> Result<Vec<Node>, DrawFailure> {
+    let shown = Shown {
+        viewport: clip.log.viewport,
+        area: (over.area.width, over.area.height),
+        t: over.t,
+        camera_scale: over.scale,
+        k: over.k,
+        lift: over.lift,
+    };
+    let mut out: Vec<Node> = annotations(&clip.marks, &shown)?.into_iter().collect();
+    let pointer = cursor(&clip.log, &clip.props.pointer, over.t, over.scale, over.k);
+    out.extend(pointer.map(|node| if over.lift { lifted(node) } else { node }));
+    Ok(out)
+}
+
 fn overlays(
     clip: &Clip<'_>,
     t: f64,
@@ -337,16 +376,45 @@ fn overlays(
     k: f64,
     area: Size,
 ) -> Result<Vec<Node>, DrawFailure> {
-    let shown = Shown {
-        viewport: clip.log.viewport,
-        area: (area.width, area.height),
-        t,
-        camera_scale: scale,
-        k,
-    };
-    let mut out: Vec<Node> = annotations(&clip.marks, &shown)?.into_iter().collect();
-    out.extend(cursor(&clip.log, &clip.props.pointer, t, scale, k));
-    Ok(out)
+    lifted_overlays(
+        clip,
+        &Over {
+            t,
+            scale,
+            k,
+            area,
+            lift: false,
+        },
+    )
+}
+
+fn overlay_box(clip: &Clip<'_>, k: f64, overlays: Vec<Node>) -> Node {
+    let window = &clip.props.window;
+    let chrome_h = if window.chrome { CHROME_H * k } else { 0.0 };
+    let style = window.style.unwrap_or(DEFAULT_WINDOW_STYLE);
+    let radius = clip
+        .props
+        .shot
+        .radius
+        .unwrap_or_else(|| window_radius(style))
+        * k;
+    let top = if window.chrome { 0.0 } else { radius };
+    let corner = |r: f64| (Length::px(r), Length::px(r));
+    div(Style::default()
+        .position(Position::Absolute)
+        .left(Length::ZERO)
+        .right(Length::ZERO)
+        .top(Length::px(chrome_h))
+        .bottom(Length::ZERO)
+        .overflow(Overflow::Hidden)
+        .border_radius(Corners {
+            top_left: corner(top),
+            top_right: corner(top),
+            bottom_right: corner(radius),
+            bottom_left: corner(radius),
+        }))
+    .children(overlays)
+    .into()
 }
 
 fn window_group(
@@ -357,7 +425,11 @@ fn window_group(
     fps: f64,
     k: f64,
 ) -> Result<Node, DrawFailure> {
-    let (z, style) = camera(clip, &window_framing(clip, fit, zoom), frame, fps, k);
+    let Camera {
+        zoom: z,
+        style,
+        layer,
+    } = camera(clip, &window_framing(clip, fit, zoom), frame, fps, k);
     let t = log_time_s(frame, fps, clip.props.speed);
     let window = &clip.props.window;
     let chrome = window.chrome.then(|| Chrome {
@@ -370,30 +442,37 @@ fn window_group(
             |f| font_or(f, FontRole::Main),
         ),
     });
-    let mut children: Vec<Node> = screen(clip, t, true, clip.box_size.unwrap_or(clip.stage))
-        .into_iter()
-        .collect();
-    children.extend(overlays(
+    let area = clip.box_size.unwrap_or(clip.stage);
+    let shown: Vec<Node> = screen(clip, t, true, area).into_iter().collect();
+    let marks = lifted_overlays(
         clip,
-        t,
-        z.scale,
+        &Over {
+            t,
+            scale: z.scale,
+            k,
+            area,
+            lift: clip.props.shot.lift_colours.unwrap_or(true),
+        },
+    )?;
+    let framed = window_frame(
+        &Frame {
+            chrome,
+            radius: clip.props.shot.radius,
+            style: window.style.unwrap_or(DEFAULT_WINDOW_STYLE),
+            lift: clip.props.shot.lift_colours.unwrap_or(true),
+        },
+        shown,
         k,
-        clip.box_size.unwrap_or(clip.stage),
-    )?);
-    Ok(stage(vec![
-        div(style)
-            .child(window_frame(
-                &Frame {
-                    chrome,
-                    radius: clip.props.shot.radius,
-                    style: window.style.unwrap_or(DEFAULT_WINDOW_STYLE),
-                    lift: clip.props.shot.lift_colours.unwrap_or(true),
-                },
-                children,
-                k,
-            ))
-            .into(),
-    ]))
+    );
+    let layered = Element {
+        style: framed.style.will_change(layer),
+        ..framed
+    };
+    let mut camera = div(style).child(layered);
+    if !marks.is_empty() {
+        camera = camera.child(overlay_box(clip, k, marks));
+    }
+    Ok(stage(vec![camera.into()]))
 }
 
 fn shadow_group(
@@ -405,22 +484,12 @@ fn shadow_group(
     fps: f64,
     k: f64,
 ) -> Node {
-    let (_, style) = camera(clip, &window_framing(clip, fit, zoom), frame, fps, k);
+    let (_, style) = camera(clip, &window_framing(clip, fit, zoom), frame, fps, k).composited();
     stage(vec![
         div(style)
             .children(rim_light(light, clip.props.shot.rim_glow.unwrap_or(1.0), k))
             .into(),
     ])
-}
-
-fn shutter_offsets(angle: f64, samples: u32) -> Vec<f64> {
-    let open = angle.clamp(0.0, 360.0) / 360.0;
-    if open == 0.0 || samples <= 1 {
-        return vec![0.0];
-    }
-    (0..samples)
-        .map(|i| open * f64::from(i) / f64::from(samples))
-        .collect()
 }
 
 fn demo_clip(clip: &Clip<'_>, at: &At, k: f64) -> Result<Node, DrawFailure> {
@@ -452,22 +521,14 @@ fn demo_clip(clip: &Clip<'_>, at: &At, k: f64) -> Result<Node, DrawFailure> {
         ));
     if zoom && clip.props.shot.motion_blur {
         let angle = clip.props.shot.shutter_angle.unwrap_or(BLUR_SHUTTER_ANGLE);
-        let mut layers = Vec::new();
-        for (i, offset) in shutter_offsets(angle, BLUR_SAMPLES).into_iter().enumerate() {
-            layers.push(
-                div(absolute_fill().opacity(1.0 / (opsis_types::numbers::float(i) + 1.0)))
-                    .child(window_group(
-                        clip,
-                        fit,
-                        zoom,
-                        (frame - offset).max(0.0),
-                        fps,
-                        k,
-                    )?)
-                    .into(),
-            );
-        }
-        root = root.child(div(absolute_fill()).children(layers));
+        let samples = shutter_offsets(angle, BLUR_SAMPLES)
+            .into_iter()
+            .map(|offset| {
+                window_group(clip, fit, zoom, (frame - offset).max(0.0), fps, k)
+                    .map(|sample| vec![sample])
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        root = root.child(div(absolute_fill()).children(shutter_layers(&samples)));
     } else {
         root = root.child(window_group(clip, fit, zoom, frame, fps, k)?);
     }
@@ -491,7 +552,7 @@ fn narrow_bleed(clip: &Clip<'_>, frame: f64, fps: f64, k: f64) -> Result<Node, D
         fit: 1.0,
         zoom: is_narrow(&clip.tuning),
     };
-    let (z, style) = camera(clip, &framing, frame, fps, k);
+    let (z, style) = camera(clip, &framing, frame, fps, k).composited();
     let t = log_time_s(frame, fps, clip.props.speed);
     let shot = &clip.props.shot;
     let blurred = div(absolute_fill()
@@ -547,7 +608,8 @@ fn screen_clip(clip: &Clip<'_>, at: &At, k: f64) -> Result<Node, DrawFailure> {
         frame,
         fps,
         k,
-    );
+    )
+    .composited();
     let t = log_time_s(frame, fps, clip.props.speed);
     let vp = clip.log.viewport;
     let aspect = f64::from(vp.width) / f64::from(vp.height);

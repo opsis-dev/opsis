@@ -96,6 +96,7 @@ The native editor's windows, docks and panels, the title bar and menus, the canv
 
 - **Settings is a window of its own with a page list**, opened from the menu, its shortcut, any Settings button, the API badge in the app bar and the session (`SettingsAsked`); it is kept between openings and closes with the main window.
 - **Settings are written one section at a time (`patch_settings`)**, so windows never overwrite each other, and every view follows `SettingsChanged`.
+- **Settings → General → Advanced holds Threads used for exports**, which also sets the threads of take previews: a number field whose empty value means half of this computer's threads (shown as its placeholder) and which holds a typed number between one and the computer's threads; the rule is `export_threads` ([film.md](film.md), Output).
 - **The Fonts page's notices show in the Settings window** (`ShowToast` on that window), not over the canvas; other pages report a failure in a message box (`App::ShowError`).
 - **Saved results (clear cache) belong to the project, in the project Inspector** (`ProjectPanel`).
 

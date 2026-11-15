@@ -324,6 +324,28 @@ pub struct Frame<'a> {
     pub lift: bool,
 }
 
+pub fn lift_filters() -> Vec<Filter> {
+    vec![
+        Filter::Saturate(Num(1.05)),
+        Filter::Contrast(Num(1.025)),
+        Filter::Brightness(Num(1.01)),
+    ]
+}
+
+pub fn lifted(node: Node) -> Node {
+    match node {
+        Node::Element(mut element) => {
+            let mut filters = opsis_scene::prop!(&element.style, Filter)
+                .cloned()
+                .unwrap_or_default();
+            filters.extend(lift_filters());
+            element.style = element.style.filter(filters);
+            Node::Element(element)
+        }
+        text @ Node::Text(_) => text,
+    }
+}
+
 pub fn window_frame(frame: &Frame<'_>, children: Vec<Node>, k: f64) -> Element {
     let mut style = Style::default()
         .position(Position::Absolute)
@@ -342,11 +364,7 @@ pub fn window_frame(frame: &Frame<'_>, children: Vec<Node>, k: f64) -> Element {
             color: css_color("rgba(255,255,255,0.9)"),
         }]);
     if frame.lift {
-        style = style.filter(vec![
-            Filter::Saturate(Num(1.05)),
-            Filter::Contrast(Num(1.025)),
-            Filter::Brightness(Num(1.01)),
-        ]);
+        style = style.filter(lift_filters());
     }
     let mut out = div(style);
     if let Some(chrome) = &frame.chrome {

@@ -55,6 +55,7 @@ class SettingsWindow : public QWidget {
   Segmented* on_start_ = nullptr;
   ToggleSwitch* confirm_exit_ = nullptr;
   Segmented* encode_speed_ = nullptr;
+  QLineEdit* export_threads_ = nullptr;
   QLineEdit* default_dir_ = nullptr;
   Segmented* canvas_mode_ = nullptr;
   ToggleSwitch* api_enabled_ = nullptr;

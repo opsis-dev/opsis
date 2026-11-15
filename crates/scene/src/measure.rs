@@ -46,6 +46,10 @@ pub trait Measure {
         None
     }
 
+    fn footage_time(&self, _base: &str, micros: f64) -> f64 {
+        micros
+    }
+
     fn typeface(&self, _source: &str) -> Option<Arc<Typeface>> {
         None
     }

@@ -1,3 +1,5 @@
+use crate::image::HeldPixels;
+
 #[cxx::bridge(namespace = "opsis::skia")]
 pub mod ffi {
     #[derive(Debug, Clone, Copy, PartialEq)]
@@ -227,6 +229,9 @@ pub mod ffi {
         ) -> i32;
         fn concat(self: Pin<&mut Surface>, matrix: Matrix44);
         fn reset_matrix(self: Pin<&mut Surface>);
+        fn device_rect(self: &Surface, rect: RectF) -> RectF;
+        fn local_rect(self: &Surface, rect: RectF) -> RectF;
+        fn device_clip(self: &Surface) -> RectF;
         fn clip_rect(self: Pin<&mut Surface>, rect: RectF, anti_alias: bool, outside: bool);
         fn clip_round_rect(self: Pin<&mut Surface>, rect: RoundRect, anti_alias: bool);
         fn clip_path(self: Pin<&mut Surface>, path: &Path, anti_alias: bool);
@@ -431,7 +436,21 @@ pub mod ffi {
 
         fn decode_image(bytes: &[u8]) -> UniquePtr<Image>;
         fn image_from_rgba(width: i32, height: i32, pixels: &[u8]) -> UniquePtr<Image>;
+        fn image_wrap_bgra(width: i32, height: i32, pixels: Box<HeldPixels>) -> UniquePtr<Image>;
+        fn share_image(image: &Image) -> UniquePtr<Image>;
         fn image_width(self: &Image) -> i32;
         fn image_height(self: &Image) -> i32;
     }
+
+    extern "Rust" {
+        type HeldPixels;
+        fn bytes(self: &HeldPixels) -> &[u8];
+    }
 }
+
+#[expect(
+    clippy::non_send_fields_in_send_ty,
+    reason = "the C++ Image holds an sk_sp<SkImage> of raster pixels, which Skia never changes after making it and counts atomically, so workers share it"
+)]
+unsafe impl Send for ffi::Image {}
+unsafe impl Sync for ffi::Image {}

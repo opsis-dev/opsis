@@ -179,6 +179,57 @@ void Scenario::BuildSettings() {
                           .arg(App::Get().session().settings().keep_last));
       });
   Add(
+      QStringLiteral("settings-export-threads-start-at-half"),
+      [] { OpenPage(QStringLiteral("General")); }, 400,
+      [] {
+        const bridge::SettingsView now = App::Get().session().settings();
+        auto* threads = Named<QLineEdit>(QStringLiteral("ExportThreads"));
+        return Expect(
+            threads != nullptr && threads->text().isEmpty() &&
+                !now.export_threads_chosen &&
+                now.export_threads == (now.export_threads_max + 1) / 2,
+            QStringLiteral("exports use %1 of %2 threads")
+                .arg(now.export_threads)
+                .arg(now.export_threads_max));
+      });
+  Add(
+      QStringLiteral("settings-type-export-threads"),
+      [] {
+        auto* threads = Named<QLineEdit>(QStringLiteral("ExportThreads"));
+        if (threads == nullptr) return;
+        threads->setFocus();
+        threads->selectAll();
+        QTest::keyClicks(threads, QStringLiteral("100000"));
+        QTest::keyClick(threads, Qt::Key_Return);
+      },
+      600,
+      [] {
+        const bridge::SettingsView now = App::Get().session().settings();
+        return Expect(now.export_threads_chosen &&
+                          now.export_threads == now.export_threads_max,
+                      QStringLiteral("exports use %1 of %2 threads")
+                          .arg(now.export_threads)
+                          .arg(now.export_threads_max));
+      });
+  Add(
+      QStringLiteral("settings-clear-export-threads"),
+      [] {
+        auto* threads = Named<QLineEdit>(QStringLiteral("ExportThreads"));
+        if (threads == nullptr) return;
+        threads->setFocus();
+        threads->selectAll();
+        QTest::keyClick(threads, Qt::Key_Backspace);
+        QTest::keyClick(threads, Qt::Key_Return);
+      },
+      600,
+      [] {
+        const bridge::SettingsView now = App::Get().session().settings();
+        return Expect(!now.export_threads_chosen &&
+                          now.export_threads == now.export_threads_default,
+                      QStringLiteral("exports use %1 threads after clearing")
+                          .arg(now.export_threads));
+      });
+  Add(
       QStringLiteral("settings-engine-page"),
       [] { OpenPage(QStringLiteral("Engine")); }, 400,
       [this] {

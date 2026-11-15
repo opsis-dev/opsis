@@ -17,26 +17,31 @@ pub fn sample_opacity(index: usize) -> f64 {
     1.0 / (float(index) + 1.0)
 }
 
+pub fn shutter_layers(samples: &[Vec<Node>]) -> Vec<Node> {
+    samples
+        .iter()
+        .enumerate()
+        .map(|(i, sample)| {
+            div(absolute_fill().opacity(sample_opacity(i)))
+                .children(sample.clone())
+                .into()
+        })
+        .collect()
+}
+
 pub fn motion_blur(
     shutter_angle: f64,
     samples: u32,
     at: &At,
     draw: &dyn Fn(&At) -> Nodes,
 ) -> Result<Node, crate::timeline::DrawError> {
-    let mut layers = Vec::new();
-    for (i, offset) in shutter_offsets(shutter_angle, samples)
-        .into_iter()
-        .enumerate()
-    {
+    let mut drawn = Vec::new();
+    for offset in shutter_offsets(shutter_angle, samples) {
         let frozen = At {
             clock: at.clock.freeze(0.0_f64.max(at.clock.frame - offset)),
             ..*at
         };
-        layers.push(
-            div(absolute_fill().opacity(sample_opacity(i)))
-                .children(draw(&frozen)?)
-                .into(),
-        );
+        drawn.push(draw(&frozen)?);
     }
-    Ok(div(absolute_fill()).children(layers).into())
+    Ok(div(absolute_fill()).children(shutter_layers(&drawn)).into())
 }

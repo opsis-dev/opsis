@@ -42,7 +42,9 @@ use opsis_types::actions::{MouseButton, Viewport};
 use opsis_types::edits::{EdgeEnds, NodePatch, WorkflowEdit};
 use opsis_types::events::RunTargets;
 use opsis_types::project::OUT_DIR;
-use opsis_types::settings::settings_book;
+use opsis_types::settings::{
+    computer_threads, default_export_threads, export_threads, settings_book,
+};
 use opsis_types::shell::{CloseDecision, CloseRequest, MenuCommand, ReplayTab, Selection};
 use opsis_types::terminal::{PointerButton, PointerMove, TerminalInput};
 use opsis_types::workflow::{Position, WORKFLOW_FILE, Workflow};
@@ -2792,6 +2794,10 @@ impl Host for Ui {
             confirm_exit: settings.app.confirm_exit,
             encode_speed: plain(&settings.media.encode_speed),
             encode_speeds: choices(&book.encode_speeds),
+            export_threads: export_threads(settings.media.export_threads, computer_threads()),
+            export_threads_chosen: settings.media.export_threads.is_some(),
+            export_threads_default: default_export_threads(computer_threads()),
+            export_threads_max: computer_threads(),
             default_dir: settings.projects.default_dir.clone(),
             canvas_mode: plain(&settings.editor.canvas_mode),
             canvas_modes: book

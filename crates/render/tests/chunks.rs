@@ -28,14 +28,13 @@ proptest! {
     fn frames_reach_the_sink_once_each_in_order(
         count in 0u32..200,
         workers in 1usize..6,
-        chunk in 1usize..20,
         held in 1usize..12,
     ) {
         let drawn = Arc::new(AtomicUsize::new(0));
         let frames: Vec<u32> = (0..count).map(|f| f * 2).collect();
         let mut seen = Vec::new();
         let mut most_waiting = 0;
-        let schedule = Schedule { workers, chunk, held };
+        let schedule = Schedule { workers, held };
         let done: Result<(), String> = render_in_order(
             &frames,
             schedule,
@@ -59,7 +58,7 @@ proptest! {
         let mut seen = Vec::new();
         let done = render_in_order(
             &frames,
-            Schedule { workers, chunk: 7, held: 4 },
+            Schedule { workers, held: 4 },
             &|| Painter { fail_at: Some(fail), drawn: Arc::new(AtomicUsize::new(0)) },
             &mut |frame, _| {
                 seen.push(frame);

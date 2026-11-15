@@ -41,7 +41,8 @@ use crate::film::{Stage, mixed, spec_for};
 use crate::footage::film_footage;
 use crate::frames::{FilmError, FilmRun};
 use crate::native::{
-    NATIVE_BASE, NativeFiles, NativeRender, NativeStill, render_native, render_native_still,
+    NATIVE_BASE, NativeFiles, NativeRender, NativeStill, export_workers, render_native,
+    render_native_still,
 };
 use crate::picture::{PictureOptions, cached_picture, picture_key};
 
@@ -135,6 +136,7 @@ async fn render_to(job: &VariantJob<'_>, output: &Path) -> Result<(), ExecError>
             gif_loops: p.gif_loops(),
         },
         every_nth_frame: p.every_nth_frame().unwrap_or(1),
+        workers: export_workers(&job.ctx.env.settings),
         output: output.to_path_buf(),
     };
     let note = |message: String| job.ctx.log(LogLevel::Info, message);

@@ -6,9 +6,9 @@ use std::time::Duration;
 use image::RgbImage;
 use opsis_compile::nodes::effects::Area;
 use opsis_compile::nodes::image::{RedactImage, RedactStyle};
-use opsis_footage::chain::{FootageSource, TimedRedaction};
+use opsis_footage::chain::{FootageSource, TimedRedaction, window_frames, window_span_us};
 use opsis_footage::decoder::FootageTools;
-use opsis_footage::footage::Footage;
+use opsis_footage::footage::{Footage, Window};
 use opsis_golden::{dev_cache, ffmpeg};
 use opsis_image::ops::redact;
 use opsis_media::grade::GradeChain;
@@ -98,16 +98,13 @@ fn tools() -> FootageTools {
 }
 
 fn plain(file: &Path) -> FootageSource {
-    FootageSource {
-        file: file.to_owned(),
-        grade: GradeChain {
+    FootageSource::plain(
+        file.to_owned(),
+        GradeChain {
             chain: format!("[0:v]{EVEN}[out]"),
             extra_inputs: Vec::new(),
         },
-        redactions: Vec::new(),
-        trim_us: 0,
-        loop_us: None,
-    }
+    )
 }
 
 fn footage(sources: Vec<(&str, FootageSource)>) -> Footage {
@@ -161,8 +158,11 @@ fn shows_the_frame_ffmpeg_decodes_at_each_time() {
     for frame in [0, 1, 29, 30, 31, 64, 7, 100, 119, 45] {
         let shown = film.shown("take", at(frame)).unwrap();
         assert_eq!(shown.pts_us, at(frame), "frame {frame}");
-        let own = difference(&shown.image, &reference(&video, frame, ""));
-        let next = difference(&shown.image, &reference(&video, (frame + 1).min(119), ""));
+        let own = difference(&shown.frame.rgb(), &reference(&video, frame, ""));
+        let next = difference(
+            &shown.frame.rgb(),
+            &reference(&video, (frame + 1).min(119), ""),
+        );
         assert!(own < 0.5, "frame {frame} differs by {own}");
         assert!(
             frame == 119 || next > own,
@@ -180,7 +180,7 @@ fn every_picture_codec_an_mp4_holds_shows_the_frames_ffmpeg_decodes() {
         for frame in [0, 31, 7, 119] {
             let shown = film.shown("clip", at(frame)).unwrap();
             assert_eq!(shown.pts_us, at(frame), "{name} frame {frame}");
-            let own = difference(&shown.image, &reference(&video, frame, ""));
+            let own = difference(&shown.frame.rgb(), &reference(&video, frame, ""));
             assert!(own < 0.5, "{name} frame {frame} differs by {own}");
         }
     }
@@ -231,8 +231,10 @@ fn a_step_back_past_the_kept_frames_or_a_long_jump_starts_the_decoder_again() {
     assert_eq!(film.decoder_starts(), 1);
     film.shown("take", at(15)).unwrap();
     assert_eq!(film.decoder_starts(), 2);
-    assert_eq!(film.shown("take", at(115)).unwrap().pts_us, at(115));
+    assert_eq!(film.shown("take", at(50)).unwrap().pts_us, at(50));
     assert_eq!(film.decoder_starts(), 2);
+    assert_eq!(film.shown("take", at(115)).unwrap().pts_us, at(115));
+    assert_eq!(film.decoder_starts(), 3);
     let jumped = footage(vec![("take", plain(&video))]);
     jumped.shown("take", at(0)).unwrap();
     assert_eq!(jumped.shown("take", at(100)).unwrap().pts_us, at(100));
@@ -241,39 +243,58 @@ fn a_step_back_past_the_kept_frames_or_a_long_jump_starts_the_decoder_again() {
 
 #[test]
 #[ignore = "needs setup's FFmpeg (bun run setup)"]
-fn readers_taking_turns_at_two_places_keep_a_decoder_each() {
+fn workers_taking_frames_one_by_one_share_one_decoder() {
     let video = sample("count.mp4", "320x240");
     let film = footage(vec![("take", plain(&video))]);
-    for frame in 0..30 {
-        assert_eq!(film.shown("take", at(frame)).unwrap().pts_us, at(frame));
-        assert_eq!(
-            film.shown("take", at(frame + 60)).unwrap().pts_us,
-            at(frame + 60)
-        );
+    film.set_window(Window {
+        ahead_frames: 8,
+        film_fps: 30.0,
+    });
+    for oldest in (0..RATE * SECONDS).step_by(4) {
+        std::thread::scope(|scope| {
+            for frame in oldest..(oldest + 4).min(RATE * SECONDS) {
+                let film = &film;
+                scope.spawn(move || {
+                    let asker = u32::try_from(frame).unwrap();
+                    let shown = film.shown_for("take", at(frame), Some(asker)).unwrap();
+                    assert_eq!(shown.pts_us, at(frame));
+                });
+            }
+        });
+        film.written(u32::try_from(oldest + 3).unwrap());
     }
-    assert_eq!(film.decoder_starts(), 2);
+    assert_eq!(film.decoder_starts(), 1);
 }
 
 #[test]
 #[ignore = "needs setup's FFmpeg (bun run setup)"]
-fn workers_drawing_chunks_at_once_each_decode_forward() {
+fn written_frames_free_what_no_later_frame_needs() {
     let video = sample("count.mp4", "320x240");
+    let window = Window {
+        ahead_frames: 6,
+        film_fps: 30.0,
+    };
     let film = footage(vec![("take", plain(&video))]);
-    std::thread::scope(|scope| {
-        for chunk in 0..4 {
-            let film = &film;
-            scope.spawn(move || {
-                for frame in chunk * 30..(chunk + 1) * 30 {
-                    assert_eq!(film.shown("take", at(frame)).unwrap().pts_us, at(frame));
-                }
-            });
-        }
-    });
-    assert!(
-        film.decoder_starts() <= 4,
-        "{} starts",
-        film.decoder_starts()
-    );
+    film.set_window(window);
+    let span = window_span_us(window.ahead_frames, window.film_fps, 1.0, 1_000_000 / RATE);
+    let most = usize::try_from(window_frames(span, 1_000_000 / RATE)).unwrap();
+    for frame in 0..RATE * SECONDS {
+        let asker = u32::try_from(frame).unwrap();
+        let shown = film.shown_for("take", at(frame), Some(asker)).unwrap();
+        assert_eq!(shown.pts_us, at(frame));
+        assert!(
+            film.kept_frames() <= most,
+            "{} frames kept",
+            film.kept_frames()
+        );
+        film.written(asker);
+        assert!(
+            film.kept_frames() <= 2,
+            "{} frames kept after writing",
+            film.kept_frames()
+        );
+    }
+    assert_eq!(film.decoder_starts(), 1);
 }
 
 #[test]
@@ -311,9 +332,9 @@ fn the_grade_chain_and_its_extra_inputs_run_on_each_frame() {
     };
     let film = footage(vec![("negated", negated), ("looked", looked)]);
     let shown = film.shown("negated", at(40)).unwrap();
-    assert!(difference(&shown.image, &reference(&video, 40, "negate,")) < 0.5);
+    assert!(difference(&shown.frame.rgb(), &reference(&video, 40, "negate,")) < 0.5);
     let looked = film.shown("looked", at(40)).unwrap();
-    assert!(difference(&looked.image, &reference(&video, 40, "")) < 2.0);
+    assert!(difference(&looked.frame.rgb(), &reference(&video, 40, "")) < 2.0);
 }
 
 fn hidden(style: RedactStyle) -> RedactImage {
@@ -351,7 +372,7 @@ fn redaction_is_the_image_redact_on_the_frames_in_its_time_range() {
         ("redacted", redacted.clone()),
     ]);
     for frame in [10, 30, 45, 55, 59, 60, 90] {
-        let plain_frame = film.shown("plain", at(frame)).unwrap().image;
+        let plain_frame = film.shown("plain", at(frame)).unwrap().frame.rgb();
         let expected = redacted
             .redactions
             .iter()
@@ -361,7 +382,7 @@ fn redaction_is_the_image_redact_on_the_frames_in_its_time_range() {
             })
             .into_rgb8();
         assert_eq!(
-            film.shown("redacted", at(frame)).unwrap().image,
+            film.shown("redacted", at(frame)).unwrap().frame.rgb(),
             expected,
             "frame {frame}"
         );
@@ -389,10 +410,9 @@ fn a_trimmed_looping_source_plays_its_part_of_the_file_again_and_again() {
 fn odd_sized_sources_come_out_even() {
     let video = sample("odd.mp4", "321x241");
     let film = footage(vec![("odd", plain(&video))]);
-    assert_eq!(
-        film.shown("odd", at(3)).unwrap().image.dimensions(),
-        (320, 240)
-    );
+    let shown = film.shown("odd", at(3)).unwrap();
+    assert_eq!((shown.frame.width, shown.frame.height), (320, 240));
+    assert_eq!(shown.frame.pixels.len(), 320 * 240 * 4);
 }
 
 #[test]
@@ -469,4 +489,100 @@ fn a_black_and_white_grade_turns_every_terminal_colour_grey() {
         let [_, r, g, b] = colour.to_be_bytes();
         assert!(r.abs_diff(g) <= 1 && g.abs_diff(b) <= 1, "{colour:06x}");
     }
+}
+
+#[test]
+#[ignore = "needs setup's FFmpeg (bun run setup)"]
+fn one_frame_asked_twice_is_one_shared_opaque_picture() {
+    let video = sample("count.mp4", "320x240");
+    let film = footage(vec![("take", plain(&video))]);
+    let first = film.shown("take", at(10)).unwrap();
+    let again = film.shown("take", at(10) + 1_000).unwrap();
+    assert!(std::sync::Arc::ptr_eq(&first.frame, &again.frame));
+    assert!(
+        first
+            .frame
+            .pixels
+            .as_chunks::<4>()
+            .0
+            .iter()
+            .all(|p| p[3] == u8::MAX)
+    );
+}
+
+fn rendering(film: &Footage) {
+    film.set_window(Window {
+        ahead_frames: 8,
+        film_fps: 30.0,
+    });
+}
+
+fn asker(frame: i64) -> u32 {
+    u32::try_from(frame).unwrap()
+}
+
+#[test]
+#[ignore = "needs setup's FFmpeg (bun run setup)"]
+fn two_places_read_at_once_keep_a_decoder_each() {
+    let video = sample("count.mp4", "320x240");
+    let film = footage(vec![("take", plain(&video))]);
+    rendering(&film);
+    for frame in 0..30 {
+        let early = film.shown_for("take", at(frame), Some(asker(2 * frame)));
+        assert_eq!(early.unwrap().pts_us, at(frame));
+        let late = film.shown_for("take", at(frame + 90), Some(asker(2 * frame + 1)));
+        assert_eq!(late.unwrap().pts_us, at(frame + 90));
+        film.written(asker(2 * frame + 1));
+    }
+    assert_eq!(film.decoder_starts(), 2);
+}
+
+#[test]
+#[ignore = "needs setup's FFmpeg (bun run setup)"]
+fn a_four_times_faster_stretch_read_out_of_order_decodes_once() {
+    let video = sample("count.mp4", "320x240");
+    let fast = FootageSource {
+        speed: 4.0,
+        ..plain(&video)
+    };
+    let film = footage(vec![("take", fast)]);
+    rendering(&film);
+    for oldest in (0..30).step_by(8) {
+        let newest = (oldest + 8).min(30);
+        for frame in (oldest..newest).rev() {
+            let shown = film.shown_for("take", at(4 * frame), Some(asker(frame)));
+            assert_eq!(shown.unwrap().pts_us, at(4 * frame));
+        }
+        for frame in oldest..newest {
+            film.written(asker(frame));
+        }
+    }
+    assert_eq!(film.decoder_starts(), 1);
+}
+
+#[test]
+#[ignore = "needs setup's FFmpeg (bun run setup)"]
+fn a_short_loop_read_across_its_wraps_starts_once_per_wrap_at_most() {
+    let video = sample("count.mp4", "320x240");
+    let looped = FootageSource {
+        loop_us: Some(at(30)),
+        places: 2,
+        ..plain(&video)
+    };
+    let film = footage(vec![("loop", looped)]);
+    rendering(&film);
+    for oldest in (0..90).step_by(6) {
+        for frame in (oldest..oldest + 6).rev() {
+            let shown = film.shown_for("loop", at(frame), Some(asker(frame)));
+            assert_eq!(shown.unwrap().pts_us, at(frame % 30));
+        }
+        for frame in oldest..oldest + 6 {
+            film.written(asker(frame));
+        }
+    }
+    assert!(
+        film.decoder_starts() <= 3,
+        "{} starts",
+        film.decoder_starts()
+    );
 }

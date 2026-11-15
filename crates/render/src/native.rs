@@ -8,9 +8,9 @@ use opsis_compile::footage::TERMINAL_FRAMES;
 use opsis_compile::nodes::output::StillFormat;
 use opsis_film::{Drawing, Film, scaled};
 use opsis_footage::FootageError;
-use opsis_footage::footage::Footage;
+use opsis_footage::footage::{Footage, Window};
 use opsis_media::codecs::{FilmEncoding, film_encode_args};
-use opsis_paint::Picture;
+use opsis_paint::{FramePixels, SharedCache};
 use opsis_prepare::serve::{PreparedDirs, prepare};
 use opsis_types::numbers;
 use opsis_types::timeline::TimelineSpec;
@@ -23,7 +23,8 @@ use crate::frames::{FilmError, FilmRun};
 
 pub const NATIVE_BASE: &str = "native:/";
 const HELD_FRAMES: usize = 8;
-const CHUNK_FRAMES: usize = 30;
+const AHEAD_PER_WORKER: usize = 2;
+const WINDOW_SHARE_OF_FREE: u64 = 2;
 
 #[derive(Debug)]
 pub struct NativeFiles {
@@ -116,31 +117,38 @@ impl NativeFiles {
         }
     }
 
-    pub fn frame(&self, source: &str) -> Option<Picture> {
+    pub fn frame(&self, source: &str, stamp: u64) -> Option<FramePixels> {
         let (id, time_us) = Self::footage_at(source)?;
         let shown = self
             .footage
-            .shown(id, time_us)
+            .shown_for(id, time_us, u32::try_from(stamp).ok())
             .map_err(|e| log::warn!("showing {source}: {e}"))
             .ok()?;
-        let (width, height) = (shown.image.width(), shown.image.height());
-        let raw = shown.image.into_raw();
-        let rgba = raw
-            .as_chunks::<3>()
-            .0
-            .iter()
-            .flat_map(|[r, g, b]| [*r, *g, *b, u8::MAX])
-            .collect();
-        Some(Picture {
-            width,
-            height,
-            rgba,
+        Some(FramePixels {
+            width: shown.frame.width,
+            height: shown.frame.height,
+            bgra: shown.frame,
         })
     }
 
+    pub fn footage_time(&self, base: &str, micros: f64) -> f64 {
+        let Some((id, _)) = Self::footage_entry(base) else {
+            return micros;
+        };
+        let asked = numbers::truncate::<i64>(micros);
+        let shown = self.footage.snapped(id, asked);
+        if shown == asked {
+            return micros;
+        }
+        u64::try_from(shown).map_or(micros, numbers::float_wide)
+    }
+
     pub fn size(&self, source: &str) -> Option<(f64, f64)> {
-        if let Some(picture) = Self::footage_at(source).and_then(|_| self.frame(source)) {
-            return Some((f64::from(picture.width), f64::from(picture.height)));
+        if let Some((id, _)) = Self::footage_entry(source) {
+            return self
+                .footage
+                .size(id)
+                .map(|(width, height)| (f64::from(width), f64::from(height)));
         }
         let Some(path) = self.path_of(source) else {
             let bytes = self.bytes(source)?;
@@ -177,6 +185,7 @@ pub struct NativeRender {
     pub encoding: FilmEncoding,
     pub every_nth_frame: u32,
     pub scale: f64,
+    pub workers: usize,
     pub output: PathBuf,
 }
 
@@ -200,38 +209,98 @@ impl Worker for Drawer<'_> {
     }
 }
 
-fn workers() -> usize {
-    std::thread::available_parallelism().map_or(1, std::num::NonZero::get)
+pub fn export_workers(settings: &opsis_types::settings::AppSettings) -> usize {
+    let threads = opsis_types::settings::export_threads(
+        settings.media.export_threads,
+        opsis_types::settings::computer_threads(),
+    );
+    usize::try_from(threads).unwrap_or(1)
+}
+
+pub fn ahead_for(workers: usize) -> usize {
+    HELD_FRAMES.max(workers.saturating_mul(AHEAD_PER_WORKER))
+}
+
+pub fn fitted_ahead(ahead: usize, window_bytes: &dyn Fn(usize) -> u64, free: u64) -> usize {
+    let room = free / WINDOW_SHARE_OF_FREE;
+    let mut fitted = ahead.max(1);
+    while fitted > 1 && window_bytes(fitted) > room {
+        fitted -= 1;
+    }
+    fitted
+}
+
+fn free_memory() -> u64 {
+    match sysinfo::System::new() {
+        Ok(mut system) => {
+            system.refresh_memory();
+            system.available_memory()
+        }
+        Err(error) => {
+            log::warn!("couldn't read the computer's free memory: {error}");
+            u64::MAX
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct Pace {
+    workers: usize,
+    ahead: usize,
+}
+
+fn pace_for(job: &NativeRender) -> Pace {
+    let workers = job.workers.max(1);
+    let film_fps = f64::from(job.spec.fps) / f64::from(job.every_nth_frame.max(1));
+    let window_bytes = |ahead: usize| {
+        job.files.footage.window_bytes(Window {
+            ahead_frames: ahead,
+            film_fps,
+        })
+    };
+    let ahead = fitted_ahead(ahead_for(workers), &window_bytes, free_memory());
+    job.files.footage.set_window(Window {
+        ahead_frames: ahead,
+        film_fps,
+    });
+    Pace { workers, ahead }
 }
 
 fn draw_all(
     job: &NativeRender,
+    pace: Pace,
     frames: &[u32],
     sender: &mpsc::Sender<Vec<u8>>,
 ) -> Result<(), String> {
     let files = &job.files;
+    let shared = Arc::new(SharedCache::default());
     let bytes = |source: &str| files.bytes(source);
     let sizes = |source: &str| files.size(source);
-    let pictures = |source: &str| files.frame(source);
+    let pictures = |source: &str, stamp: u64| files.frame(source, stamp);
+    let footage_times = |base: &str, micros: f64| files.footage_time(base, micros);
     let make = || Drawer {
         film: Film::new(&job.spec, &bytes, &sizes)
             .map(|film| {
                 film.with_frames(&pictures)
+                    .with_footage_times(&footage_times)
                     .with_drawing(job.files.drawing.clone())
+                    .with_shared(Arc::clone(&shared))
             })
             .map_err(|e| e.to_string()),
         files,
         scale: job.scale,
     };
     let schedule = Schedule {
-        workers: workers(),
-        chunk: CHUNK_FRAMES,
-        held: HELD_FRAMES.max(workers() * 2),
+        workers: pace.workers,
+        held: pace.ahead,
     };
-    render_in_order(frames, schedule, &make, &mut |_, picture| {
+    render_in_order(frames, schedule, &make, &mut |frame, picture| {
         sender
             .blocking_send(picture)
-            .map_err(|_| "The video encoder stopped.".to_owned())
+            .map_err(|_| "The video encoder stopped.".to_owned())?;
+        files.footage.written(frame);
+        shared.sweep(u64::from(frame) + 1);
+        Ok(())
     })
 }
 
@@ -254,7 +323,12 @@ pub async fn render_native(job: NativeRender, run: &FilmRun<'_>) -> Result<(), F
     let pipe = run.tools.pipe(&args, Some(stop.clone()))?;
     let total = f64::from(numbers::count(frames.len()).max(1));
     let (sender, mut receiver) = mpsc::channel(HELD_FRAMES);
-    let drawing = tokio::task::spawn_blocking(move || draw_all(&job, &frames, &sender));
+    let pace = pace_for(&job);
+    (run.note)(format!(
+        "Drawing on {} threads, up to {} frames ahead",
+        pace.workers, pace.ahead
+    ));
+    let drawing = tokio::task::spawn_blocking(move || draw_all(&job, pace, &frames, &sender));
     let mut stdin = pipe.stdin;
     let mut written = 0;
     let mut failed = None;
@@ -331,10 +405,12 @@ fn still_bytes(job: &NativeStill) -> Result<Vec<u8>, FilmError> {
     files.resolve(&job.spec)?;
     let bytes = |source: &str| files.bytes(source);
     let sizes = |source: &str| files.size(source);
-    let pictures = |source: &str| files.frame(source);
+    let pictures = |source: &str, stamp: u64| files.frame(source, stamp);
+    let footage_times = |base: &str, micros: f64| files.footage_time(base, micros);
     let mut film = Film::new(&job.spec, &bytes, &sizes)
         .map_err(|e| FilmError::Draw(e.to_string()))?
         .with_frames(&pictures)
+        .with_footage_times(&footage_times)
         .with_drawing(job.files.drawing.clone());
     let last = job.spec.duration_in_frames.saturating_sub(1);
     let surface = film

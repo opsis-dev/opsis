@@ -145,6 +145,48 @@ pub fn probe(path: &Path) -> Result<Probe, ProbeError> {
     })
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct VideoFrames {
+    pub times_us: Vec<i64>,
+    pub width: u32,
+    pub height: u32,
+}
+
+pub fn video_frames(path: &Path) -> Result<Option<VideoFrames>, ProbeError> {
+    let mut source = Source::open(path)?;
+    let head = source.bytes(0, SNIFF)?;
+    let found = if iso::looks_like(&head) {
+        iso::frames(&mut source)?
+    } else if head.starts_with(&[0x1A, 0x45, 0xDF, 0xA3]) {
+        matroska::frames(&mut source)?
+    } else {
+        None
+    };
+    Ok(found.filter(|f| !f.times_us.is_empty()))
+}
+
+pub(crate) fn ticks_to_us(ticks: i128, per_second: i128) -> Option<i64> {
+    if per_second <= 0 {
+        return None;
+    }
+    let scaled = ticks * 1_000_000;
+    let rounded = if scaled >= 0 {
+        (scaled * 2 + per_second) / (per_second * 2)
+    } else {
+        (scaled * 2 - per_second) / (per_second * 2)
+    };
+    i64::try_from(rounded).ok()
+}
+
+pub(crate) fn from_start(mut times_us: Vec<i64>, start_us: i64) -> Vec<i64> {
+    for time in &mut times_us {
+        *time -= start_us;
+    }
+    times_us.sort_unstable();
+    times_us.dedup();
+    times_us
+}
+
 const RATE_SNAP: f64 = 1e-6;
 
 fn rational_rate(fps: f64) -> f64 {

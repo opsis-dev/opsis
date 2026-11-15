@@ -1,11 +1,38 @@
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use opsis_compile::nodes::image::RedactImage;
 use opsis_media::grade::GradeChain;
+use opsis_types::numbers;
 
 pub const SEEK_MARGIN_US: i64 = 1_000_000;
 pub const MATCH_TOLERANCE_US: i64 = 500;
 pub const JUMP_US: i64 = 2_000_000;
+pub const SHUTTER_FRAMES: f64 = 0.5;
+pub const FALLBACK_FRAME_US: i64 = 33_333;
+const US_PER_S: f64 = 1_000_000.0;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PixelLayout {
+    Rgb,
+    Bgra,
+}
+
+impl PixelLayout {
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Rgb => "rgb24",
+            Self::Bgra => "bgra",
+        }
+    }
+
+    pub const fn bytes(self) -> u64 {
+        match self {
+            Self::Rgb => 3,
+            Self::Bgra => 4,
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct TimedRedaction {
@@ -27,6 +54,42 @@ pub struct FootageSource {
     pub redactions: Vec<TimedRedaction>,
     pub trim_us: i64,
     pub loop_us: Option<i64>,
+    pub frame_times: Option<Arc<[i64]>>,
+    pub size: Option<(u32, u32)>,
+    pub speed: f64,
+    pub places: u32,
+}
+
+impl FootageSource {
+    pub const fn plain(file: PathBuf, grade: GradeChain) -> Self {
+        Self {
+            file,
+            grade,
+            redactions: Vec::new(),
+            trim_us: 0,
+            loop_us: None,
+            frame_times: None,
+            size: None,
+            speed: 1.0,
+            places: 1,
+        }
+    }
+
+    pub fn frame_us(&self) -> i64 {
+        let Some(times) = self.frame_times.as_deref() else {
+            return FALLBACK_FRAME_US;
+        };
+        let mut steps: Vec<i64> = times
+            .windows(2)
+            .map(|w| w[1] - w[0])
+            .filter(|&d| d > 0)
+            .collect();
+        steps.sort_unstable();
+        steps
+            .get(steps.len() / 2)
+            .copied()
+            .unwrap_or(FALLBACK_FRAME_US)
+    }
 }
 
 pub fn file_time(source: &FootageSource, time_us: i64) -> i64 {
@@ -38,12 +101,42 @@ pub fn file_time(source: &FootageSource, time_us: i64) -> i64 {
     source.trim_us.max(0) + within
 }
 
+pub fn shown_index(times: &[i64], file_us: i64) -> usize {
+    let target = file_us + MATCH_TOLERANCE_US;
+    times.partition_point(|&t| t <= target).saturating_sub(1)
+}
+
+pub fn snapped_time(source: &FootageSource, time_us: i64) -> i64 {
+    let Some(times) = source.frame_times.as_deref().filter(|t| !t.is_empty()) else {
+        return time_us;
+    };
+    let played = time_us.max(0);
+    let file = file_time(source, played);
+    let shown = times[shown_index(times, file)].max(source.trim_us.max(0));
+    let snapped = played - (file - shown);
+    if snapped >= 0 && file_time(source, snapped) == shown {
+        snapped
+    } else {
+        played
+    }
+}
+
+pub fn window_span_us(ahead_frames: usize, film_fps: f64, speed: f64, frame_us: i64) -> i64 {
+    let film_seconds = (numbers::float(ahead_frames) + SHUTTER_FRAMES) / film_fps.max(1.0);
+    let source_us = (film_seconds * speed.abs() * US_PER_S).ceil();
+    numbers::truncate::<i64>(source_us.min(1e15)) + 2 * frame_us.max(1)
+}
+
+pub fn window_frames(span_us: i64, frame_us: i64) -> u64 {
+    u64::try_from(span_us.max(0) / frame_us.max(1)).unwrap_or(0) + 2
+}
+
 pub fn seconds_text(us: i64) -> String {
     let us = us.max(0);
     format!("{}.{:06}", us / 1_000_000, us % 1_000_000)
 }
 
-pub fn decoder_args(source: &FootageSource, start_us: i64) -> Vec<String> {
+pub fn decoder_args(source: &FootageSource, start_us: i64, layout: PixelLayout) -> Vec<String> {
     let mut args: Vec<String> = [
         "-nostdin",
         "-hide_banner",
@@ -63,8 +156,9 @@ pub fn decoder_args(source: &FootageSource, start_us: i64) -> Vec<String> {
         args.extend(["-i".to_owned(), extra.clone()]);
     }
     let graph = format!(
-        "{};[out]format=rgb24,showinfo=checksum=0[frames]",
-        source.grade.chain
+        "{};[out]format={},showinfo=checksum=0[frames]",
+        source.grade.chain,
+        layout.name()
     );
     args.extend(
         [
@@ -76,7 +170,7 @@ pub fn decoder_args(source: &FootageSource, start_us: i64) -> Vec<String> {
             "-f",
             "rawvideo",
             "-pix_fmt",
-            "rgb24",
+            layout.name(),
             "pipe:1",
         ]
         .map(str::to_owned),
@@ -143,9 +237,9 @@ pub fn parse_frame(line: &str, base: TimeBase) -> Option<FrameInfo> {
     })
 }
 
-pub fn frame_bytes(info: FrameInfo) -> Option<usize> {
-    let pixels = usize::try_from(u64::from(info.width) * u64::from(info.height)).ok()?;
-    pixels.checked_mul(3)
+pub fn frame_bytes(info: FrameInfo, layout: PixelLayout) -> Option<usize> {
+    let pixels = u64::from(info.width).checked_mul(u64::from(info.height))?;
+    usize::try_from(pixels.checked_mul(layout.bytes())?).ok()
 }
 
 #[cfg(test)]
@@ -207,14 +301,90 @@ mod tests {
 
     fn source_with(trim_us: i64, loop_us: Option<i64>) -> FootageSource {
         FootageSource {
-            file: PathBuf::from("/films/clip.mp4"),
-            grade: GradeChain {
-                chain: "[0:v]null[out]".to_owned(),
-                extra_inputs: Vec::new(),
-            },
-            redactions: Vec::new(),
             trim_us,
             loop_us,
+            ..FootageSource::plain(
+                PathBuf::from("/films/clip.mp4"),
+                GradeChain {
+                    chain: "[0:v]null[out]".to_owned(),
+                    extra_inputs: Vec::new(),
+                },
+            )
+        }
+    }
+
+    fn picked(times: &[i64], source: &FootageSource, time_us: i64) -> usize {
+        shown_index(times, file_time(source, time_us))
+    }
+
+    fn frame_times(start: i64, gaps: &[i64]) -> Vec<i64> {
+        gaps.iter()
+            .scan(start, |at, gap| {
+                let time = *at;
+                *at += gap;
+                Some(time)
+            })
+            .collect()
+    }
+
+    proptest! {
+        #[test]
+        fn a_snapped_time_shows_the_same_frame_at_or_before_the_time(
+            start in 0_i64..200_000,
+            gaps in proptest::collection::vec(1_001_i64..120_000, 1..80),
+            trim in 0_i64..2_000_000,
+            period in proptest::option::of(1_i64..3_000_000),
+            at in -100_000_i64..8_000_000,
+        ) {
+            let times = frame_times(start, &gaps);
+            let source = FootageSource {
+                frame_times: Some(times.clone().into()),
+                ..source_with(trim, period)
+            };
+            let snapped = snapped_time(&source, at);
+            let index = picked(&times, &source, at);
+            prop_assert_eq!(picked(&times, &source, snapped), index);
+            prop_assert_eq!(snapped_time(&source, snapped), snapped);
+            prop_assert!(index == 0 || times[index] <= file_time(&source, at) + MATCH_TOLERANCE_US);
+            prop_assert!(times.get(index + 1).is_none_or(|&next| next > file_time(&source, at) + MATCH_TOLERANCE_US));
+        }
+
+        #[test]
+        fn times_in_one_frame_snap_to_one_address(
+            gaps in proptest::collection::vec(1_001_i64..120_000, 2..60),
+            frame in 0usize..58,
+            within in 0.0_f64..1.0,
+        ) {
+            let times = frame_times(0, &gaps);
+            let frame = frame.min(times.len() - 2);
+            let source = FootageSource {
+                frame_times: Some(times.clone().into()),
+                ..source_with(0, None)
+            };
+            let from = (times[frame] - MATCH_TOLERANCE_US).max(0);
+            let until = times[frame + 1] - MATCH_TOLERANCE_US - 1;
+            let inside = from + opsis_types::numbers::truncate::<i64>(within * opsis_types::numbers::float_wide(u64::try_from(until - from).unwrap()));
+            prop_assert_eq!(snapped_time(&source, inside), snapped_time(&source, from));
+        }
+
+        #[test]
+        fn the_window_holds_every_frame_the_drawn_frames_ahead_can_ask_for(
+            ahead in 0usize..80,
+            fps in 1_u32..120,
+            speed in 0.05_f64..8.0,
+            frame_us in 1_000_i64..100_000,
+            oldest in 0_u32..10_000,
+        ) {
+            let film_fps = f64::from(fps);
+            let span = window_span_us(ahead, film_fps, speed, frame_us);
+            let source_at = |frame: f64| frame / film_fps * speed * US_PER_S;
+            let earliest = source_at(f64::from(oldest) - SHUTTER_FRAMES);
+            let latest = source_at(f64::from(oldest) + opsis_types::numbers::float(ahead));
+            let shown_before = earliest - opsis_types::numbers::float_wide(u64::try_from(frame_us).unwrap());
+            prop_assert!(opsis_types::numbers::float_wide(u64::try_from(span).unwrap()) >= latest - shown_before);
+            let frames = window_frames(span, frame_us);
+            prop_assert!(i128::from(frames) * i128::from(frame_us) >= i128::from(span));
+            prop_assert!(window_span_us(ahead + 1, film_fps, speed, frame_us) >= span);
         }
     }
 
@@ -233,25 +403,22 @@ mod tests {
 
     #[test]
     fn the_decoder_reads_from_the_start_or_seeks_before_its_frame() {
-        let source = FootageSource {
-            file: PathBuf::from("/films/take.mp4"),
-            grade: GradeChain {
+        let source = FootageSource::plain(
+            PathBuf::from("/films/take.mp4"),
+            GradeChain {
                 chain: "[0:v]eq=contrast=1.1[g];[1:v][g]haldclut[out]".to_owned(),
                 extra_inputs: vec!["/films/look.png".to_owned()],
             },
-            redactions: Vec::new(),
-            trim_us: 0,
-            loop_us: None,
-        };
-        let tail = "-filter_complex [0:v]eq=contrast=1.1[g];[1:v][g]haldclut[out];[out]format=rgb24,showinfo=checksum=0[frames] -map [frames] -an -f rawvideo -pix_fmt rgb24 pipe:1";
+        );
+        let tail = "-filter_complex [0:v]eq=contrast=1.1[g];[1:v][g]haldclut[out];[out]format=bgra,showinfo=checksum=0[frames] -map [frames] -an -f rawvideo -pix_fmt bgra pipe:1";
         assert_eq!(
-            decoder_args(&source, 0).join(" "),
+            decoder_args(&source, 0, PixelLayout::Bgra).join(" "),
             format!(
                 "-nostdin -hide_banner -nostats -loglevel info -copyts -start_at_zero -i /films/take.mp4 -i /films/look.png {tail}"
             )
         );
         assert_eq!(
-            decoder_args(&source, 2_500_000).join(" "),
+            decoder_args(&source, 2_500_000, PixelLayout::Bgra).join(" "),
             format!(
                 "-nostdin -hide_banner -nostats -loglevel info -copyts -start_at_zero -ss 2.500000 -i /films/take.mp4 -i /films/look.png {tail}"
             )

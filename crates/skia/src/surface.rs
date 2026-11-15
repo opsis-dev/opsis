@@ -110,6 +110,18 @@ impl Surface {
         self.inner.pin_mut().concat(matrix);
     }
 
+    pub fn device_rect(&self, rect: RectF) -> RectF {
+        self.inner.device_rect(rect)
+    }
+
+    pub fn local_rect(&self, rect: RectF) -> RectF {
+        self.inner.local_rect(rect)
+    }
+
+    pub fn device_clip(&self) -> RectF {
+        self.inner.device_clip()
+    }
+
     pub fn reset_device_matrix(&mut self) {
         self.inner.pin_mut().reset_matrix();
     }

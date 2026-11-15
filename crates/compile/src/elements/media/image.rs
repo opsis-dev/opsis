@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use opsis_macros::settings;
+use opsis_scene::measure::Measure;
 use opsis_scene::node::{Node, div, img};
 use opsis_scene::paint::Transform;
 use opsis_scene::style::{Display, ObjectFit, Style};
@@ -75,9 +76,10 @@ pub const fn object_fit(fit: Fit) -> ObjectFit {
     }
 }
 
-pub fn footage_frame_url(base: &str, time_s: f64) -> String {
+pub fn footage_frame_url(base: &str, time_s: f64, measure: &dyn Measure) -> String {
     let micros = opsis_scene::clock::js_round(time_s * US_PER_S).max(0.0);
-    format!("{base}{}", opsis_scene::random::js_number_text(micros))
+    let shown = measure.footage_time(base, micros);
+    format!("{base}{}", opsis_scene::random::js_number_text(shown))
 }
 
 pub fn filled(source: String, fit: Fit, transform: Option<Vec<Transform>>) -> Node {
@@ -103,10 +105,10 @@ pub fn draw(props: &Shown, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         1.0
     };
     let transform = vec![Transform::Scale(Num(scale), Num(scale), Num(1.0))];
-    let source = props
-        .footage_urls
-        .get("src")
-        .map_or_else(|| image.src.clone(), |url| footage_frame_url(url, 0.0));
+    let source = props.footage_urls.get("src").map_or_else(
+        || image.src.clone(),
+        |url| footage_frame_url(url, 0.0, cx.measure),
+    );
     Ok(backgrounded(
         &image.background,
         vec![filled(source, image.fit, Some(transform))],

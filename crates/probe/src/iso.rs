@@ -6,7 +6,9 @@ use crate::pictures::{
     FullRange, Layout, aac_config, av1_config, avc_config, hevc_config, vp9_config,
 };
 use crate::read::{Bytes, Short, Source};
-use crate::{AudioStream, Found, Length, ProbeError, VideoStream};
+use crate::{
+    AudioStream, Found, Length, ProbeError, VideoFrames, VideoStream, from_start, ticks_to_us,
+};
 
 const FORMAT: &str = "mov,mp4,m4a,3gp,3g2,mj2";
 const MOOV_LIMIT: u64 = 512 * 1024 * 1024;
@@ -378,7 +380,7 @@ fn rate(count: u64, time: u64, scale: u32) -> Option<f64> {
         .then(|| numbers::float_wide(count) * f64::from(scale) / numbers::float_wide(time))
 }
 
-pub fn probe(source: &mut Source) -> Result<Found, ProbeError> {
+fn top_boxes(source: &mut Source) -> Result<(Vec<u8>, Vec<Vec<u8>>), ProbeError> {
     let mut moov = None;
     let mut moofs = Vec::new();
     let mut at = 0u64;
@@ -405,7 +407,11 @@ pub fn probe(source: &mut Source) -> Result<Found, ProbeError> {
         }
         at += size;
     }
-    let moov = moov.ok_or(ProbeError::Unknown)?;
+    Ok((moov.ok_or(ProbeError::Unknown)?, moofs))
+}
+
+pub fn probe(source: &mut Source) -> Result<Found, ProbeError> {
+    let (moov, moofs) = top_boxes(source)?;
     let (scale, length) = child(&moov, *b"mvhd").map_or(Ok((0, 0)), timing)?;
     let mut defaults = HashMap::new();
     let mut whole = Length::ratio(length, u64::from(scale));
@@ -465,4 +471,259 @@ pub fn probe(source: &mut Source) -> Result<Found, ProbeError> {
         video,
         audio,
     })
+}
+
+#[derive(Debug, Default, Clone, Copy)]
+struct Edit {
+    delay: u64,
+    media_time: i64,
+}
+
+fn edit_of(trak: &[u8]) -> Option<Edit> {
+    let Some(elst) = path(trak, &[b"edts", b"elst"]) else {
+        return Some(Edit::default());
+    };
+    let mut r = Bytes::new(elst);
+    let version = r.u8().ok()?;
+    r.skip(3).ok()?;
+    let count = r.be32().ok()?;
+    let mut edit = Edit::default();
+    let mut playing = false;
+    for _ in 0..count {
+        let (duration, media_time) = if version == 1 {
+            (r.be64().ok()?, r.bei64().ok()?)
+        } else {
+            (u64::from(r.be32().ok()?), i64::from(r.bei32().ok()?))
+        };
+        r.skip(4).ok()?;
+        if playing {
+            return None;
+        }
+        if media_time == -1 {
+            edit.delay += duration;
+        } else {
+            edit.media_time = media_time;
+            playing = true;
+        }
+    }
+    Some(edit)
+}
+
+fn turned(tkhd: &[u8]) -> bool {
+    let at = if tkhd.first() == Some(&1) { 52 } else { 40 };
+    let entry = |i: usize| {
+        tkhd.get(at + i * 4..at + i * 4 + 4)
+            .and_then(|b| <[u8; 4]>::try_from(b).ok())
+            .map(i32::from_be_bytes)
+    };
+    matches!((entry(0), entry(4)), (Some(0), Some(0)))
+}
+
+fn sample_times(stbl: &[u8]) -> Vec<i64> {
+    let mut decode = Vec::new();
+    if let Some(stts) = child(stbl, *b"stts") {
+        let mut r = Bytes::new(stts);
+        let mut time = 0i64;
+        if r.skip(4).is_ok() {
+            let count = r.be32().unwrap_or(0);
+            for _ in 0..count {
+                let (Ok(n), Ok(delta)) = (r.be32(), r.be32()) else {
+                    break;
+                };
+                for _ in 0..n {
+                    decode.push(time);
+                    time += i64::from(delta);
+                }
+            }
+        }
+    }
+    if let Some(ctts) = child(stbl, *b"ctts") {
+        let mut r = Bytes::new(ctts);
+        let mut at = 0usize;
+        if r.skip(4).is_ok() {
+            let count = r.be32().unwrap_or(0);
+            for _ in 0..count {
+                let (Ok(n), Ok(offset)) = (r.be32(), r.bei32()) else {
+                    break;
+                };
+                for _ in 0..n {
+                    if let Some(time) = decode.get_mut(at) {
+                        *time += i64::from(offset);
+                    }
+                    at += 1;
+                }
+            }
+        }
+    }
+    decode
+}
+
+struct Run {
+    duration: u32,
+    next: i64,
+}
+
+fn fragment_times(moof: &[u8], id: u32, run: &mut Run, into: &mut Vec<i64>) {
+    for (kind, traf) in children(moof) {
+        if &kind != b"traf" {
+            continue;
+        }
+        let Some(tfhd) = child(traf, *b"tfhd") else {
+            continue;
+        };
+        let mut r = Bytes::new(tfhd);
+        let (Ok(flags), Ok(track)) = (r.be32(), r.be32()) else {
+            continue;
+        };
+        if track != id {
+            continue;
+        }
+        let skip = |bit: u32, size: usize| if flags & bit != 0 { size } else { 0 };
+        let mut duration = run.duration;
+        if r.skip(skip(0x01, 8) + skip(0x02, 4)).is_ok() && flags & 0x08 != 0 {
+            duration = r.be32().unwrap_or(duration);
+        }
+        if let Some(tfdt) = child(traf, *b"tfdt") {
+            let mut r = Bytes::new(tfdt);
+            let version = r.u8().unwrap_or(0);
+            if r.skip(3).is_ok() {
+                let base = if version == 1 {
+                    r.be64().ok()
+                } else {
+                    r.be32().ok().map(u64::from)
+                };
+                if let Some(base) = base.and_then(|b| i64::try_from(b).ok()) {
+                    run.next = base;
+                }
+            }
+        }
+        for (kind, trun) in children(traf) {
+            if &kind != b"trun" {
+                continue;
+            }
+            let mut r = Bytes::new(trun);
+            let (Ok(flags), Ok(count)) = (r.be32(), r.be32()) else {
+                continue;
+            };
+            let skip = |bit: u32, size: usize| if flags & bit != 0 { size } else { 0 };
+            if r.skip(skip(0x01, 4) + skip(0x04, 4)).is_err() {
+                continue;
+            }
+            for _ in 0..count {
+                let own = if flags & 0x100 != 0 {
+                    r.be32().ok()
+                } else {
+                    None
+                };
+                if r.skip(skip(0x200, 4) + skip(0x400, 4)).is_err() {
+                    break;
+                }
+                let offset = if flags & 0x800 != 0 {
+                    r.bei32().unwrap_or(0)
+                } else {
+                    0
+                };
+                into.push(run.next + i64::from(offset));
+                run.next += i64::from(own.unwrap_or(duration));
+            }
+        }
+    }
+}
+
+fn delay_us(edit: Edit, movie_scale: u32) -> Option<i64> {
+    ticks_to_us(i128::from(edit.delay), i128::from(movie_scale.max(1)))
+}
+
+pub fn frames(source: &mut Source) -> Result<Option<VideoFrames>, ProbeError> {
+    let (moov, moofs) = top_boxes(source)?;
+    let (movie_scale, _) = child(&moov, *b"mvhd").map_or(Ok((0, 0)), timing)?;
+    let mut defaults = HashMap::new();
+    if let Some(mvex) = child(&moov, *b"mvex") {
+        for (kind, payload) in children(mvex) {
+            let mut r = Bytes::new(payload);
+            if &kind == b"trex"
+                && r.skip(4).is_ok()
+                && let (Ok(id), Ok(_), Ok(duration)) = (r.be32(), r.be32(), r.be32())
+            {
+                defaults.insert(id, duration);
+            }
+        }
+    }
+    let traks: Vec<&[u8]> = children(&moov)
+        .into_iter()
+        .filter(|(k, _)| k == b"trak")
+        .map(|(_, trak)| trak)
+        .collect();
+    let picture = traks.iter().find_map(|trak| {
+        let t = track(trak)?;
+        let (kind, entry) = t.entry.as_ref()?;
+        (&t.handler == b"vide")
+            .then(|| video(*kind, entry))
+            .flatten()
+            .map(|v| (*trak, t.id, t.timescale, v))
+    });
+    let Some((trak, id, scale, stream)) = picture else {
+        return Ok(None);
+    };
+    let Some(edit) = edit_of(trak) else {
+        return Ok(None);
+    };
+    let Some(stbl) = path(trak, &[b"mdia", b"minf", b"stbl"]) else {
+        return Ok(None);
+    };
+    let mut times = sample_times(stbl);
+    let mut run = Run {
+        duration: defaults.get(&id).copied().unwrap_or(0),
+        next: sample_end(stbl),
+    };
+    for moof in &moofs {
+        fragment_times(moof, id, &mut run, &mut times);
+    }
+    let Some(delay) = delay_us(edit, movie_scale) else {
+        return Ok(None);
+    };
+    let presented: Vec<i64> = times
+        .into_iter()
+        .filter(|&t| t >= edit.media_time)
+        .filter_map(|t| {
+            ticks_to_us(i128::from(t - edit.media_time), i128::from(scale)).map(|us| us + delay)
+        })
+        .collect();
+    let Some(&first) = presented.iter().min() else {
+        return Ok(None);
+    };
+    let sound_start = traks
+        .iter()
+        .filter(|trak| track(trak).is_some_and(|t| &t.handler == b"soun"))
+        .filter_map(|trak| edit_of(trak).and_then(|e| delay_us(e, movie_scale)))
+        .min();
+    let start = sound_start.map_or(first, |s| s.min(first));
+    let (width, height) = child(trak, *b"tkhd")
+        .filter(|tkhd| turned(tkhd))
+        .map_or((stream.width, stream.height), |_| {
+            (stream.height, stream.width)
+        });
+    Ok(Some(VideoFrames {
+        times_us: from_start(presented, start),
+        width,
+        height,
+    }))
+}
+
+fn sample_end(stbl: &[u8]) -> i64 {
+    let Some(stts) = child(stbl, *b"stts") else {
+        return 0;
+    };
+    let mut r = Bytes::new(stts);
+    let mut time = 0i64;
+    if r.skip(4).is_ok() {
+        let count = r.be32().unwrap_or(0);
+        for _ in 0..count {
+            let (Ok(n), Ok(delta)) = (r.be32(), r.be32()) else {
+                break;
+            };
+            time += i64::from(n) * i64::from(delta);
+        }
+    }
+    time
 }

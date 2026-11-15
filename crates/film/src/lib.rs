@@ -11,7 +11,7 @@ use opsis_compile::fonts::bundled_fonts;
 use opsis_layout::fonts::{FontError, Fonts};
 use opsis_layout::measure::Measurer;
 use opsis_layout::{Images, Viewport, lay_out};
-use opsis_paint::{Cache, Frames, Pass, Programs, Resources, paint};
+use opsis_paint::{Cache, Frames, Pass, Programs, Resources, SharedCache, paint};
 use opsis_renderer::{Renderer, RendererError, Setting as RendererSetting, StageInputs};
 use opsis_scene::drawing::Font;
 use opsis_scene::measure::{AnimationTiming, Measure, MeasuredBox};
@@ -33,6 +33,7 @@ pub const FALLBACK_FAMILIES: [&str; 3] = [
 
 pub type Files<'a> = &'a (dyn Fn(&str) -> Option<Vec<u8>> + Sync);
 pub type Sizes<'a> = &'a dyn Fn(&str) -> Option<(f64, f64)>;
+pub type FootageTimes<'a> = &'a dyn Fn(&str, f64) -> f64;
 
 #[derive(Debug, thiserror::Error)]
 pub enum FilmError {
@@ -58,6 +59,8 @@ pub struct Film<'a> {
     files: Files<'a>,
     sizes: Sizes<'a>,
     frames: Option<Frames<'a>>,
+    footage_times: Option<FootageTimes<'a>>,
+    shares_cache: bool,
     animations: RefCell<HashMap<String, Option<AnimationTiming>>>,
     terminals: RefCell<HashMap<String, Option<Arc<TerminalFrames>>>>,
     typefaces: RefCell<HashMap<String, Option<Arc<Typeface>>>>,
@@ -193,6 +196,7 @@ impl Programs for FilmPrograms<'_, '_> {
 struct FilmMeasure<'f, 'a> {
     layout: Measurer<'f>,
     files: Files<'a>,
+    footage_times: Option<FootageTimes<'a>>,
     animations: &'f RefCell<HashMap<String, Option<AnimationTiming>>>,
     terminals: &'f RefCell<HashMap<String, Option<Arc<TerminalFrames>>>>,
     sizes: Sizes<'a>,
@@ -239,6 +243,11 @@ impl Measure for FilmMeasure<'_, '_> {
 
     fn picture_size(&self, source: &str) -> Option<(f64, f64)> {
         (self.sizes)(source)
+    }
+
+    fn footage_time(&self, base: &str, micros: f64) -> f64 {
+        self.footage_times
+            .map_or(micros, |snapped| snapped(base, micros))
     }
 
     fn typeface(&self, source: &str) -> Option<Arc<Typeface>> {
@@ -349,6 +358,8 @@ impl<'a> Film<'a> {
             files,
             sizes,
             frames: None,
+            footage_times: None,
+            shares_cache: false,
             animations: RefCell::new(HashMap::new()),
             terminals: RefCell::new(HashMap::new()),
             typefaces: RefCell::new(HashMap::new()),
@@ -375,6 +386,19 @@ impl<'a> Film<'a> {
         self
     }
 
+    #[must_use]
+    pub fn with_footage_times(mut self, footage_times: FootageTimes<'a>) -> Self {
+        self.footage_times = Some(footage_times);
+        self
+    }
+
+    #[must_use]
+    pub fn with_shared(mut self, shared: Arc<SharedCache>) -> Self {
+        self.cache = Cache::with_shared(shared);
+        self.shares_cache = true;
+        self
+    }
+
     pub fn frame(&mut self, frame: f64) -> Result<Surface, FilmError> {
         self.scaled_frame(frame, 1.0)
     }
@@ -395,6 +419,7 @@ impl<'a> Film<'a> {
         let measurer = FilmMeasure {
             layout: Measurer::new(&mut self.fonts, viewport),
             files: self.files,
+            footage_times: self.footage_times,
             animations: &self.animations,
             terminals: &self.terminals,
             sizes: size_of,
@@ -480,6 +505,9 @@ impl<'a> Film<'a> {
         };
         let mut cache = std::mem::take(&mut self.cache);
         cache.next_frame();
+        if self.shares_cache {
+            cache.stamp_with(u64::from(whole(frame)));
+        }
         let mut resources = Resources::with_cache(self.files, self.fonts.faces(), cache)
             .with_programs(&mut programs);
         if let Some(frames) = self.frames {

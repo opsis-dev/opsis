@@ -6,7 +6,7 @@ mod effects;
 mod filters;
 mod geometry;
 mod gradients;
-
+mod ink;
 mod resources;
 mod svg;
 mod text;
@@ -28,7 +28,8 @@ use opsis_types::numbers::exact_eq;
 use crate::boxes::{Areas, draw_box, draw_replaced};
 use crate::geometry::{is_rounded, matrix44, rect_f, round_rect};
 pub use crate::resources::{
-    Cache, Frames, LayerRegion, Pass, Picture, Programs, Resources, Setting,
+    Cache, FramePixels, Frames, LayerRegion, Pass, Picture, Programs, Resources, Setting,
+    SharedCache,
 };
 
 pub(crate) struct Painter<'s, 'r, 'l> {
@@ -163,6 +164,7 @@ fn makes_context(style: &Style) -> bool {
 }
 
 const LAYER_GRID: f64 = 256.0;
+const WHOLE_LAYER_SHARE: f64 = 8.0;
 const LAYER_MARGIN: f64 = 2.0;
 const SCALE_STEPS: f64 = 8.0;
 const LAYOUT_STEPS: f64 = 64.0;
@@ -181,6 +183,73 @@ fn region_of(seen: opsis_layout::output::Rect, grid: f64) -> LayerRegion {
         top: opsis_types::numbers::whole_signed(top),
         width: opsis_types::numbers::whole(right - left),
         height: opsis_types::numbers::whole(bottom - top),
+    }
+}
+
+fn overlap(
+    a: opsis_layout::output::Rect,
+    b: opsis_layout::output::Rect,
+) -> opsis_layout::output::Rect {
+    let x = a.x.max(b.x);
+    let y = a.y.max(b.y);
+    opsis_layout::output::Rect {
+        x,
+        y,
+        width: ((a.x + a.width).min(b.x + b.width) - x).max(0.0),
+        height: ((a.y + a.height).min(b.y + b.height) - y).max(0.0),
+    }
+}
+
+const DITHER_GRID: f64 = 32.0;
+
+fn on_grid(value: f64, from: f64, up: bool) -> f64 {
+    let steps = (value - from) / DITHER_GRID;
+    (if up { steps.ceil() } else { steps.floor() }).mul_add(DITHER_GRID, from)
+}
+
+#[derive(Debug, Clone, Copy)]
+struct Area {
+    left: f64,
+    top: f64,
+    right: f64,
+    bottom: f64,
+}
+
+impl Area {
+    fn within(self, ink: opsis_layout::output::Rect) -> Self {
+        Self {
+            left: on_grid(ink.x, self.left, false).max(self.left),
+            top: on_grid(ink.y, self.top, false).max(self.top),
+            right: on_grid(ink.x + ink.width, self.left, true).min(self.right),
+            bottom: on_grid(ink.y + ink.height, self.top, true).min(self.bottom),
+        }
+    }
+
+    fn of(rect: RectF, clip: RectF) -> Self {
+        let (left, top) = (f64::from(clip.left), f64::from(clip.top));
+        Self {
+            left: on_grid(f64::from(rect.left), left, false),
+            top: on_grid(f64::from(rect.top), top, false),
+            right: on_grid(f64::from(rect.left) + f64::from(rect.width), left, true),
+            bottom: on_grid(f64::from(rect.top) + f64::from(rect.height), top, true),
+        }
+    }
+
+    fn rect(self) -> RectF {
+        RectF::new(
+            opsis_types::numbers::narrow(self.left),
+            opsis_types::numbers::narrow(self.top),
+            opsis_types::numbers::narrow(self.right - self.left),
+            opsis_types::numbers::narrow(self.bottom - self.top),
+        )
+    }
+
+    fn width(self) -> Option<u32> {
+        (self.right > self.left).then(|| opsis_types::numbers::whole(self.right - self.left))
+    }
+
+    fn height(self) -> Option<u32> {
+        (self.bottom > self.top).then(|| opsis_types::numbers::whole(self.bottom - self.top))
     }
 }
 
@@ -240,6 +309,22 @@ impl Affine {
 fn clips_overflow(style: &Style) -> bool {
     let hidden = |o: Option<&Overflow>| o.is_some_and(|o| *o != Overflow::Visible);
     hidden(prop!(style, OverflowX)) || hidden(prop!(style, OverflowY))
+}
+
+impl Painter<'_, '_, '_> {
+    pub(crate) fn save_layer_over(
+        &mut self,
+        ink: opsis_layout::output::Rect,
+        local: &Matrix,
+        paint: &Paint,
+    ) {
+        self.surface.reset_matrix();
+        let clip = self.surface.device_clip();
+        let device = Area::of(self.surface.device_rect(rect_f(ink)), clip).rect();
+        self.surface.concat(matrix44(local));
+        let bounds = self.surface.local_rect(device);
+        self.surface.save_layer(Some(bounds), paint);
+    }
 }
 
 impl<'n> Painter<'_, '_, '_> {
@@ -390,9 +475,13 @@ impl<'n> Painter<'_, '_, '_> {
         );
     }
 
-    fn draw_svg(&mut self, placed: &Placed, style: &Style, svg: &opsis_scene::node::SvgElement) {
-        let areas = Areas::of(placed, style, self);
-        let content = areas.content;
+    pub(crate) fn svg_document(
+        &self,
+        placed: &Placed,
+        style: &Style,
+        svg: &opsis_scene::node::SvgElement,
+    ) -> (String, opsis_layout::output::Rect) {
+        let content = Areas::of(placed, style, self).content;
         let mut rooted = svg.clone();
         if !rooted.attributes.iter().any(|(k, _)| k == "color") {
             let [r, g, b, a] = color::resolve(&placed.text.color, &placed.text.color).srgb();
@@ -407,7 +496,14 @@ impl<'n> Painter<'_, '_, '_> {
                 ),
             ));
         }
-        let document = clips::markup(&rooted, Some((content.width, content.height)));
+        (
+            clips::markup(&rooted, Some((content.width, content.height))),
+            content,
+        )
+    }
+
+    fn draw_svg(&mut self, placed: &Placed, style: &Style, svg: &opsis_scene::node::SvgElement) {
+        let (document, content) = self.svg_document(placed, style, svg);
         let base = placed
             .matrix
             .then(&opsis_layout::transform::Matrix::translation(
@@ -526,13 +622,22 @@ impl<'n> Painter<'_, '_, '_> {
         reach: f64,
     ) {
         let margin = reach.ceil();
-        let grow: u32 = opsis_types::numbers::whole(margin * 2.0);
-        let (width, height) = (self.surface.width() + grow, self.surface.height() + grow);
+        let whole = Area {
+            left: -margin,
+            top: -margin,
+            right: f64::from(self.surface.width()) + margin,
+            bottom: f64::from(self.surface.height()) + margin,
+        };
+        let area = self
+            .ink(path)
+            .map_or(whole, |ink| whole.within(self.base.bounds(ink)));
+        let (Some(width), Some(height)) = (area.width(), area.height()) else {
+            return;
+        };
         let Ok(surface) = Surface::new(width, height) else {
             return;
         };
-        let shift = opsis_types::numbers::narrow(margin);
-        let base = Matrix::translation(margin, margin, 0.0).then(&self.base);
+        let base = Matrix::translation(-area.left, -area.top, 0.0).then(&self.base);
         let mut surface = surface.with_base(matrix44(&base));
         surface.clear(Rgba::TRANSPARENT);
         {
@@ -561,7 +666,15 @@ impl<'n> Painter<'_, '_, '_> {
         );
         self.surface.draw_image_rect(
             &image,
-            (RectF::new(0.0, 0.0, w, h), RectF::new(-shift, -shift, w, h)),
+            (
+                RectF::new(0.0, 0.0, w, h),
+                RectF::new(
+                    opsis_types::numbers::narrow(area.left),
+                    opsis_types::numbers::narrow(area.top),
+                    w,
+                    h,
+                ),
+            ),
             Sampling::Nearest,
             &Paint::new(),
         );
@@ -600,19 +713,18 @@ impl<'n> Painter<'_, '_, '_> {
             width: f64::from(self.surface.width()),
             height: f64::from(self.surface.height()),
         };
-        let seen = to_layer.then(&from_device).bounds(view);
-        let needed = if stepped {
-            region_of(seen, LAYER_GRID)
-        } else {
-            region_of(seen, 1.0)
+        let visible = to_layer.then(&from_device).bounds(view);
+        let whole = self.ink(path).map(|ink| to_layer.bounds(ink));
+        let room = f64::from(self.surface.width()) * f64::from(self.surface.height());
+        let needed = match whole {
+            Some(whole) if !stepped && whole.width * whole.height <= WHOLE_LAYER_SHARE * room => {
+                region_of(whole, 1.0)
+            }
+            Some(whole) => region_of(overlap(visible, whole), LAYER_GRID),
+            None if stepped => region_of(visible, LAYER_GRID),
+            None => region_of(visible, 1.0),
         };
-        let key = if stepped {
-            self.stepped_layer_key(element, path, &inverse, raster)
-        } else {
-            let base =
-                Matrix::translation(-region_left(needed), -region_top(needed), 0.0).then(&to_layer);
-            self.layer_key(element, path, &base, (needed.width, needed.height))
-        };
+        let key = self.layer_key(element, path, &inverse, raster);
         let cached = self.resources.layer(key, needed).map(|(held, _)| held);
         let Some(region) =
             cached.or_else(|| self.raster_layer(element, path, &to_layer, key, needed))
@@ -638,7 +750,7 @@ impl<'n> Painter<'_, '_, '_> {
         );
         if let Some((_, image)) = self.resources.layer(key, region) {
             self.surface.draw_image_rect(
-                image,
+                &image,
                 (RectF::new(0.0, 0.0, w, h), RectF::new(0.0, 0.0, w, h)),
                 Sampling::Linear,
                 &Paint::new(),
@@ -681,43 +793,27 @@ impl<'n> Painter<'_, '_, '_> {
         Some(needed)
     }
 
-    fn layer_key(&self, element: &Element, path: &[usize], base: &Matrix, size: (u32, u32)) -> u64 {
-        use std::hash::{Hash, Hasher};
-        let mut hasher = std::collections::hash_map::DefaultHasher::new();
-        element.hash(&mut hasher);
-        path.hash(&mut hasher);
-        size.hash(&mut hasher);
-        for value in base.0 {
-            value.to_bits().hash(&mut hasher);
-        }
-        for placed in self.laid.boxes.iter().filter(|b| b.path.starts_with(path)) {
-            format!("{placed:?}").hash(&mut hasher);
-        }
-        hasher.finish()
-    }
-
-    fn stepped_layer_key(
-        &self,
-        element: &Element,
-        path: &[usize],
-        inverse: &Matrix,
-        raster: f64,
-    ) -> u64 {
+    fn layer_key(&self, element: &Element, path: &[usize], inverse: &Matrix, raster: f64) -> u64 {
         use std::hash::{Hash, Hasher};
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
         opsis_scene::hash::element_content_hash(element).hash(&mut hasher);
-        path.hash(&mut hasher);
+        prop!(&element.style, Opacity)
+            .map(|a| a.0.to_bits())
+            .hash(&mut hasher);
         raster.to_bits().hash(&mut hasher);
         for placed in self.laid.boxes.iter().filter(|b| b.path.starts_with(path)) {
+            let own = placed.path.len() == path.len();
             format!(
-                "{:?}{:?}{:?}{:?}{:?}{:?}{:?}",
-                placed.path,
+                "{:?}{:?}{:?}{:?}{:?}{:?}{:?}{:?}{:?}",
+                &placed.path[path.len()..],
                 placed.kind,
                 placed.border_box,
                 placed.border,
                 placed.padding,
                 placed.drawn,
-                placed.snap_origin
+                placed.snap_origin,
+                placed.text,
+                (!own).then_some(&placed.style),
             )
             .hash(&mut hasher);
             for value in inverse.then(&placed.matrix).0 {

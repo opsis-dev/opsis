@@ -6,11 +6,9 @@ use std::sync::mpsc::{Receiver, SyncSender, sync_channel};
 use std::sync::{Arc, Mutex, mpsc};
 use std::thread;
 
-use image::RgbImage;
-
 use crate::FootageError;
 use crate::chain::{
-    FootageSource, FrameInfo, decoder_args, frame_bytes, parse_frame, parse_time_base,
+    FootageSource, FrameInfo, PixelLayout, decoder_args, frame_bytes, parse_frame, parse_time_base,
 };
 
 const FRAMES_AHEAD: usize = 3;
@@ -28,7 +26,9 @@ pub struct FootageTools {
 #[derive(Debug)]
 pub struct RawFrame {
     pub pts_us: i64,
-    pub image: RgbImage,
+    pub width: u32,
+    pub height: u32,
+    pub pixels: Vec<u8>,
 }
 
 type Log = Arc<Mutex<VecDeque<String>>>;
@@ -69,21 +69,21 @@ fn read_frames(
     mut stdout: ChildStdout,
     infos: &Receiver<FrameInfo>,
     frames: &SyncSender<RawFrame>,
+    layout: PixelLayout,
 ) {
     for info in infos {
-        let Some(bytes) = frame_bytes(info) else {
+        let Some(bytes) = frame_bytes(info, layout) else {
             return;
         };
-        let mut buffer = vec![0; bytes];
-        if stdout.read_exact(&mut buffer).is_err() {
+        let mut pixels = vec![0; bytes];
+        if stdout.read_exact(&mut pixels).is_err() {
             return;
         }
-        let Some(image) = RgbImage::from_raw(info.width, info.height, buffer) else {
-            return;
-        };
         let frame = RawFrame {
             pts_us: info.pts_us,
-            image,
+            width: info.width,
+            height: info.height,
+            pixels,
         };
         if frames.send(frame).is_err() {
             return;
@@ -96,9 +96,10 @@ impl Decoder {
         tools: &FootageTools,
         source: &FootageSource,
         start_us: i64,
+        layout: PixelLayout,
     ) -> Result<Self, FootageError> {
         let mut child = Command::new(&tools.ffmpeg)
-            .args(decoder_args(source, start_us))
+            .args(decoder_args(source, start_us, layout))
             .env("TMPDIR", &tools.temp)
             .env("TEMP", &tools.temp)
             .env("TMP", &tools.temp)
@@ -117,7 +118,7 @@ impl Decoder {
         let (frame_tx, frames) = sync_channel(FRAMES_AHEAD);
         let log_for_reader = Arc::clone(&log);
         thread::spawn(move || read_log(stderr, &info_tx, &log_for_reader));
-        thread::spawn(move || read_frames(stdout, &info_rx, &frame_tx));
+        thread::spawn(move || read_frames(stdout, &info_rx, &frame_tx, layout));
         Ok(Self {
             child,
             frames,

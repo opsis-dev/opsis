@@ -12,6 +12,7 @@ use opsis_types::recording::{AnnotationKind, AnnotationLook, AnnotationSpec, Hig
 
 use crate::elements::anim::{Fade, draw_on, fade_window, is_faded_out};
 use crate::elements::camera::click_log::rect_center;
+use crate::elements::camera::window::lifted;
 use crate::elements::draw::{DrawFailure, css_color};
 use crate::elements::fonts::{FontRole, font_or};
 use crate::elements::parts::hand_drawn::{MarkBox, MarkShape, hand_drawn_mark};
@@ -419,6 +420,7 @@ pub struct Shown {
     pub t: f64,
     pub camera_scale: f64,
     pub k: f64,
+    pub lift: bool,
 }
 
 pub fn annotations(list: &[Annotation], shown: &Shown) -> Result<Option<Node>, DrawFailure> {
@@ -463,7 +465,10 @@ pub fn annotations(list: &[Annotation], shown: &Shown) -> Result<Option<Node>, D
             AnnotationKind::Tooltip => tooltip(&mark),
             AnnotationKind::Callout => callout(&mark),
         };
-        marks.extend(drawn);
+        marks.extend(drawn.map(|mark| if shown.lift { lifted(mark) } else { mark }));
+    }
+    if marks.is_empty() {
+        return Ok(None);
     }
     Ok(Some(
         div(Style::default()

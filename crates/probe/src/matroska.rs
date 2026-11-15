@@ -5,7 +5,9 @@ use crate::pictures::{
     FullRange, Layout, aac_config, av1_config, avc_config, hevc_config, vp9_frame,
 };
 use crate::read::{Bytes, Source};
-use crate::{AudioStream, Found, Length, ProbeError, VideoStream};
+use crate::{
+    AudioStream, Found, Length, ProbeError, VideoFrames, VideoStream, from_start, ticks_to_us,
+};
 
 const FORMAT: &str = "matroska,webm";
 
@@ -131,6 +133,7 @@ struct TrackEntry {
     rate: Option<f64>,
     channels: Option<u64>,
     depth: Option<u64>,
+    codec_delay: u64,
 }
 
 fn track(data: &[u8]) -> TrackEntry {
@@ -142,6 +145,7 @@ fn track(data: &[u8]) -> TrackEntry {
             0x86 => t.codec = text(body),
             0x63A2 => t.private = body.to_vec(),
             0x0023_E383 => t.default_duration = Some(uint(body)),
+            0x56AA => t.codec_delay = uint(body),
             0xE0 => {
                 for (id, body) in items(body) {
                     match id {
@@ -173,6 +177,8 @@ struct Blocks {
     times: Vec<i64>,
     first: Option<i64>,
     last: Option<i64>,
+    every: bool,
+    starts: Vec<(u64, i64)>,
 }
 
 fn block(
@@ -189,12 +195,18 @@ fn block(
     let time = cluster_time + i64::from(r.bei16()?);
     r.u8()?;
     blocks.first = Some(blocks.first.map_or(time, |f| f.min(time)));
+    if blocks.every {
+        match blocks.starts.iter_mut().find(|(t, _)| *t == track) {
+            Some((_, start)) => *start = (*start).min(time),
+            None => blocks.starts.push((track, time)),
+        }
+    }
     blocks.last = Some(blocks.last.map_or(time, |l| l.max(time)));
     if Some(track) == blocks.video {
-        if blocks.times.len() < RATE_SAMPLES {
+        if blocks.every || blocks.times.len() < RATE_SAMPLES {
             blocks.times.push(time);
         }
-        if blocks.first_frame.is_none() {
+        if blocks.first_frame.is_none() && !blocks.every {
             let frame_at = at + u64::try_from(len + BLOCK_TIME_AND_FLAGS).unwrap_or(0);
             blocks.first_frame = Some(source.bytes(frame_at, FIRST_FRAME_SAMPLE)?);
         }
@@ -354,31 +366,102 @@ fn median_step(times: &[i64]) -> Option<i64> {
     steps.get(steps.len() / 2).copied()
 }
 
-pub fn probe(source: &mut Source) -> Result<Found, ProbeError> {
+fn segment_of(source: &mut Source) -> Result<Element, ProbeError> {
     let Some(header) = element(source, 0)? else {
         return Err(ProbeError::Unknown);
     };
     let mut at = header.data + header.size.ok_or(ProbeError::Damaged)?;
-    let segment = loop {
+    loop {
         let Some(el) = element(source, at)? else {
             return Err(ProbeError::Unknown);
         };
         if el.id == SEGMENT {
-            break el;
+            return Ok(el);
         }
         at = el.data + el.size.ok_or(ProbeError::Damaged)?;
-    };
-    let end = segment.size.map_or(source.len(), |s| segment.data + s);
-    let mut scale = 1_000_000u64;
-    let mut duration = None;
-    let mut tracks: Vec<TrackEntry> = Vec::new();
-    let mut blocks = Blocks {
+    }
+}
+
+const fn no_blocks(every: bool) -> Blocks {
+    Blocks {
         video: None,
         first_frame: None,
         times: Vec::new(),
         first: None,
         last: None,
+        every,
+        starts: Vec::new(),
+    }
+}
+
+pub fn frames(source: &mut Source) -> Result<Option<VideoFrames>, ProbeError> {
+    let segment = segment_of(source)?;
+    let end = segment.size.map_or(source.len(), |s| segment.data + s);
+    let mut scale = 1_000_000u64;
+    let mut tracks: Vec<TrackEntry> = Vec::new();
+    let mut found = no_blocks(true);
+    let mut at = segment.data;
+    while at < end {
+        let Some(el) = element(source, at)? else {
+            break;
+        };
+        if el.id == CLUSTER {
+            found.video = tracks.iter().find(|t| t.kind == 1).map(|t| t.number);
+            at = cluster(source, &el, &mut found)?;
+            continue;
+        }
+        let Some(size) = el.size else {
+            break;
+        };
+        if (el.id == INFO || el.id == TRACKS) && size <= ELEMENT_LIMIT {
+            let body = source.bytes(el.data, usize::try_from(size).unwrap_or(0))?;
+            for (id, data) in items(&body) {
+                match id {
+                    0x002A_D7B1 => scale = uint(data),
+                    TRACK_ENTRY => tracks.push(track(data)),
+                    _ => {}
+                }
+            }
+        }
+        at = el.data + size;
+    }
+    let Some(video) = tracks.iter().find(|t| t.kind == 1) else {
+        return Ok(None);
     };
+    let per_tick = i128::from(scale);
+    let to_us = |ticks: i64| ticks_to_us(i128::from(ticks) * per_tick, 1_000_000_000);
+    let delay_of = |number: u64| {
+        tracks
+            .iter()
+            .find(|t| t.number == number)
+            .map_or(0, |t| i128::from(t.codec_delay))
+    };
+    let start_ticks = found
+        .starts
+        .iter()
+        .filter_map(|&(number, first)| {
+            let delay = (delay_of(number) + per_tick / 2) / per_tick.max(1);
+            i64::try_from(i128::from(first) - delay).ok()
+        })
+        .min();
+    let Some(start) = start_ticks.and_then(to_us) else {
+        return Ok(None);
+    };
+    let times: Option<Vec<i64>> = found.times.iter().map(|&t| to_us(t)).collect();
+    Ok(times.map(|times| VideoFrames {
+        times_us: from_start(times, start),
+        width: video.width,
+        height: video.height,
+    }))
+}
+
+pub fn probe(source: &mut Source) -> Result<Found, ProbeError> {
+    let segment = segment_of(source)?;
+    let end = segment.size.map_or(source.len(), |s| segment.data + s);
+    let mut scale = 1_000_000u64;
+    let mut duration = None;
+    let mut tracks: Vec<TrackEntry> = Vec::new();
+    let mut blocks = no_blocks(false);
     let mut at = segment.data;
     while at < end {
         let Some(el) = element(source, at)? else {

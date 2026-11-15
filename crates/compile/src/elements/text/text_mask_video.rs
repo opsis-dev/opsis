@@ -198,7 +198,7 @@ fn fill_of(props: &Shown, cx: &Cx<'_>) -> Node {
     }
     match props.footage_urls.get("src") {
         Some(url) => filled(
-            footage_frame_url(url, mask.start_from + cx.frame() / cx.fps()),
+            footage_frame_url(url, mask.start_from + cx.frame() / cx.fps(), cx.measure),
             Fit::Cover,
             None,
         ),

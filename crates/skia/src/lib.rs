@@ -12,7 +12,7 @@ mod surface;
 mod text;
 mod values;
 
-pub use image::Image;
+pub use image::{Image, SharedPixels};
 pub use lottie::Lottie;
 pub use paint::{ImageFilter, Kernel, Paint, Shader};
 pub use path::Path;

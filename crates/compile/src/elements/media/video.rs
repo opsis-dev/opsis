@@ -89,7 +89,11 @@ pub fn draw(props: &Shown, cx: &Cx<'_>) -> Result<Node, DrawFailure> {
         return Ok(div(Style::default()).into());
     };
     let time_s = cx.frame() / cx.fps() * video.playback_rate;
-    let mut children = vec![filled(footage_frame_url(url, time_s), video.fit, None)];
+    let mut children = vec![filled(
+        footage_frame_url(url, time_s, cx.measure),
+        video.fit,
+        None,
+    )];
     if video.dim > 0.0 {
         children.push(
             div(absolute_fill()

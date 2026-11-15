@@ -403,7 +403,7 @@ impl Replay<'_, '_, '_, '_> {
         paint.set_blend(blend_of(state.composite));
         surface.reset_matrix();
         surface.concat(matrix44(&base.then(&transform)));
-        surface.draw_image_rect(image, (full, target), Sampling::Linear, &paint);
+        surface.draw_image_rect(&image, (full, target), Sampling::Linear, &paint);
         surface.reset_matrix();
         surface.concat(matrix44(&base));
     }

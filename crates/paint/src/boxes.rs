@@ -349,7 +349,7 @@ pub fn draw_layer(
                             narrow(f64::from(image.height())),
                         );
                         surface.draw_image_rect(
-                            image,
+                            &image,
                             (full, rect_f(tile)),
                             Sampling::Linear,
                             &paint,
@@ -783,6 +783,6 @@ pub fn draw_replaced(
         },
         placed.snap_origin,
     ));
-    surface.draw_image_rect(image, (full, target), filtering, &Paint::new());
+    surface.draw_image_rect(&image, (full, target), filtering, &Paint::new());
     surface.restore_to(saved);
 }

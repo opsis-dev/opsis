@@ -5,7 +5,6 @@ use std::sync::{Condvar, Mutex, MutexGuard, PoisonError};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Schedule {
     pub workers: usize,
-    pub chunk: usize,
     pub held: usize,
 }
 
@@ -98,26 +97,14 @@ impl<E> Board<E> {
     }
 }
 
-fn work<W: Worker>(
-    worker: &mut W,
-    frames: &[u32],
-    chunk: usize,
-    taken: &AtomicUsize,
-    board: &Board<W::Error>,
-) {
-    let chunks = frames.len().div_ceil(chunk);
+fn work<W: Worker>(worker: &mut W, frames: &[u32], taken: &AtomicUsize, board: &Board<W::Error>) {
     loop {
-        let index = taken.fetch_add(1, Ordering::Relaxed);
-        if index >= chunks {
+        let position = taken.fetch_add(1, Ordering::Relaxed);
+        let Some(frame) = frames.get(position) else {
             return;
-        }
-        let start = index * chunk;
-        let end = (start + chunk).min(frames.len());
-        for (offset, frame) in frames[start..end].iter().enumerate() {
-            let position = start + offset;
-            if !board.wait_for_room(position) || !board.deliver(position, worker.draw(*frame)) {
-                return;
-            }
+        };
+        if !board.wait_for_room(position) || !board.deliver(position, worker.draw(*frame)) {
+            return;
         }
     }
 }
@@ -132,7 +119,6 @@ where
     W: Worker<Error = E>,
     E: Send,
 {
-    let chunk = schedule.chunk.max(1);
     let taken = AtomicUsize::new(0);
     let board = Board {
         shared: Mutex::new(Shared {
@@ -147,7 +133,7 @@ where
     };
     std::thread::scope(|scope| {
         for _ in 0..schedule.workers.max(1) {
-            scope.spawn(|| work(&mut make(), frames, chunk, &taken, &board));
+            scope.spawn(|| work(&mut make(), frames, &taken, &board));
         }
         let mut result = Ok(());
         for (position, frame) in frames.iter().enumerate() {

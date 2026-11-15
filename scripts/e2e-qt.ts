@@ -128,10 +128,12 @@ function devBrowser(): string {
   return browser;
 }
 
+const EXPORTS = { exportThreads: 8 };
+
 function seedApi(): string {
   rmSync(API_DIR, { recursive: true, force: true });
   const userData = path.join(API_DIR, "user-data");
-  seedUserData(userData, { api: { enabled: true, scripts: true } });
+  seedUserData(userData, { api: { enabled: true, scripts: true }, media: EXPORTS });
   cpSync(path.join(ROOT, "examples"), path.join(API_DIR, "projects"), { recursive: true });
   return userData;
 }
@@ -184,7 +186,7 @@ function writeLog(scenario: ScenarioName, output: string): void {
 function seedRuns(): string {
   rmSync(RUNS_DIR, { recursive: true, force: true });
   const userData = path.join(RUNS_DIR, "user-data");
-  seedUserData(userData, {}, { engine: false });
+  seedUserData(userData, { media: EXPORTS }, { engine: false });
   cpSync(path.join(ROOT, "examples"), path.join(RUNS_DIR, "projects"), { recursive: true });
   return userData;
 }

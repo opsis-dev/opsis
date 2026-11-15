@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use opsis_audio::output::{Output, Preview};
-use opsis_footage::chain::FootageSource;
+use opsis_footage::chain::{FootageSource, PixelLayout};
 use opsis_footage::decoder::{Decoder, FootageTools};
 use opsis_media::grade::GradeChain;
 use opsis_qt::{FrameRef, PlayerView};
@@ -117,16 +117,13 @@ fn volume_db(volume: f64, muted: bool) -> f64 {
 }
 
 fn plain_source(file: &Path) -> FootageSource {
-    FootageSource {
-        file: file.to_owned(),
-        grade: GradeChain {
+    FootageSource::plain(
+        file.to_owned(),
+        GradeChain {
             chain: format!("[0:v]scale=w=trunc(min({LARGEST_WIDTH}\\,iw)/2)*2:h=-2,setsar=1[out]"),
             extra_inputs: Vec::new(),
         },
-        redactions: Vec::new(),
-        trim_us: 0,
-        loop_us: None,
-    }
+    )
 }
 
 fn micros(seconds: f64) -> i64 {
@@ -213,14 +210,18 @@ impl Player {
             log::warn!("making the player's temp folder: {error}");
             return;
         }
-        let mut decoder =
-            match Decoder::start(&self.tools(ffmpeg), &plain_source(&self.file), micros(from)) {
-                Ok(decoder) => decoder,
-                Err(error) => {
-                    log::warn!("starting the player's decoder: {error}");
-                    return;
-                }
-            };
+        let mut decoder = match Decoder::start(
+            &self.tools(ffmpeg),
+            &plain_source(&self.file),
+            micros(from),
+            PixelLayout::Rgb,
+        ) {
+            Ok(decoder) => decoder,
+            Err(error) => {
+                log::warn!("starting the player's decoder: {error}");
+                return;
+            }
+        };
         loop {
             if !self.current(generation) {
                 return;
@@ -246,8 +247,7 @@ impl Player {
             } else if at + 1.0 / 30.0 < from {
                 continue;
             }
-            let (width, height) = frame.image.dimensions();
-            self.store(width, height, frame.image.into_raw());
+            self.store(frame.width, frame.height, frame.pixels);
             if !follow {
                 return;
             }

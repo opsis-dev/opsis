@@ -15,7 +15,7 @@ use opsis_types::values::RecordingValue;
 
 use crate::executors::{RenderEngine, film_error, native_files};
 use crate::frames::FilmRun;
-use crate::native::{NATIVE_BASE, NativeRender, render_native};
+use crate::native::{NATIVE_BASE, NativeRender, export_workers, render_native};
 
 const PREVIEW_CRF: f64 = 23.0;
 const DRAWING: &str = "Drawing the preview";
@@ -89,6 +89,7 @@ pub async fn render_preview(
             encoding,
             every_nth_frame: 1,
             scale: 1.0,
+            workers: export_workers(&ctx.env.settings),
             output: temp,
         };
         render_native(render, &run).await.map_err(film_error)

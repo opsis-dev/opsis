@@ -88,7 +88,7 @@ fn film_for<'f>(
     spec: &'f opsis_types::timeline::TimelineSpec,
     bytes: &'f (dyn Fn(&str) -> Option<Vec<u8>> + Sync),
     sizes: &'f dyn Fn(&str) -> Option<(f64, f64)>,
-    pictures: &'f (dyn Fn(&str) -> Option<opsis_paint::Picture> + Sync),
+    pictures: &'f (dyn Fn(&str, u64) -> Option<opsis_paint::FramePixels> + Sync),
 ) -> Film<'f> {
     Film::new(spec, bytes, sizes)
         .unwrap_or_else(|e| panic!("{e}"))
@@ -163,7 +163,7 @@ fn picture_of(meta: &ElementMeta, files: &NativeFiles) -> Result<Drawn, String> 
     let spec = element_spec(meta, NATIVE_BASE).map_err(|e| e.to_string())?;
     let bytes = |source: &str| files.bytes(source);
     let sizes = |source: &str| files.size(source);
-    let pictures = |source: &str| files.frame(source);
+    let pictures = |source: &str, stamp: u64| files.frame(source, stamp);
     let mut film = film_for(files, &spec, &bytes, &sizes, &pictures);
     let frame = f64::from(frame_at(spec.duration_in_frames, MIDDLE));
     let filament = drawn_by_filament(&film.scene(frame).map_err(|e| e.to_string())?);
@@ -242,7 +242,7 @@ fn chosen_elements_build_their_golden_scenes() {
         let spec = element_spec(meta, NATIVE_BASE).unwrap_or_else(|e| panic!("{key}: {e}"));
         let bytes = |source: &str| files.bytes(source);
         let sizes = |source: &str| files.size(source);
-        let pictures = |source: &str| files.frame(source);
+        let pictures = |source: &str, stamp: u64| files.frame(source, stamp);
         let mut film = film_for(&files, &spec, &bytes, &sizes, &pictures);
         for frame in frames_at(spec.duration_in_frames, &SCENE_POSITIONS) {
             let scene = film
@@ -387,7 +387,7 @@ fn elements_hold_still_after_their_animation() {
         }
         let bytes = |source: &str| files.bytes(source);
         let sizes = |source: &str| files.size(source);
-        let pictures = |source: &str| files.frame(source);
+        let pictures = |source: &str, stamp: u64| files.frame(source, stamp);
         let mut film = film_for(&files, &spec, &bytes, &sizes, &pictures);
         let (Ok(before), Ok(after)) =
             (film.scene(f64::from(last - 1)), film.scene(f64::from(last)))

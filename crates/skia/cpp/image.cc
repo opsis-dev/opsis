@@ -47,4 +47,34 @@ std::unique_ptr<Image> image_from_rgba(int32_t width, int32_t height,
   return std::make_unique<Image>(std::move(image));
 }
 
+std::unique_ptr<Image> image_wrap_bgra(int32_t width, int32_t height,
+                                       rust::Box<HeldPixels> pixels) {
+  if (width <= 0 || height <= 0) {
+    return nullptr;
+  }
+  SkImageInfo info = SkImageInfo::Make(width, height, kBGRA_8888_SkColorType,
+                                       kOpaque_SkAlphaType);
+  rust::Slice<const uint8_t> bytes = pixels->bytes();
+  if (bytes.size() < info.computeMinByteSize()) {
+    return nullptr;
+  }
+  auto* held = new rust::Box<HeldPixels>(std::move(pixels));
+  SkPixmap source(info, bytes.data(), info.minRowBytes());
+  sk_sp<SkImage> image = SkImages::RasterFromPixmap(
+      source,
+      [](const void*, void* context) {
+        delete static_cast<rust::Box<HeldPixels>*>(context);
+      },
+      held);
+  if (!image) {
+    delete held;
+    return nullptr;
+  }
+  return std::make_unique<Image>(std::move(image));
+}
+
+std::unique_ptr<Image> share_image(const Image& image) {
+  return std::make_unique<Image>(image.get());
+}
+
 }

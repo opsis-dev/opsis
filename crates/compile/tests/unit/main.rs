@@ -1,4 +1,5 @@
 mod action_sounds;
+mod annotation_lift;
 mod areas;
 mod camera_track;
 mod canvas;

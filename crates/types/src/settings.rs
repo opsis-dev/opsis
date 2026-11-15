@@ -341,6 +341,21 @@ impl EncodePreset {
 pub struct MediaSection {
     #[garde(skip)]
     pub encode_speed: EncodePreset,
+    #[garde(range(min = 1))]
+    pub export_threads: Option<u32>,
+}
+
+pub fn computer_threads() -> u32 {
+    std::thread::available_parallelism().map_or(1, |n| crate::numbers::count(n.get()))
+}
+
+pub fn default_export_threads(threads: u32) -> u32 {
+    threads.max(1).div_ceil(2)
+}
+
+pub fn export_threads(chosen: Option<u32>, threads: u32) -> u32 {
+    let threads = threads.max(1);
+    chosen.map_or_else(|| default_export_threads(threads), |n| n.clamp(1, threads))
 }
 
 pub const SETTINGS_SECTIONS: [&str; 10] = [

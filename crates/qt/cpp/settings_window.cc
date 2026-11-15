@@ -195,10 +195,42 @@ QWidget* SettingsWindow::GeneralPage() {
       QStringLiteral("Faster makes bigger files. Files already made stay as "
                      "they are, and exports keep the Render node's own "
                      "setting.")));
+  auto* advanced = new Card(QStringLiteral("Advanced"), QString());
+  export_threads_ = new QLineEdit();
+  export_threads_->setObjectName(QStringLiteral("ExportThreads"));
+  export_threads_->setFixedWidth(96);
+  export_threads_->setAccessibleName(
+      QStringLiteral("Threads used for exports"));
+  connect(export_threads_, &QLineEdit::editingFinished, this, [this] {
+    if (!export_threads_->isModified()) return;
+    export_threads_->setModified(false);
+    const QString text = export_threads_->text().trimmed();
+    if (text.isEmpty()) {
+      Patch(QStringLiteral("media"), QStringLiteral("exportThreads"),
+            QJsonValue(QJsonValue::Null));
+      return;
+    }
+    bool ok = false;
+    const double typed = QLocale::c().toDouble(text, &ok);
+    if (!ok) {
+      Load();
+      return;
+    }
+    const bridge::SettingsView now = App::Get().session().settings();
+    const int whole = static_cast<int>(std::lround(
+        std::clamp(typed, 1.0, static_cast<double>(now.export_threads_max))));
+    Patch(QStringLiteral("media"), QStringLiteral("exportThreads"), whole);
+  });
+  advanced->body()->addWidget(MakeField(
+      QStringLiteral("Threads used for exports"), Holder(export_threads_),
+      QStringLiteral("Used for exports and take previews. Fewer threads "
+                     "leave the computer free for other work and use less "
+                     "memory. Leave it empty to use half of this "
+                     "computer's threads.")));
   return Page(QStringLiteral("General"),
               QStringLiteral("What Opsis does when it opens and before it "
                              "closes."),
-              {starting, working});
+              {starting, working, advanced});
 }
 
 QWidget* SettingsWindow::ProjectsPage() {
@@ -586,6 +618,14 @@ void SettingsWindow::Load() {
                              QStringLiteral("last-n"));
   if (!keep_last_->hasFocus()) {
     keep_last_->setText(QString::number(view.keep_last));
+  }
+  export_threads_->setPlaceholderText(QStringLiteral("%1 of %2")
+                                          .arg(view.export_threads_default)
+                                          .arg(view.export_threads_max));
+  if (!export_threads_->hasFocus()) {
+    export_threads_->setText(view.export_threads_chosen
+                                 ? QString::number(view.export_threads)
+                                 : QString());
   }
   if (!live_fps_->isSliderDown()) {
     live_fps_->blockSignals(true);

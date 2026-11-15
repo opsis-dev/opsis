@@ -29,6 +29,7 @@ struct Matrix44;
 struct FontSpec;
 struct Axis;
 struct Gradient;
+struct HeldPixels;
 enum class BlendMode : uint8_t;
 enum class TileMode : uint8_t;
 enum class Sampling : uint8_t;
@@ -163,6 +164,9 @@ class Surface {
                               const ImageFilter& backdrop);
   void concat(Matrix44 matrix);
   void reset_matrix();
+  RectF device_rect(RectF rect) const;
+  RectF local_rect(RectF rect) const;
+  RectF device_clip() const;
   void clip_rect(RectF rect, bool anti_alias, bool outside);
   void clip_round_rect(RoundRect rect, bool anti_alias);
   void clip_path(const Path& path, bool anti_alias);
@@ -280,5 +284,8 @@ std::unique_ptr<Lottie> make_lottie(rust::Slice<const uint8_t> json);
 std::unique_ptr<Image> decode_image(rust::Slice<const uint8_t> bytes);
 std::unique_ptr<Image> image_from_rgba(int32_t width, int32_t height,
                                        rust::Slice<const uint8_t> pixels);
+std::unique_ptr<Image> image_wrap_bgra(int32_t width, int32_t height,
+                                       rust::Box<HeldPixels> pixels);
+std::unique_ptr<Image> share_image(const Image& image);
 
 }

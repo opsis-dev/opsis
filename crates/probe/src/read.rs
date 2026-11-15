@@ -124,6 +124,7 @@ impl<'a> Bytes<'a> {
         bef32: f32 = 4, from_be_bytes;
         bef64: f64 = 8, from_be_bytes;
         bei16: i16 = 2, from_be_bytes;
+        bei32: i32 = 4, from_be_bytes;
         bei64: i64 = 8, from_be_bytes;
         lei64: i64 = 8, from_le_bytes;
     }

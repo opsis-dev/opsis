@@ -1,8 +1,9 @@
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
 use opsis_layout::output::TextRun;
-use opsis_skia::{Axis, Image, Typeface};
+use opsis_skia::{Axis, Image, SharedPixels, Typeface};
 
 type TypefaceKey = (u64, u32, Vec<([u8; 4], u32)>);
 
@@ -13,7 +14,23 @@ pub struct Picture {
     pub rgba: Vec<u8>,
 }
 
-pub type Frames<'a> = &'a (dyn Fn(&str) -> Option<Picture> + Sync);
+#[derive(Clone)]
+pub struct FramePixels {
+    pub width: u32,
+    pub height: u32,
+    pub bgra: SharedPixels,
+}
+
+impl std::fmt::Debug for FramePixels {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("FramePixels")
+            .field("width", &self.width)
+            .field("height", &self.height)
+            .finish_non_exhaustive()
+    }
+}
+
+pub type Frames<'a> = &'a (dyn Fn(&str, u64) -> Option<FramePixels> + Sync);
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Setting {
@@ -108,44 +125,147 @@ impl LayerRegion {
 }
 
 #[derive(Default)]
+pub struct SharedCache {
+    images: Mutex<Shelf<String, Image>>,
+    layers: Mutex<Shelf<u64, (LayerRegion, Image)>>,
+    layers_drawn: AtomicU64,
+}
+
+impl std::fmt::Debug for SharedCache {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SharedCache")
+            .field("images", &lock(&self.images).len())
+            .field("layers", &lock(&self.layers).len())
+            .field("layers_drawn", &self.layers_drawn())
+            .finish()
+    }
+}
+
+fn lock<T>(shelf: &Mutex<T>) -> MutexGuard<'_, T> {
+    shelf.lock().unwrap_or_else(PoisonError::into_inner)
+}
+
+impl SharedCache {
+    pub fn layers_drawn(&self) -> u64 {
+        self.layers_drawn.load(Ordering::Relaxed)
+    }
+
+    pub fn sweep(&self, now: u64) {
+        swept(&mut lock(&self.images), now);
+        swept(&mut lock(&self.layers), now);
+    }
+
+    fn image(
+        &self,
+        source: &str,
+        stamp: u64,
+        decode: impl FnOnce() -> Option<Image>,
+    ) -> Option<Image> {
+        let key = source.to_owned();
+        if let Some(kept) = lock(&self.images).get_mut(&key) {
+            kept.used = kept.used.max(stamp);
+            return kept.value.clone();
+        }
+        let picture = decode();
+        lock(&self.images).insert(
+            key,
+            Kept {
+                value: picture.clone(),
+                used: stamp,
+            },
+        );
+        picture
+    }
+
+    fn layer(&self, key: u64, needed: LayerRegion, stamp: u64) -> Option<(LayerRegion, Image)> {
+        let mut layers = lock(&self.layers);
+        let kept = layers.get_mut(&key)?;
+        let (region, image) = kept.value.as_ref()?;
+        if !region.holds(needed) {
+            return None;
+        }
+        kept.used = kept.used.max(stamp);
+        Some((*region, image.clone()))
+    }
+
+    fn keep_layer(&self, key: u64, region: LayerRegion, image: Image, stamp: u64) {
+        self.layers_drawn.fetch_add(1, Ordering::Relaxed);
+        lock(&self.layers).insert(
+            key,
+            Kept {
+                value: Some((region, image)),
+                used: stamp,
+            },
+        );
+    }
+}
+
 pub struct Cache {
     fonts: Option<(Arc<usvg::fontdb::Database>, Arc<FontIds>)>,
     typefaces: Shelf<TypefaceKey, Typeface>,
-    images: Shelf<String, Image>,
     trees: Shelf<String, usvg::Tree>,
     animations: Shelf<String, opsis_skia::Lottie>,
-    layers: Shelf<u64, (LayerRegion, Image)>,
-    layers_drawn: u64,
+    shared: Arc<SharedCache>,
+    sweeps_shared: bool,
     frame: u64,
+    stamp: u64,
+}
+
+impl Default for Cache {
+    fn default() -> Self {
+        Self {
+            fonts: None,
+            typefaces: HashMap::new(),
+            trees: HashMap::new(),
+            animations: HashMap::new(),
+            shared: Arc::default(),
+            sweeps_shared: true,
+            frame: 0,
+            stamp: 0,
+        }
+    }
 }
 
 impl std::fmt::Debug for Cache {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Cache")
             .field("typefaces", &self.typefaces.len())
-            .field("images", &self.images.len())
             .field("trees", &self.trees.len())
             .field("animations", &self.animations.len())
-            .field("layers", &self.layers.len())
-            .field("layers_drawn", &self.layers_drawn)
+            .field("shared", &self.shared)
             .field("frame", &self.frame)
+            .field("stamp", &self.stamp)
             .finish_non_exhaustive()
     }
 }
 
 impl Cache {
-    pub const fn layers_drawn(&self) -> u64 {
-        self.layers_drawn
+    pub fn with_shared(shared: Arc<SharedCache>) -> Self {
+        Self {
+            shared,
+            sweeps_shared: false,
+            ..Self::default()
+        }
+    }
+
+    pub fn layers_drawn(&self) -> u64 {
+        self.shared.layers_drawn()
+    }
+
+    pub const fn stamp_with(&mut self, stamp: u64) {
+        self.stamp = stamp;
     }
 
     pub fn next_frame(&mut self) {
         self.frame += 1;
         let frame = self.frame;
         swept(&mut self.typefaces, frame);
-        swept(&mut self.images, frame);
         swept(&mut self.trees, frame);
         swept(&mut self.animations, frame);
-        swept(&mut self.layers, frame);
+        if self.sweeps_shared {
+            self.stamp = frame;
+            self.shared.sweep(frame);
+        }
     }
 
     fn fonts(
@@ -278,26 +398,14 @@ impl<'a> Resources<'a> {
         self.cache
     }
 
-    pub fn layer(&mut self, key: u64, needed: LayerRegion) -> Option<(LayerRegion, &Image)> {
-        let frame = self.cache.frame;
-        let kept = self.cache.layers.get_mut(&key)?;
-        let (region, image) = kept.value.as_ref()?;
-        if !region.holds(needed) {
-            return None;
-        }
-        kept.used = frame;
-        Some((*region, image))
+    pub fn layer(&mut self, key: u64, needed: LayerRegion) -> Option<(LayerRegion, Image)> {
+        self.cache.shared.layer(key, needed, self.cache.stamp)
     }
 
     pub fn keep_layer(&mut self, key: u64, region: LayerRegion, image: Image) {
-        self.cache.layers_drawn += 1;
-        self.cache.layers.insert(
-            key,
-            Kept {
-                value: Some((region, image)),
-                used: self.cache.frame,
-            },
-        );
+        self.cache
+            .shared
+            .keep_layer(key, region, image, self.cache.stamp);
     }
 
     #[must_use]
@@ -337,7 +445,7 @@ impl<'a> Resources<'a> {
             )?;
             return picture_of(&image);
         }
-        picture_of(self.image(source)?)
+        picture_of(&self.image(source)?)
     }
 
     pub fn typeface(&mut self, run: &TextRun) -> Option<&Typeface> {
@@ -409,24 +517,19 @@ impl<'a> Resources<'a> {
         )
     }
 
-    pub fn image(&mut self, source: &str) -> Option<&Image> {
+    pub fn image(&mut self, source: &str) -> Option<Image> {
         let files = self.files;
         let frames = self.frames;
-        kept(
-            &mut self.cache.images,
-            source.to_owned(),
-            self.cache.frame,
-            |_| {
-                if let Some(picture) = frames.and_then(|frames| frames(source)) {
-                    return Image::from_rgba(picture.width, picture.height, &picture.rgba);
-                }
-                source
-                    .strip_prefix("data:")
-                    .map_or_else(|| files(source), data_bytes)
-                    .and_then(|bytes| Image::decode(&bytes))
-            },
-        )
-        .map(|i| &*i)
+        let stamp = self.cache.stamp;
+        self.cache.shared.image(source, stamp, || {
+            if let Some(frame) = frames.and_then(|frames| frames(source, stamp)) {
+                return Image::wrap_bgra(frame.width, frame.height, frame.bgra);
+            }
+            source
+                .strip_prefix("data:")
+                .map_or_else(|| files(source), data_bytes)
+                .and_then(|bytes| Image::decode(&bytes))
+        })
     }
 }
 

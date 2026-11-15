@@ -44,6 +44,26 @@ fn scene(scale: f64, shift: f64, will_change: WillChange) -> Node {
         .into()
 }
 
+fn panned(scale: f64, shift: f64) -> Node {
+    let layer = placed(40.0, 40.0, 60.0)
+        .transform(vec![
+            Transform::Translate(Length::px(shift), Length::px(shift / 2.0), Length::ZERO),
+            Transform::Scale(Num(scale), Num(scale), Num(1.0)),
+        ])
+        .will_change(WillChange::Transform);
+    div(placed(0.0, 0.0, SIDE))
+        .child(
+            div(layer)
+                .child(div(
+                    placed(5.0, 5.0, 20.0).background_color(Color::rgb8(249, 115, 22))
+                ))
+                .child(div(
+                    placed(30.0, 25.0, 25.0).background_color(Color::rgb8(14, 165, 233))
+                )),
+        )
+        .into()
+}
+
 fn drawn(root: &Node, cache: Cache) -> (Vec<u8>, Cache) {
     let files = |_: &str| None;
     let mut fonts = Fonts::new();
@@ -79,6 +99,19 @@ proptest! {
     }
 
     #[test]
+    fn a_panning_layer_draws_the_same_from_a_warm_cache_as_from_a_cold_one(
+        scale in 0.6f64..1.4,
+        first in -8.0f64..8.0,
+        second in -8.0f64..8.0,
+    ) {
+        let (_, warm) = drawn(&panned(scale, first), Cache::default());
+        let later = panned(scale, second);
+        let (from_warm, _) = drawn(&later, warm);
+        let (from_cold, _) = drawn(&later, Cache::default());
+        prop_assert!(from_warm == from_cold);
+    }
+
+    #[test]
     fn a_still_layer_draws_the_same_from_a_warm_cache_as_from_a_cold_one(
         scale in 0.6f64..2.5,
         shift in -20.0f64..20.0,
@@ -107,4 +140,54 @@ fn a_still_layer_is_drawn_once_while_it_holds() {
         cache = drawn(&scene(1.5, 4.0, WillChange::Transform), cache).1;
     }
     assert_eq!(cache.layers_drawn(), 1);
+}
+
+#[test]
+fn a_pan_at_one_scale_draws_its_layer_once() {
+    let mut cache = Cache::default();
+    for shift in [0.0, 1.3, 2.7, 4.1, -3.4] {
+        cache = drawn(&panned(1.25, shift), cache).1;
+    }
+    assert_eq!(cache.layers_drawn(), 1);
+}
+
+#[test]
+fn a_pan_zoomed_in_past_the_picture_draws_its_layer_once() {
+    let mut cache = Cache::default();
+    for shift in [0.0, -2.5, -5.0, -7.5, -10.0, -12.5, -15.0, -17.5] {
+        cache = drawn(&panned(3.0, shift), cache).1;
+    }
+    assert_eq!(cache.layers_drawn(), 1);
+}
+
+fn stacked_sample(tag: i32) -> Node {
+    let window = placed(30.0, 30.0, 90.0)
+        .border_radius_all(14.0)
+        .background_color(Color::rgb8(250, 250, 250))
+        .z_index(tag)
+        .transform(vec![Transform::Rotate(opsis_scene::values::Angle::Deg(
+            Num(7.0),
+        ))])
+        .will_change(WillChange::Transform);
+    div(placed(0.0, 0.0, SIDE))
+        .child(div(window).child(div(
+            placed(10.0, 10.0, 30.0).background_color(Color::rgb8(14, 165, 233)),
+        )))
+        .into()
+}
+
+fn shutter(tags: &[i32]) -> Node {
+    let samples: Vec<Vec<Node>> = tags.iter().map(|t| vec![stacked_sample(*t)]).collect();
+    div(placed(0.0, 0.0, SIDE).background_color(Color::rgb8(20, 20, 28)))
+        .children(opsis_scene::shutter::shutter_layers(&samples))
+        .into()
+}
+
+#[test]
+fn samples_that_share_one_raster_stack_to_the_same_edges_as_eight_rasters() {
+    let (shared, cache) = drawn(&shutter(&[0; 8]), Cache::default());
+    assert_eq!(cache.layers_drawn(), 1);
+    let (apart, cache) = drawn(&shutter(&[0, 1, 2, 3, 4, 5, 6, 7]), Cache::default());
+    assert_eq!(cache.layers_drawn(), 8);
+    assert!(shared == apart);
 }
