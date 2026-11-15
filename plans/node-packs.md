@@ -161,7 +161,7 @@ These restate rules from `AGENTS.md` and `agent-docs/`; when they disagree with 
   - One wasmtime `Engine` with the component model, Cranelift, `epoch_interruption` to stop a call that runs too long, and a `ResourceLimiter` for memory.
   - Compiled components cached in the data folder (`Component::serialize`), keyed by the component's hash and the wasmtime version.
   - A `Linker` per pack API minor; draw-only packs get `host` alone; executors get `files` and scoped WASI.
-  - One instance per pack per render worker, so parallel render chunks don't share pack state.
+  - One instance per pack per render worker, so render workers drawing at once don't share pack state.
 - **Floating point stays identical across machines**: `cranelift_nan_canonicalization` is on, so NaN bit patterns don't differ between CPUs.
 
 ### Fit with Opsis
