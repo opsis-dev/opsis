@@ -36,7 +36,7 @@ jobs:
         with:
           tool: cargo-deny@0.19.8
       - name: Install the system libraries, the virtual display and headless Wayland
-        run: sudo apt-get update && sudo apt-get install -y xvfb sway clang libc++-dev libc++abi-dev libasound2-dev libdbus-1-dev libfontconfig1-dev libfreetype-dev libwayland-dev wayland-protocols libx11-dev libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-util-dev libxcb-xfixes0-dev libxcb-xkb-dev libxext-dev libxfixes-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libxrender-dev
+        run: sudo apt-get update && sudo apt-get install -y xvfb sway clang libc++-dev libc++abi-dev libasound2-dev libatspi2.0-dev libdbus-1-dev libfontconfig1-dev libfreetype-dev libwayland-dev wayland-protocols libx11-dev libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-util-dev libxcb-xfixes0-dev libxcb-xkb-dev libxext-dev libxfixes-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libxrender-dev
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2
       - run: bun install --frozen-lockfile
       - name: Cache what setup fetches and builds
@@ -101,7 +101,7 @@ jobs:
         with:
           cache-on-failure: true
       - name: Install the system libraries and the virtual display
-        run: sudo apt-get update && sudo apt-get install -y xvfb xauth clang libc++-dev libc++abi-dev libasound2-dev libdbus-1-dev libfontconfig1-dev libfreetype-dev libwayland-dev wayland-protocols libx11-dev libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-util-dev libxcb-xfixes0-dev libxcb-xkb-dev libxext-dev libxfixes-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libxrender-dev
+        run: sudo apt-get update && sudo apt-get install -y xvfb xauth clang libc++-dev libc++abi-dev libasound2-dev libatspi2.0-dev libdbus-1-dev libfontconfig1-dev libfreetype-dev libwayland-dev wayland-protocols libx11-dev libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-util-dev libxcb-xfixes0-dev libxcb-xkb-dev libxext-dev libxfixes-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libxrender-dev
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2
       - run: bun install --frozen-lockfile
       - name: Cache what setup fetches and builds

@@ -14,7 +14,7 @@ Status: built and checked on Linux x64. Linux arm64, Windows and macOS have no S
 ### In place
 
 - **`opsis-skia` and `opsis-filament` are the only way Rust reaches Skia and Filament**: C++ behind the `cxx` bridge for Skia, plain C functions (`opsis_filament.h`) for Filament.
-- **Skia `chrome/m157` (`fef60e46`) is built by `bun run setup`** (`buildSkia`, `scripts/lib/skia.ts`): on Linux inside the `debian:trixie` container with clang and libc++, elsewhere natively with clang (`buildHere`). The build writes `consumer.json`, which `crates/skia/build.rs` compiles and links with.
+- **Skia `chrome/m157` (`fef60e46`) is built by `bun run setup`** (`buildSkia`, `scripts/lib/skia.ts`): natively with clang (`buildHere`), or on Linux inside the `debian:trixie` container when `setup` is given `--container`. The build writes `consumer.json`, which `crates/skia/build.rs` compiles and links with.
 - **Filament v1.80.1 is pinned per platform** in setup's pins (`scripts/lib/setup/pins.generated.json`: Linux x64 and arm64, macOS Arm and Intel, Windows x64), and `bun run setup` unpacks this platform's archive. `crates/filament/build.rs` compiles `crates/filament/cpp`, links the archive's libraries (`LIBRARIES`, with `-lX11` on Linux) and compiles `materials/*.mat` with the archive's `matc`.
 - **The static Qt links its image plugins on every platform** (`LINUX_PLUGINS`, `MACOS_PLUGINS`, `WINDOWS_PLUGINS`, `crates/qt/build.rs`).
 - **Measured on Linux x64**: a full-screen Filament pass at 1920×1080 read back with `readPixels` every frame takes 6.21 ms on an RTX 3060, 10.32 ms on Intel Mesa and 74.64 ms on lavapipe (Filament 1.80.1, Vulkan, no window).

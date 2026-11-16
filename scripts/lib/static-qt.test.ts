@@ -5,6 +5,8 @@ import { describe, expect, it } from "vitest";
 import {
   buildSteps,
   configureArgs,
+  LINUX_OFF,
+  LINUX_REQUIRED,
   MACOS_MINIMUM,
   parseSetOutput,
   QT_PLATFORMS,
@@ -33,6 +35,24 @@ describe("the static Qt build", () => {
       fc.property(platform, (system) => {
         const asked = configureArgs(system).filter((arg) => LINUX_ONLY.includes(arg));
         expect(asked.toSorted()).toEqual(system === "linux" ? LINUX_ONLY.toSorted() : []);
+      }),
+    );
+  });
+
+  it("requires or turns off each Linux feature that depends on the build machine exactly once, on Linux only", () => {
+    fc.assert(
+      fc.property(platform, (system) => {
+        const args = configureArgs(system);
+        const everywhere = new Set(configureArgs("win32"));
+        const named = args.filter((arg) => /^-(no-)?feature-/.test(arg) && !everywhere.has(arg));
+        const expected = [
+          ...LINUX_REQUIRED.map((feature) => `-feature-${feature}`),
+          ...LINUX_OFF.map((feature) => `-no-feature-${feature}`),
+        ];
+        expect(named.toSorted()).toEqual(system === "linux" ? expected.toSorted() : []);
+        expect(new Set([...LINUX_REQUIRED, ...LINUX_OFF]).size).toBe(expected.length);
+        const separator = args.indexOf("--");
+        expect(named.every((arg) => separator === -1 || args.indexOf(arg) < separator)).toBe(true);
       }),
     );
   });

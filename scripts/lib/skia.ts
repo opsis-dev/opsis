@@ -245,8 +245,8 @@ function bunProgram(): string {
   return execFileSync("which", ["bun"], { encoding: "utf8" }).trim();
 }
 
-export function buildSkia(dir: string): void {
-  if (process.platform !== "linux") {
+export function buildSkia(dir: string, container: boolean): void {
+  if (!container) {
     buildHere(dir);
     return;
   }

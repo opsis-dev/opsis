@@ -185,7 +185,7 @@ fn the_deb_installs_the_app_marked_as_a_deb() {
 }
 
 #[test]
-#[ignore = "needs rpmbuild, makepkg and bsdtar; bun run packager:test runs it in the trixie container"]
+#[ignore = "needs rpmbuild, makepkg and bsdtar; bun run packager:test runs it"]
 fn the_deb_rpm_and_pacman_packages_install_the_same_files_each_marked_as_itself() {
     let dir = tempfile::tempdir().unwrap();
     let app = fixture(dir.path());
@@ -236,7 +236,7 @@ fn a_format_for_another_system_is_refused_before_anything_is_built() {
 }
 
 #[test]
-#[ignore = "needs patchelf and the pinned AppImage tools; bun run packager:test runs it in the trixie container"]
+#[ignore = "needs patchelf and the pinned AppImage tools; bun run packager:test runs it"]
 fn the_appimage_holds_the_same_files_marked_as_an_appimage() {
     let dir = tempfile::tempdir().unwrap();
     let app = fixture(dir.path());

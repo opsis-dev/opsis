@@ -4,7 +4,7 @@ Thanks for helping. Opsis is an early preview, so the code moves quickly; open a
 
 ## Set up
 
-You need [Bun](https://bun.sh), Node.js 22.12 or later for the TypeScript tests, [rustup](https://rustup.rs) (it installs the pinned nightly by itself), [cargo-deny](https://github.com/EmbarkStudios/cargo-deny) for `bun run lint:fix` (`cargo install cargo-deny`), [uv](https://docs.astral.sh/uv/), Docker, clang with libc++ and libc++abi, CMake, make, pkg-config and git, and on Linux the system libraries the static Qt links; `bun run setup` checks for them and prints the `apt install` line for any that are missing.
+You need [Bun](https://bun.sh), Node.js 22.12 or later for the TypeScript tests, [rustup](https://rustup.rs) (it installs the pinned nightly by itself), [cargo-deny](https://github.com/EmbarkStudios/cargo-deny) for `bun run lint:fix` (`cargo install cargo-deny`), [uv](https://docs.astral.sh/uv/), clang with libc++ and libc++abi, CMake, make, Python 3, pkg-config and git, and on Linux the system libraries the static Qt links; `bun run setup` checks for them and prints the `apt install` line for any that are missing.
 
 ```sh
 bun install

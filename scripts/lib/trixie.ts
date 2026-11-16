@@ -7,6 +7,7 @@ import { devCache } from "./tool-config";
 const IMAGE = "debian:trixie";
 export const LINUX_LIBRARIES = [
   "libasound2-dev",
+  "libatspi2.0-dev",
   "libdbus-1-dev",
   "libfontconfig1-dev",
   "libfreetype-dev",
@@ -51,20 +52,12 @@ const PACKAGES = [
   "xz-utils",
   "file",
   ...LINUX_LIBRARIES,
-  "rpm",
-  "makepkg",
-  "pacman-package-manager",
-  "fakeroot",
-  "libarchive-tools",
   "zstd",
-  "patchelf",
 ];
 
 export type TrixieRun = {
   script: string;
   mounts: string[];
-  env?: Record<string, string>;
-  passEnv?: string[];
 };
 
 function aptCache(): string {
@@ -83,7 +76,7 @@ export function runInTrixie(run: TrixieRun): void {
     `chown -R ${uid}:${gid} /var/cache/apt/archives`,
     `exec setpriv --reuid=${uid} --regid=${gid} --clear-groups bash -c "$OPSIS_TRIXIE_SCRIPT"`,
   ].join("\n");
-  const env = { HOME: homedir(), ...run.env, OPSIS_TRIXIE_SCRIPT: `set -eu\n${run.script}` };
+  const env = { HOME: homedir(), OPSIS_TRIXIE_SCRIPT: `set -eu\n${run.script}` };
   const args = [
     "run",
     "--rm",
@@ -93,7 +86,6 @@ export function runInTrixie(run: TrixieRun): void {
     `${aptCache()}:/var/cache/apt/archives`,
     ...run.mounts.flatMap((mount) => ["-v", `${mount}:${mount}`]),
     ...Object.entries(env).flatMap(([name, value]) => ["-e", `${name}=${value}`]),
-    ...(run.passEnv ?? []).filter((name) => process.env[name]).flatMap((name) => ["-e", name]),
     IMAGE,
     "bash",
     "-c",

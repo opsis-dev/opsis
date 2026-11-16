@@ -3,7 +3,19 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { LINUX_LIBRARIES } from "../trixie";
 
-const LINUX_PROGRAMS = ["docker", "clang", "clang++", "cmake", "make", "pkg-config", "git", "uvx"];
+const LINUX_PROGRAMS = [
+  "clang",
+  "clang++",
+  "cmake",
+  "make",
+  "pkg-config",
+  "git",
+  "uvx",
+  "python3",
+  "nm",
+  "objcopy",
+];
+const CONTAINER_PROGRAM = "docker";
 
 function hasProgram(name: string): boolean {
   return spawnSync("sh", ["-c", `command -v ${name}`], { stdio: "ignore" }).status === 0;
@@ -22,9 +34,10 @@ function hasPackage(name: string): boolean {
   return found.status === 0 && found.stdout.includes("install ok installed");
 }
 
-export function checkSystem(): void {
+export function checkSystem(container: boolean): void {
   if (process.platform !== "linux") return;
-  const programs = LINUX_PROGRAMS.filter((name) => !hasProgram(name));
+  const needed = container ? [...LINUX_PROGRAMS, CONTAINER_PROGRAM] : LINUX_PROGRAMS;
+  const programs = needed.filter((name) => !hasProgram(name));
   const packages = hasProgram("dpkg-query") ? LINUX_LIBRARIES.filter((p) => !hasPackage(p)) : [];
   const libcxx = hasProgram("clang++") && hasStaticLibcxx();
   if (programs.length === 0 && packages.length === 0 && libcxx) return;

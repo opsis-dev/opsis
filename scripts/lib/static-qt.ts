@@ -38,11 +38,49 @@ const SHARED_CONFIGURE = [
   "-qt-pcre",
 ];
 
+export const LINUX_REQUIRED = [
+  "accessibility-atspi-bridge",
+  "dbus-linked",
+  "wayland",
+  "xcb-xlib",
+  "xkbcommon",
+  "xkbcommon-x11",
+];
+
+export const LINUX_OFF = [
+  "brotli",
+  "cups",
+  "directfb",
+  "glib",
+  "gssapi",
+  "gtk3",
+  "jemalloc",
+  "journald",
+  "kms",
+  "libinput",
+  "libproxy",
+  "libudev",
+  "liburing",
+  "lttng",
+  "mtdev",
+  "openssl",
+  "system-doubleconversion",
+  "system-libb2",
+  "system-textmarkdownreader",
+  "system-xcb-xinput",
+  "tslib",
+  "vulkan",
+  "xcb-sm",
+  "zstd",
+];
+
 const PLATFORM_CONFIGURE: Record<QtPlatform, string[]> = {
   linux: [
     "-system-freetype",
     "-fontconfig",
     "-xcb",
+    ...LINUX_REQUIRED.map((feature) => `-feature-${feature}`),
+    ...LINUX_OFF.map((feature) => `-no-feature-${feature}`),
     "-platform",
     "linux-clang-libc++",
     "--",
@@ -213,15 +251,12 @@ function buildDir(platform: QtPlatform, dir: string): string {
     : path.join(dir, "build");
 }
 
-export function buildsNatively(): boolean {
-  return process.platform !== "linux";
-}
-
 export type StaticQtBuild = {
   version: string;
   tarballs: string[];
   dir: string;
   mounts: string[];
+  container: boolean;
 };
 
 export function buildStaticQt(run: StaticQtBuild): string {
@@ -229,12 +264,12 @@ export function buildStaticQt(run: StaticQtBuild): string {
   const prefix = path.join(run.dir, "prefix");
   const build = buildDir(platform, run.dir);
   const steps = buildSteps(platform, run.version, run.tarballs, build, prefix);
-  if (buildsNatively()) runNatively(platform, steps, build, prefix);
-  else
+  if (run.container)
     runInTrixie({
       script: shellScript(steps, build, prefix),
       mounts: [run.dir, ROOT, ...run.mounts],
     });
+  else runNatively(platform, steps, build, prefix);
   if (!existsSync(path.join(prefix, COMPLETE)))
     throw new Error(`The static Qt build didn't finish in ${prefix}.`);
   if (!existsSync(path.join(prefix, "include", "QtSvg")))

@@ -16,6 +16,7 @@ pub fn spec(requires: &[String], root: &Path, owned: &[String]) -> String {
         "%global debug_package %{nil}".to_owned(),
         "%global __os_install_post %{nil}".to_owned(),
         "%global _build_id_links none".to_owned(),
+        "%global _rpmformat 4".to_owned(),
         "%global _binary_payload w19.zstdio".to_owned(),
         format!("Name: {PROGRAM}"),
         format!("Version: {VERSION}"),

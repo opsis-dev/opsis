@@ -14,6 +14,7 @@ import { ROOT } from "./lib/tool-config";
 
 const NO_ENGINE = "--no-engine";
 const PRUNE = "--prune";
+const CONTAINER = "--container";
 const ENGINE_DIR = path.join(homedir(), ".config", "Opsis", "engine");
 const QT_RECIPE = path.join(ROOT, "scripts", "lib", "static-qt.ts");
 const SKIA_SCRIPT = path.join(ROOT, "scripts", "lib", "skia.ts");
@@ -33,8 +34,16 @@ function installEngine(zig: string): string {
   return ENGINE_DIR;
 }
 
+function inContainer(args: string[]): boolean {
+  if (!args.includes(CONTAINER)) return false;
+  if (process.platform !== "linux")
+    throw new Error(`${CONTAINER} builds Qt and Skia in a Linux container; this isn't Linux.`);
+  return true;
+}
+
 async function setup(args: string[]): Promise<void> {
-  checkSystem();
+  const container = inContainer(args);
+  checkSystem(container);
   const pins = readPins();
   const zig = await setupZig(pins);
   const kddw = await setupKddw(pins);
@@ -43,7 +52,7 @@ async function setup(args: string[]): Promise<void> {
   const npm = await setupNpm(pins);
   const qt = await step(
     "qt",
-    recipeHash(["qt", pins.qt, configureArgs(qtPlatform())], [QT_RECIPE]),
+    recipeHash(["qt", pins.qt, configureArgs(qtPlatform()), { container }], [QT_RECIPE]),
     async (dir) => {
       const tarballs = [];
       for (const source of pins.qt.sources)
@@ -53,13 +62,14 @@ async function setup(args: string[]): Promise<void> {
         tarballs,
         dir,
         mounts: [downloadsDir()],
+        container,
       });
     },
   );
   const skia = await step(
     "skia",
-    recipeHash(["skia", pins.skia, SKIA_RECIPE], [SKIA_SCRIPT]),
-    (dir) => buildSkia(dir),
+    recipeHash(["skia", pins.skia, SKIA_RECIPE, { container }], [SKIA_SCRIPT]),
+    (dir) => buildSkia(dir, container),
   );
   const paths = {
     zig: zig.path,

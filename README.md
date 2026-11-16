@@ -84,8 +84,8 @@ You need:
 - [rustup](https://rustup.rs) (the repository pins its nightly, which rustup installs by itself)
 - [cargo-deny](https://github.com/EmbarkStudios/cargo-deny) for `bun run lint:fix` (`cargo install cargo-deny`)
 - [uv](https://docs.astral.sh/uv/), for the C++ format and lint tools
-- Docker, clang with libc++ and libc++abi, CMake, make, pkg-config and git
-- on Linux, the system libraries the static Qt links (on Ubuntu: `libasound2-dev libdbus-1-dev libfontconfig1-dev libfreetype-dev libwayland-dev wayland-protocols libx11-dev libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-util-dev libxcb-xfixes0-dev libxcb-xkb-dev libxext-dev libxfixes-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libxrender-dev`); `bun run setup` checks for them and prints this line when one is missing
+- clang with libc++ and libc++abi, CMake, make, Python 3, pkg-config and git
+- on Linux, the system libraries the static Qt links (on Ubuntu: `libasound2-dev libatspi2.0-dev libdbus-1-dev libfontconfig1-dev libfreetype-dev libwayland-dev wayland-protocols libx11-dev libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-util-dev libxcb-xfixes0-dev libxcb-xkb-dev libxext-dev libxfixes-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libxrender-dev`); `bun run setup` checks for them and prints this line when one is missing
 
 ```sh
 bun install
@@ -93,7 +93,7 @@ bun run setup            # every pinned tool and library, Qt and Skia built once
 bun start
 ```
 
-`bun run setup` takes a while the first time: it builds Qt and Skia from source with clang and libc++, in a Docker container on Linux. Run it again after pulling; it only redoes what the pins changed. `bun start` builds the renderer program and runs the app.
+`bun run setup` takes a while the first time: it builds Qt and Skia from source with clang and libc++. On Linux, `bun run setup --container` builds the two in a Docker container instead of on your system. Run it again after pulling; it only redoes what the pins changed. `bun start` builds the renderer program and runs the app.
 
 The first time, open **Settings → Engine** and either **Download engine**, which puts the recording browser (Chrome Headless Shell) in the app's data folder, or **Choose file…** for one you already have. Editing, mixing and exporting work without it; recording needs it, and so does exporting with **Draw with: Software**, which uses its graphics driver. Then **New project → Sample: to-do app → Run**. 🎉
 
@@ -103,7 +103,7 @@ Ready-made copies of every sample are in [`examples/`](./examples) (**Open proje
 
 `bun run make` stages everything the app ships, builds the release binary against a static Qt and packages it into `~/.cache/opsis-dev/build`: the deb on Linux, the app and DMG on macOS, NSIS and MSI on Windows. Pick others with `bun run make -- --formats deb,rpm,appimage,pacman`.
 
-- On Linux the static Qt, the release binary and its packages build in a plain `debian:trixie` container, so you need Docker; the program then needs glibc 2.41.
+- The release binary and its packages build on your machine. On Linux the rpm, the pacman package and the AppImage need `rpm`, `makepkg`, `pacman-package-manager`, `libarchive-tools` and `patchelf`.
 - The Rust build uses 8 jobs unless `CARGO_BUILD_JOBS` says otherwise.
 - The app ships FFmpeg (the pinned ffmpeg-static build, as the `opsis-ffmpeg` program beside its own) and the renderer program (`opsis-renderer`), but never the recording browser.
 - CI checks every push ([`build.yml`](./.github/workflows/build.yml)); the release workflow ([`release.yml`](./.github/workflows/release.yml)) builds the installers on `v*` tags or by hand and drafts the release on tags.

@@ -1,40 +1,20 @@
 import { execFileSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
-import { homedir } from "node:os";
 import path from "node:path";
-import { APPIMAGE_TOOLS_CACHE, appImageTools } from "./appimage-tools";
+import { appImageTools } from "./appimage-tools";
 import { hostTarget, stagedFfmpeg } from "./ffmpeg";
 import { readPaths } from "./setup/store";
-import { buildsNatively, MACOS_MINIMUM } from "./static-qt";
+import { MACOS_MINIMUM } from "./static-qt";
 import { ROOT } from "./tool-config";
-import { runInTrixie } from "./trixie";
-
-const SYSTEM_PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
-
-function releaseTargetDir(): string {
-  return buildsNatively() || process.platform !== "linux"
-    ? path.join(ROOT, "target")
-    : path.join(ROOT, "target", "trixie");
-}
 
 export function releaseBinary(name = "opsis"): string {
   const exe = process.platform === "win32" ? ".exe" : "";
-  return path.join(releaseTargetDir(), "release", `${name}${exe}`);
+  return path.join(ROOT, "target", "release", `${name}${exe}`);
 }
 
 export const RENDERER_PROGRAM = "opsis-renderer";
 
-export function cargoProfileVariables(env: NodeJS.ProcessEnv): Record<string, string> {
-  return Object.fromEntries(
-    Object.entries(env).flatMap(([name, value]) =>
-      name.startsWith("CARGO_PROFILE_") && value !== undefined ? [[name, value]] : [],
-    ),
-  );
-}
-
 export type PackageRun = { cargoArgs: string[]; formats: string; out: string };
-
-const UPDATE_KEY_ENV = ["OPSIS_UPDATE_KEY", "OPSIS_UPDATE_KEY_PASSWORD"];
 
 function commit(): string {
   return (
@@ -70,81 +50,24 @@ function packagerArgs(run: PackageRun, tools: string[]): string[] {
   ];
 }
 
-export async function buildAndPackage(run: PackageRun): Promise<void> {
-  const paths = readPaths();
-  const qt = paths.qt;
-  const jobs = process.env.CARGO_BUILD_JOBS ?? "8";
-  const tools = await toolArgs(run, hostTarget());
-  const build = [
-    "cargo",
-    "build",
-    "--release",
-    "-p",
-    "opsis-ui",
-    "-p",
-    "opsis-effects",
-    ...run.cargoArgs,
-  ];
-  const packager = [
-    "cargo",
-    "run",
-    "-q",
-    "-p",
-    "opsis-packager",
-    "--",
-    ...packagerArgs(run, tools),
-  ];
-  const built = commit();
-  mkdirSync(run.out, { recursive: true });
-  if (buildsNatively()) {
-    const env = {
-      ...process.env,
-      OPSIS_QT: qt,
-      CARGO_BUILD_JOBS: jobs,
-      OPSIS_COMMIT: built,
-      ...(process.platform === "darwin" ? { MACOSX_DEPLOYMENT_TARGET: MACOS_MINIMUM } : {}),
-    };
-    execFileSync(build[0], build.slice(1), { cwd: ROOT, stdio: "inherit", env });
-    execFileSync(packager[0], packager.slice(1), { cwd: ROOT, stdio: "inherit", env });
-    return;
-  }
-  const cargoHome = process.env.CARGO_HOME ?? path.join(homedir(), ".cargo");
-  const rustupHome = process.env.RUSTUP_HOME ?? path.join(homedir(), ".rustup");
-  const zig = paths.zig;
-  const target = releaseTargetDir();
-  runInTrixie({
-    script: [`cd ${ROOT}`, build.join(" "), packager.map(quoted).join(" ")].join("\n"),
-    mounts: [
-      ROOT,
-      cargoHome,
-      rustupHome,
-      path.dirname(zig),
-      path.dirname(qt),
-      paths.kddw,
-      paths.skia,
-      paths.filament,
-      path.dirname(paths.ffmpeg),
-      APPIMAGE_TOOLS_CACHE,
-      run.out,
-    ],
-    passEnv: UPDATE_KEY_ENV,
-    env: {
-      OPSIS_COMMIT: built,
-      ...cargoProfileVariables(process.env),
-      PATH: `${path.join(cargoHome, "bin")}:${SYSTEM_PATH}`,
-      CARGO_HOME: cargoHome,
-      RUSTUP_HOME: rustupHome,
-      CARGO_TARGET_DIR: target,
-      CARGO_BUILD_JOBS: jobs,
-      OPSIS_QT: qt,
-      ZIG: zig,
-      ZIG_GLOBAL_CACHE_DIR: path.join(target, "zig-cache"),
-      XDG_CACHE_HOME: path.join(target, "cache"),
-      APPIMAGE_EXTRACT_AND_RUN: "1",
-    },
-  });
+function platformVariables(): Record<string, string> {
+  if (process.platform === "darwin") return { MACOSX_DEPLOYMENT_TARGET: MACOS_MINIMUM };
+  if (process.platform === "linux") return { APPIMAGE_EXTRACT_AND_RUN: "1" };
+  return {};
 }
 
-function quoted(arg: string): string {
-  return `'${arg.replaceAll("'", "'\\''")}'`;
+export async function buildAndPackage(run: PackageRun): Promise<void> {
+  const tools = await toolArgs(run, hostTarget());
+  const build = ["build", "--release", "-p", "opsis-ui", "-p", "opsis-effects", ...run.cargoArgs];
+  const packager = ["run", "-q", "-p", "opsis-packager", "--", ...packagerArgs(run, tools)];
+  const env = {
+    ...process.env,
+    OPSIS_QT: readPaths().qt,
+    CARGO_BUILD_JOBS: process.env.CARGO_BUILD_JOBS ?? "8",
+    OPSIS_COMMIT: commit(),
+    ...platformVariables(),
+  };
+  mkdirSync(run.out, { recursive: true });
+  execFileSync("cargo", build, { cwd: ROOT, stdio: "inherit", env });
+  execFileSync("cargo", packager, { cwd: ROOT, stdio: "inherit", env });
 }
