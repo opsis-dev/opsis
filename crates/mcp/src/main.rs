@@ -15,6 +15,7 @@ async fn serve(options: Options) -> Result<(), Box<dyn std::error::Error>> {
             let running = tools.serve(rmcp::transport::stdio()).await?;
             running.waiting().await?;
         }
+        Mode::Http { host, port } => opsis_mcp::http::serve(tools, &host, port).await?,
     }
     Ok(())
 }

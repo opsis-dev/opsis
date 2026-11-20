@@ -14,16 +14,30 @@ path = "src/main.rs"
 workspace = true
 
 [dependencies]
+axum.workspace = true
 env_logger.workspace = true
+getrandom.workspace = true
+hex.workspace = true
 http-body-util.workspace = true
 hyper.workspace = true
 hyper-util = { workspace = true, features = ["tokio"] }
 log.workspace = true
 opsis-folders.workspace = true
-rmcp = { workspace = true, features = ["server", "transport-io"] }
+rmcp = { workspace = true, features = [
+  "server",
+  "transport-io",
+  "transport-streamable-http-server",
+] }
 serde_json.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net", "time", "io-std"] }
+tokio = { workspace = true, features = [
+  "rt-multi-thread",
+  "macros",
+  "net",
+  "time",
+  "io-std",
+  "signal",
+] }
 
 [dev-dependencies]
 axum.workspace = true
