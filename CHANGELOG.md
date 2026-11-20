@@ -19,7 +19,7 @@ Nothing has been released yet. This is what `main` holds today.
 - Settings on Basic and Advanced tabs in the Inspector, with every value a user would want to change as a setting: element, node, export, browser action, camera and recording-style settings.
 - Tidy up layout lines edges up with the handles they join and gives edges entering one column their own lanes.
 - The top bar says Unsaved until the latest change is saved.
-- A Local API (off by default) on a local socket for scripts and agents.
+- An Assistant switch (off by default) that lets coding agents on this computer read, change and run the open project.
 - End-to-end scenarios that drive the real app in a virtual display and on headless Wayland with real input, and view checks on Qt's offscreen platform.
 
 ### Changed

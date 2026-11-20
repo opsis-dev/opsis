@@ -21,7 +21,7 @@ class AppBar : public QWidget {
   QHBoxLayout* content() const { return content_; }
 
  signals:
-  void ApiBadgeClicked();
+  void AssistantBadgeClicked();
 
  protected:
   void mousePressEvent(QMouseEvent* event) override;
@@ -33,12 +33,12 @@ class AppBar : public QWidget {
  private:
   void ToggleMaximized();
   void SyncMaximizeIcon();
-  void SyncApiBadge();
+  void SyncAssistantBadge();
 
   QWidget* window_;
   QMenuBar* menu_bar_ = nullptr;
   QHBoxLayout* content_;
-  QPushButton* api_;
+  QPushButton* assistant_;
   QToolButton* maximize_ = nullptr;
   QPoint press_;
   bool pressed_ = false;

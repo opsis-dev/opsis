@@ -239,11 +239,9 @@ pub struct EngineSection {
     schemars::JsonSchema,
 )]
 #[serde(rename_all = "camelCase", default)]
-pub struct ApiSection {
+pub struct AssistantSection {
     #[garde(skip)]
     pub enabled: bool,
-    #[garde(skip)]
-    pub scripts: bool,
 }
 
 #[derive(
@@ -289,7 +287,7 @@ pub struct AppSettings {
     #[garde(dive)]
     pub editor: EditorSection,
     #[garde(dive)]
-    pub api: ApiSection,
+    pub assistant: AssistantSection,
     #[garde(dive)]
     pub engine: EngineSection,
     #[garde(dive)]
@@ -359,7 +357,16 @@ pub fn export_threads(chosen: Option<u32>, threads: u32) -> u32 {
 }
 
 pub const SETTINGS_SECTIONS: [&str; 10] = [
-    "app", "traces", "live", "projects", "editor", "api", "engine", "media", "updates", "script",
+    "app",
+    "traces",
+    "live",
+    "projects",
+    "editor",
+    "assistant",
+    "engine",
+    "media",
+    "updates",
+    "script",
 ];
 
 pub const RUST_ONLY_SECTIONS: [&str; 1] = ["engine"];

@@ -14,7 +14,7 @@ Include what you found, how to reproduce it, and what it lets someone do. Report
 
 Opsis is a desktop app that works offline. The parts that are most worth a look:
 
-- **The Local API** (off by default): plain HTTP on a Unix socket in the app's data folder (mode 0600), or a named pipe on Windows. Anything that lets another user reach it, or lets a request do more than the API documents, is in scope.
+- **The Local API** (off by default, switched on with Settings → Assistant): plain HTTP on a Unix socket in the app's data folder (mode 0600), or a named pipe on Windows, which agents' tools reach the open project through. Anything that lets another user reach it, or lets a request do more than the API documents, is in scope.
 - **The editor's file server:** HTTP on 127.0.0.1 behind a token made at each launch. Reading files outside the open project, the app's public files and the font library is in scope.
 - **Saved sign-ins:** sealed with AES-256-GCM under a key kept in the OS keyring. Ways to read them without that key are in scope.
 - **Recording and streamed-view browsers:** pages they load are untrusted. Anything that lets a page reach the app's commands, files or other pages is in scope.

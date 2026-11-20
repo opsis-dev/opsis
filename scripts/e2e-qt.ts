@@ -133,7 +133,7 @@ const EXPORTS = { exportThreads: 8 };
 function seedApi(): string {
   rmSync(API_DIR, { recursive: true, force: true });
   const userData = path.join(API_DIR, "user-data");
-  seedUserData(userData, { api: { enabled: true, scripts: true }, media: EXPORTS });
+  seedUserData(userData, { assistant: { enabled: true }, media: EXPORTS });
   cpSync(path.join(ROOT, "examples"), path.join(API_DIR, "projects"), { recursive: true });
   return userData;
 }
@@ -285,12 +285,12 @@ async function runOne(screen: Screen, ffmpeg: string, scenario: ScenarioName): P
   if (scenario === "wayland") {
     rmSync(WAYLAND_DIR, { recursive: true, force: true });
     userData = path.join(WAYLAND_DIR, "user-data");
-    seedUserData(userData, { api: { enabled: false } }, { engine: false });
+    seedUserData(userData, { assistant: { enabled: false } }, { engine: false });
     mkdirSync(path.join(WAYLAND_DIR, "projects"), { recursive: true });
     extra.OPSIS_QT_PROJECTS = path.join(WAYLAND_DIR, "projects");
   } else if (scenario === "tour") {
     rmSync(DATA_DIR, { recursive: true, force: true });
-    seedUserData(DATA_DIR, { api: { enabled: false } });
+    seedUserData(DATA_DIR, { assistant: { enabled: false } });
     makeClip(ffmpeg);
     copySampleFont();
     extra.OPSIS_QT_FIXTURES = FIXTURES_DIR;

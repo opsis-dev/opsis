@@ -2768,7 +2768,7 @@ void Scenario::BuildTour() {
         return QStringLiteral("Settings didn't open");
       });
   Add(
-      QStringLiteral("settings-api-switch"),
+      QStringLiteral("settings-assistant-switch"),
       [this] {
         QWidget* settings = nullptr;
         for (QWidget* top : QApplication::topLevelWidgets()) {
@@ -2781,25 +2781,26 @@ void Scenario::BuildTour() {
         }
         auto* pages = settings->findChild<QListWidget*>();
         for (int i = 0; i < pages->count(); ++i) {
-          if (pages->item(i)->text() == QStringLiteral("API")) {
+          if (pages->item(i)->text() == QStringLiteral("Assistant")) {
             QTest::mouseClick(pages->viewport(), Qt::LeftButton, {},
                               pages->visualItemRect(pages->item(i)).center());
           }
         }
         if (auto* toggle = settings->findChild<ToggleSwitch*>(
-                QStringLiteral("ApiEnabled"))) {
+                QStringLiteral("AssistantEnabled"))) {
           QTest::mouseClick(toggle, Qt::LeftButton);
         }
       },
       1500,
       [window] {
-        const bool on = App::Get().session().bar().api_enabled;
+        const bool on = App::Get().session().bar().assistant_enabled;
         QString problems =
-            Expect(on, QStringLiteral("the API didn't switch on"));
-        if (on && window->findChild<QPushButton*>(QStringLiteral("ApiBadge")) &&
-            !window->findChild<QPushButton*>(QStringLiteral("ApiBadge"))
+            Expect(on, QStringLiteral("the assistant didn't switch on"));
+        if (on &&
+            window->findChild<QPushButton*>(QStringLiteral("AssistantBadge")) &&
+            !window->findChild<QPushButton*>(QStringLiteral("AssistantBadge"))
                  ->isVisible()) {
-          problems += QStringLiteral(" no API badge");
+          problems += QStringLiteral(" no Assistant badge");
         }
         return problems;
       });

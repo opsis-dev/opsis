@@ -53,5 +53,9 @@ export function seedUserData(
   mkdirSync(userData, { recursive: true });
   const engine = path.join(userData, "engine");
   if (linked && existsSync(DEV_ENGINE)) symlinkSync(DEV_ENGINE, engine);
-  seedDatabase(userData, { api: { enabled: true }, engine: engineSettings(engine), ...settings });
+  seedDatabase(userData, {
+    assistant: { enabled: true },
+    engine: engineSettings(engine),
+    ...settings,
+  });
 }

@@ -22,7 +22,6 @@ use serde_json::{Value, json};
 use tokio::sync::broadcast;
 
 struct FakeEditor {
-    scripts: std::sync::atomic::AtomicBool,
     ran: Mutex<Vec<ScriptRequest>>,
     asked: Mutex<Vec<WorkflowEdit>>,
     events: broadcast::Sender<String>,
@@ -98,12 +97,8 @@ impl ApiHost for FakeEditor {
     }
 
     fn run_script(&self, request: ScriptRequest) -> BoxFuture<'static, HostResult<ScriptOutcome>> {
-        let on = self.scripts.load(std::sync::atomic::Ordering::Relaxed);
         self.ran.lock().unwrap().push(request);
         Box::pin(async move {
-            if !on {
-                return Err(HostError::new(403, "Scripts are off."));
-            }
             Ok(ScriptOutcome {
                 ok: false,
                 value: None,
@@ -124,14 +119,10 @@ impl ApiHost for FakeEditor {
     }
 
     fn script_status(&self) -> HostResult<ScriptStatus> {
-        if self.scripts.load(std::sync::atomic::Ordering::Relaxed) {
-            Ok(ScriptStatus {
-                running: false,
-                file: None,
-            })
-        } else {
-            Err(HostError::new(403, "Scripts are off."))
-        }
+        Ok(ScriptStatus {
+            running: false,
+            file: None,
+        })
     }
 
     fn problems(&self, workflow: &Workflow) -> Vec<GraphIssue> {
@@ -152,7 +143,6 @@ async fn serve() -> Served {
     let dir = tempfile::tempdir().unwrap();
     let socket = dir.path().join("api.sock").to_string_lossy().into_owned();
     let editor = Arc::new(FakeEditor {
-        scripts: std::sync::atomic::AtomicBool::new(false),
         ran: Mutex::default(),
         asked: Mutex::default(),
         events: broadcast::Sender::new(8),
@@ -293,22 +283,10 @@ async fn documents_every_route_it_serves() {
 }
 
 #[tokio::test]
-async fn runs_scripts_only_when_switched_on_and_answers_their_outcome() {
+async fn runs_scripts_and_answers_their_outcome() {
     let served = serve().await;
     let (status, _) = call(&served.socket, "GET", "/project/script", None).await;
-    assert_eq!(status, 403);
-    let (status, _) = call(
-        &served.socket,
-        "POST",
-        "/project/script",
-        Some(r#"{"source":"return 1"}"#),
-    )
-    .await;
-    assert_eq!(status, 403);
-    served
-        .editor
-        .scripts
-        .store(true, std::sync::atomic::Ordering::Relaxed);
+    assert_eq!(status, 200);
     for body in [
         "{}",
         r#"{"source":"x","file":"scripts/a.lua"}"#,
@@ -541,7 +519,6 @@ async fn never_deletes_a_file_that_isnt_a_socket() {
     let file = dir.path().join("api.sock");
     std::fs::write(&file, "mine").unwrap();
     let editor = Arc::new(FakeEditor {
-        scripts: std::sync::atomic::AtomicBool::new(false),
         ran: Mutex::default(),
         asked: Mutex::default(),
         events: broadcast::Sender::new(8),

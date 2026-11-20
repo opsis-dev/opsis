@@ -1,6 +1,6 @@
 # Local API
 
-The HTTP API scripts and agents use to read, change and run the open project. Paths are relative to `crates/` unless they name another folder. The document it edits is in [document.md](document.md); see also [AGENTS.md](../AGENTS.md).
+The internal HTTP API that agents' tools use to read, change and run the open project; it isn't documented for people. Paths are relative to `crates/` unless they name another folder. The document it edits is in [document.md](document.md); see also [AGENTS.md](../AGENTS.md).
 
 ## Code map
 
@@ -14,14 +14,16 @@ The HTTP API scripts and agents use to read, change and run the open project. Pa
 | OpenAPI document       | `api/src/openapi.rs`; tests in `api/tests/routes.rs`                                                                                      |
 | Validation             | `compile/src/check.rs` → `check_workflow`, `workflow_problems`, `workflow_problems_with`; `session/src/node_results.rs` → `file_problems` |
 | Editor side of `/open` | `session/src/api.rs` emits `OpenRequested` to `MAIN_WINDOW`; `ui/src/ui.rs` shows the project                                             |
-| Script routes          | `api/src/routes.rs` → `run_script`, `stop_script`, `script_status`; `session/src/api.rs` → `scripts_allowed`, `script_failure`            |
+| Script routes          | `api/src/routes.rs` → `run_script`, `stop_script`, `script_status`; `session/src/api.rs` → `script_failure`                               |
 
 ## Rules
 
-- **The API is off by default; Settings → API switches it** (`settings.api.enabled`, global and persistent, shown as an API badge in every app bar).
+- **The API serves only while the assistant is on; Settings → Assistant switches it** (`settings.assistant.enabled`, off by default, global and persistent, shown as an Assistant badge in every app bar).
+  - It is one switch for every route, the script routes included: agents change the project through Lua, so an assistant without scripts would have nothing to do.
+- **The socket is an internal path, not documented for people**: Settings shows no address or usage, and the routes stay under their own paths. The API always serves every route; the tools that use it choose what an agent gets.
 - **`crates/api` serves plain HTTP with `axum` on `<data folder>/api.sock`, or the absolute path in `OPSIS_API_SOCKET`**, with mode 0600.
   - A stale socket from a crash is replaced, a live one from another copy of the app is left alone and reported, and anything that isn't a socket is never deleted.
-- **Socket paths are capped at 100 bytes (`api_address`)**, below the OS limits (107 on Linux, 103 on macOS): a longer or relative path is refused before listening, and Settings → API says to set `OPSIS_API_SOCKET` to a shorter full path. There is no automatic fallback location.
+- **Socket paths are capped at 100 bytes (`api_address`)**, below the OS limits (107 on Linux, 103 on macOS): a longer or relative path is refused before listening, and Settings → Assistant shows the error, which says to set `OPSIS_API_SOCKET` to a shorter full path. There is no automatic fallback location.
 - **On Windows the variable is ignored and the API uses the named pipe `\\.\pipe\opsis-api-<user>`, never a TCP port.**
 - **Only the `/project` routes need an open project** (`routes`): without one they answer 409, except `/project/run/stop`, `/project/run/events` and `/project/script/stop`, which never look for a project.
 - **A route that fails answers `{"error": …}`.**
@@ -40,9 +42,9 @@ The HTTP API scripts and agents use to read, change and run the open project. Pa
 - **Runs start from the document like the editor's.**
   - A run answers 409 while another runs and while the project's version is unchosen, as well as with no project (`StartError`, `session/src/run.rs`).
 - **Run events also stream on `/project/run/events`** as server-sent events, one `data:` line of JSON per run event, sent only while a client follows them (`run_event`).
-- **The script routes need a second switch, Settings → API → Run Lua scripts (`settings.api.scripts`, off by default)**, because with it the socket also reads and writes the project's files and drives runs; the switch is disabled while the API is off.
+- **The script routes run Lua as the Script panel does**, so through them the socket also reads and writes the project's files and drives runs.
   - `POST /project/script` takes `{ "source": … }` or `{ "file": "scripts/name.lua" }`, runs it as the Script panel would ([scripting.md](scripting.md)) and answers when it ends with the outcome and the editor's problems; `POST /project/script/stop` stops it and `GET /project/script` says whether one runs.
-  - They answer 403 while the switch is off, 409 with no project or while a script runs, 400 for a body that is neither form, and 200 with `ok: false` and the failure for a script that failed.
+  - They answer 409 with no project or while a script runs, 400 for a body that is neither form, and 200 with `ok: false` and the failure for a script that failed.
   - A client that goes away doesn't stop its script; the stop route does.
 - **Every route is documented in `openapi.rs`** (from the `schemars` schemas of the bodies); node settings schemas come from `/nodes/{type}`.
   - `documents_every_route_it_serves` checks a list of routes written in the test, not the router, so a new route goes in that list too. Another test keeps the document under 100 KB.

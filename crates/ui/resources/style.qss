@@ -103,7 +103,7 @@ QLabel[role="badge"] {
   font-size: 12px;
 }
 
-QPushButton#ApiBadge {
+QPushButton#AssistantBadge {
   min-height: 20px;
   padding: 0 8px;
   border-radius: 8px;
@@ -112,12 +112,12 @@ QPushButton#ApiBadge {
   font-weight: 500;
 }
 
-QPushButton#ApiBadge[tone="secondary"] {
+QPushButton#AssistantBadge[tone="secondary"] {
   background: @secondary;
   color: @foreground;
 }
 
-QPushButton#ApiBadge[tone="destructive"] {
+QPushButton#AssistantBadge[tone="destructive"] {
   background: @destructive;
   color: white;
 }

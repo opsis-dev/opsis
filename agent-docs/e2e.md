@@ -31,10 +31,10 @@ The scenarios that drive the real editor: what each covers, the virtual display 
   - A scenario passes only if its log has the `scenario <name> done` line (`Scenario::Next`).
 - **The runner takes the first free X display from `FIRST_DISPLAY` to `LAST_DISPLAY` (`freeDisplay`)** and stops when none is free.
 - **The runner has four scenarios, all by default or the ones named** (`bun run e2e:qt tour`), and refuses any other name:
-  - `tour` (`e2e_steps.cc` and the parts it builds) starts a fresh `~/.cache/opsis-dev/qt-e2e` with the dev engine linked, the API off and a generated test clip, and walks every panel, field and window.
+  - `tour` (`e2e_steps.cc` and the parts it builds) starts a fresh `~/.cache/opsis-dev/qt-e2e` with the dev engine linked, the assistant off and a generated test clip, and walks every panel, field and window.
   - `runs` (`e2e_runs.cc`, `e2e_ports.cc`, `e2e_terminal.cc`) starts `~/.cache/opsis-dev/qt-e2e-runs` without an engine, so it checks the setup screen, skips it and chooses the dev engine's browser on the Engine settings page through the file dialog (`OPSIS_QT_BROWSER`), then records, exports, replays and records terminal takes against a test page on localhost (`OPSIS_QT_PAGE`).
-  - `api` (`e2e-api.ts`, `e2e_api.cc`) starts `~/.cache/opsis-dev/qt-e2e-api` with the API and Run Lua scripts on and drives the app from outside over its socket, through every route in `CALLED_ROUTES` (`scripts/lib/e2e-api.ts`), and checks the OpenAPI document lists each of them.
-  - `wayland` (`e2e_wayland.cc`) starts `~/.cache/opsis-dev/qt-e2e-wayland` with the API off, needs no engine and runs on headless sway with real input.
+  - `api` (`e2e-api.ts`, `e2e_api.cc`) starts `~/.cache/opsis-dev/qt-e2e-api` with the assistant on and drives the app from outside over its socket, through every route in `CALLED_ROUTES` (`scripts/lib/e2e-api.ts`), and checks the OpenAPI document lists each of them.
+  - `wayland` (`e2e_wayland.cc`) starts `~/.cache/opsis-dev/qt-e2e-wayland` with the assistant off, needs no engine and runs on headless sway with real input.
 - **The app has two more scenarios the runner doesn't run**: `views` (`e2e_views.cc`), run by `cargo test -p opsis-ui`, and `bench` (`OPSIS_QT_SCENARIO=bench`, with `OPSIS_QT_BENCH_NODES` nodes), which builds a generated project and logs how long generating, dragging and undoing take. Set by hand, any other name runs the tour (`scenario.cc`).
 - **`runs` stops at once without the dev engine in `~/.config/Opsis/engine`, and `tour` and `api` link it when it is there.**
 - **CI runs `wayland` in the Checks job (with `sway` installed) and the other three in the E2E job, which installs the engine.**

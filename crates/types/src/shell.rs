@@ -29,7 +29,7 @@ pub enum SettingsPage {
     Engine,
     Recording,
     Fonts,
-    Api,
+    Assistant,
     Licences,
     About,
 }

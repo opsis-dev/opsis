@@ -74,8 +74,8 @@ MainWindow::MainWindow()
   top_bar_->hide();
   setMenuWidget(app_bar_);
   connect(top_bar_, &TopBar::Command, this, &MainWindow::Dispatch);
-  connect(app_bar_, &AppBar::ApiBadgeClicked, this,
-          [this] { OpenSettings()->ShowPage(SettingsWindow::kApi); });
+  connect(app_bar_, &AppBar::AssistantBadgeClicked, this,
+          [this] { OpenSettings()->ShowPage(SettingsWindow::kAssistant); });
   connect(EventHub::Instance(), &EventHub::RunChanged, top_bar_, &TopBar::Sync);
   setCenterWidgetMargins(QMargins());
   stack_ = new QStackedWidget(this);

@@ -1478,8 +1478,8 @@ impl Host for Ui {
     fn bar(&self) -> BarView {
         let api = opsis_session::api::api_status(&self.session);
         BarView {
-            api_enabled: api.enabled,
-            api_listening: api.listening,
+            assistant_enabled: api.enabled,
+            assistant_listening: api.listening,
             running: self.session.state::<RunHost>().is_running(),
         }
     }
@@ -2808,8 +2808,7 @@ impl Host for Ui {
                     label: capitalized(&plain(m)),
                 })
                 .collect(),
-            api_enabled: settings.api.enabled,
-            api_scripts: settings.api.scripts,
+            assistant_enabled: settings.assistant.enabled,
             data_dir: self.state().paths.user_data.to_string_lossy().into_owned(),
             trace_retention: plain(&settings.traces.retention),
             trace_retentions: choices(&book.trace_retention),
@@ -2820,9 +2819,8 @@ impl Host for Ui {
             live_fps_min: book.live_fps.min,
             live_fps_max: book.live_fps.max,
             live_auto_open: settings.live.auto_open,
-            api_listening: api.listening,
-            api_error: api.error.unwrap_or_default(),
-            api_address: api.address,
+            assistant_listening: api.listening,
+            assistant_error: api.error.unwrap_or_default(),
             setup_skipped: settings.app.setup_skipped,
             default_dir_fallback: if settings.projects.default_dir.is_empty() {
                 projects::project_locations(&self.session).default_dir

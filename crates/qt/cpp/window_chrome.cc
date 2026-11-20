@@ -75,17 +75,18 @@ AppBar::AppBar(QWidget* window, bool resizable, bool menu)
     layout->addWidget(rule);
   }
   layout->addWidget(content_host, 1);
-  api_ = new QPushButton(QStringLiteral("API"), this);
-  api_->setObjectName(QStringLiteral("ApiBadge"));
-  api_->setFocusPolicy(Qt::NoFocus);
-  api_->setCursor(Qt::PointingHandCursor);
-  layout->addWidget(api_);
-  connect(api_, &QPushButton::clicked, this, &AppBar::ApiBadgeClicked);
+  assistant_ = new QPushButton(QStringLiteral("Assistant"), this);
+  assistant_->setObjectName(QStringLiteral("AssistantBadge"));
+  assistant_->setFocusPolicy(Qt::NoFocus);
+  assistant_->setCursor(Qt::PointingHandCursor);
+  layout->addWidget(assistant_);
+  connect(assistant_, &QPushButton::clicked, this,
+          &AppBar::AssistantBadgeClicked);
   connect(EventHub::Instance(), &EventHub::ApiChanged, this,
-          &AppBar::SyncApiBadge);
+          &AppBar::SyncAssistantBadge);
   connect(EventHub::Instance(), &EventHub::SettingsChanged, this,
-          &AppBar::SyncApiBadge);
-  SyncApiBadge();
+          &AppBar::SyncAssistantBadge);
+  SyncAssistantBadge();
   auto* controls_rule = new QFrame(this);
   controls_rule->setProperty("role", "vrule");
   controls_rule->setFixedSize(1, kRuleHeight);
@@ -117,18 +118,18 @@ AppBar::AppBar(QWidget* window, bool resizable, bool menu)
   window_->installEventFilter(this);
 }
 
-void AppBar::SyncApiBadge() {
+void AppBar::SyncAssistantBadge() {
   const bridge::BarView bar = App::Get().session().bar();
-  api_->setVisible(bar.api_enabled);
-  api_->setProperty("tone", bar.api_listening ? "secondary" : "destructive");
-  api_->setToolTip(
-      bar.api_listening
-          ? QStringLiteral(
-                "Scripts and agents on this computer can use the open project.")
-          : QStringLiteral("The API is switched on but isn't running. Open "
-                           "its settings to see why."));
-  api_->style()->unpolish(api_);
-  api_->style()->polish(api_);
+  assistant_->setVisible(bar.assistant_enabled);
+  assistant_->setProperty(
+      "tone", bar.assistant_listening ? "secondary" : "destructive");
+  assistant_->setToolTip(
+      bar.assistant_listening
+          ? QStringLiteral("Agents on this computer can use the open project.")
+          : QStringLiteral("The assistant is switched on but isn't "
+                           "running. Open its settings to see why."));
+  assistant_->style()->unpolish(assistant_);
+  assistant_->style()->polish(assistant_);
 }
 
 void AppBar::ToggleMaximized() {

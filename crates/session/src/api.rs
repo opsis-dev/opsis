@@ -56,17 +56,6 @@ const NOT_FOUND: u16 = 404;
 const BAD_REQUEST: u16 = 400;
 const CONFLICT: u16 = 409;
 const UNREADABLE: u16 = 422;
-const FORBIDDEN: u16 = 403;
-const SCRIPTS_OFF: &str = "Scripts are switched off. Turn on Run Lua scripts in Settings → API.";
-
-fn scripts_allowed(app: &Session) -> HostResult<()> {
-    if app.state::<AppState>().settings().api.scripts {
-        Ok(())
-    } else {
-        Err(HostError::new(FORBIDDEN, SCRIPTS_OFF))
-    }
-}
-
 fn script_failure(error: &crate::script::ScriptStartError) -> HostError {
     use crate::script::ScriptStartError;
     let status = match error {
@@ -212,7 +201,6 @@ impl ApiHost for AppApi {
     fn run_script(&self, request: ScriptRequest) -> BoxFuture<'static, HostResult<ScriptOutcome>> {
         let app = self.app.clone();
         Box::pin(async move {
-            scripts_allowed(&app)?;
             let source = match (request.file, request.source) {
                 (Some(file), _) => crate::script::ScriptSource::File(file),
                 (None, source) => crate::script::request_source(source.unwrap_or_default()),
@@ -226,12 +214,10 @@ impl ApiHost for AppApi {
     }
 
     fn stop_script(&self) -> HostResult<ScriptStatus> {
-        scripts_allowed(&self.app)?;
         Ok(crate::script::stop_script(&self.app))
     }
 
     fn script_status(&self) -> HostResult<ScriptStatus> {
-        scripts_allowed(&self.app)?;
         project_state(&self.app)?;
         Ok(crate::script::script_status(&self.app))
     }
@@ -244,7 +230,7 @@ fn announce(app: &Session, status: ApiServerStatus) {
 }
 
 pub fn follow_setting(app: &Session) {
-    let enabled = app.state::<AppState>().settings().api.enabled;
+    let enabled = app.state::<AppState>().settings().assistant.enabled;
     let app = app.clone();
     crate::runtime::spawn(async move {
         let api = app.state::<Api>();

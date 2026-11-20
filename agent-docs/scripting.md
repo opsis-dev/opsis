@@ -1,6 +1,6 @@
 # Scripting
 
-Lua scripts that drive the open project: the graph, the timeline, the mixer, runs and exports, with file access held to the project folder. The Script panel writes and runs them, and the Local API runs them behind its own switch. Rust paths are relative to `crates/` unless they name another folder. The document batch a script edits through is in [document.md](document.md), the API routes in [api.md](api.md), the panel's dock in [editor.md](editor.md), the bridge it crosses in [ui.md](ui.md); see also [AGENTS.md](../AGENTS.md).
+Lua scripts that drive the open project: the graph, the timeline, the mixer, runs and exports, with file access held to the project folder. The Script panel writes and runs them, and the Local API runs them while the assistant is on. Rust paths are relative to `crates/` unless they name another folder. The document batch a script edits through is in [document.md](document.md), the API routes in [api.md](api.md), the panel's dock in [editor.md](editor.md), the bridge it crosses in [ui.md](ui.md); see also [AGENTS.md](../AGENTS.md).
 
 ## Code map
 
@@ -30,7 +30,7 @@ Lua scripts that drive the open project: the graph, the timeline, the mixer, run
   - Not `piccolo`: its README calls it experimental, with `io`, `os`, `package`, `string`, `table` and `utf8` missing or sparse.
 - **`mlua` runs without `async` and `send`**: a script runs on its own thread and blocks there, and its state never leaves that thread.
 - **Each run gets a fresh state**, made and dropped on the script's thread; nothing carries over between runs.
-- **Copy names Lua where a person needs to know the language** ([AGENTS.md](../AGENTS.md), User-facing copy): the switch "Run Lua scripts", and nowhere else beyond the panel's own messages.
+- **Copy names Lua where a person needs to know the language** ([AGENTS.md](../AGENTS.md), User-facing copy): the Assistant switch's note, and nowhere else beyond the panel's own messages.
 
 ### What a script reaches
 

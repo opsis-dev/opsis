@@ -388,8 +388,8 @@ pub mod ffi {
 
     #[derive(Debug, Clone, Copy)]
     struct BarView {
-        api_enabled: bool,
-        api_listening: bool,
+        assistant_enabled: bool,
+        assistant_listening: bool,
         running: bool,
     }
 
@@ -940,8 +940,7 @@ pub mod ffi {
         default_dir: String,
         canvas_mode: String,
         canvas_modes: Vec<Choice>,
-        api_enabled: bool,
-        api_scripts: bool,
+        assistant_enabled: bool,
         data_dir: String,
         trace_retention: String,
         trace_retentions: Vec<Choice>,
@@ -952,9 +951,8 @@ pub mod ffi {
         live_fps_min: u32,
         live_fps_max: u32,
         live_auto_open: bool,
-        api_listening: bool,
-        api_error: String,
-        api_address: String,
+        assistant_listening: bool,
+        assistant_error: String,
         default_dir_fallback: String,
         setup_skipped: bool,
     }

@@ -125,7 +125,7 @@ void Scenario::BuildSettings() {
             QStringLiteral("General"),   QStringLiteral("Projects"),
             QStringLiteral("Editor"),    QStringLiteral("Engine"),
             QStringLiteral("Recording"), QStringLiteral("Fonts"),
-            QStringLiteral("API"),       QStringLiteral("Licences"),
+            QStringLiteral("Assistant"), QStringLiteral("Licences"),
             QStringLiteral("About")};
         return Expect(
             Pages() == want,

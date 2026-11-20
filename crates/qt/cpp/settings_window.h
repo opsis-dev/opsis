@@ -26,7 +26,7 @@ class SettingsWindow : public QWidget {
   static constexpr int kEngine = 3;
   static constexpr int kRecording = 4;
   static constexpr int kFonts = 5;
-  static constexpr int kApi = 6;
+  static constexpr int kAssistant = 6;
   static constexpr int kLicences = 7;
   static constexpr int kAbout = 8;
 
@@ -41,7 +41,7 @@ class SettingsWindow : public QWidget {
   QWidget* EnginePage();
   QWidget* RecordingPage();
   QWidget* FontsPage();
-  QWidget* ApiPage();
+  QWidget* AssistantPage();
   QWidget* LicencesPage();
   QWidget* AboutPage();
   QWidget* Page(const QString& title, const QString& description,
@@ -58,9 +58,7 @@ class SettingsWindow : public QWidget {
   QLineEdit* export_threads_ = nullptr;
   QLineEdit* default_dir_ = nullptr;
   Segmented* canvas_mode_ = nullptr;
-  ToggleSwitch* api_enabled_ = nullptr;
-  ToggleSwitch* api_scripts_ = nullptr;
-  QWidget* api_scripts_row_ = nullptr;
+  ToggleSwitch* assistant_enabled_ = nullptr;
   QLabel* default_dir_note_ = nullptr;
   QPushButton* default_dir_reset_ = nullptr;
   Segmented* trace_retention_ = nullptr;
@@ -69,10 +67,8 @@ class SettingsWindow : public QWidget {
   QSlider* live_fps_ = nullptr;
   QLabel* live_fps_value_ = nullptr;
   ToggleSwitch* live_auto_open_ = nullptr;
-  QLabel* api_state_ = nullptr;
-  QLabel* api_error_ = nullptr;
-  QLabel* api_address_ = nullptr;
-  QVBoxLayout* api_usage_ = nullptr;
+  QLabel* assistant_state_ = nullptr;
+  QLabel* assistant_error_ = nullptr;
 };
 
 }

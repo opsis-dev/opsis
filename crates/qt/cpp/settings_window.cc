@@ -70,7 +70,8 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QWidget(parent, Qt::Window) {
   bar->content()->addWidget(
       MakeLabel(QStringLiteral("Settings"), "title", bar));
   bar->content()->addStretch(1);
-  connect(bar, &AppBar::ApiBadgeClicked, this, [this] { ShowPage(kApi); });
+  connect(bar, &AppBar::AssistantBadgeClicked, this,
+          [this] { ShowPage(kAssistant); });
   layout->addWidget(bar);
   auto* body = new QHBoxLayout();
   body->setSpacing(0);
@@ -97,7 +98,7 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QWidget(parent, Qt::Window) {
       {QStringLiteral("Engine"), QStringLiteral("cpu")},
       {QStringLiteral("Recording"), QStringLiteral("video")},
       {QStringLiteral("Fonts"), QStringLiteral("type")},
-      {QStringLiteral("API"), QStringLiteral("plug")},
+      {QStringLiteral("Assistant"), QStringLiteral("plug")},
       {QStringLiteral("Licences"), QStringLiteral("scale")},
       {QStringLiteral("About"), QStringLiteral("info")},
   };
@@ -110,7 +111,7 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QWidget(parent, Qt::Window) {
   pages_->addWidget(EnginePage());
   pages_->addWidget(RecordingPage());
   pages_->addWidget(FontsPage());
-  pages_->addWidget(ApiPage());
+  pages_->addWidget(AssistantPage());
   pages_->addWidget(LicencesPage());
   pages_->addWidget(AboutPage());
   connect(sidebar_, &QListWidget::currentRowChanged, pages_,
@@ -401,61 +402,33 @@ QWidget* SettingsWindow::FontsPage() {
               {new FontsCard()});
 }
 
-QWidget* SettingsWindow::ApiPage() {
-  auto* api = new Card(
-      QStringLiteral("Local API"),
-#if defined(Q_OS_WIN)
-      QStringLiteral("Scripts and AI agents on this computer can read the open "
-                     "project, change it and run it. It only listens on a "
-                     "local pipe, never on the network. Edits show in the "
+QWidget* SettingsWindow::AssistantPage() {
+  auto* assistant = new Card(
+      QStringLiteral("Assistant"),
+      QStringLiteral("Coding agents on this computer can read the open "
+                     "project, change it and run it. Opsis only listens on "
+                     "this computer, never on the network. Edits show in the "
                      "editor and can be undone."));
-#else
-      QStringLiteral("Scripts and AI agents on this computer can read the open "
-                     "project, change it and run it. It only listens on a "
-                     "local socket, never on the network. Edits show in the "
-                     "editor and can be undone."));
-#endif
-  api_state_ = MakeLabel(QString(), "badge");
-  api->body()->addWidget(Holder(api_state_));
-  api_enabled_ = new ToggleSwitch();
-  api_enabled_->setObjectName(QStringLiteral("ApiEnabled"));
-  connect(api_enabled_, &ToggleSwitch::toggled, this, [this](bool on) {
-    Patch(QStringLiteral("api"), QStringLiteral("enabled"), on);
+  assistant_state_ = MakeLabel(QString(), "badge");
+  assistant->body()->addWidget(Holder(assistant_state_));
+  assistant_enabled_ = new ToggleSwitch();
+  assistant_enabled_->setObjectName(QStringLiteral("AssistantEnabled"));
+  connect(assistant_enabled_, &ToggleSwitch::toggled, this, [this](bool on) {
+    Patch(QStringLiteral("assistant"), QStringLiteral("enabled"), on);
   });
-  api->body()->addWidget(MakeSwitchField(
-      QStringLiteral("Turn on the API"), api_enabled_,
-      QStringLiteral("Stays on until you turn it off. The top bar shows API "
-                     "while it's on.")));
-  api_scripts_ = new ToggleSwitch();
-  api_scripts_->setObjectName(QStringLiteral("ApiScripts"));
-  connect(api_scripts_, &ToggleSwitch::toggled, this, [this](bool on) {
-    Patch(QStringLiteral("api"), QStringLiteral("scripts"), on);
-  });
-  api_scripts_row_ = MakeSwitchField(
-      QStringLiteral("Run Lua scripts"), api_scripts_,
-      QStringLiteral("Lets the API run Lua scripts on the open project. A "
-                     "script can change the project, run and export it, and "
-                     "read and write files in the project folder, but nothing "
-                     "outside it and never the internet."));
-  api->body()->addWidget(api_scripts_row_);
-  api_error_ = MakeLabel(QString(), "error");
-  api_error_->setWordWrap(true);
-  api->body()->addWidget(api_error_);
-  api_address_ = MakeLabel(QString(), "kbd");
-  api_address_->setWordWrap(true);
-  api_address_->setTextInteractionFlags(Qt::TextSelectableByMouse);
-  api->body()->addWidget(MakeField(QStringLiteral("Address"), api_address_));
-  auto* usage = new Card(
-      QStringLiteral("Using it"),
-      QStringLiteral("Plain HTTP with JSON. The description of every endpoint "
-                     "is at /openapi.json; node types are at /nodes and "
-                     "/nodes/{type}. Runs started here open the websites in "
-                     "the flow, just like pressing Run."));
-  api_usage_ = usage->body();
-  return Page(QStringLiteral("API"),
-              QStringLiteral("Let scripts and AI agents on this computer read, "
-                             "edit and run the open project."),
-              {api, usage});
+  assistant->body()->addWidget(MakeSwitchField(
+      QStringLiteral("Turn on the assistant"), assistant_enabled_,
+      QStringLiteral("Stays on until you turn it off. The top bar shows "
+                     "Assistant while it's on. Agents change the project with "
+                     "Lua scripts, which reach only the project folder and "
+                     "never the internet.")));
+  assistant_error_ = MakeLabel(QString(), "error");
+  assistant_error_->setWordWrap(true);
+  assistant->body()->addWidget(assistant_error_);
+  return Page(QStringLiteral("Assistant"),
+              QStringLiteral("Let coding agents on this computer read, edit "
+                             "and run the open project."),
+              {assistant});
 }
 
 QWidget* SettingsWindow::LicencesPage() {
@@ -598,9 +571,7 @@ void SettingsWindow::Load() {
     segmented->blockSignals(false);
   }
   confirm_exit_->SetCheckedQuietly(view.confirm_exit);
-  api_enabled_->SetCheckedQuietly(view.api_enabled);
-  api_scripts_->SetCheckedQuietly(view.api_scripts);
-  api_scripts_row_->setEnabled(view.api_enabled);
+  assistant_enabled_->SetCheckedQuietly(view.assistant_enabled);
   const bool custom = !view.default_dir.empty();
   if (!default_dir_->hasFocus()) {
     default_dir_->setText(custom ? ToQ(view.default_dir)
@@ -634,38 +605,14 @@ void SettingsWindow::Load() {
   }
   live_fps_value_->setText(QStringLiteral("%1 fps").arg(view.live_fps));
   live_auto_open_->SetCheckedQuietly(view.live_auto_open);
-  api_state_->setText(!view.api_enabled    ? QStringLiteral("Off")
-                      : view.api_listening ? QStringLiteral("On")
-                                           : QStringLiteral("Not running"));
-  api_error_->setVisible(view.api_enabled && !view.api_error.empty());
-  api_error_->setText(QStringLiteral("The API couldn't start. ") +
-                      ToQ(view.api_error));
-  api_address_->setText(ToQ(view.api_address));
-  while (QLayoutItem* item = api_usage_->takeAt(0)) {
-    delete item->widget();
-    delete item;
-  }
-#if defined(Q_OS_WIN)
-  auto* pipe = MakeLabel(
-      QStringLiteral("On Windows the API is a named pipe. Use an HTTP client "
-                     "that can connect to a named pipe, with the address "
-                     "above."),
-      "muted");
-  pipe->setWordWrap(true);
-  api_usage_->addWidget(pipe);
-#else
-  for (const QString& route :
-       {QStringLiteral("/openapi.json"), QStringLiteral("/status"),
-        QStringLiteral("/project")}) {
-    auto* line =
-        MakeLabel(QStringLiteral("curl --unix-socket '%1' http://localhost%2")
-                      .arg(ToQ(view.api_address), route),
-                  "kbd");
-    line->setWordWrap(true);
-    line->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    api_usage_->addWidget(line);
-  }
-#endif
+  assistant_state_->setText(!view.assistant_enabled ? QStringLiteral("Off")
+                            : view.assistant_listening
+                                ? QStringLiteral("On")
+                                : QStringLiteral("Not running"));
+  assistant_error_->setVisible(view.assistant_enabled &&
+                               !view.assistant_error.empty());
+  assistant_error_->setText(QStringLiteral("The assistant couldn't start. ") +
+                            ToQ(view.assistant_error));
 }
 
 void SettingsWindow::Patch(const QString& section, const QString& key,
