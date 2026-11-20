@@ -84,8 +84,8 @@ The native editor's windows, docks and panels, the title bar and menus, the canv
 
 ### Starting and closing
 
-- **Settings → General picks what launch shows**: the start screen, the last project or New project (`StartAsChosen`), once per launch and only when setup isn't showing.
-- **Closing the main window asks first unless the user said not to**: "Are you sure you want to exit?" with "Don't ask again", and the button "Exit".
+- **Settings → General picks what launch shows**: the start screen, the last project or New project (`StartAsChosen`), once per launch and only when setup isn't showing, and never headless ([assistant.md](assistant.md)).
+- **Closing the main window asks first unless the user said not to, or the app is headless**: "Are you sure you want to exit?" with "Don't ask again", and the button "Exit".
   - Unfinished work is always listed, and the button becomes "Close anyway": a run, the labels in `AppState.tasks` (engine setup, a font or update download), and unsaved changes or a value still being typed (`ongoing`, `crates/session/src/exit.rs`).
   - With asking turned off, unfinished work still shows the dialog, titled "Some work hasn't finished yet" and without "Don't ask again".
 - **Closing saves the values still being typed first** (`flush_save`, `crates/session/src/exit.rs`): when the editor has reported drafts (`report_drafts`), the session asks for them (`FlushSave`, which the editor receives as `FlushDrafts`), the Inspector ends its typing and answers `save_flushed`, and Rust waits for that up to `FLUSH_WITHIN` before it saves.

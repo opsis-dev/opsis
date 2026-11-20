@@ -138,6 +138,10 @@ QPixmap App::Logo(int size) {
 void App::Log(const QString& line) { session().log(ToRust(line)); }
 
 void App::ShowError(const QString& message) {
+  if (headless_) {
+    Log(QStringLiteral("headless: ") + message);
+    return;
+  }
   QMessageBox box(QMessageBox::Warning, QStringLiteral("Opsis"), message,
                   QMessageBox::Ok, QApplication::activeWindow());
   box.exec();
@@ -177,11 +181,15 @@ int App::Run(rust::Box<bridge::Session> host) {
   static std::array<char*, 2> argv = {name.data(), nullptr};
   QApplication::setHighDpiScaleFactorRoundingPolicy(
       Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
-  if (qEnvironmentVariableIsSet("OPSIS_QT_SCENARIO")) {
+  headless_ = host->headless();
+  if (headless_) {
+    qputenv("QT_QPA_PLATFORM", "offscreen");
+  }
+  if (qEnvironmentVariableIsSet("OPSIS_QT_SCENARIO") || headless_) {
     QApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
   }
 #if defined(Q_OS_LINUX)
-  if (!qEnvironmentVariableIsSet("QT_QPA_PLATFORMTHEME")) {
+  if (!headless_ && !qEnvironmentVariableIsSet("QT_QPA_PLATFORMTHEME")) {
     qputenv("QT_QPA_PLATFORMTHEME", "xdgdesktopportal");
   }
 #endif

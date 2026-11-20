@@ -67,3 +67,72 @@ fn a_popped_out_panel_comes_back_popped_out_when_the_app_starts_again() {
         "the second launch didn't check the timeline:\n{checks}"
     );
 }
+
+#[cfg(unix)]
+fn ask(socket: &Path, path: &str) -> String {
+    use std::io::{Read, Write};
+    let mut stream = std::os::unix::net::UnixStream::connect(socket).expect("the socket answers");
+    write!(
+        stream,
+        "GET {path} HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n"
+    )
+    .expect("a request");
+    let mut answer = String::new();
+    stream.read_to_string(&mut answer).expect("an answer");
+    answer
+}
+
+#[cfg(unix)]
+#[test]
+fn a_headless_start_serves_the_project_and_ends_on_a_signal() {
+    let folder = tempfile::tempdir().expect("a temp folder");
+    let project = folder.path().join("project");
+    std::fs::create_dir_all(&project).expect("a project folder");
+    std::fs::copy(
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples/todomvc/project.opsis.json"),
+        project.join("project.opsis.json"),
+    )
+    .expect("a project");
+    let user_data = folder.path().join("user-data");
+    let socket = user_data.join("api.sock");
+    let log_path = folder.path().join("headless.log");
+    let log = File::create(&log_path).expect("a log file");
+    let mut app = Command::new(env!("CARGO_BIN_EXE_opsis"))
+        .arg("--headless")
+        .arg(&project)
+        .env("OPSIS_USER_DATA", &user_data)
+        .env("XDG_DATA_HOME", folder.path().join("data"))
+        .env("OPSIS_AUDIO_DEVICE", "alsa:null")
+        .env_remove("QT_QPA_PLATFORM")
+        .env_remove("OPSIS_API_SOCKET")
+        .env_remove("WAYLAND_DISPLAY")
+        .env_remove("DISPLAY")
+        .stdout(Stdio::from(log.try_clone().expect("a second log handle")))
+        .stderr(Stdio::from(log))
+        .spawn()
+        .expect("the app starts");
+    let started = Instant::now();
+    let shown = loop {
+        if socket.exists() {
+            let answer = ask(&socket, "/project");
+            if answer.starts_with("HTTP/1.1 200") {
+                break Some(answer);
+            }
+        }
+        if started.elapsed() > LIMIT || app.try_wait().expect("the app's status").is_some() {
+            break None;
+        }
+        std::thread::sleep(POLL);
+    };
+    let pid = app.id().to_string();
+    Command::new("kill")
+        .args(["-TERM", &pid])
+        .status()
+        .expect("a signal");
+    let status = app.wait().expect("the app ends");
+    let output = std::fs::read_to_string(&log_path).expect("the log");
+    let shown = shown.unwrap_or_else(|| panic!("the project was never served:\n{output}"));
+    assert!(shown.contains("Sample: to-do app"), "{shown}");
+    assert!(output.contains("platform offscreen"), "{output}");
+    assert!(status.success(), "{status:?}\n{output}");
+}

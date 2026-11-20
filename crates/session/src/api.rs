@@ -164,14 +164,9 @@ impl ApiHost for AppApi {
     fn open(&self, dir: String) -> BoxFuture<'static, HostResult<ProjectState>> {
         let app = self.app.clone();
         Box::pin(async move {
-            crate::document::open(&app, Path::new(&dir))
+            open_and_show(&app, Path::new(&dir))
                 .await
-                .map_err(|e| {
-                    HostError::new(UNREADABLE, format!("Couldn't open the project. {}", e.0))
-                })?;
-            if let Err(error) = (OpenRequested { dir }).emit_to(&app, MAIN_WINDOW) {
-                log::warn!("showing the project the API opened: {error}");
-            }
+                .map_err(|e| HostError::new(UNREADABLE, e))?;
             project_state(&app)
         })
     }
@@ -223,6 +218,17 @@ impl ApiHost for AppApi {
     }
 }
 
+pub async fn open_and_show(app: &Session, dir: &Path) -> Result<(), String> {
+    crate::document::open(app, dir)
+        .await
+        .map_err(|e| format!("Couldn't open the project. {}", e.0))?;
+    let dir = dir.to_string_lossy().into_owned();
+    if let Err(error) = (OpenRequested { dir }).emit_to(app, MAIN_WINDOW) {
+        log::warn!("showing the project that was opened: {error}");
+    }
+    Ok(())
+}
+
 fn announce(app: &Session, status: ApiServerStatus) {
     if let Err(error) = ApiStatusChanged(status).emit(app) {
         log::warn!("sending the API status: {error}");
@@ -230,7 +236,7 @@ fn announce(app: &Session, status: ApiServerStatus) {
 }
 
 pub fn follow_setting(app: &Session) {
-    let enabled = app.state::<AppState>().settings().assistant.enabled;
+    let enabled = app.state::<AppState>().settings().assistant.enabled || app.platform().headless();
     let app = app.clone();
     crate::runtime::spawn(async move {
         let api = app.state::<Api>();

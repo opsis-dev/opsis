@@ -80,6 +80,7 @@ pub trait Host {
     fn clear_saved_results(&self) -> HostResult<()>;
     fn copy_selection(&self) -> String;
     fn bar(&self) -> BarView;
+    fn headless(&self) -> bool;
     fn reveal_outputs(&self) -> HostResult<()>;
     fn motion_info(&self, motion: &str) -> MotionInfo;
     fn motion_pose(&self, motion: &str, elapsed_ms: f64) -> PoseView;
@@ -584,6 +585,10 @@ impl Session {
 
     pub(crate) fn bar(&self) -> BarView {
         self.0.bar()
+    }
+
+    pub(crate) fn headless(&self) -> bool {
+        self.0.headless()
     }
 
     pub(crate) fn reveal_outputs(&self) -> HostResult<()> {

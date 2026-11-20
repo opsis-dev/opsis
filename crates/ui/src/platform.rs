@@ -14,6 +14,7 @@ enum Reply {
 
 #[derive(Default)]
 pub struct QtPlatform {
+    headless: bool,
     next: AtomicU64,
     waiting: Mutex<HashMap<u64, Reply>>,
     active: AtomicBool,
@@ -24,6 +25,7 @@ pub struct QtPlatform {
 impl std::fmt::Debug for QtPlatform {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("QtPlatform")
+            .field("headless", &self.headless)
             .field("next", &self.next)
             .field("waiting", &self.waiting)
             .field("active", &self.active)
@@ -32,6 +34,13 @@ impl std::fmt::Debug for QtPlatform {
 }
 
 impl QtPlatform {
+    pub fn new(headless: bool) -> Self {
+        Self {
+            headless,
+            ..Self::default()
+        }
+    }
+
     fn ask(
         &self,
         kind: DialogKind,
@@ -40,6 +49,17 @@ impl QtPlatform {
         filter: Option<&FileFilter>,
         reply: Reply,
     ) {
+        if self.headless {
+            log::info!("headless: no one to answer \"{title}\", so it is cancelled");
+            let delivered = match reply {
+                Reply::One(sender) => sender.send(None).is_ok(),
+                Reply::Many(sender) => sender.send(Vec::new()).is_ok(),
+            };
+            if !delivered {
+                log::debug!("a dialog was cancelled after its caller left");
+            }
+            return;
+        }
         let id = self.next.fetch_add(1, Ordering::Relaxed);
         self.waiting.lock().expect("dialogs").insert(id, reply);
         let start = start.map_or_default(|p| p.to_string_lossy().into_owned());
@@ -111,6 +131,10 @@ impl Platform for QtPlatform {
     }
 
     fn notify(&self, title: &str, body: &str) {
+        if self.headless {
+            log::info!("headless: {title} {body}");
+            return;
+        }
         opsis_qt::notify(title, body);
     }
 
@@ -159,5 +183,25 @@ impl Platform for QtPlatform {
     fn close_terminal_window(&self, id: &str) {
         self.terminals.lock().expect("terminal windows").remove(id);
         opsis_qt::close_terminal_window(id);
+    }
+
+    fn headless(&self) -> bool {
+        self.headless
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use opsis_session::platform::{pick_file, pick_files, pick_folder};
+
+    use super::*;
+
+    #[tokio::test]
+    async fn a_headless_platform_cancels_every_picker() {
+        let platform = QtPlatform::new(true);
+        assert_eq!(pick_folder(&platform, "Choose a folder", None).await, None);
+        assert_eq!(pick_file(&platform, "Choose a file").await, None);
+        assert_eq!(pick_files(&platform, "Choose files", None).await, Vec::<PathBuf>::new());
+        assert!(platform.headless());
     }
 }

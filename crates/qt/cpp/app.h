@@ -32,6 +32,7 @@ class App {
   QPixmap Logo(int size);
   void Log(const QString& line);
   void ShowError(const QString& message);
+  bool headless() const { return headless_; }
 
  private:
   App() = default;
@@ -39,6 +40,7 @@ class App {
   void ConfigureDocks();
 
   std::optional<rust::Box<bridge::Session>> session_;
+  bool headless_ = false;
   QHash<QString, QColor> tokens_;
   QHash<QString, QPixmap> glyphs_;
 };

@@ -27,6 +27,8 @@ mod text;
 mod timeline;
 mod ui;
 
+use std::ffi::OsString;
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use opsis_session::Session;
@@ -54,21 +56,41 @@ fn tidy_earlier_runs(paths: &AppPaths) {
     }
 }
 
-fn start() -> Result<Ui, Box<dyn std::error::Error>> {
+const USAGE: &str = "Usage: opsis [--headless <project folder>]";
+
+fn headless_folder(args: &[OsString]) -> Result<Option<PathBuf>, String> {
+    match args {
+        [] => Ok(None),
+        [flag, folder] if flag == "--headless" => std::path::absolute(folder)
+            .map(Some)
+            .map_err(|e| format!("{}: {e}", PathBuf::from(folder).display())),
+        _ => Err(USAGE.to_owned()),
+    }
+}
+
+fn start(headless: Option<PathBuf>) -> Result<Ui, Box<dyn std::error::Error>> {
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()?;
     let paths = AppPaths::new(&folders::host_folders())?;
     tidy_earlier_runs(&paths);
-    let platform = Arc::new(QtPlatform::default());
+    let platform = Arc::new(QtPlatform::new(headless.is_some()));
     let keys = Keyring::platform();
     let session = runtime.block_on(Session::start(paths, keys, platform.clone()))?;
-    Ok(Ui::new(session, runtime, platform))
+    Ok(Ui::new(session, runtime, platform, headless))
 }
 
 fn main() {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
-    let ui = match start() {
+    let args: Vec<OsString> = std::env::args_os().skip(1).collect();
+    let headless = match headless_folder(&args) {
+        Ok(headless) => headless,
+        Err(usage) => {
+            eprintln!("{usage}");
+            std::process::exit(2);
+        }
+    };
+    let ui = match start(headless) {
         Ok(ui) => ui,
         Err(error) => {
             log::error!("Opsis couldn't start: {error}");
@@ -80,4 +102,43 @@ fn main() {
     session.end();
     opsis_session::updates::finish(&session);
     std::process::exit(code);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn args(list: &[&str]) -> Vec<OsString> {
+        list.iter().map(OsString::from).collect()
+    }
+
+    #[test]
+    fn starts_with_a_window_when_given_nothing() {
+        assert_eq!(headless_folder(&[]), Ok(None));
+    }
+
+    #[test]
+    fn starts_headless_on_the_given_folder_made_absolute() {
+        let found = headless_folder(&args(&["--headless", "demo"]))
+            .unwrap()
+            .unwrap();
+        assert!(found.is_absolute());
+        assert!(found.ends_with("demo"));
+    }
+
+    #[test]
+    fn refuses_anything_else_with_the_usage() {
+        for list in [
+            &["--headless"][..],
+            &["demo"],
+            &["--headless", "a", "b"],
+            &["--window"],
+        ] {
+            assert_eq!(
+                headless_folder(&args(list)),
+                Err(USAGE.to_owned()),
+                "{list:?}"
+            );
+        }
+    }
 }

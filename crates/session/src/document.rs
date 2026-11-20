@@ -108,6 +108,21 @@ pub fn document_workflow(state: &AppState) -> Option<(PathBuf, Workflow)> {
 fn ask_about_disk(app: &Session, workflow: Option<Workflow>, version: String) {
     let readable = workflow.is_some();
     app.state::<AppState>().editor().disk_change = Some(DiskChange { workflow, version });
+    if app.platform().headless() {
+        let choice = if readable {
+            DiskChoice::Load
+        } else {
+            DiskChoice::Wait
+        };
+        log::info!("the project file changed on disk; answering {choice:?} with no one to ask");
+        let app = app.clone();
+        crate::runtime::spawn(async move {
+            if let Err(error) = resolve_disk_change(app, choice).await {
+                log::warn!("answering the changed project file: {}", error.0);
+            }
+        });
+        return;
+    }
     if let Err(error) = (DiskChangeAsked { readable }).emit_to(app, MAIN_WINDOW) {
         log::warn!("asking about the changed project file: {error}");
     }

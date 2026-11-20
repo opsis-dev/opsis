@@ -34,6 +34,9 @@ pub trait Platform: Send + Sync {
     fn close_view_window(&self, id: &str);
     fn open_terminal_window(&self, id: &str, title: &str, closed: Closed) -> Result<(), String>;
     fn close_terminal_window(&self, id: &str);
+    fn headless(&self) -> bool {
+        false
+    }
 }
 
 pub trait FrameSender: Send + Sync + std::fmt::Debug {

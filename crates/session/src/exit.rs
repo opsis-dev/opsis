@@ -123,6 +123,12 @@ pub fn close_on_signals(app: &Session) {
 }
 
 pub async fn confirm(app: &Session) -> bool {
+    if app.platform().headless() {
+        log::info!("closing with no one to ask: stopping the work and exiting");
+        flush_save(app).await;
+        app.state::<RunHost>().cancel();
+        return true;
+    }
     let ask_first = app.state::<AppState>().settings().app.confirm_exit;
     let busy = ongoing(app);
     if !ask_first && busy.is_empty() {

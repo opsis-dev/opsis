@@ -1152,6 +1152,7 @@ pub mod ffi {
         fn clear_saved_results(self: &Session) -> Result<()>;
         fn copy_selection(self: &Session) -> String;
         fn bar(self: &Session) -> BarView;
+        fn headless(self: &Session) -> bool;
         fn reveal_outputs(self: &Session) -> Result<()>;
         fn motion_info(self: &Session, motion: &str) -> MotionInfo;
         fn motion_pose(self: &Session, motion: &str, elapsed_ms: f64) -> PoseView;

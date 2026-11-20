@@ -78,6 +78,7 @@ pub struct Ui {
     session: Session,
     runtime: Runtime,
     platform: Arc<QtPlatform>,
+    headless: Option<PathBuf>,
     catalog: IndexMap<String, EditorNode>,
     bundle: EditorCatalog,
     showing: Arc<AtomicBool>,
@@ -190,7 +191,12 @@ const fn event_kind(event: &SessionEvent) -> Option<EventKind> {
 }
 
 impl Ui {
-    pub fn new(session: Session, runtime: Runtime, platform: Arc<QtPlatform>) -> Self {
+    pub fn new(
+        session: Session,
+        runtime: Runtime,
+        platform: Arc<QtPlatform>,
+        headless: Option<PathBuf>,
+    ) -> Self {
         let catalog = editor_catalog(NodePlatform::current())
             .into_iter()
             .map(|node| (node.kind.clone(), node))
@@ -199,6 +205,7 @@ impl Ui {
             session,
             runtime,
             platform,
+            headless,
             catalog,
             showing: Arc::new(AtomicBool::new(false)),
             closing: Arc::new(Mutex::new(None)),
@@ -776,6 +783,9 @@ impl Host for Ui {
         });
         let _entered = self.runtime.enter();
         self.session.begin();
+        if let Some(dir) = &self.headless {
+            opsis_session::headless::open_project(&self.session, dir.clone());
+        }
         self.watch_live();
     }
 
@@ -1473,6 +1483,10 @@ impl Host for Ui {
 
     fn morph_step(&self, position: f64, velocity: f64, target: f64, dt_ms: f64) -> MorphStep {
         morph::step(position, velocity, target, dt_ms)
+    }
+
+    fn headless(&self) -> bool {
+        self.headless.is_some()
     }
 
     fn bar(&self) -> BarView {

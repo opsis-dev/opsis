@@ -144,6 +144,7 @@ MainWindow::MainWindow()
 }
 
 void MainWindow::StartAsChosen() {
+  if (App::Get().headless()) return;
   const QString choice = ToQ(App::Get().session().settings().on_start);
   if (choice == QStringLiteral("last-project")) {
     const rust::Vec<bridge::ProjectEntry> recent =

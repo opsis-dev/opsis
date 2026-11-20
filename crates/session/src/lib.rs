@@ -8,6 +8,7 @@ pub mod events;
 pub mod exit;
 pub mod fonts;
 pub mod frames;
+pub mod headless;
 pub mod menu;
 pub mod node_results;
 pub mod paths;
