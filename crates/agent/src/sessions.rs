@@ -116,3 +116,23 @@ pub async fn messages(pool: &SqlitePool, id: &str) -> Result<Vec<Message>, Sessi
         .map(|content| Ok(serde_json::from_str(content)?))
         .collect()
 }
+
+pub async fn allowed(pool: &SqlitePool, id: &str) -> Result<Vec<String>, SessionError> {
+    Ok(sqlx::query_scalar!(
+        "SELECT kind FROM allowed WHERE session_id = ? ORDER BY kind",
+        id
+    )
+    .fetch_all(pool)
+    .await?)
+}
+
+pub async fn allow(pool: &SqlitePool, id: &str, kind: &str) -> Result<(), SessionError> {
+    sqlx::query!(
+        "INSERT INTO allowed (session_id, kind) VALUES (?, ?) ON CONFLICT DO NOTHING",
+        id,
+        kind
+    )
+    .execute(pool)
+    .await?;
+    Ok(())
+}

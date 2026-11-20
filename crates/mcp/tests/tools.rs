@@ -168,6 +168,11 @@ async fn the_program_serves_the_tools_and_the_guide_over_stdio() {
         .collect();
     names.sort();
     assert_eq!(names, [REDO, RUN_LUA, UNDO, WAIT_RUN]);
+    let tools = client.list_all_tools().await.unwrap();
+    for tool in &tools {
+        let reads = tool.annotations.as_ref().and_then(|a| a.read_only_hint) == Some(true);
+        assert_eq!(reads, tool.name == WAIT_RUN, "{}", tool.name);
+    }
     let ran = tokio::time::timeout(
         Duration::from_secs(10),
         client.call_tool(

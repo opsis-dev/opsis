@@ -50,6 +50,7 @@ agent-client-protocol = { workspace = true, features = ["process", "stdio"] }
 keyring-core.workspace = true
 opsis-store.workspace = true
 proptest.workspace = true
+serde_json.workspace = true
 tempfile.workspace = true
 tokio = { workspace = true, features = ["rt", "macros"] }
 wiremock.workspace = true

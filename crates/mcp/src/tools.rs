@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use hyper::Method;
-use rmcp::model::{CallToolResult, ContentBlock, JsonObject, Tool};
+use rmcp::model::{CallToolResult, ContentBlock, JsonObject, Tool, ToolAnnotations};
 use serde_json::{Value, json};
 
 use crate::local_api::{Answer, LocalApi, LocalApiError};
@@ -48,7 +48,8 @@ pub fn assistant_tools() -> Vec<Tool> {
                 },
                 "required": ["id"],
             })),
-        ),
+        )
+        .annotate(ToolAnnotations::new().read_only(true)),
     ]
 }
 

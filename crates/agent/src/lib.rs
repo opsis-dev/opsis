@@ -6,5 +6,6 @@ pub mod mcp;
 pub mod model;
 pub mod sessions;
 pub mod settings;
+pub mod shell;
 pub mod tools;
 pub mod turn;

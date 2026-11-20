@@ -1,16 +1,17 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use agent_client_protocol::v1::ConnectionTo;
 use agent_client_protocol::v1::schema::{
     AgentCapabilities, AuthMethod, AuthMethodAgent, AuthMethodTerminal, AuthenticateRequest,
-    AuthenticateResponse, CancelNotification, ContentBlock, ContentChunk, ImageContent,
-    InitializeRequest, InitializeResponse, LoadSessionRequest, LoadSessionResponse, McpServer,
-    NewSessionRequest, NewSessionResponse, PermissionOption, PermissionOptionKind,
+    AuthenticateResponse, CancelNotification, ContentBlock, ContentChunk, CurrentModeUpdate,
+    ImageContent, InitializeRequest, InitializeResponse, LoadSessionRequest, LoadSessionResponse,
+    McpServer, NewSessionRequest, NewSessionResponse, PermissionOption, PermissionOptionKind,
     PromptCapabilities, PromptRequest, PromptResponse, RequestPermissionOutcome,
-    RequestPermissionRequest, SessionNotification, SessionUpdate, StopReason, TextContent,
-    ToolCall, ToolCallContent, ToolCallStatus, ToolCallUpdate, ToolCallUpdateFields, ToolKind,
+    RequestPermissionRequest, SessionMode, SessionModeState, SessionNotification, SessionUpdate,
+    SetSessionModeRequest, SetSessionModeResponse, StopReason, TextContent, ToolCall,
+    ToolCallContent, ToolCallStatus, ToolCallUpdate, ToolCallUpdateFields, ToolKind,
 };
 use agent_client_protocol::{Agent, Client, Error, Stdio};
 use opsis_persistence::keys::{KeyError, Keyring};
@@ -22,13 +23,14 @@ use sqlx::SqlitePool;
 use tokio_util::sync::CancellationToken;
 
 use crate::mcp::{StdioServer, ToolServers};
-use crate::turn::{Ending, Peer, Turn, Update};
+use crate::turn::{Decision, Ending, Mode, Peer, Turn, Update};
 use crate::{model, sessions, settings, tools};
 
 pub const LOGIN: &str =
     "Log in first: run opsis-agent login to choose a model service, a model and its key.";
 const LOGIN_METHOD: &str = "login";
 const ALLOW: &str = "allow";
+const ALLOW_ALWAYS: &str = "allow-always";
 const REJECT: &str = "reject";
 
 struct Live {
@@ -37,6 +39,9 @@ struct Live {
     servers: ToolServers,
     history: tokio::sync::Mutex<Vec<Message>>,
     cancel: Mutex<CancellationToken>,
+    mode: Mutex<Mode>,
+    allowed: Arc<Mutex<HashSet<String>>>,
+    waiting: Arc<Mutex<Vec<String>>>,
 }
 
 impl std::fmt::Debug for Live {
@@ -103,6 +108,17 @@ fn user_message(prompt: &[ContentBlock]) -> Message {
     Message::User { content }
 }
 
+fn with_background(message: Message, ended: &[String]) -> Message {
+    if ended.is_empty() {
+        return message;
+    }
+    let Message::User { mut content } = message else {
+        return message;
+    };
+    content.insert(0, UserContent::text(ended.join("\n")));
+    Message::User { content }
+}
+
 fn text_block(text: impl Into<String>) -> ContentBlock {
     ContentBlock::Text(TextContent::new(text))
 }
@@ -132,6 +148,9 @@ fn kind_of(name: &str) -> ToolKind {
 struct AcpPeer {
     cx: ConnectionTo<Client>,
     session: String,
+    pool: SqlitePool,
+    allowed: Arc<Mutex<HashSet<String>>>,
+    waiting: Arc<Mutex<Vec<String>>>,
 }
 
 impl AcpPeer {
@@ -175,9 +194,14 @@ impl Peer for AcpPeer {
         self.send(update);
     }
 
-    async fn allow(&self, id: &str, title: &str, input: &Value) -> bool {
+    async fn ask(&self, id: &str, title: &str, input: &Value) -> Decision {
         let options = vec![
-            PermissionOption::new(ALLOW, "Allow", PermissionOptionKind::AllowOnce),
+            PermissionOption::new(ALLOW, "Allow once", PermissionOptionKind::AllowOnce),
+            PermissionOption::new(
+                ALLOW_ALWAYS,
+                "Allow always",
+                PermissionOptionKind::AllowAlways,
+            ),
             PermissionOption::new(REJECT, "Reject", PermissionOptionKind::RejectOnce),
         ];
         let call = ToolCallUpdate::new(
@@ -196,16 +220,56 @@ impl Peer for AcpPeer {
             .block_task()
             .await;
         match asked {
-            Ok(answer) => matches!(
-                answer.outcome,
-                RequestPermissionOutcome::Selected(selected) if selected.option_id.0.as_ref() == ALLOW
-            ),
+            Ok(answer) => match answer.outcome {
+                RequestPermissionOutcome::Selected(selected) => match selected.option_id.0.as_ref()
+                {
+                    ALLOW => Decision::Once,
+                    ALLOW_ALWAYS => Decision::Always,
+                    _ => Decision::Reject,
+                },
+                _ => Decision::Reject,
+            },
             Err(error) => {
                 log::warn!("asking permission: {error}");
-                false
+                Decision::Reject
             }
         }
     }
+
+    fn allow_always(&self, allowance: &str) {
+        self.allowed
+            .lock()
+            .expect("allowed")
+            .insert(allowance.to_owned());
+        let (pool, session, allowance) = (
+            self.pool.clone(),
+            self.session.clone(),
+            allowance.to_owned(),
+        );
+        tokio::spawn(async move {
+            if let Err(error) = sessions::allow(&pool, &session, &allowance).await {
+                log::warn!("remembering what is allowed: {error}");
+            }
+        });
+    }
+
+    fn background_ended(&self, command: &str, report: String) {
+        let message = format!("The background command `{command}` ended. {report}");
+        self.send(SessionUpdate::AgentMessageChunk(ContentChunk::new(
+            text_block(format!("\n{message}\n")),
+        )));
+        self.waiting.lock().expect("waiting").push(message);
+    }
+}
+
+fn modes(current: Mode) -> SessionModeState {
+    SessionModeState::new(
+        current.id(),
+        Mode::ALL
+            .into_iter()
+            .map(|mode| SessionMode::new(mode.id(), mode.name()).description(mode.description()))
+            .collect(),
+    )
 }
 
 impl OpsisAgent {
@@ -243,7 +307,13 @@ impl OpsisAgent {
         folder: PathBuf,
         servers: &[McpServer],
         history: Vec<Message>,
+        mode: Mode,
     ) -> Result<(), Error> {
+        let allowed: HashSet<String> = sessions::allowed(&self.pool, id)
+            .await
+            .map_err(Error::into_internal_error)?
+            .into_iter()
+            .collect();
         let model = self.model().await?;
         let servers = ToolServers::start(&stdio_servers(servers), &folder).await;
         let live = Arc::new(Live {
@@ -252,6 +322,9 @@ impl OpsisAgent {
             servers,
             history: tokio::sync::Mutex::new(history),
             cancel: Mutex::new(CancellationToken::new()),
+            mode: Mutex::new(mode),
+            allowed: Arc::new(Mutex::new(allowed)),
+            waiting: Arc::default(),
         });
         self.sessions
             .lock()
@@ -262,6 +335,35 @@ impl OpsisAgent {
 
     fn live(&self, id: &str) -> Option<Arc<Live>> {
         self.sessions.lock().expect("sessions").get(id).cloned()
+    }
+
+    fn peer(&self, cx: ConnectionTo<Client>, session: &str, live: Option<&Live>) -> AcpPeer {
+        AcpPeer {
+            cx,
+            session: session.to_owned(),
+            pool: self.pool.clone(),
+            allowed: live.map_or_default(|l| l.allowed.clone()),
+            waiting: live.map_or_default(|l| l.waiting.clone()),
+        }
+    }
+
+    async fn set_mode(
+        &self,
+        request: SetSessionModeRequest,
+        cx: ConnectionTo<Client>,
+    ) -> Result<(), Error> {
+        let session = request.session_id.0.to_string();
+        let live = self.live(&session).ok_or_else(Error::invalid_params)?;
+        let mode = Mode::from_id(&request.mode_id.0).ok_or_else(Error::invalid_params)?;
+        *live.mode.lock().expect("mode") = mode;
+        sessions::set_mode(&self.pool, &session, mode.id())
+            .await
+            .map_err(Error::into_internal_error)?;
+        self.peer(cx, &session, Some(&live))
+            .send(SessionUpdate::CurrentModeUpdate(CurrentModeUpdate::new(
+                mode.id(),
+            )));
+        Ok(())
     }
 
     fn replay(peer: &AcpPeer, history: &[Message]) {
@@ -300,21 +402,22 @@ impl OpsisAgent {
         let cancel = CancellationToken::new();
         *live.cancel.lock().expect("cancel") = cancel.clone();
         let mut history = live.history.lock().await;
-        let message = user_message(&request.prompt);
+        let ended_meanwhile: Vec<String> =
+            std::mem::take(&mut *live.waiting.lock().expect("waiting"));
+        let message = with_background(user_message(&request.prompt), &ended_meanwhile);
         sessions::append(&self.pool, &session, &message)
             .await
             .map_err(Error::into_internal_error)?;
         history.push(message);
-        let peer = AcpPeer {
-            cx,
-            session: session.clone(),
-        };
+        let peer = self.peer(cx, &session, Some(&live));
         let turn = Turn {
             folder: live.folder.clone(),
             system: system_prompt(&live.folder, &live.servers),
             model: &live.model,
             servers: &live.servers,
             cancel,
+            mode: *live.mode.lock().expect("mode"),
+            allowed: Mutex::new(live.allowed.lock().expect("allowed").clone()),
         };
         let mut unsaved = Vec::new();
         let ended = turn
@@ -358,6 +461,7 @@ pub async fn serve(agent: OpsisAgent) -> Result<(), Error> {
     let on_prompt = agent.clone();
     let on_cancel = agent.clone();
     let on_auth = agent.clone();
+    let on_mode = agent.clone();
     Agent
         .v1()
         .name("opsis-agent")
@@ -389,14 +493,22 @@ pub async fn serve(agent: OpsisAgent) -> Result<(), Error> {
                 let id = sessions::new_id();
                 let created = async {
                     on_new
-                        .open(&id, request.cwd.clone(), &request.mcp_servers, Vec::new())
+                        .open(
+                            &id,
+                            request.cwd.clone(),
+                            &request.mcp_servers,
+                            Vec::new(),
+                            Mode::Ask,
+                        )
                         .await?;
-                    sessions::create(&on_new.pool, &id, &request.cwd, "ask")
+                    sessions::create(&on_new.pool, &id, &request.cwd, Mode::Ask.id())
                         .await
                         .map_err(Error::into_internal_error)
                 };
                 match created.await {
-                    Ok(()) => responder.respond(NewSessionResponse::new(id)),
+                    Ok(()) => {
+                        responder.respond(NewSessionResponse::new(id).modes(modes(Mode::Ask)))
+                    }
                     Err(error) => responder.respond_with_error(error),
                 }
             },
@@ -409,23 +521,25 @@ pub async fn serve(agent: OpsisAgent) -> Result<(), Error> {
                     let history = sessions::messages(&on_load.pool, &id)
                         .await
                         .map_err(Error::into_internal_error)?;
-                    sessions::find(&on_load.pool, &id)
+                    let stored = sessions::find(&on_load.pool, &id)
                         .await
                         .map_err(Error::into_internal_error)?
                         .ok_or_else(Error::invalid_params)?;
-                    OpsisAgent::replay(
-                        &AcpPeer {
-                            cx,
-                            session: id.clone(),
-                        },
-                        &history,
-                    );
+                    let mode = Mode::from_id(&stored.mode).unwrap_or(Mode::Ask);
+                    OpsisAgent::replay(&on_load.peer(cx, &id, None), &history);
                     on_load
-                        .open(&id, request.cwd.clone(), &request.mcp_servers, history)
-                        .await
+                        .open(
+                            &id,
+                            request.cwd.clone(),
+                            &request.mcp_servers,
+                            history,
+                            mode,
+                        )
+                        .await?;
+                    Ok::<_, Error>(mode)
                 };
                 match loaded.await {
-                    Ok(()) => responder.respond(LoadSessionResponse::new()),
+                    Ok(mode) => responder.respond(LoadSessionResponse::new().modes(modes(mode))),
                     Err(error) => responder.respond_with_error(error),
                 }
             },
@@ -441,6 +555,16 @@ pub async fn serve(agent: OpsisAgent) -> Result<(), Error> {
                         Err(error) => responder.respond_with_error(error),
                     }
                 })
+            },
+            agent_client_protocol::on_receive_request!(),
+        )
+        .on_receive_request(
+            async move |request: SetSessionModeRequest, responder, cx| match on_mode
+                .set_mode(request, cx)
+                .await
+            {
+                Ok(()) => responder.respond(SetSessionModeResponse::new()),
+                Err(error) => responder.respond_with_error(error),
             },
             agent_client_protocol::on_receive_request!(),
         )
