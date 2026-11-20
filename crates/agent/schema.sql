@@ -1,4 +1,4 @@
-CREATE TABLE settings (
+CREATE TABLE model_service (
   id INTEGER PRIMARY KEY CHECK (id = 1),
   service TEXT NOT NULL,
   model TEXT NOT NULL,

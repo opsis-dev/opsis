@@ -759,6 +759,10 @@ Deletes a script by moving it to the system's trash, in `crates/ui`. https://git
 
 Serves Opsis's tools to coding agents over the Model Context Protocol, in the `opsis-mcp` program (`crates/mcp`). https://github.com/modelcontextprotocol/rust-sdk, licensed under the Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0), with contributions made before its relicensing under the MIT License.
 
+## Opsis's own agent — the agent-client-protocol, rig-core, ignore and grep crates
+
+The `opsis-agent` program (`crates/agent`) speaks the Agent Client Protocol through `agent-client-protocol` (https://github.com/agentclientprotocol/rust-sdk, licensed under the Apache License, Version 2.0). It sends model requests through `rig-core` (https://github.com/0xPlaygrounds/rig, licensed under the MIT License), finds and searches files with `ignore`, `globset`, `grep-searcher` and `grep-regex` (https://github.com/BurntSushi/ripgrep, licensed under the MIT License or the Unlicense), and reads a key without echo with `rpassword` (https://github.com/conradkleinespel/rpassword, licensed under the Apache License, Version 2.0).
+
 ## Sound output — the cpal crate
 
 Plays the film's sound while the editor's timeline plays, in `crates/audio`. https://github.com/RustAudio/cpal, licensed under the Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0).

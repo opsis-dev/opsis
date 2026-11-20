@@ -15,7 +15,7 @@ async fn agent_db_and_the_app_database_share_a_folder_and_nothing_else() {
     );
     assert_eq!(
         opsis_persistence::db::table_names(&agent).await.unwrap(),
-        ["allowed", "messages", "meta", "sessions", "settings"]
+        ["allowed", "messages", "meta", "model_service", "sessions"]
     );
     let app_tables = app.table_names().await.unwrap();
     assert!(

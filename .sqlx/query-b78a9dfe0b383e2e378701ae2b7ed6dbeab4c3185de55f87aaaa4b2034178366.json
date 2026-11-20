@@ -1,0 +1,50 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT service, model, address FROM model_service WHERE id = 1",
+  "describe": {
+    "columns": [
+      {
+        "name": "service",
+        "ordinal": 0,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "model_service",
+            "name": "service"
+          }
+        }
+      },
+      {
+        "name": "model",
+        "ordinal": 1,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "model_service",
+            "name": "model"
+          }
+        }
+      },
+      {
+        "name": "address",
+        "ordinal": 2,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "model_service",
+            "name": "address"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "b78a9dfe0b383e2e378701ae2b7ed6dbeab4c3185de55f87aaaa4b2034178366"
+}

@@ -28,6 +28,7 @@ The app's one database, the settings held in memory, the keyring and the project
 - **Only Rust opens it (`AppState::db()`, a pool, so every query is async); windows reach it through the session over the bridge** ([ui.md](ui.md)).
 - **The tables are plain SQL with snake_case columns**, embedded by the store and run on an empty database.
 - **Every query is a checked macro against that schema.** After changing the schema or a query, run `bun run db:prepare` (it needs `sqlx-cli` built with SQLite).
+  - Its throwaway database holds `meta`, the app's schema and `agent.db`'s schema together, since a build checks every crate's queries against one database; the two schemas share no table name.
 - **There are no migrations: the `meta` table holds the sha256 of the schema SQL, and a database made for another schema is deleted and made again at startup** (`opsis_persistence::db::open`), its `-wal` and `-shm` files with it.
   - `opsis-persistence` makes `meta` itself (`persistence/meta.sql`) beside the schema it is given, so a schema file holds only its own tables; the scripts' seed (`scripts/lib/user-data.ts`) runs the same file.
 - **`opsis-agent` keeps a second database, `<data folder>/agent.db`, through the same opener** (`agent/src/db.rs`, schema `agent/schema.sql`): the agent's settings and sessions stay out of the app's database, and the agent links only `opsis-persistence` ([assistant.md](assistant.md)).

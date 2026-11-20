@@ -43,7 +43,7 @@ Status: plan only. Nothing here is built yet.
 1. **Settings → API becomes Settings → Assistant**, one switch (`settings.assistant.enabled`), off by default, shown as an Assistant badge in every app bar. It serves the socket with every route, the script routes included; the second switch goes away.
 2. **The socket becomes an internal path.** It stays HTTP on `api.sock` with mode 0600, and its routes stay as they are, but it is no longer documented for people: agents reach Opsis through `opsis-mcp`. [api.md](../agent-docs/api.md) says so.
 3. **The project routes stay under their own path and can grow** with what agents need beyond Lua (running checks, adding fonts…). The Local API always serves every route; `opsis-mcp` decides which become tools.
-4. **Settings → Assistant also holds** `opsis-agent`'s optional one-time setup (section 5), the agent list (section 4) and the request log (section 7).
+4. **Settings → Assistant also holds** the agent list (section 4) and the request log (section 7). Nothing in it is for `opsis-agent`, which the app reaches only over ACP.
 
 ## 2. `opsis-mcp`
 
@@ -136,7 +136,7 @@ The app as an ACP client: `agent-client-protocol` 5.4.0 (`Client.v1()`; `AcpAgen
 
 ## 5. `opsis-agent`
 
-The default agent, and the lean one: it takes the place fx would have had, since fx doesn't run on Windows, and serves people who use a local or OpenAI-compatible model and don't want to install an agent. It is a program of its own (`crates/agent`, `opsis-agent`), shipped beside the app, speaking ACP as the agent through the same `agent-client-protocol` crate, with `rig-core` 0.46 for model requests. It links `opsis-persistence` for the keyring and its own database, and nothing else of the app's.
+The default agent, and the lean one: it takes the place fx would have had, since fx doesn't run on Windows, and serves people who use a local or OpenAI-compatible model and don't want to install an agent. It is a program of its own (`crates/agent`, `opsis-agent`), shipped beside the app, speaking ACP as the agent through the same `agent-client-protocol` crate, with `rig-core` 0.47 for model requests. It links `opsis-persistence` for the keyring and its own database, and nothing else of the app's.
 
 **In place.**
 
@@ -148,8 +148,8 @@ The default agent, and the lean one: it takes the place fx would have had, since
 **Work.**
 
 1. **`opsis-persistence`.** A new crate (`crates/persistence`) takes `Keyring` and `KeyError` from `opsis-store`, gains `Keyring::clear_key` (shared with `plans/voice-and-captions.md`), and takes the generic half of `db.rs` as a database that opens a file with the schema it is given: the connection settings, the `meta` table it creates itself with the schema's hash, and replacing a database made for another schema. It has its own error enum. `opsis-store` keeps the app's schema, settings, fonts, projects and secrets over it, and `opsis-capture`, `opsis-session`, `opsis-ui` and `opsis-fonts` take `Keyring` from it.
-2. **Model service.** `opsis-agent set` takes a server on this computer (any OpenAI-compatible address, such as Ollama, llama.cpp or LM Studio), Anthropic, OpenAI, OpenRouter, or any OpenAI-compatible address, with a model name and a key; `opsis-agent set --from-env` reads the same from its environment. The agent stores them itself: the key in the keyring as `assistant:<service>`, the rest in its database.
-   - Settings → Assistant offers it as an optional one-time setup: the app runs `opsis-agent set --from-env` with the values in that one child's environment. Skipping it is fine; `opsis-agent set` in a terminal does the same.
+2. **Login.** `opsis-agent login` is the agent's own login, like any agent's: it asks for a server on this computer (any OpenAI-compatible address, such as Ollama, llama.cpp or LM Studio), Anthropic, OpenAI, OpenRouter, or any OpenAI-compatible address, with a model name and a key. The agent stores them itself: the key in the keyring as `assistant:<service>`, the rest in its database.
+   - Over ACP it is the agent's sign-in: a `terminal` sign-in method that runs `opsis-agent login` when the client can run one. `opsis-agent` is bundled beside the app and reached only over ACP; the app holds no setup for it.
 3. **Its database.** `agent.db`, a second SQLite database beside `opsis.db` in the data folder, with its own schema (`crates/agent/schema.sql`), opened through `opsis-persistence`, holds the agent's settings and sessions. `bun run db:prepare` checks the queries of both databases. No JSONL session files.
 4. **Tools.**
    - `read`: text files, and images as pictures for models that take them.
@@ -161,13 +161,13 @@ The default agent, and the lean one: it takes the place fx would have had, since
    - No web tools.
 5. **Modes.** **Ask** (the default): `read`, `glob`, `grep`, `wait_run` and shell commands that only read (`ls`, `cat`, `rg`, `git status`…, with no redirection or chaining into anything else) run without asking; everything else asks. **Full**: nothing asks. Each request offers allow once, allow always and reject.
 6. **The loop.** Prompt, stream the answer as `session/update`, ask permission, run the tool, repeat; `session/cancel` stops the turn and any running script; sessions are saved in `agent.db` so `session/load` replays them.
-7. **Tests.** Against a model server mocked with `wiremock`: a turn with a tool call, cancel mid-turn, load; `set --from-env` puts the key in the keyring and never in `agent.db`; `agent.db` and `opsis.db` open side by side and stay separate; the read-only command check as a property test over generated commands (one that writes or chains is never read-only).
+7. **Tests.** Against a model server mocked with `wiremock`: a turn with a tool call, cancel mid-turn, load; a login puts the key in the keyring and never in `agent.db`; `agent.db` and `opsis.db` open side by side and stay separate; the read-only command check as a property test over generated commands (one that writes or chains is never read-only).
 
 **Decided.**
 
 - The default agent, in place of fx; not a special preset.
 - Its own program, so a crash ends only the agent.
-- It sets its own model service and key (`opsis-agent set`); the app's setup is optional and one time.
+- It logs in itself (`opsis-agent login`, offered over ACP as a terminal sign-in); the app reaches it only over ACP.
 - It links `opsis-persistence` only: the keyring code moved out of `opsis-store`, and a second database `agent.db` beside `opsis.db`.
 - `rig-core` for model requests.
 - Ask and Full modes; read-only shell commands never ask.
@@ -204,7 +204,7 @@ Like T3 Code: a raw log per process beside an event log with projections in the 
 ## 8. Build order
 
 1. **`opsis-mcp`, the Assistant switch and headless.** From here on any agent run by the user (Claude Code in a terminal) drives Opsis through `opsis-mcp`.
-2. **`opsis-persistence`, then `opsis-agent`**, with `agent.db` and the one-time setup. It needs nothing from the Agent panel: `opsis-mcp` and the guide come from phase 1, and its tests drive it as an ACP client would.
+2. **`opsis-persistence`, then `opsis-agent`**, with `agent.db` and its login. It needs nothing from the Agent panel: `opsis-mcp` and the guide come from phase 1, and its tests drive it as an ACP client would.
 3. **The Agent panel**: the event log, agent presets and detection, sessions, permissions, the panel, run-finished messages and session restore.
 
 When each part is built, its design moves into a new `agent-docs/assistant.md` (listed in `AGENTS.md` §8); `api.md` says the socket is internal; `app-state.md` names `agent.db`; `AGENTS.md`'s crate table gains `opsis-persistence`, `opsis-mcp` and `opsis-agent`, and its generated-code table the registry snapshot; `packaging.md` lists the two new programs beside `opsis-renderer`; `editor.md` describes the right-hand tab group. This plan is deleted once everything in sections 1–7 is built.

@@ -6,14 +6,50 @@ rust-version.workspace = true
 license.workspace = true
 publish.workspace = true
 
+[[bin]]
+name = "opsis-agent"
+path = "src/main.rs"
+
 [lints]
 workspace = true
 
 [dependencies]
+agent-client-protocol = { workspace = true, features = ["stdio"] }
+base64.workspace = true
+env_logger.workspace = true
+futures.workspace = true
+globset.workspace = true
+grep-regex.workspace = true
+grep-searcher.workspace = true
+ignore.workspace = true
+log.workspace = true
+opsis-folders.workspace = true
 opsis-persistence.workspace = true
+reqwest.workspace = true
+rig-core = { workspace = true, features = ["reqwest"] }
+rmcp = { workspace = true, features = ["client", "transport-child-process"] }
+rpassword.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
 sqlx.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = [
+  "rt-multi-thread",
+  "macros",
+  "process",
+  "fs",
+  "io-std",
+  "sync",
+  "time",
+] }
+tokio-util.workspace = true
+uuid.workspace = true
 
 [dev-dependencies]
+agent-client-protocol = { workspace = true, features = ["process", "stdio"] }
+keyring-core.workspace = true
 opsis-store.workspace = true
+proptest.workspace = true
 tempfile.workspace = true
 tokio = { workspace = true, features = ["rt", "macros"] }
+wiremock.workspace = true

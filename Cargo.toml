@@ -12,6 +12,7 @@ publish = false
 [workspace.dependencies]
 ab_glyph = "0.2"
 aes-gcm = "0.11"
+agent-client-protocol = "5"
 apple-native-keyring-store = { version = "1", features = ["keychain"] }
 axum = "0.8"
 base64 = "0.23"
@@ -38,8 +39,11 @@ futures = "0.3"
 futures-util = "0.3"
 garde = "0.23"
 getrandom = "0.4"
+globset = "0.4"
 gltf = { version = "1", default-features = false }
 goblin = "0.10"
+grep-regex = "0.1"
+grep-searcher = "0.1"
 heck = "0.5"
 hex = "0.4"
 hound = "3"
@@ -49,6 +53,7 @@ humansize = "2"
 hyper = { version = "1", features = ["client", "http1"] }
 hyper-util = { version = "0.1", features = ["tokio"] }
 icu_segmenter = "2"
+ignore = "0.4"
 image = { version = "0.25", default-features = false }
 imageproc = "0.27"
 imagesize = "0.15"
@@ -120,12 +125,14 @@ qt-build-utils = "0.10"
 quote = "1"
 regex = "1"
 reqwest = { version = "0.13", default-features = false, features = ["rustls"] }
+rig-core = { version = "0.47", default-features = false }
+rmcp = { version = "3", default-features = false }
 roughr = "0.14"
 roxmltree = "0.21"
+rpassword = "7"
 sanitize-filename = "0.6"
 schemars = { version = "1", features = ["indexmap2"] }
 semver = "1"
-rmcp = { version = "3", default-features = false }
 serde = "1"
 serde_json = "1"
 serde_path_to_error = "0.1"

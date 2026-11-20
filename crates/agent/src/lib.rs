@@ -1,1 +1,10 @@
+pub mod acp;
+pub mod cli;
 pub mod db;
+pub mod login;
+pub mod mcp;
+pub mod model;
+pub mod sessions;
+pub mod settings;
+pub mod tools;
+pub mod turn;
