@@ -53,14 +53,14 @@ pub fn assistant_tools() -> Vec<Tool> {
 }
 
 #[derive(Debug, thiserror::Error)]
-enum ToolError {
+pub enum ToolError {
     #[error(transparent)]
     LocalApi(#[from] LocalApiError),
     #[error("{0}")]
     Refused(String),
 }
 
-fn answered(answer: Answer) -> Result<Value, ToolError> {
+pub fn answered(answer: Answer) -> Result<Value, ToolError> {
     if answer.ok() {
         return Ok(answer.body);
     }
@@ -137,12 +137,16 @@ async fn wait_run(api: &LocalApi, arguments: &JsonObject) -> Result<Value, ToolE
     }
 }
 
-fn shown(value: &Value) -> String {
+pub fn shown(value: &Value) -> String {
     serde_json::to_string_pretty(value).unwrap_or_else(|_| value.to_string())
 }
 
 fn script_failed(name: &str, value: &Value) -> bool {
     name == RUN_LUA && value.get("ok").and_then(Value::as_bool) == Some(false)
+}
+
+pub fn failure(error: &ToolError) -> CallToolResult {
+    CallToolResult::error(vec![ContentBlock::text(error.to_string())])
 }
 
 pub async fn call(api: &LocalApi, name: &str, arguments: &JsonObject) -> CallToolResult {
@@ -158,7 +162,7 @@ pub async fn call(api: &LocalApi, name: &str, arguments: &JsonObject) -> CallToo
             CallToolResult::error(vec![ContentBlock::text(shown(&value))])
         }
         Ok(value) => CallToolResult::success(vec![ContentBlock::text(shown(&value))]),
-        Err(error) => CallToolResult::error(vec![ContentBlock::text(error.to_string())]),
+        Err(error) => failure(&error),
     }
 }
 

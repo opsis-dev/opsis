@@ -4545,6 +4545,7 @@ dependencies = [
  "hyper",
  "hyper-util",
  "log",
+ "opsis-api",
  "opsis-folders",
  "proptest",
  "rmcp",

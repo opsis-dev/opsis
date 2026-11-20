@@ -9,7 +9,10 @@ async fn serve(options: Options) -> Result<(), Box<dyn std::error::Error>> {
     if let Some(error) = &address.error {
         log::warn!("{error}");
     }
-    let tools = OpsisTools::new(LocalApi::new(address.address, None));
+    let tools = OpsisTools::new(
+        LocalApi::new(address.address, options.session),
+        options.full,
+    );
     match options.mode {
         Mode::Stdio => {
             let running = tools.serve(rmcp::transport::stdio()).await?;

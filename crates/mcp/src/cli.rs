@@ -1,7 +1,6 @@
 use crate::http::DEFAULT_HOST;
 
-pub const USAGE: &str =
-    "Usage: opsis-mcp [stdio]\n       opsis-mcp http [--host <host>] [--port <port>]";
+pub const USAGE: &str = "Usage: opsis-mcp [stdio] [--full] [--session <id>]\n       opsis-mcp http [--host <host>] [--port <port>] [--full] [--session <id>]";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Mode {
@@ -12,32 +11,46 @@ pub enum Mode {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Options {
     pub mode: Mode,
+    pub full: bool,
+    pub session: Option<String>,
 }
 
-fn http(flags: &[String]) -> Option<Mode> {
+fn options(http: bool, flags: &[String]) -> Option<Options> {
     let mut host = DEFAULT_HOST.to_owned();
     let mut port = 0;
+    let mut full = false;
+    let mut session = None;
     let mut rest = flags.iter();
     while let Some(flag) = rest.next() {
-        let value = rest.next()?;
         match flag.as_str() {
-            "--host" if !value.is_empty() => value.clone_into(&mut host),
-            "--port" => port = value.parse().ok()?,
+            "--full" if !full => full = true,
+            "--session" if session.is_none() => {
+                session = Some(rest.next().filter(|v| !v.is_empty())?.clone());
+            }
+            "--host" if http => rest.next().filter(|v| !v.is_empty())?.clone_into(&mut host),
+            "--port" if http => port = rest.next()?.parse().ok()?,
             _ => return None,
         }
     }
-    Some(Mode::Http { host, port })
+    let mode = if http {
+        Mode::Http { host, port }
+    } else {
+        Mode::Stdio
+    };
+    Some(Options {
+        mode,
+        full,
+        session,
+    })
 }
 
 pub fn parse(args: &[String]) -> Result<Options, String> {
-    let mode = match args {
-        [] => Some(Mode::Stdio),
-        [mode] if mode == "stdio" => Some(Mode::Stdio),
-        [mode, flags @ ..] if mode == "http" => http(flags),
-        _ => None,
+    let parsed = match args.split_first() {
+        Some((mode, flags)) if mode == "http" => options(true, flags),
+        Some((mode, flags)) if mode == "stdio" => options(false, flags),
+        _ => options(false, args),
     };
-    mode.map(|mode| Options { mode })
-        .ok_or_else(|| USAGE.to_owned())
+    parsed.ok_or_else(|| USAGE.to_owned())
 }
 
 #[cfg(test)]
@@ -51,8 +64,12 @@ mod tests {
 
     #[test]
     fn serves_stdio_by_default() {
-        assert_eq!(parsed(&[]).unwrap().mode, Mode::Stdio);
-        assert_eq!(parsed(&["stdio"]).unwrap().mode, Mode::Stdio);
+        for list in [&[][..], &["stdio"]] {
+            let options = parsed(list).unwrap();
+            assert_eq!(options.mode, Mode::Stdio);
+            assert!(!options.full);
+            assert_eq!(options.session, None);
+        }
     }
 
     #[test]
@@ -75,14 +92,31 @@ mod tests {
     }
 
     #[test]
+    fn takes_full_and_a_session_in_either_mode() {
+        for list in [
+            &["--full", "--session", "s1"][..],
+            &["stdio", "--session", "s1", "--full"],
+            &["http", "--full", "--session", "s1"],
+        ] {
+            let options = parsed(list).unwrap();
+            assert!(options.full, "{list:?}");
+            assert_eq!(options.session.as_deref(), Some("s1"), "{list:?}");
+        }
+    }
+
+    #[test]
     fn refuses_anything_else_with_the_usage() {
         for list in [
             &["web"][..],
             &["stdio", "--port", "1"],
+            &["--host", "x"],
             &["http", "--port"],
             &["http", "--port", "x"],
             &["http", "--host", ""],
             &["http", "--token", "a"],
+            &["--session"],
+            &["--session", ""],
+            &["--full", "--full"],
         ] {
             assert_eq!(parsed(list), Err(USAGE.to_owned()), "{list:?}");
         }

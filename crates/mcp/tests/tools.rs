@@ -5,6 +5,7 @@ use std::time::Duration;
 
 use axum::Router;
 use axum::extract::Json;
+use axum::http::HeaderMap;
 use axum::routing::{get, post};
 use opsis_mcp::local_api::LocalApi;
 use opsis_mcp::server::GUIDE;
@@ -25,6 +26,18 @@ async fn script(Json(body): Json<Value>) -> Json<Value> {
             json!({ "ok": true, "value": source.len(), "output": [], "rolledBack": false, "problems": [] }),
         )
     }
+}
+
+async fn add_node(headers: HeaderMap, Json(body): Json<Value>) -> Json<Value> {
+    let session = headers
+        .get("x-opsis-session")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or_default();
+    Json(json!({ "id": body["type"], "session": session, "revision": 8, "problems": [] }))
+}
+
+async fn document() -> Json<Value> {
+    Json(opsis_api::openapi::openapi_document("test"))
 }
 
 async fn edited() -> Json<Value> {
@@ -51,7 +64,9 @@ fn serve_fake(socket: &Path) -> tokio::task::JoinHandle<()> {
         .route("/project/undo", post(edited))
         .route("/project/redo", post(edited))
         .route("/project/run", get(run_state))
-        .route("/project/run/events", get(run_events));
+        .route("/project/run/events", get(run_events))
+        .route("/project/nodes", post(add_node))
+        .route("/openapi.json", get(document));
     tokio::spawn(async move {
         axum::serve(listener, router).await.unwrap();
     })
@@ -164,5 +179,37 @@ async fn the_program_serves_the_tools_and_the_guide_over_stdio() {
     .unwrap()
     .unwrap();
     assert_eq!(answer(&ran)["ok"], true);
+    client.cancel().await.unwrap();
+}
+
+#[tokio::test]
+async fn full_lists_every_route_and_tags_each_request_with_the_session() {
+    let dir = tempfile::tempdir().unwrap();
+    let socket = dir.path().join("api.sock");
+    let _server = serve_fake(&socket);
+    let mut command = tokio::process::Command::new(env!("CARGO_BIN_EXE_opsis-mcp"));
+    command
+        .args(["stdio", "--full", "--session", "s1"])
+        .env("OPSIS_API_SOCKET", &socket);
+    let client = ().serve(TokioChildProcess::new(command).unwrap()).await.unwrap();
+    let names: Vec<String> = client
+        .list_all_tools()
+        .await
+        .unwrap()
+        .into_iter()
+        .map(|tool| tool.name.into_owned())
+        .collect();
+    let routes = opsis_mcp::full::route_tools(&opsis_api::openapi::openapi_document("test"));
+    assert_eq!(names.len(), 4 + routes.len());
+    assert!(names.iter().any(|n| n == RUN_LUA));
+    let added = client
+        .call_tool(
+            CallToolRequestParams::new("post_project_nodes")
+                .with_arguments(arguments(json!({ "body": { "type": "title" } }))),
+        )
+        .await
+        .unwrap();
+    assert_eq!(answer(&added)["id"], "title");
+    assert_eq!(answer(&added)["session"], "s1");
     client.cancel().await.unwrap();
 }
