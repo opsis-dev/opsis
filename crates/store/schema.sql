@@ -1,8 +1,3 @@
-CREATE TABLE meta (
-  id INTEGER PRIMARY KEY,
-  schema_hash TEXT NOT NULL
-);
-
 CREATE TABLE settings (
   id INTEGER PRIMARY KEY,
   section TEXT NOT NULL UNIQUE,

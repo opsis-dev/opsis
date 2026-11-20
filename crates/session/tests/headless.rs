@@ -3,13 +3,13 @@ use std::sync::{Arc, OnceLock};
 use std::time::{Duration, Instant};
 
 use opsis_folders::HostFolders;
+use opsis_persistence::keys::KeyError;
 use opsis_session::Session;
 use opsis_session::events::SessionEvent;
 use opsis_session::paths::AppPaths;
 use opsis_session::platform::{Closed, FileFilter, PickedFiles, PickedFolder, Platform, Versions};
 use opsis_session::script::{ScriptSource, run_script};
 use opsis_session::state::AppState;
-use opsis_store::keys::KeyError;
 use serde_json::{Value, json};
 use tokio::runtime::Runtime;
 use tokio::sync::broadcast::Receiver;

@@ -4200,6 +4200,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7e036b411754132fd6b74e94b74e9a13c5cf606fa93d1885c35860d3060820b1"
 
 [[package]]
+name = "opsis-agent"
+version = "0.1.0"
+dependencies = [
+ "opsis-persistence",
+ "opsis-store",
+ "sqlx",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
 name = "opsis-api"
 version = "0.1.0"
 dependencies = [
@@ -4255,6 +4266,7 @@ dependencies = [
  "opsis-engine",
  "opsis-golden",
  "opsis-media",
+ "opsis-persistence",
  "opsis-probe",
  "opsis-project",
  "opsis-runner",
@@ -4621,6 +4633,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "opsis-persistence"
+version = "0.1.0"
+dependencies = [
+ "aes-gcm",
+ "apple-native-keyring-store",
+ "base64 0.23.1",
+ "hex",
+ "keyring-core",
+ "log",
+ "sha2 0.11.1",
+ "sqlx",
+ "tempfile",
+ "thiserror 2.0.21",
+ "tokio",
+ "windows-native-keyring-store",
+ "zbus-secret-service-keyring-store",
+]
+
+[[package]]
 name = "opsis-prepare"
 version = "0.1.0"
 dependencies = [
@@ -4815,6 +4846,7 @@ dependencies = [
  "opsis-fonts",
  "opsis-image",
  "opsis-media",
+ "opsis-persistence",
  "opsis-project",
  "opsis-render",
  "opsis-runner",
@@ -4863,24 +4895,18 @@ dependencies = [
 name = "opsis-store"
 version = "0.1.0"
 dependencies = [
- "aes-gcm",
- "apple-native-keyring-store",
- "base64 0.23.1",
  "garde",
- "hex",
  "keyring-core",
  "log",
+ "opsis-persistence",
  "opsis-types",
  "serde",
  "serde_json",
- "sha2 0.11.1",
  "specta",
  "sqlx",
  "tempfile",
  "thiserror 2.0.21",
  "tokio",
- "windows-native-keyring-store",
- "zbus-secret-service-keyring-store",
 ]
 
 [[package]]
@@ -4981,6 +5007,7 @@ dependencies = [
  "opsis-fonts",
  "opsis-footage",
  "opsis-media",
+ "opsis-persistence",
  "opsis-probe",
  "opsis-project",
  "opsis-qt",

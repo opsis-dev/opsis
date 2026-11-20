@@ -1,0 +1,4 @@
+CREATE TABLE meta (
+  id INTEGER PRIMARY KEY,
+  schema_hash TEXT NOT NULL
+);

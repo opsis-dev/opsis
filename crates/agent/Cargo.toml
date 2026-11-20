@@ -1,0 +1,19 @@
+[package]
+name = "opsis-agent"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+opsis-persistence.workspace = true
+sqlx.workspace = true
+
+[dev-dependencies]
+opsis-store.workspace = true
+tempfile.workspace = true
+tokio = { workspace = true, features = ["rt", "macros"] }

@@ -4,19 +4,19 @@ The app's one database, the settings held in memory, the keyring and the project
 
 ## Code map
 
-| Concern                   | Where                                                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Schema                    | `store/schema.sql`                                                                                                                      |
-| Database file and opening | `session/src/paths.rs` → `AppPaths::database` (in `AppPaths::user_data`); `store/src/db.rs` → `Database::open`                          |
-| Projects and view state   | `store/src/projects.rs` → `list_recent`, `read_view_state`, `write_view_state`, `forget_view_state`                                     |
-| Queries                   | `store/src` (`sqlx::query!`, `query_as!`, `query_scalar!`); offline cache `.sqlx/` at the repository root                               |
-| Offline build             | `.cargo/config.toml` at the repository root (`SQLX_OFFLINE=true`)                                                                       |
-| Settings in memory        | `session/src/state.rs` → `AppState::settings`, `AppState::patch_settings`; `store/src/settings.rs` → `merged_settings`, `read_settings` |
-| Settings from the editor  | `session/src/settings.rs` → `patch_settings` (refuses `RUST_ONLY_SECTIONS`, `types/src/settings.rs`)                                    |
-| Start                     | `ui/src/main.rs` → `start`; `session/src/session.rs` → `Session::start`                                                                 |
-| Long work                 | `session/src/state.rs` → `Tasks` (`AppState.tasks`), read by `session/src/exit.rs`                                                      |
-| Keyring and sealing       | `store/src/keys.rs` (`keyring-core`); `store/src/secrets.rs`; `session/src/settings.rs` → `ProjectSignIns`                              |
-| Project folder suggestion | `project/src/paths.rs` → `project_locations`; `session/src/projects.rs` → `project_folder`, `create_project`                            |
+| Concern                   | Where                                                                                                                                                            |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Schema                    | `store/schema.sql`                                                                                                                                               |
+| Database file and opening | `session/src/paths.rs` → `AppPaths::database` (in `AppPaths::user_data`); `store/src/db.rs` → `Database::open` over `persistence/src/db.rs` → `open`, `META_SQL` |
+| Projects and view state   | `store/src/projects.rs` → `list_recent`, `read_view_state`, `write_view_state`, `forget_view_state`                                                              |
+| Queries                   | `store/src` (`sqlx::query!`, `query_as!`, `query_scalar!`); offline cache `.sqlx/` at the repository root                                                        |
+| Offline build             | `.cargo/config.toml` at the repository root (`SQLX_OFFLINE=true`)                                                                                                |
+| Settings in memory        | `session/src/state.rs` → `AppState::settings`, `AppState::patch_settings`; `store/src/settings.rs` → `merged_settings`, `read_settings`                          |
+| Settings from the editor  | `session/src/settings.rs` → `patch_settings` (refuses `RUST_ONLY_SECTIONS`, `types/src/settings.rs`)                                                             |
+| Start                     | `ui/src/main.rs` → `start`; `session/src/session.rs` → `Session::start`                                                                                          |
+| Long work                 | `session/src/state.rs` → `Tasks` (`AppState.tasks`), read by `session/src/exit.rs`                                                                               |
+| Keyring and sealing       | `persistence/src/keys.rs` (`keyring-core`) → `Keyring`, `clear_key`; `store/src/secrets.rs`; `session/src/settings.rs` → `ProjectSignIns`                        |
+| Project folder suggestion | `project/src/paths.rs` → `project_locations`; `session/src/projects.rs` → `project_folder`, `create_project`                                                     |
 
 ## Rules
 
@@ -28,7 +28,9 @@ The app's one database, the settings held in memory, the keyring and the project
 - **Only Rust opens it (`AppState::db()`, a pool, so every query is async); windows reach it through the session over the bridge** ([ui.md](ui.md)).
 - **The tables are plain SQL with snake_case columns**, embedded by the store and run on an empty database.
 - **Every query is a checked macro against that schema.** After changing the schema or a query, run `bun run db:prepare` (it needs `sqlx-cli` built with SQLite).
-- **There are no migrations: the `meta` table holds the sha256 of the schema SQL, and a database made for another schema is deleted and made again at startup** (`Database::open_at`), its `-wal` and `-shm` files with it.
+- **There are no migrations: the `meta` table holds the sha256 of the schema SQL, and a database made for another schema is deleted and made again at startup** (`opsis_persistence::db::open`), its `-wal` and `-shm` files with it.
+  - `opsis-persistence` makes `meta` itself (`persistence/meta.sql`) beside the schema it is given, so a schema file holds only its own tables; the scripts' seed (`scripts/lib/user-data.ts`) runs the same file.
+- **`opsis-agent` keeps a second database, `<data folder>/agent.db`, through the same opener** (`agent/src/db.rs`, schema `agent/schema.sql`): the agent's settings and sessions stay out of the app's database, and the agent links only `opsis-persistence` ([assistant.md](assistant.md)).
 - **Projects stay plain folders: nothing about a project's contents goes in the database.**
 
 ### Settings

@@ -7,31 +7,19 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
-aes-gcm.workspace = true
-base64.workspace = true
 garde.workspace = true
-hex.workspace = true
-keyring-core.workspace = true
 log.workspace = true
+opsis-persistence.workspace = true
 opsis-types.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, features = ["preserve_order"] }
-sha2.workspace = true
 specta.workspace = true
 sqlx.workspace = true
 tempfile.workspace = true
 thiserror.workspace = true
 
-[target.'cfg(target_os = "macos")'.dependencies]
-apple-native-keyring-store.workspace = true
-
-[target.'cfg(target_os = "windows")'.dependencies]
-windows-native-keyring-store.workspace = true
-
-[target.'cfg(all(unix, not(target_os = "macos")))'.dependencies]
-zbus-secret-service-keyring-store.workspace = true
-
 [dev-dependencies]
+keyring-core.workspace = true
 tokio = { workspace = true, features = ["rt", "macros"] }
 
 [lints]

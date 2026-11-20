@@ -85,6 +85,13 @@ impl Keyring {
         }
     }
 
+    pub fn clear_key(&self, name: &str) -> Result<(), KeyError> {
+        match self.entry(&format!("key:{name}"))?.delete_credential() {
+            Ok(()) | Err(KeyringError::NoEntry) => Ok(()),
+            Err(e) => Err(storage(&e)),
+        }
+    }
+
     fn sign_in_key(&self) -> Result<Key<Aes256Gcm>, KeyError> {
         let entry = self.entry(SIGN_IN_KEY)?;
         match entry.get_password() {
@@ -125,7 +132,7 @@ impl Keyring {
 }
 
 #[cfg(test)]
-pub(crate) fn test_keyring() -> Keyring {
+fn test_keyring() -> Keyring {
     Keyring::new(keyring_core::mock::Store::new().expect("mock store"))
 }
 
@@ -156,6 +163,9 @@ mod tests {
         assert_eq!(keys.key("voice").unwrap(), None);
         keys.set_key("voice", "sk-test").unwrap();
         assert_eq!(keys.key("voice").unwrap().as_deref(), Some("sk-test"));
+        keys.clear_key("voice").unwrap();
+        assert_eq!(keys.key("voice").unwrap(), None);
+        keys.clear_key("voice").unwrap();
     }
 
     #[test]

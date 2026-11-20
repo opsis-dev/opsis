@@ -26,7 +26,7 @@ These apply to every feature in this plan. They restate rules from `AGENTS.md` a
 
 - Nothing uses the internet unless the user asks. Every download sits behind a button, says what it gets and how big it is, asks first, and saves under `<data folder>/speech`. Online voices and transcription are off until the user turns a service on in Settings and enters a key.
 - Synthesis and transcription happen when a node runs, never at render time. The Timeline's playback and the export play the same saved files, so what the Timeline plays is what the export has.
-- Keys live in the OS keyring (`Keyring::set_key`, `crates/store/src/keys.rs`), never in settings, never in a window.
+- Keys live in the OS keyring (`Keyring::set_key`, `crates/persistence/src/keys.rs`), never in settings, never in a window.
 
 **User-facing copy.**
 
@@ -83,7 +83,7 @@ Missing: the crate, the catalogue, the runtime, the page, the `speech` settings 
 3. **Paths and status.** `speech_paths(data)` → `<data folder>/speech/{voices/<id>,models/<id>}`; `speech_status()` reports what's installed.
 4. **Installer.** `install_speech_item(id)`: each file through `fetch_verified` (made public in `opsis-engine`) into a staging folder, renamed into place when all are there; `remove_speech_item(id)`. Models are plain files, so nothing is unpacked.
 5. **Session calls.** `install_speech(item)` on the bridge, listed in `AppState.tasks` ("Downloading speech files"), with progress the way engine setup reports it: Rust posts an event and the page reads its view again (`install_engine`, `engine_view`, `crates/qt/cpp/engine_card.cc`); `remove_speech(item)`; `speech_status`.
-6. **Keys.** `Keyring::clear_key` (shared with `plans/assistant.md`; whichever plan is built first adds it); keys named `speech:<service>`. `Session` calls `set_service_key(service, key)`, `has_service_key(service)`, `clear_service_key(service)`; views never read a key back.
+6. **Keys.** `Keyring::clear_key` (in `crates/persistence/src/keys.rs`); keys named `speech:<service>`. `Session` calls `set_service_key(service, key)`, `has_service_key(service)`, `clear_service_key(service)`; views never read a key back.
 7. **Settings.** `AppSettings` gains `speech: { voice, transcribe: english | european, online: { elevenlabs: { enabled, ask_first }, openai: { enabled, ask_first }, openrouter: { enabled, ask_first }, compatible: { enabled, ask_first, address, voice_model, transcribe_model } } }`, where `ask_first` is cleared by "Don't ask again" (Online voices, step 5), all off or empty by default. Add `SettingsPage::Voice`, its page in `crates/qt/cpp/settings_window.cc` and its row in the page list ("Voice and captions", icon `audio-lines`). Download buttons ask in a dialog naming the size before anything is fetched. The `?` cards are one small hover card behind a `?`, fed from the catalogue entry.
 8. **Licences.** `LicenceSource` entries for each voice pack and each transcription model (CC-BY-4.0, crediting NVIDIA), shown once downloaded; ONNX Runtime's notice in `THIRD_PARTY_NOTICES.md`.
 9. **Tests.** Catalogue test; `speech_paths` per platform; a hash mismatch rejects the download and leaves nothing behind (against `wiremock`).

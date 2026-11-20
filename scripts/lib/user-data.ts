@@ -9,6 +9,7 @@ import { ROOT } from "./tool-config";
 export const DEV_ENGINE = path.join(os.homedir(), ".config", "Opsis", "engine");
 
 const SCHEMA = path.join(ROOT, "crates", "store", "schema.sql");
+const META = path.join(ROOT, "crates", "persistence", "meta.sql");
 
 const META_ID = 1;
 
@@ -35,6 +36,7 @@ function engineSettings(engine: string): Record<string, CheckedBrowser | null> {
 function seedDatabase(userData: string, settings: Record<string, unknown>): void {
   const sql = readFileSync(SCHEMA, "utf8");
   const db = new DatabaseSync(path.join(userData, "opsis.db"));
+  db.exec(readFileSync(META, "utf8"));
   db.exec(sql);
   db.prepare("INSERT INTO meta (id, schema_hash) VALUES (?, ?)").run(
     META_ID,

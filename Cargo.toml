@@ -89,6 +89,7 @@ opsis-macros = { path = "crates/macros" }
 opsis-audio = { path = "crates/audio" }
 opsis-media = { path = "crates/media" }
 opsis-paint = { path = "crates/paint" }
+opsis-persistence = { path = "crates/persistence" }
 opsis-prepare = { path = "crates/prepare" }
 opsis-probe = { path = "crates/probe" }
 opsis-project = { path = "crates/project" }

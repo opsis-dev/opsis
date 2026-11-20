@@ -1,7 +1,7 @@
 use std::fmt;
 use std::sync::Arc;
 
-use opsis_store::keys::{KeyError, Keyring};
+use opsis_persistence::keys::{KeyError, Keyring};
 use tokio::sync::broadcast;
 
 use crate::analysis::Mixes;

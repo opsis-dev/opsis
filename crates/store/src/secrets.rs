@@ -1,9 +1,8 @@
 use std::path::{Path, PathBuf};
 
+use opsis_persistence::keys::{KeyError, Keyring};
 pub use opsis_types::secrets::secret_file;
 use opsis_types::secrets::{SECRET_EXT, SECRETS_DIR};
-
-use crate::keys::{KeyError, Keyring};
 
 #[derive(Debug, thiserror::Error)]
 pub enum SecretError {
@@ -78,7 +77,10 @@ pub fn read_secret(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::keys::test_keyring;
+
+    fn test_keyring() -> Keyring {
+        Keyring::new(keyring_core::mock::Store::new().expect("mock store"))
+    }
 
     #[test]
     fn writes_lists_and_reads_sign_ins_in_the_project() {

@@ -30,9 +30,9 @@ use std::ffi::OsString;
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use opsis_persistence::keys::Keyring;
 use opsis_session::Session;
 use opsis_session::paths::AppPaths;
-use opsis_store::keys::Keyring;
 
 use crate::platform::QtPlatform;
 use crate::ui::Ui;

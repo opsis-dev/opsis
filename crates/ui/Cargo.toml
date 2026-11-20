@@ -26,6 +26,7 @@ opsis-folders.workspace = true
 opsis-fonts.workspace = true
 opsis-footage.workspace = true
 opsis-media.workspace = true
+opsis-persistence.workspace = true
 opsis-probe.workspace = true
 opsis-project.workspace = true
 opsis-qt.workspace = true
