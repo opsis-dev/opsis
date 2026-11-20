@@ -41,23 +41,49 @@ fn calls(name: &str, arguments: &str) -> ResponseTemplate {
     streamed(&[chunk(&call, "null"), chunk("{}", "\"tool_calls\"")])
 }
 
+type Bodies = std::sync::Arc<std::sync::Mutex<Vec<String>>>;
+
 #[derive(Debug)]
-struct Script(std::sync::Mutex<std::collections::VecDeque<ResponseTemplate>>);
+struct Script {
+    replies: std::sync::Mutex<std::collections::VecDeque<ResponseTemplate>>,
+    bodies: Bodies,
+}
 
 impl wiremock::Respond for Script {
-    fn respond(&self, _request: &wiremock::Request) -> ResponseTemplate {
-        self.0.lock().unwrap().pop_front().unwrap_or_else(says_done)
+    fn respond(&self, request: &wiremock::Request) -> ResponseTemplate {
+        self.bodies
+            .lock()
+            .unwrap()
+            .push(String::from_utf8_lossy(&request.body).into_owned());
+        self.replies
+            .lock()
+            .unwrap()
+            .pop_front()
+            .unwrap_or_else(says_done)
     }
 }
 
-async fn scripted(replies: Vec<ResponseTemplate>) -> MockServer {
+async fn scripted_with(replies: Vec<ResponseTemplate>) -> (MockServer, Bodies) {
     let server = MockServer::start().await;
+    let bodies = Bodies::default();
     Mock::given(method("POST"))
         .and(path("/chat/completions"))
-        .respond_with(Script(std::sync::Mutex::new(replies.into())))
+        .respond_with(Script {
+            replies: std::sync::Mutex::new(replies.into()),
+            bodies: bodies.clone(),
+        })
         .mount(&server)
         .await;
-    server
+    (server, bodies)
+}
+
+async fn scripted(replies: Vec<ResponseTemplate>) -> MockServer {
+    scripted_with(replies).await.0
+}
+
+fn says(text: &str) -> ResponseTemplate {
+    let delta = serde_json::json!({ "role": "assistant", "content": text }).to_string();
+    streamed(&[chunk(&delta, "null"), chunk("{}", "\"stop\"")])
 }
 
 async fn later_text(session: &mut ActiveSession<'_, Agent>, wanted: &str) -> String {
@@ -375,4 +401,22 @@ async fn full_mode_never_asks_and_a_background_command_reports_when_it_ends() {
         one_turn(&server, Some("full"), "reject", Some("from-the-background")).await;
     assert_eq!((turned.asked, turned.tools), (0, 1), "{turned:?}");
     assert!(later.contains("from-the-background"), "{later}");
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn a_subagent_works_on_its_own_history_and_hands_back_its_answer() {
+    let (server, bodies) = scripted_with(vec![
+        calls("agent", r#"{"task":"List the files here"}"#),
+        calls("glob", r#"{"pattern":"*"}"#),
+        says("There are no files."),
+        says("Done."),
+    ])
+    .await;
+    let (turned, _, _) = one_turn(&server, None, "reject", None).await;
+    assert_eq!(turned.text, "Done.", "{turned:?}");
+    assert_eq!((turned.asked, turned.tools), (0, 2), "{turned:?}");
+    let bodies = bodies.lock().unwrap();
+    assert_eq!(bodies.len(), 4);
+    assert!(bodies[1].contains("List the files here") && !bodies[1].contains("\"Go\""));
+    assert!(bodies[3].contains("There are no files."));
 }

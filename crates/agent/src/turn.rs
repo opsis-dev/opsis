@@ -115,6 +115,39 @@ pub struct Turn<'a> {
     pub cancel: CancellationToken,
     pub mode: Mode,
     pub allowed: Mutex<HashSet<String>>,
+    pub depth: u8,
+}
+
+pub const SUBAGENT: &str = "agent";
+const SUBAGENT_BRIEF: &str = "You are a subagent: another agent gave you this task. Do it with the tools, then answer with what you found or did; your answer goes back to that agent, not to a person.";
+
+fn subagent_definition() -> Option<rig_core::completion::ToolDefinition> {
+    Some(rig_core::completion::ToolDefinition {
+        name: rig_core::message::ToolName::new(SUBAGENT).ok()?,
+        description: "Hand a task to a subagent: another session of this agent with the same tools and a fresh history. It works through the task and answers with what it found or did. Use it for a search or a piece of work whose steps you don't need to see.".to_owned(),
+        parameters: serde_json::json!({ "type": "object", "properties": {
+            "task": { "type": "string", "description": "What the subagent should do, with everything it needs to know." }
+        }, "required": ["task"] }),
+        annotations: rig_core::completion::ToolAnnotations::default(),
+    })
+}
+
+fn last_text(history: &[Message]) -> String {
+    history
+        .iter()
+        .rev()
+        .find_map(|message| match message {
+            Message::Assistant(turn) => {
+                let text: Vec<&str> = turn
+                    .content
+                    .iter()
+                    .filter_map(AssistantContent::as_text)
+                    .collect();
+                (!text.is_empty()).then(|| text.join(""))
+            }
+            _ => None,
+        })
+        .unwrap_or_default()
 }
 
 fn request(
@@ -147,7 +180,7 @@ fn calls(message: &Message) -> Vec<ToolCall> {
 
 impl Turn<'_> {
     fn needs_asking(&self, name: &str, input: &Value) -> bool {
-        if self.mode == Mode::Full {
+        if self.mode == Mode::Full || name == SUBAGENT {
             return false;
         }
         if self
@@ -234,6 +267,9 @@ impl Turn<'_> {
         if name == shell::SHELL {
             return self.run_shell(&arguments, peer).await;
         }
+        if name == SUBAGENT && self.depth == 0 {
+            return Box::pin(self.run_subagent(&arguments, peer)).await;
+        }
         if tools::is_local(name) {
             match tools::run(&self.folder, name, &arguments) {
                 Ok(content) => (true, content),
@@ -247,8 +283,53 @@ impl Turn<'_> {
         }
     }
 
+    async fn run_subagent(
+        &self,
+        input: &serde_json::Map<String, Value>,
+        peer: &impl Peer,
+    ) -> (bool, Vec<ToolResultContent>) {
+        let Some(task) = input.get("task").and_then(Value::as_str) else {
+            return (
+                false,
+                vec![ToolResultContent::text("task is needed, as a string.")],
+            );
+        };
+        let sub = Turn {
+            folder: self.folder.clone(),
+            system: format!("{}\n\n{SUBAGENT_BRIEF}", self.system),
+            model: self.model,
+            servers: self.servers,
+            cancel: self.cancel.child_token(),
+            mode: self.mode,
+            allowed: Mutex::new(self.allowed.lock().expect("allowed").clone()),
+            depth: self.depth + 1,
+        };
+        let mut history = vec![Message::user(task)];
+        let ended = Box::pin(sub.run(&mut history, peer, |_| {})).await;
+        let learned = sub.allowed.into_inner().expect("allowed");
+        self.allowed.lock().expect("allowed").extend(learned);
+        match ended {
+            Ok(Ending::Done) => (true, vec![ToolResultContent::text(last_text(&history))]),
+            Ok(Ending::Cancelled) => (
+                false,
+                vec![ToolResultContent::text("The subagent was stopped.")],
+            ),
+            Ok(Ending::Refused) => (
+                false,
+                vec![ToolResultContent::text(
+                    "The person didn't allow what the subagent asked for.",
+                )],
+            ),
+            Err(error) => (false, vec![ToolResultContent::text(error.to_string())]),
+        }
+    }
+
     async fn answer(&self, call: &ToolCall, peer: &impl Peer) -> Result<ToolResult, Ending> {
-        let id = call.id.to_string();
+        let id = if self.depth == 0 {
+            call.id.to_string()
+        } else {
+            format!("{}-{}", self.depth, call.id)
+        };
         let name = call.function.name.to_string();
         let input = Value::Object(call.function.arguments.clone());
         let asks = self.needs_asking(&name, &input);
@@ -298,6 +379,9 @@ impl Turn<'_> {
     async fn reply(&self, history: &[Message], peer: &impl Peer) -> Result<Message, TurnError> {
         let mut definitions = tools::definitions();
         definitions.extend(shell::definition());
+        if self.depth == 0 {
+            definitions.extend(subagent_definition());
+        }
         definitions.extend(self.servers.definitions());
         let request = request(&self.system, history, &definitions)
             .ok_or_else(|| TurnError::Model("nothing to answer".to_owned()))?;
@@ -307,7 +391,9 @@ impl Turn<'_> {
             .map_err(|e| TurnError::Model(e.to_string()))?;
         while let Some(item) = stream.next().await {
             let item = item.map_err(|e| TurnError::Model(e.to_string()))?;
-            if let rig_core::streaming::Item::Event(StreamEvent::Text { text, .. }) = item {
+            if let rig_core::streaming::Item::Event(StreamEvent::Text { text, .. }) = item
+                && self.depth == 0
+            {
                 peer.update(Update::Text(text));
             }
         }

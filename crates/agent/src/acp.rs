@@ -418,6 +418,7 @@ impl OpsisAgent {
             cancel,
             mode: *live.mode.lock().expect("mode"),
             allowed: Mutex::new(live.allowed.lock().expect("allowed").clone()),
+            depth: 0,
         };
         let mut unsaved = Vec::new();
         let ended = turn
