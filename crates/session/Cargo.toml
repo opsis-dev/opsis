@@ -20,6 +20,7 @@ opsis-compile.workspace = true
 opsis-document.workspace = true
 opsis-engine.workspace = true
 opsis-film.workspace = true
+opsis-folders.workspace = true
 opsis-fonts.workspace = true
 opsis-image.workspace = true
 opsis-media.workspace = true

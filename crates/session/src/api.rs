@@ -2,7 +2,6 @@ use std::path::Path;
 use std::sync::Arc;
 
 use futures::future::BoxFuture;
-use opsis_api::address::{API_SOCKET_ENV, Host, api_address};
 use opsis_api::openapi::{ProjectState, RunState};
 use opsis_api::routes::{ApiHost, HostError, HostResult};
 use opsis_api::server::ApiServer;
@@ -10,6 +9,7 @@ use opsis_compile::check::workflow_problems_with;
 use opsis_compile::edits::EditError;
 use opsis_compile::graph::GraphIssue;
 use opsis_document::Document;
+use opsis_folders::address::local_api_address;
 use opsis_types::edits::{Edited, WorkflowEdit};
 use opsis_types::events::{RunEvent, RunTargets};
 use opsis_types::script::{ScriptOutcome, ScriptRequest, ScriptStatus};
@@ -33,18 +33,7 @@ pub struct Api {
 
 impl Api {
     pub fn new(state: &AppState) -> Self {
-        let home = state.paths.home.clone();
-        let username = std::env::var("USERNAME")
-            .or_else(|_| std::env::var("USER"))
-            .unwrap_or_default();
-        let custom = std::env::var(API_SOCKET_ENV).ok();
-        let address = api_address(&Host {
-            windows: cfg!(windows),
-            user_data: &state.paths.user_data,
-            home: &home,
-            username: &username,
-            custom: custom.as_deref(),
-        });
+        let address = local_api_address(&state.paths.user_data, &state.paths.home);
         Self {
             server: ApiServer::new(address),
             events: broadcast::Sender::new(RUN_EVENTS_KEPT),

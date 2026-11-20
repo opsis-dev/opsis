@@ -2,19 +2,11 @@ use std::path::{Path, PathBuf};
 
 use opsis_engine::paths::ShellPlatform;
 use opsis_engine::temp::{ChildKind, child_temp_name};
+use opsis_folders::{HostFolders, user_data};
 
 use crate::startup::StartupError;
 
-const APP_FOLDER: &str = "Opsis";
-const USER_DATA_ENV: &str = "OPSIS_USER_DATA";
 const PUBLIC_DIR: &str = "public";
-
-#[derive(Debug, Clone)]
-pub struct HostFolders {
-    pub config: PathBuf,
-    pub resources: PathBuf,
-    pub home: PathBuf,
-}
 
 #[derive(Debug, Clone)]
 pub struct AppPaths {
@@ -34,10 +26,7 @@ fn repo_root() -> PathBuf {
 
 impl AppPaths {
     pub fn new(folders: &HostFolders) -> Result<Self, StartupError> {
-        let user_data = match std::env::var_os(USER_DATA_ENV) {
-            Some(dir) => PathBuf::from(dir),
-            None => folders.config.join(APP_FOLDER),
-        };
+        let user_data = user_data(folders);
         let packaged = !cfg!(debug_assertions);
         let resources = if packaged {
             folders.resources.clone()

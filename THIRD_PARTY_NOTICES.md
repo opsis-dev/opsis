@@ -755,6 +755,10 @@ The starlight theme is released into the public domain (The Unlicense).
 
 Deletes a script by moving it to the system's trash, in `crates/ui`. https://github.com/ArturKovacs/trash, licensed under the MIT License.
 
+## Agents' tools — the rmcp crate
+
+Serves Opsis's tools to coding agents over the Model Context Protocol, in the `opsis-mcp` program (`crates/mcp`). https://github.com/modelcontextprotocol/rust-sdk, licensed under the Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0), with contributions made before its relicensing under the MIT License.
+
 ## Sound output — the cpal crate
 
 Plays the film's sound while the editor's timeline plays, in `crates/audio`. https://github.com/RustAudio/cpal, licensed under the Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0).

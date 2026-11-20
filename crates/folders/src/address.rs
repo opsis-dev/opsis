@@ -61,3 +61,22 @@ pub fn api_address(host: &Host<'_>) -> ApiAddress {
         error: None,
     }
 }
+
+pub fn local_api_address(user_data: &Path, home: &Path) -> ApiAddress {
+    let username = std::env::var("USERNAME")
+        .or_else(|_| std::env::var("USER"))
+        .unwrap_or_default();
+    let custom = std::env::var(API_SOCKET_ENV).ok();
+    api_address(&Host {
+        windows: cfg!(windows),
+        user_data,
+        home,
+        username: &username,
+        custom: custom.as_deref(),
+    })
+}
+
+pub fn this_computers_api_address() -> ApiAddress {
+    let folders = crate::host_folders();
+    local_api_address(&crate::user_data(&folders), &folders.home)
+}

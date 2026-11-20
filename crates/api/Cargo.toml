@@ -12,6 +12,7 @@ futures.workspace = true
 indexmap.workspace = true
 log.workspace = true
 opsis-compile.workspace = true
+opsis-folders.workspace = true
 opsis-types.workspace = true
 schemars.workspace = true
 serde = { workspace = true, features = ["derive"] }

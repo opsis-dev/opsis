@@ -1,10 +1,10 @@
 use std::io::ErrorKind;
 use std::sync::{Arc, Mutex};
 
+use opsis_folders::address::{API_SOCKET_ENV, ApiAddress};
 use opsis_types::shell::ApiServerStatus;
 use tokio_util::sync::CancellationToken;
 
-use crate::address::{API_SOCKET_ENV, ApiAddress};
 use crate::routes::{ApiHost, routes};
 
 #[derive(Debug, thiserror::Error)]

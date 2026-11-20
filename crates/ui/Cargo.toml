@@ -22,6 +22,7 @@ opsis-audio.workspace = true
 opsis-compile.workspace = true
 opsis-document.workspace = true
 opsis-engine.workspace = true
+opsis-folders.workspace = true
 opsis-fonts.workspace = true
 opsis-footage.workspace = true
 opsis-media.workspace = true

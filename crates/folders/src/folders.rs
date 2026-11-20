@@ -1,7 +1,5 @@
 use std::path::{Path, PathBuf};
 
-use opsis_session::paths::HostFolders;
-
 fn env_dir(name: &str) -> Option<PathBuf> {
     std::env::var_os(name)
         .filter(|v| !v.is_empty())
@@ -44,6 +42,20 @@ fn resources_for(program_dir: &Path) -> PathBuf {
     } else {
         program_dir.to_owned()
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct HostFolders {
+    pub config: PathBuf,
+    pub resources: PathBuf,
+    pub home: PathBuf,
+}
+
+pub const APP_FOLDER: &str = "Opsis";
+pub const USER_DATA_ENV: &str = "OPSIS_USER_DATA";
+
+pub fn user_data(folders: &HostFolders) -> PathBuf {
+    env_dir(USER_DATA_ENV).unwrap_or_else(|| folders.config.join(APP_FOLDER))
 }
 
 pub fn host_folders() -> HostFolders {

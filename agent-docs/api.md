@@ -8,7 +8,7 @@ The internal HTTP API that agents' tools use to read, change and run the open pr
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | Routes                 | `api/src/routes.rs` → `routes`, `ApiHost`, `HostError`, `MAX_BODY`, `edited_reply`                                                        |
 | Request bodies         | `api/src/bodies.rs` → `parse_body` and the body types                                                                                     |
-| Server and socket      | `api/src/server.rs` → `ApiServer::set_enabled`; `api/src/address.rs` → `api_address`                                                      |
+| Server and socket      | `api/src/server.rs` → `ApiServer::set_enabled`; `folders/src/address.rs` → `api_address`, `local_api_address`                             |
 | Host implementation    | `session/src/api.rs` → `Api`, `AppApi`, `follow_setting`, `document_failure`, `start_failure`                                             |
 | Run event stream       | `session/src/api.rs` → `run_event`, `RUN_EVENTS_KEPT`                                                                                     |
 | OpenAPI document       | `api/src/openapi.rs`; tests in `api/tests/routes.rs`                                                                                      |
@@ -20,7 +20,7 @@ The internal HTTP API that agents' tools use to read, change and run the open pr
 
 - **The API serves only while the assistant is on; Settings → Assistant switches it** (`settings.assistant.enabled`, off by default, global and persistent, shown as an Assistant badge in every app bar).
   - It is one switch for every route, the script routes included: agents change the project through Lua, so an assistant without scripts would have nothing to do.
-- **The socket is an internal path, not documented for people**: Settings shows no address or usage, and the routes stay under their own paths. The API always serves every route; the tools that use it choose what an agent gets.
+- **The socket is an internal path, not documented for people**: Settings shows no address or usage, and the routes stay under their own paths. Agents reach it through `opsis-mcp` ([assistant.md](assistant.md)). The API always serves every route; the tools that use it choose what an agent gets.
 - **`crates/api` serves plain HTTP with `axum` on `<data folder>/api.sock`, or the absolute path in `OPSIS_API_SOCKET`**, with mode 0600.
   - A stale socket from a crash is replaced, a live one from another copy of the app is left alone and reported, and anything that isn't a socket is never deleted.
 - **Socket paths are capped at 100 bytes (`api_address`)**, below the OS limits (107 on Linux, 103 on macOS): a longer or relative path is refused before listening, and Settings → Assistant shows the error, which says to set `OPSIS_API_SOCKET` to a shorter full path. There is no automatic fallback location.

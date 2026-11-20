@@ -2,8 +2,9 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
 
+use opsis_folders::HostFolders;
 use opsis_session::Session;
-use opsis_session::paths::{AppPaths, HostFolders};
+use opsis_session::paths::AppPaths;
 use opsis_session::platform::{Closed, FileFilter, PickedFiles, PickedFolder, Platform, Versions};
 use opsis_session::script::{
     ScriptSource, ScriptStartError, run_script, script_status, stop_script,

@@ -1,6 +1,8 @@
 use std::path::Path;
 
-use opsis_api::address::{API_SOCKET_ENV, ApiAddress, Host, MAX_SOCKET_PATH_BYTES, api_address};
+use opsis_folders::address::{
+    API_SOCKET_ENV, ApiAddress, Host, MAX_SOCKET_PATH_BYTES, api_address,
+};
 use proptest::prelude::*;
 
 fn host<'a>(custom: Option<&'a str>, user_data: &'a str) -> Host<'a> {

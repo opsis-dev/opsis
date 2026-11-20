@@ -53,7 +53,7 @@ A program of its own (`crates/mcp`, `opsis-mcp`), shipped beside the app, that s
 
 - rmcp 3.11.0, the official Rust MCP SDK, implements the stable MCP `2026-07-28` revision, which has no protocol-level sessions; rmcp serves those clients statelessly by default, and `with_legacy_session_mode(false)` makes older clients stateless too.
 - rmcp's HTTP server (`StreamableHttpServerConfig`, `transport/streamable_http_server/tower.rs`) checks `Host` by default (`allowed_hosts`: `localhost`, `127.0.0.1`, `::1`; anything else gets 403) and checks `Origin` once `enforce_origin_validation()` is called (a present `Origin` that isn't allowed gets 403; a request with none passes). It has no token check of its own.
-- `api_address` (`crates/api/src/address.rs`) names the socket from the data folder or `OPSIS_API_SOCKET`.
+- `api_address` (`crates/folders/src/address.rs`, with `this_computers_api_address` for programs outside the app) names the socket from the data folder or `OPSIS_API_SOCKET`.
 
 **Work.**
 

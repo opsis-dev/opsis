@@ -2,7 +2,6 @@
 
 mod clipboard;
 mod colors;
-mod folders;
 mod font_views;
 mod graph;
 mod inspector;
@@ -72,7 +71,7 @@ fn start(headless: Option<PathBuf>) -> Result<Ui, Box<dyn std::error::Error>> {
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()?;
-    let paths = AppPaths::new(&folders::host_folders())?;
+    let paths = AppPaths::new(&opsis_folders::host_folders())?;
     tidy_earlier_runs(&paths);
     let platform = Arc::new(QtPlatform::new(headless.is_some()));
     let keys = Keyring::platform();

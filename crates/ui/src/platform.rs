@@ -201,7 +201,10 @@ mod tests {
         let platform = QtPlatform::new(true);
         assert_eq!(pick_folder(&platform, "Choose a folder", None).await, None);
         assert_eq!(pick_file(&platform, "Choose a file").await, None);
-        assert_eq!(pick_files(&platform, "Choose files", None).await, Vec::<PathBuf>::new());
+        assert_eq!(
+            pick_files(&platform, "Choose files", None).await,
+            Vec::<PathBuf>::new()
+        );
         assert!(platform.headless());
     }
 }
