@@ -4,13 +4,14 @@ use std::process::ExitCode;
 use opsis_packager::appimage::AppImageTools;
 use opsis_packager::{AppFiles, Format, PackagerError, Tools, package};
 
-const USAGE: &str = "opsis-packager --program <path> --ffmpeg <path> --renderer <path> --target-triple <triple> --root <repository> --out <folder> --formats <deb,rpm,…> [--appimagetool <path> --appimage-runtime <path>]";
+const USAGE: &str = "opsis-packager --program <path> --ffmpeg <path> --renderer <path> --mcp <path> --target-triple <triple> --root <repository> --out <folder> --formats <deb,rpm,…> [--appimagetool <path> --appimage-runtime <path>]";
 
 #[derive(Debug, Default)]
 struct Args {
     program: Option<PathBuf>,
     ffmpeg: Option<PathBuf>,
     renderer: Option<PathBuf>,
+    mcp: Option<PathBuf>,
     target_triple: Option<String>,
     root: Option<PathBuf>,
     out: Option<PathBuf>,
@@ -29,6 +30,7 @@ fn parse_args(mut args: impl Iterator<Item = String>) -> Result<Args, PackagerEr
             "--program" => parsed.program = Some(value.into()),
             "--ffmpeg" => parsed.ffmpeg = Some(value.into()),
             "--renderer" => parsed.renderer = Some(value.into()),
+            "--mcp" => parsed.mcp = Some(value.into()),
             "--target-triple" => parsed.target_triple = Some(value),
             "--root" => parsed.root = Some(value.into()),
             "--out" => parsed.out = Some(value.into()),
@@ -55,6 +57,7 @@ fn run() -> Result<Vec<PathBuf>, PackagerError> {
         program: needed(args.program, "--program")?,
         ffmpeg: needed(args.ffmpeg, "--ffmpeg")?,
         renderer: needed(args.renderer, "--renderer")?,
+        mcp: needed(args.mcp, "--mcp")?,
         target_triple: needed(args.target_triple, "--target-triple")?,
         root: needed(args.root, "--root")?,
     };

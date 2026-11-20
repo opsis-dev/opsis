@@ -2,7 +2,8 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use crate::app::{
-    AppFiles, COPYRIGHT, FFMPEG, IDENTIFIER, MACOS_MINIMUM, PRODUCT, PROGRAM, RENDERER, VERSION,
+    AppFiles, COPYRIGHT, FFMPEG, IDENTIFIER, MACOS_MINIMUM, MCP, PRODUCT, PROGRAM, RENDERER,
+    VERSION,
 };
 use crate::error::{PackagerError, io_error};
 use crate::layout::{FILE_MODE, PROGRAM_MODE};
@@ -99,6 +100,7 @@ pub fn build_app(app: &AppFiles, program: &Path, out: &Path) -> Result<PathBuf, 
     copy(program, &macos.join(PROGRAM), PROGRAM_MODE)?;
     copy(&app.ffmpeg, &macos.join(FFMPEG), PROGRAM_MODE)?;
     copy(&app.renderer, &macos.join(RENDERER), PROGRAM_MODE)?;
+    copy(&app.mcp, &macos.join(MCP), PROGRAM_MODE)?;
     for placed in app.resource_files()? {
         copy(&placed.source, &resources.join(&placed.target), FILE_MODE)?;
     }
@@ -108,6 +110,7 @@ pub fn build_app(app: &AppFiles, program: &Path, out: &Path) -> Result<PathBuf, 
     write(&contents.join("PkgInfo"), "APPL????")?;
     codesign(&macos.join(FFMPEG))?;
     codesign(&macos.join(RENDERER))?;
+    codesign(&macos.join(MCP))?;
     codesign(&bundle)?;
     remove_dir(&work)?;
     Ok(bundle)

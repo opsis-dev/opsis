@@ -6,6 +6,7 @@ pub const PRODUCT: &str = "Opsis";
 pub const PROGRAM: &str = "opsis";
 pub const FFMPEG: &str = "opsis-ffmpeg";
 pub const RENDERER: &str = "opsis-renderer";
+pub const MCP: &str = "opsis-mcp";
 pub const IDENTIFIER: &str = "app.opsis.desktop";
 pub const PUBLISHER: &str = "Bismit Panda";
 pub const COPYRIGHT: &str = "Copyright 2026 Bismit Panda";
@@ -29,6 +30,7 @@ pub struct AppFiles {
     pub program: PathBuf,
     pub ffmpeg: PathBuf,
     pub renderer: PathBuf,
+    pub mcp: PathBuf,
     pub target_triple: String,
     pub root: PathBuf,
 }
@@ -45,6 +47,7 @@ impl AppFiles {
             self.program.clone(),
             self.ffmpeg.clone(),
             self.renderer.clone(),
+            self.mcp.clone(),
         ]
         .into_iter()
         .chain(

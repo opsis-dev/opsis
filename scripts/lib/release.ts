@@ -13,6 +13,7 @@ export function releaseBinary(name = "opsis"): string {
 }
 
 export const RENDERER_PROGRAM = "opsis-renderer";
+export const MCP_PROGRAM = "opsis-mcp";
 
 export type PackageRun = { cargoArgs: string[]; formats: string; out: string };
 
@@ -38,6 +39,8 @@ function packagerArgs(run: PackageRun, tools: string[]): string[] {
     stagedFfmpeg(),
     "--renderer",
     releaseBinary(RENDERER_PROGRAM),
+    "--mcp",
+    releaseBinary(MCP_PROGRAM),
     "--target-triple",
     target,
     "--root",
@@ -58,7 +61,17 @@ function platformVariables(): Record<string, string> {
 
 export async function buildAndPackage(run: PackageRun): Promise<void> {
   const tools = await toolArgs(run, hostTarget());
-  const build = ["build", "--release", "-p", "opsis-ui", "-p", "opsis-effects", ...run.cargoArgs];
+  const build = [
+    "build",
+    "--release",
+    "-p",
+    "opsis-ui",
+    "-p",
+    "opsis-effects",
+    "-p",
+    "opsis-mcp",
+    ...run.cargoArgs,
+  ];
   const packager = ["run", "-q", "-p", "opsis-packager", "--", ...packagerArgs(run, tools)];
   const env = {
     ...process.env,

@@ -76,6 +76,15 @@ export_film() {
   video=$(find "$project" -name '*.mp4' | head -1)
   [ -n "$video" ] || { echo "export FAILED: no video in $project"; exit 1; }
   echo "exported $(basename "$video"), $(stat -c %s "$video") bytes: $(/usr/bin/opsis-ffmpeg -hide_banner -i "$video" 2>&1 | grep -E 'Duration|Video:' | sed 's/^ *//' | tr '\n' ' ')"
+  init='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"check","version":"1"}}}'
+  ready='{"jsonrpc":"2.0","method":"notifications/initialized"}'
+  call='{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"run_lua","arguments":{"source":"return opsis.project.name"}}}'
+  printf '%s\n%s\n%s\n' "$init" "$ready" "$call" | (cat; sleep 10) \
+    | setpriv --reuid="$OPSIS_CHECK_UID" --regid="$OPSIS_CHECK_GID" --clear-groups \
+      env HOME=/tmp/apphome OPSIS_USER_DATA="$data" /usr/bin/opsis-mcp > /tmp/mcp.log 2>&1
+  grep '"id":2' /tmp/mcp.log | grep -q '"isError":false' \
+    || { echo "assistant FAILED: opsis-mcp didn't run a script"; cat /tmp/mcp.log; exit 1; }
+  echo "opsis-mcp ran a script on the open project"
   kill "$app"; wait "$app" 2>/dev/null || true
 }
 views() {
