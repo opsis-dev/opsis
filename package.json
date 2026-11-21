@@ -56,6 +56,7 @@
     "room:environment": "bun scripts/room-environment.ts",
     "script:themes": "bun scripts/script-themes.ts",
     "terminal:themes": "bun scripts/terminal-themes.ts",
+    "agents:registry": "bun scripts/agent-registry.ts",
     "db:prepare": "bun scripts/sqlx-prepare.ts",
     "e2e:qt": "bun scripts/e2e-qt.ts",
     "stage": "bun scripts/stage.ts",

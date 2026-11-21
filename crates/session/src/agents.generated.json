@@ -1,0 +1,641 @@
+{
+  "source": "https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json",
+  "sha256": "4b56d460005df367cd1c9774a75421740847c6627d24f1d0f9175af4a7e08f4d",
+  "registryVersion": "1.0.0",
+  "presets": [
+    {
+      "id": "agoragentic-acp",
+      "name": "Agoragentic",
+      "version": "1.3.0",
+      "description": "Agent marketplace with 174+ AI capabilities. Browse, invoke, and pay for agent services settled in USDC on Base L2.",
+      "website": "https://agoragentic.com",
+      "license": "MIT",
+      "launches": [
+        {
+          "program": "agoragentic-mcp",
+          "args": ["--acp"]
+        }
+      ]
+    },
+    {
+      "id": "amp-acp",
+      "name": "Amp",
+      "version": "0.13.0",
+      "description": "ACP wrapper for Amp - the frontier coding agent",
+      "website": "https://github.com/tao12345666333/amp-acp",
+      "license": "Apache-2.0",
+      "launches": [
+        {
+          "program": "amp-acp",
+          "args": []
+        }
+      ]
+    },
+    {
+      "id": "auggie",
+      "name": "Auggie CLI",
+      "version": "0.37.0",
+      "description": "Augment Code's powerful software agent, backed by industry-leading context engine",
+      "website": "https://www.augmentcode.com/",
+      "license": "proprietary",
+      "launches": [
+        {
+          "program": "auggie",
+          "args": ["--acp"]
+        }
+      ]
+    },
+    {
+      "id": "autohand",
+      "name": "Autohand Code",
+      "version": "0.9.12",
+      "description": "Autohand Code CLI with native ACP support",
+      "website": "https://github.com/autohandai/code-cli/blob/main/docs/guides/ACP.md",
+      "license": "Apache-2.0",
+      "launches": [
+        {
+          "program": "autohand",
+          "args": ["--acp"]
+        }
+      ]
+    },
+    {
+      "id": "bob",
+      "name": "Bob",
+      "version": "2.1.0",
+      "description": "IBM Bob is your AI-Powered Development Partner",
+      "website": "https://bob.ibm.com",
+      "license": "proprietary",
+      "launches": [
+        {
+          "program": "bob",
+          "args": ["acp"]
+        }
+      ]
+    },
+    {
+      "id": "claude-acp",
+      "name": "Claude Agent",
+      "version": "0.109.0",
+      "description": "ACP wrapper for Anthropic's Claude",
+      "website": "https://github.com/agentclientprotocol/claude-agent-acp",
+      "license": "proprietary",
+      "launches": [
+        {
+          "program": "claude-agent-acp",
+          "args": []
+        }
+      ]
+    },
+    {
+      "id": "cline",
+      "name": "Cline",
+      "version": "3.0.74",
+      "description": "Autonomous coding agent CLI - capable of creating/editing files, running commands, using the browser, and more",
+      "website": "https://cline.bot/cli",
+      "license": "Apache-2.0",
+      "launches": [
+        {
+          "program": "cline",
+          "args": ["--acp"]
+        }
+      ]
+    },
+    {
+      "id": "codebuddy-code",
+      "name": "Codebuddy Code",
+      "version": "2.185.0",
+      "description": "Tencent Cloud's official intelligent coding tool",
+      "website": "https://www.codebuddy.cn/cli/",
+      "license": "Proprietary",
+      "launches": [
+        {
+          "program": "codebuddy-code",
+          "args": ["--acp"]
+        }
+      ]
+    },
+    {
+      "id": "codex-acp",
+      "name": "Codex",
+      "version": "2.8.0",
+      "description": "ACP adapter for OpenAI's coding assistant",
+      "website": "https://github.com/agentclientprotocol/codex-acp",
+      "license": "Apache-2.0",
+      "launches": [
+        {
+          "program": "codex-acp",
+          "args": []
+        }
+      ]
+    },
+    {
+      "id": "cortex-code",
+      "name": "Cortex Code",
+      "version": "1.0.73",
+      "description": "Snowflake's Cortex Code coding agent",
+      "website": "https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code",
+      "license": "proprietary",
+      "launches": [
+        {
+          "program": "cortex",
+          "args": ["acp", "serve"]
+        }
+      ]
+    },
+    {
+      "id": "corust-agent",
+      "name": "Corust Agent",
+      "version": "0.6.0",
+      "description": "Co-building with a seasoned Rust partner.",
+      "website": "https://corust.ai/",
+      "license": "GPL-3.0-or-later",
+      "launches": [
+        {
+          "program": "corust-agent-acp",
+          "args": []
+        }
+      ]
+    },
+    {
+      "id": "crow-cli",
+      "name": "crow-cli",
+      "version": "0.1.49",
+      "description": "Minimal ACP Native Coding Agent",
+      "website": "https://crow-ai.dev",
+      "license": "MIT",
+      "launches": [
+        {
+          "program": "crow-cli",
+          "args": ["acp"]
+        }
+      ]
+    },
+    {
+      "id": "cursor",
+      "name": "Cursor",
+      "version": "2026.11.19",
+      "description": "Cursor's coding agent",
+      "website": "https://cursor.com/docs/cli/acp",
+      "license": "proprietary",
+      "launches": [
+        {
+          "program": "cursor-agent",
+          "args": ["acp"]
+        }
+      ]
+    },
+    {
+      "id": "deepagents",
+      "name": "DeepAgents",
+      "version": "0.1.7",
+      "description": "Batteries-included AI coding and general purpose agent powered by LangChain.",
+      "website": "https://docs.langchain.com/oss/javascript/deepagents/overview",
+      "license": "MIT",
+      "launches": [
+        {
+          "program": "deepagents-acp",
+          "args": []
+        }
+      ]
+    },
+    {
+      "id": "devin",
+      "name": "Devin",
+      "version": "3000.14.30821",
+      "description": "Devin CLI coding agent by Cognition",
+      "website": "https://docs.devin.ai/cli",
+      "license": "proprietary",
+      "launches": [
+        {
+          "program": "devin",
+          "args": ["acp"]
+        }
+      ]
+    },
+    {
+      "id": "dimcode",
+      "name": "DimCode",
+      "version": "0.5.30",
+      "description": "A coding agent that puts leading models at your command.",
+      "website": "https://dimagent.cn/",
+      "license": "proprietary",
+      "launches": [
+        {
+          "program": "dimcode",
+          "args": ["acp"]
+        }
+      ]
+    },
+    {
+      "id": "dirac",
+      "name": "Dirac",
+      "version": "0.6.1",
+      "description": "Reduces API costs by more than 50%, produces better and faster work. Uses Hash anchored parallel edits, AST manipulation and a whole lot of neat optimizations. Fully Open Source.",
+      "website": "https://dirac.run",
+      "license": "Apache-2.0",
+      "launches": [
+        {
+          "program": "dirac-cli",
+          "args": ["--acp"]
+        }
+      ]
+    },
+    {
+      "id": "factory-droid",
+      "name": "Factory Droid",
+      "version": "1.16.0",
+      "description": "Factory Droid - AI coding agent powered by Factory AI",
+      "website": "https://factory.ai/product/cli",
+      "license": "proprietary",
+      "launches": [
+        {
+          "program": "droid",
+          "args": ["exec", "--output-format", "acp-daemon"]
+        }
+      ]
+    },
+    {
+      "id": "gemini",
+      "name": "Gemini CLI",
+      "version": "0.70.0",
+      "description": "Google's official CLI for Gemini",
+      "website": "https://geminicli.com",
+      "license": "Apache-2.0",
+      "launches": [
+        {
+          "program": "gemini-cli",
+          "args": ["--acp"]
+        }
+      ]
+    },
+    {
+      "id": "github-copilot-cli",
+      "name": "GitHub Copilot",
+      "version": "1.0.114",
+      "description": "GitHub's AI pair programmer",
+      "website": "https://github.com/features/copilot/cli/",
+      "license": "proprietary",
+      "launches": [
+        {
+          "program": "copilot",
+          "args": ["--acp"]
+        }
+      ]
+    },
+    {
+      "id": "glm-acp-agent",
+      "name": "GLM Agent",
+      "version": "1.17.1",
+      "description": "ACP agent powered by Zhipu AI's GLM Coding Plan models (glm-5.1, glm-5-turbo, glm-4.7, glm-4.5-air). Supports streaming, tool calls, mid-session model switching, image input via Z.AI Coding Plan Vision MCP, and session load/fork/resume with on-disk persistence.",
+      "website": "https://github.com/stefandevo/glm-acp-agent",
+      "license": "Apache-2.0",
+      "launches": [
+        {
+          "program": "glm-acp-agent",
+          "args": []
+        }
+      ]
+    },
+    {
+      "id": "antigravity-acp",
+      "name": "Google Antigravity",
+      "version": "1.5.0",
+      "description": "Google’s AI coding agent",
+      "website": "https://antigravity.google/docs/ide/extensions",
+      "license": "proprietary",
+      "launches": [
+        {
+          "program": "agy_acp_server.par",
+          "args": []
+        }
+      ]
+    },
+    {
+      "id": "goose",
+      "name": "goose",
+      "version": "1.60.2",
+      "description": "A local, extensible, open source AI agent that automates engineering tasks",
+      "website": "https://block.github.io/goose/",
+      "license": "Apache-2.0",
+      "launches": [
+        {
+          "program": "goose",
+          "args": ["acp"]
+        }
+      ]
+    },
+    {
+      "id": "grok-build",
+      "name": "Grok Build",
+      "version": "1.0.93",
+      "description": "xAI's coding agent and CLI",
+      "website": "https://x.ai/cli",
+      "license": "proprietary",
+      "launches": [
+        {
+          "program": "grok",
+          "args": ["agent", "stdio"]
+        }
+      ]
+    },
+    {
+      "id": "harn",
+      "name": "Harn",
+      "version": "0.10.202",
+      "description": "Harn runs .harn agent pipelines as a native ACP coding agent over stdio.",
+      "website": "https://harnlang.com",
+      "license": "Apache-2.0",
+      "launches": [
+        {
+          "program": "harn",
+          "args": ["serve", "acp"]
+        }
+      ]
+    },
+    {
+      "id": "junie",
+      "name": "Junie",
+      "version": "4100.11.0",
+      "description": "AI Coding Agent by JetBrains",
+      "website": "https://junie.jetbrains.com",
+      "license": "proprietary",
+      "launches": [
+        {
+          "program": "junie",
+          "args": ["--acp=true"]
+        }
+      ]
+    },
+    {
+      "id": "kilo",
+      "name": "Kilo",
+      "version": "7.8.32",
+      "description": "The open source coding agent",
+      "website": "https://kilo.ai/",
+      "license": "MIT",
+      "launches": [
+        {
+          "program": "kilo",
+          "args": ["acp"]
+        },
+        {
+          "program": "cli",
+          "args": ["acp"]
+        }
+      ]
+    },
+    {
+      "id": "kimchi",
+      "name": "Kimchi",
+      "version": "1.37.5",
+      "description": "Coding agent powered by multi-model orchestration",
+      "website": "https://kimchi.dev",
+      "license": "Apache-2.0",
+      "launches": [
+        {
+          "program": "kimchi",
+          "args": ["--mode", "acp"]
+        }
+      ]
+    },
+    {
+      "id": "kimi",
+      "name": "Kimi CLI (Legacy)",
+      "version": "1.52.0",
+      "description": "Archived by Moonshot AI. Use Kimi Code instead",
+      "website": "https://moonshotai.github.io/kimi-cli/",
+      "license": "MIT",
+      "launches": [
+        {
+          "program": "kimi",
+          "args": ["acp"]
+        }
+      ]
+    },
+    {
+      "id": "kimi-code",
+      "name": "Kimi Code",
+      "version": "2.7.2",
+      "description": "Moonshot AI's next-gen coding agent",
+      "website": "https://moonshotai.github.io/kimi-code/",
+      "license": "MIT",
+      "launches": [
+        {
+          "program": "kimi-code",
+          "args": ["acp"]
+        }
+      ]
+    },
+    {
+      "id": "kiro",
+      "name": "Kiro CLI",
+      "version": "3.0.0",
+      "description": "The Kiro coding agent",
+      "website": "https://kiro.dev/docs/cli/acp/",
+      "license": "proprietary",
+      "launches": [
+        {
+          "program": "kiro-cli",
+          "args": ["acp", "--agent-engine=v3"]
+        }
+      ]
+    },
+    {
+      "id": "minimax-code",
+      "name": "MiniMax Code",
+      "version": "0.7.9",
+      "description": "MiniMax Code is an AI coding agent with Agent Client Protocol support.",
+      "website": "https://agent.minimax.io",
+      "license": "MIT",
+      "launches": [
+        {
+          "program": "code-acp",
+          "args": ["acp"]
+        }
+      ]
+    },
+    {
+      "id": "minion-code",
+      "name": "Minion Code",
+      "version": "0.1.44",
+      "description": "An enhanced AI code assistant built on the Minion framework with rich development tools",
+      "website": "https://github.com/femto/minion-code",
+      "license": "AGPL-3.0",
+      "launches": [
+        {
+          "program": "minion-code",
+          "args": ["acp"]
+        }
+      ]
+    },
+    {
+      "id": "mistral-vibe",
+      "name": "Mistral Vibe",
+      "version": "3.1.1",
+      "description": "Mistral's open-source coding assistant",
+      "website": "https://mistral.ai/products/vibe",
+      "license": "Apache-2.0",
+      "launches": [
+        {
+          "program": "vibe-acp",
+          "args": []
+        }
+      ]
+    },
+    {
+      "id": "muse-code",
+      "name": "Muse Code",
+      "version": "1.4.24",
+      "description": "Meta's coding agent, built for Muse Spark",
+      "website": "https://dev.meta.ai/docs/muse-code",
+      "license": "proprietary",
+      "launches": [
+        {
+          "program": "muse",
+          "args": ["acp"]
+        }
+      ]
+    },
+    {
+      "id": "nova",
+      "name": "Nova",
+      "version": "1.1.66",
+      "description": "Nova by Compass AI - a fully-fledged software engineer at your command",
+      "website": "https://www.compassap.ai/portfolio/nova.html",
+      "license": "proprietary",
+      "launches": [
+        {
+          "program": "nova",
+          "args": ["acp"]
+        }
+      ]
+    },
+    {
+      "id": "opencode",
+      "name": "OpenCode",
+      "version": "2.3.2",
+      "description": "The open source coding agent",
+      "website": "https://opencode.ai",
+      "license": "MIT",
+      "launches": [
+        {
+          "program": "opencode",
+          "args": ["acp"]
+        }
+      ]
+    },
+    {
+      "id": "opencode-v2",
+      "name": "OpenCode V2",
+      "version": "2.3.2",
+      "description": "The open source coding agent, version 2",
+      "website": "https://opencode.ai",
+      "license": "MIT",
+      "launches": [
+        {
+          "program": "opencode",
+          "args": ["acp"]
+        }
+      ]
+    },
+    {
+      "id": "pi-acp",
+      "name": "pi ACP",
+      "version": "0.0.34",
+      "description": "ACP adapter for pi coding agent",
+      "website": "https://github.com/svkozak/pi-acp",
+      "license": "MIT",
+      "launches": [
+        {
+          "program": "pi-acp",
+          "args": []
+        }
+      ]
+    },
+    {
+      "id": "poolside",
+      "name": "Poolside",
+      "version": "1.0.16",
+      "description": "Poolside's coding agent",
+      "website": "https://poolside.ai",
+      "license": "proprietary",
+      "launches": [
+        {
+          "program": "pool-darwin-arm64",
+          "args": ["acp"]
+        }
+      ]
+    },
+    {
+      "id": "qoder",
+      "name": "Qoder CLI",
+      "version": "1.1.94",
+      "description": "AI coding assistant with agentic capabilities",
+      "website": "https://qoder.com",
+      "license": "proprietary",
+      "launches": [
+        {
+          "program": "qodercli",
+          "args": ["--acp"]
+        }
+      ]
+    },
+    {
+      "id": "qwen-code",
+      "name": "Qwen Code",
+      "version": "0.28.0",
+      "description": "Alibaba's Qwen coding assistant",
+      "website": "https://qwenlm.github.io/qwen-code-docs/en/users/overview",
+      "license": "Apache-2.0",
+      "launches": [
+        {
+          "program": "qwen-code",
+          "args": ["--acp", "--experimental-skills"]
+        }
+      ]
+    },
+    {
+      "id": "sigit",
+      "name": "siGit Code",
+      "version": "1.7.10",
+      "description": "Local-first coding agent. Runs entirely on your machine with optional on-device LLM inference via Onde.",
+      "website": "https://github.com/getsigit/sigit",
+      "license": "Apache-2.0",
+      "launches": [
+        {
+          "program": "sigit",
+          "args": []
+        }
+      ]
+    },
+    {
+      "id": "stakpak",
+      "name": "Stakpak",
+      "version": "0.3.88",
+      "description": "Open-source DevOps agent in Rust with enterprise-grade security",
+      "website": "https://stakpak.dev",
+      "license": "Apache-2.0",
+      "launches": [
+        {
+          "program": "stakpak",
+          "args": ["acp"]
+        }
+      ]
+    },
+    {
+      "id": "vtcode",
+      "name": "VT Code",
+      "version": "0.96.14",
+      "description": "An open-source coding agent with LLM-native code understanding and robust shell safety. Supports multiple LLM providers with automatic failover and efficient context management.",
+      "website": "https://github.com/vinhnx/VTCode/blob/main/docs/guides/zed-acp.md",
+      "license": "MIT",
+      "launches": [
+        {
+          "program": "vtcode",
+          "args": ["acp"]
+        }
+      ]
+    }
+  ]
+}

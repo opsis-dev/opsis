@@ -242,6 +242,30 @@ pub struct EngineSection {
 pub struct AssistantSection {
     #[garde(skip)]
     pub enabled: bool,
+    #[garde(dive)]
+    pub agents: Vec<OwnAgent>,
+}
+
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Default,
+    Serialize,
+    Deserialize,
+    Validate,
+    Type,
+    schemars::JsonSchema,
+)]
+#[serde(rename_all = "camelCase", default)]
+pub struct OwnAgent {
+    #[garde(length(min = 1))]
+    pub name: String,
+    #[garde(length(min = 1))]
+    pub command: String,
+    #[garde(skip)]
+    pub args: Vec<String>,
 }
 
 #[derive(
