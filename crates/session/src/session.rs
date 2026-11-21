@@ -6,6 +6,7 @@ use tokio::sync::broadcast;
 
 use crate::analysis::Mixes;
 use crate::api::Api;
+use crate::assistant::Assistant;
 use crate::events::Addressed;
 use crate::exit::Exit;
 use crate::node_results::NodeKeys;
@@ -33,6 +34,7 @@ struct Parts {
     mixes: Mixes,
     node_keys: NodeKeys,
     api: Api,
+    assistant: Assistant,
     updates: Updates,
     events: broadcast::Sender<Addressed>,
     platform: Arc<dyn Platform>,
@@ -74,6 +76,7 @@ parts!(
     Mixes => mixes,
     NodeKeys => node_keys,
     Api => api,
+    Assistant => assistant,
     Updates => updates,
 );
 
@@ -97,6 +100,7 @@ impl Session {
             mixes: Mixes::default(),
             node_keys: NodeKeys::default(),
             api,
+            assistant: Assistant::default(),
             updates: Updates::default(),
             events: broadcast::Sender::new(EVENTS_KEPT),
             platform,

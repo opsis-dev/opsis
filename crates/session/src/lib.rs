@@ -1,6 +1,7 @@
 pub mod agents;
 pub mod analysis;
 pub mod api;
+pub mod assistant;
 pub mod compile;
 pub mod document;
 pub mod engine;

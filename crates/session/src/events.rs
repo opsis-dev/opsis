@@ -61,6 +61,9 @@ pub struct ViewPrefChanged(pub ViewPrefChange);
 pub struct ApiStatusChanged(pub ApiServerStatus);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct AssistantChanged;
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct MenuCommandFired(pub MenuCommand);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
@@ -157,6 +160,7 @@ session_events!(
     UpdateChanged,
     ViewPrefChanged,
     ApiStatusChanged,
+    AssistantChanged,
     MenuCommandFired,
     PanelWindowsChanged,
     ConfirmClose,

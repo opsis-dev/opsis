@@ -10,6 +10,7 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
+agent-client-protocol = { workspace = true, features = ["process"] }
 futures.workspace = true
 image = { workspace = true, features = ["jpeg"] }
 indexmap.workspace = true
