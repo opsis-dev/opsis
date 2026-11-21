@@ -68,5 +68,4 @@ Status: plan only. Nothing here is built yet.
 ## Risks
 
 - **The port is a rewrite of every script at once**: the setup, release, packaging, e2e and profiling scripts all change together, so each needs running once after the port (`just setup` from an empty cache, `just make`, `just e2e-qt`, `just profile`).
-- **The docs site needs a JavaScript toolchain** ([docs-site.md](docs-site.md)): Blume runs under Node with its own `package.json` in `docs/`, so that plan keeps bun or npm for `docs/` alone, outside the root.
 - **The glyph and font bundles are generated files**: after the port, `just glyphs-bundle` and `just fonts-bundle` must write exactly the same files, which `git diff` shows.

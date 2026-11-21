@@ -43,9 +43,9 @@ How Opsis is measured for size, CPU and memory with development tools only: the 
 - **`--app-env NAME=VALUE` (repeatable) sets a variable for the app**, such as `MALLOC_ARENA_MAX`.
 - **`OPSIS_QT_NO_ITEM_CACHE`, set to anything but empty, turns off the canvas cards' pixel cache** (`DeviceCoordinateCache` on `CardItem`), to measure the canvas without it.
 - **When the pass ends, the app's `/proc/<pid>/status` and `smaps_rollup` are saved as `app-status.txt` and `app-smaps_rollup.txt`**: resident, anonymous and file-backed memory and the peak.
-- **The image carries GNU `time`, for `/usr/bin/time -v` on the standalone programs** (`render-elements`, `editor-data`), run in the container with the repository mounted at its own path.
+- **The image carries GNU `time`, for `/usr/bin/time -v` on the standalone programs** (`opsis-tools render-elements`, `opsis-tools catalog`), run in the container with the repository mounted at its own path.
 - **The profile project holds every node type in the catalogue, and `project.test.ts` fails when one is missing**, when an edge joins ports that don't connect, or when a setting that may not be blank is blank.
-  - It is built from `editor-data catalog` with each node's defaults; a table in `project.ts` wires each type and fills the settings it needs.
+  - It is built from `opsis-tools catalog` with each node's defaults; a table in `project.ts` wires each type and fills the settings it needs.
   - Inputs are generated or copied from fixtures (`INPUTS`, `inputs.ts`), and the browser nodes record the site `serveSite` serves on 127.0.0.1 inside the container.
   - Every output node saves under its own node id (`fileName`), since two outputs saving the same file name are an error.
 - **Each working node is measured alone**: one `POST /project/run` with `targetNodeIds: [id]` per working node in dependency order. The runner forces the target and takes everything upstream from the cache, so each run does one node's work (`needed_nodes`, `forced_nodes` in `crates/runner/src/runner.rs`). Compile-only nodes are measured by the Render of their own film.
