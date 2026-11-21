@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO assistant_events (session_id, project, agent, kind, at, payload) VALUES (?, ?, ?, ?, ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 6
+    },
+    "nullable": []
+  },
+  "hash": "0bc9814e8c005c14366c57fa21c6016f42ec7b21a2fe5179cc010658866032c7"
+}

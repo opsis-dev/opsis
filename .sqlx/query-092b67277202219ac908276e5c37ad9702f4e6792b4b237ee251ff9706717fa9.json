@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE assistant_sessions SET open_message = NULL WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "092b67277202219ac908276e5c37ad9702f4e6792b4b237ee251ff9706717fa9"
+}

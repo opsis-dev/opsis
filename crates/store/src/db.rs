@@ -62,7 +62,18 @@ mod tests {
         let db = Database::in_memory().await.unwrap();
         assert_eq!(
             db.table_names().await.unwrap(),
-            ["fonts", "meta", "projects", "settings", "view_state"]
+            [
+                "assistant_events",
+                "assistant_messages",
+                "assistant_requests",
+                "assistant_sessions",
+                "assistant_turns",
+                "fonts",
+                "meta",
+                "projects",
+                "settings",
+                "view_state"
+            ]
         );
         assert_eq!(db.stored_schema_hash().await, Some(schema_hash()));
     }

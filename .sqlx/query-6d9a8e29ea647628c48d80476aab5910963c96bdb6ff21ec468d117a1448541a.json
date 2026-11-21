@@ -1,0 +1,62 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT seq, started_at, ended_at, stop FROM assistant_turns WHERE session_id = ? ORDER BY seq",
+  "describe": {
+    "columns": [
+      {
+        "name": "seq",
+        "ordinal": 0,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "assistant_turns",
+            "name": "seq"
+          }
+        }
+      },
+      {
+        "name": "started_at",
+        "ordinal": 1,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "assistant_turns",
+            "name": "started_at"
+          }
+        }
+      },
+      {
+        "name": "ended_at",
+        "ordinal": 2,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "assistant_turns",
+            "name": "ended_at"
+          }
+        }
+      },
+      {
+        "name": "stop",
+        "ordinal": 3,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "assistant_turns",
+            "name": "stop"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "6d9a8e29ea647628c48d80476aab5910963c96bdb6ff21ec468d117a1448541a"
+}

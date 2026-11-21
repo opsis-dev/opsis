@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO assistant_turns (session_id, seq, started_at) VALUES (?, ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "0b9c4ccbf1112b100c11e453938bfdfb6e2d363ebdd1dd2f3c81b3928c6026bc"
+}

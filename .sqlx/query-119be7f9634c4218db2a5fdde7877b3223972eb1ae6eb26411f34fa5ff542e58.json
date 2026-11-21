@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE assistant_messages SET text = text || ? WHERE session_id = ? AND seq = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "119be7f9634c4218db2a5fdde7877b3223972eb1ae6eb26411f34fa5ff542e58"
+}

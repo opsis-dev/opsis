@@ -15,6 +15,7 @@ base64.workspace = true
 hex.workspace = true
 keyring-core.workspace = true
 log.workspace = true
+serde_json.workspace = true
 sha2.workspace = true
 sqlx.workspace = true
 thiserror.workspace = true
@@ -29,5 +30,6 @@ windows-native-keyring-store.workspace = true
 zbus-secret-service-keyring-store.workspace = true
 
 [dev-dependencies]
+proptest.workspace = true
 tempfile.workspace = true
 tokio = { workspace = true, features = ["rt", "macros"] }

@@ -15,6 +15,7 @@ use agent_client_protocol::v1::schema::{
 };
 use agent_client_protocol::{Agent, Client, Error, Stdio};
 use opsis_persistence::keys::{KeyError, Keyring};
+use opsis_persistence::logs::RequestLog;
 use rig_core::DynModel;
 use rig_core::message::{AssistantContent, Message, ToolResultContent, UserContent};
 use rig_core::operation::Completion;
@@ -29,6 +30,7 @@ use crate::{model, sessions, settings, tools};
 pub const LOGIN: &str =
     "Log in first: run opsis-agent login to choose a model service, a model and its key.";
 const LOGIN_METHOD: &str = "login";
+const LOG_NAME: &str = "opsis-agent";
 const ALLOW: &str = "allow";
 const ALLOW_ALWAYS: &str = "allow-always";
 const REJECT: &str = "reject";
@@ -57,6 +59,7 @@ impl std::fmt::Debug for Live {
 #[derive(Debug)]
 pub struct OpsisAgent {
     pool: SqlitePool,
+    log: RequestLog,
     keys: Result<Keyring, KeyError>,
     sessions: Mutex<HashMap<String, Arc<Live>>>,
 }
@@ -273,9 +276,10 @@ fn modes(current: Mode) -> SessionModeState {
 }
 
 impl OpsisAgent {
-    pub fn new(pool: SqlitePool, keys: Result<Keyring, KeyError>) -> Self {
+    pub fn new(pool: SqlitePool, keys: Result<Keyring, KeyError>, logs: &std::path::Path) -> Self {
         Self {
             pool,
+            log: RequestLog::new(logs, LOG_NAME),
             keys,
             sessions: Mutex::default(),
         }
@@ -419,6 +423,8 @@ impl OpsisAgent {
             mode: *live.mode.lock().expect("mode"),
             allowed: Mutex::new(live.allowed.lock().expect("allowed").clone()),
             depth: 0,
+            session: session.clone(),
+            log: Some(&self.log),
         };
         let mut unsaved = Vec::new();
         let ended = turn

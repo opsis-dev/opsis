@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 
 use futures::StreamExt;
+use opsis_persistence::logs::RequestLog;
 use rig_core::DynModel;
 use rig_core::completion::CompletionRequest;
 use rig_core::message::{AssistantContent, Message, ToolCall, ToolResult, ToolResultContent};
@@ -116,6 +117,8 @@ pub struct Turn<'a> {
     pub mode: Mode,
     pub allowed: Mutex<HashSet<String>>,
     pub depth: u8,
+    pub session: String,
+    pub log: Option<&'a RequestLog>,
 }
 
 pub const SUBAGENT: &str = "agent";
@@ -283,6 +286,14 @@ impl Turn<'_> {
         }
     }
 
+    fn write_log(&self, record: &Value) {
+        if let Some(log) = self.log
+            && let Err(error) = log.write(record)
+        {
+            log::warn!("writing the request log: {error}");
+        }
+    }
+
     async fn run_subagent(
         &self,
         input: &serde_json::Map<String, Value>,
@@ -303,6 +314,8 @@ impl Turn<'_> {
             mode: self.mode,
             allowed: Mutex::new(self.allowed.lock().expect("allowed").clone()),
             depth: self.depth + 1,
+            session: self.session.clone(),
+            log: self.log,
         };
         let mut history = vec![Message::user(task)];
         let ended = Box::pin(sub.run(&mut history, peer, |_| {})).await;
@@ -383,6 +396,14 @@ impl Turn<'_> {
             definitions.extend(subagent_definition());
         }
         definitions.extend(self.servers.definitions());
+        self.write_log(&serde_json::json!({
+            "kind": "modelRequest",
+            "session": self.session,
+            "depth": self.depth,
+            "model": self.model.name(),
+            "messages": history,
+            "tools": definitions.iter().map(|d| d.name.to_string()).collect::<Vec<_>>(),
+        }));
         let request = request(&self.system, history, &definitions)
             .ok_or_else(|| TurnError::Model("nothing to answer".to_owned()))?;
         let mut stream = self
@@ -401,6 +422,14 @@ impl Turn<'_> {
             .finish()
             .await
             .map_err(|e| TurnError::Model(e.to_string()))?;
+        self.write_log(&serde_json::json!({
+            "kind": "modelReply",
+            "session": self.session,
+            "depth": self.depth,
+            "content": response.choice,
+            "error": response.error,
+            "usage": response.usage,
+        }));
         if let Some(error) = response.error {
             return Err(TurnError::Model(error));
         }

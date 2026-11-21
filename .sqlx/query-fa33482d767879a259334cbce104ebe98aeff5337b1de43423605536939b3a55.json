@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT open_message FROM assistant_sessions WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "open_message",
+        "ordinal": 0,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "assistant_sessions",
+            "name": "open_message"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "fa33482d767879a259334cbce104ebe98aeff5337b1de43423605536939b3a55"
+}

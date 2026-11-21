@@ -1,0 +1,86 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT id AS \"id!\", project, agent, agent_session, started_at, updated_at FROM assistant_sessions\n             WHERE ?1 IS NULL OR project = ?1 ORDER BY updated_at DESC, id",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!",
+        "ordinal": 0,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "assistant_sessions",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "name": "project",
+        "ordinal": 1,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "assistant_sessions",
+            "name": "project"
+          }
+        }
+      },
+      {
+        "name": "agent",
+        "ordinal": 2,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "assistant_sessions",
+            "name": "agent"
+          }
+        }
+      },
+      {
+        "name": "agent_session",
+        "ordinal": 3,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "assistant_sessions",
+            "name": "agent_session"
+          }
+        }
+      },
+      {
+        "name": "started_at",
+        "ordinal": 4,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "assistant_sessions",
+            "name": "started_at"
+          }
+        }
+      },
+      {
+        "name": "updated_at",
+        "ordinal": 5,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "assistant_sessions",
+            "name": "updated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      false,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "6f2ec9de9a12cbcb0352415090a8ff5997fdb93e636b065479b8a3b33e419b31"
+}

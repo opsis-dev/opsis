@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO assistant_requests (session_id, request, kind, title, asked_at) VALUES (?, ?, ?, ?, ?)\n                 ON CONFLICT (session_id, request) DO UPDATE SET kind = excluded.kind, title = excluded.title, asked_at = excluded.asked_at, answer = NULL, answered_at = NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": []
+  },
+  "hash": "0b2a3f13c55eb6d2cd674dfcdeb2a826c47b8698b5e18fac1abe806c066e9d58"
+}

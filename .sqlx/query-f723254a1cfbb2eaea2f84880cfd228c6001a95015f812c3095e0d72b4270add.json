@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE assistant_turns SET ended_at = ?, stop = ? WHERE session_id = ? AND ended_at IS NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "f723254a1cfbb2eaea2f84880cfd228c6001a95015f812c3095e0d72b4270add"
+}

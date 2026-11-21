@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE assistant_requests SET answer = ?, answered_at = ? WHERE session_id = ? AND request = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "e492c9f6d0132f574634bbbffb5fc686fb730c6fa4835c2ede5f47a658aa5abb"
+}

@@ -1,0 +1,86 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT request, kind, title, answer, asked_at, answered_at FROM assistant_requests\n             WHERE session_id = ? ORDER BY asked_at DESC, request",
+  "describe": {
+    "columns": [
+      {
+        "name": "request",
+        "ordinal": 0,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "assistant_requests",
+            "name": "request"
+          }
+        }
+      },
+      {
+        "name": "kind",
+        "ordinal": 1,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "assistant_requests",
+            "name": "kind"
+          }
+        }
+      },
+      {
+        "name": "title",
+        "ordinal": 2,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "assistant_requests",
+            "name": "title"
+          }
+        }
+      },
+      {
+        "name": "answer",
+        "ordinal": 3,
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "assistant_requests",
+            "name": "answer"
+          }
+        }
+      },
+      {
+        "name": "asked_at",
+        "ordinal": 4,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "assistant_requests",
+            "name": "asked_at"
+          }
+        }
+      },
+      {
+        "name": "answered_at",
+        "ordinal": 5,
+        "type_info": "Integer",
+        "origin": {
+          "Table": {
+            "table": "assistant_requests",
+            "name": "answered_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "23e41c32978b1182e8455c2c1d0acb77462547e6ea2a9a59c4049fb28c8cd017"
+}

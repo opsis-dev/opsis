@@ -9,9 +9,12 @@ async fn run(login: Option<Answers>, keys: Result<Keyring, KeyError>) -> Result<
         .await
         .map_err(|e| e.to_string())?;
     match login {
-        None => serve(OpsisAgent::new(pool, keys))
-            .await
-            .map_err(|e| e.to_string()),
+        None => {
+            let logs = opsis_persistence::logs::assistant_logs(&user_data);
+            serve(OpsisAgent::new(pool, keys, &logs))
+                .await
+                .map_err(|e| e.to_string())
+        }
         Some(answers) => {
             let (model, service) = (answers.chosen.model.clone(), answers.chosen.service.id());
             let keys = keys.map_err(|e| e.to_string())?;

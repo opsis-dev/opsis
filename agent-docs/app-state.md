@@ -22,7 +22,7 @@ The app's one database, the settings held in memory, the keyring and the project
 
 ### The database
 
-- **App state is one database, `<data folder>/opsis.db`**: SQLite through `sqlx` with the bundled SQLite, WAL, foreign keys on. It holds settings (one row per section), every project ever opened, each project's view state (the main window's place among it, [editor.md](editor.md)) and the font library index.
+- **App state is one database, `<data folder>/opsis.db`**: SQLite through `sqlx` with the bundled SQLite, WAL, foreign keys on. It holds settings (one row per section), every project ever opened, each project's view state (the main window's place among it, [editor.md](editor.md)), the font library index and the assistant's event log ([assistant.md](assistant.md)).
 - **Recent projects are read newest first, then Rust keeps the folders that hold a project file (`WORKFLOW_FILE`), up to `MAX_RECENT`** (`store/src/projects.rs` → `list_recent`).
 - **View state is written only for a project the database knows**: `write_view_state` saves nothing for a folder never opened, and a project's view state is deleted with its row (`ON DELETE CASCADE`); `create_project` forgets any view state left for its folder before recording it.
 - **Only Rust opens it (`AppState::db()`, a pool, so every query is async); windows reach it through the session over the bridge** ([ui.md](ui.md)).

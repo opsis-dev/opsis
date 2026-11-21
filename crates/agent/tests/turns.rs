@@ -44,6 +44,20 @@ async fn a_turn_asks_before_writing_runs_the_tool_and_answers_then_loads_again()
         std::fs::read_to_string(folder.path().join("notes.txt")).unwrap(),
         "hello"
     );
+    let logged = std::fs::read_to_string(
+        user_data
+            .path()
+            .join("logs")
+            .join("assistant")
+            .join("opsis-agent.ndjson"),
+    )
+    .unwrap();
+    assert!(logged.contains("\"modelRequest\"") && logged.contains("\"modelReply\""));
+    assert!(
+        logged
+            .lines()
+            .all(|line| serde_json::from_str::<serde_json::Value>(line).is_ok())
+    );
     let replayed = Client
         .v1()
         .connect_with(agent(user_data.path()), async |cx| {
