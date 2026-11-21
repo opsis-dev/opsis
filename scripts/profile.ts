@@ -4,13 +4,13 @@ import os from "node:os";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import { assembleAppFolder } from "./lib/app-folder";
-import { buildEditorData, editorCatalog } from "./lib/editor-data";
 import { stagedFfmpeg } from "./lib/ffmpeg";
 import { CONFIG_FILE, type InsideConfig, PROFILERS, type Profiler } from "./lib/profile/config";
 import { writeInputs } from "./lib/profile/inputs";
 import { type Catalog, missingTypes, profileWorkflow, runOrder } from "./lib/profile/project";
 import { writeReport } from "./lib/profile/report";
 import { devCache, ROOT } from "./lib/tool-config";
+import { buildTools, editorCatalog } from "./lib/tools";
 import { DEV_ENGINE, seedUserData } from "./lib/user-data";
 
 const PROFILE_DIR = devCache("profile");
@@ -55,7 +55,7 @@ function run(command: string, args: string[], cwd = ROOT): void {
 }
 
 function catalog(): Catalog {
-  buildEditorData();
+  buildTools();
   return editorCatalog() as Catalog;
 }
 

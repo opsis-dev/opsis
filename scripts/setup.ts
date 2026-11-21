@@ -1,4 +1,3 @@
-import { execFileSync } from "node:child_process";
 import { homedir } from "node:os";
 import path from "node:path";
 import { hostTarget } from "./lib/ffmpeg";
@@ -11,6 +10,7 @@ import { checkSystem } from "./lib/setup/system";
 import { SKIA_RECIPE, buildSkia } from "./lib/skia";
 import { buildStaticQt, configureArgs } from "./lib/static-qt";
 import { ROOT } from "./lib/tool-config";
+import { runTool } from "./lib/tools";
 
 const NO_ENGINE = "--no-engine";
 const PRUNE = "--prune";
@@ -26,11 +26,7 @@ function qtPlatform(): "linux" | "darwin" | "win32" {
 }
 
 function installEngine(zig: string): string {
-  execFileSync(
-    "cargo",
-    ["run", "-q", "-p", "opsis-engine", "--bin", "install-engine", "--", ENGINE_DIR],
-    { cwd: ROOT, stdio: "inherit", env: { ...process.env, ZIG: zig } },
-  );
+  runTool(["install-engine", ENGINE_DIR], { release: false, env: { ...process.env, ZIG: zig } });
   return ENGINE_DIR;
 }
 

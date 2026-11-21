@@ -27,15 +27,7 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, features = ["preserve_order"] }
 sysinfo.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true, features = [
-  "process",
-  "io-util",
-  "macros",
-  "rt",
-  "fs",
-  "sync",
-  "time",
-] }
+tokio = { workspace = true, features = ["process", "io-util", "rt", "fs", "sync", "time"] }
 tokio-util.workspace = true
 
 [dev-dependencies]

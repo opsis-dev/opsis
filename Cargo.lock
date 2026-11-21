@@ -5365,6 +5365,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "opsis-tools"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "opsis-compile",
+ "opsis-engine",
+ "opsis-film",
+ "opsis-footage",
+ "opsis-golden",
+ "opsis-prepare",
+ "opsis-project",
+ "opsis-render",
+ "opsis-types",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+ "tokio",
+ "tokio-util",
+]
+
+[[package]]
 name = "opsis-traces"
 version = "0.1.0"
 dependencies = [

@@ -5,7 +5,8 @@ import { chromium } from "playwright-core";
 import { z } from "zod";
 import { downloadTo, fetchOk } from "./download";
 import type { ShellPlatform } from "./engine-downloads";
-import { devCache, ROOT } from "./tool-config";
+import { devCache } from "./tool-config";
+import { runTool } from "./tools";
 import { unzipTo } from "./unzip";
 
 const STAGED_ENGINE = devCache("stage-engine");
@@ -44,20 +45,8 @@ const installedSchema = z.object({ browser: z.string() });
 
 export type InstalledEngine = z.infer<typeof installedSchema>;
 
-function cargoRun(crate: string, bin: string, args: string[]): string {
-  return execFileSync(
-    "cargo",
-    ["run", "-q", "--release", "-p", crate, "--bin", bin, "--", ...args],
-    {
-      cwd: ROOT,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "inherit"],
-    },
-  );
-}
-
 export function installEngine(dir = STAGED_ENGINE): InstalledEngine {
-  const lines = cargoRun("opsis-engine", "install-engine", [dir]).trim().split("\n");
+  const lines = runTool(["install-engine", dir]).trim().split("\n");
   return installedSchema.parse(JSON.parse(lines.at(-1) ?? "{}"));
 }
 

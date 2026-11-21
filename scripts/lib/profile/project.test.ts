@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { editorCatalog } from "../editor-data";
+import { editorCatalog } from "../tools";
 import {
   type CatalogNode,
   missingTypes,

@@ -1,0 +1,31 @@
+[package]
+name = "opsis-tools"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "opsis-tools"
+path = "src/main.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+clap.workspace = true
+opsis-compile.workspace = true
+opsis-engine.workspace = true
+opsis-film.workspace = true
+opsis-footage.workspace = true
+opsis-golden.workspace = true
+opsis-prepare.workspace = true
+opsis-project.workspace = true
+opsis-render.workspace = true
+opsis-types.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["rt"] }
+tokio-util.workspace = true

@@ -2,8 +2,8 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { resampleIcon } from "morphicons";
 import { describe, expect, it } from "vitest";
-import { editorCatalog } from "./lib/editor-data";
 import { ROOT } from "./lib/tool-config";
+import { editorCatalog } from "./lib/tools";
 
 type IconNode = ReadonlyArray<readonly [string, Record<string, string>]>;
 type Look = { glyph: string; morph?: string; motion?: string };

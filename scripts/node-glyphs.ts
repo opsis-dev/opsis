@@ -1,4 +1,3 @@
-import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { icons as lucide } from "lucide";
@@ -6,6 +5,7 @@ import { allocOutputs, buildPlan, interpPolar, resampleIcon } from "morphicons";
 import { z } from "zod";
 import { NOTICES, loadGlyph } from "./lib/glyph-sets";
 import { ROOT } from "./lib/tool-config";
+import { runTool } from "./lib/tools";
 
 type IconNode = ReadonlyArray<readonly [string, Record<string, string>]>;
 
@@ -183,11 +183,7 @@ const lookSchema = z.object({ glyph: z.string(), morph: z.string().optional() })
 const catalogSchema = z.object({ nodes: z.array(z.object({ look: lookSchema.optional() })) });
 
 function catalogLooks(): Array<z.infer<typeof lookSchema>> {
-  const text = execFileSync(
-    "cargo",
-    ["run", "-q", "--release", "-p", "opsis-compile", "--bin", "editor-data", "catalog"],
-    { cwd: ROOT, encoding: "utf8", maxBuffer: 1 << 26 },
-  );
+  const text = runTool(["catalog"]);
   return catalogSchema
     .parse(JSON.parse(text))
     .nodes.flatMap((node) => (node.look ? [node.look] : []));
