@@ -260,7 +260,7 @@ agent-docs/            the domain docs (§8)
 | [document.md](agent-docs/document.md)   | the document in Rust, edits and gestures, compiles, shared state, live frames, autosave and disk changes                                                         |
 | [app-state.md](agent-docs/app-state.md) | the app database, settings, the keyring, projects folder                                                                                                         |
 | [api.md](agent-docs/api.md)             | the Local API: socket, routes, `ApiHost`, OpenAPI                                                                                                                |
-| [assistant.md](agent-docs/assistant.md) | the Assistant switch, headless mode and its automatic answers                                                                                                    |
+| [assistant.md](agent-docs/assistant.md) | the Assistant switch, headless mode and its automatic answers, `opsis-mcp`, `opsis-agent`, the Agent panel over ACP, run results and restore, the logs           |
 | [scripting.md](agent-docs/scripting.md) | Lua scripts: the runtime, the sandbox, the `opsis` module, running and stopping, the Script panel, highlighting and editing rules                                |
 | [runs.md](agent-docs/runs.md)           | run state, results following keys, media file checks, cache keys and version constants                                                                           |
 | [engine.md](agent-docs/engine.md)       | the recording browser, the bundled FFmpeg, probing, child temp folders and processes                                                                             |

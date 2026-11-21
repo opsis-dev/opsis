@@ -1,6 +1,6 @@
 # Assistant
 
-How Opsis works with coding agents: the Assistant switch that serves the Local API, the `opsis-mcp` program that gives any agent Opsis's tools, `opsis-agent`, Opsis's own lean agent, and the headless mode agents drive. Rust paths are relative to `crates/` unless they name another folder. The Local API's routes are in [api.md](api.md), the scripts agents run in [scripting.md](scripting.md), starting and closing the editor in [editor.md](editor.md); see also [AGENTS.md](../AGENTS.md).
+How Opsis works with coding agents: the Assistant switch that serves the Local API, the `opsis-mcp` program that gives any agent Opsis's tools, `opsis-agent`, Opsis's own lean agent, the headless mode agents drive, the Agent panel that talks to an agent over ACP, and the logs. Rust paths are relative to `crates/` unless they name another folder. The Local API's routes are in [api.md](api.md), the scripts agents run in [scripting.md](scripting.md), starting and closing the editor in [editor.md](editor.md); see also [AGENTS.md](../AGENTS.md).
 
 ## Code map
 
@@ -100,9 +100,13 @@ How Opsis works with coding agents: the Assistant switch that serves the Local A
   - File and folder pickers reply as cancelled, and notices are logged (`QtPlatform`).
   - Error message boxes are written to the log (`App::ShowError`).
 
+- **`agent-client-protocol`, `rmcp` and `rig-core` move on purpose, never in passing**: each breaks its API every few weeks, so an update is its own change. The app and `opsis-agent` use the one pinned ACP crate, so the two ends of a session never disagree.
+
 ## Deliberate limits
 
 - **A loaded session replays only its text**: tool calls and their results stay in the model's history but aren't shown again.
 - **An AppImage keeps `opsis-mcp` inside the image**, where an agent can't start it; the other packages put it beside the program ([packaging.md](packaging.md)).
 - **Headless on Windows ends only by ending the process**: `close_on_signals` listens on Unix only, so nothing saves the project first.
 - **Dialogs a person opens with a click (Quick add, New project, renaming a script) have no headless answer**: with no window to click, nothing opens them.
+- **An outside agent's own tools are its business**: Opsis neither blocks its web tools, sign-in or model nor offers sign-in for them, and an agent that refuses stdio tool servers gets no Opsis tools, since ACP requires every agent to accept them.
+- **`opsis-agent` has no web tools, and no tool reads the person's site the way Opsis records it**: an outline of the page from the recording browser with the project's sign-in, a check take of a chain, or a walk of the site action by action are not built, since walking a real site can create accounts or data.

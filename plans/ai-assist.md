@@ -1,6 +1,6 @@
 # AI assist
 
-Buttons in the editor that suggest wording and names where a person is already working: headline copy, chapter titles for a take, and clearer names for picked elements. The assistant itself (the Agent panel, agents, their tools and logs) is in [assistant.md](assistant.md). Every feature has its own section with the same parts, so the plan can grow one section at a time.
+Buttons in the editor that suggest wording and names where a person is already working: headline copy, chapter titles for a take, and clearer names for picked elements. The assistant itself (the Agent panel, agents, their tools and logs) is in [assistant.md](../agent-docs/assistant.md). Every feature has its own section with the same parts, so the plan can grow one section at a time.
 
 Status: plan only. Nothing here is built yet.
 
