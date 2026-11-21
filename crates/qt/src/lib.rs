@@ -16,21 +16,23 @@ mod frame;
 mod host;
 
 pub use bridge::ffi::{
-    AboutView, ArtifactView, BarView, BoundsView, BracketView, CardKind, CardView, CatalogRowView,
-    CategoryView, Choice, CloseView, ColorView, DialogKind, EdgeView, EngineView, EventKind,
-    FieldKind, FieldView, FilmTile, FilmTiles, FontCatalogView, FontChoicesView, FontPickView,
-    FontReviewView, FontRowView, GradientInfo, GradientStopView, GraphView, InspectorView,
-    InstalledFontView, IssueView, KeyLineView, KeyPointView, LicenceView, LiveCaptureView,
-    LiveClickView, LiveView, LoudnessView, MarkDrawnView, MarkPointsView, MenuItemKind,
-    MenuItemView, MenuSectionView, MeterView, MixerStripView, MixerView, MorphPathView, MorphStep,
-    MotionInfo, NodeMove, PaletteEntry, PalettePort, PlayerView, PortShape, PortView, PoseView,
-    PresetView, ProjectEntry, ProjectView, RemovalView, ReplayActionView, ReplayView, RowView,
-    RulerStep, RunLogView, RunPanelView, RunRowView, ScreenArea, ScriptLineView, ScriptLookView,
-    ScriptView, SettingsView, ShapeView, SnapView, StreamViewState, SyntaxRangeView, TemplateView,
-    TerminalWindowView, TextChangeView, TextToken, TimelineAudioView, TimelineBarView,
-    TimelineCameraKeyView, TimelineMarkView, TimelineMarkerView, TimelineTransitionView,
-    TimelineView, TokenKind, TraceActionView, TraceConsoleView, TraceErrorView, TraceFrameView,
-    TraceRequestView, TraceView, UpdateView, VariableView, WindowPlacement,
+    AboutView, AgentAskView, AgentEntryView, AgentOptionView, AgentPanelView, AgentThreadView,
+    AgentToolView, ArtifactView, AssistantSessionView, BarView, BoundsView, BracketView, CardKind,
+    CardView, CatalogRowView, CategoryView, Choice, CloseView, ColorView, DialogKind, EdgeView,
+    EngineView, EventKind, FieldKind, FieldView, FilmTile, FilmTiles, FontCatalogView,
+    FontChoicesView, FontPickView, FontReviewView, FontRowView, GradientInfo, GradientStopView,
+    GraphView, InspectorView, InstalledFontView, IssueView, KeyLineView, KeyPointView, LicenceView,
+    LiveCaptureView, LiveClickView, LiveView, LoudnessView, MarkDrawnView, MarkPointsView,
+    MenuItemKind, MenuItemView, MenuSectionView, MeterView, MixerStripView, MixerView,
+    MorphPathView, MorphStep, MotionInfo, NodeMove, OwnAgentView, PaletteEntry, PalettePort,
+    PlayerView, PortShape, PortView, PoseView, PresetView, ProjectEntry, ProjectView, RemovalView,
+    ReplayActionView, ReplayView, RowView, RulerStep, RunLogView, RunPanelView, RunRowView,
+    ScreenArea, ScriptLineView, ScriptLookView, ScriptView, SettingsView, ShapeView, SnapView,
+    StreamViewState, SyntaxRangeView, TemplateView, TerminalWindowView, TextChangeView, TextToken,
+    TimelineAudioView, TimelineBarView, TimelineCameraKeyView, TimelineMarkView,
+    TimelineMarkerView, TimelineTransitionView, TimelineView, TokenKind, TraceActionView,
+    TraceConsoleView, TraceErrorView, TraceFrameView, TraceRequestView, TraceView, UpdateView,
+    VariableView, WindowPlacement,
 };
 pub use frame::FrameRef;
 pub use host::{

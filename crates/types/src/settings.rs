@@ -242,6 +242,8 @@ pub struct EngineSection {
 pub struct AssistantSection {
     #[garde(skip)]
     pub enabled: bool,
+    #[garde(skip)]
+    pub agent: String,
     #[garde(dive)]
     pub agents: Vec<OwnAgent>,
 }

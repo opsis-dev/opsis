@@ -3,10 +3,12 @@
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QHBoxLayout>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QLabel>
+#include <QLineEdit>
 #include <QLocale>
 #include <QPlainTextEdit>
 #include <QScrollArea>
@@ -116,6 +118,11 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QWidget(parent, Qt::Window) {
   pages_->addWidget(AboutPage());
   connect(sidebar_, &QListWidget::currentRowChanged, pages_,
           &QStackedWidget::setCurrentIndex);
+  connect(sidebar_, &QListWidget::currentRowChanged, this, [](int row) {
+    if (row == kAssistant) App::Get().session().agent_refresh();
+  });
+  connect(EventHub::Instance(), &EventHub::AssistantChanged, this,
+          &SettingsWindow::Load);
   sidebar_->setCurrentRow(0);
   connect(EventHub::Instance(), &EventHub::SettingsChanged, this,
           &SettingsWindow::Load);
@@ -425,10 +432,158 @@ QWidget* SettingsWindow::AssistantPage() {
   assistant_error_ = MakeLabel(QString(), "error");
   assistant_error_->setWordWrap(true);
   assistant->body()->addWidget(assistant_error_);
+  auto* agents = new Card(
+      QStringLiteral("Agent"),
+      QStringLiteral("The agent new threads in the Agent panel talk to: "
+                     "Opsis's own agent, a known agent found on this "
+                     "computer, or your own command. Opsis installs none of "
+                     "them."));
+  agent_choice_ = new Combo();
+  agent_choice_->setObjectName(QStringLiteral("AssistantAgent"));
+  connect(agent_choice_, &QComboBox::activated, this, [this](int index) {
+    Patch(QStringLiteral("assistant"), QStringLiteral("agent"),
+          agent_choice_->itemData(index).toString());
+  });
+  agents->body()->addWidget(MakeField(QStringLiteral("Agent"), agent_choice_));
+  own_agents_ = new QVBoxLayout();
+  agents->body()->addLayout(own_agents_);
+  own_name_ = new QLineEdit();
+  own_name_->setObjectName(QStringLiteral("OwnAgentName"));
+  own_name_->setPlaceholderText(QStringLiteral("Name"));
+  own_command_ = new QLineEdit();
+  own_command_->setObjectName(QStringLiteral("OwnAgentCommand"));
+  own_command_->setPlaceholderText(
+      QStringLiteral("Command, such as /usr/local/bin/my-agent"));
+  own_args_ = new QLineEdit();
+  own_args_->setObjectName(QStringLiteral("OwnAgentArgs"));
+  own_args_->setPlaceholderText(
+      QStringLiteral("Arguments, separated by spaces"));
+  auto* add = MakeButton(QStringLiteral("Add agent"), "outline");
+  add->setObjectName(QStringLiteral("OwnAgentAdd"));
+  connect(add, &QPushButton::clicked, this, [this] {
+    const QString name = own_name_->text().trimmed();
+    const QString command = own_command_->text().trimmed();
+    if (name.isEmpty() || command.isEmpty()) return;
+    QJsonArray args;
+    for (const QString& arg :
+         own_args_->text().split(QLatin1Char(' '), Qt::SkipEmptyParts)) {
+      args.append(arg);
+    }
+    QJsonArray agents = own_agents_value_;
+    agents.append(QJsonObject{{QStringLiteral("name"), name},
+                              {QStringLiteral("command"), command},
+                              {QStringLiteral("args"), args}});
+    SaveOwnAgents(agents);
+    own_name_->clear();
+    own_command_->clear();
+    own_args_->clear();
+  });
+  agents->body()->addWidget(
+      MakeField(QStringLiteral("Your own agent"), own_name_));
+  agents->body()->addWidget(own_command_);
+  agents->body()->addWidget(own_args_);
+  agents->body()->addWidget(Holder(add));
+  auto* log = new Card(
+      QStringLiteral("Log"),
+      QStringLiteral("Every session with an agent, newest first. The log "
+                     "folder holds what went between Opsis and each agent, "
+                     "with keys left out."));
+  auto* sessions = new QWidget();
+  agent_sessions_ = new QVBoxLayout(sessions);
+  agent_sessions_->setContentsMargins(0, 0, 0, 0);
+  log->body()->addWidget(sessions);
+  auto* buttons = new QHBoxLayout();
+  auto* open = MakeButton(QStringLiteral("Open the log folder"), "outline");
+  open->setObjectName(QStringLiteral("AssistantOpenLogs"));
+  connect(open, &QPushButton::clicked, this, [] {
+    try {
+      App::Get().session().assistant_open_logs();
+    } catch (const rust::Error& error) {
+      App::Get().ShowError(QString::fromUtf8(error.what()));
+    }
+  });
+  auto* clear = MakeButton(QStringLiteral("Clear log"), "outline");
+  clear->setObjectName(QStringLiteral("AssistantClearLog"));
+  connect(clear, &QPushButton::clicked, this, [this] {
+    try {
+      App::Get().session().assistant_clear_log();
+    } catch (const rust::Error& error) {
+      App::Get().ShowError(QString::fromUtf8(error.what()));
+    }
+    Load();
+  });
+  buttons->addWidget(open);
+  buttons->addWidget(clear);
+  buttons->addStretch(1);
+  log->body()->addLayout(buttons);
   return Page(QStringLiteral("Assistant"),
               QStringLiteral("Let coding agents on this computer read, edit "
                              "and run the open project."),
-              {assistant});
+              {assistant, agents, log});
+}
+
+void SettingsWindow::SaveOwnAgents(const QJsonArray& agents) {
+  Patch(QStringLiteral("assistant"), QStringLiteral("agents"), agents);
+  App::Get().session().agent_refresh();
+}
+
+void SettingsWindow::SyncAssistant(const bridge::SettingsView& view) {
+  agent_choice_->blockSignals(true);
+  agent_choice_->clear();
+  for (const auto& agent : view.assistant_agents) {
+    agent_choice_->addItem(ToQ(agent.label), ToQ(agent.value));
+  }
+  agent_choice_->setCurrentIndex(
+      agent_choice_->findData(ToQ(view.assistant_agent)));
+  agent_choice_->blockSignals(false);
+  for (QVBoxLayout* list : {own_agents_, agent_sessions_}) {
+    while (QLayoutItem* item = list->takeAt(0)) {
+      delete item->widget();
+      delete item;
+    }
+  }
+  own_agents_value_ = QJsonArray();
+  for (const auto& agent : view.own_agents) {
+    QJsonArray args;
+    QStringList shown;
+    for (const auto& arg : agent.args) {
+      args.append(ToQ(arg));
+      shown.append(ToQ(arg));
+    }
+    own_agents_value_.append(
+        QJsonObject{{QStringLiteral("name"), ToQ(agent.name)},
+                    {QStringLiteral("command"), ToQ(agent.command)},
+                    {QStringLiteral("args"), args}});
+    auto* row = new QWidget();
+    auto* line = new QHBoxLayout(row);
+    line->setContentsMargins(0, 0, 0, 0);
+    line->addWidget(MakeLabel(QStringLiteral("%1 — %2 %3")
+                                  .arg(ToQ(agent.name), ToQ(agent.command),
+                                       shown.join(QLatin1Char(' ')))),
+                    1);
+    auto* remove = MakeButton(QStringLiteral("Remove"), "ghost");
+    const int index = static_cast<int>(own_agents_value_.size()) - 1;
+    connect(remove, &QPushButton::clicked, this, [this, index] {
+      QJsonArray agents = own_agents_value_;
+      agents.removeAt(index);
+      SaveOwnAgents(agents);
+    });
+    line->addWidget(remove);
+    own_agents_->addWidget(row);
+  }
+  if (view.assistant_sessions.empty()) {
+    agent_sessions_->addWidget(
+        MakeLabel(QStringLiteral("No sessions yet."), "muted"));
+  }
+  for (const auto& session : view.assistant_sessions) {
+    auto* line = MakeLabel(
+        QStringLiteral("%1 · %2 · %3 · %4 messages")
+            .arg(ToQ(session.agent), ToQ(session.project), ToQ(session.updated))
+            .arg(session.messages),
+        "muted");
+    line->setWordWrap(true);
+    agent_sessions_->addWidget(line);
+  }
 }
 
 QWidget* SettingsWindow::LicencesPage() {
@@ -613,6 +768,7 @@ void SettingsWindow::Load() {
                                !view.assistant_error.empty());
   assistant_error_->setText(QStringLiteral("The assistant couldn't start. ") +
                             ToQ(view.assistant_error));
+  SyncAssistant(view);
 }
 
 void SettingsWindow::Patch(const QString& section, const QString& key,

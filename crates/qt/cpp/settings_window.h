@@ -1,6 +1,7 @@
 #ifndef OPSIS_QT_CPP_SETTINGS_WINDOW_H_
 #define OPSIS_QT_CPP_SETTINGS_WINDOW_H_
 
+#include <QJsonArray>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -13,6 +14,11 @@
 
 namespace opsis {
 
+namespace bridge {
+struct SettingsView;
+}
+
+class Combo;
 class Segmented;
 class ToggleSwitch;
 
@@ -69,6 +75,15 @@ class SettingsWindow : public QWidget {
   ToggleSwitch* live_auto_open_ = nullptr;
   QLabel* assistant_state_ = nullptr;
   QLabel* assistant_error_ = nullptr;
+  Combo* agent_choice_ = nullptr;
+  QVBoxLayout* own_agents_ = nullptr;
+  QLineEdit* own_name_ = nullptr;
+  QLineEdit* own_command_ = nullptr;
+  QLineEdit* own_args_ = nullptr;
+  QVBoxLayout* agent_sessions_ = nullptr;
+  QJsonArray own_agents_value_;
+  void SyncAssistant(const bridge::SettingsView& view);
+  void SaveOwnAgents(const QJsonArray& agents);
 };
 
 }

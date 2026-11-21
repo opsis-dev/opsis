@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::Duration;
@@ -7,19 +7,20 @@ use agent_client_protocol::schema::ProtocolVersion;
 use agent_client_protocol::util::MatchDispatch;
 use agent_client_protocol::v1::schema::{
     AuthMethod, AuthenticateRequest, CancelNotification, ContentBlock, ContentChunk,
-    InitializeRequest, McpServer, McpServerStdio, NewSessionRequest, RequestPermissionOutcome,
-    RequestPermissionRequest, RequestPermissionResponse, SelectedPermissionOutcome, SessionUpdate,
-    SetSessionModeRequest, StopReason, ToolCallStatus,
+    InitializeRequest, McpServer, McpServerStdio, NewSessionRequest, PermissionOptionKind,
+    RequestPermissionOutcome, RequestPermissionRequest, RequestPermissionResponse,
+    SelectedPermissionOutcome, SessionUpdate, SetSessionModeRequest, StopReason, ToolCallStatus,
+    ToolKind,
 };
 use agent_client_protocol::v1::{ActiveSession, SessionMessage, SessionSetup};
 use agent_client_protocol::{AcpAgent, AcpAgentConfig, Agent, Client, ConnectTo, Error, Responder};
 use opsis_persistence::logs::{RequestLog, assistant_logs};
-use opsis_store::assistant::{AssistantEvent, Recorded};
+use opsis_store::assistant::{AssistantEvent, AssistantThread, Recorded};
 use serde_json::{Value, json};
 use tokio::sync::mpsc;
 
 use crate::Session;
-use crate::agents::{AgentChoice, available};
+use crate::agents::{AgentChoice, BUNDLED_ID, available};
 use crate::events::{AssistantChanged, Emit};
 use crate::state::AppState;
 
@@ -47,7 +48,9 @@ pub enum Entry {
     Agent(String),
     Tool {
         id: String,
+        kind: String,
         title: String,
+        input: Option<Value>,
         status: String,
         output: String,
     },
@@ -55,11 +58,19 @@ pub enum Entry {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AskOption {
+    pub id: String,
+    pub name: String,
+    pub kind: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Ask {
     pub id: String,
     pub title: String,
+    pub input: Option<Value>,
     pub sign_in: bool,
-    pub options: Vec<(String, String)>,
+    pub options: Vec<AskOption>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -74,6 +85,8 @@ pub struct PanelState {
     pub agent_name: String,
     pub status: Status,
     pub session: Option<String>,
+    pub title: String,
+    pub working_since: Option<i64>,
     pub agent_session: Option<String>,
     pub mode: Option<String>,
     pub modes: Vec<ModeChoice>,
@@ -94,6 +107,117 @@ pub enum Command {
 pub struct Assistant {
     state: Mutex<PanelState>,
     commands: Mutex<Option<mpsc::UnboundedSender<Command>>>,
+    agents: Mutex<Vec<AgentChoice>>,
+    open: Mutex<Option<String>>,
+    expanded: Mutex<HashSet<String>>,
+}
+
+pub const NEW_THREAD: &str = "New thread";
+
+pub fn chosen_agent(app: &Session) -> String {
+    let chosen = app.state::<AppState>().settings().assistant.agent;
+    if chosen.is_empty() {
+        BUNDLED_ID.to_owned()
+    } else {
+        chosen
+    }
+}
+
+pub fn open_thread_id(app: &Session) -> Option<String> {
+    app.state::<Assistant>().open.lock().expect("open").clone()
+}
+
+pub fn open_thread(app: &Session, thread: Option<&str>) {
+    *app.state::<Assistant>().open.lock().expect("open") = thread.map(str::to_owned);
+    changed(app);
+}
+
+pub fn is_expanded(app: &Session, id: &str) -> bool {
+    app.state::<Assistant>()
+        .expanded
+        .lock()
+        .expect("expanded")
+        .contains(id)
+}
+
+pub fn toggle(app: &Session, id: &str) {
+    {
+        let mut expanded = app.state::<Assistant>().expanded.lock().expect("expanded");
+        if !expanded.remove(id) {
+            expanded.insert(id.to_owned());
+        }
+    }
+    changed(app);
+}
+
+pub async fn new_thread(app: &Session) -> Result<(), String> {
+    start(app, &chosen_agent(app)).await?;
+    let session = panel_state(app).session;
+    open_thread(app, session.as_deref());
+    Ok(())
+}
+
+pub async fn threads(app: &Session) -> Vec<AssistantThread> {
+    let Some(project) = crate::document::document_dir(app.state::<AppState>()) else {
+        return Vec::new();
+    };
+    app.state::<AppState>()
+        .db()
+        .assistant_threads(&project.to_string_lossy())
+        .await
+        .unwrap_or_else(|error| {
+            log::warn!("listing the assistant's threads: {error}");
+            Vec::new()
+        })
+}
+
+pub async fn past_entries(app: &Session, thread: &str) -> Vec<Entry> {
+    let messages = app
+        .state::<AppState>()
+        .db()
+        .assistant_messages(thread)
+        .await
+        .unwrap_or_else(|error| {
+            log::warn!("reading an assistant thread: {error}");
+            Vec::new()
+        });
+    messages
+        .into_iter()
+        .map(|message| {
+            if message.role == "user" {
+                Entry::User(message.text)
+            } else {
+                Entry::Agent(message.text)
+            }
+        })
+        .collect()
+}
+
+fn first_line(text: &str) -> &str {
+    text.lines().next().unwrap_or_default().trim()
+}
+
+pub fn agents(app: &Session) -> Vec<AgentChoice> {
+    app.state::<Assistant>()
+        .agents
+        .lock()
+        .expect("agents")
+        .clone()
+}
+
+pub fn refresh_agents(app: &Session) {
+    let app = app.clone();
+    crate::runtime::spawn(async move {
+        let found = available(&app).await;
+        *app.state::<Assistant>().agents.lock().expect("agents") = found;
+        changed(&app);
+    });
+}
+
+pub fn open_logs(app: &Session) -> Result<(), String> {
+    let logs = assistant_logs(&app.state::<AppState>().paths.user_data);
+    std::fs::create_dir_all(&logs).map_err(|e| e.to_string())?;
+    app.platform().open_path(&logs)
 }
 
 fn changed(app: &Session) {
@@ -184,6 +308,12 @@ pub fn answer(app: &Session, ask: &str, option: &str) -> bool {
 pub fn stop(app: &Session) {
     send(app, Command::Stop);
     *app.state::<Assistant>().commands.lock().expect("commands") = None;
+    *app.state::<Assistant>().open.lock().expect("open") = None;
+    app.state::<Assistant>()
+        .expanded
+        .lock()
+        .expect("expanded")
+        .clear();
     edit(app, |state| *state = PanelState::default());
 }
 
@@ -211,6 +341,28 @@ fn text_of(content: &ContentBlock) -> Option<String> {
     match content {
         ContentBlock::Text(text) => Some(text.text.clone()),
         _ => None,
+    }
+}
+
+const fn kind_name(kind: ToolKind) -> &'static str {
+    match kind {
+        ToolKind::Read => "read",
+        ToolKind::Edit => "edit",
+        ToolKind::Delete => "delete",
+        ToolKind::Move => "move",
+        ToolKind::Search => "search",
+        ToolKind::Execute => "execute",
+        ToolKind::Fetch => "fetch",
+        _ => "other",
+    }
+}
+
+const fn option_kind(kind: PermissionOptionKind) -> &'static str {
+    match kind {
+        PermissionOptionKind::AllowOnce => "allowOnce",
+        PermissionOptionKind::AllowAlways => "allowAlways",
+        PermissionOptionKind::RejectOnce => "rejectOnce",
+        _ => "rejectAlways",
     }
 }
 
@@ -243,7 +395,9 @@ fn apply_update(state: &mut PanelState, update: &SessionUpdate) -> Option<String
         SessionUpdate::ToolCall(call) => {
             state.entries.push(Entry::Tool {
                 id: call.tool_call_id.0.to_string(),
+                kind: kind_name(call.kind).to_owned(),
                 title: call.title.clone(),
+                input: call.raw_input.clone(),
                 status: status_name(call.status).to_owned(),
                 output: String::new(),
             });
@@ -261,10 +415,15 @@ fn apply_update(state: &mut PanelState, update: &SessionUpdate) -> Option<String
                         status,
                         output,
                         title,
-                    } if *tool == id => Some((status, output, title)),
+                        input,
+                        ..
+                    } if *tool == id => Some((status, output, title, input)),
                     _ => None,
                 });
-            if let Some((status, output, title)) = found {
+            if let Some((status, output, title, input)) = found {
+                if let Some(new_input) = &update.fields.raw_input {
+                    *input = Some(new_input.clone());
+                }
                 if let Some(new_status) = &update.fields.status {
                     status_name(*new_status).clone_into(status);
                 }
@@ -370,6 +529,7 @@ impl Talk<'_> {
         );
         edit(self.app, |state| {
             state.status = Status::Ready;
+            state.working_since = None;
             state.asks.retain(|ask| ask.sign_in);
         });
     }
@@ -394,10 +554,15 @@ impl Talk<'_> {
             .title
             .clone()
             .unwrap_or_else(|| "The agent asks to go on".to_owned());
+        let input = request.tool_call.fields.raw_input.clone();
         let options = request
             .options
             .iter()
-            .map(|option| (option.option_id.0.to_string(), option.name.clone()))
+            .map(|option| AskOption {
+                id: option.option_id.0.to_string(),
+                name: option.name.clone(),
+                kind: option_kind(option.kind).to_owned(),
+            })
             .collect();
         record(
             self.app,
@@ -412,6 +577,7 @@ impl Talk<'_> {
             state.asks.push(Ask {
                 id: id.clone(),
                 title,
+                input,
                 sign_in: false,
                 options,
             });
@@ -447,8 +613,12 @@ impl Talk<'_> {
                         record(self.app, self.context, AssistantEvent::UserMessage { text: text.clone() });
                         record(self.app, self.context, AssistantEvent::TurnStarted);
                         edit(self.app, |state| {
+                            if state.title.is_empty() {
+                                first_line(&text).clone_into(&mut state.title);
+                            }
                             state.entries.push(Entry::User(text.clone()));
                             state.status = Status::Working;
+                            state.working_since = Some(now_ms());
                         });
                         if !self.working {
                             self.app.state::<AppState>().tasks.begin(WAITING);
@@ -486,11 +656,15 @@ impl Talk<'_> {
     }
 }
 
-fn sign_in_methods(methods: &[AuthMethod]) -> Vec<(String, String)> {
+fn sign_in_methods(methods: &[AuthMethod]) -> Vec<AskOption> {
     methods
         .iter()
         .filter_map(|method| match method {
-            AuthMethod::Agent(agent) => Some((agent.id.0.to_string(), agent.name.clone())),
+            AuthMethod::Agent(agent) => Some(AskOption {
+                id: agent.id.0.to_string(),
+                name: agent.name.clone(),
+                kind: SIGN_IN.to_owned(),
+            }),
             _ => None,
         })
         .collect()
@@ -499,13 +673,14 @@ fn sign_in_methods(methods: &[AuthMethod]) -> Vec<(String, String)> {
 async fn sign_in(
     app: &Session,
     commands: &mut mpsc::UnboundedReceiver<Command>,
-    methods: &[(String, String)],
+    methods: &[AskOption],
 ) -> Option<String> {
     edit(app, |state| {
         state.status = Status::SignIn;
         state.asks.push(Ask {
             id: SIGN_IN.to_owned(),
-            title: "The agent needs you to sign in".to_owned(),
+            title: "Sign in to continue".to_owned(),
+            input: None,
             sign_in: true,
             options: methods.to_vec(),
         });

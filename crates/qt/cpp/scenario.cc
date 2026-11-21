@@ -88,6 +88,8 @@ Scenario::Scenario(MainWindow* window, const QString& name, const QDir& shots)
     BuildViews();
   } else if (name == QStringLiteral("reopen")) {
     BuildReopen();
+  } else if (name == QStringLiteral("agent")) {
+    BuildAgent();
   } else if (name == QStringLiteral("wayland")) {
     BuildWayland();
   } else {

@@ -55,6 +55,9 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   }
   KDDockWidgets::QtWidgets::DockWidget* run_dock() const { return run_dock_; }
   ScriptPanel* script_panel() const { return script_panel_; }
+  KDDockWidgets::QtWidgets::DockWidget* agent_dock() const {
+    return agent_dock_;
+  }
   void OpenExample(const QString& dir);
   void OpenFolder(const QString& dir);
   void Generate(int count);
@@ -82,6 +85,7 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   void SaveLayout();
   void SyncTitle();
   void ToggleDock(KDDockWidgets::QtWidgets::DockWidget* dock);
+  void ToggleRight();
   std::array<KDDockWidgets::QtWidgets::DockWidget*, 4> BottomDocks() const;
   void DockBottom(KDDockWidgets::QtWidgets::DockWidget* dock);
   void ReopenBottom();
@@ -113,6 +117,7 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
   KDDockWidgets::QtWidgets::DockWidget* mixer_dock_ = nullptr;
   KDDockWidgets::QtWidgets::DockWidget* run_dock_ = nullptr;
   KDDockWidgets::QtWidgets::DockWidget* script_dock_ = nullptr;
+  KDDockWidgets::QtWidgets::DockWidget* agent_dock_ = nullptr;
   ScriptPanel* script_panel_ = nullptr;
   bool docked_ = false;
   bool parking_ = false;

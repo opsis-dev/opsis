@@ -92,6 +92,7 @@ pub fn app_menu(mac: bool) -> Vec<MenuSection> {
                 command("Mixer", MenuCommand::ViewFocusMixer, "CmdOrCtrl+2"),
                 command("Run", MenuCommand::ViewFocusRun, "CmdOrCtrl+3"),
                 command("Script", MenuCommand::ViewFocusScript, "CmdOrCtrl+4"),
+                command("Agent", MenuCommand::ViewFocusAgent, "CmdOrCtrl+5"),
                 MenuEntry::Separator,
                 role(
                     "Full screen",

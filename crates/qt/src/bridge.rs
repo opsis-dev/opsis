@@ -24,6 +24,7 @@ pub mod ffi {
         Fonts,
         Update,
         Script,
+        Assistant,
     }
 
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -33,6 +34,87 @@ pub mod ffi {
         text: String,
         file: String,
         line: u32,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    struct AgentToolView {
+        id: String,
+        label: String,
+        icon: String,
+        failed: bool,
+        running: bool,
+        output: String,
+        expanded: bool,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    struct AgentEntryView {
+        kind: String,
+        id: String,
+        text: String,
+        icon: String,
+        failed: bool,
+        running: bool,
+        expanded: bool,
+        tools: Vec<AgentToolView>,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    struct AgentOptionView {
+        id: String,
+        name: String,
+        kind: String,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    struct AgentAskView {
+        id: String,
+        title: String,
+        detail: String,
+        icon: String,
+        sign_in: bool,
+        options: Vec<AgentOptionView>,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    struct AgentThreadView {
+        id: String,
+        title: String,
+        when: String,
+        group: String,
+        state: String,
+    }
+
+    #[derive(Debug, Clone)]
+    struct AgentPanelView {
+        assistant_on: bool,
+        has_project: bool,
+        thread: String,
+        live: bool,
+        title: String,
+        threads: Vec<AgentThreadView>,
+        status: String,
+        ended: String,
+        working_since: i64,
+        modes: Vec<Choice>,
+        mode: String,
+        entries: Vec<AgentEntryView>,
+        asks: Vec<AgentAskView>,
+    }
+
+    #[derive(Debug, Clone)]
+    struct OwnAgentView {
+        name: String,
+        command: String,
+        args: Vec<String>,
+    }
+
+    #[derive(Debug, Clone)]
+    struct AssistantSessionView {
+        agent: String,
+        project: String,
+        updated: String,
+        messages: u32,
     }
 
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -955,6 +1037,10 @@ pub mod ffi {
         assistant_error: String,
         default_dir_fallback: String,
         setup_skipped: bool,
+        assistant_agents: Vec<Choice>,
+        assistant_agent: String,
+        own_agents: Vec<OwnAgentView>,
+        assistant_sessions: Vec<AssistantSessionView>,
     }
 
     #[derive(Debug, Clone)]
@@ -1204,6 +1290,19 @@ pub mod ffi {
         fn script_delete(self: &Session, dir: &str, file: &str) -> Result<()>;
         fn script_run(self: &Session, dir: &str, file: &str, text: &str) -> Result<()>;
         fn script_stop(self: &Session);
+        fn agent_view(self: &Session) -> AgentPanelView;
+        fn agent_refresh(self: &Session);
+        fn agent_new_thread(self: &Session) -> Result<()>;
+        fn agent_open(self: &Session, thread: &str);
+        fn agent_back(self: &Session);
+        fn agent_toggle(self: &Session, id: &str);
+        fn agent_prompt(self: &Session, text: &str) -> bool;
+        fn agent_cancel(self: &Session);
+        fn agent_stop(self: &Session);
+        fn agent_mode(self: &Session, mode: &str);
+        fn agent_answer(self: &Session, ask: &str, option: &str);
+        fn assistant_clear_log(self: &Session) -> Result<()>;
+        fn assistant_open_logs(self: &Session) -> Result<()>;
         fn script_reload(self: &Session, file: &str, text: &str) -> TextChangeView;
         fn script_highlight(self: &Session, text: &str) -> Vec<SyntaxRangeView>;
         fn script_look(self: &Session) -> ScriptLookView;

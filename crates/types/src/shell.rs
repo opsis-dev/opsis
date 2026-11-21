@@ -109,6 +109,8 @@ pub enum MenuCommand {
     ViewFocusRun,
     #[serde(rename = "view:focus-script")]
     ViewFocusScript,
+    #[serde(rename = "view:focus-agent")]
+    ViewFocusAgent,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]

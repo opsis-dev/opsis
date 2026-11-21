@@ -16,6 +16,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QKeyEvent>
+#include <QLabel>
+#include <QLineEdit>
 #include <QPlainTextEdit>
 #include <QPointer>
 #include <QPushButton>
@@ -273,9 +275,10 @@ void Scenario::BuildReopen() {
         QStringLiteral("reopen-save-a-layout-from-before-the-script-tab"),
         [] {
           KDDockWidgets::LayoutSaver saver;
-          const QJsonValue old =
+          const QJsonValue old = Without(
               Without(QJsonDocument::fromJson(saver.serializeLayout()).object(),
-                      QStringLiteral("script"));
+                      QStringLiteral("script")),
+              QStringLiteral("agent"));
           App::Get().session().save_layout(ToRust(QString::fromUtf8(
               QJsonDocument(old.toObject()).toJson(QJsonDocument::Compact))));
         },
@@ -311,6 +314,14 @@ void Scenario::BuildReopen() {
                       QStringLiteral("the timeline came back docked"));
       });
   Add(
+      QStringLiteral("reopen-the-agent-tab-joins-the-inspector"), [] {}, 300,
+      [this] {
+        auto* agent = window_->agent_dock();
+        return Expect(agent->isOpen() && !agent->isFloating() &&
+                          agent->dockWidget()->isTabbed(),
+                      QStringLiteral("the agent tab came back on its own"));
+      });
+  Add(
       QStringLiteral("reopen-the-script-tab-joins-the-bottom-group"), [] {},
       300,
       [this] {
@@ -318,6 +329,114 @@ void Scenario::BuildReopen() {
         return Expect(script->isOpen() && !script->isFloating() &&
                           script->dockWidget()->isTabbed(),
                       QStringLiteral("the script tab came back on its own"));
+      });
+}
+
+void Scenario::BuildAgent() {
+  const QString projects = qEnvironmentVariable("OPSIS_QT_PROJECTS");
+  Add(
+      QStringLiteral("agent-past-setup"),
+      [this] {
+        if (Find(window_, QStringLiteral("Skip for now")) != nullptr) {
+          Click(window_, QStringLiteral("Skip for now"));
+        }
+      },
+      500, [] { return QString(); });
+  Until(
+      QStringLiteral("agent-create-a-project"),
+      [projects] {
+        App::Get().session().patch_settings(
+            ToRust(QStringLiteral("{\"assistant\":{\"enabled\":true}}")));
+        App::Get().session().create_project(ToRust(QStringLiteral("Agent")),
+                                            ToRust(QStringLiteral("todomvc")),
+                                            ToRust(projects));
+      },
+      kProjectMs, [] { return App::Get().session().has_project(); },
+      [] { return QString(); });
+  Until(
+      QStringLiteral("agent-the-thread-list"),
+      [this] {
+        window_->agent_dock()->setAsCurrentTab();
+        App::Get().session().agent_refresh();
+      },
+      kProjectMs,
+      [this] {
+        auto* list = window_->agent_dock()->findChild<QWidget*>(
+            QStringLiteral("AgentThreads"));
+        return list != nullptr && list->isVisible();
+      },
+      [] { return QString(); });
+  Until(
+      QStringLiteral("agent-a-new-thread"),
+      [] { App::Get().session().agent_new_thread(); }, kProjectMs,
+      [] {
+        const bridge::AgentPanelView view = App::Get().session().agent_view();
+        return view.live && ToQ(view.status) == QStringLiteral("ready");
+      },
+      [this] {
+        auto* page = window_->agent_dock()->findChild<QWidget*>(
+            QStringLiteral("AgentThreadPage"));
+        return Expect(page != nullptr && page->isVisible(),
+                      QStringLiteral("the new thread didn't open"));
+      });
+  Until(
+      QStringLiteral("agent-asks-to-write-a-file"),
+      [] {
+        App::Get().session().agent_prompt(ToRust(QStringLiteral(
+            "Write hello into notes.txt and tell me what you did")));
+      },
+      kProjectMs,
+      [] { return !App::Get().session().agent_view().asks.empty(); },
+      [this] {
+        auto* allow = window_->agent_dock()->findChild<QPushButton*>(
+            QStringLiteral("AgentAnswer"));
+        return Expect(allow != nullptr,
+                      QStringLiteral("the approval line has no answers"));
+      });
+  Until(
+      QStringLiteral("agent-answered"),
+      [] {
+        const bridge::AgentPanelView view = App::Get().session().agent_view();
+        const auto& ask = view.asks.front();
+        for (const auto& option : ask.options) {
+          if (ToQ(option.kind) == QStringLiteral("allowOnce")) {
+            App::Get().session().agent_answer(ask.id, option.id);
+          }
+        }
+      },
+      kProjectMs,
+      [] {
+        const bridge::AgentPanelView view = App::Get().session().agent_view();
+        return ToQ(view.status) == QStringLiteral("ready") &&
+               view.entries.size() >= 3;
+      },
+      [] { return QString(); });
+  Add(
+      QStringLiteral("agent-the-tool-opens"),
+      [] {
+        const bridge::AgentPanelView view = App::Get().session().agent_view();
+        for (const auto& entry : view.entries) {
+          if (ToQ(entry.kind) == QStringLiteral("tools")) {
+            App::Get().session().agent_toggle(entry.tools.front().id);
+          }
+        }
+      },
+      500,
+      [this] {
+        auto* detail = window_->agent_dock()->findChild<QLabel*>(
+            QStringLiteral("AgentDetail"));
+        return Expect(detail != nullptr && !detail->text().isEmpty(),
+                      QStringLiteral("the tool's output didn't open"));
+      });
+  Add(
+      QStringLiteral("agent-back-to-the-threads"),
+      [] { App::Get().session().agent_back(); }, 500,
+      [this] {
+        auto* row = window_->agent_dock()->findChild<QPushButton*>(
+            QStringLiteral("AgentThread"));
+        return Expect(row != nullptr && row->accessibleName().startsWith(
+                                            QStringLiteral("Write hello")),
+                      QStringLiteral("the thread list lacks the thread"));
       });
 }
 
@@ -700,6 +819,49 @@ void Scenario::BuildViews() {
                           .arg(ToQ(view.open), QFile::exists(trashed)
                                                    ? QStringLiteral("has")
                                                    : QStringLiteral("lacks")));
+      });
+  Add(
+      QStringLiteral("views-the-agent-tab-sits-with-the-inspector"), [] {}, 100,
+      [this] {
+        auto* agent = window_->agent_dock();
+        return Expect(agent != nullptr && agent->isOpen() &&
+                          agent->dockWidget()->isTabbed() &&
+                          window_->inspector_dock()->dockWidget()->isTabbed(),
+                      QStringLiteral("the agent tab isn't with the inspector"));
+      });
+  Add(
+      QStringLiteral("views-the-agent-panel-opens-on-its-threads"),
+      [this] { window_->agent_dock()->setAsCurrentTab(); }, 300,
+      [this] {
+        auto* list = window_->agent_dock()->findChild<QWidget*>(
+            QStringLiteral("AgentThreads"));
+        auto* search = window_->agent_dock()->findChild<QLineEdit*>(
+            QStringLiteral("AgentSearch"));
+        return Expect(list != nullptr && list->isVisible() && search != nullptr,
+                      QStringLiteral("the agent panel isn't on its threads"));
+      });
+  Add(
+      QStringLiteral("views-the-agent-panel-asks-for-the-assistant"), [] {},
+      100,
+      [this] {
+        auto* on = window_->agent_dock()->findChild<QPushButton*>(
+            QStringLiteral("AgentTurnOn"));
+        const bool off = !App::Get().session().settings().assistant_enabled;
+        return Expect(
+            (on != nullptr && on->isVisible()) == off,
+            QStringLiteral("with the assistant %1 the panel %2 "
+                           "offers to turn it on")
+                .arg(off ? QStringLiteral("off") : QStringLiteral("on"),
+                     on != nullptr && on->isVisible()
+                         ? QString()
+                         : QStringLiteral("never")));
+      });
+  Add(
+      QStringLiteral("views-the-inspector-tab-comes-back"),
+      [this] { window_->inspector_dock()->setAsCurrentTab(); }, 100,
+      [this] {
+        return Expect(window_->inspector_dock()->dockWidget()->isCurrentTab(),
+                      QStringLiteral("the inspector isn't the current tab"));
       });
   Add(
       QStringLiteral("views-panels-have-wide-splitters"), [] {}, 100,

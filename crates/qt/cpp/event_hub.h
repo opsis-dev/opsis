@@ -42,6 +42,7 @@ class EventHub : public QObject {
   void FontsChanged();
   void UpdateChanged();
   void ScriptChanged();
+  void AssistantChanged();
   void ReplayAsked(const QString& node, const QString& tab);
   void Notice(const QString& title, const QString& body);
   void SettingsAsked(const QString& page);

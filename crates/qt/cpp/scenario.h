@@ -39,6 +39,7 @@ class Scenario : public QObject {
   void BuildRuns();
   void BuildApi();
   void BuildViews();
+  void BuildAgent();
   void BuildReopen();
   void BuildWayland();
   void BuildTerminalRuns();

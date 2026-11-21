@@ -26,6 +26,7 @@ pub mod startup;
 pub mod state;
 pub mod terminal_live;
 pub mod terminal_paint;
+pub mod tool_calls;
 pub mod updates;
 pub mod views;
 pub mod windows;

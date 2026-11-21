@@ -21,6 +21,7 @@
 #include <array>
 #include <functional>
 
+#include "agent_panel.h"
 #include "app.h"
 #include "engine_card.h"
 #include "event_hub.h"
@@ -228,7 +229,7 @@ void MainWindow::Dispatch(const QString& id) {
   } else if (id == QStringLiteral("view:toggle-left")) {
     ToggleDock(nodes_dock_);
   } else if (id == QStringLiteral("view:toggle-right")) {
-    ToggleDock(inspector_dock_);
+    ToggleRight();
   } else if (id == QStringLiteral("view:toggle-bottom")) {
     ToggleBottom();
   } else if (id == QStringLiteral("view:toggle-minimap")) {
@@ -241,6 +242,8 @@ void MainWindow::Dispatch(const QString& id) {
     FocusDock(run_dock_);
   } else if (id == QStringLiteral("view:focus-script")) {
     FocusDock(script_dock_);
+  } else if (id == QStringLiteral("view:focus-agent")) {
+    FocusDock(agent_dock_);
   } else if (id == QStringLiteral("edit:select-all")) {
     canvas_->SelectAll();
   } else if (id == QStringLiteral("edit:add-node")) {
@@ -465,8 +468,10 @@ void MainWindow::BuildDocks() {
   script_panel_ = new ScriptPanel();
   script_dock_ = MakeDock(QStringLiteral("script"), QStringLiteral("Script"),
                           script_panel_);
+  agent_dock_ = MakeDock(QStringLiteral("agent"), QStringLiteral("Agent"),
+                         new AgentPanel());
   for (auto* dock : {nodes_dock_, inspector_dock_, timeline_dock_, mixer_dock_,
-                     run_dock_, script_dock_}) {
+                     run_dock_, script_dock_, agent_dock_}) {
     connect(dock, &kdw::QtWidgets::DockWidget::isOpenChanged, this,
             &MainWindow::SyncPanels);
   }
@@ -494,6 +499,8 @@ void MainWindow::BuildDocks() {
   timeline_dock_->addDockWidgetAsTab(run_dock_);
   timeline_dock_->addDockWidgetAsTab(script_dock_);
   timeline_dock_->setAsCurrentTab();
+  inspector_dock_->addDockWidgetAsTab(agent_dock_);
+  inspector_dock_->setAsCurrentTab();
   docked_ = true;
   const QString layout = ToQ(App::Get().session().load_layout());
   if (!layout.isEmpty()) {
@@ -506,6 +513,11 @@ void MainWindow::BuildDocks() {
             !LayoutKnows(layout.toUtf8(), dock->uniqueName())) {
           DockBottom(dock);
         }
+      }
+      if (!LayoutKnows(layout.toUtf8(), agent_dock_->uniqueName()) &&
+          inspector_dock_->isOpen()) {
+        inspector_dock_->addDockWidgetAsTab(agent_dock_);
+        inspector_dock_->setAsCurrentTab();
       }
     }
   }
@@ -535,7 +547,7 @@ void MainWindow::ShowStart() {
     SaveLayout();
     parking_ = true;
     for (auto* dock : {nodes_dock_, inspector_dock_, timeline_dock_,
-                       mixer_dock_, run_dock_, script_dock_}) {
+                       mixer_dock_, run_dock_, script_dock_, agent_dock_}) {
       dock->forceClose();
     }
     parking_ = false;
@@ -566,7 +578,7 @@ void MainWindow::SyncTitle() {
 void MainWindow::SyncPanels() {
   if (!docked_) return;
   top_bar_->SetPanels(nodes_dock_->isOpen(), BottomOpen(),
-                      inspector_dock_->isOpen());
+                      inspector_dock_->isOpen() || agent_dock_->isOpen());
 }
 
 void MainWindow::QuickAdd() {
@@ -650,6 +662,19 @@ void MainWindow::ReopenBottom() {
     if (!dock->isOpen()) DockBottom(dock);
   }
   timeline_dock_->setAsCurrentTab();
+}
+
+void MainWindow::ToggleRight() {
+  if (!docked_) return;
+  if (inspector_dock_->isOpen() || agent_dock_->isOpen()) {
+    inspector_dock_->forceClose();
+    agent_dock_->forceClose();
+  } else {
+    inspector_dock_->open();
+    inspector_dock_->addDockWidgetAsTab(agent_dock_);
+    inspector_dock_->setAsCurrentTab();
+  }
+  SyncPanels();
 }
 
 void MainWindow::ToggleDock(kdw::QtWidgets::DockWidget* dock) {

@@ -22,6 +22,7 @@ const ICONS = [
   "arrow-right",
   "arrow-right-from-line",
   "arrow-right-left",
+  "arrow-up",
   "arrow-up-right",
   "audio-lines",
   "blend",

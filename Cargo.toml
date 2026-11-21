@@ -121,6 +121,7 @@ portable-pty = "0.9"
 pretty_assertions = "1"
 proc-macro2 = "1"
 proptest = "1"
+pulldown-cmark = { version = "0.13", default-features = false }
 qt-build-utils = "0.10"
 quote = "1"
 regex = "1"

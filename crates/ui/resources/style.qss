@@ -738,3 +738,166 @@ QLabel#Toast {
 QLabel#Toast[tone="error"] {
   color: @destructive;
 }
+
+QWidget#AgentBar {
+  border-bottom: 1px solid @border;
+}
+
+QLabel#AgentTitle {
+  font-weight: 600;
+}
+
+QLabel#AgentGroup {
+  color: @muted-foreground;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 10px 8px 4px 8px;
+}
+
+QLabel#AgentWhen {
+  font-size: 11px;
+}
+
+QLabel#AgentDot {
+  border-radius: 3px;
+  background: @foreground;
+}
+
+QLabel#AgentDot[state="ask"] {
+  background: @warning;
+}
+
+QLabel#AgentUser {
+  background: @secondary;
+  border: 1px solid @border;
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+
+QLabel#AgentToolLabel {
+  color: @muted-foreground;
+  font-size: 11px;
+}
+
+QLabel#AgentToolLabel[running="true"] {
+  color: @foreground;
+}
+
+QLabel#AgentDetail {
+  font-family: "JetBrains Mono";
+  font-size: 10px;
+  color: @muted-foreground;
+}
+
+QLabel#AgentAskDetail {
+  font-family: "JetBrains Mono";
+  font-size: 12px;
+}
+
+QLabel#AgentWaiting {
+  color: @warning;
+  font-size: 12px;
+}
+
+QPushButton[variant="inline"] {
+  background: transparent;
+  border: none;
+  padding: 0 2px;
+  min-height: 18px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+QPushButton[variant="inline"][tone="muted"] {
+  color: @muted-foreground;
+}
+
+QPushButton[variant="inline"]:hover {
+  color: @foreground;
+  text-decoration: underline;
+}
+
+QPushButton[variant="inline"]::menu-indicator {
+  image: none;
+  width: 0;
+}
+
+QFrame#AgentNote {
+  background: @card;
+  border: 1px solid @border;
+  border-radius: 8px;
+}
+
+QLabel#AgentNoteTitle {
+  font-weight: 600;
+}
+
+QLabel#AgentNoteText {
+  font-size: 12px;
+}
+
+QFrame#AgentComposer {
+  background: @card;
+  border: 1px solid @input;
+  border-radius: 8px;
+}
+
+QFrame#AgentComposer[focus="true"] {
+  border: 1px solid @ring;
+}
+
+QPlainTextEdit#AgentPrompt {
+  background: transparent;
+  border: none;
+  padding: 0;
+  min-height: 0;
+}
+
+QToolButton#AgentMode {
+  background: @secondary;
+  border: none;
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+QToolButton#AgentMode::menu-indicator {
+  image: none;
+  width: 0;
+}
+
+QLabel#AgentHint {
+  font-size: 11px;
+}
+
+QToolButton#AgentSend {
+  background: @primary;
+  border: none;
+  border-radius: 7px;
+  padding: 0;
+}
+
+QToolButton#AgentSend[stop="true"] {
+  background: @secondary;
+}
+
+QToolButton#AgentSend:disabled {
+  background: @muted;
+}
+
+QToolButton#AgentMenu::menu-indicator {
+  image: none;
+  width: 0;
+}
+
+QTextBrowser#AgentSaid {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+QLabel#AgentAskTitle {
+  color: @foreground;
+  font-size: 11px;
+}

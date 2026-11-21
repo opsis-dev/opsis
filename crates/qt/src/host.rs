@@ -1,15 +1,15 @@
 use std::fmt;
 
 use crate::bridge::ffi::{
-    self, AboutView, BarView, BoundsView, BracketView, CategoryView, Choice, CloseView, ColorView,
-    DialogKind, EngineView, EventKind, FilmTiles, FontCatalogView, FontChoicesView, FontReviewView,
-    FontRowView, GradientInfo, GraphView, InspectorView, InstalledFontView, KeyLineView,
-    LicenceView, LiveView, LoudnessView, MarkDrawnView, MarkPointsView, MenuSectionView, MeterView,
-    MixerView, MorphPathView, MorphStep, MotionInfo, NodeMove, PaletteEntry, PlayerView, PoseView,
-    ProjectEntry, ProjectView, RemovalView, ReplayView, RulerStep, RunPanelView, ScreenArea,
-    ScriptLookView, ScriptView, SettingsView, SnapView, StreamViewState, SyntaxRangeView,
-    TemplateView, TerminalWindowView, TextChangeView, TextToken, TimelineView, TraceView,
-    UpdateView, VariableView, WindowPlacement,
+    self, AboutView, AgentPanelView, BarView, BoundsView, BracketView, CategoryView, Choice,
+    CloseView, ColorView, DialogKind, EngineView, EventKind, FilmTiles, FontCatalogView,
+    FontChoicesView, FontReviewView, FontRowView, GradientInfo, GraphView, InspectorView,
+    InstalledFontView, KeyLineView, LicenceView, LiveView, LoudnessView, MarkDrawnView,
+    MarkPointsView, MenuSectionView, MeterView, MixerView, MorphPathView, MorphStep, MotionInfo,
+    NodeMove, PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView,
+    ReplayView, RulerStep, RunPanelView, ScreenArea, ScriptLookView, ScriptView, SettingsView,
+    SnapView, StreamViewState, SyntaxRangeView, TemplateView, TerminalWindowView, TextChangeView,
+    TextToken, TimelineView, TraceView, UpdateView, VariableView, WindowPlacement,
 };
 use crate::frame::FrameRef;
 
@@ -114,6 +114,19 @@ pub trait Host {
     fn script_delete(&self, dir: &str, file: &str) -> HostResult<()>;
     fn script_run(&self, dir: &str, file: &str, text: &str) -> HostResult<()>;
     fn script_stop(&self);
+    fn agent_view(&self) -> AgentPanelView;
+    fn agent_refresh(&self);
+    fn agent_new_thread(&self) -> HostResult<()>;
+    fn agent_open(&self, thread: &str);
+    fn agent_back(&self);
+    fn agent_toggle(&self, id: &str);
+    fn agent_prompt(&self, text: &str) -> bool;
+    fn agent_cancel(&self);
+    fn agent_stop(&self);
+    fn agent_mode(&self, mode: &str);
+    fn agent_answer(&self, ask: &str, option: &str);
+    fn assistant_clear_log(&self) -> HostResult<()>;
+    fn assistant_open_logs(&self) -> HostResult<()>;
     fn script_reload(&self, file: &str, text: &str) -> TextChangeView;
     fn script_highlight(&self, text: &str) -> Vec<SyntaxRangeView>;
     fn script_look(&self) -> ScriptLookView;
@@ -727,6 +740,58 @@ impl Session {
 
     pub(crate) fn script_stop(&self) {
         self.0.script_stop();
+    }
+
+    pub(crate) fn agent_view(&self) -> AgentPanelView {
+        self.0.agent_view()
+    }
+
+    pub(crate) fn agent_refresh(&self) {
+        self.0.agent_refresh();
+    }
+
+    pub(crate) fn agent_new_thread(&self) -> HostResult<()> {
+        self.0.agent_new_thread()
+    }
+
+    pub(crate) fn agent_open(&self, thread: &str) {
+        self.0.agent_open(thread);
+    }
+
+    pub(crate) fn agent_back(&self) {
+        self.0.agent_back();
+    }
+
+    pub(crate) fn agent_toggle(&self, id: &str) {
+        self.0.agent_toggle(id);
+    }
+
+    pub(crate) fn agent_prompt(&self, text: &str) -> bool {
+        self.0.agent_prompt(text)
+    }
+
+    pub(crate) fn agent_cancel(&self) {
+        self.0.agent_cancel();
+    }
+
+    pub(crate) fn agent_stop(&self) {
+        self.0.agent_stop();
+    }
+
+    pub(crate) fn agent_mode(&self, mode: &str) {
+        self.0.agent_mode(mode);
+    }
+
+    pub(crate) fn agent_answer(&self, ask: &str, option: &str) {
+        self.0.agent_answer(ask, option);
+    }
+
+    pub(crate) fn assistant_clear_log(&self) -> HostResult<()> {
+        self.0.assistant_clear_log()
+    }
+
+    pub(crate) fn assistant_open_logs(&self) -> HostResult<()> {
+        self.0.assistant_open_logs()
     }
 
     pub(crate) fn script_reload(&self, file: &str, text: &str) -> TextChangeView {

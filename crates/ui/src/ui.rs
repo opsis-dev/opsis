@@ -17,15 +17,15 @@ use opsis_compile::nodes::media::IMPORT_TYPE;
 use opsis_compile::timeline::flatten::BarThumbnail;
 use opsis_compile::timeline::view;
 use opsis_qt::{
-    AboutView, BarView, BoundsView, BracketView, CatalogRowView, CategoryView, Choice, CloseView,
-    ColorView, EngineView, EventKind, FilmTiles, FontCatalogView, FontChoicesView, FontPickView,
-    FontReviewView, FontRowView, GradientInfo, GraphView, Host, HostResult, InspectorView,
-    InstalledFontView, KeyLineView, LicenceView, LoudnessView, MarkDrawnView, MarkPointsView,
-    MenuSectionView, MeterView, MixerView, MorphPathView, MorphStep, MotionInfo, NodeMove,
-    PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView, ReplayView,
-    RulerStep, RunPanelView, ScreenArea, ScriptLookView, ScriptView, SettingsView, SnapView,
-    SyntaxRangeView, TemplateView, TextChangeView, TextToken, TimelineView, TraceView, UpdateView,
-    VariableView, WindowPlacement,
+    AboutView, AgentPanelView, BarView, BoundsView, BracketView, CatalogRowView, CategoryView,
+    Choice, CloseView, ColorView, EngineView, EventKind, FilmTiles, FontCatalogView,
+    FontChoicesView, FontPickView, FontReviewView, FontRowView, GradientInfo, GraphView, Host,
+    HostResult, InspectorView, InstalledFontView, KeyLineView, LicenceView, LoudnessView,
+    MarkDrawnView, MarkPointsView, MenuSectionView, MeterView, MixerView, MorphPathView, MorphStep,
+    MotionInfo, NodeMove, PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView,
+    RemovalView, ReplayView, RulerStep, RunPanelView, ScreenArea, ScriptLookView, ScriptView,
+    SettingsView, SnapView, SyntaxRangeView, TemplateView, TextChangeView, TextToken, TimelineView,
+    TraceView, UpdateView, VariableView, WindowPlacement,
 };
 use opsis_session::analysis::{self, AnalysisRequest, AnalysisResult};
 use opsis_session::document::DiskChoice;
@@ -186,6 +186,7 @@ const fn event_kind(event: &SessionEvent) -> Option<EventKind> {
         SessionEvent::EngineChanged(_) => Some(EventKind::Engine),
         SessionEvent::UpdateChanged(_) => Some(EventKind::Update),
         SessionEvent::ScriptChanged(_) | SessionEvent::ScriptLogged(_) => Some(EventKind::Script),
+        SessionEvent::AssistantChanged(_) => Some(EventKind::Assistant),
         _ => None,
     }
 }
@@ -2002,6 +2003,64 @@ impl Host for Ui {
         opsis_session::script::stop_script(&self.session);
     }
 
+    fn agent_view(&self) -> AgentPanelView {
+        crate::agent_panel::view(&self.session, &self.runtime)
+    }
+
+    fn agent_refresh(&self) {
+        opsis_session::assistant::refresh_agents(&self.session);
+    }
+
+    fn agent_new_thread(&self) -> HostResult<()> {
+        let _entered = self.runtime.enter();
+        self.runtime
+            .block_on(opsis_session::assistant::new_thread(&self.session))
+    }
+
+    fn agent_open(&self, thread: &str) {
+        opsis_session::assistant::open_thread(&self.session, Some(thread));
+    }
+
+    fn agent_back(&self) {
+        opsis_session::assistant::open_thread(&self.session, None);
+    }
+
+    fn agent_toggle(&self, id: &str) {
+        opsis_session::assistant::toggle(&self.session, id);
+    }
+
+    fn agent_prompt(&self, text: &str) -> bool {
+        opsis_session::assistant::prompt(&self.session, text)
+    }
+
+    fn agent_cancel(&self) {
+        opsis_session::assistant::cancel(&self.session);
+    }
+
+    fn agent_stop(&self) {
+        opsis_session::assistant::stop(&self.session);
+    }
+
+    fn agent_mode(&self, mode: &str) {
+        opsis_session::assistant::set_mode(&self.session, mode);
+    }
+
+    fn agent_answer(&self, ask: &str, option: &str) {
+        opsis_session::assistant::answer(&self.session, ask, option);
+    }
+
+    fn assistant_clear_log(&self) -> HostResult<()> {
+        self.runtime
+            .block_on(self.state().db().clear_assistant_log())
+            .map_err(|e| e.to_string())?;
+        opsis_qt::post_event(EventKind::Assistant);
+        Ok(())
+    }
+
+    fn assistant_open_logs(&self) -> HostResult<()> {
+        opsis_session::assistant::open_logs(&self.session)
+    }
+
     fn script_reload(&self, file: &str, text: &str) -> TextChangeView {
         let reloaded = self.project_dir().ok().and_then(|dir| {
             self.scripts
@@ -2836,6 +2895,10 @@ impl Host for Ui {
             assistant_listening: api.listening,
             assistant_error: api.error.unwrap_or_default(),
             setup_skipped: settings.app.setup_skipped,
+            assistant_agents: crate::agent_panel::found_agents(&self.session),
+            assistant_agent: opsis_session::assistant::chosen_agent(&self.session),
+            own_agents: crate::agent_panel::own_agents(&settings.assistant.agents),
+            assistant_sessions: crate::agent_panel::sessions(&self.session, &self.runtime),
             default_dir_fallback: if settings.projects.default_dir.is_empty() {
                 projects::project_locations(&self.session).default_dir
             } else {

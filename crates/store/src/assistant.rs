@@ -67,6 +67,14 @@ pub struct AssistantSession {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct AssistantThread {
+    pub id: String,
+    pub title: String,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AssistantMessage {
     pub seq: i64,
     pub role: String,
@@ -296,6 +304,21 @@ impl Database {
             AssistantSession,
             "SELECT id AS \"id!\", project, agent, agent_session, started_at, updated_at FROM assistant_sessions
              WHERE ?1 IS NULL OR project = ?1 ORDER BY updated_at DESC, id",
+            project
+        )
+        .fetch_all(&self.pool)
+        .await?)
+    }
+
+    pub async fn assistant_threads(&self, project: &str) -> Result<Vec<AssistantThread>> {
+        Ok(sqlx::query_as!(
+            AssistantThread,
+            "SELECT s.id AS \"id!\", m.text AS \"title!\", s.updated_at AS \"updated_at!\"
+             FROM assistant_sessions s
+             JOIN assistant_messages m ON m.session_id = s.id AND m.seq = (
+               SELECT MIN(seq) FROM assistant_messages WHERE session_id = s.id AND role = 'user'
+             )
+             WHERE s.project = ? ORDER BY s.updated_at DESC, s.id",
             project
         )
         .fetch_all(&self.pool)

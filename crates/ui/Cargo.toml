@@ -16,6 +16,7 @@ workspace = true
 [dependencies]
 env_logger.workspace = true
 indexmap.workspace = true
+jiff.workspace = true
 log.workspace = true
 notify-debouncer-mini.workspace = true
 opsis-audio.workspace = true
@@ -37,6 +38,7 @@ opsis-store.workspace = true
 opsis-stream.workspace = true
 opsis-types.workspace = true
 opsis-update.workspace = true
+pulldown-cmark.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 thiserror.workspace = true

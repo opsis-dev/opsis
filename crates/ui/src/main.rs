@@ -1,5 +1,6 @@
 #![cfg_attr(all(windows, not(debug_assertions)), windows_subsystem = "windows")]
 
+mod agent_panel;
 mod clipboard;
 mod colors;
 mod font_views;
@@ -8,6 +9,7 @@ mod inspector;
 mod keys;
 mod live;
 mod look;
+mod markdown;
 mod media;
 mod menu;
 mod mixer;
