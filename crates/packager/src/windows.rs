@@ -1,7 +1,9 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use crate::app::{AppFiles, FFMPEG, HOMEPAGE, MCP, PRODUCT, PROGRAM, PUBLISHER, RENDERER, VERSION};
+use crate::app::{
+    AGENT, AppFiles, FFMPEG, HOMEPAGE, MCP, PRODUCT, PROGRAM, PUBLISHER, RENDERER, VERSION,
+};
 use crate::error::{PackagerError, io_error};
 use crate::layout::{FILE_MODE, PROGRAM_MODE};
 use crate::target::Target;
@@ -52,6 +54,11 @@ fn stage(
         PROGRAM_MODE,
     )?;
     copy(&app.mcp, &into.join(format!("{MCP}{exe}")), PROGRAM_MODE)?;
+    copy(
+        &app.agent,
+        &into.join(format!("{AGENT}{exe}")),
+        PROGRAM_MODE,
+    )?;
     for placed in app.resource_files()? {
         copy(&placed.source, &into.join(&placed.target), FILE_MODE)?;
     }
@@ -76,6 +83,7 @@ fn defines(
         ("FFMPEG", format!("{FFMPEG}{}", target.exe())),
         ("RENDERER", format!("{RENDERER}{}", target.exe())),
         ("MCP", format!("{MCP}{}", target.exe())),
+        ("AGENT", format!("{AGENT}{}", target.exe())),
         ("VERSION", VERSION.to_owned()),
         ("PUBLISHER", PUBLISHER.to_owned()),
         ("HOMEPAGE", HOMEPAGE.to_owned()),
@@ -153,6 +161,7 @@ mod tests {
             ffmpeg: PathBuf::new(),
             renderer: PathBuf::new(),
             mcp: PathBuf::new(),
+            agent: PathBuf::new(),
             target_triple: String::new(),
             root: PathBuf::from("/repo"),
         };
@@ -169,6 +178,7 @@ mod tests {
             "${FFMPEG}",
             "${RENDERER}",
             "${MCP}",
+            "${AGENT}",
             "${ICON}",
             "uninstall.exe",
         ] {

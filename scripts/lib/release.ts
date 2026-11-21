@@ -14,6 +14,7 @@ export function releaseBinary(name = "opsis"): string {
 
 export const RENDERER_PROGRAM = "opsis-renderer";
 export const MCP_PROGRAM = "opsis-mcp";
+export const AGENT_PROGRAM = "opsis-agent";
 
 export type PackageRun = { cargoArgs: string[]; formats: string; out: string };
 
@@ -41,6 +42,8 @@ function packagerArgs(run: PackageRun, tools: string[]): string[] {
     releaseBinary(RENDERER_PROGRAM),
     "--mcp",
     releaseBinary(MCP_PROGRAM),
+    "--agent",
+    releaseBinary(AGENT_PROGRAM),
     "--target-triple",
     target,
     "--root",
@@ -70,6 +73,8 @@ export async function buildAndPackage(run: PackageRun): Promise<void> {
     "opsis-effects",
     "-p",
     "opsis-mcp",
+    "-p",
+    "opsis-agent",
     ...run.cargoArgs,
   ];
   const packager = ["run", "-q", "-p", "opsis-packager", "--", ...packagerArgs(run, tools)];

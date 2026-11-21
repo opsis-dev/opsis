@@ -65,11 +65,14 @@ fn fixture(dir: &Path) -> AppFiles {
     std::fs::copy("/usr/bin/true", &renderer).unwrap();
     let mcp = bin.join("opsis-mcp");
     std::fs::copy("/usr/bin/true", &mcp).unwrap();
+    let agent = bin.join("opsis-agent");
+    std::fs::copy("/usr/bin/true", &agent).unwrap();
     AppFiles {
         program: bin.join("opsis"),
         ffmpeg,
         renderer,
         mcp,
+        agent,
         target_triple: triple(),
         root,
     }
@@ -81,6 +84,7 @@ fn expected_files() -> BTreeSet<String> {
         "usr/bin/opsis-ffmpeg",
         "usr/bin/opsis-renderer",
         "usr/bin/opsis-mcp",
+        "usr/bin/opsis-agent",
         "usr/share/applications/opsis.desktop",
     ]
     .into_iter()

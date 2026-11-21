@@ -85,6 +85,13 @@ export_film() {
   grep '"id":2' /tmp/mcp.log | grep -q '"isError":false' \
     || { echo "assistant FAILED: opsis-mcp didn't run a script"; cat /tmp/mcp.log; exit 1; }
   echo "opsis-mcp ran a script on the open project"
+  hello='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{}}}'
+  printf '%s\n' "$hello" | (cat; sleep 3) \
+    | setpriv --reuid="$OPSIS_CHECK_UID" --regid="$OPSIS_CHECK_GID" --clear-groups \
+      env HOME=/tmp/apphome OPSIS_USER_DATA="$data" /usr/bin/opsis-agent > /tmp/agent.log 2>&1
+  grep -q '"agentCapabilities"' /tmp/agent.log \
+    || { echo "agent FAILED: opsis-agent didn't answer"; cat /tmp/agent.log; exit 1; }
+  echo "opsis-agent answered over ACP"
   kill "$app"; wait "$app" 2>/dev/null || true
 }
 views() {
