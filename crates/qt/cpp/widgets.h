@@ -3,8 +3,10 @@
 
 #include <QAbstractButton>
 #include <QButtonGroup>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QFrame>
+#include <QIcon>
 #include <QLabel>
 #include <QLayout>
 #include <QPushButton>
@@ -60,6 +62,14 @@ class ClampedLabel : public QLabel {
 
   QString full_;
   int lines_;
+};
+
+class CheckBox : public QCheckBox {
+ public:
+  explicit CheckBox(const QString& text, QWidget* parent = nullptr);
+
+ protected:
+  void paintEvent(QPaintEvent* event) override;
 };
 
 class Combo : public QComboBox {
@@ -119,6 +129,7 @@ class Card : public QFrame {
   QVBoxLayout* body_;
 };
 
+QIcon CheckedIcon(bool checked);
 QLabel* MakeLabel(const QString& text, const char* role = nullptr,
                   QWidget* parent = nullptr);
 QFrame* MakeRule(QWidget* parent = nullptr);

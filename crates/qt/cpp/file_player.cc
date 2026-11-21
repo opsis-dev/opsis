@@ -438,8 +438,7 @@ void FilePlayer::ShowSpeedMenu() {
   QMenu menu(speed_);
   for (double speed : kSpeeds) {
     QAction* action = menu.addAction(SpeedText(speed));
-    action->setCheckable(true);
-    action->setChecked(speed == rate_);
+    action->setIcon(CheckedIcon(speed == rate_));
     connect(action, &QAction::triggered, this, [this, speed] {
       rate_ = speed;
       speed_->setText(SpeedText(rate_));

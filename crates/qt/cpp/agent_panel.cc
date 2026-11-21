@@ -991,8 +991,7 @@ void AgentPanel::SyncComposer(const bridge::AgentPanelView& view) {
     QAction* action = modes->addAction(ToQ(mode.label), this, [value] {
       App::Get().session().agent_mode(ToRust(value));
     });
-    action->setCheckable(true);
-    action->setChecked(value == ToQ(view.mode));
+    action->setIcon(CheckedIcon(value == ToQ(view.mode)));
     if (value == ToQ(view.mode)) current = ToQ(mode.label);
   }
   mode_->setText(current.isEmpty() && !view.modes.empty()

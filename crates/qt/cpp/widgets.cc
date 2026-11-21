@@ -1,6 +1,7 @@
 #include "widgets.h"
 
 #include <QAbstractItemView>
+#include <QApplication>
 #include <QEasingCurve>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -8,6 +9,7 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QStyle>
+#include <QStyleOptionButton>
 #include <QTextLayout>
 #include <QTimer>
 #include <algorithm>
@@ -27,6 +29,9 @@ constexpr int kSwitchHeight = 18;
 constexpr int kSwitchMs = 120;
 constexpr int kOutlineGap = 6;
 constexpr double kChevronHalf = 3.5;
+constexpr int kCheckInset = 2;
+constexpr double kCheckStroke = 3.0;
+constexpr int kMenuCheck = 14;
 constexpr double kChevronPen = 1.5;
 constexpr int kToastMs = 3200;
 constexpr int kToastGap = 24;
@@ -155,6 +160,43 @@ QSize ClampedLabel::minimumSizeHint() const {
 void ClampedLabel::resizeEvent(QResizeEvent* event) {
   QLabel::resizeEvent(event);
   setText(Clamped(width()));
+}
+
+CheckBox::CheckBox(const QString& text, QWidget* parent)
+    : QCheckBox(text, parent) {
+  setCursor(Qt::PointingHandCursor);
+}
+
+void CheckBox::paintEvent(QPaintEvent* event) {
+  QCheckBox::paintEvent(event);
+  if (!isChecked()) return;
+  QStyleOptionButton option;
+  initStyleOption(&option);
+  const QRect box =
+      style()->subElementRect(QStyle::SE_CheckBoxIndicator, &option, this);
+  const int size = box.width() - (2 * kCheckInset);
+  if (size <= 0) return;
+  QPainter painter(this);
+  painter.setRenderHint(QPainter::SmoothPixmapTransform);
+  painter.drawPixmap(
+      QRectF(box.center().x() - (size / 2.0) + 0.5,
+             box.center().y() - (size / 2.0) + 0.5, size, size),
+      App::Get().Glyph(QStringLiteral("check"),
+                       App::Get().Token(QStringLiteral("primary-foreground")),
+                       size, kCheckStroke),
+      QRectF());
+}
+
+QIcon CheckedIcon(bool checked) {
+  if (!checked) {
+    QPixmap blank(QSize(kMenuCheck, kMenuCheck) * qApp->devicePixelRatio());
+    blank.setDevicePixelRatio(qApp->devicePixelRatio());
+    blank.fill(Qt::transparent);
+    return {blank};
+  }
+  return App::Get().Icon(QStringLiteral("check"),
+                         App::Get().Token(QStringLiteral("foreground")),
+                         kMenuCheck);
 }
 
 Combo::Combo(QWidget* parent) : QComboBox(parent) {

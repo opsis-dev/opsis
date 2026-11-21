@@ -696,7 +696,7 @@ void OpenDuckPopover(QWidget* anchor, const QJsonObject& book,
     const QString id = other.value(QStringLiteral("id")).toString();
     if (id == bus) continue;
     auto* check =
-        new QCheckBox(other.value(QStringLiteral("name")).toString(), popover);
+        new CheckBox(other.value(QStringLiteral("name")).toString(), popover);
     check->setChecked(
         state->value(QStringLiteral("keys")).toArray().contains(id));
     QObject::connect(

@@ -384,7 +384,7 @@ void MainWindow::ShowCloseDialog() {
   }
   QCheckBox* dont_ask = nullptr;
   if (asked.ask) {
-    dont_ask = new QCheckBox(QStringLiteral("Don't ask again"), &dialog);
+    dont_ask = new CheckBox(QStringLiteral("Don't ask again"), &dialog);
     layout->addWidget(dont_ask);
   }
   auto* buttons = new QHBoxLayout();
