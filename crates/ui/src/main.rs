@@ -32,6 +32,7 @@ use std::ffi::OsString;
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use clap::Parser;
 use opsis_persistence::keys::Keyring;
 use opsis_session::Session;
 use opsis_session::paths::AppPaths;
@@ -57,16 +58,25 @@ fn tidy_earlier_runs(paths: &AppPaths) {
     }
 }
 
-const USAGE: &str = "Usage: opsis [--headless <project folder>]";
+fn absolute_folder(folder: &str) -> Result<PathBuf, String> {
+    std::path::absolute(folder).map_err(|e| format!("{folder}: {e}"))
+}
 
-fn headless_folder(args: &[OsString]) -> Result<Option<PathBuf>, String> {
-    match args {
-        [] => Ok(None),
-        [flag, folder] if flag == "--headless" => std::path::absolute(folder)
-            .map(Some)
-            .map_err(|e| format!("{}: {e}", PathBuf::from(folder).display())),
-        _ => Err(USAGE.to_owned()),
-    }
+#[derive(Debug, Parser)]
+#[command(name = "opsis", version)]
+#[doc = "Opsis turns recorded websites and terminals into finished videos."]
+struct Cli {
+    #[arg(long, value_name = "PROJECT FOLDER", value_parser = absolute_folder)]
+    #[doc = "Run with no window on this project, serving the Local API for agents until a signal ends it"]
+    headless: Option<PathBuf>,
+}
+
+fn headless_folder<I, T>(args: I) -> Result<Option<PathBuf>, clap::Error>
+where
+    I: IntoIterator<Item = T>,
+    T: Into<OsString> + Clone,
+{
+    Ok(Cli::try_parse_from(args)?.headless)
 }
 
 fn start(headless: Option<PathBuf>) -> Result<Ui, Box<dyn std::error::Error>> {
@@ -83,14 +93,7 @@ fn start(headless: Option<PathBuf>) -> Result<Ui, Box<dyn std::error::Error>> {
 
 fn main() {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
-    let args: Vec<OsString> = std::env::args_os().skip(1).collect();
-    let headless = match headless_folder(&args) {
-        Ok(headless) => headless,
-        Err(usage) => {
-            eprintln!("{usage}");
-            std::process::exit(2);
-        }
-    };
+    let headless = headless_folder(std::env::args_os()).unwrap_or_else(|error| error.exit());
     let ui = match start(headless) {
         Ok(ui) => ui,
         Err(error) => {
@@ -109,37 +112,43 @@ fn main() {
 mod tests {
     use super::*;
 
-    fn args(list: &[&str]) -> Vec<OsString> {
-        list.iter().map(OsString::from).collect()
+    fn parsed(list: &[&str]) -> Result<Option<PathBuf>, clap::Error> {
+        headless_folder(std::iter::once("opsis").chain(list.iter().copied()))
     }
 
     #[test]
     fn starts_with_a_window_when_given_nothing() {
-        assert_eq!(headless_folder(&[]), Ok(None));
+        assert_eq!(parsed(&[]).unwrap(), None);
     }
 
     #[test]
     fn starts_headless_on_the_given_folder_made_absolute() {
-        let found = headless_folder(&args(&["--headless", "demo"]))
-            .unwrap()
-            .unwrap();
+        let found = parsed(&["--headless", "demo"]).unwrap().unwrap();
         assert!(found.is_absolute());
         assert!(found.ends_with("demo"));
     }
 
     #[test]
-    fn refuses_anything_else_with_the_usage() {
+    fn refuses_anything_else() {
         for list in [
             &["--headless"][..],
             &["demo"],
             &["--headless", "a", "b"],
             &["--window"],
         ] {
-            assert_eq!(
-                headless_folder(&args(list)),
-                Err(USAGE.to_owned()),
-                "{list:?}"
-            );
+            assert!(parsed(list).is_err(), "{list:?}");
         }
+    }
+
+    #[test]
+    fn answers_help_and_version() {
+        assert_eq!(
+            parsed(&["--help"]).unwrap_err().kind(),
+            clap::error::ErrorKind::DisplayHelp
+        );
+        assert_eq!(
+            parsed(&["--version"]).unwrap_err().kind(),
+            clap::error::ErrorKind::DisplayVersion
+        );
     }
 }

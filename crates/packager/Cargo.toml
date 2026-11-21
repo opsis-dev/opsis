@@ -11,6 +11,7 @@ workspace = true
 
 [dependencies]
 base64.workspace = true
+clap.workspace = true
 goblin.workspace = true
 minisign.workspace = true
 opsis-update.workspace = true

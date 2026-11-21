@@ -1,21 +1,40 @@
 use opsis_agent::acp::{OpsisAgent, serve};
 use opsis_agent::cli::{Command, parse};
-use opsis_agent::login::{Answers, Terminal, ask, store};
+use opsis_agent::login::{Answers, Terminal, ask, logout, status, status_text, store};
 use opsis_persistence::keys::{KeyError, Keyring};
 
-async fn run(login: Option<Answers>, keys: Result<Keyring, KeyError>) -> Result<(), String> {
+#[derive(Debug)]
+enum Job {
+    Serve,
+    Login(Answers),
+    Logout,
+    Status,
+}
+
+async fn run(job: Job, keys: Result<Keyring, KeyError>) -> Result<(), String> {
     let user_data = opsis_folders::user_data(&opsis_folders::host_folders());
     let pool = opsis_agent::db::open(&user_data)
         .await
         .map_err(|e| e.to_string())?;
-    match login {
-        None => {
+    match job {
+        Job::Serve => {
             let logs = opsis_persistence::logs::assistant_logs(&user_data);
             serve(OpsisAgent::new(pool, keys, &logs))
                 .await
                 .map_err(|e| e.to_string())
         }
-        Some(answers) => {
+        Job::Logout => {
+            let keys = keys.map_err(|e| e.to_string())?;
+            logout(&pool, &keys).await.map_err(|e| e.to_string())?;
+            eprintln!("opsis-agent forgot its model and removed its keys.");
+            Ok(())
+        }
+        Job::Status => {
+            let found = status(&pool, keys).await.map_err(|e| e.to_string())?;
+            println!("{}", status_text(&found));
+            Ok(())
+        }
+        Job::Login(answers) => {
             let (model, service) = (answers.chosen.model.clone(), answers.chosen.service.id());
             let keys = keys.map_err(|e| e.to_string())?;
             store(&pool, &keys, answers)
@@ -29,18 +48,12 @@ async fn run(login: Option<Answers>, keys: Result<Keyring, KeyError>) -> Result<
 
 fn main() {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("warn")).init();
-    let args: Vec<String> = std::env::args().skip(1).collect();
-    let command = match parse(&args) {
-        Ok(command) => command,
-        Err(usage) => {
-            eprintln!("{usage}");
-            std::process::exit(2);
-        }
-    };
-    let login = match command {
-        Command::Serve => None,
-        Command::Login => match ask(&mut Terminal) {
-            Ok(answers) => Some(answers),
+    let job = match parse(std::env::args_os()).unwrap_or_else(|error| error.exit()) {
+        None => Job::Serve,
+        Some(Command::Logout) => Job::Logout,
+        Some(Command::Status) => Job::Status,
+        Some(Command::Login) => match ask(&mut Terminal) {
+            Ok(answers) => Job::Login(answers),
             Err(error) => {
                 eprintln!("{error}");
                 std::process::exit(1);
@@ -58,7 +71,7 @@ fn main() {
             std::process::exit(1);
         }
     };
-    let ran = runtime.block_on(run(login, keys.clone()));
+    let ran = runtime.block_on(run(job, keys.clone()));
     drop(runtime);
     drop(keys);
     if let Err(error) = ran {

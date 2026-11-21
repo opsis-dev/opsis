@@ -1,37 +1,65 @@
-pub const USAGE: &str = "Usage: opsis-agent          speak ACP on standard input and output\n       opsis-agent login    choose the model service, the model and its key";
+use clap::{Parser, Subcommand};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Subcommand)]
 pub enum Command {
-    Serve,
+    #[doc = "Choose the model service, the model and its key"]
     Login,
+    #[doc = "Forget the chosen model and remove the keys from the system keyring"]
+    Logout,
+    #[doc = "Show the model service, model and address it uses, and whether a key is stored"]
+    Status,
 }
 
-pub fn parse(args: &[String]) -> Result<Command, String> {
-    match args {
-        [] => Ok(Command::Serve),
-        [word] if word == "login" => Ok(Command::Login),
-        _ => Err(USAGE.to_owned()),
-    }
+#[derive(Debug, Parser)]
+#[command(name = "opsis-agent", version)]
+#[doc = "Opsis's own agent. With no command it speaks ACP on standard input and output, for the Agent panel or any ACP client."]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Command>,
+}
+
+pub fn parse<I, T>(args: I) -> Result<Option<Command>, clap::Error>
+where
+    I: IntoIterator<Item = T>,
+    T: Into<std::ffi::OsString> + Clone,
+{
+    Ok(Cli::try_parse_from(args)?.command)
 }
 
 #[cfg(test)]
 mod tests {
+    use clap::error::ErrorKind;
+
     use super::*;
 
-    fn parsed(list: &[&str]) -> Result<Command, String> {
-        parse(&list.iter().map(|a| (*a).to_owned()).collect::<Vec<_>>())
+    fn parsed(list: &[&str]) -> Result<Option<Command>, clap::Error> {
+        parse(std::iter::once("opsis-agent").chain(list.iter().copied()))
     }
 
     #[test]
-    fn serves_with_nothing_and_logs_in_when_asked() {
-        assert_eq!(parsed(&[]), Ok(Command::Serve));
-        assert_eq!(parsed(&["login"]), Ok(Command::Login));
+    fn serves_with_nothing_and_runs_the_command_it_is_given() {
+        assert_eq!(parsed(&[]).unwrap(), None);
+        assert_eq!(parsed(&["login"]).unwrap(), Some(Command::Login));
+        assert_eq!(parsed(&["logout"]).unwrap(), Some(Command::Logout));
+        assert_eq!(parsed(&["status"]).unwrap(), Some(Command::Status));
     }
 
     #[test]
-    fn refuses_anything_else_with_the_usage() {
+    fn refuses_anything_else() {
         for list in [&["serve"][..], &["set"], &["login", "openai"], &["--login"]] {
-            assert_eq!(parsed(list), Err(USAGE.to_owned()), "{list:?}");
+            assert!(parsed(list).is_err(), "{list:?}");
         }
+    }
+
+    #[test]
+    fn answers_help_and_version() {
+        assert_eq!(
+            parsed(&["--help"]).unwrap_err().kind(),
+            ErrorKind::DisplayHelp
+        );
+        assert_eq!(
+            parsed(&["--version"]).unwrap_err().kind(),
+            ErrorKind::DisplayVersion
+        );
     }
 }

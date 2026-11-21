@@ -1,72 +1,63 @@
 use std::path::PathBuf;
 use std::process::ExitCode;
 
+use clap::Parser;
 use opsis_packager::appimage::AppImageTools;
 use opsis_packager::{AppFiles, Format, PackagerError, Tools, package};
 
-const USAGE: &str = "opsis-packager --program <path> --ffmpeg <path> --renderer <path> --mcp <path> --agent <path> --target-triple <triple> --root <repository> --out <folder> --formats <deb,rpm,…> [--appimagetool <path> --appimage-runtime <path>]";
-
-#[derive(Debug, Default)]
+#[derive(Debug, Parser)]
+#[command(name = "opsis-packager", version)]
+#[doc = "Builds Opsis's installers with each format's own tool, from programs already built."]
 struct Args {
-    program: Option<PathBuf>,
-    ffmpeg: Option<PathBuf>,
-    renderer: Option<PathBuf>,
-    mcp: Option<PathBuf>,
-    agent: Option<PathBuf>,
-    target_triple: Option<String>,
-    root: Option<PathBuf>,
-    out: Option<PathBuf>,
-    formats: Option<String>,
+    #[arg(long, value_name = "PATH")]
+    #[doc = "The opsis program"]
+    program: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    #[doc = "The ffmpeg program to bundle"]
+    ffmpeg: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    #[doc = "The opsis-renderer program"]
+    renderer: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    #[doc = "The opsis-mcp program"]
+    mcp: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    #[doc = "The opsis-agent program"]
+    agent: PathBuf,
+    #[arg(long, value_name = "TRIPLE")]
+    #[doc = "The Rust target the programs were built for"]
+    target_triple: String,
+    #[arg(long, value_name = "REPOSITORY")]
+    #[doc = "The repository's root, for the resources, icons and notices"]
+    root: PathBuf,
+    #[arg(long, value_name = "FOLDER")]
+    #[doc = "Where to write the installers"]
+    out: PathBuf,
+    #[arg(long, value_name = "FORMAT", value_delimiter = ',', required = true)]
+    #[doc = "The installers to build, separated by commas: deb, rpm, pacman, appimage, nsis, msi, app, dmg"]
+    formats: Vec<String>,
+    #[arg(long, value_name = "PATH", requires = "appimage_runtime")]
+    #[doc = "The appimagetool program, for the appimage format"]
     appimagetool: Option<PathBuf>,
+    #[arg(long, value_name = "PATH", requires = "appimagetool")]
+    #[doc = "The runtime an appimage starts with"]
     appimage_runtime: Option<PathBuf>,
 }
 
-fn parse_args(mut args: impl Iterator<Item = String>) -> Result<Args, PackagerError> {
-    let mut parsed = Args::default();
-    while let Some(flag) = args.next() {
-        let value = args
-            .next()
-            .ok_or_else(|| PackagerError::Usage(format!("{flag} needs a value; {USAGE}")))?;
-        match flag.as_str() {
-            "--program" => parsed.program = Some(value.into()),
-            "--ffmpeg" => parsed.ffmpeg = Some(value.into()),
-            "--renderer" => parsed.renderer = Some(value.into()),
-            "--mcp" => parsed.mcp = Some(value.into()),
-            "--agent" => parsed.agent = Some(value.into()),
-            "--target-triple" => parsed.target_triple = Some(value),
-            "--root" => parsed.root = Some(value.into()),
-            "--out" => parsed.out = Some(value.into()),
-            "--formats" => parsed.formats = Some(value),
-            "--appimagetool" => parsed.appimagetool = Some(value.into()),
-            "--appimage-runtime" => parsed.appimage_runtime = Some(value.into()),
-            _ => {
-                return Err(PackagerError::Usage(format!(
-                    "unknown flag {flag}; {USAGE}"
-                )));
-            }
-        }
-    }
-    Ok(parsed)
-}
-
-fn needed<T>(value: Option<T>, flag: &str) -> Result<T, PackagerError> {
-    value.ok_or_else(|| PackagerError::Usage(format!("{flag} is needed; {USAGE}")))
-}
-
-fn run() -> Result<Vec<PathBuf>, PackagerError> {
-    let args = parse_args(std::env::args().skip(1))?;
+fn run(args: Args) -> Result<Vec<PathBuf>, PackagerError> {
     let app = AppFiles {
-        program: needed(args.program, "--program")?,
-        ffmpeg: needed(args.ffmpeg, "--ffmpeg")?,
-        renderer: needed(args.renderer, "--renderer")?,
-        mcp: needed(args.mcp, "--mcp")?,
-        agent: needed(args.agent, "--agent")?,
-        target_triple: needed(args.target_triple, "--target-triple")?,
-        root: needed(args.root, "--root")?,
+        program: args.program,
+        ffmpeg: args.ffmpeg,
+        renderer: args.renderer,
+        mcp: args.mcp,
+        agent: args.agent,
+        target_triple: args.target_triple,
+        root: args.root,
     };
-    let formats = needed(args.formats, "--formats")?
-        .split(',')
-        .map(Format::parse)
+    let formats = args
+        .formats
+        .iter()
+        .map(|format| Format::parse(format))
         .collect::<Result<Vec<_>, _>>()?;
     let tools = Tools {
         appimage: args
@@ -77,11 +68,11 @@ fn run() -> Result<Vec<PathBuf>, PackagerError> {
                 runtime,
             }),
     };
-    package(&app, &formats, &tools, &needed(args.out, "--out")?)
+    package(&app, &formats, &tools, &args.out)
 }
 
 fn main() -> ExitCode {
-    match run() {
+    match run(Args::parse()) {
         Ok(made) => {
             for path in made {
                 println!("{}", path.display());

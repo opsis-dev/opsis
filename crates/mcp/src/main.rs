@@ -25,14 +25,7 @@ async fn serve(options: Options) -> Result<(), Box<dyn std::error::Error>> {
 
 fn main() {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("warn")).init();
-    let args: Vec<String> = std::env::args().skip(1).collect();
-    let options = match parse(&args) {
-        Ok(options) => options,
-        Err(usage) => {
-            eprintln!("{usage}");
-            std::process::exit(2);
-        }
-    };
+    let options = parse(std::env::args_os()).unwrap_or_else(|error| error.exit());
     let runtime = match tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()

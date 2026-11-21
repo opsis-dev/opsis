@@ -116,6 +116,13 @@ pub async fn write(pool: &SqlitePool, settings: &ModelSettings) -> Result<(), Se
     Ok(())
 }
 
+pub async fn forget(pool: &SqlitePool) -> Result<(), SettingsError> {
+    sqlx::query!("DELETE FROM model_service")
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use proptest::prelude::*;

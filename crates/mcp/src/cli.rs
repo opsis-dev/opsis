@@ -1,6 +1,6 @@
-use crate::http::DEFAULT_HOST;
+use clap::{Args, Parser, Subcommand};
 
-pub const USAGE: &str = "Usage: opsis-mcp [stdio] [--full] [--session <id>]\n       opsis-mcp http [--host <host>] [--port <port>] [--full] [--session <id>]";
+use crate::http::DEFAULT_HOST;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Mode {
@@ -15,51 +15,74 @@ pub struct Options {
     pub session: Option<String>,
 }
 
-fn options(http: bool, flags: &[String]) -> Option<Options> {
-    let mut host = DEFAULT_HOST.to_owned();
-    let mut port = 0;
-    let mut full = false;
-    let mut session = None;
-    let mut rest = flags.iter();
-    while let Some(flag) = rest.next() {
-        match flag.as_str() {
-            "--full" if !full => full = true,
-            "--session" if session.is_none() => {
-                session = Some(rest.next().filter(|v| !v.is_empty())?.clone());
-            }
-            "--host" if http => rest.next().filter(|v| !v.is_empty())?.clone_into(&mut host),
-            "--port" if http => port = rest.next()?.parse().ok()?,
-            _ => return None,
-        }
-    }
-    let mode = if http {
-        Mode::Http { host, port }
+fn non_empty(text: &str) -> Result<String, String> {
+    if text.is_empty() {
+        Err("it can't be empty".to_owned())
     } else {
-        Mode::Stdio
-    };
-    Some(Options {
-        mode,
-        full,
-        session,
-    })
+        Ok(text.to_owned())
+    }
 }
 
-pub fn parse(args: &[String]) -> Result<Options, String> {
-    let parsed = match args.split_first() {
-        Some((mode, flags)) if mode == "http" => options(true, flags),
-        Some((mode, flags)) if mode == "stdio" => options(false, flags),
-        _ => options(false, args),
+#[derive(Debug, Parser)]
+#[command(name = "opsis-mcp", version)]
+#[doc = "Opsis's tools for coding agents over MCP. It reaches the running Opsis, which needs Settings → Assistant turned on."]
+struct Cli {
+    #[command(subcommand)]
+    mode: Option<ModeCommand>,
+    #[command(flatten)]
+    shared: Shared,
+}
+
+#[derive(Debug, Args)]
+struct Shared {
+    #[arg(long, global = true)]
+    #[doc = "Offer every Local API route as a tool, beside the four usual ones"]
+    full: bool,
+    #[arg(long, global = true, value_name = "ID", value_parser = non_empty)]
+    #[doc = "Tag every request with this Agent panel session, so a run it starts reports back to it"]
+    session: Option<String>,
+}
+
+#[derive(Debug, Subcommand)]
+enum ModeCommand {
+    #[doc = "Serve over standard input and output (the default)"]
+    Stdio,
+    #[doc = "Serve over Streamable HTTP at /mcp, behind a token printed at start"]
+    Http {
+        #[arg(long, default_value = DEFAULT_HOST, value_parser = non_empty)]
+        #[doc = "The address to listen on; anything but loopback opens it to the network"]
+        host: String,
+        #[arg(long, default_value_t = 0)]
+        #[doc = "The port to listen on; 0 picks a free one"]
+        port: u16,
+    },
+}
+
+pub fn parse<I, T>(args: I) -> Result<Options, clap::Error>
+where
+    I: IntoIterator<Item = T>,
+    T: Into<std::ffi::OsString> + Clone,
+{
+    let cli = Cli::try_parse_from(args)?;
+    let mode = match cli.mode {
+        None | Some(ModeCommand::Stdio) => Mode::Stdio,
+        Some(ModeCommand::Http { host, port }) => Mode::Http { host, port },
     };
-    parsed.ok_or_else(|| USAGE.to_owned())
+    Ok(Options {
+        mode,
+        full: cli.shared.full,
+        session: cli.shared.session,
+    })
 }
 
 #[cfg(test)]
 mod tests {
+    use clap::error::ErrorKind;
+
     use super::*;
 
-    fn parsed(list: &[&str]) -> Result<Options, String> {
-        let args: Vec<String> = list.iter().map(|a| (*a).to_owned()).collect();
-        parse(&args)
+    fn parsed(list: &[&str]) -> Result<Options, clap::Error> {
+        parse(std::iter::once("opsis-mcp").chain(list.iter().copied()))
     }
 
     #[test]
@@ -105,7 +128,7 @@ mod tests {
     }
 
     #[test]
-    fn refuses_anything_else_with_the_usage() {
+    fn refuses_anything_else() {
         for list in [
             &["web"][..],
             &["stdio", "--port", "1"],
@@ -118,7 +141,19 @@ mod tests {
             &["--session", ""],
             &["--full", "--full"],
         ] {
-            assert_eq!(parsed(list), Err(USAGE.to_owned()), "{list:?}");
+            assert!(parsed(list).is_err(), "{list:?}");
         }
+    }
+
+    #[test]
+    fn answers_help_and_version() {
+        assert_eq!(
+            parsed(&["--help"]).unwrap_err().kind(),
+            ErrorKind::DisplayHelp
+        );
+        assert_eq!(
+            parsed(&["--version"]).unwrap_err().kind(),
+            ErrorKind::DisplayVersion
+        );
     }
 }
