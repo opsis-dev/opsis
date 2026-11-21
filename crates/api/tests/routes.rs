@@ -8,15 +8,22 @@ use http_body_util::{BodyExt, Full};
 use hyper::Request;
 use hyper::body::Bytes;
 use hyper_util::rt::TokioIo;
-use opsis_api::openapi::{ProjectState, RunState};
+use opsis_api::bodies::CreateProjectBody;
+use opsis_api::openapi::{
+    AboutReply, FontsReply, PathsReply, ProjectState, RecentProject, RunState, TemplateReply,
+};
 use opsis_api::routes::{ApiHost, HostError, HostResult};
 use opsis_api::server::ApiServer;
 use opsis_compile::check::workflow_problems;
 use opsis_compile::graph::{GraphIssue, IssueLevel};
 use opsis_folders::address::ApiAddress;
 use opsis_types::edits::{Edited, WorkflowEdit};
+use opsis_types::engine::{EngineStatus, ToolStatus};
 use opsis_types::events::RunTargets;
 use opsis_types::script::{SESSION_HEADER, ScriptOutcome, ScriptRequest, ScriptStatus};
+use opsis_types::settings::AppSettings;
+use opsis_types::trace::TraceHeader;
+use opsis_types::values::LastRun;
 use opsis_types::workflow::Workflow;
 use serde_json::{Value, json};
 use tokio::sync::broadcast;
@@ -27,6 +34,7 @@ struct FakeEditor {
     asked: Mutex<Vec<WorkflowEdit>>,
     events: broadcast::Sender<String>,
     noted: Mutex<Vec<GraphIssue>>,
+    created: Mutex<Vec<CreateProjectBody>>,
 }
 
 fn demo() -> ProjectState {
@@ -140,6 +148,80 @@ impl ApiHost for FakeEditor {
         problems.extend(self.noted.lock().unwrap().clone());
         problems
     }
+
+    fn settings(&self) -> AppSettings {
+        AppSettings::default()
+    }
+
+    fn engine(&self) -> EngineStatus {
+        EngineStatus {
+            download_dir: "/data/engine".into(),
+            browser: ToolStatus::default(),
+            complete: false,
+        }
+    }
+
+    fn fonts(&self) -> BoxFuture<'static, HostResult<FontsReply>> {
+        Box::pin(async {
+            Ok(FontsReply {
+                library: Vec::new(),
+                computer: vec!["Inter".into()],
+            })
+        })
+    }
+
+    fn paths(&self) -> PathsReply {
+        PathsReply {
+            data: "/data".into(),
+            engine: "/data/engine".into(),
+            assistant_logs: "/data/logs/assistant".into(),
+            project: None,
+        }
+    }
+
+    fn about(&self) -> AboutReply {
+        AboutReply {
+            version: "9.9.9".into(),
+            commit: String::new(),
+            platform: "linux / x86_64".into(),
+            packaged: false,
+            browser: None,
+        }
+    }
+
+    fn templates(&self) -> Vec<TemplateReply> {
+        vec![TemplateReply {
+            id: "blank".into(),
+            title: "Blank".into(),
+            description: "An empty canvas".into(),
+        }]
+    }
+
+    fn projects(&self) -> BoxFuture<'static, HostResult<Vec<RecentProject>>> {
+        Box::pin(async {
+            Ok(vec![RecentProject {
+                dir: "/p".into(),
+                name: "Demo".into(),
+                opened_at: 1,
+            }])
+        })
+    }
+
+    fn create_project(
+        &self,
+        body: CreateProjectBody,
+    ) -> BoxFuture<'static, HostResult<ProjectState>> {
+        self.created.lock().unwrap().push(body);
+        Box::pin(async { Ok(demo()) })
+    }
+
+    fn last_run(&self) -> HostResult<Option<LastRun>> {
+        Ok(None)
+    }
+
+    fn traces(&self) -> HostResult<Vec<TraceHeader>> {
+        Ok(Vec::new())
+    }
 }
 
 struct Served {
@@ -158,6 +240,7 @@ async fn serve() -> Served {
         asked: Mutex::default(),
         events: broadcast::Sender::new(8),
         noted: Mutex::default(),
+        created: Mutex::default(),
     });
     let server = ApiServer::new(ApiAddress {
         address: socket.clone(),
@@ -280,6 +363,16 @@ async fn documents_every_route_it_serves() {
         ("post", "/project/script/stop"),
         ("post", "/open"),
         ("post", "/validate"),
+        ("get", "/settings"),
+        ("get", "/engine"),
+        ("get", "/fonts"),
+        ("get", "/paths"),
+        ("get", "/about"),
+        ("get", "/templates"),
+        ("get", "/projects"),
+        ("post", "/projects"),
+        ("get", "/project/run/last"),
+        ("get", "/project/traces"),
     ] {
         assert!(
             paths[path].get(method).is_some(),
@@ -562,6 +655,7 @@ async fn never_deletes_a_file_that_isnt_a_socket() {
         asked: Mutex::default(),
         events: broadcast::Sender::new(8),
         noted: Mutex::default(),
+        created: Mutex::default(),
     });
     let server = ApiServer::new(ApiAddress {
         address: file.to_string_lossy().into_owned(),
@@ -592,4 +686,56 @@ async fn answers_with_the_problems_the_app_knows_from_runs_and_file_checks() {
     );
     let (_, edited) = call(&served.socket, "POST", "/project/undo", None).await;
     assert_eq!(edited["problems"][0]["nodeId"], "clip", "{edited}");
+}
+
+#[tokio::test]
+async fn answers_the_app_routes_and_creates_a_project_from_a_known_template() {
+    let served = serve().await;
+    for (path, key) in [
+        ("/settings", "assistant"),
+        ("/engine", "downloadDir"),
+        ("/fonts", "computer"),
+        ("/paths", "assistantLogs"),
+        ("/about", "version"),
+    ] {
+        let (code, answer) = call(&served.socket, "GET", path, None).await;
+        assert_eq!(code, 200, "{path}");
+        assert!(answer.get(key).is_some(), "{path} lacks {key}: {answer}");
+    }
+    let (code, answer) = call(&served.socket, "GET", "/templates", None).await;
+    assert_eq!((code, &answer[0]["id"]), (200, &json!("blank")));
+    let (code, answer) = call(&served.socket, "GET", "/projects", None).await;
+    assert_eq!((code, &answer[0]["dir"]), (200, &json!("/p")));
+    let (code, answer) = call(&served.socket, "GET", "/project/run/last", None).await;
+    assert_eq!((code, answer), (200, Value::Null));
+    let (code, answer) = call(&served.socket, "GET", "/project/traces", None).await;
+    assert_eq!((code, answer), (200, json!([])));
+    for (body, error) in [
+        (
+            r#"{"name":"A","template":"blank","dir":"relative"}"#,
+            "dir must be an absolute folder path.",
+        ),
+        (
+            r#"{"name":"A","template":"nope","dir":"/work"}"#,
+            "There's no such template. See GET /templates.",
+        ),
+    ] {
+        let (code, answer) = call(&served.socket, "POST", "/projects", Some(body)).await;
+        assert_eq!((code, answer["error"].as_str()), (400, Some(error)));
+    }
+    let (code, answer) = call(
+        &served.socket,
+        "POST",
+        "/projects",
+        Some(r#"{"name":"A","template":"blank","dir":"/work"}"#),
+    )
+    .await;
+    assert_eq!((code, &answer["workflow"]["name"]), (200, &json!("Demo")));
+    let created = served.editor.created.lock().unwrap();
+    assert_eq!(
+        created.iter().map(|b| b.dir.as_str()).collect::<Vec<_>>(),
+        ["/work"]
+    );
+    drop(created);
+    served.server.stop();
 }

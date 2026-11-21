@@ -4,17 +4,18 @@ The internal HTTP API that agents' tools use to read, change and run the open pr
 
 ## Code map
 
-| Concern                | Where                                                                                                                                     |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Routes                 | `api/src/routes.rs` → `routes`, `ApiHost`, `HostError`, `MAX_BODY`, `edited_reply`                                                        |
-| Request bodies         | `api/src/bodies.rs` → `parse_body` and the body types                                                                                     |
-| Server and socket      | `api/src/server.rs` → `ApiServer::set_enabled`; `folders/src/address.rs` → `api_address`, `local_api_address`                             |
-| Host implementation    | `session/src/api.rs` → `Api`, `AppApi`, `follow_setting`, `document_failure`, `start_failure`                                             |
-| Run event stream       | `session/src/api.rs` → `run_event`, `RUN_EVENTS_KEPT`                                                                                     |
-| OpenAPI document       | `api/src/openapi.rs`; tests in `api/tests/routes.rs`                                                                                      |
-| Validation             | `compile/src/check.rs` → `check_workflow`, `workflow_problems`, `workflow_problems_with`; `session/src/node_results.rs` → `file_problems` |
-| Editor side of `/open` | `session/src/api.rs` emits `OpenRequested` to `MAIN_WINDOW`; `ui/src/ui.rs` shows the project                                             |
-| Script routes          | `api/src/routes.rs` → `run_script`, `stop_script`, `script_status`; `session/src/api.rs` → `script_failure`                               |
+| Concern                | Where                                                                                                                                                                           |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Routes                 | `api/src/routes.rs` → `routes`, `ApiHost`, `HostError`, `MAX_BODY`, `edited_reply`                                                                                              |
+| Request bodies         | `api/src/bodies.rs` → `parse_body` and the body types                                                                                                                           |
+| Server and socket      | `api/src/server.rs` → `ApiServer::set_enabled`; `folders/src/address.rs` → `api_address`, `local_api_address`                                                                   |
+| Host implementation    | `session/src/api.rs` → `Api`, `AppApi`, `follow_setting`, `document_failure`, `start_failure`                                                                                   |
+| Run event stream       | `session/src/api.rs` → `run_event`, `RUN_EVENTS_KEPT`                                                                                                                           |
+| OpenAPI document       | `api/src/openapi.rs`; tests in `api/tests/routes.rs`                                                                                                                            |
+| Validation             | `compile/src/check.rs` → `check_workflow`, `workflow_problems`, `workflow_problems_with`; `session/src/node_results.rs` → `file_problems`                                       |
+| Editor side of `/open` | `session/src/api.rs` emits `OpenRequested` to `MAIN_WINDOW`; `ui/src/ui.rs` shows the project                                                                                   |
+| Script routes          | `api/src/routes.rs` → `run_script`, `stop_script`, `script_status`; `session/src/api.rs` → `script_failure`                                                                     |
+| App routes             | `api/src/routes.rs` → `app_settings`, `engine`, `fonts`, `paths`, `about`, `templates`, `projects`, `create_project`, `last_run`, `traces`; `traces/src/lib.rs` → `list_traces` |
 
 ## Rules
 
@@ -36,6 +37,11 @@ The internal HTTP API that agents' tools use to read, change and run the open pr
   - The edit answers (`edited_reply`) are those of the node, edge, settings and variables routes, of an accepted `PUT /project`, and of undo, redo and save. `GET /project`, `/open` and the run routes carry none.
 - **`/validate` checks a body without the open project** (`check_workflow`): it answers the workflow's checks with no run results and no file checks.
   - A `PUT /project` whose body isn't a project answers 400 with the same check's problem, which names the JSON path that failed.
+- **The app routes only read, except creating a project**: `/settings`, `/engine`, `/fonts`, `/paths`, `/about`, `/templates` and `GET /projects` answer what Settings, the start screen and About show, so an agent can see the app without a project open.
+  - `/paths` names folders instead of serving their files: the data folder, the engine download folder, the assistant's request logs and the open project's exports, traces, cache and last run, which an agent reads as files.
+  - `/project/run/last` answers the saved last run (`.opsis/last-run.json`), or `null`, and `/project/traces` the take traces newest first, headers only (`list_traces`).
+  - `POST /projects` creates a project from a template in an absolute folder and opens it as `/open` does; an unknown template or a relative folder answers 400 before anything is made.
+  - Nothing here changes settings, downloads the engine or fonts, or clears a log: an agent that wants a font fetches its files itself into the project.
 - **`/open` opens the project in Rust and asks the main window to show it (`OpenRequested`).**
   - It takes an absolute folder (400 otherwise) that holds a project file (404 otherwise); a project file that can't be read answers 422 (`AppApi::open`).
   - The project opens even when telling the window fails; that failure is only logged.

@@ -1,14 +1,21 @@
 use opsis_compile::catalog::{CatalogNode, CatalogPort};
 use opsis_compile::check::ApiProblem;
+use opsis_types::engine::EngineStatus;
 use opsis_types::events::RunTargets;
+use opsis_types::fonts::FontFamilyDef;
 use opsis_types::script::{SESSION_HEADER, ScriptOutcome, ScriptRequest, ScriptStatus};
+use opsis_types::settings::AppSettings;
+use opsis_types::trace::TraceHeader;
+use opsis_types::values::LastRun;
 use opsis_types::workflow::{Workflow, WorkflowSettings};
 use schemars::generate::SchemaSettings;
 use schemars::{JsonSchema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value, json};
 
-use crate::bodies::{AddEdgeBody, AddNodeBody, OpenBody, UpdateNodeBody, VariablesBody};
+use crate::bodies::{
+    AddEdgeBody, AddNodeBody, CreateProjectBody, OpenBody, UpdateNodeBody, VariablesBody,
+};
 
 const SCHEMAS: &str = "#/components/schemas/";
 
@@ -36,6 +43,74 @@ pub struct Edited {
     pub id: Option<String>,
     pub revision: u64,
     pub problems: Vec<ApiProblem>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+#[schemars(rename = "ProjectPaths")]
+pub struct ProjectPaths {
+    pub dir: String,
+    #[schemars(description = "Where exports land")]
+    pub out: String,
+    pub traces: String,
+    pub cache: String,
+    #[schemars(description = "The last run's results, as JSON")]
+    pub last_run: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+#[schemars(rename = "Paths")]
+pub struct PathsReply {
+    #[schemars(description = "Opsis's data folder")]
+    pub data: String,
+    #[schemars(description = "Where the recording browser is downloaded to")]
+    pub engine: String,
+    #[schemars(description = "The assistant's request logs, newline-delimited JSON")]
+    pub assistant_logs: String,
+    #[schemars(description = "The open project's folders, when one is open")]
+    pub project: Option<ProjectPaths>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+#[schemars(rename = "RecentProject")]
+pub struct RecentProject {
+    pub dir: String,
+    pub name: String,
+    #[schemars(description = "Milliseconds since the epoch")]
+    pub opened_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[schemars(rename = "Template")]
+pub struct TemplateReply {
+    pub id: String,
+    pub title: String,
+    pub description: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+#[schemars(rename = "About")]
+pub struct AboutReply {
+    pub version: String,
+    #[schemars(description = "The commit a release was built from; empty in development")]
+    pub commit: String,
+    pub platform: String,
+    pub packaged: bool,
+    #[schemars(description = "The recording browser's version, when it's set up")]
+    pub browser: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+#[schemars(rename = "Fonts")]
+pub struct FontsReply {
+    #[schemars(description = "The font library, which projects take fonts from")]
+    pub library: Vec<FontFamilyDef>,
+    #[schemars(description = "The font families installed on this computer")]
+    pub computer: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -173,6 +248,18 @@ fn paths(doc: &mut Doc) -> Value {
         "/nodes/{type}": { "get": with(operation("One node type with its ports and settings as JSON Schema", &[("200", answer(reference("NodeType"))), ("404", missing())]), "parameters", path_param("type")) },
         "/validate": { "post": with(with(operation("Check a project without opening it", &[("200", answer(reference("Check")))]), "description", "Checks the file format, node types, connections and every node's settings. Nothing is saved.".into()), "requestBody", body(reference("Workflow"), true)) },
         "/open": { "post": with(operation("Open a project folder in the editor", &[("200", project()), ("400", bad()), ("404", missing()), ("422", error("The project file can't be read"))]), "requestBody", body(doc.schema::<OpenBody>(), true)) },
+        "/settings": { "get": operation("Every settings section, as Settings shows them", &[("200", answer(reference("AppSettings")))]) },
+        "/engine": { "get": operation("Whether the recording browser is set up, its path and version, and why it can't be used", &[("200", answer(reference("EngineStatus")))]) },
+        "/fonts": { "get": operation("The font library and the font families on this computer", &[("200", answer(reference("Fonts")))]) },
+        "/paths": { "get": with(operation("Opsis's folders and the open project's", &[("200", answer(reference("Paths")))]), "description", "Read logs, exports, traces and the last run as files from these folders.".into()) },
+        "/about": { "get": operation("The app's version, commit and platform, and the recording browser's version", &[("200", answer(reference("About")))]) },
+        "/templates": { "get": operation("The templates a new project can start from", &[("200", answer(json!({ "type": "array", "items": reference("Template") })))]) },
+        "/projects": {
+            "get": operation("Recent projects, newest first", &[("200", answer(json!({ "type": "array", "items": reference("RecentProject") })))]),
+            "post": with(with(operation("Create a project from a template and open it", &[("200", project()), ("400", bad()), ("422", error("The project can't be created there"))]), "description", "Makes a folder named after the project in dir, from the template, then opens it in the editor.".into()), "requestBody", body(doc.schema::<CreateProjectBody>(), true)),
+        },
+        "/project/run/last": { "get": project_op(operation("The last run's result for each node, and its failures", &[("200", answer(json!({ "oneOf": [reference("LastRun"), { "type": "null" }] })))])) },
+        "/project/traces": { "get": project_op(with(operation("The recorded traces of browser takes, newest first", &[("200", answer(json!({ "type": "array", "items": reference("Trace") })))]), "description", "A take's actions, console errors and the moment a target failed are kept in its trace.".into())) },
         "/project": {
             "get": project_op(operation("The open project", &[("200", project())])),
             "put": project_op(with(operation("Replace the open project's flow", &[("200", edited()), ("400", bad())]), "requestBody", body(reference("Workflow"), true))),
@@ -223,6 +310,15 @@ pub fn openapi_document(version: &str) -> Value {
         Doc::schema::<ErrorBody>,
         Doc::schema::<ScriptReply>,
         Doc::schema::<ScriptStatus>,
+        Doc::schema::<AppSettings>,
+        Doc::schema::<EngineStatus>,
+        Doc::schema::<FontsReply>,
+        Doc::schema::<PathsReply>,
+        Doc::schema::<LastRun>,
+        Doc::schema::<TraceHeader>,
+        Doc::schema::<RecentProject>,
+        Doc::schema::<TemplateReply>,
+        Doc::schema::<AboutReply>,
     ] {
         register(&mut doc);
     }

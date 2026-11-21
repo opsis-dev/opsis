@@ -335,9 +335,18 @@ fn makes_an_empty_list_that_crosses_as_a_list() {
     assert_eq!(ran.ending.value, Some(json!({ "list": [], "map": {} })));
 }
 
-const LEFT_OUT: [(&str, &str); 7] = [
+const LEFT_OUT: [(&str, &str); 16] = [
     ("get", "/openapi.json"),
     ("post", "/open"),
+    ("get", "/settings"),
+    ("get", "/engine"),
+    ("get", "/paths"),
+    ("get", "/about"),
+    ("get", "/templates"),
+    ("get", "/projects"),
+    ("post", "/projects"),
+    ("get", "/project/run/last"),
+    ("get", "/project/traces"),
     ("post", "/project/undo"),
     ("post", "/project/redo"),
     ("get", "/project/script"),
@@ -345,7 +354,7 @@ const LEFT_OUT: [(&str, &str); 7] = [
     ("post", "/project/script/stop"),
 ];
 
-const LUA_CALLS: [(&str, &str, &str); 19] = [
+const LUA_CALLS: [(&str, &str, &str); 20] = [
     ("get", "/status", "opsis.version"),
     ("get", "/nodes", "opsis.catalog"),
     ("get", "/nodes/{type}", "opsis.catalog"),
@@ -365,6 +374,7 @@ const LUA_CALLS: [(&str, &str, &str); 19] = [
     ("post", "/project/run", "opsis.run.start"),
     ("post", "/project/run/stop", "opsis.run.stop"),
     ("get", "/project/run/events", "opsis.run.start"),
+    ("get", "/fonts", "opsis.fonts.list"),
 ];
 
 #[test]

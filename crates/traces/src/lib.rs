@@ -244,6 +244,16 @@ fn read_runs(root: &Path) -> std::io::Result<Runs> {
     Ok(runs)
 }
 
+pub fn list_traces(project_dir: &Path) -> Result<Vec<TraceHeader>, TraceStoreError> {
+    let mut headers: Vec<TraceHeader> = read_runs(&traces_root(project_dir))?
+        .manifests
+        .into_iter()
+        .map(|manifest| manifest.header)
+        .collect();
+    headers.sort_by_key(|header| std::cmp::Reverse(header.created_at));
+    Ok(headers)
+}
+
 fn kept_ids(manifests: &[Manifest], policy: &TracesSection) -> HashSet<String> {
     let mut by_node: HashMap<&str, Vec<&TraceHeader>> = HashMap::new();
     for header in manifests.iter().map(|m| &m.header) {

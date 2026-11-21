@@ -44,6 +44,10 @@ Ideas that were discussed but never finalized or planned.
   - the transitions our presentations draw with fixed values: the clock wipe's direction and start angle, the iris's centre and direction, a fade through a colour and the lens zoom's centre;
   - which side a tooltip or callout sits on (needs placement that keeps the box on screen, `crates/compile/src/elements/camera/annotations.rs`);
   - the agent-run panel's width and text size (they feed its whole layout and length model).
+- [ ] Keeping the assistant's scripts out of the Script panel. The panel shows only the runs started with its own Run button, and a Local API run (`run_lua` through `opsis-mcp`, named `request.lua`) answers its caller without touching the panel's output or status.
+  - Both start through `run_script` (`crates/session/src/script.rs`), which clears the one `Scripts.output`, writes every printed line into it and stores the outcome in the one `Scripts.last`, whoever started the run; the panel's `view` (`crates/ui/src/script_panel.rs`) draws that state without checking which script it came from. So with `scripts/script.lua` open, an assistant script that failed and rolled back shows "Failed. Its changes to the project were undone." beside Run and its error in the output (seen 2026-11-22).
+  - `run_script` already knows the source (`ScriptSource::Text` from `request_source` against `ScriptSource::File`) and the agent's `session` tag.
+  - One script still runs at a time across both, so the panel's Run answers "A script is already running." while an assistant script runs.
 
 ## Unverified
 

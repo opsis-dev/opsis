@@ -13,6 +13,16 @@ pub struct OpenBody {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+pub struct CreateProjectBody {
+    #[schemars(description = "The project's name, which also names its folder")]
+    pub name: String,
+    #[schemars(description = "A template id from GET /templates")]
+    pub template: String,
+    #[schemars(description = "The absolute folder to create the project's folder in")]
+    pub dir: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct AddNodeBody {
     #[serde(rename = "type")]
     pub kind: String,

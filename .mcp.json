@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "opsis": {
+      "type": "stdio",
+      "command": "/usr/bin/opsis-mcp",
+      "args": ["stdio", "--full"],
+      "env": {}
+    }
+  }
+}

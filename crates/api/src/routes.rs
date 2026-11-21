@@ -14,8 +14,12 @@ use opsis_compile::check::{ApiProblem, check_workflow, workflow_problems};
 use opsis_compile::graph::{GraphIssue, IssueLevel, connection_problem};
 use opsis_compile::registry::node_def;
 use opsis_types::edits::{Edited, WorkflowEdit};
+use opsis_types::engine::EngineStatus;
 use opsis_types::events::RunTargets;
 use opsis_types::script::{SESSION_HEADER, ScriptOutcome, ScriptRequest, ScriptStatus};
+use opsis_types::settings::AppSettings;
+use opsis_types::trace::TraceHeader;
+use opsis_types::values::LastRun;
 use opsis_types::workflow::{WORKFLOW_FILE, Workflow, WorkflowSettings};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -23,11 +27,12 @@ use serde_json::{Map, Value, json};
 use tokio_stream::wrappers::BroadcastStream;
 
 use crate::bodies::{
-    AddEdgeBody, AddNodeBody, OpenBody, UpdateNodeBody, VariablesBody, parse_body,
+    AddEdgeBody, AddNodeBody, CreateProjectBody, OpenBody, UpdateNodeBody, VariablesBody,
+    parse_body,
 };
 use crate::openapi::{
-    Check, Edited as EditedReply, OpenProjectName, ProjectState, RunState, ScriptReply, Status,
-    openapi_document,
+    AboutReply, Check, Edited as EditedReply, FontsReply, OpenProjectName, PathsReply,
+    ProjectState, RecentProject, RunState, ScriptReply, Status, TemplateReply, openapi_document,
 };
 
 pub const MAX_BODY: usize = 20 * 1024 * 1024;
@@ -71,6 +76,19 @@ pub trait ApiHost: Send + Sync + 'static {
     ) -> BoxFuture<'static, HostResult<ScriptOutcome>>;
     fn stop_script(&self) -> HostResult<ScriptStatus>;
     fn script_status(&self) -> HostResult<ScriptStatus>;
+    fn settings(&self) -> AppSettings;
+    fn engine(&self) -> EngineStatus;
+    fn fonts(&self) -> BoxFuture<'static, HostResult<FontsReply>>;
+    fn paths(&self) -> PathsReply;
+    fn about(&self) -> AboutReply;
+    fn templates(&self) -> Vec<TemplateReply>;
+    fn projects(&self) -> BoxFuture<'static, HostResult<Vec<RecentProject>>>;
+    fn create_project(
+        &self,
+        body: CreateProjectBody,
+    ) -> BoxFuture<'static, HostResult<ProjectState>>;
+    fn last_run(&self) -> HostResult<Option<LastRun>>;
+    fn traces(&self) -> HostResult<Vec<TraceHeader>>;
     fn problems(&self, workflow: &Workflow) -> Vec<GraphIssue> {
         workflow_problems(workflow)
     }
@@ -230,6 +248,77 @@ async fn open(State(host): State<Host>, bytes: Bytes) -> Response {
     }
     match host.open(body.dir).await {
         Ok(project) => json_reply(StatusCode::OK, &project),
+        Err(error) => host_failure(&error),
+    }
+}
+
+async fn app_settings(State(host): State<Host>) -> Response {
+    json_reply(StatusCode::OK, &host.settings())
+}
+
+async fn engine(State(host): State<Host>) -> Response {
+    json_reply(StatusCode::OK, &host.engine())
+}
+
+async fn fonts(State(host): State<Host>) -> Response {
+    match host.fonts().await {
+        Ok(fonts) => json_reply(StatusCode::OK, &fonts),
+        Err(error) => host_failure(&error),
+    }
+}
+
+async fn paths(State(host): State<Host>) -> Response {
+    json_reply(StatusCode::OK, &host.paths())
+}
+
+async fn about(State(host): State<Host>) -> Response {
+    json_reply(StatusCode::OK, &host.about())
+}
+
+async fn templates(State(host): State<Host>) -> Response {
+    json_reply(StatusCode::OK, &host.templates())
+}
+
+async fn projects(State(host): State<Host>) -> Response {
+    match host.projects().await {
+        Ok(projects) => json_reply(StatusCode::OK, &projects),
+        Err(error) => host_failure(&error),
+    }
+}
+
+async fn create_project(State(host): State<Host>, bytes: Bytes) -> Response {
+    let body = match body_of::<CreateProjectBody>(&bytes, true) {
+        Ok(body) => body,
+        Err(response) => return *response,
+    };
+    if !Path::new(&body.dir).is_absolute() {
+        return failure(
+            StatusCode::BAD_REQUEST,
+            "dir must be an absolute folder path.",
+        );
+    }
+    if !host.templates().iter().any(|t| t.id == body.template) {
+        return failure(
+            StatusCode::BAD_REQUEST,
+            "There's no such template. See GET /templates.",
+        );
+    }
+    match host.create_project(body).await {
+        Ok(project) => json_reply(StatusCode::OK, &project),
+        Err(error) => host_failure(&error),
+    }
+}
+
+async fn last_run(State(host): State<Host>) -> Response {
+    match host.last_run() {
+        Ok(last) => json_reply(StatusCode::OK, &last),
+        Err(error) => host_failure(&error),
+    }
+}
+
+async fn traces(State(host): State<Host>) -> Response {
+    match host.traces() {
+        Ok(traces) => json_reply(StatusCode::OK, &traces),
         Err(error) => host_failure(&error),
     }
 }
@@ -525,6 +614,15 @@ pub fn routes(host: Host) -> Router {
         .route("/project/undo", post(undo))
         .route("/project/redo", post(redo))
         .route("/project/save", post(save))
+        .route("/settings", get(app_settings))
+        .route("/engine", get(engine))
+        .route("/fonts", get(fonts))
+        .route("/paths", get(paths))
+        .route("/about", get(about))
+        .route("/templates", get(templates))
+        .route("/projects", get(projects).post(create_project))
+        .route("/project/run/last", get(last_run))
+        .route("/project/traces", get(traces))
         .route("/project/run", get(run_state).post(run))
         .route("/project/run/stop", post(stop))
         .route("/project/run/events", get(run_events))

@@ -82,8 +82,9 @@ pub struct TraceFrame {
     pub height: u32,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
+#[schemars(rename = "Trace")]
 pub struct TraceHeader {
     pub id: String,
     pub node_id: String,

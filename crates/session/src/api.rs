@@ -1,19 +1,32 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use futures::future::BoxFuture;
-use opsis_api::openapi::{ProjectState, RunState};
+use opsis_api::bodies::CreateProjectBody;
+use opsis_api::openapi::{
+    AboutReply, FontsReply, PathsReply, ProjectPaths, ProjectState, RecentProject, RunState,
+    TemplateReply,
+};
 use opsis_api::routes::{ApiHost, HostError, HostResult};
 use opsis_api::server::ApiServer;
 use opsis_compile::check::workflow_problems_with;
 use opsis_compile::edits::EditError;
 use opsis_compile::graph::GraphIssue;
 use opsis_document::Document;
+use opsis_engine::paths::download_dir;
+use opsis_engine::tools::shown;
 use opsis_folders::address::local_api_address;
+use opsis_persistence::logs::assistant_logs;
+use opsis_project::last_run::read_last_run as read_project_last_run;
 use opsis_types::edits::{Edited, WorkflowEdit};
+use opsis_types::engine::EngineStatus;
 use opsis_types::events::{RunEvent, RunTargets};
+use opsis_types::project::{CACHE_DIR, LAST_RUN_FILE, OUT_DIR, TRACES_DIR};
 use opsis_types::script::{ScriptOutcome, ScriptRequest, ScriptStatus};
+use opsis_types::settings::AppSettings;
 use opsis_types::shell::ApiServerStatus;
+use opsis_types::trace::TraceHeader;
+use opsis_types::values::LastRun;
 use opsis_types::workflow::Workflow;
 use tokio::sync::broadcast;
 
@@ -213,6 +226,129 @@ impl ApiHost for AppApi {
         project_state(&self.app)?;
         Ok(crate::script::script_status(&self.app))
     }
+
+    fn settings(&self) -> AppSettings {
+        self.app.state::<AppState>().settings()
+    }
+
+    fn engine(&self) -> EngineStatus {
+        crate::engine::get_engine_status(&self.app)
+    }
+
+    fn fonts(&self) -> BoxFuture<'static, HostResult<FontsReply>> {
+        let app = self.app.clone();
+        Box::pin(async move {
+            let state = app.state::<AppState>();
+            let library = state
+                .fonts
+                .list(state.db())
+                .await
+                .map_err(|e| HostError::new(500, e.to_string()))?;
+            let computer = crate::fonts::installed_font_families()
+                .await
+                .map_err(|e| HostError::new(500, e.0))?
+                .into_iter()
+                .map(|family| family.family)
+                .collect();
+            Ok(FontsReply { library, computer })
+        })
+    }
+
+    fn paths(&self) -> PathsReply {
+        let state = self.app.state::<AppState>();
+        let user_data = &state.paths.user_data;
+        let project = crate::document::document_dir(state).map(|dir| ProjectPaths {
+            dir: shown(&dir),
+            out: shown(&dir.join(OUT_DIR)),
+            traces: shown(&dir.join(TRACES_DIR)),
+            cache: shown(&dir.join(CACHE_DIR)),
+            last_run: shown(&dir.join(LAST_RUN_FILE)),
+        });
+        PathsReply {
+            data: shown(user_data),
+            engine: shown(&download_dir(user_data)),
+            assistant_logs: shown(&assistant_logs(user_data)),
+            project,
+        }
+    }
+
+    fn about(&self) -> AboutReply {
+        let state = self.app.state::<AppState>();
+        AboutReply {
+            version: crate::APP_VERSION.to_owned(),
+            commit: opsis_update::COMMIT.to_owned(),
+            platform: format!("{} / {}", std::env::consts::OS, std::env::consts::ARCH),
+            packaged: state.paths.packaged,
+            browser: crate::engine::get_engine_status(&self.app).browser.version,
+        }
+    }
+
+    fn templates(&self) -> Vec<TemplateReply> {
+        crate::projects::list_templates()
+            .into_iter()
+            .map(|template| TemplateReply {
+                id: template.id,
+                title: template.title,
+                description: template.description,
+            })
+            .collect()
+    }
+
+    fn projects(&self) -> BoxFuture<'static, HostResult<Vec<RecentProject>>> {
+        let app = self.app.clone();
+        Box::pin(async move {
+            Ok(app
+                .state::<AppState>()
+                .db()
+                .list_recent()
+                .await
+                .map_err(|e| HostError::new(500, e.to_string()))?
+                .into_iter()
+                .map(|recent| RecentProject {
+                    dir: recent.dir,
+                    name: recent.name,
+                    opened_at: recent.opened_at,
+                })
+                .collect())
+        })
+    }
+
+    fn create_project(
+        &self,
+        body: CreateProjectBody,
+    ) -> BoxFuture<'static, HostResult<ProjectState>> {
+        let app = self.app.clone();
+        Box::pin(async move {
+            let created = crate::projects::create_project(
+                app.clone(),
+                body.name,
+                body.template,
+                Some(body.dir),
+            )
+            .await
+            .map_err(|e| HostError::new(UNREADABLE, e.0))?
+            .ok_or_else(|| HostError::new(UNREADABLE, "The project wasn't created."))?;
+            if let Err(error) = (OpenRequested { dir: created.dir }).emit_to(&app, MAIN_WINDOW) {
+                log::warn!("showing the project that was created: {error}");
+            }
+            project_state(&app)
+        })
+    }
+
+    fn last_run(&self) -> HostResult<Option<LastRun>> {
+        let dir = open_dir(&self.app)?;
+        read_project_last_run(&dir).map_err(|e| HostError::new(UNREADABLE, e.to_string()))
+    }
+
+    fn traces(&self) -> HostResult<Vec<TraceHeader>> {
+        let dir = open_dir(&self.app)?;
+        opsis_traces::list_traces(&dir).map_err(|e| HostError::new(UNREADABLE, e.to_string()))
+    }
+}
+
+fn open_dir(app: &Session) -> HostResult<PathBuf> {
+    crate::document::document_dir(app.state::<AppState>())
+        .ok_or_else(|| document_failure(&DocumentError::NoProject))
 }
 
 pub async fn open_and_show(app: &Session, dir: &Path) -> Result<(), String> {
