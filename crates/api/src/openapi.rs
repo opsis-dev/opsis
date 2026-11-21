@@ -6,7 +6,7 @@ use opsis_types::fonts::FontFamilyDef;
 use opsis_types::script::{SESSION_HEADER, ScriptOutcome, ScriptRequest, ScriptStatus};
 use opsis_types::settings::AppSettings;
 use opsis_types::trace::TraceHeader;
-use opsis_types::values::LastRun;
+use opsis_types::values::{ActionResult, LastRun};
 use opsis_types::workflow::{Workflow, WorkflowSettings};
 use schemars::generate::SchemaSettings;
 use schemars::{JsonSchema, SchemaGenerator};
@@ -14,7 +14,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value, json};
 
 use crate::bodies::{
-    AddEdgeBody, AddNodeBody, CreateProjectBody, OpenBody, UpdateNodeBody, VariablesBody,
+    AddEdgeBody, AddNodeBody, BrowserBody, CreateProjectBody, OpenBody, UpdateNodeBody,
+    VariablesBody,
 };
 
 const SCHEMAS: &str = "#/components/schemas/";
@@ -111,6 +112,30 @@ pub struct FontsReply {
     pub library: Vec<FontFamilyDef>,
     #[schemars(description = "The font families installed on this computer")]
     pub computer: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+#[schemars(rename = "Browser")]
+pub struct BrowserReply {
+    #[schemars(description = "The browser's DevTools address, for Playwright's connectOverCDP")]
+    pub address: String,
+    #[schemars(description = "The Open browser node whose flow it plays")]
+    pub flow: String,
+    #[schemars(description = "The last action it has played, or the Open browser node")]
+    pub at: String,
+    #[schemars(description = "The page it's on")]
+    pub page: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+#[schemars(rename = "BrowserCheck")]
+pub struct CheckReply {
+    #[schemars(description = "Each action played, in order, and the ones it didn't reach")]
+    pub actions: Vec<ActionResult>,
+    #[schemars(description = "The last action that passed, where the browser now is")]
+    pub at: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -259,6 +284,12 @@ fn paths(doc: &mut Doc) -> Value {
             "post": with(with(operation("Create a project from a template and open it", &[("200", project()), ("400", bad()), ("422", error("The project can't be created there"))]), "description", "Makes a folder named after the project in dir, from the template, then opens it in the editor.".into()), "requestBody", body(doc.schema::<CreateProjectBody>(), true)),
         },
         "/project/run/last": { "get": project_op(operation("The last run's result for each node, and its failures", &[("200", answer(json!({ "oneOf": [reference("LastRun"), { "type": "null" }] })))])) },
+        "/project/browser": {
+            "get": with(operation("The browser open for agents: its DevTools address, its flow and where it is", &[("200", answer(reference("Browser"))), ("404", error("No browser is open"))]), "description", "Connect Playwright to address with connectOverCDP to read or drive the page; the browser keeps the project's sign-in and its flow's settings.".into()),
+            "put": project_op(with(with(operation("Open the project's browser and play its flow up to an action", &[("200", answer(reference("Browser"))), ("400", bad()), ("422", error("An action failed while it played"))]), "description", "Opens the recording browser with the flow's Open browser settings, plays its actions as a take would, with no recording, and keeps it open. A browser already open closes first. It closes when the project closes or the app exits.".into()), "requestBody", body(doc.schema::<BrowserBody>(), true))),
+            "delete": operation("Close the project's browser", &[("200", answer(json!({ "type": "object" })))]),
+        },
+        "/project/browser/check": { "post": project_op(with(with(operation("Play the flow on from where the open browser is, up to an action, and say how each action went", &[("200", answer(reference("BrowserCheck"))), ("400", bad())]), "description", "Each action plays with the take's own target matching and settings; the check stops at the first action that fails, and the browser stays where the last passing action left it.".into()), "requestBody", body(doc.schema::<BrowserBody>(), true))) },
         "/project/traces": { "get": project_op(with(operation("The recorded traces of browser takes, newest first", &[("200", answer(json!({ "type": "array", "items": reference("Trace") })))]), "description", "A take's actions, console errors and the moment a target failed are kept in its trace.".into())) },
         "/project": {
             "get": project_op(operation("The open project", &[("200", project())])),
@@ -319,6 +350,8 @@ pub fn openapi_document(version: &str) -> Value {
         Doc::schema::<RecentProject>,
         Doc::schema::<TemplateReply>,
         Doc::schema::<AboutReply>,
+        Doc::schema::<BrowserReply>,
+        Doc::schema::<CheckReply>,
     ] {
         register(&mut doc);
     }

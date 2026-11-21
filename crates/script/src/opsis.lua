@@ -460,6 +460,28 @@ run_meta.__index = {
   end,
 }
 
+opsis.browser = {}
+
+function opsis.browser.open(up_to)
+  return host.browser_open(id_of(up_to, "a browser action"))
+end
+
+function opsis.browser.state()
+  local state = host.browser_state()
+  if state == host.null then
+    return nil
+  end
+  return state
+end
+
+function opsis.browser.check(up_to)
+  return host.browser_check(id_of(up_to, "a browser action"))
+end
+
+function opsis.browser.close()
+  host.browser_close()
+end
+
 opsis.run = {}
 
 function opsis.run.start(spec)

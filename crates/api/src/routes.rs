@@ -27,12 +27,13 @@ use serde_json::{Map, Value, json};
 use tokio_stream::wrappers::BroadcastStream;
 
 use crate::bodies::{
-    AddEdgeBody, AddNodeBody, CreateProjectBody, OpenBody, UpdateNodeBody, VariablesBody,
-    parse_body,
+    AddEdgeBody, AddNodeBody, BrowserBody, CreateProjectBody, OpenBody, UpdateNodeBody,
+    VariablesBody, parse_body,
 };
 use crate::openapi::{
-    AboutReply, Check, Edited as EditedReply, FontsReply, OpenProjectName, PathsReply,
-    ProjectState, RecentProject, RunState, ScriptReply, Status, TemplateReply, openapi_document,
+    AboutReply, BrowserReply, Check, CheckReply, Edited as EditedReply, FontsReply,
+    OpenProjectName, PathsReply, ProjectState, RecentProject, RunState, ScriptReply, Status,
+    TemplateReply, openapi_document,
 };
 
 pub const MAX_BODY: usize = 20 * 1024 * 1024;
@@ -89,6 +90,10 @@ pub trait ApiHost: Send + Sync + 'static {
     ) -> BoxFuture<'static, HostResult<ProjectState>>;
     fn last_run(&self) -> HostResult<Option<LastRun>>;
     fn traces(&self) -> HostResult<Vec<TraceHeader>>;
+    fn open_browser(&self, up_to: String) -> BoxFuture<'static, HostResult<BrowserReply>>;
+    fn browser(&self) -> BoxFuture<'static, HostResult<BrowserReply>>;
+    fn check_browser(&self, up_to: String) -> BoxFuture<'static, HostResult<CheckReply>>;
+    fn close_browser(&self) -> BoxFuture<'static, ()>;
     fn problems(&self, workflow: &Workflow) -> Vec<GraphIssue> {
         workflow_problems(workflow)
     }
@@ -321,6 +326,40 @@ async fn traces(State(host): State<Host>) -> Response {
         Ok(traces) => json_reply(StatusCode::OK, &traces),
         Err(error) => host_failure(&error),
     }
+}
+
+async fn open_browser(State(host): State<Host>, bytes: Bytes) -> Response {
+    let body = match body_of::<BrowserBody>(&bytes, true) {
+        Ok(body) => body,
+        Err(response) => return *response,
+    };
+    match host.open_browser(body.up_to).await {
+        Ok(browser) => json_reply(StatusCode::OK, &browser),
+        Err(error) => host_failure(&error),
+    }
+}
+
+async fn browser(State(host): State<Host>) -> Response {
+    match host.browser().await {
+        Ok(browser) => json_reply(StatusCode::OK, &browser),
+        Err(error) => host_failure(&error),
+    }
+}
+
+async fn check_browser(State(host): State<Host>, bytes: Bytes) -> Response {
+    let body = match body_of::<BrowserBody>(&bytes, true) {
+        Ok(body) => body,
+        Err(response) => return *response,
+    };
+    match host.check_browser(body.up_to).await {
+        Ok(checked) => json_reply(StatusCode::OK, &checked),
+        Err(error) => host_failure(&error),
+    }
+}
+
+async fn close_browser(State(host): State<Host>) -> Response {
+    host.close_browser().await;
+    json_reply(StatusCode::OK, &json!({ "open": false }))
 }
 
 async fn project(State(host): State<Host>) -> Response {
@@ -623,6 +662,11 @@ pub fn routes(host: Host) -> Router {
         .route("/projects", get(projects).post(create_project))
         .route("/project/run/last", get(last_run))
         .route("/project/traces", get(traces))
+        .route(
+            "/project/browser",
+            get(browser).put(open_browser).delete(close_browser),
+        )
+        .route("/project/browser/check", post(check_browser))
         .route("/project/run", get(run_state).post(run))
         .route("/project/run/stop", post(stop))
         .route("/project/run/events", get(run_events))

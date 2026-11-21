@@ -4,18 +4,19 @@ The internal HTTP API that agents' tools use to read, change and run the open pr
 
 ## Code map
 
-| Concern                | Where                                                                                                                                                                           |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Routes                 | `api/src/routes.rs` → `routes`, `ApiHost`, `HostError`, `MAX_BODY`, `edited_reply`                                                                                              |
-| Request bodies         | `api/src/bodies.rs` → `parse_body` and the body types                                                                                                                           |
-| Server and socket      | `api/src/server.rs` → `ApiServer::set_enabled`; `folders/src/address.rs` → `api_address`, `local_api_address`                                                                   |
-| Host implementation    | `session/src/api.rs` → `Api`, `AppApi`, `follow_setting`, `document_failure`, `start_failure`                                                                                   |
-| Run event stream       | `session/src/api.rs` → `run_event`, `RUN_EVENTS_KEPT`                                                                                                                           |
-| OpenAPI document       | `api/src/openapi.rs`; tests in `api/tests/routes.rs`                                                                                                                            |
-| Validation             | `compile/src/check.rs` → `check_workflow`, `workflow_problems`, `workflow_problems_with`; `session/src/node_results.rs` → `file_problems`                                       |
-| Editor side of `/open` | `session/src/api.rs` emits `OpenRequested` to `MAIN_WINDOW`; `ui/src/ui.rs` shows the project                                                                                   |
-| Script routes          | `api/src/routes.rs` → `run_script`, `stop_script`, `script_status`; `session/src/api.rs` → `script_failure`                                                                     |
-| App routes             | `api/src/routes.rs` → `app_settings`, `engine`, `fonts`, `paths`, `about`, `templates`, `projects`, `create_project`, `last_run`, `traces`; `traces/src/lib.rs` → `list_traces` |
+| Concern                | Where                                                                                                                                                                                                |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Routes                 | `api/src/routes.rs` → `routes`, `ApiHost`, `HostError`, `MAX_BODY`, `edited_reply`                                                                                                                   |
+| Request bodies         | `api/src/bodies.rs` → `parse_body` and the body types                                                                                                                                                |
+| Server and socket      | `api/src/server.rs` → `ApiServer::set_enabled`; `folders/src/address.rs` → `api_address`, `local_api_address`                                                                                        |
+| Host implementation    | `session/src/api.rs` → `Api`, `AppApi`, `follow_setting`, `document_failure`, `start_failure`                                                                                                        |
+| Run event stream       | `session/src/api.rs` → `run_event`, `RUN_EVENTS_KEPT`                                                                                                                                                |
+| OpenAPI document       | `api/src/openapi.rs`; tests in `api/tests/routes.rs`                                                                                                                                                 |
+| Validation             | `compile/src/check.rs` → `check_workflow`, `workflow_problems`, `workflow_problems_with`; `session/src/node_results.rs` → `file_problems`                                                            |
+| Editor side of `/open` | `session/src/api.rs` emits `OpenRequested` to `MAIN_WINDOW`; `ui/src/ui.rs` shows the project                                                                                                        |
+| Script routes          | `api/src/routes.rs` → `run_script`, `stop_script`, `script_status`; `session/src/api.rs` → `script_failure`                                                                                          |
+| Agent browser          | `api/src/routes.rs` → `open_browser`, `browser`, `check_browser`, `close_browser`; `session/src/agent_browser.rs` → `open`, `state`, `check`, `close`; `capture/src/held.rs` → `hold`, `HeldBrowser` |
+| App routes             | `api/src/routes.rs` → `app_settings`, `engine`, `fonts`, `paths`, `about`, `templates`, `projects`, `create_project`, `last_run`, `traces`; `traces/src/lib.rs` → `list_traces`                      |
 
 ## Rules
 
@@ -26,7 +27,7 @@ The internal HTTP API that agents' tools use to read, change and run the open pr
   - A stale socket from a crash is replaced, a live one from another copy of the app is left alone and reported, and anything that isn't a socket is never deleted.
 - **Socket paths are capped at 100 bytes (`api_address`)**, below the OS limits (107 on Linux, 103 on macOS): a longer or relative path is refused before listening, and Settings → Assistant shows the error, which says to set `OPSIS_API_SOCKET` to a shorter full path. There is no automatic fallback location.
 - **On Windows the variable is ignored and the API uses the named pipe `\\.\pipe\opsis-api-<user>`, never a TCP port.**
-- **Only the `/project` routes need an open project** (`routes`): without one they answer 409, except `/project/run/stop`, `/project/run/events` and `/project/script/stop`, which never look for a project.
+- **Only the `/project` routes need an open project** (`routes`): without one they answer 409, except `/project/run/stop`, `/project/run/events`, `/project/script/stop`, `GET /project/browser` (404 when no browser is open) and `DELETE /project/browser`, which never look for a project.
 - **A route that fails answers `{"error": …}`.**
   - The routes check what they can themselves: a body that isn't valid JSON or UTF-8 is 400, a node type `POST /project/nodes` doesn't know 400 and one `GET /nodes/{type}` doesn't know 404, a refused connection 400 or 404 (`connection_problem`).
   - The host chooses the status of its own failures (`HostError`, mapped by `document_failure` and `start_failure`).
@@ -42,6 +43,10 @@ The internal HTTP API that agents' tools use to read, change and run the open pr
   - `/project/run/last` answers the saved last run (`.opsis/last-run.json`), or `null`, and `/project/traces` the take traces newest first, headers only (`list_traces`).
   - `POST /projects` creates a project from a template in an absolute folder and opens it as `/open` does; an unknown template or a relative folder answers 400 before anything is made.
   - Nothing here changes settings, downloads the engine or fonts, or clears a log: an agent that wants a font fetches its files itself into the project.
+- **`/project/browser` is the one browser a project keeps open for agents** (`session/src/agent_browser.rs`), set with `PUT`, read with `GET` and closed with `DELETE`, since there is only ever one; `POST /project/browser/check` plays on from it ([capture.md](capture.md)). Scripts reach the same through `opsis.browser`, so an agent with only `run_lua` uses it too.
+  - `PUT` takes `upTo`, an action or an Open browser node, compiles the project for that node's session and plays its flow up to it; an action that fails answers 422 naming it, and the browser closes.
+  - `POST /project/browser/check` takes an `upTo` further along the same flow and answers each action's result (passed, failed with the take's message, or not reached), stopping at the first failure; an `upTo` on another flow or behind the browser answers 400, and with no browser open it answers 409.
+  - It closes when the project closes or changes, and while it's open the exit dialog lists it (`BROWSER_TASK`).
 - **`/open` opens the project in Rust and asks the main window to show it (`OpenRequested`).**
   - It takes an absolute folder (400 otherwise) that holds a project file (404 otherwise); a project file that can't be read answers 422 (`AppApi::open`).
   - The project opens even when telling the window fails; that failure is only logged.

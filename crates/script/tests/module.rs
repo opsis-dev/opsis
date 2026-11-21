@@ -250,6 +250,28 @@ assert(run:result("render").file == ".opsis/out/film.mp4")
 }
 
 #[test]
+fn opens_checks_and_closes_the_project_browser_by_node_or_id() {
+    let edits = asked(
+        r#"
+assert(opsis.browser.state() == nil)
+local opened = opsis.browser.open(opsis.nodes.open)
+assert(opened.address:sub(1, 5) == "ws://" and opened.at == "open")
+local checked = opsis.browser.check("session")
+assert(checked.actions[1].state == "passed" and checked.at == "session")
+opsis.browser.close()
+"#,
+    );
+    assert_eq!(
+        edits,
+        vec![
+            Asked::BrowserOpen("open".into()),
+            Asked::BrowserCheck("session".into()),
+            Asked::BrowserClose,
+        ]
+    );
+}
+
+#[test]
 fn reads_nodes_live_and_says_when_one_is_gone() {
     let (_, ran) = script(
         r#"
@@ -354,7 +376,7 @@ const LEFT_OUT: [(&str, &str); 16] = [
     ("post", "/project/script/stop"),
 ];
 
-const LUA_CALLS: [(&str, &str, &str); 20] = [
+const LUA_CALLS: [(&str, &str, &str); 24] = [
     ("get", "/status", "opsis.version"),
     ("get", "/nodes", "opsis.catalog"),
     ("get", "/nodes/{type}", "opsis.catalog"),
@@ -375,6 +397,10 @@ const LUA_CALLS: [(&str, &str, &str); 20] = [
     ("post", "/project/run/stop", "opsis.run.stop"),
     ("get", "/project/run/events", "opsis.run.start"),
     ("get", "/fonts", "opsis.fonts.list"),
+    ("get", "/project/browser", "opsis.browser.state"),
+    ("put", "/project/browser", "opsis.browser.open"),
+    ("delete", "/project/browser", "opsis.browser.close"),
+    ("post", "/project/browser/check", "opsis.browser.check"),
 ];
 
 #[test]

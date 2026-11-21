@@ -4,6 +4,7 @@ use std::sync::Arc;
 use opsis_persistence::keys::{KeyError, Keyring};
 use tokio::sync::broadcast;
 
+use crate::agent_browser::AgentBrowser;
 use crate::analysis::Mixes;
 use crate::api::Api;
 use crate::assistant::Assistant;
@@ -35,6 +36,7 @@ struct Parts {
     node_keys: NodeKeys,
     api: Api,
     assistant: Assistant,
+    agent_browser: AgentBrowser,
     updates: Updates,
     events: broadcast::Sender<Addressed>,
     platform: Arc<dyn Platform>,
@@ -77,6 +79,7 @@ parts!(
     NodeKeys => node_keys,
     Api => api,
     Assistant => assistant,
+    AgentBrowser => agent_browser,
     Updates => updates,
 );
 
@@ -101,6 +104,7 @@ impl Session {
             node_keys: NodeKeys::default(),
             api,
             assistant: Assistant::default(),
+            agent_browser: AgentBrowser::default(),
             updates: Updates::default(),
             events: broadcast::Sender::new(EVENTS_KEPT),
             platform,

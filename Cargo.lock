@@ -5234,6 +5234,7 @@ dependencies = [
  "opsis-film",
  "opsis-folders",
  "opsis-fonts",
+ "opsis-golden",
  "opsis-image",
  "opsis-media",
  "opsis-persistence",

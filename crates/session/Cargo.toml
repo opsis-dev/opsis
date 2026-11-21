@@ -52,5 +52,6 @@ tokio-util.workspace = true
 uuid.workspace = true
 
 [dev-dependencies]
+opsis-golden.workspace = true
 proptest.workspace = true
 tempfile.workspace = true

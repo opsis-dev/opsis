@@ -458,7 +458,7 @@ pub struct Played<T> {
 }
 
 impl<'e> TakeRun<'e> {
-    async fn open(
+    pub(crate) async fn open(
         env: &'e TakeEnv,
         session_value: &BrowserSessionValue,
         recording: Option<Recording>,
@@ -1456,7 +1456,26 @@ impl<'e> TakeRun<'e> {
         Ok(())
     }
 
-    async fn play_chain(&mut self, steps: &[SessionStep]) -> StepResult {
+    pub(crate) async fn play_steps(&mut self, steps: &[SessionStep]) -> StepResult {
+        for step in steps {
+            self.run(step).await?;
+        }
+        Ok(())
+    }
+
+    pub(crate) fn address(&self) -> String {
+        self.session.launched.browser.websocket_address().clone()
+    }
+
+    pub(crate) fn page_url(&self) -> String {
+        self.lifecycle.url()
+    }
+
+    pub(crate) async fn close(self) {
+        self.stop(false).await;
+    }
+
+    pub(crate) async fn play_chain(&mut self, steps: &[SessionStep]) -> StepResult {
         let start = video_start(steps);
         for step in &steps[..start] {
             self.run(step).await?;

@@ -279,6 +279,25 @@ impl BrowserAction {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub enum ActionState {
+    Passed,
+    Failed,
+    NotReached,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+#[schemars(rename = "ActionResult")]
+pub struct ActionResult {
+    pub node_id: String,
+    pub label: String,
+    pub state: ActionState,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub message: Option<String>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 pub struct SessionStep {
     pub id: String,

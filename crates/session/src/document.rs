@@ -254,6 +254,7 @@ pub async fn open(app: &Session, dir: &Path) -> CommandResult<OpenProject> {
     if document_dir(state).as_deref() != Some(dir) {
         crate::script::stop_and_wait(app).await;
         crate::assistant::stop(app);
+        crate::agent_browser::close(app).await;
         save(app).await?;
         let project = state.projects.open(dir)?;
         state
@@ -291,6 +292,7 @@ pub async fn adopt(
 ) -> CommandResult<OpenProject> {
     crate::script::stop_and_wait(app).await;
     crate::assistant::stop(app);
+    crate::agent_browser::close(app).await;
     save(app).await?;
     let state = app.state::<AppState>();
     {

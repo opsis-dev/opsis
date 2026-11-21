@@ -10,7 +10,8 @@ use hyper::body::Bytes;
 use hyper_util::rt::TokioIo;
 use opsis_api::bodies::CreateProjectBody;
 use opsis_api::openapi::{
-    AboutReply, FontsReply, PathsReply, ProjectState, RecentProject, RunState, TemplateReply,
+    AboutReply, BrowserReply, CheckReply, FontsReply, PathsReply, ProjectState, RecentProject,
+    RunState, TemplateReply,
 };
 use opsis_api::routes::{ApiHost, HostError, HostResult};
 use opsis_api::server::ApiServer;
@@ -23,7 +24,7 @@ use opsis_types::events::RunTargets;
 use opsis_types::script::{SESSION_HEADER, ScriptOutcome, ScriptRequest, ScriptStatus};
 use opsis_types::settings::AppSettings;
 use opsis_types::trace::TraceHeader;
-use opsis_types::values::LastRun;
+use opsis_types::values::{ActionResult, ActionState, LastRun};
 use opsis_types::workflow::Workflow;
 use serde_json::{Value, json};
 use tokio::sync::broadcast;
@@ -35,6 +36,7 @@ struct FakeEditor {
     events: broadcast::Sender<String>,
     noted: Mutex<Vec<GraphIssue>>,
     created: Mutex<Vec<CreateProjectBody>>,
+    browser: Mutex<Option<String>>,
 }
 
 fn demo() -> ProjectState {
@@ -222,6 +224,57 @@ impl ApiHost for FakeEditor {
     fn traces(&self) -> HostResult<Vec<TraceHeader>> {
         Ok(Vec::new())
     }
+
+    fn open_browser(&self, up_to: String) -> BoxFuture<'static, HostResult<BrowserReply>> {
+        *self.browser.lock().unwrap() = Some(up_to.clone());
+        Box::pin(async move {
+            if up_to == "nope" {
+                return Err(HostError::new(400, "nope isn't a browser action."));
+            }
+            Ok(BrowserReply {
+                address: "ws://127.0.0.1:9222/devtools/browser/x".into(),
+                flow: "open".into(),
+                at: up_to,
+                page: "http://example.test/".into(),
+            })
+        })
+    }
+
+    fn browser(&self) -> BoxFuture<'static, HostResult<BrowserReply>> {
+        let open = self.browser.lock().unwrap().clone();
+        Box::pin(async move {
+            let at = open.ok_or_else(|| HostError::new(404, "No browser is open."))?;
+            Ok(BrowserReply {
+                address: "ws://127.0.0.1:9222/devtools/browser/x".into(),
+                flow: "open".into(),
+                at,
+                page: "http://example.test/".into(),
+            })
+        })
+    }
+
+    fn check_browser(&self, up_to: String) -> BoxFuture<'static, HostResult<CheckReply>> {
+        let open = self.browser.lock().unwrap().is_some();
+        Box::pin(async move {
+            if !open {
+                return Err(HostError::new(409, "No browser is open."));
+            }
+            Ok(CheckReply {
+                actions: vec![ActionResult {
+                    node_id: up_to.clone(),
+                    label: "Click".into(),
+                    state: ActionState::Passed,
+                    message: None,
+                }],
+                at: up_to,
+            })
+        })
+    }
+
+    fn close_browser(&self) -> BoxFuture<'static, ()> {
+        *self.browser.lock().unwrap() = None;
+        Box::pin(async {})
+    }
 }
 
 struct Served {
@@ -241,6 +294,7 @@ async fn serve() -> Served {
         events: broadcast::Sender::new(8),
         noted: Mutex::default(),
         created: Mutex::default(),
+        browser: Mutex::default(),
     });
     let server = ApiServer::new(ApiAddress {
         address: socket.clone(),
@@ -373,6 +427,10 @@ async fn documents_every_route_it_serves() {
         ("post", "/projects"),
         ("get", "/project/run/last"),
         ("get", "/project/traces"),
+        ("get", "/project/browser"),
+        ("put", "/project/browser"),
+        ("delete", "/project/browser"),
+        ("post", "/project/browser/check"),
     ] {
         assert!(
             paths[path].get(method).is_some(),
@@ -656,6 +714,7 @@ async fn never_deletes_a_file_that_isnt_a_socket() {
         events: broadcast::Sender::new(8),
         noted: Mutex::default(),
         created: Mutex::default(),
+        browser: Mutex::default(),
     });
     let server = ApiServer::new(ApiAddress {
         address: file.to_string_lossy().into_owned(),
@@ -737,5 +796,55 @@ async fn answers_the_app_routes_and_creates_a_project_from_a_known_template() {
         ["/work"]
     );
     drop(created);
+    served.server.stop();
+}
+
+#[tokio::test]
+async fn opens_reads_checks_and_closes_the_project_browser() {
+    let served = serve().await;
+    let (code, answer) = call(
+        &served.socket,
+        "POST",
+        "/project/browser/check",
+        Some(r#"{"upTo":"click"}"#),
+    )
+    .await;
+    assert_eq!(
+        (code, answer["error"].as_str()),
+        (409, Some("No browser is open."))
+    );
+    let (code, _) = call(&served.socket, "GET", "/project/browser", None).await;
+    assert_eq!(code, 404);
+    let (code, answer) = call(&served.socket, "PUT", "/project/browser", Some("{}")).await;
+    assert_eq!(
+        (code, answer["error"].as_str()),
+        (400, Some("upTo: is required."))
+    );
+    let (code, answer) = call(
+        &served.socket,
+        "PUT",
+        "/project/browser",
+        Some(r#"{"upTo":"go"}"#),
+    )
+    .await;
+    assert_eq!((code, &answer["at"]), (200, &json!("go")));
+    assert!(answer["address"].as_str().unwrap().starts_with("ws://"));
+    let (code, answer) = call(&served.socket, "GET", "/project/browser", None).await;
+    assert_eq!((code, &answer["flow"]), (200, &json!("open")));
+    let (code, answer) = call(
+        &served.socket,
+        "POST",
+        "/project/browser/check",
+        Some(r#"{"upTo":"click"}"#),
+    )
+    .await;
+    assert_eq!(
+        (code, &answer["actions"][0]["state"], &answer["at"]),
+        (200, &json!("passed"), &json!("click"))
+    );
+    let (code, answer) = call(&served.socket, "DELETE", "/project/browser", None).await;
+    assert_eq!((code, answer), (200, json!({ "open": false })));
+    let (code, _) = call(&served.socket, "GET", "/project/browser", None).await;
+    assert_eq!(code, 404);
     served.server.stop();
 }

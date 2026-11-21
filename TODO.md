@@ -52,7 +52,7 @@ Ideas that were discussed but never finalized or planned.
   - `launch_with` (`crates/capture/src/browser.rs`) sets no port, so `chromiumoxide` adds `--remote-debugging-port=0` (`chromiumoxide-0.9.1/src/browser/config.rs`, default `port: 0`), and `chromiumoxide` 0.9 connects only over a port.
   - Websites can't reach it: Chrome takes DevTools requests only for a `localhost` or IP host and refuses WebSocket origins `--remote-allow-origins` doesn't name. A program already running as the same user can usually unlock the keyring and the sealed sign-ins anyway, so the exposure is other users and programs that can make local connections without reading the user's files.
   - `--remote-debugging-pipe`, which Playwright itself uses, opens no port; it needs a CDP client that speaks over the pipe's file descriptors (a change to `chromiumoxide`, or another client).
-  - A browser handle for agents (Opsis opening the browser with the flow's settings and sign-in, and handing its DevTools address to the agent's own Playwright for outlines and walks) would use the same port, open for longer and handed out on purpose; the pipe, or Opsis relaying the connection at a random single-use path, would tighten both.
+  - The agent's browser (`PUT /project/browser`, `crates/session/src/agent_browser.rs`) uses the same port, open for longer and handed out on purpose; the pipe, or Opsis relaying the connection at a random single-use path, would tighten both.
 
 ## Unverified
 

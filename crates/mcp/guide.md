@@ -43,6 +43,16 @@ Values are read live and set directly. Each assignment is one edit, checked as t
 
 - `opsis.fonts.list()`, `opsis.fonts.use(id)`, `opsis.fonts.add(font)` and `opsis.fonts.role(role, family)`.
 
+### The project's browser
+
+One browser per project that you keep open: the recording browser with a flow's Open browser settings and the project's sign-in, which your own browser doesn't have.
+
+- `opsis.browser.open(action)`: opens it and plays the flow up to and including `action` (an action's node or id, or an Open browser node's) as a take would, without recording. It returns `address` (the browser's DevTools address, for Playwright's `chromium.connectOverCDP`, to read or drive the page), `flow`, `at` (the last action played) and `page`. A failing action fails the call with its message, and the browser closes.
+- `opsis.browser.check(action)`: plays on from where the browser is, up to `action` further along the same flow, with the take's own target matching, and returns `actions` (each one's `nodeId`, `label`, `state`: `passed`, `failed` with its `message`, or `notReached`) and `at`. It stops at the first failure and the browser stays there. This is how to know a take will play.
+- `opsis.browser.state()`: the open browser's `address`, `flow`, `at` and `page`, or nil.
+- `opsis.browser.close()`: closes it. It also closes when the project closes or Opsis exits.
+- Opening it waits while the flow plays, so it holds the one-script slot until then.
+
 ### Compile, timeline and mixer
 
 - `opsis.compile()` or `opsis.compile.wait()`: compiles the current project and returns the result; `opsis.compile.issues()` and `opsis.compile.outdated()`.

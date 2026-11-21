@@ -1,3 +1,4 @@
+pub mod agent_browser;
 pub mod agents;
 pub mod analysis;
 pub mod api;

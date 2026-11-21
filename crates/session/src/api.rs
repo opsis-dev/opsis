@@ -4,8 +4,8 @@ use std::sync::Arc;
 use futures::future::BoxFuture;
 use opsis_api::bodies::CreateProjectBody;
 use opsis_api::openapi::{
-    AboutReply, FontsReply, PathsReply, ProjectPaths, ProjectState, RecentProject, RunState,
-    TemplateReply,
+    AboutReply, BrowserReply, CheckReply, FontsReply, PathsReply, ProjectPaths, ProjectState,
+    RecentProject, RunState, TemplateReply,
 };
 use opsis_api::routes::{ApiHost, HostError, HostResult};
 use opsis_api::server::ApiServer;
@@ -343,6 +343,71 @@ impl ApiHost for AppApi {
     fn traces(&self) -> HostResult<Vec<TraceHeader>> {
         let dir = open_dir(&self.app)?;
         opsis_traces::list_traces(&dir).map_err(|e| HostError::new(UNREADABLE, e.to_string()))
+    }
+
+    fn open_browser(&self, up_to: String) -> BoxFuture<'static, HostResult<BrowserReply>> {
+        let app = self.app.clone();
+        Box::pin(async move {
+            crate::agent_browser::open(&app, &up_to)
+                .await
+                .map(browser_reply)
+                .map_err(|e| browser_failure(&e))
+        })
+    }
+
+    fn browser(&self) -> BoxFuture<'static, HostResult<BrowserReply>> {
+        let app = self.app.clone();
+        Box::pin(async move {
+            crate::agent_browser::state(&app)
+                .await
+                .map(browser_reply)
+                .map_err(|e| browser_failure(&e))
+        })
+    }
+
+    fn check_browser(&self, up_to: String) -> BoxFuture<'static, HostResult<CheckReply>> {
+        let app = self.app.clone();
+        Box::pin(async move {
+            let checked = crate::agent_browser::check(&app, &up_to)
+                .await
+                .map_err(|e| {
+                    let failure = browser_failure(&e);
+                    if matches!(e, crate::agent_browser::BrowserError::NotOpen) {
+                        HostError::new(CONFLICT, failure.message)
+                    } else {
+                        failure
+                    }
+                })?;
+            Ok(CheckReply {
+                actions: checked.actions,
+                at: checked.at,
+            })
+        })
+    }
+
+    fn close_browser(&self) -> BoxFuture<'static, ()> {
+        let app = self.app.clone();
+        Box::pin(async move { crate::agent_browser::close(&app).await })
+    }
+}
+
+fn browser_failure(error: &crate::agent_browser::BrowserError) -> HostError {
+    use crate::agent_browser::BrowserError;
+    let status = match error {
+        BrowserError::NoProject | BrowserError::Engine(_) | BrowserError::Closed(_) => CONFLICT,
+        BrowserError::NotOpen => NOT_FOUND,
+        BrowserError::NotAnAction(_) | BrowserError::NotAhead(_) => BAD_REQUEST,
+        BrowserError::Failed(_) => UNREADABLE,
+    };
+    HostError::new(status, error.to_string())
+}
+
+fn browser_reply(state: crate::agent_browser::BrowserState) -> BrowserReply {
+    BrowserReply {
+        address: state.address,
+        flow: state.flow,
+        at: state.at,
+        page: state.page,
     }
 }
 

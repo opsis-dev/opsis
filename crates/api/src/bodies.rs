@@ -13,6 +13,15 @@ pub struct OpenBody {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct BrowserBody {
+    #[schemars(
+        description = "A browser action's node id, or an Open browser node's: the browser plays its flow's actions up to and including it"
+    )]
+    pub up_to: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct CreateProjectBody {
     #[schemars(description = "The project's name, which also names its folder")]
     pub name: String,

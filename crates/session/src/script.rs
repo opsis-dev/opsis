@@ -532,6 +532,34 @@ impl ScriptHost for SessionHost {
         crate::compile::set_compile_focus(&self.app, first.clone(), first);
         Ok(())
     }
+
+    fn browser_open(&self, up_to: &str) -> HostResult<Value> {
+        let opened = self
+            .handle
+            .block_on(crate::agent_browser::open(&self.app, up_to))
+            .map_err(|e| e.to_string())?;
+        serde_json::to_value(opened).map_err(|e| e.to_string())
+    }
+
+    fn browser_state(&self) -> HostResult<Value> {
+        match self.handle.block_on(crate::agent_browser::state(&self.app)) {
+            Ok(state) => serde_json::to_value(state).map_err(|e| e.to_string()),
+            Err(crate::agent_browser::BrowserError::NotOpen) => Ok(Value::Null),
+            Err(error) => Err(error.to_string()),
+        }
+    }
+
+    fn browser_check(&self, up_to: &str) -> HostResult<Value> {
+        let checked = self
+            .handle
+            .block_on(crate::agent_browser::check(&self.app, up_to))
+            .map_err(|e| e.to_string())?;
+        serde_json::to_value(checked).map_err(|e| e.to_string())
+    }
+
+    fn browser_close(&self) {
+        self.handle.block_on(crate::agent_browser::close(&self.app));
+    }
 }
 
 #[cfg(test)]

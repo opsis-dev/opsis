@@ -39,6 +39,9 @@ pub enum Asked {
     ClearLog,
     Save,
     UseFont(String),
+    BrowserOpen(String),
+    BrowserCheck(String),
+    BrowserClose,
 }
 
 pub struct FakeHost {
@@ -191,6 +194,28 @@ impl ScriptHost for FakeHost {
     fn select(&self, ids: Vec<String>) -> HostResult<()> {
         self.note(Asked::Select(ids));
         Ok(())
+    }
+
+    fn browser_open(&self, up_to: &str) -> HostResult<Value> {
+        self.note(Asked::BrowserOpen(up_to.to_owned()));
+        Ok(
+            json!({ "address": "ws://127.0.0.1:9222/devtools/browser/x", "flow": "open", "at": up_to, "page": "http://example.test/" }),
+        )
+    }
+
+    fn browser_state(&self) -> HostResult<Value> {
+        Ok(Value::Null)
+    }
+
+    fn browser_check(&self, up_to: &str) -> HostResult<Value> {
+        self.note(Asked::BrowserCheck(up_to.to_owned()));
+        Ok(
+            json!({ "actions": [{ "nodeId": up_to, "label": "Click", "state": "passed" }], "at": up_to }),
+        )
+    }
+
+    fn browser_close(&self) {
+        self.note(Asked::BrowserClose);
     }
 }
 

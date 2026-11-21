@@ -53,6 +53,10 @@ pub trait ScriptHost {
     fn playback(&self, call: PlaybackCall) -> HostResult<()>;
     fn shared(&self) -> Value;
     fn select(&self, ids: Vec<String>) -> HostResult<()>;
+    fn browser_open(&self, up_to: &str) -> HostResult<Value>;
+    fn browser_state(&self) -> HostResult<Value>;
+    fn browser_check(&self, up_to: &str) -> HostResult<Value>;
+    fn browser_close(&self);
 }
 
 pub fn run_of(event: &RunEvent) -> &str {

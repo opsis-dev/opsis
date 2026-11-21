@@ -21,6 +21,7 @@ Browser sessions and their actions, the take value every recording shares, recor
 | Drag curves                | `drag_path.rs`                                                                                                                                                                                       |
 | Address log                | `page.rs` → `Lifecycle` (`ActionLog.addresses`)                                                                                                                                                      |
 | Camera events from the log | `crates/compile/src/elements/camera/click_log.rs` → `to_click_log`; `crates/compile/src/elements/camera/cursor.rs` → `cursor_at`                                                                     |
+| Agent browser              | `held.rs` → `hold`, `HeldBrowser::check`, `HoldFailed`; `take.rs` → `TakeRun::play_chain`, `play_steps`, `address`; `crates/session/src/agent_browser.rs`                                            |
 | Streamed views             | `crates/stream/src` → `view.rs` (`StreamView`), `picker.rs`, `sign_in.rs`, `host.rs` (`ViewEnv`); `crates/session/src/views.rs` → `view_input`; `crates/qt/cpp/stream_window.cc` → `StreamWindow`    |
 | Sign-in stamp              | `executors.rs` → `sign_in_stamp`                                                                                                                                                                     |
 | Traces                     | `trace.rs` records; `crates/traces/src/lib.rs` → `read_trace`, `apply_retention`; `crates/qt/cpp/replay_dialog.cc` → `TracePanel`                                                                    |
@@ -97,6 +98,8 @@ Browser sessions and their actions, the take value every recording shares, recor
 
 ### Streamed views and sign-in
 
+- **The agent's browser is a take that never records and stays open** (`held.rs` → `hold`): a task owns the `TakeEnv` and the `TakeRun`, plays the flow up to the requested action with `play_chain`, so the cursor driver exists for mouse actions, then waits for checks, which play further actions with `play_steps` and report each one from the take's own step reports.
+  - Dropping the `HeldBrowser` ends the task, which closes the browser and its profile; it hands out the browser's DevTools address for the agent's own Playwright, the port `TODO.md` notes as open to any local program.
 - **The element picker and Sign in are pages in the headless shell streamed to a window of their own** (`StreamView`, shown in a `StreamWindow`): JPEG frames over a `Channel`, mouse, wheel, keys and text back as `view_input`, mapped through the letterboxing; the page keeps its own size, and dialogs, file choosers and popups are answered from the window.
 - **Sign in (`browser.signIn`) is an ordinary executing node in the action chain.** Its executor opens the view, at the session browser's size, only when the sign-in named in Save as isn't saved yet or the node runs on its own (`forced`).
   - Its step in the take adds the saved cookies and, per origin, the page storage (an init script, plus the current page when it is that origin).

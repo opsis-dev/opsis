@@ -225,6 +225,22 @@ fn natives(lua: &Lua, host: Rc<dyn ScriptHost>, control: &Rc<Control>) -> Result
         let ids: Vec<String> = edit_of(lua, ids, "list of node ids")?;
         Natives::answer(lua, n.host.select(ids))
     });
+    native!("browser_open", |lua, n, up_to: String| Natives::answer(
+        lua,
+        n.host.browser_open(&up_to)
+    ));
+    native!("browser_state", |lua, n, _a: ()| Natives::answer(
+        lua,
+        n.host.browser_state()
+    ));
+    native!("browser_check", |lua, n, up_to: String| Natives::answer(
+        lua,
+        n.host.browser_check(&up_to)
+    ));
+    native!("browser_close", |_lua, n, _a: ()| {
+        n.host.browser_close();
+        Ok(Value::Nil)
+    });
     native!("sleep", |_lua, n, seconds: f64| {
         n.sleep(seconds)?;
         Ok(Value::Nil)
