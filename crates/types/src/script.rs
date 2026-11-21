@@ -52,6 +52,8 @@ pub struct ScriptOutcome {
     pub rolled_back: bool,
 }
 
+pub const SESSION_HEADER: &str = "x-opsis-session";
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ScriptRequest {

@@ -109,7 +109,7 @@ async fn edit_name(app: &Session, name: &str) {
         name: "scripts/edit.lua".into(),
         source: format!("opsis.project.name = '{name}'"),
     };
-    let outcome = run_script(app, source).unwrap().await.unwrap();
+    let outcome = run_script(app, source, None).unwrap().await.unwrap();
     assert!(outcome.ok, "{outcome:?}");
 }
 

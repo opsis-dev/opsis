@@ -23,6 +23,7 @@ hyper.workspace = true
 hyper-util = { workspace = true, features = ["tokio"] }
 log.workspace = true
 opsis-folders.workspace = true
+opsis-types.workspace = true
 rmcp = { workspace = true, features = [
   "server",
   "transport-io",

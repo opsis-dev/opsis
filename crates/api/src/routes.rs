@@ -4,7 +4,7 @@ use std::sync::Arc;
 use axum::Router;
 use axum::body::{Body, Bytes};
 use axum::extract::{Path as UrlPath, State};
-use axum::http::{Method, StatusCode, Uri, header};
+use axum::http::{HeaderMap, Method, StatusCode, Uri, header};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use futures::StreamExt;
@@ -15,7 +15,7 @@ use opsis_compile::graph::{GraphIssue, IssueLevel, connection_problem};
 use opsis_compile::registry::node_def;
 use opsis_types::edits::{Edited, WorkflowEdit};
 use opsis_types::events::RunTargets;
-use opsis_types::script::{ScriptOutcome, ScriptRequest, ScriptStatus};
+use opsis_types::script::{SESSION_HEADER, ScriptOutcome, ScriptRequest, ScriptStatus};
 use opsis_types::workflow::{WORKFLOW_FILE, Workflow, WorkflowSettings};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -57,10 +57,18 @@ pub trait ApiHost: Send + Sync + 'static {
     fn redo(&self) -> HostResult<u64>;
     fn save(&self) -> BoxFuture<'static, HostResult<u64>>;
     fn open(&self, dir: String) -> BoxFuture<'static, HostResult<ProjectState>>;
-    fn run(&self, targets: RunTargets) -> BoxFuture<'static, HostResult<RunState>>;
+    fn run(
+        &self,
+        targets: RunTargets,
+        session: Option<String>,
+    ) -> BoxFuture<'static, HostResult<RunState>>;
     fn stop(&self) -> RunState;
     fn run_events(&self) -> tokio::sync::broadcast::Receiver<String>;
-    fn run_script(&self, request: ScriptRequest) -> BoxFuture<'static, HostResult<ScriptOutcome>>;
+    fn run_script(
+        &self,
+        request: ScriptRequest,
+        session: Option<String>,
+    ) -> BoxFuture<'static, HostResult<ScriptOutcome>>;
     fn stop_script(&self) -> HostResult<ScriptStatus>;
     fn script_status(&self) -> HostResult<ScriptStatus>;
     fn problems(&self, workflow: &Workflow) -> Vec<GraphIssue> {
@@ -410,12 +418,19 @@ async fn run_state(State(host): State<Host>) -> Response {
     }
 }
 
-async fn run(State(host): State<Host>, bytes: Bytes) -> Response {
+fn session_of(headers: &HeaderMap) -> Option<String> {
+    headers
+        .get(SESSION_HEADER)
+        .and_then(|value| value.to_str().ok())
+        .map(str::to_owned)
+}
+
+async fn run(State(host): State<Host>, headers: HeaderMap, bytes: Bytes) -> Response {
     let targets = match body_of::<RunTargets>(&bytes, false) {
         Ok(targets) => targets,
         Err(response) => return *response,
     };
-    match host.run(targets).await {
+    match host.run(targets, session_of(&headers)).await {
         Ok(state) => json_reply(StatusCode::OK, &state),
         Err(error) => host_failure(&error),
     }
@@ -442,7 +457,7 @@ async fn run_events(State(host): State<Host>) -> Response {
         .unwrap_or_else(|e| failure(StatusCode::INTERNAL_SERVER_ERROR, &e.to_string()))
 }
 
-async fn run_script(State(host): State<Host>, bytes: Bytes) -> Response {
+async fn run_script(State(host): State<Host>, headers: HeaderMap, bytes: Bytes) -> Response {
     let request = match body_of::<ScriptRequest>(&bytes, true) {
         Ok(request) => request,
         Err(response) => return *response,
@@ -453,7 +468,7 @@ async fn run_script(State(host): State<Host>, bytes: Bytes) -> Response {
             "Send either source, the Lua to run, or file, a script in the project.",
         );
     }
-    match host.run_script(request).await {
+    match host.run_script(request, session_of(&headers)).await {
         Ok(outcome) => {
             let problems = host
                 .project()

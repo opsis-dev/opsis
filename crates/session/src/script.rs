@@ -140,6 +140,7 @@ pub fn request_source(source: String) -> ScriptSource {
 pub fn run_script(
     app: &Session,
     source: ScriptSource,
+    session: Option<String>,
 ) -> Result<oneshot::Receiver<ScriptOutcome>, ScriptStartError> {
     let state = app.state::<AppState>();
     let dir = crate::document::document_dir(state).ok_or(ScriptStartError::NoProject)?;
@@ -168,7 +169,7 @@ pub fn run_script(
     let app = app.clone();
     let handle = crate::runtime::handle().clone();
     std::thread::spawn(move || {
-        let outcome = run_on_thread(&app, &handle, &dir, &script, stop);
+        let outcome = run_on_thread(&app, &handle, &dir, &script, stop, session);
         let scripts = app.state::<Scripts>();
         *scripts.last.lock().expect("last script") = Some((script.file.clone(), outcome.clone()));
         *scripts.active.lock().expect("active script") = None;
@@ -188,11 +189,13 @@ fn run_on_thread(
     dir: &Path,
     script: &Script,
     stop: Arc<AtomicBool>,
+    session: Option<String>,
 ) -> ScriptOutcome {
     let host = Rc::new(SessionHost {
         app: app.clone(),
         handle: handle.clone(),
         dir: dir.to_path_buf(),
+        session,
     });
     let sink_app = app.clone();
     let ending = run_lua(
@@ -298,6 +301,7 @@ struct SessionHost {
     app: Session,
     handle: Handle,
     dir: PathBuf,
+    session: Option<String>,
 }
 
 struct Following(broadcast::Receiver<String>, Handle);
@@ -473,7 +477,7 @@ impl ScriptHost for SessionHost {
         let events = crate::api::subscribe_run_events(&self.app);
         let started = self
             .handle
-            .block_on(crate::run::start(&self.app, targets))
+            .block_on(crate::run::start(&self.app, targets, self.session.clone()))
             .map_err(|e| e.to_string())?;
         Ok((
             started.run_id,

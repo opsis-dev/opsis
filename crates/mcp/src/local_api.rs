@@ -5,9 +5,9 @@ use hyper::body::{Bytes, Incoming};
 use hyper::client::conn::http1::SendRequest;
 use hyper::{Method, Request};
 use hyper_util::rt::TokioIo;
+use opsis_types::script::SESSION_HEADER;
 use serde_json::Value;
 
-pub const SESSION_HEADER: &str = "x-opsis-session";
 const CONNECT_WITHIN: Duration = Duration::from_secs(5);
 
 #[derive(Debug, thiserror::Error)]

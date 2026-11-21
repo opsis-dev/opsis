@@ -73,6 +73,7 @@ struct Seen {
     servers: Mutex<Vec<McpServer>>,
     signed_in: AtomicBool,
     mode: Mutex<String>,
+    prompts: Mutex<Vec<String>>,
 }
 
 fn text(text: &str) -> ContentBlock {
@@ -82,7 +83,8 @@ fn text(text: &str) -> ContentBlock {
 fn fake_agent(transport: Channel, seen: Arc<Seen>) {
     let on_new = seen.clone();
     let on_auth = seen.clone();
-    let on_mode = seen;
+    let on_mode = seen.clone();
+    let on_prompt = seen;
     tokio::spawn(async move {
         let served = Agent
             .v1()
@@ -124,7 +126,11 @@ fn fake_agent(transport: Channel, seen: Arc<Seen>) {
                 agent_client_protocol::on_receive_request!(),
             )
             .on_receive_request(
-                async |request: PromptRequest, responder, cx| {
+                async move |request: PromptRequest, responder, cx| {
+                    on_prompt.prompts.lock().unwrap().extend(request.prompt.iter().filter_map(|block| match block {
+                        ContentBlock::Text(text) => Some(text.text.clone()),
+                        _ => None,
+                    }));
                     let task_cx = cx.clone();
                     cx.spawn(async move {
                         let session = request.session_id.clone();
@@ -173,7 +179,8 @@ async fn until(what: &str, mut done: impl FnMut() -> bool) {
 }
 
 #[test]
-fn a_panel_session_signs_in_asks_permission_switches_mode_and_records_its_events() {
+fn a_panel_session_signs_in_asks_permission_holds_a_run_result_for_the_next_turn_and_records_its_events()
+ {
     runtime().block_on(async {
         let temp = tempfile::tempdir().unwrap();
         let paths = AppPaths::new(&HostFolders {
@@ -230,6 +237,25 @@ fn a_panel_session_signs_in_asks_permission_switches_mode_and_records_its_events
                 .labels()
                 .contains(&WAITING.to_owned())
         );
+        let finished = "Export finished: `out/film.mp4`";
+        commands
+            .send(Command::RunFinished(finished.to_owned()))
+            .unwrap();
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        assert_eq!(*seen.prompts.lock().unwrap(), ["Write a file"]);
+        commands
+            .send(Command::Answer {
+                ask: "t1".to_owned(),
+                option: "allow".to_owned(),
+            })
+            .unwrap();
+        until("the run's message as a turn of its own", || {
+            let state = panel_state(&app);
+            state.entries.contains(&Entry::Notice(finished.to_owned()))
+                && state.asks.iter().any(|ask| ask.id == "t1")
+        })
+        .await;
+        assert_eq!(*seen.prompts.lock().unwrap(), ["Write a file", finished]);
         commands
             .send(Command::Answer {
                 ask: "t1".to_owned(),
@@ -244,6 +270,8 @@ fn a_panel_session_signs_in_asks_permission_switches_mode_and_records_its_events
             panel_state(&app).entries,
             [
                 Entry::User("Write a file".to_owned()),
+                Entry::Agent("Hello allowed".to_owned()),
+                Entry::Notice(finished.to_owned()),
                 Entry::Agent("Hello allowed".to_owned())
             ]
         );
@@ -266,7 +294,7 @@ fn a_panel_session_signs_in_asks_permission_switches_mode_and_records_its_events
         let db = app.state::<AppState>().db();
         let mut messages = Vec::new();
         let started = Instant::now();
-        while messages.len() < 2 && started.elapsed() < WITHIN {
+        while messages.len() < 4 && started.elapsed() < WITHIN {
             messages = db.assistant_messages("panel-1").await.unwrap();
             tokio::time::sleep(Duration::from_millis(20)).await;
         }
@@ -275,6 +303,8 @@ fn a_panel_session_signs_in_asks_permission_switches_mode_and_records_its_events
             said,
             [
                 ("user".to_owned(), "Write a file".to_owned()),
+                ("agent".to_owned(), "Hello allowed".to_owned()),
+                ("user".to_owned(), finished.to_owned()),
                 ("agent".to_owned(), "Hello allowed".to_owned())
             ]
         );

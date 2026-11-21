@@ -94,7 +94,7 @@ fn text(source: &str) -> ScriptSource {
 }
 
 async fn ended(app: &Session, source: &str) -> ScriptOutcome {
-    run_script(app, text(source)).unwrap().await.unwrap()
+    run_script(app, text(source), None).unwrap().await.unwrap()
 }
 
 #[tokio::test(flavor = "multi_thread")]
@@ -138,13 +138,14 @@ async fn rolls_back_a_stopped_script_refuses_a_second_and_holds_undo_meanwhile()
     let outcome = run_script(
         &o.app,
         text("opsis.project.name = 'Half'\nwhile true do end"),
+        None,
     )
     .unwrap();
     while workflow(&o.app).name != "Half" {
         tokio::time::sleep(Duration::from_millis(10)).await;
     }
     assert_eq!(
-        run_script(&o.app, text("return 1")).unwrap_err(),
+        run_script(&o.app, text("return 1"), None).unwrap_err(),
         ScriptStartError::Busy
     );
     assert!(opsis_session::document::undo(&o.app).is_err());
@@ -177,7 +178,7 @@ async fn runs_a_file_from_the_scripts_folder_and_refuses_a_file_setting_outside(
         "local n = opsis.nodes.add { type = 'media.import' }\nn.params.path = '/etc/hostname'\n",
     )
     .unwrap();
-    let outcome = run_script(&o.app, ScriptSource::File("scripts/add.lua".into()))
+    let outcome = run_script(&o.app, ScriptSource::File("scripts/add.lua".into()), None)
         .unwrap()
         .await
         .unwrap();
@@ -187,7 +188,7 @@ async fn runs_a_file_from_the_scripts_folder_and_refuses_a_file_setting_outside(
     assert!(failure.message.contains("path:"), "{}", failure.message);
     assert!(outcome.rolled_back);
     assert_eq!(
-        run_script(&o.app, ScriptSource::File("../escape.lua".into())).unwrap_err(),
+        run_script(&o.app, ScriptSource::File("../escape.lua".into()), None).unwrap_err(),
         ScriptStartError::NotAScript("../escape.lua".into())
     );
 }
@@ -195,7 +196,12 @@ async fn runs_a_file_from_the_scripts_folder_and_refuses_a_file_setting_outside(
 #[tokio::test(flavor = "multi_thread")]
 async fn stops_the_script_before_opening_another_project() {
     let o = opened().await;
-    let outcome = run_script(&o.app, text("opsis.project.name = 'Mid'\nopsis.sleep(60)")).unwrap();
+    let outcome = run_script(
+        &o.app,
+        text("opsis.project.name = 'Mid'\nopsis.sleep(60)"),
+        None,
+    )
+    .unwrap();
     while workflow(&o.app).name != "Mid" {
         tokio::time::sleep(Duration::from_millis(10)).await;
     }

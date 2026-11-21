@@ -160,10 +160,14 @@ impl ApiHost for AppApi {
         })
     }
 
-    fn run(&self, targets: RunTargets) -> BoxFuture<'static, HostResult<RunState>> {
+    fn run(
+        &self,
+        targets: RunTargets,
+        session: Option<String>,
+    ) -> BoxFuture<'static, HostResult<RunState>> {
         let app = self.app.clone();
         Box::pin(async move {
-            let started = crate::run::start(&app, targets)
+            let started = crate::run::start(&app, targets, session)
                 .await
                 .map_err(|e| start_failure(&e))?;
             Ok(RunState {
@@ -182,7 +186,11 @@ impl ApiHost for AppApi {
         self.app.state::<Api>().events.subscribe()
     }
 
-    fn run_script(&self, request: ScriptRequest) -> BoxFuture<'static, HostResult<ScriptOutcome>> {
+    fn run_script(
+        &self,
+        request: ScriptRequest,
+        session: Option<String>,
+    ) -> BoxFuture<'static, HostResult<ScriptOutcome>> {
         let app = self.app.clone();
         Box::pin(async move {
             let source = match (request.file, request.source) {
@@ -190,7 +198,7 @@ impl ApiHost for AppApi {
                 (None, source) => crate::script::request_source(source.unwrap_or_default()),
             };
             let outcome =
-                crate::script::run_script(&app, source).map_err(|e| script_failure(&e))?;
+                crate::script::run_script(&app, source, session).map_err(|e| script_failure(&e))?;
             outcome
                 .await
                 .map_err(|_| HostError::new(500, "The script ended without an answer."))

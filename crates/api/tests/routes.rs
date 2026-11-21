@@ -16,13 +16,14 @@ use opsis_compile::graph::{GraphIssue, IssueLevel};
 use opsis_folders::address::ApiAddress;
 use opsis_types::edits::{Edited, WorkflowEdit};
 use opsis_types::events::RunTargets;
-use opsis_types::script::{ScriptOutcome, ScriptRequest, ScriptStatus};
+use opsis_types::script::{SESSION_HEADER, ScriptOutcome, ScriptRequest, ScriptStatus};
 use opsis_types::workflow::Workflow;
 use serde_json::{Value, json};
 use tokio::sync::broadcast;
 
 struct FakeEditor {
     ran: Mutex<Vec<ScriptRequest>>,
+    tags: Mutex<Vec<Option<String>>>,
     asked: Mutex<Vec<WorkflowEdit>>,
     events: broadcast::Sender<String>,
     noted: Mutex<Vec<GraphIssue>>,
@@ -76,7 +77,11 @@ impl ApiHost for FakeEditor {
         Box::pin(async { Ok(demo()) })
     }
 
-    fn run(&self, _targets: RunTargets) -> BoxFuture<'static, HostResult<RunState>> {
+    fn run(
+        &self,
+        _targets: RunTargets,
+        _session: Option<String>,
+    ) -> BoxFuture<'static, HostResult<RunState>> {
         Box::pin(async {
             Ok(RunState {
                 running: true,
@@ -96,8 +101,13 @@ impl ApiHost for FakeEditor {
         self.events.subscribe()
     }
 
-    fn run_script(&self, request: ScriptRequest) -> BoxFuture<'static, HostResult<ScriptOutcome>> {
+    fn run_script(
+        &self,
+        request: ScriptRequest,
+        session: Option<String>,
+    ) -> BoxFuture<'static, HostResult<ScriptOutcome>> {
         self.ran.lock().unwrap().push(request);
+        self.tags.lock().unwrap().push(session);
         Box::pin(async move {
             Ok(ScriptOutcome {
                 ok: false,
@@ -144,6 +154,7 @@ async fn serve() -> Served {
     let socket = dir.path().join("api.sock").to_string_lossy().into_owned();
     let editor = Arc::new(FakeEditor {
         ran: Mutex::default(),
+        tags: Mutex::default(),
         asked: Mutex::default(),
         events: broadcast::Sender::new(8),
         noted: Mutex::default(),
@@ -163,15 +174,29 @@ async fn serve() -> Served {
 }
 
 async fn call(socket: &str, method: &str, path: &str, body: Option<&str>) -> (u16, Value) {
+    call_from(socket, method, path, body, None).await
+}
+
+async fn call_from(
+    socket: &str,
+    method: &str,
+    path: &str,
+    body: Option<&str>,
+    session: Option<&str>,
+) -> (u16, Value) {
     let stream = tokio::net::UnixStream::connect(socket).await.unwrap();
     let (mut sender, connection) = hyper::client::conn::http1::handshake(TokioIo::new(stream))
         .await
         .unwrap();
     tokio::spawn(connection);
-    let request = Request::builder()
+    let mut request = Request::builder()
         .method(method)
         .uri(path)
-        .header("host", "localhost")
+        .header("host", "localhost");
+    if let Some(session) = session {
+        request = request.header(SESSION_HEADER, session);
+    }
+    let request = request
         .body(Full::new(Bytes::from(body.unwrap_or_default().to_owned())))
         .unwrap();
     let response = sender.send_request(request).await.unwrap();
@@ -318,6 +343,19 @@ async fn runs_scripts_and_answers_their_outcome() {
             .file
             .as_deref(),
         Some("scripts/a.lua")
+    );
+    let (status, _) = call_from(
+        &served.socket,
+        "POST",
+        "/project/script",
+        Some(r#"{"source":"return 1"}"#),
+        Some("panel-1"),
+    )
+    .await;
+    assert_eq!(status, 200);
+    assert_eq!(
+        served.editor.tags.lock().unwrap().as_slice(),
+        [None, Some("panel-1".to_owned())]
     );
     let (status, answer) = call(&served.socket, "POST", "/project/script/stop", None).await;
     assert_eq!(
@@ -520,6 +558,7 @@ async fn never_deletes_a_file_that_isnt_a_socket() {
     std::fs::write(&file, "mine").unwrap();
     let editor = Arc::new(FakeEditor {
         ran: Mutex::default(),
+        tags: Mutex::default(),
         asked: Mutex::default(),
         events: broadcast::Sender::new(8),
         noted: Mutex::default(),

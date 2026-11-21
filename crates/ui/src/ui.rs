@@ -1994,6 +1994,7 @@ impl Host for Ui {
         opsis_session::script::run_script(
             &self.session,
             opsis_session::script::ScriptSource::File(file.to_owned()),
+            None,
         )
         .map(drop)
         .map_err(failed)

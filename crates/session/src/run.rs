@@ -39,6 +39,7 @@ struct ActiveRun {
     run_id: String,
     project_dir: String,
     cancel: CancellationToken,
+    session: Option<String>,
 }
 
 #[derive(Debug, Default)]
@@ -376,11 +377,14 @@ fn on_event(app: &Session, run_id: &str, event: RunEvent) {
     if matches!(event, RunEvent::RunDone { .. }) {
         let host = app.state::<RunHost>();
         let mut active = host.active.lock().expect("active run");
-        if active.as_ref().is_some_and(|r| r.run_id == run_id) {
-            *active = None;
-        }
+        let ended = active
+            .take_if(|r| r.run_id == run_id)
+            .and_then(|r| r.session);
         drop(active);
         notify_finished(app, &event);
+        if let Some(session) = ended {
+            crate::assistant::run_finished(app, &session, &event);
+        }
     }
     crate::api::run_event(app, &event);
     if let Err(error) = RunEventFired(event).emit(app) {
@@ -406,7 +410,11 @@ impl From<CommandError> for StartError {
     }
 }
 
-pub async fn start(app: &Session, targets: RunTargets) -> Result<StartedRun, StartError> {
+pub async fn start(
+    app: &Session,
+    targets: RunTargets,
+    session: Option<String>,
+) -> Result<StartedRun, StartError> {
     if !crate::document::save(app).await? {
         return Err(StartError::VersionUnchosen);
     }
@@ -425,6 +433,7 @@ pub async fn start(app: &Session, targets: RunTargets) -> Result<StartedRun, Sta
             run_id: run_id.clone(),
             project_dir: request.project_dir.clone(),
             cancel: cancel.clone(),
+            session,
         });
     }
     begin_run(&mut host.view(), &run_id);
@@ -483,7 +492,7 @@ pub fn active_run(app: &Session) -> Option<String> {
         .map(|r| r.run_id.clone())
 }
 pub async fn run_workflow(app: Session, targets: RunTargets) -> CommandResult<StartedRun> {
-    Ok(start(&app, targets).await?)
+    Ok(start(&app, targets, None).await?)
 }
 pub fn cancel_run(app: &Session) {
     let host = app.state::<RunHost>();

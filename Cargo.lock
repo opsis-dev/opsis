@@ -4945,6 +4945,7 @@ dependencies = [
  "log",
  "opsis-api",
  "opsis-folders",
+ "opsis-types",
  "proptest",
  "rmcp",
  "serde_json",

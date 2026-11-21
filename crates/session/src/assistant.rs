@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::Duration;
@@ -16,6 +16,7 @@ use agent_client_protocol::v1::{ActiveSession, SessionMessage, SessionSetup};
 use agent_client_protocol::{AcpAgent, AcpAgentConfig, Agent, Client, ConnectTo, Error, Responder};
 use opsis_persistence::logs::{RequestLog, assistant_logs};
 use opsis_store::assistant::{AssistantEvent, AssistantThread, Recorded};
+use opsis_types::events::RunEvent;
 use serde_json::{Value, json};
 use tokio::sync::mpsc;
 
@@ -97,6 +98,7 @@ pub struct PanelState {
 #[derive(Debug)]
 pub enum Command {
     Prompt(String),
+    RunFinished(String),
     Cancel,
     SetMode(String),
     Answer { ask: String, option: String },
@@ -110,6 +112,7 @@ pub struct Assistant {
     agents: Mutex<Vec<AgentChoice>>,
     open: Mutex<Option<String>>,
     expanded: Mutex<HashSet<String>>,
+    writer: Mutex<Option<mpsc::UnboundedSender<Recorded>>>,
 }
 
 pub const NEW_THREAD: &str = "New thread";
@@ -262,17 +265,32 @@ fn record(app: &Session, context: &Context, event: AssistantEvent) {
         at: now_ms(),
         event,
     };
-    let app = app.clone();
-    crate::runtime::spawn(async move {
-        if let Err(error) = app
-            .state::<AppState>()
-            .db()
-            .record_assistant_event(&recorded)
-            .await
-        {
-            log::warn!("recording an assistant event: {error}");
-        }
-    });
+    if log_writer(app).send(recorded).is_err() {
+        log::warn!("the assistant's log writer has ended");
+    }
+}
+
+fn log_writer(app: &Session) -> mpsc::UnboundedSender<Recorded> {
+    let mut writer = app.state::<Assistant>().writer.lock().expect("log writer");
+    writer
+        .get_or_insert_with(|| {
+            let (sender, mut receiver) = mpsc::unbounded_channel::<Recorded>();
+            let app = app.clone();
+            crate::runtime::spawn(async move {
+                while let Some(recorded) = receiver.recv().await {
+                    if let Err(error) = app
+                        .state::<AppState>()
+                        .db()
+                        .record_assistant_event(&recorded)
+                        .await
+                    {
+                        log::warn!("recording an assistant event: {error}");
+                    }
+                }
+            });
+            sender
+        })
+        .clone()
 }
 
 fn send(app: &Session, command: Command) -> bool {
@@ -285,6 +303,53 @@ fn send(app: &Session, command: Command) -> bool {
 pub fn prompt(app: &Session, text: &str) -> bool {
     let text = text.trim();
     !text.is_empty() && send(app, Command::Prompt(text.to_owned()))
+}
+
+pub fn run_message(event: &RunEvent, project: Option<&Path>) -> Option<String> {
+    let RunEvent::RunDone {
+        ok,
+        cancelled,
+        error,
+        outputs,
+        ..
+    } = event
+    else {
+        return None;
+    };
+    Some(if *ok {
+        let shown: Vec<String> = outputs
+            .iter()
+            .map(|output| {
+                let path = Path::new(output);
+                let relative = project
+                    .and_then(|project| path.strip_prefix(project).ok())
+                    .unwrap_or(path);
+                format!("`{}`", relative.to_string_lossy())
+            })
+            .collect();
+        if shown.is_empty() {
+            "The run finished.".to_owned()
+        } else {
+            format!("Export finished: {}", shown.join(", "))
+        }
+    } else if *cancelled {
+        "The run was stopped before it finished.".to_owned()
+    } else {
+        format!(
+            "The run failed: {}",
+            error.as_deref().unwrap_or("something went wrong.")
+        )
+    })
+}
+
+pub fn run_finished(app: &Session, session: &str, event: &RunEvent) {
+    if panel_state(app).session.as_deref() != Some(session) {
+        return;
+    }
+    let project = crate::document::document_dir(app.state::<AppState>());
+    if let Some(text) = run_message(event, project.as_deref()) {
+        send(app, Command::RunFinished(text));
+    }
 }
 
 pub fn cancel(app: &Session) -> bool {
@@ -512,9 +577,42 @@ struct Talk<'a> {
     commands: &'a mut mpsc::UnboundedReceiver<Command>,
     pending: HashMap<String, Responder<RequestPermissionResponse>>,
     working: bool,
+    waiting: VecDeque<String>,
 }
 
 impl Talk<'_> {
+    fn begin_turn(
+        &mut self,
+        session: &mut ActiveSession<'_, Agent>,
+        text: String,
+        from_run: bool,
+    ) -> Result<(), Error> {
+        record(
+            self.app,
+            self.context,
+            AssistantEvent::UserMessage { text: text.clone() },
+        );
+        record(self.app, self.context, AssistantEvent::TurnStarted);
+        edit(self.app, |state| {
+            if from_run {
+                state.entries.push(Entry::Notice(text.clone()));
+            } else {
+                if state.title.is_empty() {
+                    first_line(&text).clone_into(&mut state.title);
+                }
+                state.entries.push(Entry::User(text.clone()));
+            }
+            state.status = Status::Working;
+            state.working_since = Some(now_ms());
+        });
+        if !self.working {
+            self.app.state::<AppState>().tasks.begin(WAITING);
+            self.working = true;
+        }
+        session.send_prompt(text)?;
+        Ok(())
+    }
+
     fn turn_ended(&mut self, stop: Option<&StopReason>) {
         if self.working {
             self.app.state::<AppState>().tasks.end(WAITING);
@@ -609,23 +707,9 @@ impl Talk<'_> {
         loop {
             tokio::select! {
                 command = self.commands.recv() => match command {
-                    Some(Command::Prompt(text)) => {
-                        record(self.app, self.context, AssistantEvent::UserMessage { text: text.clone() });
-                        record(self.app, self.context, AssistantEvent::TurnStarted);
-                        edit(self.app, |state| {
-                            if state.title.is_empty() {
-                                first_line(&text).clone_into(&mut state.title);
-                            }
-                            state.entries.push(Entry::User(text.clone()));
-                            state.status = Status::Working;
-                            state.working_since = Some(now_ms());
-                        });
-                        if !self.working {
-                            self.app.state::<AppState>().tasks.begin(WAITING);
-                            self.working = true;
-                        }
-                        session.send_prompt(text)?;
-                    }
+                    Some(Command::Prompt(text)) => self.begin_turn(session, text, false)?,
+                    Some(Command::RunFinished(text)) if self.working => self.waiting.push_back(text),
+                    Some(Command::RunFinished(text)) => self.begin_turn(session, text, true)?,
                     Some(Command::Cancel) => {
                         let id = session.session_id().clone();
                         session.connection().send_notification(CancelNotification::new(id))?;
@@ -648,7 +732,12 @@ impl Talk<'_> {
                         let (request, responder) = *asked;
                         self.permission(&request, responder);
                     }
-                    Some(Err(stop)) => self.turn_ended(stop.as_ref()),
+                    Some(Err(stop)) => {
+                        self.turn_ended(stop.as_ref());
+                        if let Some(next) = self.waiting.pop_front() {
+                            self.begin_turn(session, next, true)?;
+                        }
+                    }
                     None => {}
                 },
             }
@@ -753,6 +842,7 @@ pub async fn converse(
                                 commands: &mut commands,
                                 pending: HashMap::new(),
                                 working: false,
+                                waiting: VecDeque::new(),
                             };
                             let ended = talk.run(&mut session).await;
                             if talk.working {
@@ -875,5 +965,51 @@ async fn keep_talking(app: &Session, choice: &AgentChoice, context: &Context) {
                 .push(Entry::Notice("Starting the agent again.".to_owned()));
             state.status = Status::Starting;
         });
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use proptest::prelude::*;
+
+    use super::*;
+
+    fn done(ok: bool, cancelled: bool, outputs: Vec<String>) -> RunEvent {
+        RunEvent::RunDone {
+            run_id: "r".to_owned(),
+            ok,
+            cancelled,
+            error: Some("the encoder failed".to_owned()),
+            failed_node_ids: None,
+            skipped_node_ids: None,
+            outputs,
+            at: 0,
+        }
+    }
+
+    proptest! {
+        #[test]
+        fn a_finished_run_names_every_output_from_the_project(
+            names in proptest::collection::vec("[a-z]{1,8}\\.mp4", 1..4),
+        ) {
+            let project = PathBuf::from("/work/project");
+            let outputs = names
+                .iter()
+                .map(|name| project.join("out").join(name).to_string_lossy().into_owned())
+                .collect();
+            let said = run_message(&done(true, false, outputs), Some(&project)).unwrap();
+            prop_assert!(said.starts_with("Export finished: "));
+            for name in &names {
+                let shown = format!("`out/{name}`");
+                prop_assert!(said.contains(&shown), "{said}");
+            }
+            prop_assert!(!said.contains("/work/project"));
+        }
+
+        #[test]
+        fn a_run_that_did_not_finish_says_why(cancelled in any::<bool>()) {
+            let said = run_message(&done(false, cancelled, Vec::new()), None).unwrap();
+            prop_assert_eq!(said.contains("the encoder failed"), !cancelled);
+        }
     }
 }

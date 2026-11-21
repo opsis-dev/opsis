@@ -41,6 +41,7 @@ The internal HTTP API that agents' tools use to read, change and run the open pr
   - The project opens even when telling the window fails; that failure is only logged.
 - **Runs start from the document like the editor's.**
   - A run answers 409 while another runs and while the project's version is unchosen, as well as with no project (`StartError`, `session/src/run.rs`).
+  - `POST /project/run` and `POST /project/script` take an optional `x-opsis-session` header (`SESSION_HEADER`), which `opsis-mcp` sends for an Agent panel session; the run it starts, or any run the script starts, reports its end to that session's agent ([assistant.md](assistant.md)).
 - **Run events also stream on `/project/run/events`** as server-sent events, one `data:` line of JSON per run event, sent only while a client follows them (`run_event`).
 - **The script routes run Lua as the Script panel does**, so through them the socket also reads and writes the project's files and drives runs.
   - `POST /project/script` takes `{ "source": … }` or `{ "file": "scripts/name.lua" }`, runs it as the Script panel would ([scripting.md](scripting.md)) and answers when it ends with the outcome and the editor's problems; `POST /project/script/stop` stops it and `GET /project/script` says whether one runs.
