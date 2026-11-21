@@ -463,8 +463,8 @@ QWidget* AgentPanel::BuildThread() {
   connect(prompt_, &AgentPrompt::SendRequested, this, &AgentPanel::Send);
   connect(prompt_, &QPlainTextEdit::textChanged, this, [this] {
     FitPrompt();
-    send_->setEnabled(busy_ || (live_ && status_ == QStringLiteral("ready") &&
-                                !prompt_->toPlainText().trimmed().isEmpty()));
+    send_->setEnabled(
+        busy_ || (CanSend() && !prompt_->toPlainText().trimmed().isEmpty()));
   });
   connect(prompt_, &AgentPrompt::FocusChanged, this, [this](bool focused) {
     composer_->setProperty("focus", focused);
@@ -495,8 +495,18 @@ void AgentPanel::NewThread() {
 
 void AgentPanel::Send() {
   const QString text = prompt_->toPlainText().trimmed();
-  if (text.isEmpty() || !live_) return;
-  if (App::Get().session().agent_prompt(ToRust(text))) prompt_->clear();
+  if (text.isEmpty()) return;
+  if (live_) {
+    if (App::Get().session().agent_prompt(ToRust(text))) prompt_->clear();
+    return;
+  }
+  if (thread_.isEmpty()) return;
+  try {
+    App::Get().session().agent_continue(ToRust(thread_), ToRust(text));
+    prompt_->clear();
+  } catch (const rust::Error& error) {
+    App::Get().ShowError(QString::fromUtf8(error.what()));
+  }
 }
 
 void AgentPanel::FilterThreads() {
@@ -966,13 +976,11 @@ void AgentPanel::SyncNotes(const bridge::AgentPanelView& view) {
 }
 
 void AgentPanel::SyncComposer(const bridge::AgentPanelView& view) {
-  const bool ready = live_ && status_ == QStringLiteral("ready");
-  prompt_->setEnabled(live_ && view.assistant_on);
+  assistant_on_ = view.assistant_on;
+  prompt_->setEnabled(assistant_on_);
   prompt_->setPlaceholderText(
-      !view.assistant_on ? QStringLiteral("Turn on the assistant first")
-      : !live_ ? QStringLiteral("This thread has ended. Start a new thread to "
-                                "go on.")
-      : status_ == QStringLiteral("starting")
+      !assistant_on_ ? QStringLiteral("Turn on the assistant first")
+      : live_ && status_ == QStringLiteral("starting")
           ? QStringLiteral("Starting the agent…")
           : QStringLiteral("Ask for a change…"));
   QMenu* modes = mode_->menu();
@@ -999,8 +1007,13 @@ void AgentPanel::SyncComposer(const bridge::AgentPanelView& view) {
                              : QStringLiteral("primary-foreground")),
       14));
   send_->setEnabled(busy_ ||
-                    (ready && !prompt_->toPlainText().trimmed().isEmpty()));
+                    (CanSend() && !prompt_->toPlainText().trimmed().isEmpty()));
   Repolish(send_);
+}
+
+bool AgentPanel::CanSend() const {
+  if (!assistant_on_) return false;
+  return live_ ? status_ == QStringLiteral("ready") : !thread_.isEmpty();
 }
 
 void AgentPanel::SyncWorking() {

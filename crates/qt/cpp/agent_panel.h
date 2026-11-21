@@ -77,6 +77,7 @@ class AgentPanel : public QWidget {
   void NewThread();
   void Send();
   void FitPrompt();
+  bool CanSend() const;
   QWidget* EntryWidget(const bridge::AgentEntryView& entry);
   QWidget* ToolWidget(const bridge::AgentToolView& tool);
   QWidget* AskWidget(const bridge::AgentAskView& ask);
@@ -113,6 +114,7 @@ class AgentPanel : public QWidget {
   qint64 working_since_ = 0;
   bool live_ = false;
   bool busy_ = false;
+  bool assistant_on_ = false;
 };
 
 }

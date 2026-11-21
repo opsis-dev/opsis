@@ -438,6 +438,37 @@ void Scenario::BuildAgent() {
                                             QStringLiteral("Write hello")),
                       QStringLiteral("the thread list lacks the thread"));
       });
+  Add(
+      QStringLiteral("agent-an-ended-thread"),
+      [] {
+        App::Get().session().agent_stop();
+        const bridge::AgentPanelView view = App::Get().session().agent_view();
+        App::Get().session().agent_open(view.threads.front().id);
+      },
+      500,
+      [] {
+        const bridge::AgentPanelView view = App::Get().session().agent_view();
+        return Expect(!view.live && !view.entries.empty(),
+                      QStringLiteral("the ended thread shows no messages"));
+      });
+  Until(
+      QStringLiteral("agent-the-thread-goes-on"),
+      [] {
+        const bridge::AgentPanelView view = App::Get().session().agent_view();
+        App::Get().session().agent_continue(view.thread,
+                                            ToRust(QStringLiteral("Thanks")));
+      },
+      kProjectMs,
+      [] {
+        const bridge::AgentPanelView view = App::Get().session().agent_view();
+        int users = 0;
+        for (const auto& entry : view.entries) {
+          if (ToQ(entry.kind) == QStringLiteral("user")) ++users;
+        }
+        return view.live && ToQ(view.status) == QStringLiteral("ready") &&
+               users == 2;
+      },
+      [] { return QString(); });
 }
 
 void Scenario::BuildViews() {

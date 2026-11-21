@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE assistant_messages SET text = json_set(text, '$.failed', json('true'))\n                 WHERE session_id = ? AND role = 'tool' AND json_extract(text, '$.tool') = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "64587e6549bf7be50e4878ea81f949cc7a17af0f1d09c57f35a28138205e9fda"
+}

@@ -7,13 +7,15 @@ use agent_client_protocol::schema::ProtocolVersion;
 use agent_client_protocol::util::MatchDispatch;
 use agent_client_protocol::v1::schema::{
     AuthMethod, AuthenticateRequest, CancelNotification, ContentBlock, ContentChunk,
-    InitializeRequest, McpServer, McpServerStdio, NewSessionRequest, PermissionOptionKind,
-    RequestPermissionOutcome, RequestPermissionRequest, RequestPermissionResponse,
-    SelectedPermissionOutcome, SessionUpdate, SetSessionModeRequest, StopReason, ToolCallStatus,
-    ToolKind,
+    InitializeRequest, LoadSessionRequest, McpServer, McpServerStdio, NewSessionRequest,
+    PermissionOptionKind, RequestPermissionOutcome, RequestPermissionRequest,
+    RequestPermissionResponse, SelectedPermissionOutcome, SessionModeState, SessionUpdate,
+    SetSessionModeRequest, StopReason, ToolCallStatus, ToolKind,
 };
 use agent_client_protocol::v1::{ActiveSession, SessionMessage, SessionSetup};
 use agent_client_protocol::{AcpAgent, AcpAgentConfig, Agent, Client, ConnectTo, Error, Responder};
+use futures::FutureExt;
+use opsis_engine::tools::shown;
 use opsis_persistence::logs::{RequestLog, assistant_logs};
 use opsis_store::assistant::{AssistantEvent, AssistantThread, Recorded};
 use opsis_types::events::RunEvent;
@@ -154,10 +156,7 @@ pub fn toggle(app: &Session, id: &str) {
 }
 
 pub async fn new_thread(app: &Session) -> Result<(), String> {
-    start(app, &chosen_agent(app)).await?;
-    let session = panel_state(app).session;
-    open_thread(app, session.as_deref());
-    Ok(())
+    start(app, &chosen_agent(app)).await
 }
 
 pub async fn threads(app: &Session) -> Vec<AssistantThread> {
@@ -186,14 +185,38 @@ pub async fn past_entries(app: &Session, thread: &str) -> Vec<Entry> {
         });
     messages
         .into_iter()
-        .map(|message| {
-            if message.role == "user" {
-                Entry::User(message.text)
-            } else {
-                Entry::Agent(message.text)
-            }
+        .map(|message| match message.role.as_str() {
+            "user" => Entry::User(message.text),
+            "tool" => logged_tool(&message.text),
+            _ => Entry::Agent(message.text),
         })
         .collect()
+}
+
+fn logged_tool(text: &str) -> Entry {
+    let call = serde_json::from_str::<Value>(text).unwrap_or_default();
+    let field = |name: &str| {
+        call.get(name)
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .to_owned()
+    };
+    Entry::Tool {
+        id: field("tool"),
+        kind: field("kind"),
+        title: field("title"),
+        input: call
+            .get("input")
+            .and_then(Value::as_str)
+            .and_then(|input| serde_json::from_str(input).ok()),
+        status: if call.get("failed").and_then(Value::as_bool) == Some(true) {
+            "failed"
+        } else {
+            "done"
+        }
+        .to_owned(),
+        output: String::new(),
+    }
 }
 
 fn first_line(text: &str) -> &str {
@@ -255,6 +278,8 @@ pub struct Context {
     pub session: String,
     pub project: PathBuf,
     pub agent: String,
+    pub restore: Option<String>,
+    pub first: Option<String>,
 }
 
 fn record(app: &Session, context: &Context, event: AssistantEvent) {
@@ -578,6 +603,7 @@ struct Talk<'a> {
     pending: HashMap<String, Responder<RequestPermissionResponse>>,
     working: bool,
     waiting: VecDeque<String>,
+    replaying: bool,
 }
 
 impl Talk<'_> {
@@ -605,6 +631,7 @@ impl Talk<'_> {
             state.status = Status::Working;
             state.working_since = Some(now_ms());
         });
+        self.replaying = false;
         if !self.working {
             self.app.state::<AppState>().tasks.begin(WAITING);
             self.working = true;
@@ -633,10 +660,37 @@ impl Talk<'_> {
     }
 
     fn update(&self, update: &SessionUpdate) {
+        if self.replaying && !matches!(update, SessionUpdate::CurrentModeUpdate(_)) {
+            return;
+        }
         let mut said = None;
         edit(self.app, |state| said = apply_update(state, update));
         if let Some(text) = said {
             record(self.app, self.context, AssistantEvent::AgentText { text });
+        }
+        match update {
+            SessionUpdate::ToolCall(call) => record(
+                self.app,
+                self.context,
+                AssistantEvent::ToolCalled {
+                    tool: call.tool_call_id.0.to_string(),
+                    kind: kind_name(call.kind).to_owned(),
+                    title: call.title.clone(),
+                    input: call.raw_input.as_ref().map(Value::to_string),
+                },
+            ),
+            SessionUpdate::ToolCallUpdate(changed)
+                if changed.fields.status == Some(ToolCallStatus::Failed) =>
+            {
+                record(
+                    self.app,
+                    self.context,
+                    AssistantEvent::ToolFailed {
+                        tool: changed.tool_call_id.0.to_string(),
+                    },
+                );
+            }
+            _ => {}
         }
     }
 
@@ -703,7 +757,19 @@ impl Talk<'_> {
         edit(self.app, |state| state.asks.retain(|a| a.id != ask));
     }
 
-    async fn run(&mut self, session: &mut ActiveSession<'_, Agent>) -> Result<bool, Error> {
+    async fn run(
+        &mut self,
+        session: &mut ActiveSession<'_, Agent>,
+        first: Option<String>,
+    ) -> Result<bool, Error> {
+        while let Some(message) = session.read_update().now_or_never() {
+            if let Some(Ok(Incoming::Update(update))) = incoming(message?).await? {
+                self.update(&update);
+            }
+        }
+        if let Some(text) = first {
+            self.begin_turn(session, text, false)?;
+        }
         loop {
             tokio::select! {
                 command = self.commands.recv() => match command {
@@ -786,14 +852,61 @@ async fn sign_in(
     }
 }
 
+async fn hold(
+    app: &Session,
+    context: &Context,
+    commands: &mut mpsc::UnboundedReceiver<Command>,
+    session: &mut ActiveSession<'_, Agent>,
+    modes: Option<&SessionModeState>,
+    loaded: bool,
+) -> Result<bool, Error> {
+    let agent_session = session.session_id().0.to_string();
+    record(
+        app,
+        context,
+        AssistantEvent::SessionStarted {
+            agent_session: Some(agent_session.clone()),
+        },
+    );
+    edit(app, |state| {
+        state.status = Status::Ready;
+        state.agent_session = Some(agent_session);
+        if let Some(modes) = modes {
+            state.mode = Some(modes.current_mode_id.0.to_string());
+            state.modes = modes
+                .available_modes
+                .iter()
+                .map(|mode| ModeChoice {
+                    id: mode.id.0.to_string(),
+                    name: mode.name.clone(),
+                })
+                .collect();
+        }
+    });
+    let mut talk = Talk {
+        app,
+        context,
+        commands,
+        pending: HashMap::new(),
+        working: false,
+        waiting: VecDeque::new(),
+        replaying: loaded,
+    };
+    let ended = talk.run(session, context.first.clone()).await;
+    if talk.working {
+        app.state::<AppState>().tasks.end(WAITING);
+    }
+    ended
+}
+
 pub async fn converse(
     app: Session,
     transport: impl ConnectTo<Client> + 'static,
     context: Context,
     mut commands: mpsc::UnboundedReceiver<Command>,
 ) -> Result<bool, Error> {
-    let request =
-        NewSessionRequest::new(&context.project).mcp_servers(vec![tool_server(&context.session)]);
+    let servers = vec![tool_server(&context.session)];
+    let request = NewSessionRequest::new(&context.project).mcp_servers(servers.clone());
     Client
         .v1()
         .name("opsis")
@@ -803,55 +916,59 @@ pub async fn converse(
                 .block_task()
                 .await?;
             let methods = sign_in_methods(&hello.auth_methods);
+            let restore = context
+                .restore
+                .clone()
+                .filter(|_| hello.agent_capabilities.load_session);
             loop {
-                let started = cx
-                    .build_session_from(request.clone())
-                    .block_task()
-                    .run_until(
-                        async |SessionSetup {
-                                   mut session,
-                                   response,
-                                   ..
-                               }| {
-                            let agent_session = session.session_id().0.to_string();
-                            record(
+                let started = if let Some(agent_session) = &restore {
+                    let load = LoadSessionRequest::new(agent_session.clone(), &context.project)
+                        .mcp_servers(servers.clone());
+                    match cx
+                        .load_session_from(load)
+                        .block_task()
+                        .start_session()
+                        .await
+                    {
+                        Ok(SessionSetup {
+                            mut session,
+                            response,
+                            ..
+                        }) => {
+                            hold(
                                 &app,
                                 &context,
-                                AssistantEvent::SessionStarted {
-                                    agent_session: Some(agent_session.clone()),
-                                },
-                            );
-                            edit(&app, |state| {
-                                state.status = Status::Ready;
-                                state.agent_session = Some(agent_session);
-                                if let Some(modes) = &response.modes {
-                                    state.mode = Some(modes.current_mode_id.0.to_string());
-                                    state.modes = modes
-                                        .available_modes
-                                        .iter()
-                                        .map(|mode| ModeChoice {
-                                            id: mode.id.0.to_string(),
-                                            name: mode.name.clone(),
-                                        })
-                                        .collect();
-                                }
-                            });
-                            let mut talk = Talk {
-                                app: &app,
-                                context: &context,
-                                commands: &mut commands,
-                                pending: HashMap::new(),
-                                working: false,
-                                waiting: VecDeque::new(),
-                            };
-                            let ended = talk.run(&mut session).await;
-                            if talk.working {
-                                app.state::<AppState>().tasks.end(WAITING);
-                            }
-                            ended
-                        },
-                    )
-                    .await;
+                                &mut commands,
+                                &mut session,
+                                response.modes.as_ref(),
+                                true,
+                            )
+                            .await
+                        }
+                        Err(error) => Err(error),
+                    }
+                } else {
+                    cx.build_session_from(request.clone())
+                        .block_task()
+                        .run_until(
+                            async |SessionSetup {
+                                       mut session,
+                                       response,
+                                       ..
+                                   }| {
+                                hold(
+                                    &app,
+                                    &context,
+                                    &mut commands,
+                                    &mut session,
+                                    response.modes.as_ref(),
+                                    false,
+                                )
+                                .await
+                            },
+                        )
+                        .await
+                };
                 match started {
                     Err(error)
                         if error.code == Error::auth_required().code && !methods.is_empty() =>
@@ -900,39 +1017,146 @@ fn process(choice: &AgentChoice, user_data: &Path) -> AcpAgent {
         .with_debug(move |line, direction| log_line(&log, line, direction))
 }
 
-pub async fn start(app: &Session, agent: &str) -> Result<(), String> {
-    if !app.state::<AppState>().settings().assistant.enabled {
-        return Err(TURN_OFF.to_owned());
-    }
-    let project = crate::document::document_dir(app.state::<AppState>())
-        .ok_or_else(|| "Open a project first.".to_owned())?;
-    let choice = available(app)
+const THREAD_KEY: &str = "agentThread";
+
+fn project_dir(app: &Session) -> Result<PathBuf, String> {
+    crate::document::document_dir(app.state::<AppState>())
+        .ok_or_else(|| "Open a project first.".to_owned())
+}
+
+async fn choice_of(app: &Session, agent: &str) -> Result<AgentChoice, String> {
+    available(app)
         .await
         .into_iter()
         .find(|choice| choice.id == agent)
-        .ok_or_else(|| "That agent isn't on this computer any more.".to_owned())?;
+        .ok_or_else(|| "That agent isn't on this computer any more.".to_owned())
+}
+
+async fn remember(app: &Session, project: &Path, thread: Option<&str>) {
+    let value = thread.map_or(Value::Null, |thread| Value::String(thread.to_owned()));
+    if let Err(error) = app
+        .state::<AppState>()
+        .db()
+        .write_view_state(&shown(project), THREAD_KEY, &value)
+        .await
+    {
+        log::warn!("remembering the project's thread: {error}");
+    }
+}
+
+#[derive(Debug, Default)]
+struct Opening {
+    title: String,
+    entries: Vec<Entry>,
+}
+
+fn begin(app: &Session, choice: AgentChoice, context: Context, opening: Opening) {
     stop(app);
-    let context = Context {
-        session: uuid::Uuid::new_v4().simple().to_string(),
-        project,
-        agent: choice.id.clone(),
-    };
     edit(app, |state| {
         state.agent = Some(choice.id.clone());
         state.agent_name.clone_from(&choice.name);
         state.status = Status::Starting;
         state.session = Some(context.session.clone());
+        state.title = opening.title;
+        state.entries = opening.entries;
     });
+    open_thread(app, Some(&context.session));
     let app = app.clone();
     crate::runtime::spawn(async move {
-        keep_talking(&app, &choice, &context).await;
+        keep_talking(&app, &choice, context).await;
     });
+}
+
+pub async fn start(app: &Session, agent: &str) -> Result<(), String> {
+    if !app.state::<AppState>().settings().assistant.enabled {
+        return Err(TURN_OFF.to_owned());
+    }
+    let project = project_dir(app)?;
+    let choice = choice_of(app, agent).await?;
+    let context = Context {
+        session: uuid::Uuid::new_v4().simple().to_string(),
+        project: project.clone(),
+        agent: choice.id.clone(),
+        restore: None,
+        first: None,
+    };
+    remember(app, &project, Some(&context.session)).await;
+    begin(app, choice, context, Opening::default());
     Ok(())
 }
 
-async fn keep_talking(app: &Session, choice: &AgentChoice, context: &Context) {
+pub async fn resume(app: &Session, thread: &str, first: Option<String>) -> Result<(), String> {
+    if !app.state::<AppState>().settings().assistant.enabled {
+        return Err(TURN_OFF.to_owned());
+    }
+    let project = project_dir(app)?;
+    let db = app.state::<AppState>().db();
+    let row = db
+        .assistant_sessions(Some(&project.to_string_lossy()))
+        .await
+        .map_err(|error| error.to_string())?
+        .into_iter()
+        .find(|row| row.id == thread)
+        .ok_or_else(|| "That thread isn't in the log any more.".to_owned())?;
+    let choice = choice_of(app, &row.agent).await?;
+    let entries = past_entries(app, thread).await;
+    let title = entries
+        .iter()
+        .find_map(|entry| match entry {
+            Entry::User(text) => Some(first_line(text).to_owned()),
+            _ => None,
+        })
+        .unwrap_or_default();
+    let context = Context {
+        session: thread.to_owned(),
+        project: project.clone(),
+        agent: choice.id.clone(),
+        restore: row.agent_session,
+        first,
+    };
+    remember(app, &project, Some(thread)).await;
+    begin(app, choice, context, Opening { title, entries });
+    Ok(())
+}
+
+pub async fn end_thread(app: &Session) {
+    if let Ok(project) = project_dir(app) {
+        remember(app, &project, None).await;
+    }
+    stop(app);
+}
+
+pub fn bring_back(app: &Session) {
+    if !app.state::<AppState>().settings().assistant.enabled {
+        return;
+    }
+    let app = app.clone();
+    crate::runtime::spawn(async move {
+        let Ok(project) = project_dir(&app) else {
+            return;
+        };
+        let view = app
+            .state::<AppState>()
+            .db()
+            .read_view_state(&shown(&project))
+            .await
+            .unwrap_or_default();
+        let Some(thread) = view.get(THREAD_KEY).and_then(Value::as_str) else {
+            return;
+        };
+        if let Err(error) = resume(&app, thread, None).await {
+            log::info!("bringing the project's thread back: {error}");
+        }
+    });
+}
+
+async fn keep_talking(app: &Session, choice: &AgentChoice, mut context: Context) {
     let user_data = app.state::<AppState>().paths.user_data.clone();
     for attempt in 0..=RESTARTS {
+        if attempt > 0 {
+            context.first = None;
+            context.restore = panel_state(app).agent_session.or(context.restore);
+        }
         let (sender, receiver) = mpsc::unbounded_channel();
         *app.state::<Assistant>().commands.lock().expect("commands") = Some(sender);
         let ended = converse(

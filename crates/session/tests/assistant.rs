@@ -4,12 +4,13 @@ use std::sync::{Arc, Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
 use agent_client_protocol::v1::schema::{
-    AuthMethod, AuthMethodAgent, AuthenticateRequest, AuthenticateResponse, ContentBlock,
-    ContentChunk, InitializeRequest, InitializeResponse, McpServer, NewSessionRequest,
-    NewSessionResponse, PermissionOption, PermissionOptionKind, PromptRequest, PromptResponse,
-    RequestPermissionOutcome, RequestPermissionRequest, SessionMode, SessionModeState,
-    SessionNotification, SessionUpdate, SetSessionModeRequest, SetSessionModeResponse, StopReason,
-    TextContent, ToolCallUpdate, ToolCallUpdateFields,
+    AgentCapabilities, AuthMethod, AuthMethodAgent, AuthenticateRequest, AuthenticateResponse,
+    ContentBlock, ContentChunk, InitializeRequest, InitializeResponse, LoadSessionRequest,
+    LoadSessionResponse, McpServer, NewSessionRequest, NewSessionResponse, PermissionOption,
+    PermissionOptionKind, PromptRequest, PromptResponse, RequestPermissionOutcome,
+    RequestPermissionRequest, SessionMode, SessionModeState, SessionNotification, SessionUpdate,
+    SetSessionModeRequest, SetSessionModeResponse, StopReason, TextContent, ToolCallUpdate,
+    ToolCallUpdateFields,
 };
 use agent_client_protocol::{Agent, Channel, Error};
 use opsis_folders::HostFolders;
@@ -74,6 +75,7 @@ struct Seen {
     signed_in: AtomicBool,
     mode: Mutex<String>,
     prompts: Mutex<Vec<String>>,
+    loaded: Mutex<Vec<String>>,
 }
 
 fn text(text: &str) -> ContentBlock {
@@ -84,7 +86,8 @@ fn fake_agent(transport: Channel, seen: Arc<Seen>) {
     let on_new = seen.clone();
     let on_auth = seen.clone();
     let on_mode = seen.clone();
-    let on_prompt = seen;
+    let on_prompt = seen.clone();
+    let on_load = seen;
     tokio::spawn(async move {
         let served = Agent
             .v1()
@@ -92,6 +95,7 @@ fn fake_agent(transport: Channel, seen: Arc<Seen>) {
                 async |request: InitializeRequest, responder, _cx| {
                     responder.respond(
                         InitializeResponse::new(request.protocol_version)
+                            .agent_capabilities(AgentCapabilities::new().load_session(true))
                             .auth_methods(vec![AuthMethod::Agent(AuthMethodAgent::new("log-in", "Log in"))]),
                     )
                 },
@@ -115,6 +119,22 @@ fn fake_agent(transport: Channel, seen: Arc<Seen>) {
                         vec![SessionMode::new("ask", "Ask"), SessionMode::new("full", "Full")],
                     );
                     responder.respond(NewSessionResponse::new("fake-1").modes(modes))
+                },
+                agent_client_protocol::on_receive_request!(),
+            )
+            .on_receive_request(
+                async move |request: LoadSessionRequest, responder, cx| {
+                    on_load.loaded.lock().unwrap().push(request.session_id.0.to_string());
+                    on_load.servers.lock().unwrap().extend(request.mcp_servers);
+                    cx.send_notification(SessionNotification::new(
+                        request.session_id.clone(),
+                        SessionUpdate::UserMessageChunk(ContentChunk::new(text("Earlier"))),
+                    ))?;
+                    cx.send_notification(SessionNotification::new(
+                        request.session_id,
+                        SessionUpdate::AgentMessageChunk(ContentChunk::new(text("Before"))),
+                    ))?;
+                    responder.respond(LoadSessionResponse::new())
                 },
                 agent_client_protocol::on_receive_request!(),
             )
@@ -199,6 +219,8 @@ fn a_panel_session_signs_in_asks_permission_holds_a_run_result_for_the_next_turn
             session: "panel-1".to_owned(),
             project: temp.path().join("project"),
             agent: "fake".to_owned(),
+            restore: None,
+            first: None,
         };
         let (commands, receiver) = mpsc::unbounded_channel();
         let talking = tokio::spawn(converse(app.clone(), client_end, context, receiver));
@@ -314,5 +336,62 @@ fn a_panel_session_signs_in_asks_permission_holds_a_run_result_for_the_next_turn
                 .iter()
                 .any(|r| r.request == "t1" && r.answer.as_deref() == Some("allow"))
         );
+    });
+}
+
+#[test]
+fn a_thread_comes_back_with_session_load_without_its_history_twice() {
+    runtime().block_on(async {
+        let temp = tempfile::tempdir().unwrap();
+        let paths = AppPaths::new(&HostFolders {
+            config: temp.path().join("config"),
+            resources: temp.path().join("resources"),
+            home: temp.path().to_path_buf(),
+        })
+        .unwrap();
+        let app = Session::start(paths, Err(KeyError::NoKeyring), Arc::new(Quiet))
+            .await
+            .unwrap();
+        let (client_end, agent_end) = Channel::duplex();
+        let seen = Arc::new(Seen::default());
+        seen.signed_in.store(true, Ordering::Relaxed);
+        fake_agent(agent_end, seen.clone());
+        let context = Context {
+            session: "panel-2".to_owned(),
+            project: temp.path().join("project"),
+            agent: "fake".to_owned(),
+            restore: Some("fake-1".to_owned()),
+            first: Some("Go on".to_owned()),
+        };
+        let (commands, receiver) = mpsc::unbounded_channel();
+        let talking = tokio::spawn(converse(app.clone(), client_end, context, receiver));
+
+        until("the first message's ask", || {
+            panel_state(&app).asks.iter().any(|ask| ask.id == "t1")
+        })
+        .await;
+        assert_eq!(*seen.loaded.lock().unwrap(), ["fake-1"]);
+        let servers = format!("{:?}", seen.servers.lock().unwrap());
+        assert!(servers.contains("panel-2"), "{servers}");
+        assert_eq!(*seen.prompts.lock().unwrap(), ["Go on"]);
+        commands
+            .send(Command::Answer {
+                ask: "t1".to_owned(),
+                option: "allow".to_owned(),
+            })
+            .unwrap();
+        until("the turn's end", || {
+            panel_state(&app).status == Status::Ready
+        })
+        .await;
+        assert_eq!(
+            panel_state(&app).entries,
+            [
+                Entry::User("Go on".to_owned()),
+                Entry::Agent("Hello allowed".to_owned())
+            ]
+        );
+        commands.send(Command::Stop).unwrap();
+        assert!(talking.await.unwrap().unwrap());
     });
 }

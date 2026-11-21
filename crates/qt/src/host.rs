@@ -121,6 +121,7 @@ pub trait Host {
     fn agent_back(&self);
     fn agent_toggle(&self, id: &str);
     fn agent_prompt(&self, text: &str) -> bool;
+    fn agent_continue(&self, thread: &str, text: &str) -> HostResult<()>;
     fn agent_cancel(&self);
     fn agent_stop(&self);
     fn agent_mode(&self, mode: &str);
@@ -768,6 +769,10 @@ impl Session {
 
     pub(crate) fn agent_prompt(&self, text: &str) -> bool {
         self.0.agent_prompt(text)
+    }
+
+    pub(crate) fn agent_continue(&self, thread: &str, text: &str) -> HostResult<()> {
+        self.0.agent_continue(thread, text)
     }
 
     pub(crate) fn agent_cancel(&self) {

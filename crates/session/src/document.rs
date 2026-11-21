@@ -276,6 +276,7 @@ pub async fn open(app: &Session, dir: &Path) -> CommandResult<OpenProject> {
         }
         crate::run::reseed(app, &shown(dir), project.last_run.as_ref());
         crate::shared::forget_project(app);
+        crate::assistant::bring_back(app);
     }
     watch(app, dir)?;
     changed(app);

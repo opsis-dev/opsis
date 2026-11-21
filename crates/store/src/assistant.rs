@@ -29,6 +29,15 @@ pub enum AssistantEvent {
         request: String,
         answer: String,
     },
+    ToolCalled {
+        tool: String,
+        kind: String,
+        title: String,
+        input: Option<String>,
+    },
+    ToolFailed {
+        tool: String,
+    },
 }
 
 impl AssistantEvent {
@@ -41,6 +50,8 @@ impl AssistantEvent {
             Self::TurnEnded { .. } => "turnEnded",
             Self::RequestAsked { .. } => "requestAsked",
             Self::RequestAnswered { .. } => "requestAnswered",
+            Self::ToolCalled { .. } => "toolCalled",
+            Self::ToolFailed { .. } => "toolFailed",
         }
     }
 }
@@ -229,6 +240,41 @@ async fn project(tx: &mut Transaction<'_, Sqlite>, seq: i64, recorded: &Recorded
                 at,
                 session,
                 request
+            )
+            .execute(&mut **tx)
+            .await?;
+        }
+        AssistantEvent::ToolCalled {
+            tool,
+            kind,
+            title,
+            input,
+        } => {
+            let call = serde_json::json!({
+                "tool": tool,
+                "kind": kind,
+                "title": title,
+                "input": input,
+                "failed": false,
+            })
+            .to_string();
+            sqlx::query!(
+                "INSERT INTO assistant_messages (session_id, seq, role, text, at) VALUES (?, ?, 'tool', ?, ?)",
+                session,
+                seq,
+                call,
+                at
+            )
+            .execute(&mut **tx)
+            .await?;
+            close_message(tx, session).await?;
+        }
+        AssistantEvent::ToolFailed { tool } => {
+            sqlx::query!(
+                "UPDATE assistant_messages SET text = json_set(text, '$.failed', json('true'))
+                 WHERE session_id = ? AND role = 'tool' AND json_extract(text, '$.tool') = ?",
+                session,
+                tool
             )
             .execute(&mut **tx)
             .await?;

@@ -2034,12 +2034,27 @@ impl Host for Ui {
         opsis_session::assistant::prompt(&self.session, text)
     }
 
+    fn agent_continue(&self, thread: &str, text: &str) -> HostResult<()> {
+        let text = text.trim();
+        if text.is_empty() {
+            return Ok(());
+        }
+        let _entered = self.runtime.enter();
+        self.runtime.block_on(opsis_session::assistant::resume(
+            &self.session,
+            thread,
+            Some(text.to_owned()),
+        ))
+    }
+
     fn agent_cancel(&self) {
         opsis_session::assistant::cancel(&self.session);
     }
 
     fn agent_stop(&self) {
-        opsis_session::assistant::stop(&self.session);
+        let _entered = self.runtime.enter();
+        self.runtime
+            .block_on(opsis_session::assistant::end_thread(&self.session));
     }
 
     fn agent_mode(&self, mode: &str) {

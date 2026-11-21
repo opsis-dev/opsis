@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO assistant_messages (session_id, seq, role, text, at) VALUES (?, ?, 'tool', ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "ac2e3ea66492b320ee355b0c805a70a009833c9fa418c7eda886d43de5daa62d"
+}

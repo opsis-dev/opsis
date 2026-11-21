@@ -1297,6 +1297,7 @@ pub mod ffi {
         fn agent_back(self: &Session);
         fn agent_toggle(self: &Session, id: &str);
         fn agent_prompt(self: &Session, text: &str) -> bool;
+        fn agent_continue(self: &Session, thread: &str, text: &str) -> Result<()>;
         fn agent_cancel(self: &Session);
         fn agent_stop(self: &Session);
         fn agent_mode(self: &Session, mode: &str);

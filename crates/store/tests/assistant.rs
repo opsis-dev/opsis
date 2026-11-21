@@ -45,6 +45,19 @@ fn event() -> impl Strategy<Value = AssistantEvent> {
         }),
         (request, "(allow|reject)")
             .prop_map(|(request, answer)| AssistantEvent::RequestAnswered { request, answer }),
+        (
+            "t[0-3]",
+            "(read|edit|other)",
+            text,
+            proptest::option::of(text)
+        )
+            .prop_map(|(tool, kind, title, input)| AssistantEvent::ToolCalled {
+                tool,
+                kind,
+                title,
+                input,
+            }),
+        "t[0-3]".prop_map(|tool| AssistantEvent::ToolFailed { tool }),
     ]
 }
 
