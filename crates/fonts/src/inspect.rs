@@ -104,7 +104,7 @@ pub fn guess_category(family: &str) -> FontCategory {
     }
 }
 
-fn sfnt(format: FontFormat, bytes: &[u8]) -> Option<Cow<'_, [u8]>> {
+pub fn sfnt(format: FontFormat, bytes: &[u8]) -> Option<Cow<'_, [u8]>> {
     match format {
         FontFormat::Woff2 => wuff::decompress_woff2(bytes).ok().map(Cow::Owned),
         FontFormat::Woff => wuff::decompress_woff1(bytes).ok().map(Cow::Owned),

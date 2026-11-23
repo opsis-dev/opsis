@@ -349,7 +349,7 @@ pub fn run_message(event: &RunEvent, project: Option<&Path>) -> Option<String> {
                 let relative = project
                     .and_then(|project| path.strip_prefix(project).ok())
                     .unwrap_or(path);
-                format!("`{}`", relative.to_string_lossy())
+                format!("`{}`", opsis_folders::slashed(relative))
             })
             .collect();
         if shown.is_empty() {

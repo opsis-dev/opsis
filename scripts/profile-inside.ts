@@ -76,7 +76,7 @@ async function desktopSession(config: InsideConfig): Promise<NodeJS.ProcessEnv> 
   ).trim();
   const keyring = execFileSync("gnome-keyring-daemon", ["--unlock", "--components=secrets"], {
     env,
-    input: "",
+    input: "\n",
     encoding: "utf8",
   });
   for (const line of keyring.split("\n")) {

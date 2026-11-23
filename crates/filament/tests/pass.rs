@@ -53,10 +53,9 @@ fn a_tint_pass_halves_the_picture_and_keeps_it_upright() {
 }
 
 #[test]
+#[ignore = "needs a Vulkan driver (a GPU, or lavapipe through VK_DRIVER_FILES)"]
 fn a_picture_of_the_wrong_size_is_refused() {
-    let Ok(mut filament) = Filament::new(Backend::Vulkan) else {
-        return;
-    };
+    let mut filament = Filament::new(Backend::Vulkan).expect("an engine");
     let tint = filament.material(TINT_MATERIAL).expect("the tint material");
     assert!(
         filament

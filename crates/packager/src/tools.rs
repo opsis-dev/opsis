@@ -57,7 +57,7 @@ pub fn set_mode(path: &Path, mode: u32) -> Result<(), PackagerError> {
 }
 
 #[cfg(not(unix))]
-pub fn set_mode(_path: &Path, _mode: u32) -> Result<(), PackagerError> {
+pub const fn set_mode(_path: &Path, _mode: u32) -> Result<(), PackagerError> {
     Ok(())
 }
 

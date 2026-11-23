@@ -5,11 +5,16 @@ import { parseSync } from "oxc-parser";
 import { ROOT } from "./lib/tool-config";
 
 const CHECKED =
-  /^(crates|scripts)\/.*\.(ts|tsx|mts|css|rs|zig|zon|cc|h|qss|lua|mat|glsl)$|^[^/]+\.config\.ts$/;
+  /^(crates|scripts)\/.*\.(ts|tsx|mts|css|rs|zig|zon|cc|h|qss|lua|mat|glsl)$|^[^/]+\.config\.ts$|^\.github\/.*\.ya?ml$/;
 const SKIPPED = [/\/generated\//];
 const DIRECTIVE = /^\/\/\/ <reference|^\/[/*]\s*(oxlint-|@ts-)/;
 const LINE_COMMENT = /^\s*\/\/|\/\*|\*\//;
 const QUOTED_MARK = /"[^"]*(\/\*|\*\/)[^"]*"/;
+const ALLOWED = /(\/\/|--|#) ?(TODO|FIXME)\([a-z0-9-]+\): \S/;
+
+function allowed(line: string): boolean {
+  return ALLOWED.test(line) && !/\/\*|\*\//.test(line);
+}
 
 function lineOf(text: string, pos: number): number {
   return text.slice(0, pos).split("\n").length - 1;
@@ -42,6 +47,15 @@ function luaComments(text: string): number[] {
     .flatMap((line, index) => (LUA_COMMENT.test(line.replace(LUA_STRING, "")) ? [index] : []));
 }
 
+const YAML_STRING = /(^|[\s[{,:])("(?:[^"\\]|\\.)*"|'(?:[^']|'')*')/g;
+const YAML_COMMENT = /(^|\s)#/;
+
+function yamlComments(text: string): number[] {
+  return text
+    .split("\n")
+    .flatMap((line, index) => (YAML_COMMENT.test(line.replace(YAML_STRING, "$1")) ? [index] : []));
+}
+
 function otherComments(text: string): number[] {
   return text
     .split("\n")
@@ -64,14 +78,21 @@ const found = files.flatMap((file) => {
       ? cppComments(text)
       : file.endsWith(".lua")
         ? luaComments(text)
-        : otherComments(text);
+        : /\.ya?ml$/.test(file)
+          ? yamlComments(text)
+          : otherComments(text);
   const all = text.split("\n");
-  return lines.toSorted((a, b) => a - b).map((line) => `${file}:${line + 1}: ${all[line]?.trim()}`);
+  return lines
+    .filter((line) => !allowed(all[line] ?? ""))
+    .toSorted((a, b) => a - b)
+    .map((line) => `${file}:${line + 1}: ${all[line]?.trim()}`);
 });
 
 if (found.length > 0) {
   console.error(found.join("\n"));
-  console.error(`${found.length} comments. Opsis has none; see AGENTS.md.`);
+  console.error(
+    `${found.length} comments. Opsis allows only TODO(<area>) and FIXME(<area>) ones the user asked for; see AGENTS.md.`,
+  );
   process.exit(1);
 }
 console.log(`No comments in ${files.length} files.`);

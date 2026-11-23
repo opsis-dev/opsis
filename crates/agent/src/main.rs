@@ -36,8 +36,7 @@ async fn run(job: Job, keys: Result<Keyring, KeyError>) -> Result<(), String> {
         }
         Job::Login(answers) => {
             let (model, service) = (answers.chosen.model.clone(), answers.chosen.service.id());
-            let keys = keys.map_err(|e| e.to_string())?;
-            store(&pool, &keys, answers)
+            store(&pool, keys.as_ref(), answers)
                 .await
                 .map_err(|e| e.to_string())?;
             eprintln!("opsis-agent will use {model} on {service}.");

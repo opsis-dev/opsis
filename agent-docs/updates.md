@@ -28,7 +28,7 @@ How an installed Opsis checks for, downloads, verifies and installs a newer vers
 - **The feed is `latest.json` on the repository's latest release** (`feed_url`).
   - A draft or prerelease isn't "latest", so a release reaches people only when it's published.
 - **A version is newer only by semver order (`is_newer`)**, so a prerelease is older than its release.
-- **Each package asks for its own file**: the feed key (`feed_key`, through `this_computer`; its shape is in [packaging.md](packaging.md)) names the system, the processor and the installer, so the NSIS and MSI installs on one computer get their own installer and never cross over.
+- **Each package asks for its own file**: the feed key (`feed_key`, through `this_computer`; its shape is in [packaging.md](packaging.md)) names the system, the processor and the installer, so each kind of install gets its own file and never another's.
   - A feed with no file for this computer's key says the version has no update for this computer yet (`NoFile`).
 - **deb, rpm and pacman installs never download**: they show the version and its notes and open the release page, since their package manager owns the files.
 - **A download is kept only if its minisign signature verifies against the public key compiled in** (`public_key`, from `signing/opsis.key.pub`), checked while it streams; otherwise the file is deleted and the person is told it wasn't signed by Opsis.
@@ -39,12 +39,14 @@ How an installed Opsis checks for, downloads, verifies and installs a newer vers
 - **Opsis does the install step itself, never through the system temp folder.** For the AppImage and the macOS app the new copy is staged beside the one it replaces and renamed over it (`sibling`), so the swap stays on one file system; on Windows the downloaded installer runs from the updates folder.
   - AppImage: the new file is written beside the running one (`$APPIMAGE`, which must be set) and renamed over it, keeping its permissions.
   - macOS: the `.app.tar.gz` is unpacked beside the bundle, the bundle renamed aside, the new one moved in and the old one removed (`swap_folder`); reopening is `open -n`.
-  - Windows: a hidden PowerShell waits for Opsis to exit, runs the NSIS installer with `/P` or `msiexec /i … /passive`, and starts the program again only for Restart to update (`windows_script`).
+  - Windows: a hidden PowerShell waits for Opsis to exit, runs the NSIS installer with `/P`, and starts the program again only for Restart to update (`windows_script`).
+- **A failed install is told at the next start** (`crates/update/src/failed.rs`): the app is already closing when it installs, so the failure is noted in `<data folder>/update-failed.json` and the next start reads it once, shows a system notification and puts the reason in the About page's update status (`begin`).
+  - On macOS and Linux `finish` notes the error; on Windows the PowerShell script notes the installer's exit code when it isn't 0, since Opsis has exited by then. Windows PowerShell writes the file with a byte order mark, which the reader skips.
+  - The note lives outside `updates`, which the next start removes.
 - **The About page shows the build target, and a Commit row for builds made by `bun run make`** (`OPSIS_COMMIT`, set by `commit` in `scripts/lib/release.ts` from `GITHUB_SHA` or `git rev-parse HEAD`); other builds have no Commit row.
   - `opsis-update` builds again only when that value changes (`rerun-if-env-changed`).
 
 ## Deliberate limits
 
-- **A failed install is only logged** (`finish`): the app is already closing, so the person sees nothing, and the next start deletes the download. On Windows only starting the hidden PowerShell is logged; the installer's own result is never seen.
 - **An app in a folder the person can't write to fails to update** (a macOS app in an `/Applications` owned by another administrator, an AppImage in a read-only folder); it doesn't ask for an administrator password.
 - **There is no delta update**: every update downloads the whole package.

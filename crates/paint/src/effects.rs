@@ -207,10 +207,7 @@ pub fn open_layer(
     }
     if let Some(clip) = prop!(style, ClipPath) {
         crate::clips::apply(painter, placed, clip, root);
-        painter.surface.reset_matrix();
-        painter
-            .surface
-            .concat(crate::geometry::matrix44(&placed.matrix));
+        painter.set_matrix(&placed.matrix);
     }
     let alpha = prop!(style, Opacity).map_or(1.0, |a| a.0.clamp(0.0, 1.0));
     let blend = prop!(style, MixBlendMode).copied().unwrap_or_default();
@@ -240,14 +237,10 @@ pub fn open_layer(
         if let Some(ink) = ink {
             painter.save_layer_over(ink, &local, &paint);
         } else {
-            painter.surface.reset_matrix();
-            painter.surface.concat(crate::geometry::matrix44(&local));
+            painter.set_matrix(&local);
             painter.surface.save_layer(None, &paint);
         }
-        painter.surface.reset_matrix();
-        painter
-            .surface
-            .concat(crate::geometry::matrix44(&placed.matrix));
+        painter.set_matrix(&placed.matrix);
         opened.filter = true;
     }
     opened
@@ -268,10 +261,7 @@ pub fn close_layer(
     if masks.is_empty() {
         return;
     }
-    painter.surface.reset_matrix();
-    painter
-        .surface
-        .concat(crate::geometry::matrix44(&placed.matrix));
+    painter.set_matrix(&placed.matrix);
     let areas = Areas::of(placed, style, painter);
     let mut keep = Paint::new();
     keep.set_blend(opsis_skia::BlendMode::DstIn);

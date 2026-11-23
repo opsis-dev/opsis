@@ -2,6 +2,7 @@ use std::path::PathBuf;
 use std::sync::{Mutex, MutexGuard};
 
 use opsis_types::numbers;
+use opsis_update::failed::{FailedUpdate, failed_file, record, take};
 use opsis_update::fetch::{Available, Downloaded, client, public_key};
 use opsis_update::installer::{Installer, installed_from};
 use tokio_util::sync::CancellationToken;
@@ -68,6 +69,12 @@ pub fn begin(app: &Session) {
     match installer() {
         Some(installer) => log::info!("installed from {}", installer.label()),
         None => log::info!("not installed from a release package"),
+    }
+    if let Some(failed) = take(&failed_file(&app.state::<AppState>().paths.user_data)) {
+        let message = failed.message();
+        log::warn!("{message}");
+        app.platform().notify("The update didn't install", &message);
+        set(app, |status| status.error = message);
     }
     let leftovers = folder(app);
     crate::runtime::spawn(async move {
@@ -223,8 +230,19 @@ pub fn finish(app: &Session) {
         update.version,
         update.path.display()
     );
-    if let Err(error) = opsis_update::install::install(&update, reopen) {
+    let failed = failed_file(&app.state::<AppState>().paths.user_data);
+    if let Err(error) = opsis_update::install::install(&update, reopen, &failed) {
         log::error!("installing the update: {error:?}");
+        let noted = record(
+            &failed,
+            &FailedUpdate {
+                version: update.version.clone(),
+                reason: error.to_string(),
+            },
+        );
+        if let Err(error) = noted {
+            log::warn!("noting the failed update: {error}");
+        }
     }
 }
 

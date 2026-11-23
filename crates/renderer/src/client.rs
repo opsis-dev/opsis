@@ -11,7 +11,17 @@ use crate::protocol::{ProtocolError, Reply, Request, Setting, receive, send};
 const PROGRAM: &str = "opsis-renderer";
 const PROGRAM_ENV: &str = "OPSIS_RENDERER";
 const DRIVER_FILES_ENV: &str = "VK_DRIVER_FILES";
+const LOADER_PATH_ENV: Option<&str> = if cfg!(windows) {
+    Some("PATH")
+} else if cfg!(target_os = "macos") {
+    Some("DYLD_LIBRARY_PATH")
+} else {
+    None
+};
 const ICD_FILE: &str = "software-vulkan.json";
+const VULKAN_FOLDER_ENV: &str = "OPSIS_VULKAN_FOLDER";
+const VULKAN_FOLDER: &str = "software-vulkan";
+const VULKAN_LIBRARY: &str = "vulkan-1.dll";
 const SEARCHED_FOLDERS: usize = 5;
 const TEMP_ENV: [&str; 3] = ["TMPDIR", "TEMP", "TMP"];
 
@@ -85,6 +95,31 @@ fn icd_json(library: &Path) -> String {
     .to_string()
 }
 
+fn loader_path(name: &str, folder: &Path) -> Result<std::ffi::OsString, RendererError> {
+    let current = std::env::var_os(name).unwrap_or_default();
+    let folders = std::iter::once(folder.to_path_buf()).chain(std::env::split_paths(&current));
+    std::env::join_paths(folders).map_err(|e| RendererError::Start(std::io::Error::other(e)))
+}
+
+fn library_as_loader(
+    library: &Path,
+    temp: &Path,
+    started: usize,
+) -> Result<PathBuf, RendererError> {
+    let size = std::fs::metadata(library)
+        .map_err(RendererError::Start)?
+        .len();
+    let folder = temp.join(format!("{VULKAN_FOLDER}-{size}"));
+    let named = folder.join(VULKAN_LIBRARY);
+    if !named.is_file() {
+        std::fs::create_dir_all(&folder).map_err(RendererError::Start)?;
+        let written = folder.join(format!("{VULKAN_LIBRARY}.{}.{started}", std::process::id()));
+        std::fs::copy(library, &written).map_err(RendererError::Start)?;
+        std::fs::rename(&written, &named).map_err(RendererError::Start)?;
+    }
+    Ok(folder)
+}
+
 impl Renderer {
     pub fn start(program: &Path, driver: &Driver, temp: &Path) -> Result<Self, RendererError> {
         let mut command = Command::new(program);
@@ -107,6 +142,15 @@ impl Renderer {
             std::fs::write(&written, icd_json(library)).map_err(RendererError::Start)?;
             std::fs::rename(&written, &icd).map_err(RendererError::Start)?;
             command.env(DRIVER_FILES_ENV, icd);
+            if let (Some(name), Some(folder)) = (LOADER_PATH_ENV, library.parent()) {
+                command.env(name, loader_path(name, folder)?);
+            }
+            if cfg!(windows) {
+                command.env(
+                    VULKAN_FOLDER_ENV,
+                    library_as_loader(library, temp, started)?,
+                );
+            }
         }
         let mut child = command.spawn().map_err(RendererError::Start)?;
         let (Some(input), Some(output)) = (child.stdin.take(), child.stdout.take()) else {
@@ -205,5 +249,26 @@ impl Drop for Renderer {
         if let Err(error) = self.child.wait() {
             log::warn!("waiting for the drawing program: {error}");
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_software_library_is_copied_once_as_the_vulkan_loader() {
+        let dir = tempfile::tempdir().unwrap();
+        let library = dir.path().join("vk_swiftshader.dll");
+        std::fs::write(&library, b"swiftshader").unwrap();
+        let temp = dir.path().join("drawing");
+        let folder = library_as_loader(&library, &temp, 0).unwrap();
+        assert_eq!(folder, temp.join("software-vulkan-11"));
+        assert_eq!(
+            std::fs::read(folder.join("vulkan-1.dll")).unwrap(),
+            b"swiftshader"
+        );
+        assert_eq!(library_as_loader(&library, &temp, 1).unwrap(), folder);
+        assert_eq!(std::fs::read_dir(&folder).unwrap().count(), 1);
     }
 }

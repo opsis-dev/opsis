@@ -192,15 +192,15 @@ mod tests {
     #[test]
     fn a_self_updating_installer_gets_its_own_file() {
         let keys = [
+            this_computer(Installer::AppImage),
             this_computer(Installer::Nsis),
-            this_computer(Installer::Msi),
         ];
-        let available = offered(feed("9.0.0", &keys), Installer::Msi, "0.1.0")
+        let available = offered(feed("9.0.0", &keys), Installer::Nsis, "0.1.0")
             .unwrap()
             .unwrap();
         assert_eq!(
             available.file.unwrap().url,
-            format!("https://example.test/{}", this_computer(Installer::Msi))
+            format!("https://example.test/{}", this_computer(Installer::Nsis))
         );
     }
 

@@ -41,6 +41,8 @@ Browser sessions and their actions, the take value every recording shares, recor
   - A replayed step acts on the page but leaves nothing in the take: no action in its log (`push_action`), so no click sound, keystroke chip or camera move from it, and a replayed Chapter shows no card.
 - **The session carries the address the last Go to page opened (`address`)**, which the element picker opens and the Run page script warning reads.
 - **Capture keeps Playwright's launch switches, injected page script, clock and keyboard but talks CDP itself**; `playwright-core` is only a dev dependency.
+- **The page is never told the recording computer's own accessibility settings**: every media feature `set_color_scheme` sends has an explicit value (`no-preference` for reduced motion when Open browser's is off, `none` for forced colours, `no-preference` for contrast), since an empty value leaves the computer's setting in place and a Mac with reduced motion on would make takes jump instead of scrolling smoothly.
+  - **The browser always animates smooth scrolls** (`--enable-smooth-scrolling`, `HEADLESS_SWITCHES`, `browser.rs`): Chrome otherwise follows the system, and on Windows with its animations off, as on a server or over remote desktop, `scrollIntoView({ behavior: 'smooth' })` jumps.
 - **Actions that change what the page is told about the computer change it mid-take, from Open browser's values.** Switch theme (`browser.switchTheme`) sends the media features again through `Session::set_color_scheme`, because `Emulation.setEmulatedMedia` replaces every feature at once, so the session keeps Open browser's reduced motion (`Session.reduce_motion`) to send it with the new scheme. Pages see the change live, as when the computer's setting changes.
   - Change language (`browser.changeLanguage`, `Session::set_locale`) clears the session's own language override before setting the new one, then sends the user agent again with the new `acceptLanguage`; it reloads the page by default, because most sites read the language only when a page loads. An empty language is the computer's, as in Open browser.
   - Go offline (`browser.goOffline`, `Session::set_offline`) uses `Network.emulateNetworkConditionsByRule`, one rule with an empty pattern for every request, and `Network.overrideNetworkState` for what `navigator.onLine` and the `online`/`offline` events report; not `Network.emulateNetworkConditions`, which does both and which the protocol marks deprecated. Both replacements are still experimental in the protocol, so a browser move rechecks them (`page_conditions.rs`).
@@ -126,6 +128,8 @@ Browser sessions and their actions, the take value every recording shares, recor
 - **Its image carries the region's size, that scale and, for one element, the element's box inside the padded region** (`padded_region`).
 
 ## Deliberate limits
+
+- **Show scrollbars draws Chrome's overlay scrollbars on macOS**, which appear only while the page scrolls, so a take recorded on a Mac shows no bar at rest; Opsis only leaves out `--hide-scrollbars` (`crates/capture/src/browser.rs`) and adds no style of its own.
 
 - **On a held clock nothing the page itself waits for happens between steps**: a page script that awaits a timer never ends, and server replies, videos, canvases driven by real time, workers and other-origin frames keep real time.
 - **Frame pictures cost more the more they keep**: Lossless and Full detail take longer than Standard, by how much the Frame pictures setting's help says (`Record`, `crates/compile/src/nodes/capture.rs`).

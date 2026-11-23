@@ -16,7 +16,7 @@ env:
 
 jobs:
   checks:
-    name: Checks
+    name: Checks · Linux x64
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -29,64 +29,79 @@ jobs:
       - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
         with:
           toolchain: nightly-2026-10-29
-          components: clippy, rustfmt
+          components: clippy, rustfmt, llvm-tools
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
         with:
+          shared-key: ${{ runner.os }}-${{ runner.arch }}
           cache-on-failure: true
       - uses: taiki-e/install-action@3a3daafd3b7f23b8f65d9f5ba2db203fb59b79e2
         with:
           tool: cargo-deny@0.19.8
-      - name: Install the system libraries, the virtual display and headless Wayland
-        run: sudo apt-get update && sudo apt-get install -y xvfb sway clang libc++-dev libc++abi-dev libasound2-dev libatspi2.0-dev libdbus-1-dev libfontconfig1-dev libfreetype-dev libwayland-dev wayland-protocols libx11-dev libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-util-dev libxcb-xfixes0-dev libxcb-xkb-dev libxext-dev libxfixes-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libxrender-dev
+      - name: Install the system libraries setup checks for
+        run: sudo apt-get update && sudo apt-get install -y clang libc++-dev libc++abi-dev libasound2-dev libatspi2.0-dev libdbus-1-dev libfontconfig1-dev libfreetype-dev libwayland-dev wayland-protocols libx11-dev libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-util-dev libxcb-xfixes0-dev libxcb-xkb-dev libxext-dev libxfixes-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libxrender-dev
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2
       - run: bun install --frozen-lockfile
-      - name: Cache what setup fetches and builds
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      - name: Restore what setup fetched and built
+        id: setup-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
             ~/.cache/opsis-dev
             ~/.config/Opsis/engine
-          key: setup-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/setup/**', 'scripts/lib/static-qt.ts', 'scripts/lib/skia.ts', 'crates/engine/src/downloads.generated.json') }}
+          key: setup-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/setup/**', 'scripts/lib/static-qt.ts', 'scripts/lib/skia.ts', 'scripts/lib/filament.ts', 'scripts/lib/git-source.ts', 'crates/engine/src/downloads.generated.json') }}
       - name: Set up the pinned tools, Qt, Skia, Filament, FFmpeg and the engine
         run: bun run setup
+      - name: Keep what setup fetched and built
+        if: steps.setup-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            ~/.cache/opsis-dev
+            ~/.config/Opsis/engine
+          key: setup-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/setup/**', 'scripts/lib/static-qt.ts', 'scripts/lib/skia.ts', 'scripts/lib/filament.ts', 'scripts/lib/git-source.ts', 'crates/engine/src/downloads.generated.json') }}
       - name: Fetch the terminal engine
+        id: zig
         working-directory: crates/vt/zig
         run: ../../../.setup/bin/zig build --fetch
-      - run: bun run typecheck
-      - run: bun run lint
-      - run: bun run format
-      - run: bun run test
-      - name: Drive the native editor with real input on headless Wayland
-        run: bun run e2e:qt wayland
+      - name: Typecheck the scripts
+        if: ${{ !cancelled() && steps.zig.outcome == 'success' }}
+        run: bun run typecheck
+      - name: Lint
+        if: ${{ !cancelled() && steps.zig.outcome == 'success' }}
+        run: bun run lint
+      - name: Check the formatting
+        if: ${{ !cancelled() && steps.zig.outcome == 'success' }}
+        run: bun run format
+      - name: Run the scripts' tests
+        if: ${{ !cancelled() && steps.zig.outcome == 'success' }}
+        run: bun run test:ts
+      - name: Run the Rust tests
+        if: ${{ !cancelled() && steps.zig.outcome == 'success' }}
+        run: bun scripts/test-rust.ts --workspace --no-fail-fast
       - name: Check the terminal engine in a release build
+        if: ${{ !cancelled() && steps.zig.outcome == 'success' }}
         run: cargo test -p opsis-vt --release
-      - name: Check the bundled FFmpeg has everything Opsis uses
-        run: bun run test:rust -p opsis-media --lib capabilities
-      - name: Compare every element with its golden picture on the software graphics driver
-        run: cargo build -p opsis-effects --bin opsis-renderer && cargo test -p opsis-render --test goldens -- --ignored
 
-  scripts:
-    name: Script sandbox on ${{ matrix.os }}
+  platforms:
+    name: Build · ${{ matrix.name }}
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest]
+        include:
+          - name: Linux arm64
+            os: ubuntu-24.04-arm
+            packages: --workspace
+          - name: Windows x64
+            os: windows-latest
+            packages: --workspace --exclude opsis-e2e-input
+          # FIXME(ffmpeg): no macOS Apple Silicon job until Opsis builds its own FFmpeg, since ffmpeg-static's Apple Silicon build is configured with --enable-nonfree (plans/ffmpeg.md section 2)
+          - name: macOS Intel
+            os: macos-26-intel
+            packages: --workspace --exclude opsis-e2e-input
     runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
-        with:
-          toolchain: nightly-2026-10-29
-      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
-        with:
-          cache-on-failure: true
-      - name: Check that scripts reach only the project's files
-        run: cargo test -p opsis-script
-
-  e2e:
-    name: End-to-end
-    needs: checks
-    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
@@ -98,24 +113,41 @@ jobs:
       - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
         with:
           toolchain: nightly-2026-10-29
+          components: clippy, llvm-tools
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
         with:
+          shared-key: ${{ runner.os }}-${{ runner.arch }}
           cache-on-failure: true
-      - name: Install the system libraries and the virtual display
-        run: sudo apt-get update && sudo apt-get install -y xvfb xauth clang libc++-dev libc++abi-dev libasound2-dev libatspi2.0-dev libdbus-1-dev libfontconfig1-dev libfreetype-dev libwayland-dev wayland-protocols libx11-dev libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-util-dev libxcb-xfixes0-dev libxcb-xkb-dev libxext-dev libxfixes-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libxrender-dev
-      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2
       - run: bun install --frozen-lockfile
-      - name: Cache what setup fetches and builds
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      - name: Install the system libraries setup checks for
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y clang libc++-dev libc++abi-dev libasound2-dev libatspi2.0-dev libdbus-1-dev libfontconfig1-dev libfreetype-dev libwayland-dev wayland-protocols libx11-dev libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-util-dev libxcb-xfixes0-dev libxcb-xkb-dev libxext-dev libxfixes-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libxrender-dev
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2
+        if: runner.os == 'Linux'
+      - name: Restore what setup fetched and built
+        id: setup-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
             ~/.cache/opsis-dev
             ~/.config/Opsis/engine
-          key: setup-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/setup/**', 'scripts/lib/static-qt.ts', 'scripts/lib/skia.ts', 'crates/engine/src/downloads.generated.json') }}
+          key: setup-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/setup/**', 'scripts/lib/static-qt.ts', 'scripts/lib/skia.ts', 'scripts/lib/filament.ts', 'scripts/lib/git-source.ts', 'crates/engine/src/downloads.generated.json') }}
       - name: Set up the pinned tools, Qt, Skia, Filament, FFmpeg and the engine
         run: bun run setup
+      - name: Keep what setup fetched and built
+        if: steps.setup-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            ~/.cache/opsis-dev
+            ~/.config/Opsis/engine
+          key: setup-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/setup/**', 'scripts/lib/static-qt.ts', 'scripts/lib/skia.ts', 'scripts/lib/filament.ts', 'scripts/lib/git-source.ts', 'crates/engine/src/downloads.generated.json') }}
       - name: Fetch the terminal engine
+        id: zig
         working-directory: crates/vt/zig
         run: ../../../.setup/bin/zig build --fetch
-      - name: Drive the native editor through real runs
-        run: bun run e2e:qt tour runs api
+      - name: Lint the Rust
+        run: cargo clippy ${{ matrix.packages }} --all-targets -- -D warnings
+      - name: Run the Rust tests
+        if: ${{ !cancelled() && steps.zig.outcome == 'success' }}
+        run: bun scripts/test-rust.ts ${{ matrix.packages }} --no-fail-fast

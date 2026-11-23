@@ -53,6 +53,19 @@ fn without_times(log: &ActionLog) -> Vec<Value> {
         .collect()
 }
 
+fn timeline(log: &ActionLog) -> String {
+    log.actions
+        .iter()
+        .map(|a| {
+            let end = a
+                .t_end
+                .map_or_else(String::new, |end| format!(" to {end:.0}"));
+            format!("{:?} at {:.0}{end} ms", a.kind, a.t)
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 fn recorded_log(project: &Path) -> ActionLog {
     let cache = project.join(".opsis/cache");
     let take = std::fs::read_dir(&cache)
@@ -153,7 +166,8 @@ async fn todomvc_take_plays_the_recorded_actions_at_the_recorded_length() {
     assert!(found.is_empty(), "{}", found.join("\n"));
     assert!(
         (frames - recorded).abs() <= recorded * FRAME_SLACK,
-        "{frames} frames against {recorded} recorded"
+        "{frames} frames against {recorded} recorded\n{}",
+        timeline(&log)
     );
 }
 

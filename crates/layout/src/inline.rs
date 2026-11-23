@@ -603,6 +603,7 @@ const SPACED_PROBE: &str = "x x";
 const JOINED_PROBE: &str = "xx";
 const HYPHEN_PROBE: &str = "-";
 const SOFT_HYPHEN: char = '\u{ad}';
+const INLINE_OBJECT: char = '\u{fffc}';
 const HYPHEN_ROUNDS: usize = 3;
 const X_HEIGHT_SHARE: f64 = 0.5;
 const ZERO_PROBE: &str = "0";
@@ -807,8 +808,12 @@ pub fn text_of(items: &[InlineItem]) -> (String, Vec<(usize, usize)>) {
     let mut ranges = Vec::new();
     for item in items {
         let start = text.len();
-        if let InlineItem::Text { text: t, .. } = item {
-            text.push_str(t);
+        match item {
+            InlineItem::Text { text: t, .. } => text.push_str(t),
+            InlineItem::Box { .. } | InlineItem::Tab { .. } | InlineItem::Edge { .. } => {
+                text.push(INLINE_OBJECT);
+            }
+            InlineItem::SpanStart { .. } | InlineItem::SpanEnd => {}
         }
         ranges.push((start, text.len()));
     }
@@ -863,6 +868,12 @@ fn shaped_paragraph(
     let mut box_index = 0;
     let mut tab_index = 0;
     for (index, (item, (start, end))) in items.iter().zip(&ranges).enumerate() {
+        if matches!(
+            item,
+            InlineItem::Box { .. } | InlineItem::Tab { .. } | InlineItem::Edge { .. }
+        ) {
+            builder.push(StyleProperty::LetterSpacing(0.0), *start..*end);
+        }
         match item {
             InlineItem::Text { style, .. } => {
                 push_style(
@@ -1149,6 +1160,13 @@ fn shape_paragraph(
         AvailableSpace::Definite(w) => Some(w),
     };
     let limit = width.or(max);
+    paragraph.set_alignment(
+        root_align,
+        AlignmentOptions {
+            align_when_overflowing: false,
+            last_line_alignment: None,
+        },
+    );
     let mut narrowed: Vec<(usize, f32)> = Vec::new();
     for _ in 0..HYPHEN_ROUNDS {
         break_lines(&mut paragraph, limit, &narrowed);
@@ -1171,13 +1189,6 @@ fn shape_paragraph(
         }
         narrowed.extend(overflowing);
     }
-    paragraph.align(
-        root_align,
-        AlignmentOptions {
-            align_when_overflowing: false,
-            last_line_alignment: None,
-        },
-    );
     let line_width = width.unwrap_or_else(|| paragraph.width());
     let hyphens = hyphenated_lines(tree, id, &paragraph);
     if let crate::tree::Content::Inline(content) = &mut tree.nodes[id].content {

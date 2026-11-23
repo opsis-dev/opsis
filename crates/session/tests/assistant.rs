@@ -314,22 +314,25 @@ fn a_panel_session_signs_in_asks_permission_holds_a_run_result_for_the_next_turn
         commands.send(Command::Stop).unwrap();
         assert!(talking.await.unwrap().unwrap());
         let db = app.state::<AppState>().db();
-        let mut messages = Vec::new();
+        let expected = [
+            ("user".to_owned(), "Write a file".to_owned()),
+            ("agent".to_owned(), "Hello allowed".to_owned()),
+            ("user".to_owned(), finished.to_owned()),
+            ("agent".to_owned(), "Hello allowed".to_owned()),
+        ];
+        let mut said: Vec<(String, String)> = Vec::new();
         let started = Instant::now();
-        while messages.len() < 4 && started.elapsed() < WITHIN {
-            messages = db.assistant_messages("panel-1").await.unwrap();
+        while said != expected && started.elapsed() < WITHIN {
             tokio::time::sleep(Duration::from_millis(20)).await;
+            said = db
+                .assistant_messages("panel-1")
+                .await
+                .unwrap()
+                .into_iter()
+                .map(|m| (m.role, m.text))
+                .collect();
         }
-        let said: Vec<(String, String)> = messages.into_iter().map(|m| (m.role, m.text)).collect();
-        assert_eq!(
-            said,
-            [
-                ("user".to_owned(), "Write a file".to_owned()),
-                ("agent".to_owned(), "Hello allowed".to_owned()),
-                ("user".to_owned(), finished.to_owned()),
-                ("agent".to_owned(), "Hello allowed".to_owned())
-            ]
-        );
+        assert_eq!(said, expected);
         let requests = db.assistant_requests("panel-1").await.unwrap();
         assert!(
             requests

@@ -7,7 +7,7 @@ import { ROOT } from "./lib/tool-config";
 
 const REPOSITORY = "https://github.com/opsis-dev/opsis";
 const UPDATE_SUFFIX = ".update.json";
-const SELF_UPDATING_KEYS = 5;
+const SELF_UPDATING_KEYS = 4;
 
 const updateFileSchema = z.object({
   key: z.string(),

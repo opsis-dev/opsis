@@ -5,8 +5,6 @@ use opsis_skia::{
 };
 use usvg::tiny_skia_path::PathSegment;
 
-use crate::geometry::matrix44;
-
 pub fn matrix_of(t: usvg::Transform) -> Matrix {
     Matrix([
         f64::from(t.sx),
@@ -110,6 +108,7 @@ fn settings(base: &usvg::BaseGradient) -> SkiaGradient {
 pub struct SvgPainter<'s> {
     pub surface: &'s mut Surface,
     pub decode: &'s mut dyn FnMut(&[u8]) -> Option<Image>,
+    pub device: crate::Placement,
 }
 
 impl std::fmt::Debug for SvgPainter<'_> {
@@ -120,8 +119,7 @@ impl std::fmt::Debug for SvgPainter<'_> {
 
 impl SvgPainter<'_> {
     fn set(&mut self, base: &Matrix) {
-        self.surface.reset_matrix();
-        self.surface.concat(matrix44(base));
+        self.device.set(self.surface, base);
     }
 
     fn paint_for(&mut self, paint: &usvg::Paint, opacity: f32, base: &Matrix) -> Option<Paint> {
@@ -180,6 +178,7 @@ impl SvgPainter<'_> {
             let mut inner = SvgPainter {
                 surface: &mut tile,
                 decode,
+                device: crate::Placement::DEVICE,
             };
             inner.group(pattern.root(), &tile_base);
         }
@@ -223,16 +222,14 @@ impl SvgPainter<'_> {
         let clip_base = base.then(&matrix_of(clip.transform()));
         let mut shape = Path::new();
         collect_paths(clip.root(), &Matrix::IDENTITY, &mut shape);
-        self.surface.reset_matrix();
-        self.surface.concat(matrix44(&clip_base));
+        self.set(&clip_base);
         self.surface.clip_path(&shape, true);
     }
 
     pub fn clip_to_path(&mut self, group: &usvg::Group, base: &Matrix) {
         let mut shape = Path::new();
         collect_paths(group, &Matrix::IDENTITY, &mut shape);
-        self.surface.reset_matrix();
-        self.surface.concat(matrix44(base));
+        self.set(base);
         self.surface.clip_path(&shape, true);
     }
 
@@ -398,6 +395,7 @@ pub fn render_picture(
         let mut painter = SvgPainter {
             surface: &mut surface,
             decode,
+            device: crate::Placement::DEVICE,
         };
         painter.group(
             root,

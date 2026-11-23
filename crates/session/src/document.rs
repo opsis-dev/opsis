@@ -250,6 +250,7 @@ async fn opened_project(state: &AppState, dir: &Path) -> CommandResult<OpenProje
 }
 
 pub async fn open(app: &Session, dir: &Path) -> CommandResult<OpenProject> {
+    let dir = &opsis_folders::real_folder(dir);
     let state = app.state::<AppState>();
     if document_dir(state).as_deref() != Some(dir) {
         crate::script::stop_and_wait(app).await;
@@ -290,6 +291,7 @@ pub async fn adopt(
     workflow: Workflow,
     version: String,
 ) -> CommandResult<OpenProject> {
+    let dir = &opsis_folders::real_folder(dir);
     crate::script::stop_and_wait(app).await;
     crate::assistant::stop(app);
     crate::agent_browser::close(app).await;

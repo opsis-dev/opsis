@@ -799,6 +799,12 @@ pub mod ffi {
     }
 
     #[derive(Debug, Clone)]
+    struct EditorFont {
+        file: String,
+        bytes: Vec<u8>,
+    }
+
+    #[derive(Debug, Clone)]
     struct ProjectEntry {
         name: String,
         dir: String,
@@ -1173,7 +1179,7 @@ pub mod ffi {
         fn style_sheet(self: &Session) -> String;
         fn token(self: &Session, name: &str) -> String;
         fn icon_svg(self: &Session, name: &str, color: &str, stroke: f64) -> String;
-        fn fonts_dir(self: &Session) -> String;
+        fn editor_fonts(self: &Session) -> Vec<EditorFont>;
         fn log(self: &Session, line: &str);
         fn answer_dialog(self: &Session, id: u64, paths: Vec<String>);
         fn set_active(self: &Session, active: bool);

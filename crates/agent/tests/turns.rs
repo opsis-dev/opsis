@@ -167,7 +167,8 @@ async fn full_mode_never_asks_and_a_background_command_reports_when_it_ends() {
     let (turned, later, _) =
         one_turn(&server, Some("full"), "reject", Some("from-the-background")).await;
     assert_eq!((turned.asked, turned.tools), (0, 1), "{turned:?}");
-    assert!(later.contains("from-the-background"), "{later}");
+    let said = format!("{}{later}", turned.text);
+    assert!(said.contains("from-the-background"), "{said}");
 }
 
 #[tokio::test(flavor = "multi_thread")]

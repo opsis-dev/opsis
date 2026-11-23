@@ -39,6 +39,7 @@ Ghostty behind `opsis-vt`, terminal sessions and takes, tapes and cast files, th
 - **`vtwrap.zig` imports Ghostty's `ghostty-vt` Zig module and exports a C interface shaped for Opsis**; `build.rs` links it as static archives (the wrapper and Ghostty's SIMD libraries), and Rust calls it through hand-written declarations in `src/ffi.rs`.
 - **`Terminal` is one owned handle, `&mut self` everywhere, `Send` and not `Sync`, and it checks the interface's version and struct sizes when it is made.**
 - **Input turns into the bytes the program expects through Ghostty's own encoders, with the modes the program set**: keys (by the editor's key names), mouse presses, moves and wheel turns at a cell, pastes and focus changes.
+  - Alt is Alt on every system: the key encoder's `macos_option_as_alt` is set on (`opsis_vt_encode_key`, `crates/vt/zig/src/vtwrap.zig`), since Ghostty's macOS default turns Option into a character composer and a tape's `Alt+` would then send only the letter on a Mac.
 - **`opsis-terminal` has no `unsafe`.**
 
 ### Sessions and takes

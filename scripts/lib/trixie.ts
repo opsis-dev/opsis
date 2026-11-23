@@ -42,6 +42,7 @@ const PACKAGES = [
   "clang",
   "libc++-dev",
   "libc++abi-dev",
+  "llvm",
   "ca-certificates",
   "cmake",
   "git",

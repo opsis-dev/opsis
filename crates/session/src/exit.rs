@@ -115,11 +115,44 @@ pub fn close_on_signals(app: &Session) {
             _ = interrupt.recv() => "SIGINT",
             _ = hangup.recv() => "SIGHUP",
         };
-        log::info!("{name}: saving and closing");
-        flush_save(&app).await;
-        app.state::<RunHost>().cancel();
-        app.platform().exit(0);
+        close_now(&app, name).await;
     });
+}
+
+#[cfg(windows)]
+pub fn close_on_signals(app: &Session) {
+    use tokio::signal::windows::{ctrl_break, ctrl_c, ctrl_close, ctrl_logoff, ctrl_shutdown};
+    let app = app.clone();
+    crate::runtime::spawn(async move {
+        let listening = (
+            ctrl_c(),
+            ctrl_break(),
+            ctrl_close(),
+            ctrl_logoff(),
+            ctrl_shutdown(),
+        );
+        let (Ok(mut interrupt), Ok(mut brk), Ok(mut closed), Ok(mut logoff), Ok(mut shutdown)) =
+            listening
+        else {
+            log::warn!("couldn't listen for the console events that end the app");
+            return;
+        };
+        let name = tokio::select! {
+            _ = interrupt.recv() => "Ctrl+C",
+            _ = brk.recv() => "Ctrl+Break",
+            _ = closed.recv() => "the console closing",
+            _ = logoff.recv() => "logging off",
+            _ = shutdown.recv() => "shutting down",
+        };
+        close_now(&app, name).await;
+    });
+}
+
+async fn close_now(app: &Session, cause: &str) {
+    log::info!("{cause}: saving and closing");
+    flush_save(app).await;
+    app.state::<RunHost>().cancel();
+    app.platform().exit(0);
 }
 
 pub async fn confirm(app: &Session) -> bool {

@@ -1,7 +1,9 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { fetchGitSource } from "./git-source";
 import { readPins } from "./setup/manifest";
+import { visualStudioFolder } from "./static-qt";
 import { ROOT } from "./tool-config";
 import { runInTrixie } from "./trixie";
 
@@ -34,24 +36,21 @@ const CHROME_LINUX_DEFINES = [
 ];
 const UNSET_DEFINES = ["SK_GAMMA_APPLY_TO_A8"];
 
-const CFLAGS = [
-  "-fPIC",
-  "-ffunction-sections",
-  "-fdata-sections",
+const SAME_ON_EVERY_X86 = ["SK_DISABLE_AVX512_OPTS"];
+
+const DEFINE_FLAGS = [
   ...CHROME_LINUX_DEFINES.map((d) => `-D${d}`),
+  ...SAME_ON_EVERY_X86.map((d) => `-D${d}`),
   ...UNSET_DEFINES.map((d) => `-U${d}`),
 ];
-
-const CXXFLAGS = process.platform === "linux" ? ["-stdlib=libc++"] : [];
+const UNIX_CFLAGS = ["-fPIC", "-ffunction-sections", "-fdata-sections"];
+const LINUX_CXXFLAGS = ["-stdlib=libc++"];
+const WINDOWS_CFLAGS = ["/MD"];
 
 const ARGS: Record<string, string | boolean> = {
   is_official_build: true,
   is_debug: false,
   is_component_build: false,
-  cc: JSON.stringify("clang"),
-  cxx: JSON.stringify("clang++"),
-  extra_cflags: JSON.stringify(CFLAGS),
-  extra_cflags_cc: JSON.stringify(CXXFLAGS),
   skia_enable_ganesh: false,
   skia_enable_graphite: false,
   skia_use_gl: false,
@@ -109,24 +108,44 @@ function run(command: string, args: string[], cwd: string, env: NodeJS.ProcessEn
   execFileSync(command, args, { cwd, stdio: "inherit", env });
 }
 
-function fetchSource(src: string, repo: string, commit: string) {
-  if (existsSync(path.join(src, "BUILD.gn"))) {
-    console.log(`Skia: ${src} is already fetched`);
-    return;
-  }
-  mkdirSync(src, { recursive: true });
-  run("git", ["init", "-q"], src);
-  run("git", ["remote", "add", "origin", repo], src);
-  run("git", ["fetch", "--depth", "1", "origin", commit], src);
-  run("git", ["checkout", "-q", "FETCH_HEAD"], src);
-  console.log(`Skia: ${commit}`);
+function llvmFolder(): string {
+  const llvm = path.win32.join(visualStudioFolder(), "VC", "Tools", "Llvm", "x64");
+  if (!existsSync(path.win32.join(llvm, "bin", "clang-cl.exe")))
+    throw new Error(
+      `Building Skia on Windows needs Visual Studio's Clang tools; ${llvm} has no clang-cl.`,
+    );
+  return llvm.replaceAll("\\", "/");
 }
+
+export function compilerArgs(platform: SkiaPlatform, llvm = ""): Record<string, string> {
+  if (platform === "win32")
+    return {
+      clang_win: JSON.stringify(llvm),
+      extra_cflags: JSON.stringify([...WINDOWS_CFLAGS, ...DEFINE_FLAGS]),
+      extra_cflags_cc: JSON.stringify([]),
+    };
+  return {
+    cc: JSON.stringify("clang"),
+    cxx: JSON.stringify("clang++"),
+    extra_cflags: JSON.stringify([...UNIX_CFLAGS, ...DEFINE_FLAGS]),
+    extra_cflags_cc: JSON.stringify(platform === "linux" ? LINUX_CXXFLAGS : []),
+  };
+}
+
+const BUILD_ONLY_SOURCES = [path.join("third_party", "externals"), ".git"];
+const REMOVE_ATTEMPTS = 5;
 
 const SYNC_ATTEMPTS = 5;
 const SYNC_PAUSE_SECONDS = 30;
 
 function syncDependencies(src: string) {
-  const env = { ...process.env, GIT_SYNC_DEPS_SKIP_EMSDK: "1" };
+  const env = {
+    ...process.env,
+    GIT_SYNC_DEPS_SKIP_EMSDK: "1",
+    GIT_CONFIG_COUNT: "1",
+    GIT_CONFIG_KEY_0: "core.longpaths",
+    GIT_CONFIG_VALUE_0: "true",
+  };
   for (let attempt = 1; ; attempt++) {
     try {
       run("python3", ["tools/git-sync-deps"], src, env);
@@ -141,51 +160,97 @@ function syncDependencies(src: string) {
   }
 }
 
-function gnArgs(): string {
-  return Object.entries(ARGS)
+function gnArgs(platform: SkiaPlatform): string {
+  const compiler = compilerArgs(platform, platform === "win32" ? llvmFolder() : "");
+  return Object.entries({ ...ARGS, ...compiler })
     .map(([key, value]) => `${key}=${String(value)}`)
     .join(" ");
 }
 
 function build(src: string, out: string, commit: string) {
-  const gn = path.join(src, "bin", process.platform === "win32" ? "gn.exe" : "gn");
-  run(gn, ["gen", out, `--args=${gnArgs()}`], src);
+  const platform = hostPlatform();
+  const gn = path.join(src, "bin", platform === "win32" ? "gn.exe" : "gn");
+  run(gn, ["gen", out, `--args=${gnArgs(platform)}`], src);
   const ninja = path.join(
     src,
     "third_party",
     "ninja",
-    process.platform === "win32" ? "ninja.exe" : "ninja",
+    platform === "win32" ? "ninja.exe" : "ninja",
   );
   run(existsSync(ninja) ? ninja : "ninja", ["-C", out, "-j", BUILD_JOBS, ...TARGETS], src);
-  if (process.platform === "linux") makePrivate(out);
-  writeConsumer(gn, src, out, commit);
+  makePrivate(out, platform);
+  writeConsumer(gn, src, out, commit, platform);
 }
 
-function archive(out: string, name: string): string {
-  return path.join(out, `lib${name}.a`);
+export type SkiaPlatform = "linux" | "darwin" | "win32";
+
+function hostPlatform(): SkiaPlatform {
+  const platform = process.platform;
+  if (platform === "linux" || platform === "darwin" || platform === "win32") return platform;
+  throw new Error(`Skia isn't built for ${platform}.`);
 }
 
-function definedSymbols(file: string): string[] {
-  const listed = execFileSync("nm", ["-g", "--defined-only", "--format=just-symbols", file], {
+export function archiveFile(name: string, platform: SkiaPlatform): string {
+  return platform === "win32" ? `${name}.lib` : `lib${name}.a`;
+}
+
+export function archiveName(file: string, platform: SkiaPlatform): string | null {
+  if (platform === "win32") return file.endsWith(".lib") ? file.slice(0, -".lib".length) : null;
+  return file.startsWith("lib") && file.endsWith(".a")
+    ? file.slice("lib".length, -".a".length)
+    : null;
+}
+
+export function privateSymbol(symbol: string, platform: SkiaPlatform): string {
+  if (platform === "darwin" && symbol.startsWith("_"))
+    return `_${PRIVATE_PREFIX}${symbol.slice(1)}`;
+  return `${PRIVATE_PREFIX}${symbol}`;
+}
+
+function rustLlvmTools(): string | null {
+  try {
+    const sysroot = execFileSync("rustc", ["--print", "sysroot"], { cwd: ROOT, encoding: "utf8" });
+    const version = execFileSync("rustc", ["-vV"], { cwd: ROOT, encoding: "utf8" });
+    const host = /^host: (.+)$/m.exec(version)?.[1];
+    return host ? path.join(sysroot.trim(), "lib", "rustlib", host, "bin") : null;
+  } catch {
+    return null;
+  }
+}
+
+function llvmTool(name: string): string {
+  const program = process.platform === "win32" ? `${name}.exe` : name;
+  const tools = rustLlvmTools();
+  const bundled = tools ? path.join(tools, program) : null;
+  return bundled && existsSync(bundled) ? bundled : program;
+}
+
+function definedSymbols(nm: string, file: string): string[] {
+  const listed = execFileSync(nm, ["-g", "--defined-only", "--format=just-symbols", file], {
     encoding: "utf8",
     maxBuffer: NM_BUFFER,
   });
-  return listed.split("\n").filter((line) => line !== "" && !line.endsWith(":"));
+  return listed
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line !== "" && !line.endsWith(":"));
 }
 
-function makePrivate(out: string) {
+function makePrivate(out: string, platform: SkiaPlatform) {
+  const nm = llvmTool("llvm-nm");
+  const objcopy = llvmTool("llvm-objcopy");
   const symbols = new Set(
-    PRIVATE_LIBRARIES.map((name) => archive(out, name))
+    PRIVATE_LIBRARIES.map((name) => path.join(out, archiveFile(name, platform)))
       .filter((file) => existsSync(file))
-      .flatMap(definedSymbols),
+      .flatMap((file) => definedSymbols(nm, file)),
   );
   const renames = path.join(out, "private-symbols.txt");
   writeFileSync(
     renames,
-    [...symbols].map((symbol) => `${symbol} ${PRIVATE_PREFIX}${symbol}\n`).join(""),
+    [...symbols].map((symbol) => `${symbol} ${privateSymbol(symbol, platform)}\n`).join(""),
   );
-  for (const file of readdirSync(out).filter((f) => f.startsWith("lib") && f.endsWith(".a")))
-    run("objcopy", [`--redefine-syms=${renames}`, path.join(out, file)], out);
+  for (const file of readdirSync(out).filter((f) => archiveName(f, platform) !== null))
+    run(objcopy, [`--redefine-syms=${renames}`, path.join(out, file)], out);
   console.log(`Skia: ${symbols.size} symbols of its own libraries made private`);
 }
 
@@ -205,7 +270,13 @@ function resolved(src: string, dir: string): string {
   return dir.startsWith("//") ? path.join(src, dir.slice(2)) : dir;
 }
 
-function writeConsumer(gn: string, src: string, out: string, commit: string) {
+function writeConsumer(
+  gn: string,
+  src: string,
+  out: string,
+  commit: string,
+  platform: SkiaPlatform,
+) {
   const defines = [
     ...described(gn, src, out, "defines").filter(
       (d) => !OWN_DEFINE.test(d) && !UNSET_DEFINES.includes(d),
@@ -214,8 +285,8 @@ function writeConsumer(gn: string, src: string, out: string, commit: string) {
   ];
   const includes = described(gn, src, out, "include_dirs").map((d) => resolved(src, d));
   const libraries = readdirSync(out)
-    .filter((f) => f.startsWith("lib") && f.endsWith(".a"))
-    .map((f) => f.slice("lib".length, -".a".length))
+    .map((f) => archiveName(f, platform))
+    .filter((name) => name !== null)
     .toSorted();
   writeFileSync(
     path.join(out, "consumer.json"),
@@ -225,8 +296,10 @@ function writeConsumer(gn: string, src: string, out: string, commit: string) {
 
 export const SKIA_RECIPE = {
   args: ARGS,
-  cflags: CFLAGS,
-  cxxflags: CXXFLAGS,
+  defines: DEFINE_FLAGS,
+  unixCflags: UNIX_CFLAGS,
+  linuxCxxflags: LINUX_CXXFLAGS,
+  windowsCflags: WINDOWS_CFLAGS,
   targets: TARGETS,
   private: { prefix: PRIVATE_PREFIX, libraries: PRIVATE_LIBRARIES },
 };
@@ -235,10 +308,17 @@ function buildHere(dir: string) {
   const { skia } = readPins();
   const src = path.join(dir, "src");
   const out = path.join(dir, "out");
-  fetchSource(src, skia.repo, skia.commit);
+  fetchGitSource(src, path.join(src, "BUILD.gn"), skia, "Skia");
   syncDependencies(src);
   build(src, out, skia.commit);
+  dropBuildOnlySources(src);
   console.log(`Skia: built into ${out}`);
+}
+
+function dropBuildOnlySources(src: string) {
+  for (const part of BUILD_ONLY_SOURCES) {
+    rmSync(path.join(src, part), { recursive: true, force: true, maxRetries: REMOVE_ATTEMPTS });
+  }
 }
 
 function bunProgram(): string {

@@ -5,6 +5,8 @@ use qt_build_utils::{MocArguments, QtBuild, QtInstallationQMake};
 
 const QT_MODULES: [&str; 5] = ["Core", "Gui", "Widgets", "Svg", "Test"];
 const QT_MIN_MINOR: u64 = 12;
+const STATIC_LIBCXX: &str = "-l:libc++.a";
+const LIBC: &str = "-lc";
 
 const DEFINES: [&str; 6] = [
     "KDDW_FRONTEND_QT",
@@ -114,6 +116,8 @@ const SOURCES: [&str; 55] = [
     "e2e_wayland.cc",
 ];
 
+const KDDW_LIBRARY: &str = "kddockwidgets-qt6";
+
 fn main() {
     let manifest =
         PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("Cargo sets CARGO_MANIFEST_DIR"));
@@ -179,6 +183,7 @@ fn main() {
     }
     write_compile_commands(&out, &cpp, &includes);
     let kddw_lib = kddw.join("lib");
+    let kddw_library = toolchain.kddw_library(&kddw_version);
     let link_args = if toolchain.static_qt(&qt_prefix) {
         build.define("KDDOCKWIDGETS_STATICLIB", None);
         build.compile("opsis_qt");
@@ -191,7 +196,7 @@ fn main() {
         toolchain.qt_flags(&mut imports);
         static_link_args(
             &qt_prefix,
-            &kddw_lib,
+            &kddw_lib.join(toolchain.static_library(&kddw_library)),
             &imports.compile_intermediates(),
             toolchain,
         )
@@ -199,7 +204,7 @@ fn main() {
         qt.cargo_link_libraries(&mut build);
         build.compile("opsis_qt");
         println!("cargo:rustc-link-search=native={}", kddw_lib.display());
-        println!("cargo:rustc-link-lib=dylib=kddockwidgets-qt6");
+        println!("cargo:rustc-link-lib=dylib={kddw_library}");
         if toolchain == Toolchain::Msvc {
             Vec::new()
         } else {
@@ -293,6 +298,19 @@ enum Toolchain {
 }
 
 impl Toolchain {
+    fn kddw_library(self, version: &str) -> String {
+        match self {
+            Self::Msvc => {
+                let major = version
+                    .split('.')
+                    .next()
+                    .unwrap_or_else(|| panic!("KDDockWidgets version {version} has no major"));
+                format!("{KDDW_LIBRARY}{major}")
+            }
+            Self::Gnu | Self::Apple => KDDW_LIBRARY.to_owned(),
+        }
+    }
+
     fn of_target() -> Self {
         let os = env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();
         let abi = env::var("CARGO_CFG_TARGET_ENV").unwrap_or_default();
@@ -492,7 +510,7 @@ const WINDOWS_PLUGINS: [Plugin; 8] = [
 
 fn static_link_args(
     qt_prefix: &Path,
-    kddw_lib: &Path,
+    kddw_archive: &Path,
     imports: &[PathBuf],
     toolchain: Toolchain,
 ) -> Vec<String> {
@@ -500,10 +518,12 @@ fn static_link_args(
     for object in imports {
         StaticLinks::push(&mut links.group, object.to_string_lossy().into_owned());
     }
-    links.archive(
-        &kddw_lib.join(toolchain.static_library("kddockwidgets-qt6")),
-        qt_prefix,
+    assert!(
+        kddw_archive.exists(),
+        "KDDockWidgets built no {}",
+        kddw_archive.display()
     );
+    links.archive(kddw_archive, qt_prefix);
     for (folder, name, _) in toolchain.plugins() {
         let archive = qt_prefix
             .join("plugins")
@@ -528,7 +548,9 @@ fn static_link_args(
     if toolchain == Toolchain::Gnu {
         std::iter::once("-Wl,--start-group".to_owned())
             .chain(links.group)
+            .chain(std::iter::once(STATIC_LIBCXX.to_owned()))
             .chain(std::iter::once("-Wl,--end-group".to_owned()))
+            .chain(std::iter::once(LIBC.to_owned()))
             .chain(system)
             .collect()
     } else {

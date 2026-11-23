@@ -41,7 +41,57 @@ pub(crate) struct Painter<'s, 'r, 'l> {
     pub context: Context,
     pub offscreen: bool,
     pub base: Matrix,
+    pub layer: Option<LayerSpace>,
     pub slots: &'l Slots,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct LayerSpace {
+    pub pre: Matrix,
+    pub inverse: Matrix,
+}
+
+impl LayerSpace {
+    fn shifted(self, by: &Matrix) -> Self {
+        Self {
+            pre: by.then(&self.pre),
+            inverse: self.inverse,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Placement {
+    pub layer: Option<LayerSpace>,
+}
+
+impl Placement {
+    pub const DEVICE: Self = Self { layer: None };
+
+    pub fn set(&self, surface: &mut Surface, local: &Matrix) {
+        if let Some(layer) = self.layer {
+            surface.reset_device_matrix();
+            surface.concat(matrix44(
+                &layer.pre.then(&quantized(&layer.inverse.then(local))),
+            ));
+        } else {
+            surface.reset_matrix();
+            surface.concat(matrix44(local));
+        }
+    }
+}
+
+fn quantized(matrix: &Matrix) -> Matrix {
+    let mut values = matrix.0;
+    for (i, value) in values.iter_mut().enumerate() {
+        let steps = if matches!(i, 12..=14) {
+            LAYOUT_STEPS
+        } else {
+            LINEAR_STEPS
+        };
+        *value = (*value * steps).round() / steps;
+    }
+    Matrix(values)
 }
 
 #[derive(Debug, Default)]
@@ -165,19 +215,20 @@ fn makes_context(style: &Style) -> bool {
 
 const LAYER_GRID: f64 = 256.0;
 const WHOLE_LAYER_SHARE: f64 = 8.0;
-const LAYER_MARGIN: f64 = 2.0;
 const SCALE_STEPS: f64 = 8.0;
 const LAYOUT_STEPS: f64 = 64.0;
+const LINEAR_STEPS: f64 = 65536.0;
+const TILE_GUTTER: u32 = 2;
 
 fn stepped_scale(scale: f64) -> f64 {
     ((scale.log2() * SCALE_STEPS).ceil() / SCALE_STEPS).exp2()
 }
 
 fn region_of(seen: opsis_layout::output::Rect, grid: f64) -> LayerRegion {
-    let left = ((seen.x - LAYER_MARGIN) / grid).floor() * grid;
-    let top = ((seen.y - LAYER_MARGIN) / grid).floor() * grid;
-    let right = ((seen.x + seen.width + LAYER_MARGIN) / grid).ceil() * grid;
-    let bottom = ((seen.y + seen.height + LAYER_MARGIN) / grid).ceil() * grid;
+    let left = (seen.x / grid).floor() * grid;
+    let top = (seen.y / grid).floor() * grid;
+    let right = ((seen.x + seen.width) / grid).ceil() * grid;
+    let bottom = ((seen.y + seen.height) / grid).ceil() * grid;
     LayerRegion {
         left: opsis_types::numbers::whole_signed(left),
         top: opsis_types::numbers::whole_signed(top),
@@ -253,6 +304,37 @@ impl Area {
     }
 }
 
+fn tiles_of(region: LayerRegion) -> Vec<LayerRegion> {
+    let side = opsis_types::numbers::whole(LAYER_GRID);
+    let step = usize::try_from(side).unwrap_or(1);
+    let across = |start: i32, length: u32| {
+        let end = i64::from(start) + i64::from(length);
+        (i64::from(start)..end)
+            .step_by(step)
+            .filter_map(|at| i32::try_from(at).ok())
+            .collect::<Vec<_>>()
+    };
+    let columns = across(region.left, region.width);
+    across(region.top, region.height)
+        .into_iter()
+        .flat_map(|top| {
+            columns.iter().map(move |&left| LayerRegion {
+                left,
+                top,
+                width: side,
+                height: side,
+            })
+        })
+        .collect()
+}
+
+fn tile_key(layer: u64, tile: LayerRegion) -> u64 {
+    use std::hash::{Hash, Hasher};
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    (layer, tile.left, tile.top).hash(&mut hasher);
+    hasher.finish()
+}
+
 fn region_left(region: LayerRegion) -> f64 {
     f64::from(region.left)
 }
@@ -321,7 +403,7 @@ impl Painter<'_, '_, '_> {
         self.surface.reset_matrix();
         let clip = self.surface.device_clip();
         let device = Area::of(self.surface.device_rect(rect_f(ink)), clip).rect();
-        self.surface.concat(matrix44(local));
+        self.set_matrix(local);
         let bounds = self.surface.local_rect(device);
         self.surface.save_layer(Some(bounds), paint);
     }
@@ -402,8 +484,7 @@ impl<'n> Painter<'_, '_, '_> {
                 continue;
             };
             let areas = Areas::of(placed, style, self);
-            self.surface.reset_matrix();
-            self.surface.concat(matrix44(&placed.matrix));
+            self.set_matrix(&placed.matrix);
             if is_rounded(&areas.inner) {
                 self.surface
                     .clip_round_rect(round_rect(areas.padding, &areas.inner), true);
@@ -414,8 +495,15 @@ impl<'n> Painter<'_, '_, '_> {
     }
 
     fn with_matrix(&mut self, placed: &Placed) {
-        self.surface.reset_matrix();
-        self.surface.concat(matrix44(&placed.matrix));
+        self.set_matrix(&placed.matrix);
+    }
+
+    pub(crate) const fn placement(&self) -> Placement {
+        Placement { layer: self.layer }
+    }
+
+    pub(crate) fn set_matrix(&mut self, local: &Matrix) {
+        self.placement().set(self.surface, local);
     }
 
     fn draw_own(&mut self, element: &Element, path: &[usize]) {
@@ -509,6 +597,7 @@ impl<'n> Painter<'_, '_, '_> {
             .then(&opsis_layout::transform::Matrix::translation(
                 content.x, content.y, 0.0,
             ));
+        let device = self.placement();
         let Painter {
             surface, resources, ..
         } = self;
@@ -528,6 +617,7 @@ impl<'n> Painter<'_, '_, '_> {
         svg::SvgPainter {
             surface,
             decode: &mut decode,
+            device,
         }
         .group(tree.root(), &base);
         surface.restore_to(saved);
@@ -637,7 +727,8 @@ impl<'n> Painter<'_, '_, '_> {
         let Ok(surface) = Surface::new(width, height) else {
             return;
         };
-        let base = Matrix::translation(-area.left, -area.top, 0.0).then(&self.base);
+        let shift = Matrix::translation(-area.left, -area.top, 0.0);
+        let base = shift.then(&self.base);
         let mut surface = surface.with_base(matrix44(&base));
         surface.clear(Rgba::TRANSPARENT);
         {
@@ -650,6 +741,7 @@ impl<'n> Painter<'_, '_, '_> {
                 context: self.context,
                 offscreen: true,
                 base,
+                layer: self.layer.map(|layer| layer.shifted(&shift)),
                 slots: self.slots,
             };
             sub.paint_context(element, path, &[]);
@@ -718,40 +810,59 @@ impl<'n> Painter<'_, '_, '_> {
         let room = f64::from(self.surface.width()) * f64::from(self.surface.height());
         let needed = match whole {
             Some(whole) if !stepped && whole.width * whole.height <= WHOLE_LAYER_SHARE * room => {
-                region_of(whole, 1.0)
+                region_of(whole, LAYER_GRID)
             }
             Some(whole) => region_of(overlap(visible, whole), LAYER_GRID),
-            None if stepped => region_of(visible, LAYER_GRID),
-            None => region_of(visible, 1.0),
+            None => region_of(visible, LAYER_GRID),
         };
         let key = self.layer_key(element, path, &inverse, raster);
-        let cached = self.resources.layer(key, needed).map(|(held, _)| held);
-        let Some(region) =
-            cached.or_else(|| self.raster_layer(element, path, &to_layer, key, needed))
-        else {
-            return false;
+        let space = LayerSpace {
+            pre: Matrix::scaling(raster, raster, 1.0)
+                .then(&Matrix::translation(-origin.0, -origin.1, 0.0)),
+            inverse,
         };
+        let mut drawn = Vec::new();
+        let mut rastered = false;
+        for tile in tiles_of(needed) {
+            let tile_key = tile_key(key, tile);
+            let cached = self.resources.layer(tile_key, tile).map(|(_, image)| image);
+            let image = if let Some(image) = cached {
+                image
+            } else {
+                let Some(image) =
+                    self.raster_tile(element, path, (&to_layer, space), tile_key, tile)
+                else {
+                    return false;
+                };
+                rastered = true;
+                image
+            };
+            drawn.push((tile, image));
+        }
+        if rastered {
+            self.resources.count_layer_drawn();
+        }
         let back = placed
             .matrix
             .then(&Matrix::translation(origin.0, origin.1, 0.0))
-            .then(&Matrix::scaling(1.0 / raster, 1.0 / raster, 1.0))
-            .then(&Matrix::translation(
-                region_left(region),
-                region_top(region),
-                0.0,
-            ));
+            .then(&Matrix::scaling(1.0 / raster, 1.0 / raster, 1.0));
         let saved = self.surface.save();
         self.apply_clips(clips);
-        self.surface.reset_matrix();
-        self.surface.concat(matrix44(&back));
-        let (w, h) = (
-            opsis_types::numbers::narrow(f64::from(region.width)),
-            opsis_types::numbers::narrow(f64::from(region.height)),
-        );
-        if let Some((_, image)) = self.resources.layer(key, region) {
+        self.set_matrix(&back);
+        let side = opsis_types::numbers::narrow(LAYER_GRID);
+        let gutter = opsis_types::numbers::narrow(f64::from(TILE_GUTTER));
+        for (tile, image) in &drawn {
             self.surface.draw_image_rect(
-                &image,
-                (RectF::new(0.0, 0.0, w, h), RectF::new(0.0, 0.0, w, h)),
+                image,
+                (
+                    RectF::new(gutter, gutter, side, side),
+                    RectF::new(
+                        opsis_types::numbers::narrow(region_left(*tile)),
+                        opsis_types::numbers::narrow(region_top(*tile)),
+                        side,
+                        side,
+                    ),
+                ),
                 Sampling::Linear,
                 &Paint::new(),
             );
@@ -760,19 +871,19 @@ impl<'n> Painter<'_, '_, '_> {
         true
     }
 
-    fn raster_layer(
+    fn raster_tile(
         &mut self,
         element: &'n Element,
         path: &[usize],
-        to_layer: &Matrix,
+        (to_layer, space): (&Matrix, LayerSpace),
         key: u64,
-        needed: LayerRegion,
-    ) -> Option<LayerRegion> {
-        let base =
-            Matrix::translation(-region_left(needed), -region_top(needed), 0.0).then(to_layer);
-        let mut surface = Surface::new(needed.width.max(1), needed.height.max(1))
-            .ok()?
-            .with_base(matrix44(&base));
+        tile: LayerRegion,
+    ) -> Option<opsis_skia::Image> {
+        let gutter = f64::from(TILE_GUTTER);
+        let shift = Matrix::translation(gutter - region_left(tile), gutter - region_top(tile), 0.0);
+        let base = shift.then(to_layer);
+        let room = tile.width + 2 * TILE_GUTTER;
+        let mut surface = Surface::new(room, room).ok()?.with_base(matrix44(&base));
         surface.clear(Rgba::TRANSPARENT);
         {
             let mut sub = Painter {
@@ -784,13 +895,14 @@ impl<'n> Painter<'_, '_, '_> {
                 context: self.context,
                 offscreen: self.offscreen,
                 base,
+                layer: Some(space.shifted(&shift)),
                 slots: self.slots,
             };
             sub.paint_context_here(element, path, &[]);
         }
         let image = surface.snapshot()?;
-        self.resources.keep_layer(key, needed, image);
-        Some(needed)
+        self.resources.keep_layer(key, tile, image.clone());
+        Some(image)
     }
 
     fn layer_key(&self, element: &Element, path: &[usize], inverse: &Matrix, raster: f64) -> u64 {
@@ -816,9 +928,8 @@ impl<'n> Painter<'_, '_, '_> {
                 (!own).then_some(&placed.style),
             )
             .hash(&mut hasher);
-            for value in inverse.then(&placed.matrix).0 {
-                opsis_types::numbers::truncate::<i64>((value * LAYOUT_STEPS).round())
-                    .hash(&mut hasher);
+            for value in quantized(&inverse.then(&placed.matrix)).0 {
+                value.to_bits().hash(&mut hasher);
             }
         }
         hasher.finish()
@@ -875,6 +986,7 @@ impl<'n> Painter<'_, '_, '_> {
                     context: self.context,
                     offscreen: false,
                     base,
+                    layer: None,
                     slots: self.slots,
                 };
                 if revealed {
@@ -1078,6 +1190,7 @@ pub fn paint(
         index: &index,
         offscreen: false,
         base: Matrix::translation(0.0, 0.0, 0.0),
+        layer: None,
         slots: &slots,
         context: Context {
             viewport_width: viewport.width,

@@ -21,6 +21,8 @@ import { DEV_ENGINE, browserIn, seedUserData } from "./lib/user-data";
 
 const SCENARIOS = ["tour", "runs", "api", "wayland"] as const;
 type ScenarioName = (typeof SCENARIOS)[number];
+const LINUX = process.platform === "linux";
+const LINUX_ONLY: ScenarioName[] = ["wayland"];
 const DATA_DIR = devCache("qt-e2e");
 const RUNS_DIR = devCache("qt-e2e-runs");
 const API_DIR = devCache("qt-e2e-api");
@@ -46,49 +48,49 @@ const PAGE = [
   '<a href="#/completed">Completed</a>',
   "</div></body></html>",
 ].join("");
-const FIRST_DISPLAY = 90;
-const LAST_DISPLAY = 140;
-const SCREEN = "1600x1000x24";
+const SCREEN_WIDTH = 1600;
+const SCREEN_HEIGHT = 1000;
+const OFFSCREEN_CONFIG = path.join("target", "e2e-qt", "offscreen.json");
 const START_WAIT_MS = 10_000;
 const RUN_TIMEOUT_MS = 900_000;
+const KILL_AFTER_MS = 15_000;
+const SAMPLE_SECONDS = "5";
 const CHECK_LINE = /check \S+: |scenario \S+ done|panicked/;
 const FIXTURES_DIR = path.join(DATA_DIR, "fixtures");
 const CLIP_SECONDS = "3";
+const SYSTEM_FONTS: Partial<Record<NodeJS.Platform, string>> = {
+  darwin: "/System/Library/Fonts/Supplemental/Arial.ttf",
+  win32: "C:\\Windows\\Fonts\\arial.ttf",
+};
 
-type Screen = { stop: () => void; env: Record<string, string>; unset: string };
-
-function freeDisplay(): number {
-  for (let n = FIRST_DISPLAY; n <= LAST_DISPLAY; n += 1) {
-    if (!existsSync(`/tmp/.X11-unix/X${n}`) && !existsSync(`/tmp/.X${n}-lock`)) return n;
-  }
-  throw new Error(`no free X display between :${FIRST_DISPLAY} and :${LAST_DISPLAY}`);
-}
-
-async function waitFor(file: string, ms: number): Promise<void> {
-  const until = Date.now() + ms;
-  while (!existsSync(file)) {
-    if (Date.now() > until) throw new Error(`${file} didn't appear`);
-    await sleep(100);
-  }
-}
+type Screen = { stop: () => void; env: Record<string, string>; unset: string[] };
 
 function build(): void {
-  const built = spawnSync(
-    "cargo",
-    ["build", "-q", "-p", "opsis-ui", "-p", "opsis-e2e-input", "-p", "opsis-effects"],
-    {
-      cwd: ROOT,
-      stdio: "inherit",
-    },
-  );
+  const packages = ["opsis-ui", "opsis-effects", ...(LINUX ? ["opsis-e2e-input"] : [])];
+  const built = spawnSync("cargo", ["build", "-q", ...packages.flatMap((p) => ["-p", p])], {
+    cwd: ROOT,
+    stdio: "inherit",
+  });
   if (built.status !== 0) throw new Error("building the native editor failed");
 }
 
-function copySampleFont(): void {
+function sansFont(): string {
+  const named = SYSTEM_FONTS[process.platform];
+  if (named !== undefined) return named;
   const found = spawnSync("fc-match", ["-f", "%{file}", "sans"], { encoding: "utf8" });
-  const file = found.stdout.trim();
-  if (found.status !== 0 || !existsSync(file)) throw new Error("fc-match found no sans font");
+  if (found.status !== 0) throw new Error("fc-match found no sans font");
+  return found.stdout.trim();
+}
+
+function copySampleFont(): void {
+  const file = sansFont();
+  if (!existsSync(file)) throw new Error(`the tour's sample font ${file} is missing`);
   copyFileSync(file, path.join(FIXTURES_DIR, `sample-font${path.extname(file)}`));
+}
+
+function apiAddress(userData: string): string {
+  if (process.platform !== "win32") return path.join(userData, "api.sock");
+  return `\\\\.\\pipe\\opsis-api-${process.env.USERNAME ?? ""}`;
 }
 
 function makeClip(ffmpeg: string): void {
@@ -157,14 +159,13 @@ async function runApi(screen: Screen, ffmpeg: string, page: string): Promise<boo
     OPSIS_QT_HANDOFF: handoff,
   });
   const outside = await runApiChecks(
-    { socket: path.join(userData, "api.sock"), projects: path.join(API_DIR, "projects"), page },
+    { socket: apiAddress(userData), projects: path.join(API_DIR, "projects"), page },
     (line) => console.log(line),
   );
   writeFileSync(handoff, "");
   const { code, output } = await app;
   writeLog("api", output);
   const lines = output.split("\n").filter((line) => CHECK_LINE.test(line));
-  for (const line of lines) console.log(line.replace(/^\[[^\]]*\] /, ""));
   const inside =
     lines.some((line) => /check dont-ask-again: ok/.test(line)) &&
     !lines.some((line) => / FAILED |panicked/.test(line));
@@ -218,9 +219,15 @@ function runScenario(
     OPSIS_QT_SHOTS: shotsFor(scenario),
     ...extra,
   };
-  delete env[screen.unset];
-  const binary = path.join(ROOT, "target", "debug", "opsis");
+  for (const name of screen.unset) delete env[name];
+  const binary = path.join(
+    ROOT,
+    "target",
+    "debug",
+    `opsis${process.platform === "win32" ? ".exe" : ""}`,
+  );
   const hang = Number(process.env.OPSIS_QT_E2E_HANG_MS ?? 0);
+  if (hang > 0 && !LINUX) throw new Error("OPSIS_QT_E2E_HANG_MS needs gdb and Linux");
   const [program, args] =
     hang > 0
       ? ["gdb", ["-q", "-batch", "-ex", "run", "-ex", "thread apply all bt", "--args", binary]]
@@ -229,18 +236,37 @@ function runScenario(
     const app = spawn(program, args, { cwd: ROOT, env });
     const interrupt = hang > 0 ? setTimeout(() => interruptChild(app), hang) : undefined;
     let output = "";
+    let pending = "";
     function collect(chunk: Buffer): void {
-      output += chunk.toString();
+      const text = chunk.toString();
+      output += text;
+      const lines = (pending + text).split("\n");
+      pending = lines.pop() ?? "";
+      for (const line of lines) showCheck(line);
     }
     app.stdout.on("data", collect);
     app.stderr.on("data", collect);
-    const timer = setTimeout(() => app.kill("SIGTERM"), RUN_TIMEOUT_MS);
+    const timer = setTimeout(() => stopHung(app, scenario), RUN_TIMEOUT_MS);
     app.on("exit", (code) => {
       clearTimeout(timer);
       clearTimeout(interrupt);
       resolve({ code, output });
     });
   });
+}
+
+function showCheck(line: string): void {
+  if (CHECK_LINE.test(line)) console.log(line.replace(/^\[[^\]]*\] /, ""));
+}
+
+function stopHung(app: ChildProcess, scenario: ScenarioName): void {
+  console.error(`the ${scenario} scenario didn't finish within ${RUN_TIMEOUT_MS / 1000} s`);
+  if (process.platform === "darwin" && app.pid !== undefined) {
+    const sampled = spawnSync("sample", [String(app.pid), SAMPLE_SECONDS], { encoding: "utf8" });
+    console.error(sampled.stdout || sampled.stderr);
+  }
+  app.kill("SIGTERM");
+  setTimeout(() => app.kill("SIGKILL"), KILL_AFTER_MS).unref();
 }
 
 function interruptChild(debugger_: ChildProcess): void {
@@ -262,11 +288,16 @@ function shotsFor(scenario: ScenarioName): string {
   return dir;
 }
 
+function runsHere(scenario: ScenarioName): boolean {
+  return LINUX || !LINUX_ONLY.includes(scenario);
+}
+
 function chosen(): ScenarioName[] {
   const named = process.argv.slice(2).filter((arg) => arg !== SHOTS_FLAG);
-  if (named.length === 0) return [...SCENARIOS];
+  if (named.length === 0) return SCENARIOS.filter(runsHere);
   for (const name of named) {
     if (!SCENARIOS.includes(name as ScenarioName)) throw new Error(`no scenario ${name}`);
+    if (!runsHere(name as ScenarioName)) throw new Error(`the ${name} scenario runs only on Linux`);
   }
   return named as ScenarioName[];
 }
@@ -305,7 +336,6 @@ async function runOne(screen: Screen, ffmpeg: string, scenario: ScenarioName): P
     const { code, output } = await runScenario(screen, ffmpeg, scenario, userData, extra);
     writeLog(scenario, output);
     const lines = output.split("\n").filter((line) => CHECK_LINE.test(line));
-    for (const line of lines) console.log(line.replace(/^\[[^\]]*\] /, ""));
     const finished = lines.some((line) => /scenario \S+ done/.test(line));
     const failed = lines.some((line) => / FAILED |panicked/.test(line));
     if (code !== 0 || !finished || failed) {
@@ -318,16 +348,22 @@ async function runOne(screen: Screen, ffmpeg: string, scenario: ScenarioName): P
   }
 }
 
-async function startXvfb(): Promise<Screen> {
-  const display = freeDisplay();
-  const server = spawn("Xvfb", [`:${display}`, "-screen", "0", SCREEN, "-nolisten", "tcp"], {
-    stdio: "ignore",
-  });
-  await waitFor(`/tmp/.X11-unix/X${display}`, START_WAIT_MS);
+function offscreen(): Screen {
+  mkdirSync(path.dirname(path.join(ROOT, OFFSCREEN_CONFIG)), { recursive: true });
+  const screen = {
+    name: "opsis-e2e",
+    x: 0,
+    y: 0,
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+    logicalDpi: 96,
+    dpr: 1,
+  };
+  writeFileSync(path.join(ROOT, OFFSCREEN_CONFIG), JSON.stringify({ screens: [screen] }));
   return {
-    stop: () => stop(server),
-    env: { DISPLAY: `:${display}`, QT_QPA_PLATFORM: "xcb" },
-    unset: "WAYLAND_DISPLAY",
+    stop: () => {},
+    env: { QT_QPA_PLATFORM: `offscreen:configfile=${OFFSCREEN_CONFIG.replaceAll("\\", "/")}` },
+    unset: ["DISPLAY", "WAYLAND_DISPLAY"],
   };
 }
 
@@ -368,7 +404,7 @@ async function startSway(): Promise<Screen> {
   const runtime = path.join(parent, `opsis-e2e-${process.pid}`);
   rmSync(runtime, { recursive: true, force: true });
   mkdirSync(runtime, { mode: 0o700 });
-  const [width = "", height = ""] = SCREEN.split("x");
+  const [width, height] = [String(SCREEN_WIDTH), String(SCREEN_HEIGHT)];
   const config = path.join(runtime, "sway.conf");
   writeFileSync(config, SWAY_CONFIG.replace("{size}", `${width}x${height}`));
   const env: Record<string, string | undefined> = {
@@ -406,33 +442,24 @@ async function startSway(): Promise<Screen> {
       QT_QPA_PLATFORM: "wayland",
       OPSIS_QT_INPUT: requests,
     },
-    unset: "DISPLAY",
+    unset: ["DISPLAY"],
   };
 }
 
 async function main(): Promise<number> {
   const scenarios = chosen();
   build();
-  const xvfb = scenarios.some((scenario) => scenario !== "wayland") ? await startXvfb() : null;
-  try {
-    const ffmpeg = stagedFfmpeg();
-    let passed = true;
-    for (const scenario of scenarios) {
-      if (scenario === "wayland") {
-        const sway = await startSway();
-        try {
-          passed = (await runOne(sway, ffmpeg, scenario)) && passed;
-        } finally {
-          sway.stop();
-        }
-      } else if (xvfb !== null) {
-        passed = (await runOne(xvfb, ffmpeg, scenario)) && passed;
-      }
+  const ffmpeg = stagedFfmpeg();
+  let passed = true;
+  for (const scenario of scenarios) {
+    const screen = scenario === "wayland" ? await startSway() : offscreen();
+    try {
+      passed = (await runOne(screen, ffmpeg, scenario)) && passed;
+    } finally {
+      screen.stop();
     }
-    return passed ? 0 : 1;
-  } finally {
-    xvfb?.stop();
   }
+  return passed ? 0 : 1;
 }
 
 process.exit(await main());

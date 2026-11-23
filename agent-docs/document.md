@@ -47,6 +47,7 @@ The open project lives in Rust: every view edits it through the session and foll
   - A batch is not a gesture: a gesture makes every timeline edit start from the gesture's start and holds compiles, so a script's second timeline edit would replace its first; inside a batch timeline edits build on each other and compiles run as usual.
 - **The nodes each change edited collect until the next `DocumentChanged` takes them** (`take_edited`), and a run forgets the errors of those nodes.
 - **Opening or adopting another project stops a running script and waits for its rollback, saves the open one, drops a pending disk question and clears the shared selection.**
+- **A project is known by its real folder** (`opsis_folders::real_folder`, in `document::open`, `document::adopt` and `projects::create_project`): the path `std::fs::canonicalize` gives, without Windows' `\\?\` prefix, so the recent list, the view state and the saved panel layout find one key however the folder was spelled, since on Windows a Qt path (`C:/x/projects`) joined in Rust (`\Reopen`) differs from the same folder opened again (`C:/x/projects/Reopen`), as do its case, its 8.3 short names and `.` or `..`.
 
 ### Compiles
 

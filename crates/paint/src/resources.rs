@@ -188,8 +188,11 @@ impl SharedCache {
         Some((*region, image.clone()))
     }
 
-    fn keep_layer(&self, key: u64, region: LayerRegion, image: Image, stamp: u64) {
+    fn count_layer_drawn(&self) {
         self.layers_drawn.fetch_add(1, Ordering::Relaxed);
+    }
+
+    fn keep_layer(&self, key: u64, region: LayerRegion, image: Image, stamp: u64) {
         lock(&self.layers).insert(
             key,
             Kept {
@@ -400,6 +403,10 @@ impl<'a> Resources<'a> {
 
     pub fn layer(&mut self, key: u64, needed: LayerRegion) -> Option<(LayerRegion, Image)> {
         self.cache.shared.layer(key, needed, self.cache.stamp)
+    }
+
+    pub fn count_layer_drawn(&self) {
+        self.cache.shared.count_layer_drawn();
     }
 
     pub fn keep_layer(&mut self, key: u64, region: LayerRegion, image: Image) {

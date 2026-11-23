@@ -41,6 +41,9 @@ fn run_scenario(name: &str, folder: &Path, launch: usize) -> (bool, String) {
     let passed = status.is_some_and(|s| s.success())
         && output.contains(&done)
         && !output.contains(" FAILED ");
+    if !passed {
+        return (passed, format!("the app's log:\n{output}"));
+    }
     let checks: Vec<&str> = output
         .lines()
         .filter(|line| line.contains("check ") || line.contains(&done))

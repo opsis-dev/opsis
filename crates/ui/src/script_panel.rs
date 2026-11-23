@@ -188,8 +188,24 @@ pub fn rename(dir: &Path, from: &str, to: &str) -> Result<(), String> {
     std::fs::rename(dir.join(from), &target).map_err(|e| format!("Couldn't rename {from}. {e}"))
 }
 
+fn trash_context() -> trash::TrashContext {
+    #[cfg_attr(
+        not(target_os = "macos"),
+        expect(unused_mut, reason = "only macOS chooses how files reach the trash")
+    )]
+    let mut context = trash::TrashContext::default();
+    #[cfg(target_os = "macos")]
+    {
+        use trash::macos::{DeleteMethod, TrashContextExtMacos};
+        context.set_delete_method(DeleteMethod::NsFileManager);
+    }
+    context
+}
+
 pub fn discard(dir: &Path, file: &str) -> Result<(), String> {
-    trash::delete(dir.join(file)).map_err(|e| format!("Couldn't move {file} to the trash. {e}"))
+    trash_context()
+        .delete(dir.join(file))
+        .map_err(|e| format!("Couldn't move {file} to the trash. {e}"))
 }
 
 pub fn create(dir: &Path) -> Result<String, String> {

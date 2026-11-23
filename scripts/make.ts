@@ -6,7 +6,7 @@ const OUT = devCache("build");
 const LOCAL_FORMATS: Partial<Record<NodeJS.Platform, string>> = {
   linux: "deb",
   darwin: "app,dmg",
-  win32: "nsis,msi",
+  win32: "nsis",
 };
 
 function splitArgs(args: string[]): { formats: string | undefined; cargo: string[] } {

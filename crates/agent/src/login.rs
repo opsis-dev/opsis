@@ -76,11 +76,15 @@ pub fn ask(asker: &mut impl Asker) -> Result<Answers, LoginError> {
     Ok(Answers { chosen, key })
 }
 
-pub async fn store(pool: &SqlitePool, keys: &Keyring, answers: Answers) -> Result<(), LoginError> {
+pub async fn store(
+    pool: &SqlitePool,
+    keys: Result<&Keyring, &KeyError>,
+    answers: Answers,
+) -> Result<(), LoginError> {
     let Answers { chosen, key } = answers;
     if chosen.service.needs_key() {
         let key = key.ok_or(LoginError::NoKey(chosen.service.id()))?;
-        let keys = keys.clone();
+        let keys = keys.map_err(Clone::clone)?.clone();
         let name = chosen.service.key_name();
         tokio::task::spawn_blocking(move || keys.set_key(&name, key.trim()))
             .await
@@ -200,7 +204,7 @@ mod tests {
         ]))
         .unwrap();
         let chosen = answers.chosen.clone();
-        store(&pool, &keys, answers).await.unwrap();
+        store(&pool, Ok(&keys), answers).await.unwrap();
         assert_eq!(settings::read(&pool).await.unwrap(), Some(chosen.clone()));
         assert_eq!(
             keys.key(&chosen.service.key_name()).unwrap().as_deref(),
@@ -226,7 +230,7 @@ mod tests {
         ]))
         .unwrap();
         let name = answers.chosen.service.key_name();
-        store(&pool, &keys, answers).await.unwrap();
+        store(&pool, Ok(&keys), answers).await.unwrap();
         let before = status(&pool, Ok(keys.clone())).await.unwrap();
         assert_eq!(before.key, KeyState::Stored);
         assert!(!status_text(&before).contains("sk-ant-secret"));
@@ -252,8 +256,37 @@ mod tests {
         let pool = crate::db::open(dir.path()).await.unwrap();
         let answers = ask(&mut typed(&["anthropic", "claude-sonnet-5-5", " "])).unwrap();
         assert!(matches!(
-            store(&pool, &mock_keys(), answers).await,
+            store(&pool, Ok(&mock_keys()), answers).await,
             Err(LoginError::NoKey(_))
+        ));
+        assert_eq!(settings::read(&pool).await.unwrap(), None);
+    }
+
+    #[tokio::test]
+    async fn a_service_with_no_key_logs_in_without_a_keyring() {
+        let dir = tempfile::tempdir().unwrap();
+        let pool = crate::db::open(dir.path()).await.unwrap();
+        let answers = ask(&mut typed(&["local", "qwen3", "http://127.0.0.1:8080/v1"])).unwrap();
+        let chosen = answers.chosen.clone();
+        store(&pool, Err(&KeyError::NoKeyring), answers)
+            .await
+            .unwrap();
+        assert_eq!(settings::read(&pool).await.unwrap(), Some(chosen));
+    }
+
+    #[tokio::test]
+    async fn a_service_that_needs_a_key_needs_the_keyring() {
+        let dir = tempfile::tempdir().unwrap();
+        let pool = crate::db::open(dir.path()).await.unwrap();
+        let answers = ask(&mut typed(&[
+            "anthropic",
+            "claude-sonnet-5-5",
+            "sk-ant-secret",
+        ]))
+        .unwrap();
+        assert!(matches!(
+            store(&pool, Err(&KeyError::NoKeyring), answers).await,
+            Err(LoginError::Key(KeyError::NoKeyring))
         ));
         assert_eq!(settings::read(&pool).await.unwrap(), None);
     }

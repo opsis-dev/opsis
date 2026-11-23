@@ -9,11 +9,11 @@ use opsis_compile::nodes::output::StillFormat;
 use opsis_compile::registry::node_def;
 use opsis_compile::terminal::{default_look, grid, screen_size, terminal_fonts, theme_named};
 use opsis_compile::vars::Vars;
-use opsis_engine::hash::sha256_hex;
 use opsis_film::Drawing;
 use opsis_footage::decoder::FootageTools;
 use opsis_footage::footage::Footage;
 use opsis_footage::terminal::TerminalFootage;
+use opsis_golden::pictures::{Picture, check_picture};
 use opsis_golden::{dev_cache, repo};
 use opsis_prepare::serve::PreparedDirs;
 use opsis_render::native::{NATIVE_BASE, NativeFiles, NativeStill, render_native_still};
@@ -25,10 +25,9 @@ use opsis_types::numbers::millis;
 use opsis_types::timeline::{SpecAssets, TimelineSpec};
 use opsis_types::values::{CompileValue, PortValues};
 use opsis_types::workflow::{Workflow, WorkflowSettings};
-use serde_json::{Map, Value, json};
+use serde_json::json;
 
-const STILLS: &str = "terminal/stills.json";
-const WHOLE_HASH: usize = 64;
+const STILLS: &str = "terminal/stills";
 const BACKGROUND: [u8; 3] = [0x17, 0x17, 0x17];
 const LIT_DIFFERENCE: u8 = 64;
 const MIN_LIT: f64 = 0.002;
@@ -74,17 +73,6 @@ fn terminal_clip(length_ms: f64) -> opsis_types::values::ClipValue {
     {
         Some(CompileValue::Clip(clip)) => clip,
         other => panic!("no clip: {other:?}"),
-    }
-}
-
-fn exact_setup() -> bool {
-    #[cfg(all(target_arch = "x86_64", target_os = "linux"))]
-    {
-        std::arch::is_x86_feature_detected!("avx2")
-    }
-    #[cfg(not(all(target_arch = "x86_64", target_os = "linux")))]
-    {
-        false
     }
 }
 
@@ -137,7 +125,7 @@ async fn draws_a_terminal_take_as_recorded() {
         }),
         ..spec
     });
-    let mut hashes = Map::new();
+    let mut failures = Vec::new();
     for (name, frame) in [
         ("middle.png", spec.duration_in_frames / 2),
         ("last.png", spec.duration_in_frames - 1),
@@ -160,14 +148,20 @@ async fn draws_a_terminal_take_as_recorded() {
             (MIN_LIT..MAX_LIT).contains(&share),
             "{name}: {share} of the picture is text"
         );
-        hashes.insert(
-            name.to_owned(),
-            Value::from(sha256_hex(&std::fs::read(&output).unwrap(), WHOLE_HASH)),
-        );
+        let png = std::fs::read(&output).unwrap();
+        let rgba = image::load_from_memory(&png).unwrap().to_rgba8();
+        failures.extend(check_picture(
+            &format!("{STILLS}/{name}"),
+            Picture {
+                png: &png,
+                rgba: rgba.as_raw(),
+                size: rgba.dimensions(),
+            },
+            0.0,
+            &out,
+        ));
     }
-    if exact_setup() {
-        opsis_golden::check(STILLS, &Value::Object(hashes));
-    }
+    assert!(failures.is_empty(), "{}", failures.join("\n"));
 }
 
 fn lit_share(picture: &image::RgbImage, background: [u8; 3]) -> f64 {

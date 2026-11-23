@@ -4,11 +4,10 @@ use std::sync::Mutex;
 
 use opsis_golden::{dev_cache, ffmpeg};
 use opsis_probe::video_frames;
-use opsis_types::numbers;
 
 const VIDEO: &str = "testsrc2=size=320x240:rate=30:duration=2";
 const SOUND: &str = "sine=frequency=440:sample_rate=48000:duration=2";
-const US_PER_S: f64 = 1_000_000.0;
+const US_PER_S: i128 = 1_000_000;
 
 const SAMPLES: &[(&str, &[&str], &[&str])] = &[
     (
@@ -99,18 +98,29 @@ fn decoded_times(file: &PathBuf) -> Vec<i64> {
         .args(["-map", "0:v:0", "-an", "-vf", "showinfo", "-f", "null", "-"])
         .output()
         .unwrap();
-    String::from_utf8_lossy(&out.stderr)
+    let shown = String::from_utf8_lossy(&out.stderr);
+    let (num, den) = shown
+        .lines()
+        .filter(|l| l.contains("Parsed_showinfo"))
+        .find_map(|l| {
+            let base = l.split("config in time_base:").nth(1)?.split(',').next()?;
+            let (num, den) = base.trim().split_once('/')?;
+            Some((num.parse::<i128>().ok()?, den.parse::<i128>().ok()?))
+        })
+        .expect("showinfo names the stream's time base");
+    shown
         .lines()
         .filter(|l| l.contains("Parsed_showinfo") && l.contains(" pts_time:"))
         .filter_map(|l| {
-            let seconds: f64 = l
-                .split("pts_time:")
+            let pts: i128 = l
+                .split(" pts:")
                 .nth(1)?
                 .split_whitespace()
                 .next()?
                 .parse()
                 .ok()?;
-            Some(numbers::truncate::<i64>((seconds * US_PER_S).round()))
+            let doubled = 2 * pts * num * US_PER_S;
+            i64::try_from((doubled + den).div_euclid(2 * den)).ok()
         })
         .collect()
 }

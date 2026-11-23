@@ -1,8 +1,9 @@
 import { homedir } from "node:os";
 import path from "node:path";
 import { hostTarget } from "./lib/ffmpeg";
+import { FILAMENT_RECIPE, buildFilament, installedFilament } from "./lib/filament";
 import { verifiedDownload } from "./lib/pins";
-import { setupFfmpeg, setupFilament, setupKddw, setupNpm, setupZig } from "./lib/setup/downloads";
+import { setupFfmpeg, setupKddw, setupNpm, setupZig } from "./lib/setup/downloads";
 import { readPins } from "./lib/setup/manifest";
 import { pin } from "./lib/setup/pin";
 import { downloadsDir, prune, recipeHash, step, writePaths } from "./lib/setup/store";
@@ -18,6 +19,8 @@ const CONTAINER = "--container";
 const ENGINE_DIR = path.join(homedir(), ".config", "Opsis", "engine");
 const QT_RECIPE = path.join(ROOT, "scripts", "lib", "static-qt.ts");
 const SKIA_SCRIPT = path.join(ROOT, "scripts", "lib", "skia.ts");
+const FILAMENT_SCRIPT = path.join(ROOT, "scripts", "lib", "filament.ts");
+const GIT_SOURCE_SCRIPT = path.join(ROOT, "scripts", "lib", "git-source.ts");
 
 function qtPlatform(): "linux" | "darwin" | "win32" {
   const platform = process.platform;
@@ -43,7 +46,6 @@ async function setup(args: string[]): Promise<void> {
   const pins = readPins();
   const zig = await setupZig(pins);
   const kddw = await setupKddw(pins);
-  const filament = await setupFilament(pins);
   const ffmpeg = await setupFfmpeg(pins, hostTarget());
   const npm = await setupNpm(pins);
   const qt = await step(
@@ -64,15 +66,25 @@ async function setup(args: string[]): Promise<void> {
   );
   const skia = await step(
     "skia",
-    recipeHash(["skia", pins.skia, SKIA_RECIPE, { container }], [SKIA_SCRIPT]),
+    recipeHash(["skia", pins.skia, SKIA_RECIPE, { container }], [SKIA_SCRIPT, GIT_SOURCE_SCRIPT]),
     (dir) => buildSkia(dir, container),
+  );
+  const filament = await step(
+    "filament",
+    recipeHash(
+      ["filament", pins.filament, FILAMENT_RECIPE, { container }],
+      [FILAMENT_SCRIPT, GIT_SOURCE_SCRIPT],
+    ),
+    (dir) => {
+      buildFilament(dir, container);
+    },
   );
   const paths = {
     zig: zig.path,
     qt: path.join(qt, "prefix"),
     kddw: kddw.path,
     skia,
-    filament: filament.path,
+    filament: installedFilament(filament),
     ffmpeg: ffmpeg.ffmpeg,
     ffprobe: ffmpeg.ffprobe,
     ffmpegLicence: ffmpeg.licence,
@@ -80,8 +92,7 @@ async function setup(args: string[]): Promise<void> {
   };
   writePaths(paths);
   if (!args.includes(NO_ENGINE)) writePaths({ ...paths, engine: installEngine(zig.path) });
-  if (args.includes(PRUNE))
-    prune([zig.dir, kddw.dir, filament.dir, ffmpeg.dir, qt, skia, ...npm.dirs]);
+  if (args.includes(PRUNE)) prune([zig.dir, kddw.dir, filament, ffmpeg.dir, qt, skia, ...npm.dirs]);
   console.log("setup: done");
 }
 

@@ -7,9 +7,11 @@ use opsis_engine::tools::EngineFiles;
 use opsis_film::{Drawing, Driver, Film, renderer_program};
 use opsis_footage::decoder::FootageTools;
 use opsis_footage::footage::Footage;
+use opsis_golden::pictures::{self, Picture, exact_setup};
 use opsis_golden::{dev_cache, home, repo};
 use opsis_prepare::serve::PreparedDirs;
 use opsis_render::element_spec::{element_spec, frame_at, frames_at};
+use opsis_render::executors::SOFTWARE_VULKAN;
 use opsis_render::native::{NATIVE_BASE, NativeFiles};
 use opsis_scene::node::{Kind, Node};
 
@@ -18,9 +20,7 @@ const SCENES: &str = "scene/elements";
 const SCALE: f64 = 0.25;
 const MIDDLE: f64 = 0.5;
 const SCENE_POSITIONS: [f64; 3] = [0.25, 0.5, 0.75];
-const TOLERANCE: f32 = 0.05;
 const FILAMENT_SHARE: f64 = 0.0005;
-const SOFTWARE_VULKAN: &str = "libvk_swiftshader.so";
 const WORKERS: usize = 8;
 const SCENE_ELEMENTS: [&str; 12] = [
     "title",
@@ -72,17 +72,6 @@ fn files(out: &std::path::Path) -> Arc<NativeFiles> {
     })
 }
 
-fn exact_setup() -> bool {
-    #[cfg(all(target_arch = "x86_64", target_os = "linux"))]
-    {
-        std::arch::is_x86_feature_detected!("avx2")
-    }
-    #[cfg(not(all(target_arch = "x86_64", target_os = "linux")))]
-    {
-        false
-    }
-}
-
 fn film_for<'f>(
     files: &'f NativeFiles,
     spec: &'f opsis_types::timeline::TimelineSpec,
@@ -96,24 +85,6 @@ fn film_for<'f>(
         .with_drawing(files.drawing.clone())
 }
 
-fn rgb(rgba: &[u8]) -> Vec<u8> {
-    rgba.as_chunks::<4>()
-        .0
-        .iter()
-        .flat_map(|[r, g, b, _]| [*r, *g, *b])
-        .collect()
-}
-
-fn differing_share(a: &[u8], b: &[u8]) -> f64 {
-    let pixels = a.as_chunks::<4>().0.iter().zip(b.as_chunks::<4>().0);
-    let (mut differing, mut all) = (0usize, 0usize);
-    for (p, q) in pixels {
-        all += 1;
-        differing += usize::from(p != q);
-    }
-    opsis_types::numbers::float(differing) / opsis_types::numbers::float(all.max(1))
-}
-
 fn compared(
     key: &str,
     png: &[u8],
@@ -121,27 +92,17 @@ fn compared(
     size: (u32, u32),
     filament: bool,
 ) -> Option<String> {
-    let recorded = image::load_from_memory(png)
-        .unwrap_or_else(|e| panic!("{key}: {e}"))
-        .to_rgba8();
-    if recorded.dimensions() != size {
-        return Some(format!(
-            "{key}: size {:?} against {size:?}",
-            recorded.dimensions()
-        ));
-    }
-    if exact_setup() {
-        let share = differing_share(recorded.as_raw(), made);
-        let allowed = if filament { FILAMENT_SHARE } else { 0.0 };
-        return (share > allowed)
-            .then(|| format!("{key}: {share:.5} of its pixels differ from its golden"));
-    }
-    let a = nv_flip::FlipImageRgb8::with_data(size.0, size.1, &rgb(recorded.as_raw()));
-    let b = nv_flip::FlipImageRgb8::with_data(size.0, size.1, &rgb(made));
-    let mean =
-        nv_flip::FlipPool::from_image(&nv_flip::flip(a, b, nv_flip::DEFAULT_PIXELS_PER_DEGREE))
-            .mean();
-    (mean > TOLERANCE).then(|| format!("{key}: mean {mean:.4} above {TOLERANCE}"))
+    let allowed = if filament { FILAMENT_SHARE } else { 0.0 };
+    pictures::compared(
+        key,
+        png,
+        Picture {
+            png: &[],
+            rgba: made,
+            size,
+        },
+        allowed,
+    )
 }
 
 struct Drawn {

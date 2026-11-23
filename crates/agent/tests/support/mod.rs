@@ -151,8 +151,10 @@ pub async fn one_turn(
                     session.send_prompt("Go")?;
                     let turned = answer_turn(&mut session, answer).await;
                     let later = match wait_for {
-                        Some(wanted) => later_text(&mut session, wanted).await,
-                        None => String::new(),
+                        Some(wanted) if !turned.text.contains(wanted) => {
+                            later_text(&mut session, wanted).await
+                        }
+                        _ => String::new(),
                     };
                     Ok((turned, later))
                 })

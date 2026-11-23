@@ -86,7 +86,7 @@ fn stdio_servers(servers: &[McpServer]) -> Vec<StdioServer> {
 fn system_prompt(folder: &std::path::Path, servers: &ToolServers) -> String {
     let mut prompt = format!(
         "You are Opsis's assistant, a coding agent working in {}. Opsis turns recorded websites and terminals into videos. Use the tools to read and change files and the project. Be brief.",
-        folder.display()
+        opsis_folders::slashed(folder)
     );
     for instructions in servers.instructions() {
         prompt.push_str("\n\n");

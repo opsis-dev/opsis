@@ -1,7 +1,8 @@
-import { mkdirSync, readFileSync, rmSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright-core";
 import { installEngine } from "./lib/engine";
+import { ICO_SIZES, ico } from "./lib/ico";
 import { ROOT } from "./lib/tool-config";
 
 const SVG = path.join(ROOT, "brand", "logo.svg");
@@ -30,4 +31,9 @@ try {
 } finally {
   await browser.close();
 }
-console.log(`${ICON_SIZES.length} icons in ${path.relative(ROOT, OUT)}`);
+const images = ICO_SIZES.map((size) => ({
+  size,
+  png: readFileSync(path.join(OUT, `${size}.png`)),
+}));
+writeFileSync(path.join(OUT, "opsis.ico"), ico(images));
+console.log(`${ICON_SIZES.length} icons and opsis.ico in ${path.relative(ROOT, OUT)}`);

@@ -1,0 +1,118 @@
+name: Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test · ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux x64
+            os: ubuntu-24.04
+            packages: --workspace
+          - name: Linux arm64
+            os: ubuntu-24.04-arm
+            packages: --workspace
+          - name: Windows x64
+            os: windows-latest
+            packages: --workspace --exclude opsis-e2e-input
+          # FIXME(ffmpeg): no macOS Apple Silicon job until Opsis builds its own FFmpeg, since ffmpeg-static's Apple Silicon build is configured with --enable-nonfree (plans/ffmpeg.md section 2)
+          - name: macOS Intel
+            os: macos-26-intel
+            packages: --workspace --exclude opsis-e2e-input
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Name the processor, which the software graphics driver compiles its shaders for
+        run: node -e "const [cpu] = require('node:os').cpus(); console.log(cpu.model)"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.4.3
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 24
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with:
+          toolchain: nightly-2026-10-29
+          components: llvm-tools
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
+        with:
+          shared-key: ${{ runner.os }}-${{ runner.arch }}
+          cache-on-failure: true
+      - run: bun install --frozen-lockfile
+      - name: Install the system libraries setup checks for, headless Wayland, a software Vulkan driver and a keyring
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y sway mesa-vulkan-drivers libvulkan1 dbus gnome-keyring patchelf rpm makepkg pacman-package-manager libarchive-tools fakeroot zstd clang libc++-dev libc++abi-dev libasound2-dev libatspi2.0-dev libdbus-1-dev libfontconfig1-dev libfreetype-dev libwayland-dev wayland-protocols libx11-dev libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-shm0-dev libxcb-sync-dev libxcb-util-dev libxcb-xfixes0-dev libxcb-xkb-dev libxext-dev libxfixes-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libxrender-dev
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2
+        if: runner.os == 'Linux'
+      - name: Restore what setup fetched and built
+        id: setup-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            ~/.cache/opsis-dev
+            ~/.config/Opsis/engine
+          key: setup-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/setup/**', 'scripts/lib/static-qt.ts', 'scripts/lib/skia.ts', 'scripts/lib/filament.ts', 'scripts/lib/git-source.ts', 'crates/engine/src/downloads.generated.json') }}
+      - name: Set up the pinned tools, Qt, Skia, Filament, FFmpeg and the engine
+        run: bun run setup
+      - name: Keep what setup fetched and built
+        if: steps.setup-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            ~/.cache/opsis-dev
+            ~/.config/Opsis/engine
+          key: setup-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/setup/**', 'scripts/lib/static-qt.ts', 'scripts/lib/skia.ts', 'scripts/lib/filament.ts', 'scripts/lib/git-source.ts', 'crates/engine/src/downloads.generated.json') }}
+      - name: Fetch the terminal engine
+        id: zig
+        working-directory: crates/vt/zig
+        run: ../../../.setup/bin/zig build --fetch
+      - name: Register the browser's software Vulkan driver, which an elevated process finds only in the registry
+        if: ${{ !cancelled() && steps.zig.outcome == 'success' && runner.os == 'Windows' }}
+        run: |
+          icd=$(cygpath -w "$(find ~/.config/Opsis/engine -name vk_swiftshader_icd.json | head -n 1)")
+          MSYS_NO_PATHCONV=1 reg add 'HKLM\SOFTWARE\Khronos\Vulkan\Drivers' /v "$icd" /t REG_DWORD /d 0 /f
+      - name: Drive the native editor through every scenario this system runs
+        if: ${{ !cancelled() && steps.zig.outcome == 'success' }}
+        run: bun run e2e:qt
+      - name: Run the tests that need the engine, the renderer program, a keyring or the internet
+        if: ${{ !cancelled() && steps.zig.outcome == 'success' }}
+        env:
+          PACKAGES: ${{ matrix.packages }}
+          OPSIS_UPDATE_KEY: ${{ secrets.OPSIS_UPDATE_KEY }}
+          OPSIS_UPDATE_KEY_PASSWORD: ${{ secrets.OPSIS_UPDATE_KEY_PASSWORD }}
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            (while sleep 30; do echo "memory $(free -m | awk '/^Mem:/ {print $3 " of " $2 " MB used"}'), disk $(df -h / | awk 'NR==2 {print $4 " free of " $2}')"; done) &
+          fi
+          cargo build -p opsis-effects --bin opsis-renderer
+          if [ "$RUNNER_OS" = Linux ]; then
+            dbus-run-session -- bash -c 'echo | gnome-keyring-daemon --unlock --components=secrets > /dev/null && bun scripts/test-rust.ts $PACKAGES --no-fail-fast -- --ignored --skip the_appimage_holds_the_same_files_marked_as_an_appimage'
+            exit
+          fi
+          icd=$(find ~/.config/Opsis/engine -name vk_swiftshader_icd.json | head -n 1)
+          engine=$(dirname "$icd")
+          export PATH="$engine:$PATH"
+          export DYLD_LIBRARY_PATH="$engine"
+          if [ "$RUNNER_OS" = Windows ]; then icd=$(cygpath -w "$icd"); fi
+          export VK_DRIVER_FILES="$icd"
+          bun scripts/test-rust.ts $PACKAGES --no-fail-fast -- --ignored --skip the_appimage_holds_the_same_files_marked_as_an_appimage
+      - name: Build an AppImage with the pinned tools
+        if: ${{ !cancelled() && steps.zig.outcome == 'success' && runner.os == 'Linux' }}
+        run: bun run packager:test the_appimage_holds_the_same_files_marked_as_an_appimage

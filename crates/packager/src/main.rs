@@ -34,7 +34,7 @@ struct Args {
     #[doc = "Where to write the installers"]
     out: PathBuf,
     #[arg(long, value_name = "FORMAT", value_delimiter = ',', required = true)]
-    #[doc = "The installers to build, separated by commas: deb, rpm, pacman, appimage, nsis, msi, app, dmg"]
+    #[doc = "The installers to build, separated by commas: deb, rpm, pacman, appimage, nsis, app, dmg"]
     formats: Vec<String>,
     #[arg(long, value_name = "PATH", requires = "appimage_runtime")]
     #[doc = "The appimagetool program, for the appimage format"]

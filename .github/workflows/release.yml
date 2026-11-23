@@ -16,7 +16,6 @@ env:
   CARGO_TERM_COLOR: always
   NSIS_URL: https://downloads.sourceforge.net/project/nsis/NSIS%203/3.11/nsis-3.11.zip
   NSIS_SHA256: c7d27f780ddb6cffb4730138cd1591e841f4b7edb155856901cdf5f214394fa1
-  WIX_VERSION: 7.0.1
 
 jobs:
   notice:
@@ -42,7 +41,7 @@ jobs:
             formats: deb,rpm,pacman,appimage
           - name: Windows x64
             os: windows-latest
-            formats: nsis,msi
+            formats: nsis
           - name: macOS Apple Silicon
             os: macos-latest
             formats: app,dmg
@@ -64,6 +63,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
         with:
           toolchain: nightly-2026-10-29
+          components: llvm-tools
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
         with:
           key: release-${{ matrix.os }}
@@ -77,13 +77,24 @@ jobs:
       - name: Install Ninja
         if: runner.os == 'macOS'
         run: command -v ninja || brew install ninja
-      - name: Cache what setup fetches and builds
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      - name: Restore what setup fetched and built
+        id: setup-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
-          path: ~/.cache/opsis-dev
-          key: setup-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/setup/**', 'scripts/lib/static-qt.ts', 'scripts/lib/skia.ts') }}
+          path: |
+            ~/.cache/opsis-dev
+            ~/.config/Opsis/engine
+          key: setup-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/setup/**', 'scripts/lib/static-qt.ts', 'scripts/lib/skia.ts', 'scripts/lib/filament.ts', 'scripts/lib/git-source.ts', 'crates/engine/src/downloads.generated.json') }}
       - name: Set up the pinned tools, the static Qt, Skia, Filament and FFmpeg
         run: bun run setup --no-engine
+      - name: Keep what setup fetched and built
+        if: steps.setup-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            ~/.cache/opsis-dev
+            ~/.config/Opsis/engine
+          key: setup-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/lib/setup/**', 'scripts/lib/static-qt.ts', 'scripts/lib/skia.ts', 'scripts/lib/filament.ts', 'scripts/lib/git-source.ts', 'crates/engine/src/downloads.generated.json') }}
       - name: Fetch the terminal engine
         working-directory: crates/vt/zig
         run: ../../../.setup/bin/zig build --fetch
@@ -101,9 +112,6 @@ jobs:
           echo "$NSIS_SHA256  $RUNNER_TEMP/nsis.zip" | sha256sum --check
           7z x -y -o"$RUNNER_TEMP" "$RUNNER_TEMP/nsis.zip" > /dev/null
           cygpath -w "$RUNNER_TEMP/nsis-3.11" >> "$GITHUB_PATH"
-      - name: Install WiX
-        if: runner.os == 'Windows'
-        run: dotnet tool install --global wix --version "$WIX_VERSION"
       - name: Build the installers
         env:
           OPSIS_UPDATE_KEY: ${{ secrets.OPSIS_UPDATE_KEY }}
@@ -123,7 +131,6 @@ jobs:
             ~/.cache/opsis-dev/build/*.pkg.tar.zst
             ~/.cache/opsis-dev/build/*.AppImage
             ~/.cache/opsis-dev/build/*-setup.exe
-            ~/.cache/opsis-dev/build/*.msi
             ~/.cache/opsis-dev/build/*.app.tar.gz
             ~/.cache/opsis-dev/build/*.dmg
             ~/.cache/opsis-dev/build/*.sig
@@ -156,4 +163,4 @@ jobs:
           cd "$RUNNER_TEMP/artifacts"
           gh release create "$GITHUB_REF_NAME" --draft --verify-tag \
             --repo "$GITHUB_REPOSITORY" --title "Opsis ${GITHUB_REF_NAME#v}" --notes-file "$RUNNER_TEMP/notes.md" \
-            ./*.deb ./*.rpm ./*.pkg.tar.zst ./*.AppImage ./*-setup.exe ./*.msi ./*.app.tar.gz ./*.dmg latest.json
+            ./*.deb ./*.rpm ./*.pkg.tar.zst ./*.AppImage ./*-setup.exe ./*.app.tar.gz ./*.dmg latest.json

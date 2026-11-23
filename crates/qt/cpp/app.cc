@@ -5,18 +5,24 @@
 #include <kddockwidgets/qtwidgets/views/FloatingWindow.h>
 
 #include <QApplication>
-#include <QDir>
+#include <QByteArrayView>
 #include <QFile>
 #include <QFontDatabase>
+#include <QIcon>
 #include <QMessageBox>
 #include <QPainter>
 #include <QPointer>
+#include <QSize>
 #include <QStyleFactory>
 #include <QSvgRenderer>
 #include <QTimer>
 #include <QtCore/QtResource>
 #include <array>
 #include <string>
+
+#if defined(Q_OS_WIN)
+#include <qt_windows.h>
+#endif
 
 #include "dock_style.h"
 #include "event_hub.h"
@@ -26,6 +32,17 @@
 #include "scenario.h"
 
 static void InitResources() { Q_INIT_RESOURCE(resources_qrc); }
+
+constexpr std::array<int, 8> kIconSides = {16, 24, 32, 48, 64, 128, 256, 512};
+
+static QIcon AppIcon() {
+  QIcon icon;
+  for (const int side : kIconSides) {
+    icon.addFile(QStringLiteral(":/opsis/icons/%1.png").arg(side),
+                 QSize(side, side));
+  }
+  return icon;
+}
 
 namespace opsis {
 
@@ -148,17 +165,16 @@ void App::ShowError(const QString& message) {
 }
 
 void App::LoadFonts() {
-  const QDir dir(ToQ(session().fonts_dir()));
-  const QStringList files = {
-      QStringLiteral("inter/inter-latin-wght-normal.woff2"),
-      QStringLiteral("jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2"),
-  };
-  for (const QString& file : files) {
-    const int id = QFontDatabase::addApplicationFont(dir.filePath(file));
+  for (const bridge::EditorFont& font : session().editor_fonts()) {
+    const int id = QFontDatabase::addApplicationFontFromData(
+        QByteArrayView(font.bytes.data(),
+                       static_cast<qsizetype>(font.bytes.size()))
+            .toByteArray());
     Log(QStringLiteral("font %1: %2")
-            .arg(file, id < 0 ? QStringLiteral("not loaded")
-                              : QFontDatabase::applicationFontFamilies(id).join(
-                                    QLatin1Char(','))));
+            .arg(ToQ(font.file),
+                 id < 0 ? QStringLiteral("not loaded")
+                        : QFontDatabase::applicationFontFamilies(id).join(
+                              QLatin1Char(','))));
   }
 }
 
@@ -184,6 +200,9 @@ int App::Run(rust::Box<bridge::Session> host) {
   headless_ = host->headless();
   if (headless_) {
     qputenv("QT_QPA_PLATFORM", "offscreen");
+#if defined(Q_OS_WIN)
+    AttachConsole(ATTACH_PARENT_PROCESS);
+#endif
   }
   if (qEnvironmentVariableIsSet("OPSIS_QT_SCENARIO") || headless_) {
     QApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
@@ -197,6 +216,7 @@ int App::Run(rust::Box<bridge::Session> host) {
   QApplication::setApplicationName(QStringLiteral("Opsis"));
   QApplication::setOrganizationName(QStringLiteral("Opsis"));
   InitResources();
+  QApplication::setWindowIcon(AppIcon());
   session_.emplace(std::move(host));
   Log(QStringLiteral("session ready, platform %1")
           .arg(QApplication::platformName()));

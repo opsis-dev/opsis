@@ -26,6 +26,7 @@ Replace the ffmpeg-static program the app ships as its `opsis-ffmpeg` sidecar wi
 **Decided.**
 
 - ffmpeg-static b6.1.1 is the sidecar on every platform, macOS included, until section 2's build replaces it.
+- **ffmpeg-static b6.1.1's Apple Silicon build is configured with `--enable-nonfree`**, which a GPL app can't ship, so the capability check (`REFUSED_CONFIGURATION`, `crates/media/src/capabilities.rs`) refuses it and that test fails in CI on macOS Apple Silicon. Until section 2's build replaces the program there, the Build and Test workflows have no macOS Apple Silicon job (the `FIXME(ffmpeg)` lines in `.github/workflows/build.yml` and `test.yml`); `release.yml` keeps the check there, so no Apple Silicon release can ship that build.
 - About shows nothing about FFmpeg.
 - No CI export run on macOS: the sidecar ships there untested.
 

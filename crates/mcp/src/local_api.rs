@@ -46,6 +46,10 @@ async fn open_stream(address: &str) -> std::io::Result<tokio::net::UnixStream> {
 }
 
 #[cfg(windows)]
+#[expect(
+    clippy::unused_async,
+    reason = "connect waits on it under a timeout like the Unix open_stream, which awaits the socket"
+)]
 async fn open_stream(
     address: &str,
 ) -> std::io::Result<tokio::net::windows::named_pipe::NamedPipeClient> {

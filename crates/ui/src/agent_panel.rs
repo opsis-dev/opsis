@@ -234,8 +234,8 @@ fn ago(at: Timestamp, now: Timestamp) -> String {
 }
 
 fn day_group(at: Timestamp, now: Timestamp, zone: &TimeZone) -> &'static str {
-    let day = at.to_zoned(zone.clone()).date();
-    let today = now.to_zoned(zone.clone()).date();
+    let day = at.to_zoned_datetime(zone.clone()).date();
+    let today = now.to_zoned_datetime(zone.clone()).date();
     if day >= today {
         "Today"
     } else if today

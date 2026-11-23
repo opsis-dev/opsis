@@ -86,7 +86,8 @@ pub async fn create_project(
         given => given.to_owned(),
     };
     let created = state.projects.create(&parent, &name, &template)?;
-    let shown_dir = shown(&created.dir);
+    let dir = opsis_folders::real_folder(&created.dir);
+    let shown_dir = shown(&dir);
     state.db().forget_view_state(&shown_dir).await?;
     state
         .db()
@@ -95,8 +96,7 @@ pub async fn create_project(
     let last_dir = serde_json::from_value(json!({ "projects": { "lastDir": shown(&parent) } }))?;
     let settings = state.patch_settings(&last_dir).await?;
     crate::settings::announce(&app, settings);
-    let project =
-        crate::document::adopt(&app, &created.dir, created.workflow, created.version).await?;
+    let project = crate::document::adopt(&app, &dir, created.workflow, created.version).await?;
     Ok(Some(project))
 }
 pub fn read_last_run(dir: &str) -> CommandResult<Option<LastRun>> {

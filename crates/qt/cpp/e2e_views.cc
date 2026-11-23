@@ -53,6 +53,24 @@ constexpr int kBarWidth = 300;
 
 QString Expect(bool ok, const QString& what) { return ok ? QString() : what; }
 
+QString SavedFloating(const QString& dock) {
+  const QByteArray saved = ToQ(App::Get().session().load_layout()).toUtf8();
+  const QJsonArray floating = QJsonDocument::fromJson(saved)
+                                  .object()
+                                  .value("floatingWindows")
+                                  .toArray();
+  const bool named = QJsonDocument(floating)
+                         .toJson(QJsonDocument::Compact)
+                         .contains(dock.toUtf8());
+  return QStringLiteral(
+             "the saved layout has %1 bytes and %2 floating windows, %3 naming "
+             "%4")
+      .arg(saved.size())
+      .arg(floating.size())
+      .arg(named ? QStringLiteral("one") : QStringLiteral("none"))
+      .arg(dock);
+}
+
 QColor IconInk(const QAbstractButton* button) {
   const QImage icon = button->icon()
                           .pixmap(button->iconSize())
@@ -309,9 +327,10 @@ void Scenario::BuildReopen() {
   Add(
       QStringLiteral("reopen-the-timeline-is-still-popped-out"), [] {}, 500,
       [this] {
-        return Expect(window_->timeline_dock()->isFloating() &&
-                          window_->timeline_dock()->isOpen(),
-                      QStringLiteral("the timeline came back docked"));
+        auto* timeline = window_->timeline_dock();
+        return Expect(timeline->isFloating() && timeline->isOpen(),
+                      QStringLiteral("the timeline came back docked; %1")
+                          .arg(SavedFloating(timeline->uniqueName())));
       });
   Add(
       QStringLiteral("reopen-the-agent-tab-joins-the-inspector"), [] {}, 300,
@@ -840,16 +859,21 @@ void Scenario::BuildViews() {
       },
       [] {
         const bridge::ScriptView view = App::Get().session().script_view();
+#ifdef Q_OS_LINUX
         const QString trashed =
             QDir(qEnvironmentVariable("XDG_DATA_HOME"))
                 .filePath(QStringLiteral("Trash/files/script.lua"));
-        return Expect(ToQ(view.open) == QStringLiteral("scripts/titles.lua") &&
-                          QFile::exists(trashed),
-                      QStringLiteral("after deleting, %1 is open and the trash "
-                                     "%2 it")
-                          .arg(ToQ(view.open), QFile::exists(trashed)
-                                                   ? QStringLiteral("has")
-                                                   : QStringLiteral("lacks")));
+        const bool in_trash = QFile::exists(trashed);
+#else
+        const bool in_trash = !QFile::exists(
+            QDir(ToQ(view.dir)).filePath(QStringLiteral("scripts/script.lua")));
+#endif
+        return Expect(
+            ToQ(view.open) == QStringLiteral("scripts/titles.lua") && in_trash,
+            QStringLiteral("after deleting, %1 is open and the trash "
+                           "%2 it")
+                .arg(ToQ(view.open), in_trash ? QStringLiteral("has")
+                                              : QStringLiteral("lacks")));
       });
   Add(
       QStringLiteral("views-the-agent-tab-sits-with-the-inspector"), [] {}, 100,

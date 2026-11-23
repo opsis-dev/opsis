@@ -93,8 +93,8 @@ mod tests {
     #[test]
     fn keys_name_the_system_the_chip_and_the_installer() {
         assert_eq!(
-            feed_key("windows", "x86_64", Installer::Msi),
-            "windows-x86_64-msi"
+            feed_key("windows", "x86_64", Installer::Nsis),
+            "windows-x86_64-nsis"
         );
     }
 }

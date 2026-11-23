@@ -43,17 +43,17 @@ Status: the Linux packages are built and checked ([packaging.md](../agent-docs/p
 **In place.**
 
 - `.github/workflows/build.yml`, on every push, on Ubuntu 24.04: the checks (the offscreen view tests among them) and the `wayland` scenario, and the other e2e scenarios with the engine.
-- `.github/workflows/release.yml`, on `v*` tags or by hand (`workflow_dispatch`): the source notice's links (`bun run notice:links`), a package job for each system (Linux on the runner with its packaging tools installed, Windows with the pinned NSIS and WiX v7, both Macs) and, on tags, the draft release with the update feed ([packaging.md](../agent-docs/packaging.md)). None has run. On macOS the job installs Ninja when the runner lacks it; on Windows `bun run setup` builds the static Qt and loads Visual Studio's environment itself.
+- `.github/workflows/release.yml`, on `v*` tags or by hand (`workflow_dispatch`): the source notice's links (`bun run notice:links`), a package job for each system (Linux on the runner with its packaging tools installed, Windows with the pinned NSIS, both Macs) and, on tags, the draft release with the update feed ([packaging.md](../agent-docs/packaging.md)). None has run. On macOS the job installs Ninja when the runner lacks it; on Windows `bun run setup` builds the static Qt and loads Visual Studio's environment itself.
 - The repository is `github.com/opsis-dev/opsis`. It is private; its `main` is behind the local one, its one workflow run (Build, 2026-11-05) failed, and it has no releases. The update signing secrets are set on it (section 5).
 
 **Work.**
 
 1. **Push and make it public.** Push `main`, then switch the repository to public (decided below).
 2. **First run.** Start the workflow with `workflow_dispatch`; expect every build job to need fixes at least once (`fail-fast: false` is set).
-3. **Fix failures one system at a time.** Likely places: the static Qt build and the editor's static link on Windows and macOS (written from Qt's docs and the macOS `.prl` files, never run there: the `.prl` text on MSVC and the Windows plugin's system libraries are the least certain), `bun`'s `windowsVerbatimArguments` in `msvcEnv`, `install-engine` on Windows (Chrome for Testing download and unzip), the MSI (WiX runs only on Windows and needs the VBSCRIPT feature), long paths on Windows (the downloaded engine sits several folders deep).
+3. **Fix failures one system at a time.** Likely places: the static Qt build and the editor's static link on Windows and macOS (written from Qt's docs and the macOS `.prl` files, never run there: the `.prl` text on MSVC and the Windows plugin's system libraries are the least certain), `bun`'s `windowsVerbatimArguments` in `msvcEnv`, `install-engine` on Windows (Chrome for Testing download and unzip), long paths on Windows (the downloaded engine sits several folders deep).
 4. **Keep the builds** in `~/.cache/opsis-ci/<run id>/` when checking them; sizes go to section 1.
 
-**Decided.** Public repo; CI runners only for Windows and macOS (no manual pass), plus a person on Linux; x64 Windows and separate Apple Silicon and Intel Mac builds, no Windows on Arm or universal build; one build with FFmpeg inside and no recording browser; NSIS and MSI on Windows, the zipped app (for updates and notarization) and a DMG (for first installs) on macOS.
+**Decided.** Public repo; CI runners only for Windows and macOS (no manual pass), plus a person on Linux; x64 Windows and separate Apple Silicon and Intel Mac builds, no Windows on Arm or universal build; one build with FFmpeg inside and no recording browser; NSIS on Windows, the zipped app (for updates and notarization) and a DMG (for first installs) on macOS.
 
 ## 3. Platform checks
 
@@ -76,7 +76,7 @@ The native editor has run only on Linux: X11 in a virtual display, and Wayland o
 **Work.**
 
 1. **macOS.** `codesign` with the Developer ID identity, the hardened runtime (`--options runtime`) and entitlements, then `notarytool submit --wait` and `stapler staple`, in `crates/packager/src/macos.rs`; CI signs with `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY` and notarizes with `APPLE_API_ISSUER`, `APPLE_API_KEY`, `APPLE_API_KEY_PATH`. Every program inside the app must be signed, or notarization fails: that includes the `opsis-ffmpeg` sidecar in `Contents/MacOS`, which is signed with the hardened runtime and notarized with the app. Whether ffmpeg-static runs under the hardened runtime without extra entitlements is untested. The recording browser is downloaded or chosen on the user's Mac, not shipped.
-2. **Windows.** `signtool` (Windows SDK) with the certificate, SHA-256 and a timestamp server, or Azure Artifact Signing's own tool, on the program, FFmpeg, the NSIS installer and its uninstaller, and the MSI, in `crates/packager/src/windows.rs`.
+2. **Windows.** `signtool` (Windows SDK) with the certificate, SHA-256 and a timestamp server, or Azure Artifact Signing's own tool, on the program, FFmpeg, and the NSIS installer and its uninstaller, in `crates/packager/src/windows.rs`.
 3. **Check** on clean machines: the publisher name shows; macOS opens the downloaded zip with one confirmation.
 
 **Decided.** The signer is the user's own name.
@@ -89,7 +89,7 @@ The native editor has run only on Linux: X11 in a virtual display, and Wayland o
 
 **Work.**
 
-1. **Check a real update on each system** once the release workflow runs: install a published version, publish a newer one, and update from it on the AppImage, the NSIS and MSI installs and both Macs (Restart to update and an ordinary close); the deb, rpm and pacman installs open the release page.
+1. **Check a real update on each system** once the release workflow runs: install a published version, publish a newer one, and update from it on the AppImage, the NSIS install and both Macs (Restart to update and an ordinary close); the deb, rpm and pacman installs open the release page.
 
 **Risks.** An ad-hoc-signed macOS app that replaces itself may meet Gatekeeper on first open until section 4 signs and notarizes it.
 

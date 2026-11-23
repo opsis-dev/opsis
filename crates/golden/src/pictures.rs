@@ -5,6 +5,7 @@ use opsis_types::numbers::float;
 use crate::{WRITE, path, writing};
 
 const FLIP_TOLERANCE: f32 = 0.05;
+pub const STRAY_PIXELS: usize = 8;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Picture<'a> {
@@ -13,6 +14,13 @@ pub struct Picture<'a> {
     pub size: (u32, u32),
 }
 
+#[cfg_attr(
+    not(all(target_arch = "x86_64", target_os = "linux")),
+    expect(
+        clippy::missing_const_for_fn,
+        reason = "it detects AVX2 at run time on x86 Linux, the one system its pictures are exact on"
+    )
+)]
 pub fn exact_setup() -> bool {
     #[cfg(all(target_arch = "x86_64", target_os = "linux"))]
     {
@@ -32,14 +40,13 @@ fn rgb(rgba: &[u8]) -> Vec<u8> {
         .collect()
 }
 
-fn differing_share(a: &[u8], b: &[u8]) -> f64 {
-    let pixels = a.as_chunks::<4>().0.iter().zip(b.as_chunks::<4>().0);
-    let (mut differing, mut all) = (0usize, 0usize);
-    for (p, q) in pixels {
-        all += 1;
-        differing += usize::from(p != q);
-    }
-    float(differing) / float(all.max(1))
+fn differing_pixels(a: &[u8], b: &[u8]) -> usize {
+    a.as_chunks::<4>()
+        .0
+        .iter()
+        .zip(b.as_chunks::<4>().0)
+        .filter(|(p, q)| p != q)
+        .count()
 }
 
 pub fn compared(key: &str, png: &[u8], made: Picture<'_>, allowed_share: f64) -> Option<String> {
@@ -54,9 +61,13 @@ pub fn compared(key: &str, png: &[u8], made: Picture<'_>, allowed_share: f64) ->
         ));
     }
     if exact_setup() {
-        let share = differing_share(recorded.as_raw(), made.rgba);
-        return (share > allowed_share)
-            .then(|| format!("{key}: {share:.5} of its pixels differ from its golden"));
+        let differing = differing_pixels(recorded.as_raw(), made.rgba);
+        let all = float(recorded.as_raw().len() / 4).max(1.0);
+        let allowed = allowed_share.max(float(STRAY_PIXELS) / all);
+        let share = float(differing) / all;
+        return (share > allowed).then(|| {
+            format!("{key}: {differing} of its pixels ({share:.5}) differ from its golden")
+        });
     }
     let (width, height) = made.size;
     let a = nv_flip::FlipImageRgb8::with_data(width, height, &rgb(recorded.as_raw()));

@@ -175,7 +175,6 @@ pub fn file_identity(file: &Path) -> std::io::Result<String> {
 
 #[cfg(test)]
 mod tests {
-    use filetime::{FileTime, set_file_mtime};
     use serde::Deserialize;
 
     use super::*;
@@ -186,11 +185,12 @@ mod tests {
         for (name, age) in ages {
             let file = dir.path().join(name);
             std::fs::write(&file, name).unwrap();
-            set_file_mtime(
-                &file,
-                FileTime::from_system_time(now - Duration::from_secs(*age)),
-            )
-            .unwrap();
+            std::fs::File::options()
+                .write(true)
+                .open(&file)
+                .unwrap()
+                .set_modified(now - Duration::from_secs(*age))
+                .unwrap();
         }
         dir
     }

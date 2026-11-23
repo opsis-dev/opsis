@@ -120,27 +120,35 @@ mod tests {
             .unwrap()
     }
 
+    fn profile_in(root: &Path, inside: &str) -> String {
+        format!("{PROFILE_SWITCH}{}", root.join(inside).display())
+    }
+
     #[test]
     fn reads_the_app_that_owns_a_profile_in_the_temp_folder() {
         let root = Path::new("/data/Opsis/tmp");
         assert_eq!(
             temp_owner_of(
-                "--user-data-dir=/data/Opsis/tmp/2175263-shell-views/opsis-profile-aohrOW",
+                &profile_in(root, "2175263-shell-views/opsis-profile-aohrOW"),
                 root
             ),
             Some(2_175_263)
         );
         assert_eq!(
             temp_owner_of(
-                "/opt/chrome-headless-shell --headless --user-data-dir=/data/Opsis/tmp/1628536-run-97bedae8/opsis-profile-AGhC5V --no-sandbox",
+                &format!(
+                    "/opt/chrome-headless-shell --headless {} --no-sandbox",
+                    profile_in(root, "1628536-run-97bedae8/opsis-profile-AGhC5V")
+                ),
                 root
             ),
             Some(1_628_536)
         );
+        let spaced = Path::new("/Users/me/Library/Application Support/Opsis/tmp");
         assert_eq!(
             temp_owner_of(
-                "chrome --user-data-dir=/Users/me/Library/Application Support/Opsis/tmp/77-shell-views/p",
-                Path::new("/Users/me/Library/Application Support/Opsis/tmp")
+                &format!("chrome {}", profile_in(spaced, "77-shell-views/p")),
+                spaced
             ),
             Some(77)
         );
@@ -149,17 +157,20 @@ mod tests {
             None
         );
         assert_eq!(
-            temp_owner_of("--user-data-dir=/data/Opsis/tmpfiles/12-run-x/p", root),
+            temp_owner_of(
+                &format!("{PROFILE_SWITCH}{}files/12-run-x/p", root.display()),
+                root
+            ),
             None
         );
         assert_eq!(
-            temp_owner_of("--disk-cache-dir=/data/Opsis/tmp/12-run-x/p", root),
+            temp_owner_of(
+                &format!("--disk-cache-dir={}", root.join("12-run-x/p").display()),
+                root
+            ),
             None
         );
-        assert_eq!(
-            temp_owner_of("--user-data-dir=/data/Opsis/tmp/stray/p", root),
-            None
-        );
+        assert_eq!(temp_owner_of(&profile_in(root, "stray/p"), root), None);
     }
 
     #[test]

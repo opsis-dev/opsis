@@ -4,15 +4,26 @@ use crate::error::UpdateError;
 use crate::fetch::Downloaded;
 use crate::installer::Installer;
 
-pub fn install(update: &Downloaded, reopen: bool) -> Result<(), UpdateError> {
+pub fn install(update: &Downloaded, reopen: bool, failed: &Path) -> Result<(), UpdateError> {
     match update.installer {
         Installer::AppImage => install_appimage(&update.path, reopen),
         Installer::App => install_app(&update.path, reopen),
-        Installer::Nsis | Installer::Msi => {
-            run_windows_installer(update.installer, &update.path, reopen)
-        }
+        Installer::Nsis => run_windows_installer(&WindowsInstall {
+            file: &update.path,
+            version: &update.version,
+            failed,
+            reopen,
+        }),
         Installer::Deb | Installer::Rpm | Installer::Pacman => Err(UpdateError::NotSelfUpdating),
     }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct WindowsInstall<'a> {
+    pub file: &'a Path,
+    pub version: &'a str,
+    pub failed: &'a Path,
+    pub reopen: bool,
 }
 
 fn sibling(path: &Path, suffix: &str) -> Result<PathBuf, UpdateError> {
@@ -110,29 +121,20 @@ pub fn quoted(text: &str) -> String {
     format!("'{}'", text.replace('\'', "''"))
 }
 
-pub fn windows_script(
-    installer: Installer,
-    file: &Path,
-    program: &Path,
-    pid: u32,
-    reopen: bool,
-) -> String {
-    let file = file.to_string_lossy();
-    let run = match installer {
-        Installer::Msi => format!(
-            "Start-Process -Wait -FilePath (Join-Path $env:SystemRoot 'System32\\msiexec.exe') -ArgumentList '/i',{},'/passive'",
-            quoted(&format!("\"{file}\""))
-        ),
-        _ => format!(
-            "Start-Process -Wait -FilePath {} -ArgumentList '/P'",
-            quoted(&file)
-        ),
-    };
+pub fn windows_script(install: &WindowsInstall<'_>, program: &Path, pid: u32) -> String {
     let mut steps = vec![
         format!("Wait-Process -Id {pid} -ErrorAction SilentlyContinue"),
-        run,
+        format!(
+            "$done = Start-Process -Wait -PassThru -FilePath {} -ArgumentList '/P'",
+            quoted(&install.file.to_string_lossy())
+        ),
+        format!(
+            "if ($done.ExitCode -ne 0) {{ @{{ version = {}; reason = \"The installer stopped with code $($done.ExitCode).\" }} | ConvertTo-Json -Compress | Set-Content -LiteralPath {} -Encoding UTF8 }}",
+            quoted(install.version),
+            quoted(&install.failed.to_string_lossy())
+        ),
     ];
-    if reopen {
+    if install.reopen {
         steps.push(format!(
             "Start-Process -FilePath {}",
             quoted(&program.to_string_lossy())
@@ -142,16 +144,12 @@ pub fn windows_script(
 }
 
 #[cfg(windows)]
-fn run_windows_installer(
-    installer: Installer,
-    file: &Path,
-    reopen: bool,
-) -> Result<(), UpdateError> {
+fn run_windows_installer(install: &WindowsInstall<'_>) -> Result<(), UpdateError> {
     use std::os::windows::process::CommandExt;
 
     const CREATE_NO_WINDOW: u32 = 0x0800_0000;
     let program = std::env::current_exe()?;
-    let script = windows_script(installer, file, &program, std::process::id(), reopen);
+    let script = windows_script(install, &program, std::process::id());
     let powershell = std::env::var_os("SystemRoot")
         .map(PathBuf::from)
         .ok_or(UpdateError::NoInstallPath)?
@@ -174,11 +172,7 @@ fn run_windows_installer(
 }
 
 #[cfg(not(windows))]
-const fn run_windows_installer(
-    _installer: Installer,
-    _file: &Path,
-    _reopen: bool,
-) -> Result<(), UpdateError> {
+const fn run_windows_installer(_install: &WindowsInstall<'_>) -> Result<(), UpdateError> {
     Err(UpdateError::NotSelfUpdating)
 }
 
@@ -236,15 +230,22 @@ mod tests {
     }
 
     #[test]
-    fn the_windows_script_waits_installs_and_reopens_only_when_asked() {
-        let file = Path::new("C:\\Users\\a b\\Opsis setup.exe");
+    fn the_windows_script_waits_installs_notes_a_failure_and_reopens_only_when_asked() {
+        let mut install = WindowsInstall {
+            file: Path::new("C:\\Users\\a b\\Opsis setup.exe"),
+            version: "1.2.0",
+            failed: Path::new("C:\\Users\\a b\\Opsis\\update-failed.json"),
+            reopen: false,
+        };
         let program = Path::new("C:\\Users\\a b\\Opsis\\opsis.exe");
-        let quiet = windows_script(Installer::Nsis, file, program, 42, false);
         assert_eq!(
-            quiet,
-            "Wait-Process -Id 42 -ErrorAction SilentlyContinue; Start-Process -Wait -FilePath 'C:\\Users\\a b\\Opsis setup.exe' -ArgumentList '/P'"
+            windows_script(&install, program, 42),
+            "Wait-Process -Id 42 -ErrorAction SilentlyContinue; $done = Start-Process -Wait -PassThru -FilePath 'C:\\Users\\a b\\Opsis setup.exe' -ArgumentList '/P'; if ($done.ExitCode -ne 0) { @{ version = '1.2.0'; reason = \"The installer stopped with code $($done.ExitCode).\" } | ConvertTo-Json -Compress | Set-Content -LiteralPath 'C:\\Users\\a b\\Opsis\\update-failed.json' -Encoding UTF8 }"
         );
-        let reopened = windows_script(Installer::Nsis, file, program, 42, true);
-        assert!(reopened.ends_with("; Start-Process -FilePath 'C:\\Users\\a b\\Opsis\\opsis.exe'"));
+        install.reopen = true;
+        assert!(
+            windows_script(&install, program, 42)
+                .ends_with("; Start-Process -FilePath 'C:\\Users\\a b\\Opsis\\opsis.exe'")
+        );
     }
 }

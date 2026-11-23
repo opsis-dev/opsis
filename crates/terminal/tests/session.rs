@@ -7,6 +7,18 @@ use opsis_types::terminal::{
     TerminalStep, WaitFor,
 };
 
+const ASK_POSITION: &str = if cfg!(windows) {
+    r#"$e = [char]27; [Console]::Write("$e[6n"); $r = ''; do { $c = [Console]::ReadKey($true).KeyChar; $r += $c } until ($c -eq 'R'); 'at:' + $r.Substring($r.IndexOf('[') + 1).TrimEnd('R')"#
+} else {
+    r#"printf '\033[6n'; IFS= read -rsd R pos; echo "at:${pos#*[}""#
+};
+
+const READ_CLICK: &str = if cfg!(windows) {
+    r#"Add-Type -Namespace Opsis -Name Console -MemberDefinition '[DllImport("kernel32.dll")] public static extern System.IntPtr GetStdHandle(int h); [DllImport("kernel32.dll")] public static extern bool GetConsoleMode(System.IntPtr h, out int m); [DllImport("kernel32.dll")] public static extern bool SetConsoleMode(System.IntPtr h, int m);'; $h = [Opsis.Console]::GetStdHandle(-10); $m = 0; [void][Opsis.Console]::GetConsoleMode($h, [ref]$m); [void][Opsis.Console]::SetConsoleMode($h, ($m -bor 0x290) -band -bnot 0x40); $e = [char]27; [Console]::Write("$e[?1000h$e[?1006h"); $r = ''; do { $c = [char][Console]::In.Read(); $r += $c } until ($c -eq 'M'); [Console]::Write("$e[?1000l"); 'got:' + $r.Substring(1)"#
+} else {
+    r"printf '\033[?1000h\033[?1006h'; IFS= read -rsd M m; printf '\033[?1000l'; echo got:${m#?}"
+};
+
 fn step(id: &str, action: TerminalAction) -> TerminalStep {
     TerminalStep {
         id: id.to_owned(),
@@ -83,8 +95,12 @@ fn waits_for_each_command_to_finish_through_the_prompt_marks() {
     ]);
     let text = output(&made);
     assert!(text.contains("\x1b]133;A") && text.contains("\x1b]133;D;0"));
-    let slept = text.find("slept-well\r\n").unwrap();
-    let after = text.find("echo after").unwrap();
+    let slept = text
+        .find("slept-well\r\n")
+        .unwrap_or_else(|| panic!("{text:?}"));
+    let after = text
+        .find("echo after")
+        .unwrap_or_else(|| panic!("{text:?}"));
     assert!(slept < after, "{text}");
     let marks = markers(&made);
     assert_eq!(marks.first().map(String::as_str), Some("opsis:step:start"));
@@ -110,10 +126,7 @@ fn waits_for_each_command_to_finish_through_the_prompt_marks() {
 #[test]
 #[ignore = "needs a shell"]
 fn answers_the_programs_questions_about_the_terminal() {
-    let made = take(vec![step(
-        "ask",
-        run(r#"printf '\033[6n'; IFS= read -rsd R pos; echo "at:${pos#*[}""#),
-    )]);
+    let made = take(vec![step("ask", run(ASK_POSITION))]);
     assert!(output(&made).contains("at:"), "{}", output(&made));
     let at = output(&made);
     let answer = at.rsplit("at:").next().unwrap();
@@ -127,8 +140,7 @@ fn clicks_reach_a_program_that_reads_the_mouse() {
         step(
             "listen",
             TerminalAction::Type {
-                text: r"printf '\033[?1000h\033[?1006h'; IFS= read -rsd M m; printf '\033[?1000l'; echo got:${m#?}".to_owned()
-                    + "\n",
+                text: READ_CLICK.to_owned() + "\n",
                 speed_ms: Some(2),
             },
         ),

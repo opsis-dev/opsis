@@ -52,6 +52,7 @@ How specs name files, how the renderer reads them, prepared files, model import 
 
 - **After each compile Rust follows the exact files the film loads**: every `project:` ref in the compiled values, the project's font files and the project sources of prepared files (`project_refs_in`, `follow_loaded_files`), never the app's own `.opsis` files (`watched_refs` drops them).
   - Following the same refs in the same folder again does nothing.
+  - The watchers watch the project folder by its real path (`real`, `crates/project/src/watch.rs`), since macOS reports events under the resolved path (`/private/var/…` for `/var/…`) and a watch on the symlinked path would miss them.
 - **When one changes, Rust compiles again and sends every app window each changed file's size and modified time (`ProjectFilesChanged`, declared in `session/src/events.rs`)**, naming each file by every ref the film uses for it (`LoadedFilesWatch`). No native view handles that event; the editor follows the change through the new compile.
 - **A render's cache key stamps each project file its settings name by size and modified time (`file_stamps`)**, so the followed-file events never feed a key ([runs.md](runs.md)).
 

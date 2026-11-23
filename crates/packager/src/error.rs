@@ -34,9 +34,7 @@ pub enum PackagerError {
     },
     #[error("no package is known for {}; add it to crates/packager/src/linux_deps.rs", .0.join(", "))]
     UnknownLibraries(Vec<String>),
-    #[error(
-        "unknown format {0}; the formats are deb, rpm, appimage, pacman, nsis, msi, app and dmg"
-    )]
+    #[error("unknown format {0}; the formats are deb, rpm, appimage, pacman, nsis, app and dmg")]
     UnknownFormat(String),
     #[error("{format} is built on {builds_on}, not {here}")]
     WrongPlatform {

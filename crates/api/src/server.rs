@@ -1,7 +1,7 @@
 use std::io::ErrorKind;
 use std::sync::{Arc, Mutex};
 
-use opsis_folders::address::{API_SOCKET_ENV, ApiAddress};
+use opsis_folders::address::ApiAddress;
 use opsis_types::shell::ApiServerStatus;
 use tokio_util::sync::CancellationToken;
 
@@ -14,19 +14,19 @@ enum ListenError {
     #[cfg(unix)]
     #[error(
         "The folder {folder} doesn't exist. Create it, or set {env} to a path in a folder that does, and restart Opsis.",
-        env = API_SOCKET_ENV
+        env = opsis_folders::address::API_SOCKET_ENV
     )]
     NoFolder { folder: String },
     #[cfg(unix)]
     #[error(
         "Opsis can't create files in {folder}. Set {env} to a path in a folder you own, and restart Opsis.",
-        env = API_SOCKET_ENV
+        env = opsis_folders::address::API_SOCKET_ENV
     )]
     NotWritable { folder: String },
     #[cfg(unix)]
     #[error(
         "A file that isn't Opsis's API is already at {address}. Move it, or set {env} to another path, and restart Opsis.",
-        env = API_SOCKET_ENV
+        env = opsis_folders::address::API_SOCKET_ENV
     )]
     Occupied { address: String },
     #[error(transparent)]
@@ -97,6 +97,10 @@ async fn serve(
 }
 
 #[cfg(windows)]
+#[expect(
+    clippy::unused_async,
+    reason = "it is awaited like the Unix serve, which waits to see whether another copy already listens"
+)]
 async fn serve(
     address: &str,
     host: Arc<dyn ApiHost>,

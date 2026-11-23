@@ -210,7 +210,7 @@ pub fn wall_time_in(time: &str, zone: &str) -> Result<jiff::Timestamp, WallTimeE
         .parse::<jiff::civil::DateTime>()
         .map_err(|_| WallTimeError::NotATime(time.to_owned()))?;
     let tz = jiff::tz::TimeZone::get(zone).map_err(|_| WallTimeError::NotAZone(zone.to_owned()))?;
-    Ok(wall.to_zoned(tz)?.timestamp())
+    Ok(wall.to_zoned_datetime(tz)?.timestamp())
 }
 
 pub fn is_locale(tag: &str) -> bool {

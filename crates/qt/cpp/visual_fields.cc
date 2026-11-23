@@ -15,6 +15,7 @@
 #include <QPainterPath>
 #include <QPushButton>
 #include <QSlider>
+#include <QToolButton>
 #include <QVBoxLayout>
 #include <algorithm>
 #include <cmath>
@@ -114,9 +115,9 @@ QWidget* MakeThemeField(const bridge::FieldView& field,
   header->addWidget(toggle);
   header->addStretch(1);
   if (changed > 0) {
-    auto* reset = MakeButton(QStringLiteral("Reset"), "ghost",
-                             QStringLiteral("rotate-ccw"), box);
-    QObject::connect(reset, &QPushButton::clicked, box,
+    auto* reset = MakeIconButton(QStringLiteral("rotate-ccw"),
+                                 QStringLiteral("Reset colours"), box);
+    QObject::connect(reset, &QToolButton::clicked, box,
                      [send] { send(QString(), QJsonObject()); });
     header->addWidget(reset);
   }

@@ -19,7 +19,7 @@ pub use bridge::ffi::{
     AboutView, AgentAskView, AgentEntryView, AgentOptionView, AgentPanelView, AgentThreadView,
     AgentToolView, ArtifactView, AssistantSessionView, BarView, BoundsView, BracketView, CardKind,
     CardView, CatalogRowView, CategoryView, Choice, CloseView, ColorView, DialogKind, EdgeView,
-    EngineView, EventKind, FieldKind, FieldView, FilmTile, FilmTiles, FontCatalogView,
+    EditorFont, EngineView, EventKind, FieldKind, FieldView, FilmTile, FilmTiles, FontCatalogView,
     FontChoicesView, FontPickView, FontReviewView, FontRowView, GradientInfo, GradientStopView,
     GraphView, InspectorView, InstalledFontView, IssueView, KeyLineView, KeyPointView, LicenceView,
     LiveCaptureView, LiveClickView, LiveView, LoudnessView, MarkDrawnView, MarkPointsView,

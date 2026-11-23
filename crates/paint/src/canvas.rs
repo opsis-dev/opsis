@@ -12,7 +12,7 @@ use opsis_types::numbers::narrow;
 use crate::Painter;
 use crate::boxes::Areas;
 use crate::color::resolve;
-use crate::geometry::{matrix44, rect_f};
+use crate::geometry::rect_f;
 use crate::text::font_of;
 
 const QUARTER_TURN: f64 = std::f64::consts::FRAC_PI_2;
@@ -288,8 +288,8 @@ struct Replay<'p, 'a, 'b, 'c> {
 
 impl Replay<'_, '_, '_, '_> {
     fn reset(&mut self) {
-        self.painter.surface.reset_matrix();
-        self.painter.surface.concat(matrix44(&self.base));
+        let base = self.base;
+        self.painter.set_matrix(&base);
     }
 
     fn shadowed(&mut self, state: &State, draw: &mut dyn FnMut(&mut Self, &Paint)) {
@@ -300,10 +300,8 @@ impl Replay<'_, '_, '_, '_> {
                 paint.set_alpha(narrow(f64::from(rgba.alpha) * state.alpha));
                 paint.set_mask_blur(narrow(blur / 2.0));
                 let base = self.base;
-                self.painter.surface.reset_matrix();
                 self.painter
-                    .surface
-                    .concat(matrix44(&base.then(&Matrix::translation(*x, *y, 0.0))));
+                    .set_matrix(&base.then(&Matrix::translation(*x, *y, 0.0)));
                 draw(self, &paint);
                 self.reset();
             }
@@ -325,8 +323,7 @@ impl Replay<'_, '_, '_, '_> {
         let transform = state.transform.matrix();
         let draw = |me: &mut Self, paint: &Paint, shift: (f64, f64)| {
             let base = me.base.then(&Matrix::translation(shift.0, shift.1, 0.0));
-            me.painter.surface.reset_matrix();
-            me.painter.surface.concat(matrix44(&base.then(&transform)));
+            me.painter.set_matrix(&base.then(&transform));
             for run in &runs {
                 let (glyphs, positions): (Vec<u16>, Vec<PointF>) = run
                     .glyphs
@@ -379,6 +376,7 @@ impl Replay<'_, '_, '_, '_> {
 
     fn picture(&mut self, source: &str, rect: [f64; 4], state: &State) {
         let transform = state.transform.matrix();
+        let device = self.painter.placement();
         let base = self.base;
         let Painter {
             surface, resources, ..
@@ -401,11 +399,9 @@ impl Replay<'_, '_, '_, '_> {
         let mut paint = Paint::new();
         paint.set_alpha(narrow(state.alpha));
         paint.set_blend(blend_of(state.composite));
-        surface.reset_matrix();
-        surface.concat(matrix44(&base.then(&transform)));
+        device.set(surface, &base.then(&transform));
         surface.draw_image_rect(&image, (full, target), Sampling::Linear, &paint);
-        surface.reset_matrix();
-        surface.concat(matrix44(&base));
+        device.set(surface, &base);
     }
 }
 

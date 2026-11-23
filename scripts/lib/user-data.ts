@@ -19,12 +19,16 @@ function foldersIn(dir: string): string[] {
     .map((entry) => path.join(dir, entry.name));
 }
 
+function browserFile(platform: NodeJS.Platform): string {
+  return platform === "win32" ? "chrome-headless-shell.exe" : "chrome-headless-shell";
+}
+
 export function browserIn(engine: string): string | null {
   const root = path.join(engine, "chrome-headless-shell");
   if (!existsSync(root)) return null;
   const shells = foldersIn(root)
     .flatMap(foldersIn)
-    .map((build) => path.join(build, "chrome-headless-shell"));
+    .map((build) => path.join(build, browserFile(process.platform)));
   return shells.find((file) => existsSync(file)) ?? null;
 }
 

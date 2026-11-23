@@ -41,6 +41,9 @@ How a film is drawn and encoded: layout, paint, the shader effects and 3D in the
 
 - **Filament runs only in the renderer program `opsis-renderer`**, one per render worker, started the first time a frame has an effect or a 3D stage (`Renderer::start`); passes and stages go over its standard input and output as a JSON header and the layer pixels (`protocol.rs`), models and the room's map once per child. The app links no Filament.
 - **The drawing choice (`Gl`: Graphics card or Software) picks the program's driver** (`drawing_for`): the graphics card through Vulkan or Metal, or the SwiftShader that comes with the recording browser, named in a driver file written next to the run (`VK_DRIVER_FILES`), since choosing the driver inside the running app would need `set_var`.
+  - On Windows, Software drawing loads SwiftShader as the Vulkan library itself, with no loader: Filament always loads `vulkan-1.dll`, so the client copies the browser's `vk_swiftshader.dll` under that name into a folder of the drawing temp named by its size (`library_as_loader`, `crates/renderer/src/client.rs`), and the renderer program makes that folder its DLL directory before Filament starts (`OPSIS_VULKAN_FOLDER`, `UseVulkanFolder` in `crates/filament/cpp/opsis_filament.cc`), which Windows searches before System32. The Vulkan loader ignores `VK_DRIVER_FILES` in a process running as Administrator (`loader_secure_getenv`), so going through it would leave an elevated Opsis with no driver.
+  - Tests that start Filament in their own process still go through the loader, so the Test workflow registers the browser's SwiftShader under `HKLM\SOFTWARE\Khronos\Vulkan\Drivers`, since GitHub's Windows runners run elevated.
+  - On Windows and macOS the program also gets the browser's folder first in its library search path (`PATH`, `DYLD_LIBRARY_PATH`; `loader_path`, `crates/renderer/src/client.rs`), where Filament's loader finds the Vulkan loader the browser ships (`vulkan-1.dll`, `libvulkan.dylib`); on Linux it uses the system's `libvulkan.so.1`.
 - **`renderer_program` finds the program beside the app or up to five folders above a test**; the installers place it beside `opsis` and `opsis-ffmpeg`, and `bun start` and the e2e runner build it. A program that can't start leaves the frames without their effects and logs why.
 - **An effect paints its children into layers, runs its material and draws the result back** (`paint_effect`); a two-scene transition reads the outgoing scene from its slot ([scene.md](scene.md)).
 - **Every hash in the materials is integer (PCG)**, so passes give the same pixels on every driver; grain and Perlin noise differ from the browser's pixel for pixel on purpose.
@@ -60,7 +63,9 @@ How a film is drawn and encoded: layout, paint, the shader effects and 3D in the
 
 ### Goldens
 
-- **Picture goldens are recorded and compared exactly on x86 Linux with AVX2**, the app's own Skia path; elsewhere FLIP's mean must stay under 0.05 (`crates/golden/src/pictures.rs`).
+- **Picture goldens are recorded on x86 Linux with AVX2 and compared there pixel by pixel, allowing `STRAY_PIXELS` that differ**; elsewhere FLIP's mean must stay under 0.05 (`compared`, `crates/golden/src/pictures.rs`).
+  - The stray pixels are for other x86 processors: Skia's AVX2 code uses the approximate reciprocal and square root instructions (`_mm256_rcp_ps`, `_mm256_rsqrt_ps`), whose low bits are left to each processor maker, so a gradient can land a level apart on a handful of pixels on another processor.
+  - The terminal take's stills are pictures too (`fixtures/terminal/stills`), compared the same way.
 - **Elements drawn through Filament may differ in 0.05% of their pixels** (`FILAMENT_SHARE`, `goldens.rs`), since SwiftShader's multisampling moves a few single highlight pixels between runs.
 - **Record them with `OPSIS_WRITE_GOLDEN=1`** (`goldens.rs` and `three_stills.rs` with `--ignored`, since they need the dev engine's SwiftShader and the renderer program) and review the pictures.
 
@@ -105,4 +110,5 @@ How a film is drawn and encoded: layout, paint, the shader effects and 3D in the
 - **HTML inside SVG (`foreignObject`) is not drawn**; the terminal under the lens is an element with a filter, not HTML inside SVG.
 - **No `text-wrap: balance` and no automatic hyphenation**; soft hyphens are drawn with `-`.
 - **`vertical-align: top` and `bottom` on text spans align as `baseline`.**
+- **A line can break on either side of any inline box**: Parley gives every in-flow inline box a U+FFFC in the text with a soft wrap opportunity before and after it and no way to change that per box, and Opsis uses such boxes for atomic inlines, tabs and the padding, border and margin edges of inline spans (`text_of`, `shaped_paragraph`, `crates/layout/src/inline.rs`). So a line may break between a span's opening edge and its first word, where a browser keeps them together; none of the recorded cases breaks there. Each of those U+FFFC characters gets zero letter spacing, since Parley would otherwise add the span's letter spacing to every box, which browsers don't.
 - **Lottie plays without expressions**: a file that uses them draws its keyframed values, and the Media file card warns (`Measured::Expressions`, `crates/types/src/values.rs`, from `uses_expressions`, `crates/probe/src/lottie.rs`).

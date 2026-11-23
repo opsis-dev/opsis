@@ -34,7 +34,10 @@ const WRITING_FIND: [&str; 7] = [
 pub fn definition() -> Option<ToolDefinition> {
     Some(ToolDefinition {
         name: ToolName::new(SHELL).ok()?,
-        description: "Run a shell command in the session's folder and answer with its output and exit code. With background, it starts and its result comes back as a message when it ends.".to_owned(),
+        description: format!(
+            "Run a {} command in the session's folder and answer with its output and exit code. With background, it starts and its result comes back as a message when it ends.",
+            if cfg!(windows) { "PowerShell" } else { "sh" }
+        ),
         parameters: json!({ "type": "object", "properties": {
             "command": { "type": "string" },
             "background": { "type": "boolean" },
@@ -106,10 +109,16 @@ fn kept(bytes: &[u8]) -> String {
     format!("…{}", &text[start..])
 }
 
+fn windows_shell() -> &'static str {
+    let has_pwsh = std::env::var_os("PATH")
+        .is_some_and(|path| std::env::split_paths(&path).any(|dir| dir.join("pwsh.exe").is_file()));
+    if has_pwsh { "pwsh" } else { "powershell" }
+}
+
 fn command(line: &str, folder: &Path) -> tokio::process::Command {
     let mut command = if cfg!(windows) {
-        let mut command = tokio::process::Command::new("cmd");
-        command.args(["/C", line]);
+        let mut command = tokio::process::Command::new(windows_shell());
+        command.args(["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", line]);
         command
     } else {
         let mut command = tokio::process::Command::new("sh");
@@ -225,21 +234,13 @@ mod tests {
     async fn runs_a_command_in_the_folder_and_reports_its_output_and_code() {
         let dir = tempfile::tempdir().unwrap();
         std::fs::write(dir.path().join("a.txt"), "hello").unwrap();
-        let line = if cfg!(windows) {
-            "type a.txt"
-        } else {
-            "cat a.txt; exit 3"
-        };
-        let ran = run(line, dir.path(), Duration::from_secs(10))
+        let ran = run("cat a.txt; exit 3", dir.path(), Duration::from_secs(10))
             .await
             .unwrap();
         assert!(ran.output.contains("hello"));
-        if !cfg!(windows) {
-            assert_eq!(ran.code, Some(3));
-        }
+        assert_eq!(ran.code, Some(3));
     }
 
-    #[cfg(unix)]
     #[tokio::test]
     async fn a_command_past_its_time_is_stopped() {
         let dir = tempfile::tempdir().unwrap();

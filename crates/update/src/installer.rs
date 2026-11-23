@@ -17,18 +17,16 @@ pub enum Installer {
     Pacman,
     AppImage,
     Nsis,
-    Msi,
     App,
 }
 
 impl Installer {
-    pub const ALL: [Self; 7] = [
+    pub const ALL: [Self; 6] = [
         Self::Deb,
         Self::Rpm,
         Self::Pacman,
         Self::AppImage,
         Self::Nsis,
-        Self::Msi,
         Self::App,
     ];
 
@@ -39,7 +37,6 @@ impl Installer {
             Self::Pacman => "pacman",
             Self::AppImage => "appimage",
             Self::Nsis => "nsis",
-            Self::Msi => "msi",
             Self::App => "app",
         }
     }
@@ -51,13 +48,12 @@ impl Installer {
             Self::Pacman => "pacman package",
             Self::AppImage => "AppImage",
             Self::Nsis => "Windows installer",
-            Self::Msi => "Windows Installer package (MSI)",
             Self::App => "macOS app",
         }
     }
 
     pub const fn updates_itself(self) -> bool {
-        matches!(self, Self::AppImage | Self::Nsis | Self::Msi | Self::App)
+        matches!(self, Self::AppImage | Self::Nsis | Self::App)
     }
 
     pub const fn marker(self) -> [u8; MARKER_LEN] {

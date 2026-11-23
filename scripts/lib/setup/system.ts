@@ -8,12 +8,11 @@ const LINUX_PROGRAMS = [
   "clang++",
   "cmake",
   "make",
+  "ninja",
   "pkg-config",
   "git",
   "uvx",
   "python3",
-  "nm",
-  "objcopy",
 ];
 const CONTAINER_PROGRAM = "docker";
 

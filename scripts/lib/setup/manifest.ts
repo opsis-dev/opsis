@@ -22,7 +22,7 @@ export const pinsSchema = z.object({
   }),
   kddw: pinnedSchema.extend({ version: z.string() }),
   skia: z.object({ repo: z.string(), branch: z.string(), commit: z.string() }),
-  filament: z.object({ version: z.string(), archives: z.record(z.string(), pinnedSchema) }),
+  filament: z.object({ repo: z.string(), version: z.string(), commit: z.string() }),
   ffmpeg: z.object({ release: z.string(), targets: z.array(ffmpegTargetSchema) }),
   npm: z.record(z.string(), pinnedSchema.extend({ version: z.string() })),
 });

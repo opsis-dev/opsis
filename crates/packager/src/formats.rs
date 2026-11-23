@@ -21,19 +21,17 @@ pub enum Format {
     AppImage,
     Pacman,
     Nsis,
-    Msi,
     App,
     Dmg,
 }
 
 impl Format {
-    pub const ALL: [Self; 8] = [
+    pub const ALL: [Self; 7] = [
         Self::Deb,
         Self::Rpm,
         Self::AppImage,
         Self::Pacman,
         Self::Nsis,
-        Self::Msi,
         Self::App,
         Self::Dmg,
     ];
@@ -45,7 +43,6 @@ impl Format {
             Self::AppImage => "appimage",
             Self::Pacman => "pacman",
             Self::Nsis => "nsis",
-            Self::Msi => "msi",
             Self::App => "app",
             Self::Dmg => "dmg",
         }
@@ -54,7 +51,7 @@ impl Format {
     pub const fn builds_on(self) -> &'static str {
         match self {
             Self::Deb | Self::Rpm | Self::AppImage | Self::Pacman => "linux",
-            Self::Nsis | Self::Msi => "windows",
+            Self::Nsis => "windows",
             Self::App | Self::Dmg => "macos",
         }
     }
@@ -66,7 +63,6 @@ impl Format {
             Self::AppImage => Installer::AppImage,
             Self::Pacman => Installer::Pacman,
             Self::Nsis => Installer::Nsis,
-            Self::Msi => Installer::Msi,
             Self::App | Self::Dmg => Installer::App,
         }
     }
@@ -129,12 +125,6 @@ fn build_one(
             key,
             crate::windows::build_nsis(app, &program, target, out)?,
             Installer::Nsis,
-            target,
-        )?,
-        Format::Msi => signed(
-            key,
-            crate::windows::build_msi(app, &program, target, out)?,
-            Installer::Msi,
             target,
         )?,
         Format::App | Format::Dmg => {

@@ -85,7 +85,9 @@ impl Painter<'_, '_, '_> {
         let Some(tree) = self.resources.markup(document) else {
             return SvgInk::Unknown;
         };
-        let drawn = tree.root().abs_layer_bounding_box();
+        let Some(drawn) = tree.root().abs_layer_bounding_box() else {
+            return SvgInk::Inside;
+        };
         let local = Rect {
             x: content.x + f64::from(drawn.x()),
             y: content.y + f64::from(drawn.y()),
@@ -226,6 +228,7 @@ mod tests {
             },
             offscreen: false,
             base: Matrix::translation(0.0, 0.0, 0.0),
+            layer: None,
             slots: &slots,
         };
         [vec![0], vec![1]]

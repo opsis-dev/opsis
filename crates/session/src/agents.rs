@@ -204,6 +204,7 @@ mod tests {
         }
     }
 
+    #[cfg(unix)]
     fn preset(id: &str, programs: &[&str]) -> Preset {
         Preset {
             id: id.to_owned(),

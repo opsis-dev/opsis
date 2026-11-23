@@ -89,7 +89,7 @@ async function source(): Promise<string> {
   const tarball = path.join(CACHE, `helix-${HELIX_TAG}.tar.gz`);
   writeFileSync(tarball, bytes);
   rmSync(dir, { recursive: true, force: true });
-  execFileSync("tar", ["-xzf", tarball, "-C", CACHE]);
+  execFileSync("cmake", ["-E", "tar", "xf", tarball], { cwd: CACHE });
   rmSync(tarball);
   return dir;
 }

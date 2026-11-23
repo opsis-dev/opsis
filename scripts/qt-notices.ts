@@ -119,16 +119,9 @@ function licenceTexts(ids: Set<string>, extracted: Map<string, string>): Map<str
       const source = qt.sources.find((s) => s.module === module);
       if (!source) throw new Error(`The Qt pins have no ${module}.`);
       execFileSync(
-        "tar",
-        [
-          "-xf",
-          path.join(downloadsDir(), cachedName(source.url)),
-          "-C",
-          work,
-          "--wildcards",
-          `${root}/LICENSES/*`,
-        ],
-        { stdio: "inherit" },
+        "cmake",
+        ["-E", "tar", "xf", path.join(downloadsDir(), cachedName(source.url)), `${root}/LICENSES`],
+        { cwd: work, stdio: "inherit" },
       );
       return path.join(work, root, "LICENSES");
     });

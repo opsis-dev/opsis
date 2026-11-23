@@ -7,6 +7,7 @@ use grep_regex::RegexMatcher;
 use grep_searcher::Searcher;
 use grep_searcher::sinks::UTF8;
 use ignore::WalkBuilder;
+use opsis_folders::slashed;
 use rig_core::completion::ToolDefinition;
 use rig_core::message::{DocumentSourceKind, Image, ImageMediaType, ToolName, ToolResultContent};
 use serde_json::{Map, Value, json};
@@ -124,7 +125,7 @@ pub fn resolve(folder: &Path, path: &str) -> PathBuf {
 
 fn io_error(path: &Path) -> impl FnOnce(std::io::Error) -> ToolError + '_ {
     move |error| ToolError::Io {
-        path: path.display().to_string(),
+        path: slashed(path),
         error,
     }
 }
@@ -164,7 +165,7 @@ fn read(
         })]);
     }
     let text = String::from_utf8(bytes)
-        .map_err(|_| ToolError::Refused(format!("{} isn't text or a picture.", path.display())))?;
+        .map_err(|_| ToolError::Refused(format!("{} isn't text or a picture.", slashed(&path))))?;
     let offset = arguments
         .get("offset")
         .and_then(Value::as_u64)
@@ -187,7 +188,7 @@ fn write(folder: &Path, arguments: &Map<String, Value>) -> Result<String, ToolEr
     std::fs::write(&path, content).map_err(io_error(&path))?;
     Ok(format!(
         "Wrote {} ({} bytes).",
-        path.display(),
+        slashed(&path),
         content.len()
     ))
 }
@@ -224,7 +225,7 @@ fn edit(folder: &Path, arguments: &Map<String, Value>) -> Result<String, ToolErr
     )
     .map_err(ToolError::Refused)?;
     std::fs::write(&path, changed).map_err(io_error(&path))?;
-    Ok(format!("Edited {}.", path.display()))
+    Ok(format!("Edited {}.", slashed(&path)))
 }
 
 fn search_root(folder: &Path, arguments: &Map<String, Value>) -> PathBuf {
@@ -251,10 +252,7 @@ fn walk(root: &Path) -> impl Iterator<Item = PathBuf> {
 }
 
 fn shown(root: &Path, path: &Path) -> String {
-    path.strip_prefix(root)
-        .unwrap_or(path)
-        .display()
-        .to_string()
+    slashed(path.strip_prefix(root).unwrap_or(path))
 }
 
 fn glob(folder: &Path, arguments: &Map<String, Value>) -> Result<String, ToolError> {
@@ -296,7 +294,7 @@ fn grep(folder: &Path, arguments: &Map<String, Value>) -> Result<String, ToolErr
         if only.as_ref().is_some_and(|m| !m.is_match(&relative)) {
             continue;
         }
-        let name = relative.display().to_string();
+        let name = slashed(&relative);
         let searched = Searcher::new().search_path(
             &matcher,
             &path,

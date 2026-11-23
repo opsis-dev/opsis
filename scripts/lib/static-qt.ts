@@ -197,14 +197,11 @@ export function parseSetOutput(text: string): Record<string, string> {
   return Object.fromEntries(entries);
 }
 
-function msvcEnv(): NodeJS.ProcessEnv {
-  if (process.env.VCINSTALLDIR) return process.env;
+export function visualStudioFolder(): string {
   const programs = process.env["ProgramFiles(x86)"] ?? "C:\\Program Files (x86)";
   const vswhere = path.win32.join(programs, "Microsoft Visual Studio", "Installer", "vswhere.exe");
   if (!existsSync(vswhere))
-    throw new Error(
-      `Building Qt on Windows needs Visual Studio's C++ tools; ${vswhere} is missing.`,
-    );
+    throw new Error(`Building on Windows needs Visual Studio's C++ tools; ${vswhere} is missing.`);
   const install = execFileSync(
     vswhere,
     [
@@ -219,7 +216,12 @@ function msvcEnv(): NodeJS.ProcessEnv {
     { encoding: "utf8" },
   ).trim();
   if (!install) throw new Error("Visual Studio has no C++ tools for x64 installed.");
-  const vcvars = path.win32.join(install, "VC", "Auxiliary", "Build", "vcvars64.bat");
+  return install;
+}
+
+export function msvcEnv(): NodeJS.ProcessEnv {
+  if (process.env.VCINSTALLDIR) return process.env;
+  const vcvars = path.win32.join(visualStudioFolder(), "VC", "Auxiliary", "Build", "vcvars64.bat");
   const set = spawnSync("cmd.exe", ["/d", "/s", "/c", `""${vcvars}" >nul && set"`], {
     encoding: "utf8",
     windowsVerbatimArguments: true,

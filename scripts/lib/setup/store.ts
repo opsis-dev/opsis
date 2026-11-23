@@ -83,7 +83,7 @@ export async function unpackInto(archive: string, into: string): Promise<void> {
   rmSync(unpacking, { recursive: true, force: true });
   mkdirSync(unpacking, { recursive: true });
   if (archive.endsWith(".zip")) await unzipTo(archive, unpacking);
-  else execFileSync("tar", ["-xf", archive, "-C", unpacking], { stdio: "inherit" });
+  else execFileSync("cmake", ["-E", "tar", "xf", archive], { cwd: unpacking, stdio: "inherit" });
   const entries = readdirSync(unpacking);
   const [only] = entries;
   const root = entries.length === 1 && only ? path.join(unpacking, only) : unpacking;

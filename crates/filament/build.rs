@@ -4,7 +4,8 @@ use std::process::Command;
 const FILAMENT_ENV: &str = "OPSIS_FILAMENT";
 const SOURCES: [&str; 3] = ["opsis_filament.cc", "opsis_model.cc", "opsis_scene.cc"];
 const HEADERS: [&str; 2] = ["opsis_filament.h", "opsis_internal.h"];
-const LIBRARIES: [&str; 25] = [
+const LIBRARY_DIR: &str = "opsis";
+const LIBRARIES: [&str; 23] = [
     "gltfio_core",
     "uberarchive",
     "uberzlib",
@@ -16,8 +17,6 @@ const LIBRARIES: [&str; 25] = [
     "filament",
     "backend",
     "bluevk",
-    "bluegl",
-    "webgpu_dawn",
     "filabridge",
     "filaflat",
     "utils",
@@ -32,6 +31,8 @@ const LIBRARIES: [&str; 25] = [
     "zstd",
 ];
 const LINUX_SYSTEM: [&str; 4] = ["X11", "pthread", "dl", "m"];
+const MACOS_FRAMEWORKS: [&str; 5] = ["Cocoa", "QuartzCore", "Metal", "CoreVideo", "Foundation"];
+const WINDOWS_SYSTEM: [&str; 4] = ["Shlwapi", "ws2_32", "shell32", "user32"];
 
 fn filament_dir(manifest: &Path) -> PathBuf {
     if let Some(dir) = std::env::var_os(FILAMENT_ENV) {
@@ -52,13 +53,6 @@ fn filament_dir(manifest: &Path) -> PathBuf {
         },
         PathBuf::from,
     )
-}
-
-fn library_arch() -> &'static str {
-    match std::env::var("CARGO_CFG_TARGET_ARCH").as_deref() {
-        Ok("aarch64") => "aarch64",
-        _ => "x86_64",
-    }
 }
 
 fn compile_materials(manifest: &Path, matc: &Path, out: &Path) {
@@ -97,7 +91,9 @@ fn main() {
     let manifest = PathBuf::from(std::env::var_os("CARGO_MANIFEST_DIR").expect("the crate folder"));
     let out = PathBuf::from(std::env::var_os("OUT_DIR").expect("the build folder"));
     let filament = filament_dir(&manifest);
-    let matc = filament.join("bin").join("matc");
+    let matc = filament
+        .join("bin")
+        .join(format!("matc{}", std::env::consts::EXE_SUFFIX));
     compile_materials(&manifest, &matc, &out);
     let cpp = manifest.join("cpp");
     let mut build = cc::Build::new();
@@ -112,9 +108,10 @@ fn main() {
         build.file(cpp.join(source));
     }
     build.compile("opsis_filament");
-    let libraries = filament.join("lib").join(library_arch());
+    let libraries = filament.join("lib").join(LIBRARY_DIR);
     println!("cargo:rustc-link-search=native={}", libraries.display());
-    let linux = std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("linux");
+    let os = std::env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();
+    let linux = os == "linux";
     if linux {
         println!("cargo:rustc-link-arg=-Wl,--start-group");
     }
@@ -124,6 +121,16 @@ fn main() {
     if linux {
         println!("cargo:rustc-link-arg=-Wl,--end-group");
         for library in LINUX_SYSTEM {
+            println!("cargo:rustc-link-lib={library}");
+        }
+    }
+    if os == "macos" {
+        for framework in MACOS_FRAMEWORKS {
+            println!("cargo:rustc-link-lib=framework={framework}");
+        }
+    }
+    if os == "windows" {
+        for library in WINDOWS_SYSTEM {
             println!("cargo:rustc-link-lib={library}");
         }
     }

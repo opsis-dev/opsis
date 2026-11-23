@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use notify_debouncer_mini::notify::{self, RecommendedWatcher, RecursiveMode};
-use notify_debouncer_mini::{DebounceEventResult, Debouncer, new_debouncer};
+use notify_debouncer_mini::{DebounceEventResult, DebouncedEventBatch, Debouncer, new_debouncer};
 use opsis_compile::asset_ref::{file_version_key, stays_in_project};
 use opsis_engine::tools::shown;
 use opsis_types::project::{
@@ -22,12 +22,21 @@ fn real(dir: &Path) -> PathBuf {
     std::fs::canonicalize(dir).unwrap_or_else(|_| dir.to_path_buf())
 }
 
-fn changed_paths(dir: &Path, result: DebounceEventResult) -> Vec<PathBuf> {
+#[derive(Debug)]
+enum Changed {
+    Paths(Vec<PathBuf>),
+    Everything,
+}
+
+fn changed(dir: &Path, result: DebounceEventResult) -> Changed {
     match result {
-        Ok(events) => events.into_iter().map(|e| e.path).collect(),
+        Ok(DebouncedEventBatch::Events(events)) => {
+            Changed::Paths(events.into_iter().map(|e| e.path).collect())
+        }
+        Ok(_) => Changed::Everything,
         Err(error) => {
             log::warn!("watching {}: {error}", dir.display());
-            Vec::new()
+            Changed::Paths(Vec::new())
         }
     }
 }
@@ -46,9 +55,12 @@ pub fn watch_project(
     let folder = dir.to_path_buf();
     let mut announced = files.written_version(dir);
     let mut debouncer = new_debouncer(DEBOUNCE, move |result: DebounceEventResult| {
-        let touched = changed_paths(&folder, result)
-            .iter()
-            .any(|p| p.file_name().is_some_and(|n| n == WORKFLOW_FILE));
+        let touched = match changed(&folder, result) {
+            Changed::Everything => true,
+            Changed::Paths(paths) => paths
+                .iter()
+                .any(|p| p.file_name().is_some_and(|n| n == WORKFLOW_FILE)),
+        };
         let current = match touched.then(|| files.outside_version(&folder)) {
             Some(Ok(Some(current))) => current,
             Some(Err(error)) => return log::warn!("watching {}: {error}", folder.display()),
@@ -66,7 +78,7 @@ pub fn watch_project(
     })?;
     debouncer
         .watcher()
-        .watch(dir, RecursiveMode::NonRecursive)?;
+        .watch(&real(dir), RecursiveMode::NonRecursive)?;
     Ok(ProjectWatch {
         _debouncer: debouncer,
     })
@@ -110,11 +122,14 @@ impl LoadedFilesWatch {
         let real_dir = real(dir);
         let debouncer = new_debouncer(DEBOUNCE, move |result: DebounceEventResult| {
             let loaded = keys.lock().expect("loaded files").clone();
-            let changed: HashSet<String> = changed_paths(&folder, result)
-                .iter()
-                .filter_map(|p| to_posix_rel(&real_dir, p))
-                .filter(|key| loaded.contains_key(key))
-                .collect();
+            let changed: HashSet<String> = match changed(&folder, result) {
+                Changed::Everything => loaded.keys().cloned().collect(),
+                Changed::Paths(paths) => paths
+                    .iter()
+                    .filter_map(|p| to_posix_rel(&real_dir, p))
+                    .filter(|key| loaded.contains_key(key))
+                    .collect(),
+            };
             if changed.is_empty() {
                 return;
             }
@@ -136,7 +151,7 @@ impl LoadedFilesWatch {
         })?;
         Ok(Self {
             debouncer,
-            dir: dir.to_path_buf(),
+            dir: real(dir),
             loaded,
             folders: HashSet::new(),
         })

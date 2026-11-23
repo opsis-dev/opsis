@@ -1,4 +1,5 @@
 pub mod error;
+pub mod failed;
 pub mod feed;
 pub mod fetch;
 pub mod install;

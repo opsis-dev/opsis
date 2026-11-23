@@ -292,7 +292,7 @@ async fn render_variant(
     Ok(artifacts)
 }
 
-const SOFTWARE_VULKAN: &str = if cfg!(windows) {
+pub const SOFTWARE_VULKAN: &str = if cfg!(windows) {
     "vk_swiftshader.dll"
 } else if cfg!(target_os = "macos") {
     "libvk_swiftshader.dylib"

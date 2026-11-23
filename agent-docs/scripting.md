@@ -85,6 +85,7 @@ Lua scripts that drive the open project: the graph, the timeline, the mixer, run
   - A save still waiting when its script disappears from the list (renamed or deleted outside the app) or the project changes is dropped, so it never brings the old file back.
 - **Rename renames the open script's file** (`script_rename`, `ui/src/script_panel.rs` → `renamed`, `rename`): a bare name lands in `scripts/` with `.lua` added, an existing script is never overwritten, and the open script and its last saved text follow the new name.
 - **Delete moves the open script to the system trash after asking** (`script_delete`, `ui/src/script_panel.rs` → `discard`, the `trash` crate), and refuses while that script runs. The `views` test points the trash at its own folder through `XDG_DATA_HOME`.
+  - On macOS the file goes to the trash through `NSFileManager` (`trash_context`), not the Finder, which would need automation permission a runner or a sandboxed app doesn't have.
 - **With no scripts the list says so and the editor says to press New.**
 - **A change on disk reloads the open script only while the editor's text is the text last saved or read** (`ScriptEditing::reload`), from a watch on `scripts/`.
   - The watch reacts only to new, written, renamed and removed files (`changes_files`): `notify` also reports a file or folder being opened, and the panel reads both on every rebuild, so reacting to them would rebuild it every 300 ms and throw the script list back while it is being chosen.

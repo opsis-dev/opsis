@@ -50,3 +50,6 @@ trash.workspace = true
 proptest.workspace = true
 schemars.workspace = true
 tempfile.workspace = true
+
+[build-dependencies]
+embed-resource.workspace = true

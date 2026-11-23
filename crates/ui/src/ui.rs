@@ -18,7 +18,7 @@ use opsis_compile::timeline::flatten::BarThumbnail;
 use opsis_compile::timeline::view;
 use opsis_qt::{
     AboutView, AgentPanelView, BarView, BoundsView, BracketView, CatalogRowView, CategoryView,
-    Choice, CloseView, ColorView, EngineView, EventKind, FilmTiles, FontCatalogView,
+    Choice, CloseView, ColorView, EditorFont, EngineView, EventKind, FilmTiles, FontCatalogView,
     FontChoicesView, FontPickView, FontReviewView, FontRowView, GradientInfo, GraphView, Host,
     HostResult, InspectorView, InstalledFontView, KeyLineView, LicenceView, LoudnessView,
     MarkDrawnView, MarkPointsView, MenuSectionView, MeterView, MixerView, MorphPathView, MorphStep,
@@ -41,6 +41,7 @@ use opsis_stream::view::ViewInput;
 use opsis_types::actions::{MouseButton, Viewport};
 use opsis_types::edits::{EdgeEnds, NodePatch, WorkflowEdit};
 use opsis_types::events::RunTargets;
+use opsis_types::fonts::FontFormat;
 use opsis_types::project::OUT_DIR;
 use opsis_types::settings::{
     computer_threads, default_export_threads, export_threads, settings_book,
@@ -73,6 +74,24 @@ const BENCH_KINDS: [&str; 4] = [
 const BENCH_COLUMNS: u32 = 10;
 const BLANK_TEMPLATE: &str = "blank";
 const RECENT_LIMIT: usize = 10;
+const EDITOR_FONTS: [&str; 2] = [
+    "inter/inter-latin-wght-normal.woff2",
+    "jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+];
+
+fn editor_font(bundled: &std::path::Path, file: &str) -> Option<EditorFont> {
+    let packed = std::fs::read(bundled.join(file))
+        .inspect_err(|error| log::warn!("the editor font {file}: {error}"))
+        .ok()?;
+    let Some(bytes) = opsis_fonts::inspect::sfnt(FontFormat::Woff2, &packed) else {
+        log::warn!("the editor font {file} isn't a WOFF2 font");
+        return None;
+    };
+    Some(EditorFont {
+        file: file.to_owned(),
+        bytes: bytes.into_owned(),
+    })
+}
 
 pub struct Ui {
     session: Session,
@@ -802,14 +821,12 @@ impl Host for Ui {
         look::icon_svg(name, color, stroke)
     }
 
-    fn fonts_dir(&self) -> String {
-        self.state()
-            .paths
-            .public_dir
-            .join("fonts")
-            .join("bundled")
-            .to_string_lossy()
-            .into_owned()
+    fn editor_fonts(&self) -> Vec<EditorFont> {
+        let bundled = self.state().paths.public_dir.join("fonts").join("bundled");
+        EDITOR_FONTS
+            .iter()
+            .filter_map(|file| editor_font(&bundled, file))
+            .collect()
     }
 
     fn log(&self, line: &str) {

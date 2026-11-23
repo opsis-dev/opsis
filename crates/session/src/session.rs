@@ -113,7 +113,6 @@ impl Session {
 
     pub fn begin(&self) {
         crate::api::follow_setting(self);
-        #[cfg(unix)]
         crate::exit::close_on_signals(self);
         crate::engine::verify_on_start(self);
         crate::updates::begin(self);

@@ -158,6 +158,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(target_os = "linux")]
     fn reads_the_libraries_a_real_program_loads() {
         let linked = read_linked(Path::new("/usr/bin/true")).expect("an ELF program");
         assert!(

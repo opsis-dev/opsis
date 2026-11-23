@@ -31,17 +31,6 @@ export async function setupKddw(pins: Pins): Promise<Made> {
   return { dir, path: path.join(dir, "source") };
 }
 
-export async function setupFilament(pins: Pins): Promise<Made> {
-  const archive = pins.filament.archives[platformName()];
-  if (!archive)
-    throw new Error(`Filament ${pins.filament.version} isn't pinned for ${platformName()}.`);
-  const dir = await step("filament", recipeHash(["filament", archive]), async (into) => {
-    const file = await verifiedDownload(archive, downloadsDir());
-    await unpackInto(file, path.join(into, "filament"));
-  });
-  return { dir, path: path.join(dir, "filament") };
-}
-
 async function gunzipTo(archive: string, file: string): Promise<void> {
   await writeViaTemp(file, (temp) =>
     pipeline(createReadStream(archive), createGunzip(), createWriteStream(temp)),

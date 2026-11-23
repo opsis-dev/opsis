@@ -50,7 +50,7 @@ The app's one database, the settings held in memory, the keyring and the project
   - The sealed values are files in the project's `secrets` folder (`store/src/secrets.rs`), where `ensure_secrets_dir` writes a `.gitignore` of everything but itself when there is none.
   - With no secure store the app still starts: `AppState::keys` holds the error, and reading or saving a sign-in fails with it (`ProjectSignIns`).
 - **The keyring is made before the session starts (`start`), and every call to it during a run goes through `off_runtime` (`capture/src/take.rs`) onto a blocking thread**, because the Linux Secret Service store blocks inside `zbus` and panics on a runtime thread.
-  - `capture/tests/keyring_sign_in.rs` saves a sign-in through a real Secret Service from a run, so it is `#[ignore]`d and run by hand under its own `dbus-run-session` with `gnome-keyring-daemon --unlock --components=secrets`, and `XDG_RUNTIME_DIR` must be a short path: the daemon's control socket doesn't fit a long one and the store then waits two minutes before giving up.
+  - `capture/tests/keyring_sign_in.rs` saves a sign-in through a real Secret Service from a run, so it is `#[ignore]`d and run by hand under its own `dbus-run-session` with `gnome-keyring-daemon --unlock --components=secrets` given an empty line as the password (with no input at all it unlocks nothing and never creates the login keyring, so every store fails), and `XDG_RUNTIME_DIR` must be a short path: the daemon's control socket doesn't fit a long one and the store then waits two minutes before giving up.
 
 ### Projects folder
 

@@ -21,7 +21,8 @@ use crate::page_scripts::{FIT_PAGE_TO_SCALE, call};
 use crate::playwright::tables;
 use crate::still_layout::{Size, scaled_viewport};
 
-const HEADLESS_SWITCHES: [&str; 5] = [
+const HEADLESS_SWITCHES: [&str; 6] = [
+    "--enable-smooth-scrolling",
     "--enable-unsafe-swiftshader",
     "--headless",
     "--mute-audio",
@@ -437,9 +438,9 @@ impl Session {
     pub async fn set_color_scheme(&self, scheme: ColorScheme) -> Result<()> {
         let features = json!([
             { "name": "prefers-color-scheme", "value": color_scheme(scheme) },
-            { "name": "prefers-reduced-motion", "value": if self.reduce_motion { "reduce" } else { "" } },
-            { "name": "forced-colors", "value": "" },
-            { "name": "prefers-contrast", "value": "" },
+            { "name": "prefers-reduced-motion", "value": if self.reduce_motion { "reduce" } else { "no-preference" } },
+            { "name": "forced-colors", "value": "none" },
+            { "name": "prefers-contrast", "value": "no-preference" },
         ]);
         self.tab
             .send(

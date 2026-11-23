@@ -2,5 +2,13 @@
 <RCC version="1.0">
   <qresource prefix="/opsis">
     <file alias="logo.svg">../../../brand/logo.svg</file>
+    <file alias="icons/16.png">../../../brand/icons/16.png</file>
+    <file alias="icons/24.png">../../../brand/icons/24.png</file>
+    <file alias="icons/32.png">../../../brand/icons/32.png</file>
+    <file alias="icons/48.png">../../../brand/icons/48.png</file>
+    <file alias="icons/64.png">../../../brand/icons/64.png</file>
+    <file alias="icons/128.png">../../../brand/icons/128.png</file>
+    <file alias="icons/256.png">../../../brand/icons/256.png</file>
+    <file alias="icons/512.png">../../../brand/icons/512.png</file>
   </qresource>
 </RCC>

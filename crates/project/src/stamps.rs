@@ -37,7 +37,6 @@ pub fn file_stamps(project_dir: &Path, params: &Value) -> BTreeMap<String, Strin
 mod tests {
     use std::time::{Duration, SystemTime};
 
-    use filetime::{FileTime, set_file_mtime};
     use serde_json::json;
 
     use super::*;
@@ -51,11 +50,12 @@ mod tests {
         let params = json!({ "path": "assets/clip.mp4", "label": "Intro" });
         let before = file_stamps(dir.path(), &params);
         std::fs::write(&file, "second take").unwrap();
-        set_file_mtime(
-            &file,
-            FileTime::from_system_time(SystemTime::now() + Duration::from_secs(5)),
-        )
-        .unwrap();
+        std::fs::File::options()
+            .write(true)
+            .open(&file)
+            .unwrap()
+            .set_modified(SystemTime::now() + Duration::from_secs(5))
+            .unwrap();
         let after = file_stamps(dir.path(), &params);
         assert_eq!(before.keys().collect::<Vec<_>>(), ["assets/clip.mp4"]);
         assert_ne!(after, before);

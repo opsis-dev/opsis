@@ -216,6 +216,7 @@ fn shape(painter: &Painter<'_, '_, '_>, placed: &Placed, clip: &ClipPath) -> Opt
 fn svg_clip(painter: &mut Painter<'_, '_, '_>, placed: &Placed, document: String) {
     let b = placed.border_box;
     let base = placed.matrix.then(&Matrix::translation(b.x, b.y, 0.0));
+    let device = painter.placement();
     let Painter {
         surface, resources, ..
     } = painter;
@@ -229,6 +230,7 @@ fn svg_clip(painter: &mut Painter<'_, '_, '_>, placed: &Placed, document: String
     let mut svg = SvgPainter {
         surface,
         decode: &mut decode,
+        device,
     };
     match target.clip_path() {
         Some(clip) => svg.clip(clip, &base),

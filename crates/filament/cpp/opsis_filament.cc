@@ -25,6 +25,12 @@
 #include <string>
 #include <vector>
 
+#if defined(_WIN32)
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
 #include "opsis_internal.h"
 
 using filament::Camera;
@@ -51,6 +57,18 @@ constexpr int32_t kFailed = -1;
 constexpr uint32_t kVertexStride = 16;
 constexpr uint32_t kUvOffset = 8;
 
+void UseVulkanFolder() {
+#if defined(_WIN32)
+  constexpr DWORD kLongestPath = 32768;
+  std::vector<wchar_t> folder(kLongestPath);
+  const DWORD length = GetEnvironmentVariableW(L"OPSIS_VULKAN_FOLDER",
+                                               folder.data(), kLongestPath);
+  if (length > 0 && length < kLongestPath) {
+    SetDllDirectoryW(folder.data());
+  }
+#endif
+}
+
 Engine::Backend backend_of(int32_t backend) {
   switch (backend) {
     case 1:
@@ -76,6 +94,7 @@ int32_t backend_code(Engine::Backend backend) {
 }
 
 extern "C" OpsisFilament* opsis_filament_new(int32_t backend) {
+  UseVulkanFolder();
   Engine* engine = Engine::Builder().backend(backend_of(backend)).build();
   if (engine == nullptr) {
     return nullptr;

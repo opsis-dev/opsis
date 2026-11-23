@@ -15,14 +15,7 @@ const ZIG_TARGETS: Record<string, string> = {
 };
 const QT_MODULES = ["qtbase", "qtsvg"];
 const KDDW_REPOSITORY = "KDAB/KDDockWidgets";
-const FILAMENT_REPOSITORY = "google/filament";
-const FILAMENT_SUFFIXES: Record<string, string> = {
-  [platformName("linux", "x64")]: "linux",
-  [platformName("linux", "arm64")]: "arm-linux",
-  [platformName("darwin", "arm64")]: "mac",
-  [platformName("darwin", "x64")]: "mac",
-  [platformName("win32", "x64")]: "windows",
-};
+const FILAMENT_REPOSITORY = "https://github.com/google/filament.git";
 const FFMPEG_REPOSITORY = "eugeneware/ffmpeg-static";
 const FFMPEG_TARGETS = [
   ["x86_64-unknown-linux-gnu", "linux-x64"],
@@ -40,12 +33,6 @@ const zigArchiveSchema = z.object({
   size: z.union([z.string(), z.number()]),
 });
 const npmVersionSchema = z.object({ version: z.string(), dist: z.object({ tarball: z.string() }) });
-const assetSchema = z.object({
-  name: z.string(),
-  size: z.number(),
-  digest: z.string(),
-  browser_download_url: z.string(),
-});
 
 async function pinZig(pins: Pins, version: string): Promise<void> {
   const index = zigIndexSchema.parse(await (await fetchOk(ZIG_INDEX)).json());
@@ -78,30 +65,22 @@ async function pinKddw(pins: Pins, version: string): Promise<void> {
   pins.kddw = { version, ...(await pinned(url, downloadsDir())) };
 }
 
-function releaseAssets(repository: string, tag: string): z.infer<typeof assetSchema>[] {
-  const text = execFileSync(
-    "gh",
-    ["api", `repos/${repository}/releases/tags/${tag}`, "-q", ".assets"],
-    {
-      encoding: "utf8",
-    },
-  );
-  return z.array(assetSchema).parse(JSON.parse(text));
+export function tagCommit(listed: string, tag: string): string | null {
+  const lines = listed.split("\n").map((line) => line.trim().split(/\s+/));
+  const peeled = lines.find(([, ref]) => ref === `refs/tags/${tag}^{}`);
+  const plain = lines.find(([, ref]) => ref === `refs/tags/${tag}`);
+  return (peeled ?? plain)?.[0] ?? null;
 }
 
-function pinFilament(pins: Pins, version: string): void {
-  const assets = releaseAssets(FILAMENT_REPOSITORY, version);
-  const archives: Record<string, Pinned> = {};
-  for (const [platform, suffix] of Object.entries(FILAMENT_SUFFIXES)) {
-    const asset = assets.find((a) => a.name === `filament-${version}-${suffix}.tgz`);
-    if (!asset) throw new Error(`Filament ${version} has no ${suffix} archive.`);
-    archives[platform] = {
-      url: asset.browser_download_url,
-      size: asset.size,
-      sha256: asset.digest.replace(/^sha256:/, ""),
-    };
-  }
-  pins.filament = { version, archives };
+export function pinFilament(pins: Pins, version: string): void {
+  const listed = execFileSync(
+    "git",
+    ["ls-remote", FILAMENT_REPOSITORY, `refs/tags/${version}`, `refs/tags/${version}^{}`],
+    { encoding: "utf8" },
+  );
+  const commit = tagCommit(listed, version);
+  if (!commit) throw new Error(`${FILAMENT_REPOSITORY} has no tag ${version}.`);
+  pins.filament = { repo: FILAMENT_REPOSITORY, version, commit };
 }
 
 async function pinFfmpeg(pins: Pins, release: string): Promise<void> {

@@ -2,14 +2,14 @@ use std::fmt;
 
 use crate::bridge::ffi::{
     self, AboutView, AgentPanelView, BarView, BoundsView, BracketView, CategoryView, Choice,
-    CloseView, ColorView, DialogKind, EngineView, EventKind, FilmTiles, FontCatalogView,
-    FontChoicesView, FontReviewView, FontRowView, GradientInfo, GraphView, InspectorView,
-    InstalledFontView, KeyLineView, LicenceView, LiveView, LoudnessView, MarkDrawnView,
-    MarkPointsView, MenuSectionView, MeterView, MixerView, MorphPathView, MorphStep, MotionInfo,
-    NodeMove, PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView, RemovalView,
-    ReplayView, RulerStep, RunPanelView, ScreenArea, ScriptLookView, ScriptView, SettingsView,
-    SnapView, StreamViewState, SyntaxRangeView, TemplateView, TerminalWindowView, TextChangeView,
-    TextToken, TimelineView, TraceView, UpdateView, VariableView, WindowPlacement,
+    CloseView, ColorView, DialogKind, EditorFont, EngineView, EventKind, FilmTiles,
+    FontCatalogView, FontChoicesView, FontReviewView, FontRowView, GradientInfo, GraphView,
+    InspectorView, InstalledFontView, KeyLineView, LicenceView, LiveView, LoudnessView,
+    MarkDrawnView, MarkPointsView, MenuSectionView, MeterView, MixerView, MorphPathView, MorphStep,
+    MotionInfo, NodeMove, PaletteEntry, PlayerView, PoseView, ProjectEntry, ProjectView,
+    RemovalView, ReplayView, RulerStep, RunPanelView, ScreenArea, ScriptLookView, ScriptView,
+    SettingsView, SnapView, StreamViewState, SyntaxRangeView, TemplateView, TerminalWindowView,
+    TextChangeView, TextToken, TimelineView, TraceView, UpdateView, VariableView, WindowPlacement,
 };
 use crate::frame::FrameRef;
 
@@ -20,7 +20,7 @@ pub trait Host {
     fn style_sheet(&self) -> String;
     fn token(&self, name: &str) -> String;
     fn icon_svg(&self, name: &str, color: &str, stroke: f64) -> String;
-    fn fonts_dir(&self) -> String;
+    fn editor_fonts(&self) -> Vec<EditorFont>;
     fn log(&self, line: &str);
     fn answer_dialog(&self, id: u64, paths: Vec<String>);
     fn set_active(&self, active: bool);
@@ -399,8 +399,8 @@ impl Session {
         self.0.icon_svg(name, color, stroke)
     }
 
-    pub(crate) fn fonts_dir(&self) -> String {
-        self.0.fonts_dir()
+    pub(crate) fn editor_fonts(&self) -> Vec<EditorFont> {
+        self.0.editor_fonts()
     }
 
     pub(crate) fn log(&self, line: &str) {

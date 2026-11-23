@@ -181,7 +181,7 @@ pub fn make_executable(file: &Path) -> std::io::Result<()> {
 }
 
 #[cfg(not(unix))]
-pub fn make_executable(_file: &Path) -> std::io::Result<()> {
+pub const fn make_executable(_file: &Path) -> std::io::Result<()> {
     Ok(())
 }
 

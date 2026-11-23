@@ -10,6 +10,7 @@ use opsis_media::executors::{
     thumbnail_time,
 };
 use opsis_media::ffmpeg::{FramePipe, MediaTools, RunOptions, ToolError, ToolFuture};
+use opsis_media::grade::filter_path;
 use opsis_probe::{AudioStream, Probe, VideoStream};
 use opsis_runner::context::{ExecError, ExecutorContext, ExecutorOutput, ResultStore, RunEnv};
 use opsis_types::numbers;
@@ -20,6 +21,18 @@ use pretty_assertions::assert_eq;
 use serde_json::{Map, Value, json};
 use tokio_util::sync::CancellationToken;
 
+fn slashed(text: &str) -> String {
+    if std::path::MAIN_SEPARATOR == '/' {
+        text.to_owned()
+    } else {
+        text.replace(std::path::MAIN_SEPARATOR, "/")
+    }
+}
+
+fn slashed_all(args: &[String]) -> Vec<String> {
+    args.iter().map(|arg| slashed(arg)).collect()
+}
+
 struct FakeTools {
     probe: Probe,
     ran: Mutex<Vec<Vec<String>>>,
@@ -27,7 +40,7 @@ struct FakeTools {
 
 impl MediaTools for FakeTools {
     fn run<'a>(&'a self, args: &'a [String], _: RunOptions<'a>) -> ToolFuture<'a, ()> {
-        self.ran.lock().unwrap().push(args.to_vec());
+        self.ran.lock().unwrap().push(slashed_all(args));
         Box::pin(async { Ok(()) })
     }
 
@@ -37,7 +50,7 @@ impl MediaTools for FakeTools {
     }
 
     fn pipe(&self, args: &[String], _: Option<CancellationToken>) -> Result<FramePipe, ToolError> {
-        self.ran.lock().unwrap().push(args.to_vec());
+        self.ran.lock().unwrap().push(slashed_all(args));
         Ok(FramePipe {
             stdin: Box::pin(tokio::io::sink()),
             done: Box::pin(async { Ok(()) }),
@@ -314,16 +327,12 @@ async fn apply_grade_writes_one_pass_with_the_grade_graph_the_picture_format_and
     )
     .await;
     assert!(result.is_ok());
-    let film = dir
-        .path()
-        .join("assets/film.mp4")
-        .to_string_lossy()
-        .into_owned();
-    let graded = dir
-        .path()
-        .join(".opsis/cache/h/graded.mp4")
-        .to_string_lossy()
-        .into_owned();
+    let film = slashed(&dir.path().join("assets/film.mp4").to_string_lossy());
+    let graded = slashed(
+        &dir.path()
+            .join(".opsis/cache/h/graded.mp4")
+            .to_string_lossy(),
+    );
     let expected = [
         "-i",
         &film,
@@ -816,7 +825,7 @@ async fn removes_noise_the_learned_way_and_puts_the_cleaned_voice_back_under_the
     )
     .await;
     result.unwrap();
-    let at = |path: &str| dir.path().join(path).to_string_lossy().into_owned();
+    let at = |path: &str| slashed(&dir.path().join(path).to_string_lossy());
     assert_eq!(
         ran[1],
         [
@@ -1015,12 +1024,13 @@ async fn writes_the_room_beside_the_result_and_convolves_with_it() {
     let room = dir.path().join(".opsis/cache/h/room.wav");
     let spec = hound::WavReader::open(&room).unwrap().spec();
     assert_eq!((spec.channels, spec.sample_rate), (2, 48000));
+    let written = dir.path().join(".opsis/cache/h").join("room.wav");
     assert_eq!(
         ran[0][3],
-        format!(
+        slashed(&format!(
             "amovie=filename={}[room];[in]asplit[dry][wet];[wet][room]afir=gtype=none:irnorm=-1[effect];[dry][effect]amix=inputs=2:weights='0.75 0.25':normalize=0:duration=first[out]",
-            room.to_string_lossy()
-        )
+            filter_path(&written.to_string_lossy())
+        ))
     );
 }
 

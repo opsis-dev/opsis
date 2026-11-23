@@ -571,7 +571,8 @@ export fn opsis_vt_encode_key(
         }
     }
     var writer: std.Io.Writer = .fixed(out[0..cap]);
-    const opts: input.KeyEncodeOptions = .fromTerminal(&self.terminal);
+    var opts: input.KeyEncodeOptions = .fromTerminal(&self.terminal);
+    opts.macos_option_as_alt = .true;
     input.encodeKey(&writer, event, opts) catch return Encoded.too_small;
     return written(&writer);
 }

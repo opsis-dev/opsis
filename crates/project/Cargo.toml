@@ -24,7 +24,6 @@ thiserror.workspace = true
 url.workspace = true
 
 [dev-dependencies]
-filetime.workspace = true
 indexmap.workspace = true
 tempfile.workspace = true
 

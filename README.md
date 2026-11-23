@@ -101,7 +101,7 @@ Ready-made copies of every sample are in [`examples/`](./examples) (**Open proje
 
 ## 📦 Building
 
-`bun run make` stages everything the app ships, builds the release binary against a static Qt and packages it into `~/.cache/opsis-dev/build`: the deb on Linux, the app and DMG on macOS, NSIS and MSI on Windows. Pick others with `bun run make -- --formats deb,rpm,appimage,pacman`.
+`bun run make` stages everything the app ships, builds the release binary against a static Qt and packages it into `~/.cache/opsis-dev/build`: the deb on Linux, the app and DMG on macOS, the NSIS installer on Windows. Pick others with `bun run make -- --formats deb,rpm,appimage,pacman`.
 
 - The release binary and its packages build on your machine. On Linux the rpm, the pacman package and the AppImage need `rpm`, `makepkg`, `pacman-package-manager`, `libarchive-tools` and `patchelf`.
 - The Rust build uses 8 jobs unless `CARGO_BUILD_JOBS` says otherwise.

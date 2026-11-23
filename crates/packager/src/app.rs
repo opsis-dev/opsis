@@ -87,6 +87,10 @@ impl AppFiles {
         Ok(files)
     }
 
+    pub fn windows_icon(&self) -> PathBuf {
+        self.root.join("brand").join("icons").join("opsis.ico")
+    }
+
     pub fn icons(&self) -> Vec<(u32, PathBuf)> {
         ICON_SIZES
             .iter()

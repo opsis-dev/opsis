@@ -313,6 +313,7 @@ pub fn draw_layer(
                 }
                 LayerImage::Url(AssetRef(source)) if Resources::is_svg(source) => {
                     let matrix = placed.matrix;
+                    let device = painter.placement();
                     let Painter {
                         surface, resources, ..
                     } = painter;
@@ -330,6 +331,7 @@ pub fn draw_layer(
                         SvgPainter {
                             surface,
                             decode: &mut decode,
+                            device,
                         }
                         .group(tree.root(), &base);
                         surface.restore_to(inner);
@@ -697,6 +699,7 @@ pub fn draw_replaced(
     };
     let text = placed.text.clone();
     let units_context = painter.context;
+    let device = painter.placement();
     let Painter {
         surface, resources, ..
     } = painter;
@@ -744,6 +747,7 @@ pub fn draw_replaced(
         SvgPainter {
             surface,
             decode: &mut decode,
+            device,
         }
         .group(tree.root(), &base);
         surface.restore_to(saved);
